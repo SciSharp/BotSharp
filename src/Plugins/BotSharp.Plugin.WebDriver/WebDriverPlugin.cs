@@ -23,7 +23,7 @@ public class WebDriverPlugin : IBotSharpPlugin
             var settingService = provider.GetRequiredService<ISettingService>();
             return settings;
         });
-
+        services.AddSingleton<WebBrowsingSettings>();
         services.AddScoped<PlaywrightWebDriver>();
         services.AddSingleton<PlaywrightInstance>();
 

@@ -31,7 +31,7 @@ public class OpenBrowserFn : IFunctionCallback
         var msgInfo = new MessageInfo
         {
             AgentId = message.CurrentAgentId,
-            ContextId = convService.ConversationId,
+            ContextId = webDriverService.GetMessageContext(message),
             MessageId = message.MessageId
         };
         var result = await _browser.LaunchBrowser(msgInfo, new BrowserActionArgs
@@ -58,7 +58,7 @@ public class OpenBrowserFn : IFunctionCallback
         message.Data = await _browser.ScreenshotAsync(new MessageInfo
         {
             AgentId = message.CurrentAgentId,
-            ContextId = convService.ConversationId,
+            ContextId = webDriverService.GetMessageContext(message),
             MessageId = message.MessageId
         }, path);
 

@@ -22,17 +22,17 @@ public class UtilWebLocateElementFn : IFunctionCallback
         locatorArgs.Highlight = true;
 
         var browser = _services.GetRequiredService<IWebBrowser>();
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
         var msg = new MessageInfo
         {
             AgentId = message.CurrentAgentId,
             MessageId = message.MessageId,
-            ContextId = message.CurrentAgentId,
+            ContextId = webDriverService.GetMessageContext(message)
         };
         var result = await browser.LocateElement(msg, locatorArgs);
 
         message.Content = $"Locating element {(result.IsSuccess ? "success" : "failed")}";
 
-        var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await browser.ScreenshotAsync(msg, path);

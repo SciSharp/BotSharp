@@ -35,17 +35,17 @@ public class UtilWebActionOnElementFn : IFunctionCallback
         var conv = _services.GetRequiredService<IConversationService>();
 
         var browser = _services.GetRequiredService<IWebBrowser>();
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
         var msg = new MessageInfo
         {
             AgentId = message.CurrentAgentId,
             MessageId = message.MessageId,
-            ContextId = message.CurrentAgentId,
+            ContextId = webDriverService.GetMessageContext(message),
         };
         var result = await browser.ActionOnElement(msg, locatorArgs, actionArgs);
 
         message.Content = $"{actionArgs.Action} executed {(result.IsSuccess ? "success" : "failed")}";
 
-        var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await browser.ScreenshotAsync(msg, path);
