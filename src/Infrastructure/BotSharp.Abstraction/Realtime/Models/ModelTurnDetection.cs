@@ -8,3 +8,9 @@ public class ModelTurnDetection
 
     public float Threshold { get; set; } = 0.8f;
 }
+
+public class AudioTranscription
+{
+    public string Model { get; set; } = "whisper-1";
+    public string Language { get; set; } = "en";
+}

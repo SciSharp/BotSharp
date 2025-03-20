@@ -317,7 +317,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var words = new List<string>();
         HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
 
-        var realitmeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
+        var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
         var sessionUpdate = new
         {
@@ -328,23 +328,23 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 OutputAudioFormat = "g711_ulaw",
                 InputAudioTranscription = new InputAudioTranscription
                 {
-                    Model = "whisper-1",
-                    Language = "en",
+                    Model = realtimeModelSettings.InputAudioTranscription.Model,
+                    Language = realtimeModelSettings.InputAudioTranscription.Language,
                     Prompt = string.Join(", ", words.Select(x => x.ToLower().Trim()).Distinct()).SubstringMax(1024)
                 },
-                Voice = "alloy",
+                Voice = realtimeModelSettings.Voice,
                 Instructions = instruction,
                 ToolChoice = "auto",
                 Tools = functions,
                 Modalities = [ "text", "audio" ],
-                Temperature = Math.Max(options.Temperature ?? realitmeModelSettings.Temperature, 0.6f),
-                MaxResponseOutputTokens = realitmeModelSettings.MaxResponseOutputTokens,
+                Temperature = Math.Max(options.Temperature ?? realtimeModelSettings.Temperature, 0.6f),
+                MaxResponseOutputTokens = realtimeModelSettings.MaxResponseOutputTokens,
                 TurnDetection = new RealtimeSessionTurnDetection
                 {
                     InterruptResponse = interruptResponse,
-                    Threshold = realitmeModelSettings.TurnDetection.Threshold,
-                    PrefixPadding = realitmeModelSettings.TurnDetection.PrefixPadding,
-                    SilenceDuration = realitmeModelSettings.TurnDetection.SilenceDuration
+                    Threshold = realtimeModelSettings.TurnDetection.Threshold,
+                    PrefixPadding = realtimeModelSettings.TurnDetection.PrefixPadding,
+                    SilenceDuration = realtimeModelSettings.TurnDetection.SilenceDuration
                 }
             }
         };

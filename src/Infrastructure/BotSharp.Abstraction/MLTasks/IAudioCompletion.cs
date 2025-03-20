@@ -9,7 +9,7 @@ public interface IAudioCompletion
     string Model { get; }
 
     Task<string> GenerateTextFromAudioAsync(Stream audio, string audioFileName, string? text = null);
-    Task<BinaryData> GenerateAudioFromTextAsync(string text);
+    Task<BinaryData> GenerateAudioFromTextAsync(string text, string? voice = "alloy", string? format = "mp3");
 
     void SetModelName(string model);
 }

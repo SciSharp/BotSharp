@@ -7,6 +7,7 @@ using BotSharp.Plugin.Twilio.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Twilio.Http;
+using Task = System.Threading.Tasks.Task;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
 
@@ -234,103 +235,7 @@ public class TwilioVoiceController : TwilioController
         }
         else if (reply == null)
         {
-            var indication = await sessionManager.GetReplyIndicationAsync(request.ConversationId, request.SeqNum);
-            if (indication != null)
-            {
-                _logger.LogWarning($"Indication: {indication}");
-                var speechPaths = new List<string>();
-                int segIndex = 0;
-                foreach (var text in indication.Split('|'))
-                {
-                    var seg = text.Trim();
-                    if (seg.StartsWith('#'))
-                    {
-                        speechPaths.Add($"twilio/{seg.Substring(1)}.mp3");
-                    }
-                    else
-                    {
-                        var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
-                        var data = await completion.GenerateAudioFromTextAsync(seg);
-
-                        // add hold-on
-                        var holdOnIndex = Random.Shared.Next(1, 10);
-                        if (holdOnIndex < 7)
-                        {
-                            speechPaths.Add($"twilio/hold-on-short-{holdOnIndex}.mp3");
-                        }
-
-                        var fileName = $"indication_{request.SeqNum}_{segIndex}.mp3";
-                        fileStorage.SaveSpeechFile(request.ConversationId, fileName, data);
-                        speechPaths.Add($"twilio/voice/speeches/{request.ConversationId}/{fileName}");
-
-                        // add typing
-                        var typingIndex = Random.Shared.Next(1, 7);
-                        if (typingIndex < 4)
-                        {
-                            speechPaths.Add($"twilio/typing-{typingIndex}.mp3");
-                        }
-                        segIndex++;
-                    }
-                }
-
-                var instruction = new ConversationalVoiceResponse
-                {
-                    ConversationId = request.ConversationId,
-                    SpeechPaths = speechPaths,
-                    CallbackPath = $"twilio/voice/reply/{request.SeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
-                    ActionOnEmptyResult = true
-                };
-
-                await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
-                {
-                    await hook.OnIndicationGenerated(request, instruction);
-                }, new HookEmitOption
-                {
-                    OnlyOnce = true
-                });
-
-                response = twilio.ReturnInstructions(instruction);
-
-                await sessionManager.RemoveReplyIndicationAsync(request.ConversationId, request.SeqNum);
-            }
-            else
-            {
-                var instructions = new List<string>
-                {
-                };
-
-                // add hold-on
-                var holdOnIndex = Random.Shared.Next(1, 15);
-                if (holdOnIndex < 9)
-                {
-                    instructions.Add($"twilio/hold-on-long-{holdOnIndex}.mp3");
-                }
-
-                // add typing
-                var typingIndex = Random.Shared.Next(1, 7);
-                if (typingIndex < 4)
-                {
-                    instructions.Add($"twilio/typing-{typingIndex}.mp3");
-                }
-
-                var instruction = new ConversationalVoiceResponse
-                {
-                    ConversationId = request.ConversationId,
-                    SpeechPaths = instructions,
-                    CallbackPath = $"twilio/voice/reply/{request.SeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
-                    ActionOnEmptyResult = true
-                };
-
-                await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
-                {
-                    await hook.OnWaitingAgentResponse(request, instruction);
-                }, new HookEmitOption
-                {
-                    OnlyOnce = true
-                });
-
-                response = twilio.ReturnInstructions(instruction);
-            }
+            response = await WaitingForAiResponse(request);
         }
         else
         {
@@ -382,6 +287,106 @@ public class TwilioVoiceController : TwilioController
         }
 
         return TwiML(response);
+    }
+
+    private async Task<VoiceResponse> WaitingForAiResponse(ConversationalVoiceRequest request)
+    {
+        VoiceResponse response;
+        var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var twilio = _services.GetRequiredService<TwilioService>();
+
+        var indication = await sessionManager.GetReplyIndicationAsync(request.ConversationId, request.SeqNum);
+        if (indication != null)
+        {
+            _logger.LogWarning($"Indication: {indication}");
+            var speechPaths = new List<string>();
+            foreach (var text in indication.Split('|'))
+            {
+                var seg = text.Trim();
+                if (seg.StartsWith('#'))
+                {
+                    speechPaths.Add($"twilio/{seg.Substring(1)}.mp3");
+                }
+                else
+                {
+                    var hash = Utilities.HashTextMd5(seg);
+                    var fileName = $"indication_{hash}.mp3";
+
+                    var existing = fileStorage.GetSpeechFile(request.ConversationId, fileName);
+                    if (existing == BinaryData.Empty)
+                    {
+                        var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
+                        var data = await completion.GenerateAudioFromTextAsync(seg);
+                        fileStorage.SaveSpeechFile(request.ConversationId, fileName, data);
+                    }
+
+                    speechPaths.Add($"twilio/voice/speeches/{request.ConversationId}/{fileName}");
+                }
+            }
+
+            var instruction = new ConversationalVoiceResponse
+            {
+                ConversationId = request.ConversationId,
+                SpeechPaths = speechPaths,
+                CallbackPath = $"twilio/voice/reply/{request.SeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
+                ActionOnEmptyResult = true
+            };
+
+            await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
+            {
+                await hook.OnIndicationGenerated(request, instruction);
+            }, new HookEmitOption
+            {
+                OnlyOnce = true
+            });
+
+            response = twilio.ReturnInstructions(instruction);
+
+            await sessionManager.RemoveReplyIndicationAsync(request.ConversationId, request.SeqNum);
+        }
+        else
+        {
+            var speechPaths = new List<string>();
+
+            // add hold-on
+            var holdOnIndex = Random.Shared.Next(1, 7);
+            if (request.SeqNum > 0 && request.AIResponseWaitTime > 0)
+            {
+                speechPaths.Add($"twilio/hold-on-short-{holdOnIndex}.mp3");
+            }
+
+            // add typing
+            if (request.SeqNum == 0 && request.AIResponseWaitTime == 0)
+            {
+                speechPaths.Add($"twilio/typing-2.mp3");
+            }
+            var typingIndex = Random.Shared.Next(1, 9);
+            if (request.SeqNum > 0 && request.AIResponseWaitTime > 0 && typingIndex < 4)
+            {
+                speechPaths.Add($"twilio/typing-{typingIndex}.mp3");
+            }
+
+            var instruction = new ConversationalVoiceResponse
+            {
+                ConversationId = request.ConversationId,
+                SpeechPaths = speechPaths,
+                CallbackPath = $"twilio/voice/reply/{request.SeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
+                ActionOnEmptyResult = true
+            };
+
+            await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
+            {
+                await hook.OnWaitingAgentResponse(request, instruction);
+            }, new HookEmitOption
+            {
+                OnlyOnce = true
+            });
+
+            response = twilio.ReturnInstructions(instruction);
+        }
+
+        return response;
     }
 
     [ValidateRequest]
