@@ -16,4 +16,5 @@ public class StateConst
 
     public const string SUB_CONVERSATION_ID = "sub_conversation_id";
     public const string ORIGIN_CONVERSATION_ID = "origin_conversation_id";
+    public const string WEB_DRIVER_TASK_ID = "web_driver_task_id";
 }
