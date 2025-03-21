@@ -1,5 +1,3 @@
-using OpenAI.Audio;
-
 namespace BotSharp.Plugin.OpenAI.Providers.Audio;
 
 public partial class AudioCompletionProvider : IAudioCompletion
