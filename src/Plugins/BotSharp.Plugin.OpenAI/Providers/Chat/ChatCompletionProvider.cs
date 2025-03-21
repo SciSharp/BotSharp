@@ -84,7 +84,7 @@ public class ChatCompletionProvider : IChatCompletion
                 Provider = Provider,
                 Model = _model,
                 PromptCount = response.Value?.Usage?.InputTokenCount ?? 0,
-                CachedTokenCount = response.Value?.Usage?.InputTokenDetails?.CachedTokenCount ?? 0,
+                CachedPromptCount = response.Value?.Usage?.InputTokenDetails?.CachedTokenCount ?? 0,
                 CompletionCount = response.Value?.Usage?.OutputTokenCount ?? 0
             });
         }
