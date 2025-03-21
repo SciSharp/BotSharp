@@ -62,8 +62,8 @@ public class OutboundPhoneCallFn : IFunctionCallback
         states.SetState(StateConst.SUB_CONVERSATION_ID, newConversationId);
 
         var processUrl = $"{_twilioSetting.CallbackHost}/twilio";
-        var statusUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/status?conversation-id={newConversationId}";
-        var recordingStatusUrl = $"{_twilioSetting.CallbackHost}/twilio/recording/status?conversation-id={newConversationId}";
+        var statusUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/status?agent-id={message.CurrentAgentId}&conversation-id={newConversationId}";
+        var recordingStatusUrl = $"{_twilioSetting.CallbackHost}/twilio/recording/status?agent-id={message.CurrentAgentId}&conversation-id={newConversationId}";
 
         // Generate initial assistant audio
         string initAudioFile = null;
@@ -94,7 +94,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
             processUrl += "/voice/init-outbound-call";
         }
 
-        processUrl += $"?conversation-id={newConversationId}";
+        processUrl += $"?agent-id={message.CurrentAgentId}&conversation-id={newConversationId}";
         if (!string.IsNullOrEmpty(initAudioFile))
         {
             processUrl += $"&init-audio-file={initAudioFile}";
@@ -110,7 +110,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
             machineDetection: _twilioSetting.MachineDetection,
             machineDetectionSilenceTimeout: _twilioSetting.MachineDetectionSilenceTimeout,
             record: _twilioSetting.RecordingEnabled,
-            recordingStatusCallback: $"{_twilioSetting.CallbackHost}/twilio/record/status?conversation-id={newConversationId}");
+            recordingStatusCallback: $"{_twilioSetting.CallbackHost}/twilio/record/status?agent-id={message.CurrentAgentId}&conversation-id={newConversationId}");
 
         var convService = _services.GetRequiredService<IConversationService>();
         var routing = _services.GetRequiredService<IRoutingContext>();
@@ -128,7 +128,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
         string entryAgentId, 
         string originConversationId, 
         string newConversationId,
-        CallResource resource)
+        CallResource call)
     {
         // new scope service for isolated conversation
         using var scope = _services.CreateScope();
@@ -141,7 +141,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
             Id = newConversationId,
             AgentId = entryAgentId,
             Channel = ConversationChannel.Phone,
-            ChannelId = resource.Sid,
+            ChannelId = call.Sid,
             Title = args.InitialMessage
         });
 
@@ -160,7 +160,10 @@ public class OutboundPhoneCallFn : IFunctionCallback
         convService.SetConversationId(newConversationId, 
         [
             new MessageState(StateConst.ORIGIN_CONVERSATION_ID, originConversationId),
-            new MessageState("phone_number", resource.To)
+            new MessageState("phone_from", call.From),
+            new MessageState("phone_direction", call.Direction),
+            new MessageState("phone_number", call.To),
+            new MessageState("twilio_call_sid", call.Sid)
         ]);
         convService.SaveStates();
     }

@@ -47,29 +47,6 @@ public class TwilioService
         return token.ToJwt();
     }
 
-    public VoiceResponse ReturnInstructions(string message)
-    {
-        var twilioSetting = _services.GetRequiredService<TwilioSetting>();
-
-        var response = new VoiceResponse();
-        var gather = new Gather()
-        {
-            Input = new List<Gather.InputEnum>()
-            {
-                Gather.InputEnum.Speech,
-                Gather.InputEnum.Dtmf
-            },
-            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}"),
-            Enhanced = true,
-            SpeechModel = Gather.SpeechModelEnum.PhoneCall,
-            SpeechTimeout = "auto"
-        };
-
-        gather.Say(message);
-        response.Append(gather);
-        return response;
-    }
-
     public VoiceResponse ReturnInstructions(ConversationalVoiceResponse conversationalVoiceResponse)
     {
         var response = new VoiceResponse();
@@ -103,19 +80,13 @@ public class TwilioService
     public VoiceResponse ReturnNoninterruptedInstructions(ConversationalVoiceResponse voiceResponse)
     {
         var response = new VoiceResponse();
-
+        var conversationId = voiceResponse.ConversationId;
         if (voiceResponse.SpeechPaths != null && voiceResponse.SpeechPaths.Any())
         {
             foreach (var speechPath in voiceResponse.SpeechPaths)
             {
-                if (speechPath.StartsWith(_settings.CallbackHost))
-                {
-                    response.Play(new Uri(speechPath));
-                }
-                else
-                {
-                    response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
-                }
+                var uri = GetSpeechPath(conversationId, speechPath);
+                response.Play(new Uri(uri));
             }
         }
 
@@ -205,7 +176,7 @@ public class TwilioService
                 Gather.InputEnum.Speech,
                 Gather.InputEnum.Dtmf
             },
-            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}"),
+            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/"),
             ActionOnEmptyResult = true
         };
 

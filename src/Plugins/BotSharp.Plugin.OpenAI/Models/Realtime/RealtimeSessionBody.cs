@@ -48,6 +48,9 @@ public class RealtimeSessionBody
 
     [JsonPropertyName("turn_detection")]
     public RealtimeSessionTurnDetection? TurnDetection { get; set; } = new();
+
+    [JsonPropertyName("input_audio_noise_reduction")]
+    public InputAudioNoiseReduction InputAudioNoiseReduction { get; set; } = new();
 }
 
 public class RealtimeSessionTurnDetection
@@ -74,7 +77,7 @@ public class RealtimeSessionTurnDetection
 public class InputAudioTranscription
 {
     [JsonPropertyName("model")]
-    public string Model { get; set; } = null!;
+    public string Model { get; set; } = "whisper-1";
 
     [JsonPropertyName("language")]
     public string Language { get; set; } = "en";
@@ -82,4 +85,11 @@ public class InputAudioTranscription
     [JsonPropertyName("prompt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Prompt { get; set; }
+}
+
+public class InputAudioNoiseReduction
+{
+    [JsonPropertyName("type")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string Type { get; set; } = "far_field";
 }

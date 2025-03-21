@@ -45,7 +45,7 @@ public class TransferPhoneCallFn : IFunctionCallback
 
         var routing = _services.GetRequiredService<IRoutingService>();
         var conversationId = routing.Context.ConversationId;
-        var processUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/transfer-call?conversation-id={conversationId}&transfer-to={args.PhoneNumber}";
+        var processUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/transfer-call?agent-id={routing.Context.EntryAgentId}&conversation-id={conversationId}&transfer-to={args.PhoneNumber}";
 
         // Generate initial assistant audio
         if (!string.IsNullOrEmpty(args.TransitionMessage))
