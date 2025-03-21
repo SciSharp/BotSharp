@@ -85,6 +85,7 @@ public class PlaywrightInstance : IDisposable
                 ]
             });
             _contexts[ctxId].SetDefaultTimeout(_webDriver.DefaultTimeout);
+            _contexts[ctxId].SetDefaultNavigationTimeout(_webDriver.DefaultNavigationTimeout);
         }
 
         _pages[ctxId] = new List<IPage>();
