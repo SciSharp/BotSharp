@@ -96,14 +96,24 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     public async Task TriggerModelInference(string? instructions = null)
     {
         // Triggering model inference
-        await SendEventToModel(new
+        if (!string.IsNullOrEmpty(instructions))
         {
-            type = "response.create",
-            response = new
+            await SendEventToModel(new
             {
-                instructions
-            }
-        });
+                type = "response.create",
+                response = new
+                {
+                    instructions
+                }
+            });
+        }
+        else
+        {
+            await SendEventToModel(new
+            {
+                type = "response.create"
+            });
+        }
     }
 
     public async Task CancelModelResponse()
@@ -345,6 +355,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     Threshold = realtimeModelSettings.TurnDetection.Threshold,
                     PrefixPadding = realtimeModelSettings.TurnDetection.PrefixPadding,
                     SilenceDuration = realtimeModelSettings.TurnDetection.SilenceDuration
+                },
+                InputAudioNoiseReduction = new InputAudioNoiseReduction
+                {
+                    Type = "near_field"
                 }
             }
         };

@@ -37,12 +37,12 @@ public class HangupPhoneCallFn : IFunctionCallback
 
         if (string.IsNullOrEmpty(callSid))
         {
-            message.Content = "The call has not been initiated.";
+            message.Content = "Please hang up the phone directly.";
             _logger.LogError(message.Content);
             return false;
         }
 
-        var processUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/hang-up?conversation-id={conversationId}";
+        var processUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/hang-up?agent-id={message.CurrentAgentId}&conversation-id={conversationId}";
 
         // Generate initial assistant audio
         string initAudioFile = null;
