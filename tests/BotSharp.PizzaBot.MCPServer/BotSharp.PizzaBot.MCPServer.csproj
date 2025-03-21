@@ -14,6 +14,6 @@
     <PackageReference Include="System.Net.ServerSentEvents" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\mcpdotnet\src\mcpdotnet\mcpdotnet.csproj" />
+    <ProjectReference Include="..\..\..\Ai4c\mcpcsharp-sdk\src\ModelContextProtocol\ModelContextProtocol.csproj" />
   </ItemGroup>
 </Project>

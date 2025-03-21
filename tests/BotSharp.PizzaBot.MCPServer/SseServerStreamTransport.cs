@@ -1,6 +1,6 @@
-using McpDotNet.Protocol.Messages;
-using McpDotNet.Protocol.Transport;
-using McpDotNet.Utils.Json;
+using ModelContextProtocol.Protocol.Messages;
+using ModelContextProtocol.Protocol.Transport;
+using ModelContextProtocol.Utils.Json;
 using System.Buffers;
 using System.Net.ServerSentEvents;
 using System.Text.Json;
@@ -28,7 +28,7 @@ public class SseServerStreamTransport(Stream sseResponseStream) : ITransport
                 return;
             }
 
-            JsonSerializer.Serialize(GetUtf8JsonWriter(writer), item.Data, JsonSerializerOptionsExtensions.DefaultOptions);
+            JsonSerializer.Serialize(GetUtf8JsonWriter(writer), item.Data, McpJsonUtilities.DefaultOptions);
         }
 
         // The very first SSE event isn't really an IJsonRpcMessage, but there's no API to write a single item of a different type,

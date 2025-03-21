@@ -1,7 +1,7 @@
-using McpDotNet.Protocol.Messages;
-using McpDotNet.Server;
-using McpDotNet.Utils.Json;
 using Microsoft.Extensions.Options;
+using ModelContextProtocol.Protocol.Messages;
+using ModelContextProtocol.Server;
+using ModelContextProtocol.Utils.Json;
 
 namespace BotSharp.PizzaBot.MCPServer;
 
@@ -45,7 +45,7 @@ public static class McpEndpointRouteBuilderExtensions
                 return;
             }
 
-            var message = await context.Request.ReadFromJsonAsync<IJsonRpcMessage>(JsonSerializerOptionsExtensions.DefaultOptions, context.RequestAborted);
+            var message = await context.Request.ReadFromJsonAsync<IJsonRpcMessage>(McpJsonUtilities.DefaultOptions, context.RequestAborted);
             if (message is null)
             {
                 await Results.BadRequest("No message in request body.").ExecuteAsync(context);

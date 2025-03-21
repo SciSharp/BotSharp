@@ -1,5 +1,5 @@
 using BotSharp.PizzaBot.MCPServer;
-using McpDotNet;
+using ModelContextProtocol;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMcpServer().WithTools();

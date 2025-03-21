@@ -61,7 +61,7 @@ public partial class MongoRepository
             case AgentField.Utility:
                 UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
                 break;
-            case AgentField.Acp:
+            case AgentField.McpTool:
                 UpdateAgentMcps(agent.Id, agent.McpTools);
                 break;
             case AgentField.KnowledgeBase:

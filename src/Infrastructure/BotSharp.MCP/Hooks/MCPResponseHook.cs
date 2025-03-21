@@ -1,25 +1,18 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Infrastructures.Enums;
-using BotSharp.Abstraction.Translation;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace BotSharp.MCP.Hooks;
 
 public class MCPResponseHook : ConversationHookBase
 {
     private readonly IServiceProvider _services;
-    private readonly IConversationStateService _states;
-    private const string AIAssistant = BuiltInAgentId.AIAssistant;
+    private readonly IConversationStateService _states; 
 
     public MCPResponseHook(IServiceProvider services,
         IConversationStateService states)

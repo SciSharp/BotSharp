@@ -1,4 +1,4 @@
-using McpDotNet.Server;
+using ModelContextProtocol.Server;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 

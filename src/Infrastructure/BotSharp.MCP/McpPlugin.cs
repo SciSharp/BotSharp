@@ -5,12 +5,11 @@ using BotSharp.Abstraction.Plugins;
 using BotSharp.Core.Mcp.Functions;
 using BotSharp.Core.Mcp.Settings;
 using BotSharp.MCP.Hooks;
-using McpDotNet.Client;
-using McpDotNet.Protocol.Types;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -44,7 +43,7 @@ public class McpPlugin : IBotSharpPlugin
         services.AddScoped<IConversationHook, MCPResponseHook>();
     }
 
-    private async Task RegisterFunctionCall(IServiceCollection services, McpDotNet.Configuration.McpServerConfig server)
+    private async Task RegisterFunctionCall(IServiceCollection services, McpServerConfig server)
     {
         var client = await clientManager.GetMcpClientAsync(server.Id);
         var tools = await client.ListToolsAsync().ToListAsync(); 

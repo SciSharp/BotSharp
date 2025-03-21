@@ -197,7 +197,7 @@ public partial class AgentService
                 var samples = GetSamplesFromFile(dir);
                 return agent.SetInstruction(defaultInstruction)
                             .SetChannelInstructions(channelInstructions)
-                            .SetTemplates(templates)
+                            .SetTemplates(templates)                             
                             .SetFunctions(functions)
                             .SetResponses(responses)
                             .SetSamples(samples);

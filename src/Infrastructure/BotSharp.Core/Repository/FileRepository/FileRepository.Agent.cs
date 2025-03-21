@@ -60,7 +60,7 @@ namespace BotSharp.Core.Repository
                 case AgentField.Utility:
                     UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
                     break;
-                case AgentField.Acp:
+                case AgentField.McpTool:
                     UpdateAgentMcpTools(agent.Id, agent.McpTools);
                     break;
                 case AgentField.KnowledgeBase:

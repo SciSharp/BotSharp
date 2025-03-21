@@ -13,7 +13,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\mcpdotnet\src\mcpdotnet\mcpdotnet.csproj" />
+    <ProjectReference Include="..\..\..\..\Ai4c\mcpcsharp-sdk\src\ModelContextProtocol\ModelContextProtocol.csproj" />
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
 </Project>

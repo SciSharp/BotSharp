@@ -1,12 +1,10 @@
 using BotSharp.Abstraction.Agents;
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Utilities;
-using McpDotNet.Client;
-using McpDotNet.Protocol.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;

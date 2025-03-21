@@ -1,6 +1,6 @@
 using BotSharp.Core.Mcp.Settings;
-using McpDotNet.Client;
 using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Client;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
