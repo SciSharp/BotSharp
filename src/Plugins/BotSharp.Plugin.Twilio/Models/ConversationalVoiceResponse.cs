@@ -2,6 +2,7 @@ namespace BotSharp.Plugin.Twilio.Models;
 
 public class ConversationalVoiceResponse
 {
+    public string AgentId { get; set; } = null!;
     public string ConversationId { get; set; } = null!;
     public List<string> SpeechPaths { get; set; } = [];
     public string CallbackPath { get; set; } 

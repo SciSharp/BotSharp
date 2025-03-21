@@ -32,6 +32,10 @@ public partial class LocalFileStorageService
     public BinaryData GetSpeechFile(string conversationId, string fileName)
     {
         var path = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, TEXT_TO_SPEECH_FOLDER,  fileName);
+        if (!File.Exists(path))
+        {
+            return BinaryData.Empty;
+        }
         using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
         return BinaryData.FromStream(fs);
     }

@@ -2,32 +2,31 @@ using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
-using Twilio.Rest.Api.V2010.Account;
 
 namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions;
 
-public class HangupPhoneCallFn : IFunctionCallback
+public class LeaveVoicemailFn : IFunctionCallback
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<HangupPhoneCallFn> _logger;
-    private readonly TwilioSetting _twilioSetting;
+    private readonly ILogger _logger;
+    private readonly TwilioSetting _setting;
 
-    public string Name => "util-twilio-hangup_phone_call";
-    public string Indication => "Hangup";
+    public string Name => "util-twilio-leave_voicemail";
+    public string Indication => "leaving a voicemail";
 
-    public HangupPhoneCallFn(
+    public LeaveVoicemailFn(
         IServiceProvider services,
-        ILogger<HangupPhoneCallFn> logger,
-        TwilioSetting twilioSetting)
+        ILogger<LeaveVoicemailFn> logger,
+        TwilioSetting setting)
     {
         _services = services;
         _logger = logger;
-        _twilioSetting = twilioSetting;
+        _setting = setting;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<HangupPhoneCallArgs>(message.FunctionArgs);
+        var args = JsonSerializer.Deserialize<LeaveVoicemailArgs>(message.FunctionArgs);
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var routing = _services.GetRequiredService<IRoutingService>();
@@ -37,31 +36,22 @@ public class HangupPhoneCallFn : IFunctionCallback
 
         if (string.IsNullOrEmpty(callSid))
         {
-            message.Content = "Please hang up the phone directly.";
+            message.Content = "The call has not been initiated.";
             _logger.LogError(message.Content);
             return false;
         }
 
-        var processUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/hang-up?agent-id={message.CurrentAgentId}&conversation-id={conversationId}";
-
-        // Generate initial assistant audio
+        // Generate voice message audio
         string initAudioFile = null;
-        if (!string.IsNullOrEmpty(args.ResponseContent))
+        if (!string.IsNullOrEmpty(args.VoicemailMessage))
         {
             var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
-            var data = await completion.GenerateAudioFromTextAsync(args.ResponseContent);
-            initAudioFile = "ending.mp3";
+            var data = await completion.GenerateAudioFromTextAsync(args.VoicemailMessage);
+            initAudioFile = "voicemail.mp3";
             fileStorage.SaveSpeechFile(conversationId, initAudioFile, data);
-
-            processUrl += $"&init-audio-file={initAudioFile}";
         }
 
-        var call = CallResource.Update(
-            url: new Uri(processUrl),
-            pathSid: callSid
-        );
-
-        message.Content = args.Reason;
+        message.Content = args.VoicemailMessage;
         message.StopCompletion = true;
 
         return true;
