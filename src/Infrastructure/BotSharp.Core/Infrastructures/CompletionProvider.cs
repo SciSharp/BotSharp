@@ -172,7 +172,7 @@ public class CompletionProvider
         string? model = null,
         string? modelId = null,
         bool? multiModal = null,
-        bool? realTime = null,
+        bool realTime = false,
         bool imageGenerate = false,
         AgentLlmConfig? agentConfig = null)
     {
