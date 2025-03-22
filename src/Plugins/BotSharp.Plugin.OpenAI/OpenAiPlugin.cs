@@ -33,7 +33,8 @@ public class OpenAiPlugin : IBotSharpPlugin
         services.AddScoped<IChatCompletion, ChatCompletionProvider>();
         services.AddScoped<ITextEmbedding, TextEmbeddingProvider>();
         services.AddScoped<IImageCompletion, ImageCompletionProvider>();
-        services.AddScoped<IAudioCompletion, AudioCompletionProvider>();
+        services.AddScoped<IAudioTranscription, AudioTranscriptionProvider>();
+        services.AddScoped<IAudioSynthesis, AudioSynthesisProvider>();
         services.AddScoped<IRealTimeCompletion, RealTimeCompletionProvider>();
 
         services.AddRefitClient<IOpenAiRealtimeApi>()

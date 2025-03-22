@@ -137,9 +137,9 @@ public class TwilioMessageQueueService : BackgroundService
 
     private static async Task<string> GetReplySpeechFileName(string conversationId, AssistantMessage reply, IServiceProvider sp)
     {
-        var completion = CompletionProvider.GetAudioCompletion(sp, "openai", "tts-1");
+        var completion = CompletionProvider.GetAudioSynthesizer(sp);
         var fileStorage = sp.GetRequiredService<IFileStorageService>();
-        var data = await completion.GenerateAudioFromTextAsync(reply.Content);
+        var data = await completion.GenerateAudioAsync(reply.Content);
         var fileName = $"reply_{reply.MessageId}.mp3";
         fileStorage.SaveSpeechFile(conversationId, fileName, data);
         return fileName;

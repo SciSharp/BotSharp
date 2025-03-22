@@ -6,7 +6,7 @@ namespace BotSharp.Plugin.AudioHandler.Provider;
 /// <summary>
 /// Native Whisper provider for speech to text conversion
 /// </summary>
-public class NativeWhisperProvider : IAudioCompletion
+public class NativeWhisperProvider : IAudioTranscription
 {
     private static WhisperProcessor _whisperProcessor;
 
@@ -29,7 +29,7 @@ public class NativeWhisperProvider : IAudioCompletion
         _logger = logger;
     }
 
-    public async Task<string> GenerateTextFromAudioAsync(Stream audio, string audioFileName, string? text = null)
+    public async Task<string> TranscriptTextAsync(Stream audio, string audioFileName, string? text = null)
     {
         var textResult = new List<SegmentData>();
 

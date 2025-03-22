@@ -74,7 +74,7 @@ public class RealtimeHub : IRealtimeHub
         if (!model.Contains("-realtime-"))
         {
             var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-            model = llmProviderService.GetProviderModel("openai", "gpt-4", realTime: true).Name;
+            model = llmProviderService.GetProviderModel("openai", "gpt-4o", realTime: true).Name;
         }
 
         _completer.SetModelName(model);

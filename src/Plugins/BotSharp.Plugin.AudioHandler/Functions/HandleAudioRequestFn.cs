@@ -91,7 +91,7 @@ public class HandleAudioRequestFn : IFunctionCallback
             using var stream = new MemoryStream(bytes);
             stream.Position = 0;
 
-            var result = await audioCompletion.GenerateTextFromAudioAsync(stream, fileName);
+            var result = await audioCompletion.TranscriptTextAsync(stream, fileName);
             transcripts.Add(result);
             stream.Close();
         }
@@ -104,9 +104,9 @@ public class HandleAudioRequestFn : IFunctionCallback
         return string.Join("\r\n\r\n", transcripts);
     }
 
-    private IAudioCompletion PrepareModel()
+    private IAudioTranscription PrepareModel()
     {
-        return CompletionProvider.GetAudioCompletion(_serviceProvider, provider: "openai", model: "whisper-1");
+        return CompletionProvider.GetAudioTranscriber(_serviceProvider);
     }
 
     private bool ParseAudioFileType(string fileName)

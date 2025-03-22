@@ -351,10 +351,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 MaxResponseOutputTokens = realtimeModelSettings.MaxResponseOutputTokens,
                 TurnDetection = new RealtimeSessionTurnDetection
                 {
-                    InterruptResponse = interruptResponse,
+                    InterruptResponse = interruptResponse/*,
                     Threshold = realtimeModelSettings.TurnDetection.Threshold,
                     PrefixPadding = realtimeModelSettings.TurnDetection.PrefixPadding,
-                    SilenceDuration = realtimeModelSettings.TurnDetection.SilenceDuration
+                    SilenceDuration = realtimeModelSettings.TurnDetection.SilenceDuration*/
                 },
                 InputAudioNoiseReduction = new InputAudioNoiseReduction
                 {

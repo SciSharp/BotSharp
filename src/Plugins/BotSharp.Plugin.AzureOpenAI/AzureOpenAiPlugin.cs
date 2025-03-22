@@ -31,6 +31,6 @@ public class AzureOpenAiPlugin : IBotSharpPlugin
         services.AddScoped<IChatCompletion, ChatCompletionProvider>();
         services.AddScoped<ITextEmbedding, TextEmbeddingProvider>();
         services.AddScoped<IImageCompletion, ImageCompletionProvider>();
-        services.AddScoped<IAudioCompletion, AudioCompletionProvider>();
+        services.AddScoped<IAudioTranscription, AudioCompletionProvider>();
     }
 }
