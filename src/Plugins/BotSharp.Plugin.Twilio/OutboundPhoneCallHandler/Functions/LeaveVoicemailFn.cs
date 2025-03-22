@@ -45,8 +45,8 @@ public class LeaveVoicemailFn : IFunctionCallback
         string initAudioFile = null;
         if (!string.IsNullOrEmpty(args.VoicemailMessage))
         {
-            var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
-            var data = await completion.GenerateAudioFromTextAsync(args.VoicemailMessage);
+            var completion = CompletionProvider.GetAudioSynthesizer(_services);
+            var data = await completion.GenerateAudioAsync(args.VoicemailMessage);
             initAudioFile = "voicemail.mp3";
             fileStorage.SaveSpeechFile(conversationId, initAudioFile, data);
         }

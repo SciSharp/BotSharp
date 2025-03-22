@@ -499,8 +499,8 @@ public class InstructModeController : ControllerBase
             file.CopyTo(stream);
             stream.Position = 0;
 
-            var completion = CompletionProvider.GetAudioCompletion(_services, provider: provider ?? "openai", model: model ?? "whisper-1");
-            var content = await completion.GenerateTextFromAudioAsync(stream, file.FileName, text);
+            var completion = CompletionProvider.GetAudioTranscriber(_services, provider: provider, model: model);
+            var content = await completion.TranscriptTextAsync(stream, file.FileName, text);
             viewModel.Content = content;
             stream.Close();
             return viewModel;
@@ -520,8 +520,8 @@ public class InstructModeController : ControllerBase
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
 
-        var completion = CompletionProvider.GetAudioCompletion(_services, provider: input.Provider ?? "openai", model: input.Model ?? "tts-1");
-        var binaryData = await completion.GenerateAudioFromTextAsync(input.Text);
+        var completion = CompletionProvider.GetAudioSynthesizer(_services, provider: input.Provider, model: input.Model);
+        var binaryData = await completion.GenerateAudioAsync(input.Text);
         var stream = binaryData.ToStream();
         stream.Position = 0;
 

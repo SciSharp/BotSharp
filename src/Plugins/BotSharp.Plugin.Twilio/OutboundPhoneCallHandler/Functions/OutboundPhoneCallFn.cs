@@ -69,8 +69,8 @@ public class OutboundPhoneCallFn : IFunctionCallback
         string initAudioFile = null;
         if (!string.IsNullOrEmpty(args.InitialMessage))
         {
-            var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
-            var data = await completion.GenerateAudioFromTextAsync(args.InitialMessage);
+            var completion = CompletionProvider.GetAudioSynthesizer(_services);
+            var data = await completion.GenerateAudioAsync(args.InitialMessage);
             initAudioFile = "intial.mp3";
             fileStorage.SaveSpeechFile(newConversationId, initAudioFile, data);
 

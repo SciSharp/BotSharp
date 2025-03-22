@@ -48,8 +48,8 @@ public class HangupPhoneCallFn : IFunctionCallback
         string initAudioFile = null;
         if (!string.IsNullOrEmpty(args.ResponseContent))
         {
-            var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
-            var data = await completion.GenerateAudioFromTextAsync(args.ResponseContent);
+            var completion = CompletionProvider.GetAudioSynthesizer(_services);
+            var data = await completion.GenerateAudioAsync(args.ResponseContent);
             initAudioFile = "ending.mp3";
             fileStorage.SaveSpeechFile(conversationId, initAudioFile, data);
 

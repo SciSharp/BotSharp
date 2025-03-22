@@ -67,7 +67,7 @@ public class HandleEmailReaderFn : IFunctionCallback
 
                     var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
                     var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == "openai");
-                    var model = llmProviderService.GetProviderModel(provider: provider ?? "openai", id: "gpt-4");
+                    var model = llmProviderService.GetProviderModel(provider: provider ?? "openai", id: "gpt-4o");
                     var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model.Name);
                     var convService = _services.GetRequiredService<IConversationService>();
                     var conversationId = convService.ConversationId;

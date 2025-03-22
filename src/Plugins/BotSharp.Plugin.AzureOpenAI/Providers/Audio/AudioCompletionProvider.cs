@@ -1,6 +1,6 @@
 namespace BotSharp.Plugin.AzureOpenAI.Providers.Audio;
 
-public partial class AudioCompletionProvider : IAudioCompletion
+public partial class AudioCompletionProvider : IAudioTranscription
 {
     private readonly IServiceProvider _services;
 

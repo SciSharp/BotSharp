@@ -1,4 +1,7 @@
+using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Utilities;
+using BotSharp.Core.Infrastructures;
+using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using Twilio.Jwt.AccessToken;
 using Token = Twilio.Jwt.AccessToken.Token;
@@ -12,11 +15,13 @@ public class TwilioService
 {
     private readonly TwilioSetting _settings;
     private readonly IServiceProvider _services;
+    public readonly ILogger _logger;
 
-    public TwilioService(TwilioSetting settings, IServiceProvider services)
+    public TwilioService(TwilioSetting settings, IServiceProvider services, ILogger<TwilioService> logger)
     {
         _settings = settings;
         _services = services;
+        _logger = logger;
     }
 
     public string GetAccessToken()
@@ -216,6 +221,76 @@ public class TwilioService
         return response;
     }
 
+    public async Task<VoiceResponse> WaitingForAiResponse(ConversationalVoiceRequest request)
+    {
+        VoiceResponse response;
+        var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+
+        var indication = await sessionManager.GetReplyIndicationAsync(request.ConversationId, request.SeqNum);
+        if (indication != null)
+        {
+            _logger.LogWarning($"Indication ({request.SeqNum}): {indication}");
+            var speechPaths = new List<string>();
+            foreach (var text in indication.Split('|'))
+            {
+                var seg = text.Trim();
+                if (seg.StartsWith('#'))
+                {
+                    speechPaths.Add($"twilio/{seg.Substring(1)}.mp3");
+                }
+                else
+                {
+                    var hash = Utilities.HashTextMd5(seg);
+                    var fileName = $"indication_{hash}.mp3";
+
+                    var existing = fileStorage.GetSpeechFile(request.ConversationId, fileName);
+                    if (existing == BinaryData.Empty)
+                    {
+                        var completion = CompletionProvider.GetAudioSynthesizer(_services);
+                        var data = await completion.GenerateAudioAsync(seg);
+                        fileStorage.SaveSpeechFile(request.ConversationId, fileName, data);
+                    }
+
+                    speechPaths.Add($"twilio/voice/speeches/{request.ConversationId}/{fileName}");
+                }
+            }
+
+            var instruction = new ConversationalVoiceResponse
+            {
+                AgentId = request.AgentId,
+                ConversationId = request.ConversationId,
+                SpeechPaths = speechPaths,
+                CallbackPath = $"twilio/voice/reply/{request.SeqNum}?agent-id={request.AgentId}&conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
+                ActionOnEmptyResult = true
+            };
+
+            response = ReturnInstructions(instruction);
+
+            await sessionManager.RemoveReplyIndicationAsync(request.ConversationId, request.SeqNum);
+        }
+        else
+        {
+            var instruction = new ConversationalVoiceResponse
+            {
+                AgentId = request.AgentId,
+                ConversationId = request.ConversationId,
+                SpeechPaths = [],
+                CallbackPath = $"twilio/voice/reply/{request.SeqNum}?agent-id={request.AgentId}&conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
+                ActionOnEmptyResult = true
+            };
+
+            await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
+            {
+                await hook.OnWaitingAgentResponse(request, instruction);
+            });
+
+            response = ReturnInstructions(instruction);
+        }
+
+        return response;
+    }
+
     public string GetSpeechPath(string conversationId, string speechPath)
     {
         if (speechPath.StartsWith("twilio/"))
@@ -230,5 +305,14 @@ public class TwilioService
         {
             return $"{_settings.CallbackHost}/twilio/voice/speeches/{conversationId}/{speechPath}";
         }
+    }
+
+    public string GenerateStatesParameter(List<string> states)
+    {
+        if (states is null || states.Count == 0)
+        {
+            return null;
+        }
+        return string.Join("&", states.Select(x => $"states={x}"));
     }
 }

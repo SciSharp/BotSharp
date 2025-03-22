@@ -30,7 +30,7 @@ public class CompletionProvider
         }
         else if (settings.Type == LlmModelType.Audio)
         {
-            return GetAudioCompletion(services, provider: provider, model: model);
+            return GetAudioTranscriber(services, provider: provider, model: model);
         }
         else
         {
@@ -126,20 +126,39 @@ public class CompletionProvider
         return completer;
     }
 
-    public static IAudioCompletion GetAudioCompletion(
+    public static IAudioTranscription GetAudioTranscriber(
         IServiceProvider services,
-        string provider,
-        string model)
+        string? provider = null,
+        string? model = null)
     {
-        var completions = services.GetServices<IAudioCompletion>();
-        var completer = completions.FirstOrDefault(x => x.Provider == provider);
+        var completions = services.GetServices<IAudioTranscription>();
+        var completer = completions.FirstOrDefault(x => x.Provider == (provider ?? "openai"));
         if (completer == null)
         {
             var logger = services.GetRequiredService<ILogger<CompletionProvider>>();
-            logger.LogError($"Can't resolve audio-completion provider by {provider}");
+            logger.LogError($"Can't resolve audio-transcriber provider by {provider}");
+            return default!;
         }
 
-        completer.SetModelName(model);
+        completer.SetModelName(model ?? "gpt-4o-mini-transcribe");
+        return completer;
+    }
+
+    public static IAudioSynthesis GetAudioSynthesizer(
+        IServiceProvider services,
+        string? provider = null,
+        string? model = null)
+    {
+        var completions = services.GetServices<IAudioSynthesis>();
+        var completer = completions.FirstOrDefault(x => x.Provider == (provider ?? "openai"));
+        if (completer == null)
+        {
+            var logger = services.GetRequiredService<ILogger<CompletionProvider>>();
+            logger.LogError($"Can't resolve audio-synthesizer provider by {provider}");
+            return default!;
+        }
+
+        completer.SetModelName(model ?? "gpt-4o-mini-tts");
         return completer;
     }
 

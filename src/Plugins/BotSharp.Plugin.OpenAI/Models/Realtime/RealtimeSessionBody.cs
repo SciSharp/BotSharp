@@ -61,26 +61,30 @@ public class RealtimeSessionTurnDetection
     /// <summary>
     /// Milliseconds
     /// </summary>
-    [JsonPropertyName("prefix_padding_ms")]
+    /*[JsonPropertyName("prefix_padding_ms")]
     public int PrefixPadding { get; set; } = 300;
 
     [JsonPropertyName("silence_duration_ms")]
     public int SilenceDuration { get; set; } = 500;
 
     [JsonPropertyName("threshold")]
-    public float Threshold { get; set; } = 0.5f;
+    public float Threshold { get; set; } = 0.5f;*/
 
     [JsonPropertyName("type")]
-    public string Type { get; set; } = "server_vad";
+    public string Type { get; set; } = "semantic_vad";
+
+    [JsonPropertyName("eagerness")]
+    public string eagerness { get;set; } = "auto";
 }
 
 public class InputAudioTranscription
 {
     [JsonPropertyName("model")]
-    public string Model { get; set; } = "whisper-1";
+    public string Model { get; set; } = "gpt-4o-transcribe";
 
     [JsonPropertyName("language")]
-    public string Language { get; set; } = "en";
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Language { get; set; }
 
     [JsonPropertyName("prompt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

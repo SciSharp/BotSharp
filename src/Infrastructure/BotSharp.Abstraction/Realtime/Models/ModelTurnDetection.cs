@@ -11,6 +11,6 @@ public class ModelTurnDetection
 
 public class AudioTranscription
 {
-    public string Model { get; set; } = "whisper-1";
-    public string Language { get; set; } = "en";
+    public string Model { get; set; } = "gpt-4o-mini-transcribe";
+    public string? Language { get; set; }
 }
