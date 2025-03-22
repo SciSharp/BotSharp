@@ -35,16 +35,8 @@ public class TwilioStreamController : TwilioController
             throw new ArgumentNullException(nameof(VoiceRequest.CallSid));
         }
 
+        var twilio = _services.GetRequiredService<TwilioService>();
         VoiceResponse response = default!;
-
-        if (request.AnsweredBy == "machine_start" &&
-            request.Direction == "outbound-api" &&
-            request.InitAudioFile != null)
-        {
-            response = new VoiceResponse();
-            response.Play(new Uri(request.InitAudioFile));
-            return TwiML(response);
-        }
 
         var instruction = new ConversationalVoiceResponse
         {
@@ -67,10 +59,25 @@ public class TwilioStreamController : TwilioController
         });
 
         request.ConversationId = await InitConversation(request);
+        instruction.ConversationId = request.ConversationId;
 
-        var twilio = _services.GetRequiredService<TwilioService>();
+        if (request.AnsweredBy == "machine_start" &&
+            request.Direction == "outbound-api")
+        {
+            response = new VoiceResponse();
 
-        response = twilio.ReturnBidirectionalMediaStreamsInstructions(request.ConversationId, instruction);
+            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, async hook =>
+            {
+                await hook.OnVoicemailStarting(request);
+            });
+
+            var url = twilio.GetSpeechPath(request.ConversationId, "voicemail.mp3");
+            response.Play(new Uri(url));
+        }
+        else
+        {
+            response = twilio.ReturnBidirectionalMediaStreamsInstructions(instruction);
+        }
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
@@ -91,7 +98,7 @@ public class TwilioStreamController : TwilioController
         {
             var conv = new Conversation
             {
-                AgentId = request.AgentId ?? _settings.AgentId,
+                AgentId = request.AgentId,
                 Channel = ConversationChannel.Phone,
                 ChannelId = request.CallSid,
                 Title = $"Incoming phone call from {request.From}",

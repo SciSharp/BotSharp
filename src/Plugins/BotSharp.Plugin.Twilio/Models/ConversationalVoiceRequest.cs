@@ -27,6 +27,9 @@ public class ConversationalVoiceRequest : VoiceRequest
     [FromForm]
     public string? CallbackSource { get; set; }
 
+    [FromQuery(Name = "transfer-to")]
+    public string? TransferTo { get; set; }
+
     /// <summary>
     /// machine_start
     /// </summary>

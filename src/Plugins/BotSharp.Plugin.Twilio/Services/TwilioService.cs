@@ -1,4 +1,7 @@
+using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Utilities;
+using BotSharp.Core.Infrastructures;
+using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using Twilio.Jwt.AccessToken;
 using Token = Twilio.Jwt.AccessToken.Token;
@@ -12,11 +15,13 @@ public class TwilioService
 {
     private readonly TwilioSetting _settings;
     private readonly IServiceProvider _services;
+    public readonly ILogger _logger;
 
-    public TwilioService(TwilioSetting settings, IServiceProvider services)
+    public TwilioService(TwilioSetting settings, IServiceProvider services, ILogger<TwilioService> logger)
     {
         _settings = settings;
         _services = services;
+        _logger = logger;
     }
 
     public string GetAccessToken()
@@ -45,29 +50,6 @@ public class TwilioService
             grants: grants);
 
         return token.ToJwt();
-    }
-
-    public VoiceResponse ReturnInstructions(string message)
-    {
-        var twilioSetting = _services.GetRequiredService<TwilioSetting>();
-
-        var response = new VoiceResponse();
-        var gather = new Gather()
-        {
-            Input = new List<Gather.InputEnum>()
-            {
-                Gather.InputEnum.Speech,
-                Gather.InputEnum.Dtmf
-            },
-            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}"),
-            Enhanced = true,
-            SpeechModel = Gather.SpeechModelEnum.PhoneCall,
-            SpeechTimeout = "auto"
-        };
-
-        gather.Say(message);
-        response.Append(gather);
-        return response;
     }
 
     public VoiceResponse ReturnInstructions(ConversationalVoiceResponse conversationalVoiceResponse)
@@ -103,19 +85,13 @@ public class TwilioService
     public VoiceResponse ReturnNoninterruptedInstructions(ConversationalVoiceResponse voiceResponse)
     {
         var response = new VoiceResponse();
-
+        var conversationId = voiceResponse.ConversationId;
         if (voiceResponse.SpeechPaths != null && voiceResponse.SpeechPaths.Any())
         {
             foreach (var speechPath in voiceResponse.SpeechPaths)
             {
-                if (speechPath.StartsWith(_settings.CallbackHost))
-                {
-                    response.Play(new Uri(speechPath));
-                }
-                else
-                {
-                    response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
-                }
+                var uri = GetSpeechPath(conversationId, speechPath);
+                response.Play(new Uri(uri));
             }
         }
 
@@ -149,6 +125,22 @@ public class TwilioService
         return response;
     }
 
+    public VoiceResponse HangUp(ConversationalVoiceResponse voiceResponse)
+    {
+        var response = new VoiceResponse();
+        var conversationId = voiceResponse.ConversationId;
+        if (voiceResponse.SpeechPaths != null && voiceResponse.SpeechPaths.Any())
+        {
+            foreach (var speechPath in voiceResponse.SpeechPaths)
+            {
+                var uri = GetSpeechPath(conversationId, speechPath);
+                response.Play(new Uri(uri));
+            }
+        }
+        response.Hangup();
+        return response;
+    }
+
     public VoiceResponse DialCsrAgent(string speechPath)
     {
         var response = new VoiceResponse();
@@ -157,6 +149,23 @@ public class TwilioService
             response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
         }
         response.Dial(_settings.CsrAgentNumber);
+        return response;
+    }
+
+    public VoiceResponse TransferCall(ConversationalVoiceResponse conversationalVoiceResponse)
+    {
+        var response = new VoiceResponse();
+        var conversationId = conversationalVoiceResponse.ConversationId;
+        if (conversationalVoiceResponse.SpeechPaths != null && conversationalVoiceResponse.SpeechPaths.Any())
+        {
+            foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
+            {
+                var uri = GetSpeechPath(conversationId, speechPath);
+                response.Play(new Uri(uri));
+            }
+        }
+        response.Dial(conversationalVoiceResponse.TransferTo, answerOnBridge: true);
+
         return response;
     }
 
@@ -172,7 +181,7 @@ public class TwilioService
                 Gather.InputEnum.Speech,
                 Gather.InputEnum.Dtmf
             },
-            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}"),
+            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/"),
             ActionOnEmptyResult = true
         };
 
@@ -190,26 +199,17 @@ public class TwilioService
     /// </summary>
     /// <param name="conversationalVoiceResponse"></param>
     /// <returns></returns>
-    public VoiceResponse ReturnBidirectionalMediaStreamsInstructions(string conversationId, ConversationalVoiceResponse conversationalVoiceResponse)
+    public VoiceResponse ReturnBidirectionalMediaStreamsInstructions(ConversationalVoiceResponse conversationalVoiceResponse)
     {
         var response = new VoiceResponse();
+        var conversationId = conversationalVoiceResponse.ConversationId;
 
         if (conversationalVoiceResponse.SpeechPaths != null && conversationalVoiceResponse.SpeechPaths.Any())
         {
             foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
             {
-                if (speechPath.StartsWith("twilio/"))
-                {
-                    response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
-                }
-                else if (speechPath.StartsWith(_settings.CallbackHost))
-                {
-                    response.Play(new Uri(speechPath));
-                }
-                else
-                {
-                    response.Play(new Uri($"{_settings.CallbackHost}/twilio/voice/speeches/{conversationalVoiceResponse.ConversationId}/{speechPath}"));
-                }
+                var uri = GetSpeechPath(conversationId, speechPath);
+                response.Play(new Uri(uri));
             }
         }
 
@@ -219,5 +219,100 @@ public class TwilioService
         response.Append(connect);
 
         return response;
+    }
+
+    public async Task<VoiceResponse> WaitingForAiResponse(ConversationalVoiceRequest request)
+    {
+        VoiceResponse response;
+        var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+
+        var indication = await sessionManager.GetReplyIndicationAsync(request.ConversationId, request.SeqNum);
+        if (indication != null)
+        {
+            _logger.LogWarning($"Indication ({request.SeqNum}): {indication}");
+            var speechPaths = new List<string>();
+            foreach (var text in indication.Split('|'))
+            {
+                var seg = text.Trim();
+                if (seg.StartsWith('#'))
+                {
+                    speechPaths.Add($"twilio/{seg.Substring(1)}.mp3");
+                }
+                else
+                {
+                    var hash = Utilities.HashTextMd5(seg);
+                    var fileName = $"indication_{hash}.mp3";
+
+                    var existing = fileStorage.GetSpeechFile(request.ConversationId, fileName);
+                    if (existing == BinaryData.Empty)
+                    {
+                        var completion = CompletionProvider.GetAudioSynthesizer(_services);
+                        var data = await completion.GenerateAudioAsync(seg);
+                        fileStorage.SaveSpeechFile(request.ConversationId, fileName, data);
+                    }
+
+                    speechPaths.Add($"twilio/voice/speeches/{request.ConversationId}/{fileName}");
+                }
+            }
+
+            var instruction = new ConversationalVoiceResponse
+            {
+                AgentId = request.AgentId,
+                ConversationId = request.ConversationId,
+                SpeechPaths = speechPaths,
+                CallbackPath = $"twilio/voice/reply/{request.SeqNum}?agent-id={request.AgentId}&conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
+                ActionOnEmptyResult = true
+            };
+
+            response = ReturnInstructions(instruction);
+
+            await sessionManager.RemoveReplyIndicationAsync(request.ConversationId, request.SeqNum);
+        }
+        else
+        {
+            var instruction = new ConversationalVoiceResponse
+            {
+                AgentId = request.AgentId,
+                ConversationId = request.ConversationId,
+                SpeechPaths = [],
+                CallbackPath = $"twilio/voice/reply/{request.SeqNum}?agent-id={request.AgentId}&conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
+                ActionOnEmptyResult = true
+            };
+
+            await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
+            {
+                await hook.OnWaitingAgentResponse(request, instruction);
+            });
+
+            response = ReturnInstructions(instruction);
+        }
+
+        return response;
+    }
+
+    public string GetSpeechPath(string conversationId, string speechPath)
+    {
+        if (speechPath.StartsWith("twilio/"))
+        {
+            return $"{_settings.CallbackHost}/{speechPath}";
+        }
+        else if (speechPath.StartsWith(_settings.CallbackHost))
+        {
+            return speechPath;
+        }
+        else
+        {
+            return $"{_settings.CallbackHost}/twilio/voice/speeches/{conversationId}/{speechPath}";
+        }
+    }
+
+    public string GenerateStatesParameter(List<string> states)
+    {
+        if (states is null || states.Count == 0)
+        {
+            return null;
+        }
+        return string.Join("&", states.Select(x => $"states={x}"));
     }
 }

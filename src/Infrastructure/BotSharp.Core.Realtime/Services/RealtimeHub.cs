@@ -74,7 +74,7 @@ public class RealtimeHub : IRealtimeHub
         if (!model.Contains("-realtime-"))
         {
             var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-            model = llmProviderService.GetProviderModel("openai", "gpt-4", realTime: true).Name;
+            model = llmProviderService.GetProviderModel("openai", "gpt-4o", realTime: true).Name;
         }
 
         _completer.SetModelName(model);
@@ -92,6 +92,7 @@ public class RealtimeHub : IRealtimeHub
         }
 
         routing.Context.SetDialogs(dialogs);
+        routing.Context.SetMessageId(_conn.ConversationId, dialogs.Last().MessageId);
 
         var states = _services.GetRequiredService<IConversationStateService>();
 
@@ -115,13 +116,14 @@ public class RealtimeHub : IRealtimeHub
                 }
                 else
                 {
-                    // Push dialogs into model context
+                    // Append dialogs into model context
+                    var history = "[CONVERSATION HISTORY]\r\n";
                     foreach (var message in dialogs)
                     {
-                        await _completer.InsertConversationItem(message);
+                        history += $"{message.Role}: {message.Content}\r\n";
                     }
 
-                    await _completer.TriggerModelInference($"{instruction}\r\n\r\nAssist user without repeating your previous statement.");
+                    await _completer.TriggerModelInference($"{instruction}\r\n\r\n{history}\r\n\r\nAssist user without repeating your previous statement.");
                 }
             },
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
@@ -188,6 +190,7 @@ public class RealtimeHub : IRealtimeHub
                 // append input audio transcript to conversation
                 dialogs.Add(message);
                 storage.Append(_conn.ConversationId, message);
+                routing.Context.SetMessageId(_conn.ConversationId, message.MessageId);
 
                 foreach (var hook in hookProvider.HooksOrderByPriority)
                 {

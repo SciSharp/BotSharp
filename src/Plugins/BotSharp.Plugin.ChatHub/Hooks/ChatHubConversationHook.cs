@@ -106,6 +106,7 @@ public class ChatHubConversationHook : ConversationHookBase
         if (!AllowSendingMessage()) return;
 
         var conv = _services.GetRequiredService<IConversationService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
         var json = JsonSerializer.Serialize(new ChatResponseModel()
         {
             ConversationId = conv.ConversationId,
@@ -114,6 +115,7 @@ public class ChatHubConversationHook : ConversationHookBase
             Function = message.FunctionName,
             RichContent = message.SecondaryRichContent ?? message.RichContent,
             Data = message.Data,
+            States = state.GetStates(),
             Sender = new UserViewModel()
             {
                 FirstName = "AI",

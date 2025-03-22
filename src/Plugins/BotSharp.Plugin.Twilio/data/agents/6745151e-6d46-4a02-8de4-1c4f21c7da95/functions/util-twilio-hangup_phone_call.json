@@ -9,11 +9,11 @@
         "type": "string",
         "description": "The reason why user wants to end the phone call."
       },
-      "anything_else_to_help": {
-        "type": "boolean",
-        "description": "Check if user has anything else to help."
+      "response_content": {
+        "type": "string",
+        "description": "A statement said to the user when politely ending a conversation."
       }
     },
-    "required": [ "reason", "anything_else_to_help" ]
+    "required": [ "reason", "response_content" ]
   }
 }

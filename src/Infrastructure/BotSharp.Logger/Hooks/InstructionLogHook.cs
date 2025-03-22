@@ -26,7 +26,14 @@ public class InstructionLogHook : InstructHookBase
     public override async Task OnResponseGenerated(InstructResponseModel response)
     {
         var settings = _services.GetRequiredService<InstructionSettings>();
-        if (!settings.EnableLog || response == null) return;
+        if (response == null
+            || string.IsNullOrWhiteSpace(response.AgentId)
+            || settings == null
+            || !settings.Logging.Enabled
+            || settings.Logging.ExcludedAgentIds.Contains(response.AgentId))
+        {
+            return;
+        }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -49,6 +56,7 @@ public class InstructionLogHook : InstructHookBase
                 UserId = user?.Id
             }
         });
-        return;
+
+        await base.OnResponseGenerated(response);
     }
 }

@@ -27,7 +27,7 @@ public partial class FileInstructService
 
             var innerAgentId = agentId ?? Guid.Empty.ToString();
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider ?? "openai",
-                model: model, modelId: modelId ?? "gpt-4", multiModal: true);
+                model: model, modelId: modelId ?? "gpt-4o", multiModal: true);
             var message = await completion.GetChatCompletions(new Agent()
             {
                 Id = innerAgentId,

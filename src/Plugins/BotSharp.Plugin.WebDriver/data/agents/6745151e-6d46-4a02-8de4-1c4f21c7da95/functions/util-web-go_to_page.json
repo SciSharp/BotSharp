@@ -15,6 +15,10 @@
       "open_blank_page": {
         "type": "boolean",
         "description": "Open blank page"
+      },
+      "enable_response_callback": {
+        "type": "boolean",
+        "description": "Enable response callback"
       }
     },
     "required": [ "url" ]

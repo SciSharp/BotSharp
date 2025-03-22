@@ -21,11 +21,6 @@ public class TwilioSetting
     public string? MessagingShortCode { get; set; }
 
     /// <summary>
-    /// Default Agent Id to handle inbound phone call
-    /// </summary>
-    public string? AgentId { get; set; }
-
-    /// <summary>
     /// Human agent phone number if AI can't handle the call
     /// </summary>
     public string? CsrAgentNumber { get; set; }
@@ -33,6 +28,7 @@ public class TwilioSetting
     public int MaxGatherAttempts { get; set; } = 4;
 
     public string? MachineDetection { get; set; }
+    public int MachineDetectionSilenceTimeout { get; set; } = 2500;
 
     public bool RecordingEnabled { get; set; } = false;
 }

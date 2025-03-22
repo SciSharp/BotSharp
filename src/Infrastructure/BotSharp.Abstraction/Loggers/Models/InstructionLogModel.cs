@@ -5,6 +5,7 @@ namespace BotSharp.Abstraction.Loggers.Models;
 public class InstructionLogModel
 {
     [JsonPropertyName("id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Id { get; set; } = default!;
 
     [JsonPropertyName("agent_id")]

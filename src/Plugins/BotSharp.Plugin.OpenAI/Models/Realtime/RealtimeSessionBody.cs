@@ -48,6 +48,9 @@ public class RealtimeSessionBody
 
     [JsonPropertyName("turn_detection")]
     public RealtimeSessionTurnDetection? TurnDetection { get; set; } = new();
+
+    [JsonPropertyName("input_audio_noise_reduction")]
+    public InputAudioNoiseReduction InputAudioNoiseReduction { get; set; } = new();
 }
 
 public class RealtimeSessionTurnDetection
@@ -58,28 +61,39 @@ public class RealtimeSessionTurnDetection
     /// <summary>
     /// Milliseconds
     /// </summary>
-    [JsonPropertyName("prefix_padding_ms")]
+    /*[JsonPropertyName("prefix_padding_ms")]
     public int PrefixPadding { get; set; } = 300;
 
     [JsonPropertyName("silence_duration_ms")]
     public int SilenceDuration { get; set; } = 500;
 
     [JsonPropertyName("threshold")]
-    public float Threshold { get; set; } = 0.5f;
+    public float Threshold { get; set; } = 0.5f;*/
 
     [JsonPropertyName("type")]
-    public string Type { get; set; } = "server_vad";
+    public string Type { get; set; } = "semantic_vad";
+
+    [JsonPropertyName("eagerness")]
+    public string eagerness { get;set; } = "auto";
 }
 
 public class InputAudioTranscription
 {
     [JsonPropertyName("model")]
-    public string Model { get; set; } = null!;
+    public string Model { get; set; } = "gpt-4o-transcribe";
 
     [JsonPropertyName("language")]
-    public string Language { get; set; } = "en";
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Language { get; set; }
 
     [JsonPropertyName("prompt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Prompt { get; set; }
+}
+
+public class InputAudioNoiseReduction
+{
+    [JsonPropertyName("type")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string Type { get; set; } = "far_field";
 }
