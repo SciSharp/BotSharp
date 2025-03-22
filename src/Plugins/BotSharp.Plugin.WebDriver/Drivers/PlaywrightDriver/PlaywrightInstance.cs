@@ -45,6 +45,7 @@ public class PlaywrightInstance : IDisposable
 
     public async Task<IBrowserContext> InitContext(string ctxId, BrowserActionArgs args)
     {
+        var _webDriver = _services.GetRequiredService<WebBrowsingSettings>();
         if (_contexts.ContainsKey(ctxId))
             return _contexts[ctxId];
 
@@ -83,6 +84,8 @@ public class PlaywrightInstance : IDisposable
                     // "--start-maximized"
                 ]
             });
+            _contexts[ctxId].SetDefaultTimeout(_webDriver.DefaultTimeout);
+            _contexts[ctxId].SetDefaultNavigationTimeout(_webDriver.DefaultNavigationTimeout);
         }
 
         _pages[ctxId] = new List<IPage>();

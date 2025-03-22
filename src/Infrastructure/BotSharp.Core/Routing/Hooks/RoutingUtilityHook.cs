@@ -8,13 +8,11 @@ public class RoutingUtilityHook : IAgentUtilityHook
 
     public void AddUtilities(List<AgentUtility> utilities)
     {
-        var utility = new AgentUtility
+        utilities.Add(new AgentUtility
         {
             Name = "routing.tools",
             Functions = [new($"{REDIRECT_TO_AGENT}"), new($"{FALLBACK_TO_ROUTER}")],
             Templates = [new($"{REDIRECT_TO_AGENT}.fn"), new($"{FALLBACK_TO_ROUTER}.fn")]
-        };
-
-        utilities.Add(utility);
+        });
     }
 }

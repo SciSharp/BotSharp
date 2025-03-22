@@ -62,10 +62,20 @@ public class LlmModelSetting
     /// </summary>
     public int Dimension { get; set; }
 
+    public LlmCost AdditionalCost { get; set; } = new();
+
     public override string ToString()
     {
         return $"[{Type}] {Name} {Endpoint}";
     }
+}
+
+public class LlmCost
+{
+    public float CachedPromptCost { get; set; } = 0f;
+    public float AudioPromptCost { get; set; } = 0f;
+    public float ReasoningCompletionCost { get; } = 0f;
+    public float AudioCompletionCost { get; } = 0f;
 }
 
 public enum LlmModelType

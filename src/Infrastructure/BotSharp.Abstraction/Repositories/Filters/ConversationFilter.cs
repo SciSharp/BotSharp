@@ -27,6 +27,8 @@ public class ConversationFilter
 
     public List<string>? Tags { get; set; }
 
+    public bool IsLoadLatestStates { get; set; }
+
     public static ConversationFilter Empty()
     {
         return new ConversationFilter();
