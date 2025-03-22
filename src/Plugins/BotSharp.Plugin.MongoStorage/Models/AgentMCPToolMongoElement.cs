@@ -1,9 +1,4 @@
 using BotSharp.Abstraction.Agents.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.MongoStorage.Models;
 
@@ -16,7 +11,6 @@ public class AgentMCPToolMongoElement
 
     public bool Disabled { get; set; }
     public List<McpFunctionMongoElement> Functions { get; set; } = [];
-    public List<McpTemplateMongoElement> Templates { get; set; } = [];
 
     public static AgentMCPToolMongoElement ToMongoElement(MCPTool utility)
     {
@@ -51,19 +45,3 @@ public class McpFunctionMongoElement
         Name = name;
     }
 }
-
-public class McpTemplateMongoElement
-{
-    public string Name { get; set; }
-
-    public McpTemplateMongoElement()
-    {
-
-    }
-
-    public McpTemplateMongoElement(string name)
-    {
-        Name = name;
-    }
-}
-

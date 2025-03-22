@@ -9,11 +9,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="ModelContextProtocol" />
     <PackageReference Include="Serilog.Extensions.Logging" />
     <PackageReference Include="Serilog.Sinks.File" />
-    <PackageReference Include="System.Net.ServerSentEvents" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Ai4c\mcpcsharp-sdk\src\ModelContextProtocol\ModelContextProtocol.csproj" />
   </ItemGroup>
 </Project>
