@@ -1,5 +1,5 @@
-using McpDotNet.Client;
-using McpDotNet.Configuration;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Configuration;
 using System.Collections.Generic;
 
 namespace BotSharp.Core.Mcp.Settings;

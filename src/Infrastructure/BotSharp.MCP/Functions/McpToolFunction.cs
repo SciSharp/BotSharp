@@ -1,11 +1,10 @@
 using BotSharp.Abstraction.Agents;
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
-using McpDotNet.Client;
-using McpDotNet.Protocol.Types;
+using BotSharp.Abstraction.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +37,7 @@ public class McpToolFunction : IFunctionCallback
         var agent = await agentService.LoadAgent(currentAgentId);
         var serverId = agent.McpTools.Where(t => t.Functions.Any(f => f.Name == Name)).FirstOrDefault().ServerId;
 
-        var client = await _clientManager.Factory.GetClientAsync(serverId);
+        var client =  await _clientManager.GetMcpClientAsync(serverId);
         // Call the tool through mcpdotnet
         var result = await client.CallToolAsync(
             _tool.Name,
@@ -50,7 +49,7 @@ public class McpToolFunction : IFunctionCallback
             .Where(c => c.Type == "text")
             .Select(c => c.Text));
         message.Content = json;
-        message.Data = JsonSerializer.Deserialize(json,typeof(object));
+        message.Data = json.JsonContent();
         return true;
     }
 

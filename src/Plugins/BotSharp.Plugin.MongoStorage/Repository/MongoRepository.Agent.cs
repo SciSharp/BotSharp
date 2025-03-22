@@ -61,8 +61,8 @@ public partial class MongoRepository
             case AgentField.Utility:
                 UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
                 break;
-            case AgentField.Acp:
-                UpdateAgentMcps(agent.Id, agent.McpTools);
+            case AgentField.McpTool:
+                UpdateAgentMcpTools(agent.Id, agent.McpTools);
                 break;
             case AgentField.KnowledgeBase:
                 UpdateAgentKnowledgeBases(agent.Id, agent.KnowledgeBases);
@@ -264,7 +264,7 @@ public partial class MongoRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
-    private void UpdateAgentMcps(string agentId, List<MCPTool> mcps)
+    private void UpdateAgentMcpTools(string agentId, List<MCPTool> mcps)
     {
         if (mcps == null) return;
 

@@ -7,6 +7,7 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Core.Mcp;
 using BotSharp.Core.MCP;
 using Microsoft.Extensions.DependencyInjection;
+using ModelContextProtocol.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,12 +52,12 @@ public class MCPToolAgentHook : AgentHookBase
         var mcps = agent.McpTools;
         foreach (var item in mcps)
         {
-            var mcpClient = await mcpClientManager.Factory.GetClientAsync(item.ServerId);
+            var mcpClient =  await mcpClientManager.GetMcpClientAsync(item.ServerId);
             if (mcpClient != null)
             {
-                var tools = await mcpClient.ListToolsAsync();
+                var tools = await mcpClient.ListToolsAsync().ToListAsync();
                 var funcnames = item.Functions.Select(x => x.Name).ToList();
-                foreach (var tool in tools.Tools.Where(x => funcnames.Contains(x.Name, StringComparer.OrdinalIgnoreCase)))
+                foreach (var tool in tools.Where(x => funcnames.Contains(x.Name, StringComparer.OrdinalIgnoreCase)))
                 {
                     var funDef = AIFunctionUtilities.MapToFunctionDef(tool);
                     functionDefs.Add(funDef);
