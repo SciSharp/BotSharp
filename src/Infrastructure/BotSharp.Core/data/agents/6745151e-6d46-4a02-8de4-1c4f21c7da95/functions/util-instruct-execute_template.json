@@ -1,0 +1,14 @@
+{
+  "name": "util-instruct-execute_template",
+  "description": "Select a specific template that can handle the user's request.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "template_name": {
+        "type": "string",
+        "description": "The template name that is selected for handling the request."
+      }
+    },
+    "required": [ "template_name" ]
+  }
+}

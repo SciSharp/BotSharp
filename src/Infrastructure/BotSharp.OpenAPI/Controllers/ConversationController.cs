@@ -138,7 +138,7 @@ public class ConversationController : ControllerBase
     }
 
     [HttpGet("/conversation/{conversationId}")]
-    public async Task<ConversationViewModel?> GetConversation([FromRoute] string conversationId)
+    public async Task<ConversationViewModel?> GetConversation([FromRoute] string conversationId, [FromQuery] bool isLoadStates = false)
     {
         var service = _services.GetRequiredService<IConversationService>();
         var userService = _services.GetRequiredService<IUserService>();
@@ -151,7 +151,8 @@ public class ConversationController : ControllerBase
         var filter = new ConversationFilter
         {
             Id = conversationId,
-            UserId = !isAdmin ? user.Id : null
+            UserId = !isAdmin ? user.Id : null,
+            IsLoadLatestStates = isLoadStates
         };
         var conversations = await service.GetConversations(filter);
         if (conversations.Items.IsNullOrEmpty())
@@ -161,7 +162,6 @@ public class ConversationController : ControllerBase
 
         var result = ConversationViewModel.FromSession(conversations.Items.First());
         var state = _services.GetRequiredService<IConversationStateService>();
-        result.States = state.Load(conversationId, isReadOnly: true);
         user = await userService.GetUser(result.User.Id);
         result.User = UserViewModel.FromUser(user);
 

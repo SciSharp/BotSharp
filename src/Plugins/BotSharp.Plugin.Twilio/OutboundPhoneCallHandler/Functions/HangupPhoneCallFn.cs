@@ -1,4 +1,6 @@
+using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Routing;
+using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
 using Twilio.Rest.Api.V2010.Account;
 
@@ -27,6 +29,7 @@ public class HangupPhoneCallFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<HangupPhoneCallArgs>(message.FunctionArgs);
 
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var routing = _services.GetRequiredService<IRoutingService>();
         var conversationId = routing.Context.ConversationId;
         var states = _services.GetRequiredService<IConversationStateService>();
@@ -34,25 +37,32 @@ public class HangupPhoneCallFn : IFunctionCallback
 
         if (string.IsNullOrEmpty(callSid))
         {
-            message.Content = "The call has not been initiated.";
+            message.Content = "Please hang up the phone directly.";
             _logger.LogError(message.Content);
             return false;
         }
 
-        if (args.AnythingElseToHelp)
-        {
-            message.Content = "Tell me how I can help.";
-        }
-        else
-        {
-            var call = CallResource.Update(
-                url: new Uri($"{_twilioSetting.CallbackHost}/twilio/voice/hang-up?conversation-id={conversationId}"),
-                pathSid: callSid
-            );
+        var processUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/hang-up?agent-id={message.CurrentAgentId}&conversation-id={conversationId}";
 
-            message.Content = "The call is ending.";
-            message.StopCompletion = true;
+        // Generate initial assistant audio
+        string initAudioFile = null;
+        if (!string.IsNullOrEmpty(args.ResponseContent))
+        {
+            var completion = CompletionProvider.GetAudioSynthesizer(_services);
+            var data = await completion.GenerateAudioAsync(args.ResponseContent);
+            initAudioFile = "ending.mp3";
+            fileStorage.SaveSpeechFile(conversationId, initAudioFile, data);
+
+            processUrl += $"&init-audio-file={initAudioFile}";
         }
+
+        var call = CallResource.Update(
+            url: new Uri(processUrl),
+            pathSid: callSid
+        );
+
+        message.Content = args.Reason;
+        message.StopCompletion = true;
 
         return true;
     }

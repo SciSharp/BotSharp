@@ -74,7 +74,7 @@ public class TwilioMessageQueueService : BackgroundService
         }
         httpContext.HttpContext.Request.Headers["X-Twilio-BotSharp"] = "LOST";
 
-        AssistantMessage reply = null;
+        AssistantMessage reply = default!;
 
         var inputMsg = new RoleDialogModel(AgentRole.User, message.Content);
         var conv = sp.GetRequiredService<IConversationService>();
@@ -87,7 +87,7 @@ public class TwilioMessageQueueService : BackgroundService
 
         // Need to consider Inbound and Outbound call
         var conversation = await conv.GetConversation(message.ConversationId);
-        var agentId = string.IsNullOrWhiteSpace(conversation?.AgentId) ? config.AgentId : conversation.AgentId;
+        var agentId = message.AgentId;
 
         var result = await conv.SendMessage(agentId,
             inputMsg,
@@ -105,7 +105,6 @@ public class TwilioMessageQueueService : BackgroundService
         );
         reply.SpeechFileName = await GetReplySpeechFileName(message.ConversationId, reply, sp);
         reply.Hints = GetHints(reply);
-        reply.Content = null;
         await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
     }
 
@@ -138,9 +137,9 @@ public class TwilioMessageQueueService : BackgroundService
 
     private static async Task<string> GetReplySpeechFileName(string conversationId, AssistantMessage reply, IServiceProvider sp)
     {
-        var completion = CompletionProvider.GetAudioCompletion(sp, "openai", "tts-1");
+        var completion = CompletionProvider.GetAudioSynthesizer(sp);
         var fileStorage = sp.GetRequiredService<IFileStorageService>();
-        var data = await completion.GenerateAudioFromTextAsync(reply.Content);
+        var data = await completion.GenerateAudioAsync(reply.Content);
         var fileName = $"reply_{reply.MessageId}.mp3";
         fileStorage.SaveSpeechFile(conversationId, fileName, data);
         return fileName;

@@ -80,7 +80,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public bool DeleteConversations(IEnumerable<string> conversationIds)
         => throw new NotImplementedException();
 
-    public Conversation GetConversation(string conversationId)
+    public Conversation GetConversation(string conversationId, bool isLoadStates = false)
         => throw new NotImplementedException();
 
     public PagedItems<Conversation> GetConversations(ConversationFilter filter)

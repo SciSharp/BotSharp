@@ -299,26 +299,25 @@ public partial class MongoRepository
         _dc.Conversations.UpdateOne(filter, update);
     }
 
-    public Conversation GetConversation(string conversationId)
+    public Conversation GetConversation(string conversationId, bool isLoadStates = false)
     {
         if (string.IsNullOrEmpty(conversationId)) return null;
 
         var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
         var filterDialog = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var filterState = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
 
         var conv = _dc.Conversations.Find(filterConv).FirstOrDefault();
         var dialog = _dc.ConversationDialogs.Find(filterDialog).FirstOrDefault();
-        var states = _dc.ConversationStates.Find(filterState).FirstOrDefault();
 
         if (conv == null) return null;
 
         var dialogElements = dialog?.Dialogs?.Select(x => DialogMongoElement.ToDomainElement(x))?.ToList() ?? new List<DialogElement>();
-        var curStates = new Dictionary<string, string>();
-        states.States.ForEach(x =>
+        var curStates = conv.LatestStates?.ToDictionary(x => x.Key, x =>
         {
-            curStates[x.Key] = x.Values?.LastOrDefault()?.Data ?? string.Empty;
-        });
+            var jsonDoc = JsonDocument.Parse(x.Value.ToJson());
+            var data = jsonDoc.RootElement.GetProperty("data");
+            return data.ValueKind != JsonValueKind.Null ? data.ToString() : null;
+        }) ?? [];
 
         return new Conversation
         {
@@ -456,19 +455,34 @@ public partial class MongoRepository
         var conversationDocs = _dc.Conversations.Find(filterDef).Sort(sortDef).Skip(pager.Offset).Limit(pager.Size).ToList();
         var count = _dc.Conversations.CountDocuments(filterDef);
 
-        var conversations = conversationDocs.Select(x => new Conversation
+        var conversations = conversationDocs.Select(x =>
         {
-            Id = x.Id.ToString(),
-            AgentId = x.AgentId.ToString(),
-            UserId = x.UserId.ToString(),
-            TaskId = x.TaskId,
-            Title = x.Title,
-            Channel = x.Channel,
-            Status = x.Status,
-            DialogCount = x.DialogCount,
-            Tags = x.Tags ?? new(),
-            CreatedTime = x.CreatedTime,
-            UpdatedTime = x.UpdatedTime
+            var states = new Dictionary<string, string>();
+            if (filter.IsLoadLatestStates)
+            {
+                states = x.LatestStates.ToDictionary(p => p.Key, p =>
+                {
+                    var jsonDoc = JsonDocument.Parse(p.Value.ToJson());
+                    var data = jsonDoc.RootElement.GetProperty("data");
+                    return data.ValueKind != JsonValueKind.Null ? data.ToString() : null;
+                });
+            }
+
+            return new Conversation
+            {
+                Id = x.Id.ToString(),
+                AgentId = x.AgentId.ToString(),
+                UserId = x.UserId.ToString(),
+                TaskId = x.TaskId,
+                Title = x.Title,
+                Channel = x.Channel,
+                Status = x.Status,
+                DialogCount = x.DialogCount,
+                Tags = x.Tags ?? [],
+                States = states,
+                CreatedTime = x.CreatedTime,
+                UpdatedTime = x.UpdatedTime
+            };
         }).ToList();
 
         return new PagedItems<Conversation>

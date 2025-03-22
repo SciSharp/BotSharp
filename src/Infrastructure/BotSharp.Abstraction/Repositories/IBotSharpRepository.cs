@@ -124,7 +124,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     void UpdateConversationStatus(string conversationId, string status)
         => throw new NotImplementedException();
-    Conversation GetConversation(string conversationId)
+    Conversation GetConversation(string conversationId, bool isLoadStates = false)
         => throw new NotImplementedException();
     PagedItems<Conversation> GetConversations(ConversationFilter filter)
         => throw new NotImplementedException();
