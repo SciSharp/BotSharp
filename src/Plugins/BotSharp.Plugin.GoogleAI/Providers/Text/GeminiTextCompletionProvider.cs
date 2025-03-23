@@ -1,8 +1,9 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Loggers;
+using GenerativeAI;
+using GenerativeAI.Core;
 using Microsoft.Extensions.Logging;
-using Mscc.GenerativeAI;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Text;
 
@@ -47,11 +48,11 @@ public class GeminiTextCompletionProvider : ITextCompletion
         }
 
         var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
-        var aiModel = client.GenerativeModel(_model);
+        var aiModel = client.CreateGenerativeModel(_model);
         PrepareOptions(aiModel);
 
         _tokenStatistics.StartTimer();
-        var response = await aiModel.GenerateContent(text);
+        var response = await aiModel.GenerateContentAsync(text);
         _tokenStatistics.StopTimer();
 
         var completion = response.Text ?? string.Empty;
@@ -80,5 +81,9 @@ public class GeminiTextCompletionProvider : ITextCompletion
         var settings = _services.GetRequiredService<GoogleAiSettings>();
         aiModel.UseGoogleSearch = settings.Gemini.UseGoogleSearch;
         aiModel.UseGrounding = settings.Gemini.UseGrounding;
+        aiModel.FunctionCallingBehaviour = new FunctionCallingBehaviour()
+        {
+            AutoCallFunction = false
+        };
     }
 }
