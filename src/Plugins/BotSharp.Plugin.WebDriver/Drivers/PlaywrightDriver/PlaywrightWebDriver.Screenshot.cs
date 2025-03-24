@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Browsing.Settings;
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
@@ -7,8 +5,7 @@ public partial class PlaywrightWebDriver
     public async Task<BrowserActionResult> ScreenshotAsync(MessageInfo message, string path)
     {
         var result = new BrowserActionResult();
-        var _webDriver = _services.GetRequiredService<WebBrowsingSettings>();
-        if (_webDriver.IsEnableScreenshot)
+        if (_webBrowsingSettings.IsEnableScreenshot)
         {
             await _instance.Wait(message.ContextId, waitNetworkIdle: false);
             var page = _instance.GetPage(message.ContextId);
