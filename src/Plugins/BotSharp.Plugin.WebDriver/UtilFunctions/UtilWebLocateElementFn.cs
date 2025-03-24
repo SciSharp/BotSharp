@@ -21,7 +21,8 @@ public class UtilWebLocateElementFn : IFunctionCallback
         var conv = _services.GetRequiredService<IConversationService>();
         locatorArgs.Highlight = true;
 
-        var browser = _services.GetRequiredService<IWebBrowser>();
+        var services = _services.CreateScope().ServiceProvider;
+        var browser = services.GetRequiredService<IWebBrowser>();
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var msg = new MessageInfo
         {

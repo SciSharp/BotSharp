@@ -19,7 +19,8 @@ public class UtilWebCloseBrowserFn : IFunctionCallback
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var webDriverService = _services.GetRequiredService<WebDriverService>();
-        var browser = _services.GetRequiredService<IWebBrowser>();
+        var services = _services.CreateScope().ServiceProvider;
+        var browser = services.GetRequiredService<IWebBrowser>();
         var msg = new MessageInfo
         {
             AgentId = message.CurrentAgentId,
