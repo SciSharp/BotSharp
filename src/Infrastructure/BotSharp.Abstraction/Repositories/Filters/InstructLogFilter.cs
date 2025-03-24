@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.Instructs.Models;
+namespace BotSharp.Abstraction.Repositories.Filters;
 
 public class InstructLogFilter : Pagination
 {
@@ -7,9 +7,10 @@ public class InstructLogFilter : Pagination
     public List<string>? Models { get; set; }
     public List<string>? TemplateNames { get; set; }
     public List<string>? UserIds { get; set; }
+    public List<KeyValue>? States { get; set; }
 
     public static InstructLogFilter Empty()
     {
-        return new InstructLogFilter();
+        return new();
     }
 }

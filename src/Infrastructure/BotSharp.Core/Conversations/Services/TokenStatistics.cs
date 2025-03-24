@@ -41,9 +41,11 @@ public class TokenStatistics : ITokenStatistics
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(stats.Provider, _model);
 
-        var deltaPromptCost = stats.PromptCount / 1000f * settings.PromptCost;
+        var deltaPromptCost = (stats.PromptCount - stats.CachedPromptCount) / 1000f * settings.PromptCost;
+        var deltaCachedPromptCost = stats.CachedPromptCount / 1000f * (settings.AdditionalCost?.CachedPromptCost ?? 0f);
         var deltaCompletionCost = stats.CompletionCount / 1000f * settings.CompletionCost;
-        var deltaTotal = deltaPromptCost + deltaCompletionCost;
+
+        var deltaTotal = deltaPromptCost + deltaCachedPromptCost + deltaCompletionCost;
         _promptCost += deltaPromptCost;
         _completionCost += deltaCompletionCost;
 
@@ -53,6 +55,8 @@ public class TokenStatistics : ITokenStatistics
         stat.SetState("prompt_total", stats.PromptCount + inputCount, isNeedVersion: false, source: StateSource.Application);
         var outputCount = int.Parse(stat.GetState("completion_total", "0"));
         stat.SetState("completion_total", stats.CompletionCount + outputCount, isNeedVersion: false, source: StateSource.Application);
+        var cachedCount = int.Parse(stat.GetState("cached_prompt_total", "0"));
+        stat.SetState("cached_prompt_total", stats.CachedPromptCount + cachedCount, isNeedVersion: false, source: StateSource.Application);
 
         // Total cost
         var total_cost = float.Parse(stat.GetState("llm_total_cost", "0"));

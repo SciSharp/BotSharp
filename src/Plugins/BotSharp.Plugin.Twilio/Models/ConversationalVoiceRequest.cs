@@ -5,17 +5,43 @@ namespace BotSharp.Plugin.Twilio.Models;
 public class ConversationalVoiceRequest : VoiceRequest
 {
     [FromQuery(Name = "agent-id")]
-    public string AgentId { get; set; }
+    public string AgentId { get; set; } = string.Empty;
 
-    [FromRoute]
-    public string ConversationId { get; set; }
+    [FromQuery(Name = "conversation-id")]
+    public string ConversationId { get; set; } = string.Empty;
 
     [FromRoute]
     public int SeqNum { get; set; }
 
     public int Attempts { get; set; } = 1;
+    public int AIResponseWaitTime { get; set; } = 0;
+    public string? AIResponseErrorMessage { get; set; } = string.Empty;
 
-    public string Intent { get; set; }
+    public string Intent { get; set; } = string.Empty;
+
+    [FromQuery(Name = "init-audio-file")]
+    public string? InitAudioFile { get; set; }
 
     public List<string> States { get; set; } = [];
+
+    [FromForm]
+    public string? CallbackSource { get; set; }
+
+    [FromQuery(Name = "transfer-to")]
+    public string? TransferTo { get; set; }
+
+    /// <summary>
+    /// machine_start
+    /// </summary>
+    [FromForm]
+    public string? AnsweredBy { get; set; }
+
+    [FromForm]
+    public int MachineDetectionDuration { get; set; }
+
+    [FromForm]
+    public int Duration { get; set; }
+
+    [FromForm]
+    public int CallDuration { get; set; }
 }

@@ -35,21 +35,19 @@ public class TwilioStreamController : TwilioController
             throw new ArgumentNullException(nameof(VoiceRequest.CallSid));
         }
 
-        VoiceResponse response = null;
+        var twilio = _services.GetRequiredService<TwilioService>();
+        VoiceResponse response = default!;
+
         var instruction = new ConversationalVoiceResponse
         {
+            ConversationId = request.ConversationId,
             SpeechPaths = [],
             ActionOnEmptyResult = true
         };
 
-        if (_context.HttpContext.Request.Query.ContainsKey("init_audio_file"))
+        if (request.InitAudioFile != null)
         {
-            instruction.SpeechPaths.Add(_context.HttpContext.Request.Query["init_audio_file"]);
-        }
-
-        if (_context.HttpContext.Request.Query.ContainsKey("conversation_id"))
-        {
-            request.ConversationId = _context.HttpContext.Request.Query["conversation_id"];
+            instruction.SpeechPaths.Add(request.InitAudioFile);
         }
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
@@ -61,10 +59,25 @@ public class TwilioStreamController : TwilioController
         });
 
         request.ConversationId = await InitConversation(request);
+        instruction.ConversationId = request.ConversationId;
 
-        var twilio = _services.GetRequiredService<TwilioService>();
+        if (request.AnsweredBy == "machine_start" &&
+            request.Direction == "outbound-api")
+        {
+            response = new VoiceResponse();
 
-        response = twilio.ReturnBidirectionalMediaStreamsInstructions(request.ConversationId, instruction);
+            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, async hook =>
+            {
+                await hook.OnVoicemailStarting(request);
+            });
+
+            var url = twilio.GetSpeechPath(request.ConversationId, "voicemail.mp3");
+            response.Play(new Uri(url));
+        }
+        else
+        {
+            response = twilio.ReturnBidirectionalMediaStreamsInstructions(instruction);
+        }
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
@@ -85,7 +98,7 @@ public class TwilioStreamController : TwilioController
         {
             var conv = new Conversation
             {
-                AgentId = request.AgentId ?? _settings.AgentId,
+                AgentId = request.AgentId,
                 Channel = ConversationChannel.Phone,
                 ChannelId = request.CallSid,
                 Title = $"Incoming phone call from {request.From}",
@@ -103,6 +116,11 @@ public class TwilioStreamController : TwilioController
                 // Enable lazy routing mode to optimize realtime experience
                 new(StateConst.ROUTING_MODE, "lazy"),
             };
+
+        if (request.InitAudioFile != null)
+        {
+            states.Add(new("init_audio_file", request.InitAudioFile));
+        }
 
         convService.SetConversationId(conversation.Id, states);
         convService.SaveStates();

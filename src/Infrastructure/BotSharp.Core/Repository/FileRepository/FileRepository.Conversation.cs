@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Loggers.Models;
+using BotSharp.Abstraction.Users.Models;
+using System;
 using System.IO;
 
 namespace BotSharp.Core.Repository;
@@ -157,7 +159,7 @@ public partial class FileRepository
         }
     }
 
-    public bool UpdateConversationTags(string conversationId, List<string> tags)
+    public bool UpdateConversationTags(string conversationId, List<string> toAddTags, List<string> toDeleteTags)
     {
         if (string.IsNullOrEmpty(conversationId)) return false;
 
@@ -169,7 +171,11 @@ public partial class FileRepository
 
         var json = File.ReadAllText(convFile);
         var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
-        conv.Tags = tags ?? new();
+
+        var tags = conv.Tags ?? [];
+        tags = tags.Concat(toAddTags).Distinct().ToList();
+        conv.Tags = tags.Where(x => !toDeleteTags.Contains(x, StringComparer.OrdinalIgnoreCase)).ToList();
+
         conv.UpdatedTime = DateTime.UtcNow;
         File.WriteAllText(convFile, JsonSerializer.Serialize(conv, _options));
         return true;
@@ -341,7 +347,7 @@ public partial class FileRepository
         }
     }
 
-    public Conversation GetConversation(string conversationId)
+    public Conversation GetConversation(string conversationId, bool isLoadStates = false)
     {
         var convDir = FindConversationDirectory(conversationId);
         if (string.IsNullOrEmpty(convDir)) return null;
@@ -356,18 +362,20 @@ public partial class FileRepository
             record.Dialogs = CollectDialogElements(dialogFile);
         }
 
-        var stateFile = Path.Combine(convDir, STATE_FILE);
-        if (record != null)
+        if (isLoadStates)
         {
-            var states = CollectConversationStates(stateFile);
-            var curStates = new Dictionary<string, string>();
-            states.ForEach(x =>
+            var latestStateFile = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
+            if (record != null && File.Exists(latestStateFile))
             {
-                curStates[x.Key] = x.Values?.LastOrDefault()?.Data ?? string.Empty;
-            });
-            record.States = curStates;
+                var stateJson = File.ReadAllText(latestStateFile);
+                var states = JsonSerializer.Deserialize<Dictionary<string, JsonDocument>>(stateJson, _options) ?? [];
+                record.States = states.ToDictionary(x => x.Key, x =>
+                {
+                    var elem = x.Value.RootElement.GetProperty("data");
+                    return elem.ValueKind != JsonValueKind.Null ? elem.ToString() : null;
+                });
+            }
         }
-
         return record;
     }
 
@@ -502,6 +510,21 @@ public partial class FileRepository
             }
 
             if (!matched) continue;
+
+            if (filter.IsLoadLatestStates)
+            {
+                var latestStateFile = Path.Combine(d, CONV_LATEST_STATE_FILE);
+                if (File.Exists(latestStateFile))
+                {
+                    var stateJson = File.ReadAllText(latestStateFile);
+                    var states = JsonSerializer.Deserialize<Dictionary<string, JsonDocument>>(stateJson, _options) ?? [];
+                    record.States = states.ToDictionary(x => x.Key, x =>
+                    {
+                        var elem = x.Value.RootElement.GetProperty("data");
+                        return elem.ValueKind != JsonValueKind.Null ? elem.ToString() : null;
+                    });
+                }
+            }
 
             records.Add(record);
         }
@@ -647,7 +670,7 @@ public partial class FileRepository
 #if !DEBUG
     [SharpCache(10)]
 #endif
-    public List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperLimit = 100)
+    public List<string> GetConversationStateSearchKeys(ConversationStateKeysFilter filter)
     {
         var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
         if (!Directory.Exists(dir)) return [];
@@ -658,26 +681,29 @@ public partial class FileRepository
         foreach (var d in Directory.GetDirectories(dir))
         {
             var convFile = Path.Combine(d, CONVERSATION_FILE);
-            var stateFile = Path.Combine(d, STATE_FILE);
-            if (!File.Exists(convFile) || !File.Exists(stateFile))
+            var latestStateFile = Path.Combine(d, CONV_LATEST_STATE_FILE);
+            if (!File.Exists(convFile) || !File.Exists(latestStateFile))
             {
                 continue;
             }
 
             var convJson = File.ReadAllText(convFile);
-            var stateJson = File.ReadAllText(stateFile);
+            var stateJson = File.ReadAllText(latestStateFile);
             var conv = JsonSerializer.Deserialize<Conversation>(convJson, _options);
-            var states = JsonSerializer.Deserialize<List<StateKeyValue>>(stateJson, _options);
-            if (conv == null || conv.DialogCount < messageLowerLimit)
+            var states = JsonSerializer.Deserialize<Dictionary<string, JsonDocument>>(stateJson, _options);
+            if (conv == null
+                || states.IsNullOrEmpty()
+                || (!filter.AgentIds.IsNullOrEmpty() && !filter.AgentIds.Contains(conv.AgentId))
+                || (!filter.UserIds.IsNullOrEmpty() && !filter.UserIds.Contains(conv.UserId)))
             {
                 continue;
             }
 
-            var stateKeys = states?.Select(x => x.Key)?.Distinct()?.ToList() ?? [];
+            var stateKeys = states?.Select(x => x.Key)?.ToList() ?? [];
             keys.AddRange(stateKeys);
             count++;
 
-            if (count >= convUpperLimit)
+            if (count >= filter.ConvLimit)
             {
                 break;
             }

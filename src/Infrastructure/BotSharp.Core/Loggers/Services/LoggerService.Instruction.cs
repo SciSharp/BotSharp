@@ -1,6 +1,4 @@
-using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
-using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Core.Loggers.Services;
@@ -15,11 +13,10 @@ public partial class LoggerService
         }
 
         var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
-        var isAdmin = UserConstant.AdminRoles.Contains(user?.Role);
+        var (isAdmin, user) = await userService.IsAdminUser(_user.Id);
         if (!isAdmin && user?.Id == null) return new();
 
-        filter.UserIds = isAdmin ? [] : user?.Id != null ? [user.Id] : [];
+        filter.UserIds = !isAdmin && user?.Id != null ? [user.Id] : null;
 
         var agents = new List<Agent>();
         var users = new List<User>();
@@ -60,5 +57,28 @@ public partial class LoggerService
             Items = items,
             Count = logs.Count
         };
+    }
+
+    public async Task<List<string>> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
+    {
+        if (filter == null)
+        {
+            filter = InstructLogKeysFilter.Empty();
+        }
+
+        var keys = new List<string>();
+        if (!filter.PreLoad && string.IsNullOrWhiteSpace(filter.Query))
+        {
+            return keys;
+        }
+
+        var userService = _services.GetRequiredService<IUserService>();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        var (isAdmin, user) = await userService.IsAdminUser(_user.Id);
+        filter.UserIds = !isAdmin && user?.Id != null ? [user.Id] : null;
+        keys = db.GetInstructionLogSearchKeys(filter);
+        keys = filter.PreLoad ? keys : keys.Where(x => x.Contains(filter.Query ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList();
+        return keys.OrderBy(x => x).Take(filter.KeyLimit).ToList();
     }
 }

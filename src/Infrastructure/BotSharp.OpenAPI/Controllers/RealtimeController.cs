@@ -22,7 +22,7 @@ public class RealtimeController : ControllerBase
     [HttpGet("/agent/{agentId}/realtime/session")]
     public async Task<RealtimeSession> CreateSession(string agentId)
     {
-        var completion = CompletionProvider.GetRealTimeCompletion(_services, provider: "openai", modelId: "gpt-4");
+        var completion = CompletionProvider.GetRealTimeCompletion(_services, provider: "openai", modelId: "gpt-4o");
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);

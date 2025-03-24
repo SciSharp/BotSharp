@@ -1,4 +1,6 @@
 using Azure;
+using BotSharp.Abstraction.Browsing.Settings;
+using Microsoft.Playwright;
 using System.IO;
 
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
@@ -33,15 +35,17 @@ public class PlaywrightInstance : IDisposable
 
     public async Task<IBrowserContext> GetContext(string ctxId)
     {
+        var _webDriver = _services.GetRequiredService<WebBrowsingSettings>();
         if (!_contexts.ContainsKey(ctxId))
         {
-            await InitContext(ctxId, new BrowserActionArgs());
+            await InitContext(ctxId, new BrowserActionArgs() { Headless = _webDriver.Headless });
         }
         return _contexts[ctxId];
     }
 
     public async Task<IBrowserContext> InitContext(string ctxId, BrowserActionArgs args)
     {
+        var _webDriver = _services.GetRequiredService<WebBrowsingSettings>();
         if (_contexts.ContainsKey(ctxId))
             return _contexts[ctxId];
 
@@ -75,10 +79,13 @@ public class PlaywrightInstance : IDisposable
                 Args =
                 [
                     "--disable-infobars",
-                    "--test-type"
+                    "--test-type",
+                    "--no-sandbox"
                     // "--start-maximized"
                 ]
             });
+            _contexts[ctxId].SetDefaultTimeout(_webDriver.DefaultTimeout);
+            _contexts[ctxId].SetDefaultNavigationTimeout(_webDriver.DefaultNavigationTimeout);
         }
 
         _pages[ctxId] = new List<IPage>();
@@ -128,7 +135,6 @@ public class PlaywrightInstance : IDisposable
         {
             return page;
         }
-
         page.Request += async (sender, e) =>
         {
             await HandleFetchRequest(e, message, args);
@@ -151,7 +157,7 @@ public class PlaywrightInstance : IDisposable
 
     public async Task HandleFetchResponse(IResponse response, MessageInfo message, PageActionArgs args)
     {
-        if (response.Status != 204 &&
+        if (response.Status != 204 && response.Status != 302 &&
                         response.Headers.ContainsKey("content-type") &&
                         (response.Request.ResourceType == "fetch" || response.Request.ResourceType == "xhr") &&
                         (args.ExcludeResponseUrls == null || !args.ExcludeResponseUrls.Any(url => response.Url.ToLower().Contains(url))) &&
@@ -161,11 +167,23 @@ public class PlaywrightInstance : IDisposable
 
             try
             {
+                var context = await GetContext(message.ContextId);
+                var cookies = await context.CookiesAsync(new string[] { response.Url });
                 var result = new WebPageResponseData
                 {
                     Url = response.Url.ToLower(),
                     PostData = response.Request?.PostData ?? string.Empty,
-                    ResponseInMemory = args.ResponseInMemory
+                    ResponseInMemory = args.ResponseInMemory,
+                    Method = response.Request.Method,
+                    ResponseCode = response.Status,
+                    Cookies = cookies.Select(x => new WebPageCookieData
+                    {
+                        Name = x.Name,
+                        Value = x.Value,
+                        Domain = x.Domain,
+                        Path = x.Path,
+                        Expires = x.Expires
+                    }).ToList()
                 };
 
                 var html = await response.TextAsync();

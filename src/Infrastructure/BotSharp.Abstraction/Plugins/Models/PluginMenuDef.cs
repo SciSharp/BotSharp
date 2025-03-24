@@ -14,7 +14,7 @@ public class PluginMenuDef(string label, string? link = null, string? icon = nul
     public string? Link { get; set; } = link;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? IFrameUrl { get; set; }
+    public EmbeddingData? EmbeddingInfo { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? IsHeader {  get; set; }
@@ -32,4 +32,36 @@ public class PluginMenuDef(string label, string? link = null, string? icon = nul
     {
         return $"{Label} {Link} {Weight}";
     }
+}
+
+public class EmbeddingData
+{
+    /// <summary>
+    /// Embedding source, e.g., tableau
+    /// </summary>
+    public string Source { get; set; } = default!;
+
+    /// <summary>
+    /// Embedding url
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Url { get; set; }
+
+    /// <summary>
+    /// Html tag
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? HtmlTag { get; set; }
+
+    /// <summary>
+    /// Javascript script src
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ScriptSrc { get; set; }
+
+    /// <summary>
+    /// Javascript script type, e.g., module
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ScriptType { get; set; }
 }

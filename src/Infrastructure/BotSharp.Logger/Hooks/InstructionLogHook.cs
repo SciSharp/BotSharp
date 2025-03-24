@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Instructs.Settings;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Users;
 
@@ -24,12 +25,22 @@ public class InstructionLogHook : InstructHookBase
 
     public override async Task OnResponseGenerated(InstructResponseModel response)
     {
-        if (response == null) return;
+        var settings = _services.GetRequiredService<InstructionSettings>();
+        if (response == null
+            || string.IsNullOrWhiteSpace(response.AgentId)
+            || settings == null
+            || !settings.Logging.Enabled
+            || settings.Logging.ExcludedAgentIds.Contains(response.AgentId))
+        {
+            return;
+        }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var state = _services.GetRequiredService<IConversationStateService>();
 
         var user = db.GetUserById(_user.Id);
+        var templateName = response.TemplateName ?? state.GetState("instruct_template_name") ?? null;
+
         db.SaveInstructionLogs(new List<InstructionLogModel>
         {
             new InstructionLogModel
@@ -37,7 +48,7 @@ public class InstructionLogHook : InstructHookBase
                 AgentId = response.AgentId,
                 Provider = response.Provider,
                 Model = response.Model,
-                TemplateName = response.TemplateName,
+                TemplateName = !string.IsNullOrWhiteSpace(templateName) ? templateName : null,
                 UserMessage = response.UserMessage,
                 SystemInstruction = response.SystemInstruction,
                 CompletionText = response.CompletionText,
@@ -45,6 +56,7 @@ public class InstructionLogHook : InstructHookBase
                 UserId = user?.Id
             }
         });
-        return;
+
+        await base.OnResponseGenerated(response);
     }
 }

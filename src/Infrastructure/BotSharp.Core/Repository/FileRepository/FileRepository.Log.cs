@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
+using Microsoft.IdentityModel.Logging;
 using System.IO;
 
 namespace BotSharp.Core.Repository
@@ -55,26 +55,34 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
         }
 
-        public List<ContentLogOutputModel> GetConversationContentLogs(string conversationId)
+        public DateTimePagination<ContentLogOutputModel> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
         {
-            var logs = new List<ContentLogOutputModel>();
-            if (string.IsNullOrEmpty(conversationId)) return logs;
+            if (string.IsNullOrEmpty(conversationId)) return new();
 
             var convDir = FindConversationDirectory(conversationId);
-            if (string.IsNullOrEmpty(convDir)) return logs;
+            if (string.IsNullOrEmpty(convDir)) return new();
 
             var logDir = Path.Combine(convDir, "content_log");
-            if (!Directory.Exists(logDir)) return logs;
+            if (!Directory.Exists(logDir)) return new();
 
+            var logs = new List<ContentLogOutputModel>();
             foreach (var file in Directory.GetFiles(logDir))
             {
                 var text = File.ReadAllText(file);
                 var log = JsonSerializer.Deserialize<ContentLogOutputModel>(text);
-                if (log == null) continue;
+                if (log == null || log.CreatedTime >= filter.StartTime) continue;
 
                 logs.Add(log);
             }
-            return logs.OrderBy(x => x.CreatedTime).ToList();
+
+            logs = logs.OrderByDescending(x => x.CreatedTime).Take(filter.Size).ToList();
+            logs.Reverse();
+            return new DateTimePagination<ContentLogOutputModel>
+            {
+                Items = logs,
+                Count = logs.Count,
+                NextTime = logs.FirstOrDefault()?.CreatedTime
+            };
         }
         #endregion
 
@@ -100,26 +108,34 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
         }
 
-        public List<ConversationStateLogModel> GetConversationStateLogs(string conversationId)
+        public DateTimePagination<ConversationStateLogModel> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
         {
-            var logs = new List<ConversationStateLogModel>();
-            if (string.IsNullOrEmpty(conversationId)) return logs;
+            if (string.IsNullOrEmpty(conversationId)) return new();
 
             var convDir = FindConversationDirectory(conversationId);
-            if (string.IsNullOrEmpty(convDir)) return logs;
+            if (string.IsNullOrEmpty(convDir)) return new();
 
             var logDir = Path.Combine(convDir, "state_log");
-            if (!Directory.Exists(logDir)) return logs;
+            if (!Directory.Exists(logDir)) return new();
 
+            var logs = new List<ConversationStateLogModel>();
             foreach (var file in Directory.GetFiles(logDir))
             {
                 var text = File.ReadAllText(file);
                 var log = JsonSerializer.Deserialize<ConversationStateLogModel>(text);
-                if (log == null) continue;
+                if (log == null || log.CreatedTime >= filter.StartTime) continue;
 
                 logs.Add(log);
             }
-            return logs.OrderBy(x => x.CreatedTime).ToList();
+
+            logs = logs.OrderByDescending(x => x.CreatedTime).Take(filter.Size).ToList();
+            logs.Reverse();
+            return new DateTimePagination<ConversationStateLogModel>
+            {
+                Items = logs,
+                Count = logs.Count,
+                NextTime = logs.FirstOrDefault()?.CreatedTime
+            };
         }
         #endregion
 
@@ -187,6 +203,66 @@ namespace BotSharp.Core.Repository
                     matched = matched && filter.UserIds.Contains(log.UserId);
                 }
 
+                // Check states
+                if (matched && filter != null && !filter.States.IsNullOrEmpty())
+                {
+                    var logStates = log.InnerStates;
+                    if (logStates.IsNullOrEmpty())
+                    {
+                        matched = false;
+                    }
+                    else
+                    {
+                        foreach (var pair in filter.States)
+                        {
+                            if (pair == null || string.IsNullOrWhiteSpace(pair.Key)) continue;
+
+                            var components = pair.Key.Split(".").ToList();
+                            var primaryKey = components[0];
+                            if (logStates.TryGetValue(primaryKey, out var doc))
+                            {
+                                var elem = doc.RootElement.GetProperty("data");
+                                if (components.Count < 2)
+                                {
+                                    if (!string.IsNullOrWhiteSpace(pair.Value))
+                                    {
+                                        if (elem.ValueKind == JsonValueKind.Null)
+                                        {
+                                            matched = false;
+                                        }
+                                        else if (elem.ValueKind == JsonValueKind.Array)
+                                        {
+                                            matched = elem.EnumerateArray().Where(x => x.ValueKind != JsonValueKind.Null)
+                                                                           .Select(x => x.ToString())
+                                                                           .Any(x => x == pair.Value);
+                                        }
+                                        else if (elem.ValueKind == JsonValueKind.String)
+                                        {
+                                            matched = elem.GetString() == pair.Value;
+                                        }
+                                        else
+                                        {
+                                            matched = elem.GetRawText() == pair.Value;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    var paths = components.Where((_, idx) => idx > 0);
+                                    var found = FindState(elem, paths, pair.Value);
+                                    matched = found != null;
+                                }
+                            }
+                            else
+                            {
+                                matched = false;
+                            }
+
+                            if (!matched) break;
+                        }
+                    }
+                }
+
                 if (!matched) continue;
 
                 log.Id = Path.GetFileNameWithoutExtension(file);
@@ -210,6 +286,44 @@ namespace BotSharp.Core.Repository
                 Items = records,
                 Count = logs.Count()
             };
+        }
+
+        public List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
+        {
+            var keys = new List<string>();
+            var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
+            if (!Directory.Exists(baseDir))
+            {
+                return keys;
+            }
+
+            var count = 0;
+            var files = Directory.GetFiles(baseDir);
+            foreach (var file in files)
+            {
+                var json = File.ReadAllText(file);
+                var log = JsonSerializer.Deserialize<InstructionLogModel>(json, _options);
+                if (log == null) continue;
+
+                if (log == null
+                    || log.InnerStates.IsNullOrEmpty()
+                    || (!filter.UserIds.IsNullOrEmpty() && !filter.UserIds.Contains(log.UserId))
+                    || (!filter.AgentIds.IsNullOrEmpty() && !filter.AgentIds.Contains(log.AgentId)))
+                {
+                    continue;
+                }
+
+                var stateKeys = log.InnerStates.Select(x => x.Key)?.ToList() ?? [];
+                keys.AddRange(stateKeys);
+                count++;
+
+                if (count >= filter.LogLimit)
+                {
+                    break;
+                }
+            }
+
+            return keys.Distinct().ToList();
         }
         #endregion
 

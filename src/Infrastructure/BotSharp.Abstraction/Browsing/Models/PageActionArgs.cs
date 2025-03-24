@@ -16,8 +16,11 @@ public class PageActionArgs
     /// <summary>
     /// This value has to be set to true if you want to get the page XHR/ Fetch responses
     /// </summary>
-    public bool OpenNewTab { get; set; } = false;
-
+    [JsonPropertyName("open_new_tab")]
+    public bool OpenNewTab { get; set; } = true;
+    [JsonPropertyName("open_blank_page")]
+    public bool OpenBlankPage { get; set; } = true;
+    [JsonPropertyName("enable_response_callback")]
     public bool EnableResponseCallback { get; set; } = false;
 
     /// <summary>
@@ -47,4 +50,6 @@ public class PageActionArgs
     public int WaitTime { get; set; }
 
     public bool ReadInnerHTMLAsBody { get; set; } = false;
+    [JsonPropertyName("keep_browser_open")]
+    public bool KeepBrowserOpen { get; set; } = false;
 }

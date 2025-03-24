@@ -1,0 +1,10 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <!-- Define the files to be copied -->
+    <ContentFiles Include="$(MSBuildThisFileDirectory)..\contentFiles\any\**\*.*" />
+  </ItemGroup>
+  <Target Name="CopyContentFiles" AfterTargets="Build">
+    <!-- Copy the content files to the output directory -->
+    <Copy SourceFiles="@(ContentFiles)" DestinationFolder="$(TargetDir)%(RecursiveDir)" />
+  </Target>
+</Project>

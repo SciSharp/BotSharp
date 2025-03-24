@@ -17,13 +17,7 @@ public class WebDriverPlugin : IBotSharpPlugin
     {
         var settings = new WebBrowsingSettings();
         config.Bind("WebBrowsing", settings);
-
-        services.AddScoped(provider =>
-        {
-            var settingService = provider.GetRequiredService<ISettingService>();
-            return settings;
-        });
-
+        services.AddSingleton(x => settings);
         services.AddScoped<PlaywrightWebDriver>();
         services.AddSingleton<PlaywrightInstance>();
 

@@ -2,29 +2,45 @@ using OpenAI.Audio;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Audio;
 
-public partial class AudioCompletionProvider
+public class AudioSynthesisProvider : IAudioSynthesis
 {
-    public async Task<BinaryData> GenerateAudioFromTextAsync(string text)
+    private readonly IServiceProvider _services;
+    public string Provider => "openai";
+    public string Model => _model;
+
+    private string _model;
+
+    public AudioSynthesisProvider(IServiceProvider service)
+    {
+        _services = service;
+    }
+
+    public void SetModelName(string model)
+    {
+        _model = model;
+    }
+
+    public async Task<BinaryData> GenerateAudioAsync(string text, string? voice = "alloy", string? format = "mp3", string? instructions = null)
     {
         var audioClient = ProviderHelper.GetClient(Provider, _model, _services)
                                         .GetAudioClient(_model);
 
-        var (voice, options) = PrepareGenerationOptions();
-        var result = await audioClient.GenerateSpeechAsync(text, voice, options);
+        var (speechVoice, options) = PrepareGenerationOptions(voice: voice, format: format);
+        var result = await audioClient.GenerateSpeechAsync(text, speechVoice, options);
         return result.Value;
     }
 
-    private (GeneratedSpeechVoice, SpeechGenerationOptions) PrepareGenerationOptions()
+    private (GeneratedSpeechVoice, SpeechGenerationOptions) PrepareGenerationOptions(string? voice, string? format)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        var voice = GetVoice(state.GetState("speech_generate_voice"));
-        var format = GetSpeechFormat(state.GetState("speech_generate_format"));
+        var speechVoice = GetVoice(voice ?? "alloy");
+        var responseFormat = GetSpeechFormat(format ?? "mp3");
         var speed = GetSpeed(state.GetState("speech_generate_speed"));
 
         var options = new SpeechGenerationOptions
         {
-            ResponseFormat = format,
-            SpeedRatio = speed
+            ResponseFormat = responseFormat,
+            SpeedRatio = speed,
         };
 
         return (voice, options);
@@ -32,10 +48,8 @@ public partial class AudioCompletionProvider
 
     private GeneratedSpeechVoice GetVoice(string input)
     {
-        var value = !string.IsNullOrEmpty(input) ? input : "alloy";
-
         GeneratedSpeechVoice voice;
-        switch (value)
+        switch (input)
         {
             case "echo":
                 voice = GeneratedSpeechVoice.Echo;

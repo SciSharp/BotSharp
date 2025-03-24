@@ -4,7 +4,7 @@ namespace BotSharp.Plugin.AzureOpenAI.Providers.Audio;
 
 public partial class AudioCompletionProvider
 {
-    public async Task<string> GenerateTextFromAudioAsync(Stream audio, string audioFileName, string? text = null)
+    public async Task<string> TranscriptTextAsync(Stream audio, string audioFileName, string? text = null)
     {
         var audioClient = ProviderHelper.GetClient(Provider, _model, _services)
                                         .GetAudioClient(_model);

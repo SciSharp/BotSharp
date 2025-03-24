@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Browsing.Settings;
+
 namespace BotSharp.Plugin.WebDriver.UtilFunctions;
 
 public class UtilWebGoToPageFn : IFunctionCallback
@@ -21,20 +23,24 @@ public class UtilWebGoToPageFn : IFunctionCallback
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
+        var _webDriver = _services.GetRequiredService<WebBrowsingSettings>();
+        args.Timeout = _webDriver.DefaultTimeout;
         args.WaitForNetworkIdle = false;
-        args.WaitTime = 5;
-        args.OpenNewTab = true;
+        args.WaitTime = _webDriver.DefaultWaitTime;
 
         var conv = _services.GetRequiredService<IConversationService>();
-
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
         var browser = _services.GetRequiredService<IWebBrowser>();
         var msg = new MessageInfo
         {
             AgentId = message.CurrentAgentId,
             MessageId = message.MessageId,
-            ContextId = message.CurrentAgentId,
+            ContextId = webDriverService.GetMessageContext(message)
         };
-        await browser.CloseCurrentPage(msg);
+        if (!args.KeepBrowserOpen)
+        {
+            await browser.CloseCurrentPage(msg);
+        }
         var result = await browser.GoToPage(msg, args);
         if (!result.IsSuccess)
         {
@@ -44,7 +50,6 @@ public class UtilWebGoToPageFn : IFunctionCallback
 
         message.Content = $"Open web page successfully.";
 
-        var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await browser.ScreenshotAsync(msg, path);

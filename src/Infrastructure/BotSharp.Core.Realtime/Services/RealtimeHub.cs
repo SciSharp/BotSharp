@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Utilities;
-
 namespace BotSharp.Core.Realtime.Services;
 
 public class RealtimeHub : IRealtimeHub
@@ -24,7 +22,6 @@ public class RealtimeHub : IRealtimeHub
     {
         var buffer = new byte[1024 * 16];
         WebSocketReceiveResult result;
-
         
 
         do
@@ -77,7 +74,7 @@ public class RealtimeHub : IRealtimeHub
         if (!model.Contains("-realtime-"))
         {
             var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-            model = llmProviderService.GetProviderModel("openai", "gpt-4", realTime: true).Name;
+            model = llmProviderService.GetProviderModel("openai", "gpt-4o", realTime: true).Name;
         }
 
         _completer.SetModelName(model);
@@ -86,31 +83,48 @@ public class RealtimeHub : IRealtimeHub
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.Push(agent.Id);
 
+        var storage = _services.GetRequiredService<IConversationStorage>();
         var dialogs = convService.GetDialogHistory();
         if (dialogs.Count == 0)
         {
             dialogs.Add(new RoleDialogModel(AgentRole.User, "Hi"));
+            storage.Append(_conn.ConversationId, dialogs.First());
         }
+
         routing.Context.SetDialogs(dialogs);
+        routing.Context.SetMessageId(_conn.ConversationId, dialogs.Last().MessageId);
+
+        var states = _services.GetRequiredService<IConversationStateService>();
 
         await _completer.Connect(_conn, 
             onModelReady: async () => 
             {
-                // Control initial session, prevent initial response interruption
-                await _completer.UpdateSession(_conn, turnDetection: false);
+                // Not TriggerModelInference, waiting for user utter.
+                var instruction = await _completer.UpdateSession(_conn);
 
-                if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
+                // Trigger model inference if there is no audio file in the conversation
+                if (!states.ContainsState("init_audio_file"))
                 {
-                    await _completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
+                    if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
+                    {
+                        await _completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
+                    }
+                    else
+                    {
+                        await _completer.TriggerModelInference("Reply based on the conversation context.");
+                    }
                 }
                 else
                 {
-                    await _completer.TriggerModelInference("Reply based on the conversation context.");
-                }
+                    // Append dialogs into model context
+                    var history = "[CONVERSATION HISTORY]\r\n";
+                    foreach (var message in dialogs)
+                    {
+                        history += $"{message.Role}: {message.Content}\r\n";
+                    }
 
-                // Start turn detection
-                await Task.Delay(1000 * 8);
-                await _completer.UpdateSession(_conn, turnDetection: true);
+                    await _completer.TriggerModelInference($"{instruction}\r\n\r\n{history}\r\n\r\nAssist user without repeating your previous statement.");
+                }
             },
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
             {
@@ -155,6 +169,7 @@ public class RealtimeHub : IRealtimeHub
                     {
                         // append output audio transcript to conversation
                         dialogs.Add(message);
+                        storage.Append(_conn.ConversationId, message);
 
                         foreach (var hook in hookProvider.HooksOrderByPriority)
                         {
@@ -174,6 +189,8 @@ public class RealtimeHub : IRealtimeHub
             {
                 // append input audio transcript to conversation
                 dialogs.Add(message);
+                storage.Append(_conn.ConversationId, message);
+                routing.Context.SetMessageId(_conn.ConversationId, message.MessageId);
 
                 foreach (var hook in hookProvider.HooksOrderByPriority)
                 {
@@ -224,6 +241,9 @@ public class RealtimeHub : IRealtimeHub
         };
         dialogs.Add(message);
 
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        storage.Append(_conn.ConversationId, message);
+
         foreach (var hook in hookProvider.HooksOrderByPriority)
         {
             hook.SetAgent(agent)
@@ -233,19 +253,13 @@ public class RealtimeHub : IRealtimeHub
         }
 
         await _completer.InsertConversationItem(message);
-        await _completer.TriggerModelInference("Reply based on the user input");
+        var instruction = await _completer.UpdateSession(_conn);
+        await _completer.TriggerModelInference($"{instruction}\r\n\r\nReply based on the user input: {message.Content}");
     }
 
     private async Task HandleUserDisconnected()
     {
-        // Save dialog history
-        var routing = _services.GetRequiredService<IRoutingService>();
-        var storage = _services.GetRequiredService<IConversationStorage>();
-        var dialogs = routing.Context.GetDialogs();
-        foreach (var item in dialogs)
-        {
-            storage.Append(_conn.ConversationId, item);
-        }
+
     }
 
     private async Task SendEventToUser(WebSocket webSocket, object message)

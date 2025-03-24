@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Loggers.Services;
 using BotSharp.OpenAPI.ViewModels.Instructs;
@@ -11,14 +10,11 @@ namespace BotSharp.OpenAPI.Controllers;
 public class LoggerController : ControllerBase
 {
     private readonly IServiceProvider _services;
-    private readonly IUserIdentity _user;
 
     public LoggerController(
-        IServiceProvider services,
-        IUserIdentity user)
+        IServiceProvider services)
     {
         _services = services;
-        _user = user;
     }
 
     [HttpGet("/logger/full-log")]
@@ -39,20 +35,27 @@ public class LoggerController : ControllerBase
         }
     }
 
+    #region Conversation log
     [HttpGet("/logger/conversation/{conversationId}/content-log")]
-    public async Task<List<ContentLogOutputModel>> GetConversationContentLogs([FromRoute] string conversationId)
+    public async Task<DateTimePagination<ContentLogOutputModel>> GetConversationContentLogs(
+        [FromRoute] string conversationId,
+        [FromQuery] ConversationLogFilter request)
     {
         var logging = _services.GetRequiredService<ILoggerService>();
-        return await logging.GetConversationContentLogs(conversationId);
+        return await logging.GetConversationContentLogs(conversationId, request);
     }
 
     [HttpGet("/logger/conversation/{conversationId}/state-log")]
-    public async Task<List<ConversationStateLogModel>> GetConversationStateLogs([FromRoute] string conversationId)
+    public async Task<DateTimePagination<ConversationStateLogModel>> GetConversationStateLogs(
+        [FromRoute] string conversationId,
+        [FromQuery] ConversationLogFilter request)
     {
         var logging = _services.GetRequiredService<ILoggerService>();
-        return await logging.GetConversationStateLogs(conversationId);
+        return await logging.GetConversationStateLogs(conversationId, request);
     }
+    #endregion
 
+    #region Instruction log
     [HttpGet("/logger/instruction/log")]
     public async Task<PagedItems<InstructionLogViewModel>> GetInstructionLogs([FromQuery] InstructLogFilter request)
     {
@@ -65,4 +68,13 @@ public class LoggerController : ControllerBase
             Count = logs.Count
         };
     }
+
+    [HttpGet("/logger/instruction/log/keys")]
+    public async Task<List<string>> GetInstructionLogKeys([FromQuery] InstructLogKeysFilter request)
+    {
+        var logging = _services.GetRequiredService<ILoggerService>();
+        var keys = await logging.GetInstructionLogSearchKeys(request);
+        return keys;
+    }
+    #endregion
 }

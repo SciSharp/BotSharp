@@ -20,12 +20,13 @@ public class ScrollPageFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
 
         var agentService = _services.GetRequiredService<IAgentService>();
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
 
         message.Data = await _browser.ScrollPage(new MessageInfo
         {
             AgentId = agent.Id,
-            ContextId = convService.ConversationId,
+            ContextId = webDriverService.GetMessageContext(message),
             MessageId = message.MessageId
         }, new PageActionArgs
         {
@@ -35,13 +36,12 @@ public class ScrollPageFn : IFunctionCallback
     
         message.Content = "Scrolled. You can scroll more if needed.";
 
-        var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await _browser.ScreenshotAsync(new MessageInfo
         {
             AgentId = message.CurrentAgentId,
-            ContextId = convService.ConversationId,
+            ContextId = webDriverService.GetMessageContext(message),
             MessageId = message.MessageId
         }, path);
 

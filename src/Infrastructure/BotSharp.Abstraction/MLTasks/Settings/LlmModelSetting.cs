@@ -3,14 +3,14 @@ namespace BotSharp.Abstraction.MLTasks.Settings;
 public class LlmModelSetting
 {
     /// <summary>
-    /// Model Id, like "gpt-3.5" and "gpt-4".
+    /// Model Id, like "gpt-4", "gpt-4o", "o1".
     /// </summary>
-    public string? Id { get; set; }
+    public string Id { get; set; } = null!;
 
     /// <summary>
     /// Deployment model name
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = null!;
 
     /// <summary>
     /// Model version
@@ -28,8 +28,8 @@ public class LlmModelSetting
     /// </summary>
     public string? Group { get; set; }
 
-    public string ApiKey { get; set; }
-    public string Endpoint { get; set; }
+    public string ApiKey { get; set; } = null!;
+    public string? Endpoint { get; set; }
     public LlmModelType Type { get; set; } = LlmModelType.Chat;
 
     /// <summary>
@@ -62,10 +62,20 @@ public class LlmModelSetting
     /// </summary>
     public int Dimension { get; set; }
 
+    public LlmCost AdditionalCost { get; set; } = new();
+
     public override string ToString()
     {
         return $"[{Type}] {Name} {Endpoint}";
     }
+}
+
+public class LlmCost
+{
+    public float CachedPromptCost { get; set; } = 0f;
+    public float AudioPromptCost { get; set; } = 0f;
+    public float ReasoningCompletionCost { get; } = 0f;
+    public float AudioCompletionCost { get; } = 0f;
 }
 
 public enum LlmModelType

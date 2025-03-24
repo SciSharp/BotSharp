@@ -46,15 +46,6 @@ public interface ITwilioSessionHook
         => Task.CompletedTask;
 
     /// <summary>
-    /// On agent generated indication
-    /// </summary>
-    /// <param name="request"></param>
-    /// <param name="response"></param>
-    /// <returns></returns>
-    Task OnIndicationGenerated(ConversationalVoiceRequest request, ConversationalVoiceResponse response)
-        => Task.CompletedTask;
-
-    /// <summary>
     /// Waiting agent response
     /// </summary>
     /// <param name="request"></param>

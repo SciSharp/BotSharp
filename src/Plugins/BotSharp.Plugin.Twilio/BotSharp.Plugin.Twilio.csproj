@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
@@ -6,19 +6,30 @@
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <OutputPath>$(SolutionDir)packages</OutputPath>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   
   <ItemGroup>
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-twilio-transfer_phone_call.json" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-twilio-hangup_phone_call.json" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-twilio-text_message.json" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-twilio-outbound_phone_call.json" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-twilio-leave_voicemail.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-twilio-transfer_phone_call.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-twilio-hangup_phone_call.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-twilio-text_message.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-twilio-outbound_phone_call.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-twilio-hangup_phone_call.fn.liquid">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-twilio-outbound_phone_call.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

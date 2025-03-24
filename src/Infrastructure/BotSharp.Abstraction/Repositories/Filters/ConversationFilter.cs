@@ -23,9 +23,11 @@ public class ConversationFilter
     /// <summary>
     /// Check whether each key in the list is in the conversation states and its value equals to target value if not empty 
     /// </summary>
-    public IEnumerable<KeyValue>? States { get; set; } = [];
+    public List<KeyValue>? States { get; set; }
 
-    public IEnumerable<string>? Tags { get; set; } = [];
+    public List<string>? Tags { get; set; }
+
+    public bool IsLoadLatestStates { get; set; }
 
     public static ConversationFilter Empty()
     {

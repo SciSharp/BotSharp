@@ -36,7 +36,7 @@ public partial class MongoRepository
                 UpdateAgentProfiles(agent.Id, agent.Profiles);
                 break;
             case AgentField.Label:
-                UpdateAgentLabels(agent.Id, agent.Profiles);
+                UpdateAgentLabels(agent.Id, agent.Labels);
                 break;
             case AgentField.RoutingRule:
                 UpdateAgentRoutingRules(agent.Id, agent.RoutingRules);

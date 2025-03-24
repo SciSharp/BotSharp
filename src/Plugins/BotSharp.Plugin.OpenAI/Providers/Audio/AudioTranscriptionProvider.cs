@@ -2,9 +2,26 @@ using OpenAI.Audio;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Audio;
 
-public partial class AudioCompletionProvider
+public class AudioTranscriptionProvider : IAudioTranscription
 {
-    public async Task<string> GenerateTextFromAudioAsync(Stream audio, string audioFileName, string? text = null)
+    private readonly IServiceProvider _services;
+
+    public string Provider => "openai";
+    public string Model => _model;
+
+    private string _model;
+
+    public AudioTranscriptionProvider(IServiceProvider service)
+    {
+        _services = service;
+    }
+
+    public void SetModelName(string model)
+    {
+        _model = model;
+    }
+
+    public async Task<string> TranscriptTextAsync(Stream audio, string audioFileName, string? text = null)
     {
         var audioClient = ProviderHelper.GetClient(Provider, _model, _services)
                                         .GetAudioClient(_model);
