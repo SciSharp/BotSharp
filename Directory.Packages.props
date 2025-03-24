@@ -6,7 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="EntityFramework" Version="6.4.4" />
-    <PackageVersion Include="mcpdotnet" Version="1.1.0.1" />
+    <PackageVersion Include="Google_GenerativeAI" Version="2.4.6" />
+    <PackageVersion Include="LLMSharp.Google.Palm" Version="1.0.2" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
@@ -46,8 +47,6 @@
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.8" />
     <PackageVersion Include="MySql.Data" Version="9.0.0" />
     <PackageVersion Include="NPOI" Version="2.7.1" />
-    <PackageVersion Include="LLMSharp.Google.Palm" Version="1.0.2" />
-    <PackageVersion Include="Mscc.GenerativeAI" Version="2.2.11" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
     <PackageVersion Include="Refit" Version="8.0.0" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="8.0.0" />

@@ -9,14 +9,14 @@
     <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
     <OutputPath>$(SolutionDir)packages</OutputPath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="LLMSharp.Google.Palm" />
-    <PackageReference Include="Mscc.GenerativeAI" />
-  </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Google_GenerativeAI" />
+    <PackageReference Include="LLMSharp.Google.Palm" />
   </ItemGroup>
 
 </Project>

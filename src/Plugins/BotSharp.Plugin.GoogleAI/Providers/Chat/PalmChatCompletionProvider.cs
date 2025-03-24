@@ -19,7 +19,7 @@ public class PalmChatCompletionProvider : IChatCompletion
 
     public string Provider => "google-palm";
     public string Model => _model;
-
+   
     public PalmChatCompletionProvider(
         IServiceProvider services,
         ILogger<PalmChatCompletionProvider> logger)
