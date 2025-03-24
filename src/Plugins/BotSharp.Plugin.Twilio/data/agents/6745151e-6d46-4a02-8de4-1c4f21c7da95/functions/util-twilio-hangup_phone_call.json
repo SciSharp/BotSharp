@@ -11,7 +11,7 @@
       },
       "response_content": {
         "type": "string",
-        "description": "A statement said to the user when politely ending a conversation."
+        "description": "A response statement said to the user to politely and gratefully ending a conversation before hanging up."
       }
     },
     "required": [ "reason", "response_content" ]
