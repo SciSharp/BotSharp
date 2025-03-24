@@ -54,7 +54,7 @@ public class McpPlugin : IBotSharpPlugin
 
             services.AddScoped<IFunctionCallback>(provider =>
             {
-                var funcTool = new McpToolFunction(provider, tool, clientManager);
+                var funcTool = new McpToolAdapter(provider, tool, clientManager);
                 return funcTool;
             });
         }

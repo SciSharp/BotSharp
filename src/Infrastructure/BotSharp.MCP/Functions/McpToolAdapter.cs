@@ -13,13 +13,13 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Core.Mcp.Functions;
 
-public class McpToolFunction : IFunctionCallback
+public class McpToolAdapter : IFunctionCallback
 {
     private readonly Tool _tool;
     private readonly MCPClientManager _clientManager;
     private readonly IServiceProvider _serviceProvider;
 
-    public McpToolFunction(IServiceProvider provider, Tool tool, MCPClientManager client)
+    public McpToolAdapter(IServiceProvider provider, Tool tool, MCPClientManager client)
     {
         _serviceProvider = provider ?? throw new ArgumentNullException(nameof(provider));
         _tool = tool ?? throw new ArgumentNullException(nameof(tool));
