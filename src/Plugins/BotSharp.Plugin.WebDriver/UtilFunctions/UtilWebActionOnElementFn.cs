@@ -34,7 +34,8 @@ public class UtilWebActionOnElementFn : IFunctionCallback
         
         var conv = _services.GetRequiredService<IConversationService>();
 
-        var browser = _services.GetRequiredService<IWebBrowser>();
+        var services = _services.CreateScope().ServiceProvider;
+        var browser = services.GetRequiredService<IWebBrowser>();
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var msg = new MessageInfo
         {
