@@ -13,7 +13,6 @@ public class HangupPhoneCallFn : IFunctionCallback
     private readonly TwilioSetting _twilioSetting;
 
     public string Name => "util-twilio-hangup_phone_call";
-    public string Indication => "Hangup";
 
     public HangupPhoneCallFn(
         IServiceProvider services,

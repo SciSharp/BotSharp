@@ -20,12 +20,12 @@ public class RealtimeHub : IRealtimeHub
     public async Task Listen(WebSocket userWebSocket, 
         Action<string> onUserMessageReceived)
     {
-        var buffer = new byte[1024 * 16];
+        var buffer = new byte[1024 * 32];
         WebSocketReceiveResult result;
-        
 
         do
         {
+            Array.Clear(buffer, 0, buffer.Length);
             result = await userWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             string receivedText = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
