@@ -53,12 +53,10 @@ public class TwilioStreamController : TwilioController
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
             await hook.OnSessionCreating(request, instruction);
-        }, new HookEmitOption
-        {
-            OnlyOnce = true
         });
 
         request.ConversationId = await InitConversation(request);
+        instruction.AgentId = request.AgentId;
         instruction.ConversationId = request.ConversationId;
 
         if (request.AnsweredBy == "machine_start" &&
@@ -82,9 +80,6 @@ public class TwilioStreamController : TwilioController
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
             await hook.OnSessionCreated(request);
-        }, new HookEmitOption
-        {
-            OnlyOnce = true
         });
 
         return TwiML(response);
