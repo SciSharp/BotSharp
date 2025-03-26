@@ -9,14 +9,12 @@ namespace BotSharp.Core.Mcp;
 
 public class MCPClientManager : IDisposable
 {
-    public ILoggerFactory LoggerFactory { get; }
- 
+
     private readonly MCPSettings mcpSettings;
 
-    public MCPClientManager(MCPSettings settings, ILoggerFactory loggerFactory)
+    public MCPClientManager(MCPSettings settings)
     {
         mcpSettings = settings;
-        LoggerFactory = loggerFactory;             
     }
 
     public async Task<IMcpClient> GetMcpClientAsync(string serverId)
@@ -27,6 +25,6 @@ public class MCPClientManager : IDisposable
 
     public void Dispose()
     {
-        LoggerFactory?.Dispose();
+
     }
 }

@@ -28,7 +28,7 @@ public class McpPlugin : IBotSharpPlugin
         var settings = config.GetSection("MCPSettings").Get<MCPSettings>();
         services.AddScoped<MCPSettings>(provider => { return settings; });        
         
-        clientManager = new MCPClientManager(settings, NullLoggerFactory.Instance);
+        clientManager = new MCPClientManager(settings);
         services.AddSingleton(clientManager);
 
         foreach (var server in settings.McpServerConfigs)
