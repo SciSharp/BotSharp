@@ -40,7 +40,6 @@ public class McpPlugin : IBotSharpPlugin
         }
         // Register hooks
         services.AddScoped<IAgentHook, MCPToolAgentHook>();
-        services.AddScoped<IConversationHook, MCPResponseHook>();
     }
 
     private async Task RegisterFunctionCall(IServiceCollection services, McpServerConfig server)
