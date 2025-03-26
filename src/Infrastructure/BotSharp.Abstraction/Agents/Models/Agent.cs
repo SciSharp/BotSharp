@@ -95,14 +95,19 @@ public class Agent
     public List<string> Labels { get; set; } = new();
 
     /// <summary>
-    /// Merge utilities from entry agent
+    /// Merge Utility from entry agent
     /// </summary>
     public bool MergeUtility { get; set; }
 
     /// <summary>
-    /// Agent utilities
+    /// Agent Utility
     /// </summary>
     public List<AgentUtility> Utilities { get; set; } = new();
+
+    /// <summary>
+    /// Agent MCP Tools
+    /// </summary>
+    public List<MCPTool> McpTools { get; set; } = new();
 
     /// <summary>
     /// Agent rules
@@ -157,6 +162,7 @@ public class Agent
             Responses = agent.Responses,
             Samples = agent.Samples,
             Utilities = agent.Utilities,
+            McpTools = agent.McpTools,
             Knowledges = agent.Knowledges,
             IsPublic = agent.IsPublic,
             Disabled = agent.Disabled,
@@ -296,6 +302,12 @@ public class Agent
     public Agent SetLlmConfig(AgentLlmConfig? llmConfig)
     {
         LlmConfig = llmConfig;
+        return this;
+    }
+
+    public Agent SetMcps(List<MCPTool> mcps)
+    {
+        McpTools = mcps ?? [];
         return this;
     }
 }
