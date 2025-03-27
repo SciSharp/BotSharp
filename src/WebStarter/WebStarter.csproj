@@ -9,17 +9,43 @@
   </PropertyGroup>
 
   <ItemGroup Condition="$(SolutionName)==PizzaBot">
+    <PackageReference Include="BotSharp.Core.Rules" />
+    <PackageReference Include="BotSharp.Core.Crontab" />
+    <PackageReference Include="BotSharp.Core.SideCar" />
+    <PackageReference Include="BotSharp.Core.Realtime" />
     <PackageReference Include="BotSharp.Logger" />
     <PackageReference Include="BotSharp.OpenAPI" />
-    <PackageReference Include="BotSharp.Core.Realtime" />
     <PackageReference Include="BotSharp.Plugin.Dashboard" />
-    <PackageReference Include="BotSharp.Plugin.AzureOpenAI" />
     <PackageReference Include="BotSharp.Plugin.GoogleAI" />
+    <PackageReference Include="BotSharp.Plugin.MongoStorage" />
+    <PackageReference Include="BotSharp.Plugin.OpenAI" />
+    <PackageReference Include="BotSharp.Plugin.AzureOpenAI" />
+    <PackageReference Include="BotSharp.Plugin.SparkDesk" />
+    <PackageReference Include="BotSharp.Plugin.DeepSeekAI" />
+    <PackageReference Include="BotSharp.Plugin.ChatbotUI" />
     <PackageReference Include="BotSharp.Plugin.HuggingFace" />
     <PackageReference Include="BotSharp.Plugin.KnowledgeBase" />
+    <PackageReference Include="BotSharp.Plugin.Graph" />
     <PackageReference Include="BotSharp.Plugin.MetaAI" />
-    <PackageReference Include="BotSharp.Plugin.LLamaSharp" />
+    <PackageReference Include="BotSharp.Plugin.MetaMessenger" />
+    <PackageReference Include="BotSharp.Plugin.Qdrant" />
+    <PackageReference Include="BotSharp.Plugin.RoutingSpeeder" />
+    <PackageReference Include="BotSharp.Plugin.WeChat" />
+    <PackageReference Include="BotSharp.Plugin.SemanticKernel" />
+    <PackageReference Include="BotSharp.Plugin.Twilio" />
+    <PackageReference Include="BotSharp.Plugin.TelegramBots" />
     <PackageReference Include="BotSharp.Plugin.ChatHub" />
+    <PackageReference Include="BotSharp.Plugin.LLamaSharp" />
+    <PackageReference Include="BotSharp.Plugin.SqlDriver" />
+    <PackageReference Include="BotSharp.Plugin.WebDriver" />
+    <PackageReference Include="BotSharp.Plugin.AnthropicAI" />
+    <PackageReference Include="BotSharp.Plugin.HttpHandler" />
+    <PackageReference Include="BotSharp.Plugin.FileHandler" />
+    <PackageReference Include="BotSharp.Plugin.EmailHandler" />
+    <PackageReference Include="BotSharp.Plugin.AudioHandler" />
+    <PackageReference Include="BotSharp.Plugin.MetaGLM" />
+    <PackageReference Include="BotSharp.Plugin.Planner" />
+    <PackageReference Include="BotSharp.Plugin.TencentCos" />
   </ItemGroup>
 
   <ItemGroup>

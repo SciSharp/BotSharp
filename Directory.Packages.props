@@ -109,17 +109,43 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="BotSharp.Core" Version="$(BotSharpVersion)" />
-    <PackageVersion Include="BotSharp.Logger" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Core.Rules" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Core.Crontab" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Core.SideCar" Version="$(BotSharpVersion)" />
     <PackageVersion Include="BotSharp.Core.Realtime" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Logger" Version="$(BotSharpVersion)" />
     <PackageVersion Include="BotSharp.OpenAPI" Version="$(BotSharpVersion)" />
     <PackageVersion Include="BotSharp.Plugin.Dashboard" Version="$(BotSharpVersion)" />
-    <PackageVersion Include="BotSharp.Plugin.AzureOpenAI" Version="$(BotSharpVersion)" />
     <PackageVersion Include="BotSharp.Plugin.GoogleAI" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.MongoStorage" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.OpenAI" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.AzureOpenAI" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.SparkDesk" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.DeepSeekAI" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.ChatbotUI" Version="$(BotSharpVersion)" />
     <PackageVersion Include="BotSharp.Plugin.HuggingFace" Version="$(BotSharpVersion)" />
     <PackageVersion Include="BotSharp.Plugin.KnowledgeBase" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.Graph" Version="$(BotSharpVersion)" />
     <PackageVersion Include="BotSharp.Plugin.MetaAI" Version="$(BotSharpVersion)" />
-    <PackageVersion Include="BotSharp.Plugin.LLamaSharp" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.MetaMessenger" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.Qdrant" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.RoutingSpeeder" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.WeChat" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.SemanticKernel" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.Twilio" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.TelegramBots" Version="$(BotSharpVersion)" />
     <PackageVersion Include="BotSharp.Plugin.ChatHub" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.LLamaSharp" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.SqlDriver" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.WebDriver" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.AnthropicAI" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.HttpHandler" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.FileHandler" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.EmailHandler" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.AudioHandler" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.MetaGLM" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.Planner" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.TencentCos" Version="$(BotSharpVersion)" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.5" />
