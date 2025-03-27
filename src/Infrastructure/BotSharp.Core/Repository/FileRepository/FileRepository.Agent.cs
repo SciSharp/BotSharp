@@ -60,6 +60,9 @@ namespace BotSharp.Core.Repository
                 case AgentField.Utility:
                     UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
                     break;
+                case AgentField.McpTool:
+                    UpdateAgentMcpTools(agent.Id, agent.McpTools);
+                    break;
                 case AgentField.KnowledgeBase:
                     UpdateAgentKnowledgeBases(agent.Id, agent.KnowledgeBases);
                     break;
@@ -186,6 +189,20 @@ namespace BotSharp.Core.Repository
 
             agent.MergeUtility = mergeUtility;
             agent.Utilities = utilities;
+            agent.UpdatedDateTime = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(agent, _options);
+            File.WriteAllText(agentFile, json);
+        }
+
+        private void UpdateAgentMcpTools(string agentId, List<MCPTool> mcptools)
+        {
+            if (mcptools == null) return;
+
+            var (agent, agentFile) = GetAgentFromFile(agentId);
+            if (agent == null) return;
+
+   
+            agent.McpTools = mcptools;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
@@ -360,6 +377,7 @@ namespace BotSharp.Core.Repository
             agent.Profiles = inputAgent.Profiles;
             agent.Labels = inputAgent.Labels;
             agent.Utilities = inputAgent.Utilities;
+            agent.McpTools = inputAgent.McpTools;
             agent.KnowledgeBases = inputAgent.KnowledgeBases;
             agent.RoutingRules = inputAgent.RoutingRules;
             agent.Rules = inputAgent.Rules;

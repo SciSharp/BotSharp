@@ -23,13 +23,14 @@ public class RealtimeSessionBody
     public string[] Modalities { get; set; } = ["audio", "text"];
 
     [JsonPropertyName("input_audio_format")]
-    public string InputAudioFormat { get; set; } = "pcm16";
+    public string InputAudioFormat { get; set; } = null!;
 
     [JsonPropertyName("output_audio_format")]
-    public string OutputAudioFormat { get; set; } = "pcm16";
+    public string OutputAudioFormat { get; set; } = null!;
 
     [JsonPropertyName("input_audio_transcription")]
-    public InputAudioTranscription InputAudioTranscription { get; set; } = new();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InputAudioTranscription? InputAudioTranscription { get; set; }
 
     [JsonPropertyName("instructions")]
     public string Instructions { get; set; } = "You are a friendly assistant.";

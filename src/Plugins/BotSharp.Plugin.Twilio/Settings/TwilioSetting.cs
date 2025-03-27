@@ -31,4 +31,5 @@ public class TwilioSetting
     public int MachineDetectionSilenceTimeout { get; set; } = 2500;
 
     public bool RecordingEnabled { get; set; } = false;
+    public bool TranscribeEnabled { get; set; } = false;
 }
