@@ -40,6 +40,7 @@ public partial class AgentService
         record.Responses = agent.Responses ?? [];
         record.Samples = agent.Samples ?? [];
         record.Utilities = agent.Utilities ?? [];
+        record.McpTools = agent.McpTools ?? [];
         record.KnowledgeBases = agent.KnowledgeBases ?? [];
         record.Rules = agent.Rules ?? [];
         if (agent.LlmConfig != null && !agent.LlmConfig.IsInherit)
@@ -106,6 +107,7 @@ public partial class AgentService
                        .SetResponses(foundAgent.Responses)
                        .SetSamples(foundAgent.Samples)
                        .SetUtilities(foundAgent.Utilities)
+                       .SetMcps(foundAgent.McpTools)
                        .SetKnowledgeBases(foundAgent.KnowledgeBases)
                        .SetRules(foundAgent.Rules)
                        .SetLlmConfig(foundAgent.LlmConfig);
@@ -195,7 +197,7 @@ public partial class AgentService
                 var samples = GetSamplesFromFile(dir);
                 return agent.SetInstruction(defaultInstruction)
                             .SetChannelInstructions(channelInstructions)
-                            .SetTemplates(templates)
+                            .SetTemplates(templates)                             
                             .SetFunctions(functions)
                             .SetResponses(responses)
                             .SetSamples(samples);

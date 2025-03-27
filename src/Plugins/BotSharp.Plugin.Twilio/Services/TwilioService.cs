@@ -202,7 +202,18 @@ public class TwilioService
     public VoiceResponse ReturnBidirectionalMediaStreamsInstructions(ConversationalVoiceResponse conversationalVoiceResponse)
     {
         var response = new VoiceResponse();
+
         var conversationId = conversationalVoiceResponse.ConversationId;
+
+        if (_settings.TranscribeEnabled)
+        {
+            var start = new Start();
+            start.Transcription(
+                track: "inbound_track",
+                partialResults: false,
+                statusCallbackUrl: $"{_settings.CallbackHost}/twilio/record/transcribe?agent-id={conversationalVoiceResponse.AgentId}&conversation-id={conversationId}", name: conversationId);
+            response.Append(start);
+        }
 
         if (conversationalVoiceResponse.SpeechPaths != null && conversationalVoiceResponse.SpeechPaths.Any())
         {

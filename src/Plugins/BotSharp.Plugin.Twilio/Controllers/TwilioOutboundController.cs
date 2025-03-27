@@ -56,7 +56,6 @@ public class TwilioOutboundController : TwilioController
             {
                 instruction.SpeechPaths.Add(request.InitAudioFile);
             }
-
             response = twilio.ReturnNoninterruptedInstructions(instruction);
         }
 

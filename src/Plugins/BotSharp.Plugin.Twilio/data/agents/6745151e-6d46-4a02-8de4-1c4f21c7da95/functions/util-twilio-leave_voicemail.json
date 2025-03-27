@@ -8,12 +8,8 @@
       "voicemail_message": {
         "type": "string",
         "description": "User voicemail with details."
-      },
-      "phone_number": {
-        "type": "string",
-        "description": "Phone number to callback."
       }
     },
-    "required": [ "voicemail_message", "phone_number" ]
+    "required": [ "voicemail_message" ]
   }
 }

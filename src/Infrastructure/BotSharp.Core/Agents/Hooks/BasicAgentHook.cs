@@ -38,6 +38,7 @@ public class BasicAgentHook : AgentHookBase
             agent.SecondaryInstructions.Add(prompt);
         }
     }
+     
 
     private (IEnumerable<FunctionDef>, IEnumerable<string>) GetUtilityContent(Agent agent)
     {
@@ -81,5 +82,5 @@ public class BasicAgentHook : AgentHookBase
                                      .Distinct().ToList();
 
         return (functionNames, templateNames);
-    }
+    }   
 }

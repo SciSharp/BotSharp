@@ -44,4 +44,32 @@ public class ConversationalVoiceRequest : VoiceRequest
 
     [FromForm]
     public int CallDuration { get; set; }
+
+    #region Transcription
+    [FromForm]
+    public string? LanguageCode { get; set; }
+
+    [FromForm]
+    public string? Stability { get; set; }
+
+    [FromForm]
+    public string? TranscriptionData { get; set; }
+
+    [FromForm]
+    public string? Final { get; set; }
+
+    [FromForm]
+    public string? Track { get; set; }
+
+    [FromForm]
+    public string? SequenceId { get; set; }
+
+    [FromForm]
+    public string? TranscriptionEvent { get; set; } 
+    #endregion
+}
+
+public class TranscriptionData
+{
+    public string Transcript { get; set; } = null!;
 }
