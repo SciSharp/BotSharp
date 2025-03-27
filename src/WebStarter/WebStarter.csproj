@@ -48,6 +48,29 @@
     <PackageReference Include="BotSharp.Plugin.TencentCos" />
   </ItemGroup>
 
+<Target Name="CombinedNugetPackage" BeforeTargets="PrepareForRun" Condition="$(SolutionName)=='PizzaBot'">
+  <ItemGroup>
+    <CoreContentFiles Include="$(NuGetPackageRoot)botsharp.core\$(BotSharpVersion)\content\data\**\*.*" />
+    <CoreCrontabContentFiles Include="$(NuGetPackageRoot)botsharp.core.crontab\$(BotSharpVersion)\content\data\**\*.*" />
+    <FileHandlerContentFiles Include="$(NuGetPackageRoot)botsharp.plugin.filehandler\$(BotSharpVersion)\content\data\**\*.*" />
+    <KnowledgeBaseContentFiles Include="$(NuGetPackageRoot)botsharp.plugin.knowledgebase\$(BotSharpVersion)\content\data\**\*.*" />
+    <PlannerContentFiles Include="$(NuGetPackageRoot)botsharp.plugin.planner\$(BotSharpVersion)\content\data\**\*.*" />
+    <SqlDriverContentFiles Include="$(NuGetPackageRoot)botsharp.plugin.sqldriver\$(BotSharpVersion)\content\data\**\*.*" />
+    <RulesContentFiles Include="$(NuGetPackageRoot)botsharp.core.rules\$(BotSharpVersion)\content\data\**\*.*" />
+    <HttpHandlerContentFiles Include="$(NuGetPackageRoot)botsharp.plugin.httphandler\$(BotSharpVersion)\content\data\**\*.*" />
+    <WebDriverContentFiles Include="$(NuGetPackageRoot)botsharp.plugin.webdriver\$(BotSharpVersion)\content\data\**\*.*" />
+  </ItemGroup>
+  
+  <Copy SourceFiles="@(CoreContentFiles)" DestinationFolder="$(OutputPath)data\%(RecursiveDir)" />
+  <Copy SourceFiles="@(CoreCrontabContentFiles)" DestinationFolder="$(OutputPath)data\%(RecursiveDir)" />
+  <Copy SourceFiles="@(FileHandlerContentFiles)" DestinationFolder="$(OutputPath)data\%(RecursiveDir)" />
+  <Copy SourceFiles="@(KnowledgeBaseContentFiles)" DestinationFolder="$(OutputPath)data\%(RecursiveDir)" />
+  <Copy SourceFiles="@(PlannerContentFiles)" DestinationFolder="$(OutputPath)data\%(RecursiveDir)" />
+  <Copy SourceFiles="@(SqlDriverContentFiles)" DestinationFolder="$(OutputPath)data\%(RecursiveDir)" />
+  <Copy SourceFiles="@(RulesContentFiles)" DestinationFolder="$(OutputPath)data\%(RecursiveDir)" />
+  <Copy SourceFiles="@(HttpHandlerContentFiles)" DestinationFolder="$(OutputPath)data\%(RecursiveDir)" />
+  <Copy SourceFiles="@(WebDriverContentFiles)" DestinationFolder="$(OutputPath)data\%(RecursiveDir)" />
+</Target>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
