@@ -11,11 +11,19 @@
       "action": {
         "type": "string",
         "description": "action to perform on element",
-        "enum": [ "Click", "InputText" ]
+        "enum": [ "Click", "InputText", "DropDown", "FileUpload" ]
       },
       "content": {
         "type": "string",
         "description": "content to input in element"
+      },
+      "file_urls": {
+        "type": "array",
+        "description": "The output format must be string array of file urls.",
+        "items": {
+          "type": "string",
+          "description": "file url"
+        }
       },
       "press_key": {
         "type": "string",
