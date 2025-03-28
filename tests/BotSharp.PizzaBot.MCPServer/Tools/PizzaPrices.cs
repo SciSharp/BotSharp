@@ -6,10 +6,10 @@ using System.Text.Json;
 
 namespace BotSharp.PizzaBot.MCPServer.Tools;
 
-[McpToolType]
+[McpServerToolType]
 public static class PizzaPrices
 {
-    [McpTool(name: "get_pizza_prices"), Description("call this function to get pizza unit price.")]
+    [McpServerTool(name: "get_pizza_prices"), Description("call this function to get pizza unit price.")]
     public static string GetPizzaPrices(
        [Description("The pizza type."), Required] string pizza_type,
        [Description("quantity of pizza"), Required] int quantity)

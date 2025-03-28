@@ -110,7 +110,8 @@
     <PackageVersion Include="MSTest.TestFramework" Version="3.1.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-    <PackageVersion Include="ModelContextProtocol" Version="0.1.0-preview.1.25171.12" />
+    <PackageVersion Include="ModelContextProtocol" Version="0.1.0-preview.2" />
+    <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="BotSharp.Core" Version="$(BotSharpVersion)" />

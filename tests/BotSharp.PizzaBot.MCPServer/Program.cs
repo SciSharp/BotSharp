@@ -2,7 +2,8 @@ using BotSharp.PizzaBot.MCPServer;
 using ModelContextProtocol;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddMcpServer().WithTools();
+builder.Services.AddMcpServer()
+    .WithToolsFromAssembly();
 var app = builder.Build();
 
 app.MapGet("/", () => "This is a test server with only stub functionality!");

@@ -4,10 +4,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BotSharp.PizzaBot.MCPServer.Tools;
 
-[McpToolType]
+[McpServerToolType]
 public static class PlaceOrder
 {
-    [McpTool(name: "place_an_order"), Description("Place an order when user has confirmed the pizza type and quantity.")]
+    [McpServerTool(name: "place_an_order"), Description("Place an order when user has confirmed the pizza type and quantity.")]
     public static string PlaceAnOrder(
       [Description("The pizza type."), Required] string pizza_type,
       [Description("quantity of pizza"), Required] int quantity,
