@@ -45,7 +45,7 @@ public class McpPlugin : IBotSharpPlugin
     private async Task RegisterFunctionCall(IServiceCollection services, McpServerConfig server)
     {
         var client = await clientManager.GetMcpClientAsync(server.Id);
-        var tools = await client.ListToolsAsync().ToListAsync(); 
+        /*var tools = await client.ListToolsAsync().ToListAsync(); 
 
         foreach (var tool in tools)
         {
@@ -56,6 +56,6 @@ public class McpPlugin : IBotSharpPlugin
                 var funcTool = new McpToolAdapter(provider, tool, clientManager);
                 return funcTool;
             });
-        }
+        }*/
     }
 }
