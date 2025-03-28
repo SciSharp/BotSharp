@@ -32,18 +32,20 @@ public class PizzaBotConversationHook : ConversationHookBase
         return base.OnTaskCompleted(message);
     }
 
+    #if USE_BOTSHARP
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-#if USE_BOTSHARP
+
         if (agent.McpTools.Any(item => item.Functions.Any(x => x.Name == message.FunctionName)))
         {
             var data = JsonDocument.Parse(JsonSerializer.Serialize(message.Data));
             state.SaveStateByArgs(data);
         }
-#endif
+
         await base.OnResponseGenerated(message);
     }
+    #endif
 }
