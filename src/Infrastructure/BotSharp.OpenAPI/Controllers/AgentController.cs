@@ -181,7 +181,7 @@ public class AgentController : ControllerBase
         var tools = await client.ListToolsAsync();
          
         return tools.Where(x => !string.IsNullOrWhiteSpace(x.Name))
-            .OrderBy(x => x.Name).ToList();*/
+            .OrderBy(x => x.Name).ToList();
     }
 
     [HttpGet("/agent/labels")]

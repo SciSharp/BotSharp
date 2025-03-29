@@ -61,7 +61,7 @@ public class MCPToolAgentHook : AgentHookBase
                 {
                     var funDef = AIFunctionUtilities.MapToFunctionDef(tool);
                     functionDefs.Add(funDef);
-                }*/
+                }
             }
         }
 
