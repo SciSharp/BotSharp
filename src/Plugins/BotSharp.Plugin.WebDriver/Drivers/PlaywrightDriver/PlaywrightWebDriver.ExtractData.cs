@@ -9,8 +9,11 @@ public partial class PlaywrightWebDriver
         await Task.Delay(3000);
 
         // Retrieve the page raw html and infer the element path
-        var body = await _instance.GetPage(actionParams.ContextId).QuerySelectorAsync("body");
-        var content = await body.InnerTextAsync();
+        var pageContent = _instance.GetPage(actionParams.ContextId);
+        var body = await pageContent.QuerySelectorAsync("body");
+        var pageUrl = pageContent.Url;
+        var pageBody = await body.InnerTextAsync();
+        string content = $"PageUrl: {pageUrl} <br/> PageBody: {pageBody}";
 
         var driverService = _services.GetRequiredService<WebDriverService>();
         var answer = await driverService.ExtraData(actionParams.Agent, content, actionParams.Context.Question, actionParams.MessageId);
