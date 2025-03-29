@@ -56,6 +56,6 @@ public class McpPlugin : IBotSharpPlugin
                 var funcTool = new McpToolAdapter(provider, tool, clientManager);
                 return funcTool;
             });
-        }
+        }*/
     }
 }
