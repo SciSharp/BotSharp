@@ -55,9 +55,9 @@ public class MCPToolAgentHook : AgentHookBase
             var mcpClient =  await mcpClientManager.GetMcpClientAsync(item.ServerId);
             if (mcpClient != null)
             {
-                var tools = await mcpClient.ListToolsAsync().ToListAsync();
+                var tools = await mcpClient.ListToolsAsync();
                 var toolnames = item.Functions.Select(x => x.Name).ToList();
-                foreach (var tool in tools.Where(x => toolnames.Contains(x.Name, StringComparer.OrdinalIgnoreCase)))
+                foreach (var tool in tools.ToList().Where(x => toolnames.Contains(x.Name, StringComparer.OrdinalIgnoreCase)))
                 {
                     var funDef = AIFunctionUtilities.MapToFunctionDef(tool);
                     functionDefs.Add(funDef);

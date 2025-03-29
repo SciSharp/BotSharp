@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
+using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol.Types;
 using System;
 using System.Collections.Generic;
@@ -8,15 +9,15 @@ namespace BotSharp.Core.MCP;
 
 internal static class AIFunctionUtilities
 {
-    public static FunctionDef MapToFunctionDef(Tool tool)
+    public static FunctionDef MapToFunctionDef(McpClientTool tool)
     {
         if (tool == null)
         {
             throw new ArgumentNullException(nameof(tool));
         }
 
-        var properties = tool.InputSchema.GetProperty("properties");
-        var required = tool.InputSchema.GetProperty("required");
+        var properties = tool.JsonSchema.GetProperty("properties");
+        var required = tool.JsonSchema.GetProperty("required");
 
         FunctionDef funDef = new FunctionDef
         {
