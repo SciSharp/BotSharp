@@ -15,11 +15,11 @@ namespace BotSharp.Core.Mcp.Functions;
 
 public class McpToolAdapter : IFunctionCallback
 {
-    private readonly Tool _tool;
+    private readonly McpClientTool _tool;
     private readonly MCPClientManager _clientManager;
     private readonly IServiceProvider _serviceProvider;
 
-    public McpToolAdapter(IServiceProvider provider, Tool tool, MCPClientManager client)
+    public McpToolAdapter(IServiceProvider provider, McpClientTool tool, MCPClientManager client)
     {
         _serviceProvider = provider ?? throw new ArgumentNullException(nameof(provider));
         _tool = tool ?? throw new ArgumentNullException(nameof(tool));
