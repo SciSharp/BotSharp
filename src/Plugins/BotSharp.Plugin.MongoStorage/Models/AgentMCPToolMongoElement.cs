@@ -10,21 +10,25 @@ public class AgentMCPToolMongoElement
     public bool Disabled { get; set; }
     public List<McpFunctionMongoElement> Functions { get; set; } = [];
 
-    public static AgentMCPToolMongoElement ToMongoElement(MCPTool utility)
+    public static AgentMCPToolMongoElement ToMongoElement(MCPTool tool)
     {
         return new AgentMCPToolMongoElement
         {
-            Disabled = utility.Disabled,
-            Functions = utility.Functions?.Select(x => new McpFunctionMongoElement(x.Name))?.ToList() ?? [],
+            Name = tool.Name,
+            ServerId = tool.ServerId,
+            Disabled = tool.Disabled,
+            Functions = tool.Functions?.Select(x => new McpFunctionMongoElement(x.Name))?.ToList() ?? [],
         };
     }
 
-    public static MCPTool ToDomainElement(AgentMCPToolMongoElement utility)
+    public static MCPTool ToDomainElement(AgentMCPToolMongoElement tool)
     {
         return new MCPTool
         {
-            Disabled = utility.Disabled,
-            Functions = utility.Functions?.Select(x => new MCPFunction(x.Name))?.ToList() ?? [],
+            Name = tool.Name,
+            ServerId = tool.ServerId,
+            Disabled = tool.Disabled,
+            Functions = tool.Functions?.Select(x => new MCPFunction(x.Name))?.ToList() ?? [],
         };
     }
 }
