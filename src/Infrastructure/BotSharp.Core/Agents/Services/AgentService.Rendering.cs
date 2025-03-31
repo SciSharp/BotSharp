@@ -119,7 +119,7 @@ public partial class AgentService
         var conv = _services.GetRequiredService<IConversationService>();
         var render = _services.GetRequiredService<ITemplateRender>();
 
-        var template = agent.Templates.First(x => x.Name == templateName).Content;
+        var template = agent.Templates.FirstOrDefault(x => x.Name == templateName)?.Content ?? string.Empty;
 
         // update states
         foreach (var t in conv.States.GetStates())

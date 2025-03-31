@@ -30,4 +30,22 @@ public partial class FileInstructService : IFileInstructService
             _fileStorage.CreateDirectory(dir);
         }
     }
+
+    private async Task<string?> GetAgentTemplate(string agentId, string? templateName)
+    {
+        if (string.IsNullOrWhiteSpace(agentId) || string.IsNullOrWhiteSpace(templateName))
+        {
+            return null;
+        }
+
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(agentId);
+        if (agent == null)
+        {
+            return null;
+        }
+
+        var instruction = agentService.RenderedTemplate(agent, templateName);
+        return instruction;
+    }
 }
