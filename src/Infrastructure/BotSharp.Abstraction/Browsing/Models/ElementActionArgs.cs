@@ -12,6 +12,8 @@ public class ElementActionArgs
 
     [JsonPropertyName("content")]
     public string? Content { get; set; }
+    [JsonPropertyName("file_urls")] 
+    public string[] FileUrl { get; set; }
 
     public ElementPosition? Position { get; set; }
 

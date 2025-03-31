@@ -175,14 +175,13 @@ public class AgentController : ControllerBase
     }
 
     [HttpGet("/agent/mcp/tools")]
-    public async Task<IEnumerable<Tool>> GetMCPTools(string serverId)
+    public async Task<IEnumerable<McpClientTool>> GetMCPTools(string serverId)
     {
         var client = await _clientManager.GetMcpClientAsync(serverId);
-        throw new NotImplementedException();
-        /*var tools = await client.ListToolsAsync().ToListAsync();
+        var tools = await client.ListToolsAsync();
          
         return tools.Where(x => !string.IsNullOrWhiteSpace(x.Name))
-            .OrderBy(x => x.Name).ToList();*/
+            .OrderBy(x => x.Name).ToList();
     }
 
     [HttpGet("/agent/labels")]
