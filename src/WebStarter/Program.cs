@@ -5,6 +5,7 @@ using BotSharp.Plugin.ChatHub;
 using Serilog;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using StackExchange.Redis;
+using BotSharp.MCP;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get
      options.JsonSerializerOptions.Converters.Add(new RichContentJsonConverter());
      options.JsonSerializerOptions.Converters.Add(new TemplateMessageJsonConverter());
  }).AddBotSharpOpenAPI(builder.Configuration, allowedOrigins, builder.Environment, true)
+   .AddBotSharpMCP(builder.Configuration)
    .AddBotSharpLogger(builder.Configuration);
 
 // Add service defaults & Aspire components.
