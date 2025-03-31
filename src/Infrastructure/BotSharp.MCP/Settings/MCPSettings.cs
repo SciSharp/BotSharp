@@ -8,6 +8,6 @@ public class MCPSettings
 {
     public McpClientOptions McpClientOptions { get; set; }
 
-    public List<McpServerConfig> McpServerConfigs { get; set; }
+    public List<McpServerConfig> McpServerConfigs { get; set; } = new();
 
 }
