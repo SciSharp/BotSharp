@@ -13,7 +13,7 @@ public partial class PlaywrightWebDriver
         var body = await pageContent.QuerySelectorAsync("body");
         var pageUrl = pageContent.Url;
         var pageBody = await body.InnerTextAsync();
-        string content = $"PageUrl: {pageUrl} <br/> PageBody: {pageBody}";
+        string content = $"Page URL: `{pageUrl}` <br/> PageBody: {pageBody}";
 
         var driverService = _services.GetRequiredService<WebDriverService>();
         var answer = await driverService.ExtraData(actionParams.Agent, content, actionParams.Context.Question, actionParams.MessageId);
