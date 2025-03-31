@@ -7,5 +7,5 @@ namespace BotSharp.Plugin.OpenAI.Providers.Realtime;
 public interface IOpenAiRealtimeApi
 {
     [Post("/v1/realtime/sessions")]
-    Task<RealtimeSession> GetSessionAsync(RealtimeSessionCreationRequest model, [Authorize("Bearer")] string token);
+    Task<RealtimeSession> CreateSessionAsync(RealtimeSessionCreationRequest model, [Authorize("Bearer")] string token);
 }

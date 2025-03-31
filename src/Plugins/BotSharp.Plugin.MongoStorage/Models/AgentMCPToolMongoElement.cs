@@ -6,9 +6,7 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 public class AgentMCPToolMongoElement
 {
     public string Name { get; set; }
-
     public string ServerId { get; set; }
-
     public bool Disabled { get; set; }
     public List<McpFunctionMongoElement> Functions { get; set; } = [];
 
@@ -31,6 +29,7 @@ public class AgentMCPToolMongoElement
     }
 }
 
+[BsonIgnoreExtraElements(Inherited = true)]
 public class McpFunctionMongoElement
 {
     public string Name { get; set; }

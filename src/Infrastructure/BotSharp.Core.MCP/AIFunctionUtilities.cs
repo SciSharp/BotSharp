@@ -1,9 +1,6 @@
-using BotSharp.Abstraction.Functions.Models;
-using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol.Types;
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
+
+using ModelContextProtocol.Client;
 
 namespace BotSharp.Core.MCP;
 
@@ -19,7 +16,7 @@ internal static class AIFunctionUtilities
         var properties = tool.JsonSchema.GetProperty("properties");
         var required = tool.JsonSchema.GetProperty("required");
 
-        FunctionDef funDef = new FunctionDef
+        var funDef = new FunctionDef
         {
             Name = tool.Name,
             Description = tool.Description ?? string.Empty,
