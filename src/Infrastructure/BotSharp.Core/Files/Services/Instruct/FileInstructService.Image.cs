@@ -227,23 +227,4 @@ public partial class FileInstructService
 
         return message;
     }
-
-    #region Private methods
-    private async Task<byte[]> DownloadFile(InstructFileModel file)
-    {
-        var bytes = new byte[0];
-        if (!string.IsNullOrEmpty(file.FileUrl))
-        {
-            var http = _services.GetRequiredService<IHttpClientFactory>();
-            using var client = http.CreateClient();
-            bytes = await client.GetByteArrayAsync(file.FileUrl);
-        }
-        else if (!string.IsNullOrEmpty(file.FileData))
-        {
-            (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
-        }
-
-        return bytes;
-    }
-    #endregion
 }
