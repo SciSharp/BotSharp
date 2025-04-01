@@ -31,7 +31,7 @@ public class UtilWebActionOnElementFn : IFunctionCallback
         }
 
         actionArgs.WaitTime = 2;
-        
+
         var conv = _services.GetRequiredService<IConversationService>();
 
         var services = _services.CreateScope().ServiceProvider;
@@ -45,7 +45,13 @@ public class UtilWebActionOnElementFn : IFunctionCallback
         };
         var result = await browser.ActionOnElement(msg, locatorArgs, actionArgs);
 
-        message.Content = $"{actionArgs.Action} executed {(result.IsSuccess ? "success" : "failed")}";
+        message.Content = $"{actionArgs.Action} executed {(result.IsSuccess ? "success" : "failed")}.";
+
+        // Add Current Url info to the message
+        if (actionArgs.ShowCurrentUrl)
+        {
+            message.Content += $" Current page url: '{result.UrlAfterAction}'.";
+        }
 
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 

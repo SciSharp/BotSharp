@@ -36,6 +36,12 @@ public class ElementActionArgs
     public int WaitTime { get; set; }
 
     /// <summary>
+    /// Add current url to the content
+    /// </summary>
+    [JsonPropertyName("show_current_url")]
+    public bool ShowCurrentUrl { get; set; } = false;
+
+    /// <summary>
     /// Required for deserialization
     /// </summary>
     public ElementActionArgs()
