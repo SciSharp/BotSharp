@@ -107,7 +107,7 @@ public partial class AgentService
                        .SetResponses(foundAgent.Responses)
                        .SetSamples(foundAgent.Samples)
                        .SetUtilities(foundAgent.Utilities)
-                       .SetMcps(foundAgent.McpTools)
+                       .SetMcpTools(foundAgent.McpTools)
                        .SetKnowledgeBases(foundAgent.KnowledgeBases)
                        .SetRules(foundAgent.Rules)
                        .SetLlmConfig(foundAgent.LlmConfig);

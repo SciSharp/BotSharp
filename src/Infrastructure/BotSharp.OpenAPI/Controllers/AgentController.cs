@@ -1,7 +1,4 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Core.Mcp;
-using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol.Types;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -12,20 +9,17 @@ public class AgentController : ControllerBase
     private readonly IAgentService _agentService;
     private readonly IUserIdentity _user;
     private readonly IServiceProvider _services;
-    private readonly MCPClientManager _clientManager;
-
+ 
     public AgentController(
         IAgentService agentService,
         IUserIdentity user,
-        IServiceProvider services,
-        MCPClientManager mCPClientManager
+        IServiceProvider services  
         )
     {
         _agentService = agentService;
         _user = user;
         _services = services;
-        _clientManager = mCPClientManager;
-    }
+     }
 
     [HttpGet("/agent/settings")]
     public AgentSettings GetSettings()
@@ -173,17 +167,7 @@ public class AgentController : ControllerBase
         }
         return utilities.Where(x => !string.IsNullOrWhiteSpace(x.Name)).OrderBy(x => x.Name).ToList();
     }
-
-    [HttpGet("/agent/mcp/tools")]
-    public async Task<IEnumerable<Tool>> GetMCPTools(string serverId)
-    {
-        var client = await _clientManager.GetMcpClientAsync(serverId);
-        var tools = await client.ListToolsAsync().ToListAsync();
-         
-        return tools.Where(x => !string.IsNullOrWhiteSpace(x.Name))
-            .OrderBy(x => x.Name).ToList();
-    }
-
+ 
     [HttpGet("/agent/labels")]
     public async Task<IEnumerable<string>> GetAgentLabels()
     {

@@ -8,10 +8,10 @@ namespace BotSharp.Core.Instructs;
 
 public partial class InstructService
 {
-    public async Task<T?> Instruct<T>(string instruction, string agentId, InstructOptions options) where T : class
+    public async Task<T?> Instruct<T>(string text, InstructOptions? options = null) where T : class
     {
-        var prompt = GetPrompt(instruction, options.Data);
-        var response = await GetAiResponse(agentId, prompt, options);
+        var agent = await BuildInnerAgent(options);
+        var response = await GetAiResponse(text, agent, options);
 
         if (string.IsNullOrWhiteSpace(response.Content)) return null;
 
@@ -28,19 +28,18 @@ public partial class InstructService
             }
             else if (IsListType(type))
             {
-                var text = response.Content.JsonArrayContent();
-                if (!string.IsNullOrWhiteSpace(text))
+                var content = response.Content.JsonArrayContent();
+                if (!string.IsNullOrWhiteSpace(content))
                 {
-                    
-                    result = JsonSerializer.Deserialize<T>(text, botsharpOptions.JsonSerializerOptions);
+                    result = JsonSerializer.Deserialize<T>(content, botsharpOptions.JsonSerializerOptions);
                 }
             }
             else
             {
-                var text = response.Content.JsonContent();
-                if (!string.IsNullOrWhiteSpace(text))
+                var content = response.Content.JsonContent();
+                if (!string.IsNullOrWhiteSpace(content))
                 {
-                    result = JsonSerializer.Deserialize<T>(text, botsharpOptions.JsonSerializerOptions);
+                    result = JsonSerializer.Deserialize<T>(content, botsharpOptions.JsonSerializerOptions);
                 }
             }
         }
@@ -52,47 +51,62 @@ public partial class InstructService
         return result;
     }
 
-    private string GetPrompt(string instruction, Dictionary<string, object> data)
+    private async Task<Agent> BuildInnerAgent(InstructOptions? options)
+    {
+        Agent? agent = null;
+        string? instruction = null;
+        
+        if (!string.IsNullOrWhiteSpace(options?.AgentId))
+        {
+            var agentService = _services.GetRequiredService<IAgentService>();
+            agent = await agentService.GetAgent(options.AgentId);
+            
+            if (!string.IsNullOrWhiteSpace(options?.TemplateName))
+            {
+                var template = agent?.Templates?.FirstOrDefault(x => x.Name == options.TemplateName)?.Content ?? string.Empty;
+                instruction = BuildInstruction(template, options?.Data ?? []);
+            }
+        }
+
+        return new Agent
+        {
+            Id = agent?.Id ?? Guid.Empty.ToString(),
+            Name = agent?.Name ?? "Unknown",
+            Instruction = instruction,
+            LlmConfig = agent?.LlmConfig ?? new()
+        };
+    }
+
+    private string BuildInstruction(string instruction, Dictionary<string, object> data)
     {
         var render = _services.GetRequiredService<ITemplateRender>();
 
         return render.Render(instruction, data ?? new Dictionary<string, object>());
     }
 
-    private async Task<RoleDialogModel> GetAiResponse(string agentId, string prompt, InstructOptions options)
+    private async Task<RoleDialogModel> GetAiResponse(string text, Agent agent, InstructOptions? options)
     {
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(agentId);
-
-        var localAgent = new Agent
-        {
-            Id = agentId,
-            Name = agent?.Name ?? "Unknown",
-            Instruction = prompt,
-            TemplateDict = new()
-        };
-
-        var messages = BuildDialogs(options);
-        var provider = options.Provider ?? agent?.LlmConfig?.Provider ?? "openai";
-        var model = options.Model ?? agent?.LlmConfig?.Model ?? "gpt-4o";
+        var dialogs = BuildDialogs(text, options);
+        var provider = options?.Provider ?? agent?.LlmConfig?.Provider ?? "openai";
+        var model = options?.Model ?? agent?.LlmConfig?.Model ?? "gpt-4o";
         var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
-        return await completion.GetChatCompletions(localAgent, messages);
+        return await completion.GetChatCompletions(agent, dialogs);
     }
 
-    private List<RoleDialogModel> BuildDialogs(InstructOptions options)
+    private List<RoleDialogModel> BuildDialogs(string text, InstructOptions? options)
     {
         var messages = new List<RoleDialogModel>();
 
-        if (!string.IsNullOrWhiteSpace(options.ConversationId))
+        if (!string.IsNullOrWhiteSpace(options?.ConversationId))
         {
             var conv = _services.GetRequiredService<IConversationService>();
             var dialogs = conv.GetDialogHistory();
             messages.AddRange(dialogs);
         }
 
-        if (!string.IsNullOrWhiteSpace(options.Message))
+        if (!string.IsNullOrWhiteSpace(text))
         {
-            messages.Add(new RoleDialogModel(AgentRole.User, options.Message));
+            messages.Add(new RoleDialogModel(AgentRole.User, text));
         }
 
         return messages;

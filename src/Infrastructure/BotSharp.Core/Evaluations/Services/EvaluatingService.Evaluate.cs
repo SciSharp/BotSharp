@@ -62,8 +62,6 @@ public partial class EvaluatingService
 
         var query = "Please see yourself as a user and follow the instruction to generate a message.";
         var targetAgentId = request.AgentId;
-        var evaluator = await agentService.GetAgent(BuiltInAgentId.Evaluator);
-        var simulatorPrompt = evaluator.Templates.FirstOrDefault(x => x.Name == "instruction.simulator")?.Content ?? string.Empty;
 
         while (true)
         {
@@ -77,12 +75,13 @@ public partial class EvaluatingService
 
             count++;
 
-            var result = await instructService.Instruct<SimulationResult>(simulatorPrompt, BuiltInAgentId.Evaluator,
+            var result = await instructService.Instruct<SimulationResult>(query,
                             new InstructOptions
                             {
                                 Provider = request.Provider,
                                 Model = request.Model,
-                                Message = query,
+                                AgentId = BuiltInAgentId.Evaluator,
+                                TemplateName = "instruction.simulator",
                                 Data = new Dictionary<string, object>
                                 {
                                     { "ref_conversation", refDialogs },
@@ -122,16 +121,14 @@ public partial class EvaluatingService
         var curDialogs = storage.GetDialogs(curConversationId);
         var curDialogContents = GetConversationContent(curDialogs);
 
-        var evaluator = await agentService.GetAgent(BuiltInAgentId.Evaluator);
-        var metricPrompt = evaluator.Templates.FirstOrDefault(x => x.Name == "instruction.metrics")?.Content ?? string.Empty;
         var query = "Please follow the instruction for evaluation.";
-
-        var result = await instructService.Instruct<JsonDocument>(metricPrompt, BuiltInAgentId.Evaluator,
+        var result = await instructService.Instruct<JsonDocument>(query,
                             new InstructOptions
                             {
                                 Provider = request.Provider,
                                 Model = request.Model,
-                                Message = query,
+                                AgentId = BuiltInAgentId.Evaluator,
+                                TemplateName = "instruction.metrics",
                                 Data = new Dictionary<string, object>
                                 {
                                     { "ref_conversation", refDialogs },

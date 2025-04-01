@@ -194,7 +194,7 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(agentFile, json);
         }
 
-        private void UpdateAgentMcpTools(string agentId, List<MCPTool> mcptools)
+        private void UpdateAgentMcpTools(string agentId, List<McpTool> mcptools)
         {
             if (mcptools == null) return;
 

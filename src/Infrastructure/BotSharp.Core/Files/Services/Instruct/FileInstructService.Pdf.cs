@@ -6,11 +6,11 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class FileInstructService
 {
-    public async Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<InstructFileModel> files, string? agentId = null)
+    public async Task<string> ReadPdf(string text, List<InstructFileModel> files, InstructOptions? options = null)
     {
         var content = string.Empty;
 
-        if (string.IsNullOrWhiteSpace(prompt) || files.IsNullOrEmpty())
+        if (string.IsNullOrWhiteSpace(text) || files.IsNullOrEmpty())
         {
             return content;
         }
@@ -25,15 +25,18 @@ public partial class FileInstructService
             var images = await ConvertPdfToImages(pdfFiles);
             if (images.IsNullOrEmpty()) return content;
 
-            var innerAgentId = agentId ?? Guid.Empty.ToString();
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: provider ?? "openai",
-                model: model, modelId: modelId ?? "gpt-4o", multiModal: true);
+            var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
+            var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
+
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: options?.Provider ?? "openai",
+                model: options?.Model ?? "gpt-4o", multiModal: true);
             var message = await completion.GetChatCompletions(new Agent()
             {
                 Id = innerAgentId,
+                Instruction = instruction
             }, new List<RoleDialogModel>
             {
-                new RoleDialogModel(AgentRole.User, prompt)
+                new RoleDialogModel(AgentRole.User, text)
                 {
                     Files = images.Select(x => new BotSharpFile { FileStorageUrl = x }).ToList()
                 }
@@ -42,7 +45,7 @@ public partial class FileInstructService
             var hooks = _services.GetServices<IInstructHook>();
             foreach (var hook in hooks)
             {
-                if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agentId)
+                if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != innerAgentId)
                 {
                     continue;
                 }
@@ -52,7 +55,9 @@ public partial class FileInstructService
                     AgentId = innerAgentId,
                     Provider = completion.Provider,
                     Model = completion.Model,
-                    UserMessage = prompt,
+                    TemplateName = options?.TemplateName,
+                    UserMessage = text,
+                    SystemInstruction = instruction,
                     CompletionText = message.Content
                 });
             }
