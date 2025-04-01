@@ -242,8 +242,7 @@ public class InstructModeController : ControllerBase
             {
                 Provider = input.Provider,
                 Model = input.Model,
-                AgentId = input.AgentId,
-                TemplateName = input.TemplateName
+                AgentId = input.AgentId
             });
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
@@ -262,7 +261,7 @@ public class InstructModeController : ControllerBase
     [HttpPost("/instruct/image-variation/upload")]
     public async Task<ImageGenerationViewModel> ImageVariation(IFormFile file, [FromForm] string? provider = null,
         [FromForm] string? model = null, [FromForm] List<MessageState>? states = null,
-        [FromForm] string? agentId = null, [FromForm] string? templateName = null)
+        [FromForm] string? agentId = null)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         states?.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
@@ -276,8 +275,7 @@ public class InstructModeController : ControllerBase
             {
                 Provider = provider,
                 Model = model,
-                AgentId = agentId,
-                TemplateName = templateName
+                AgentId = agentId
             });
 
             imageViewModel.Content = message.Content;
