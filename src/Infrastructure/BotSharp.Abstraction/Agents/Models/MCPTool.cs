@@ -2,9 +2,16 @@ namespace BotSharp.Abstraction.Agents.Models;
 
 public class McpTool
 {
+    [JsonPropertyName("name")]
     public string Name { get; set; }
+
+    [JsonPropertyName("server_id")]
     public string ServerId { get; set; }
+
+    [JsonPropertyName("disabled")]
     public bool Disabled { get; set; }
+
+    [JsonPropertyName("functions")]
     public IEnumerable<McpFunction> Functions { get; set; } = [];
 
     public McpTool()
