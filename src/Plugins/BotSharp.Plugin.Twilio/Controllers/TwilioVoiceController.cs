@@ -348,6 +348,10 @@ public class TwilioVoiceController : TwilioController
                 await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnUserDisconnected(request));
             }
         }
+        else if (request.CallStatus == "busy")
+        {
+            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnCallBusyStatus(request));
+        }
 
         return Ok();
     }
