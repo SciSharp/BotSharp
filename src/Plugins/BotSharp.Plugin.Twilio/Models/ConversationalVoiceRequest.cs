@@ -40,9 +40,6 @@ public class ConversationalVoiceRequest : VoiceRequest
     public int MachineDetectionDuration { get; set; }
 
     [FromForm]
-    public int Duration { get; set; }
-
-    [FromForm]
     public int CallDuration { get; set; }
 
     #region Transcription
