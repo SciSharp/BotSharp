@@ -74,7 +74,7 @@ public partial class AgentService
 
             if(!agent.McpTools.IsNullOrEmpty())
             {
-                hook.OnAgentMCPToolLoaded(agent);
+                hook.OnAgentMcpToolLoaded(agent);
             }
             
             hook.OnAgentLoaded(agent);

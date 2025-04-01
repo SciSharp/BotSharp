@@ -1,22 +1,22 @@
 namespace BotSharp.Abstraction.Agents.Models;
 
-public class MCPTool
+public class McpTool
 {
     public string Name { get; set; }
     public string ServerId { get; set; }
     public bool Disabled { get; set; }
-    public IEnumerable<MCPFunction> Functions { get; set; } = [];
+    public IEnumerable<McpFunction> Functions { get; set; } = [];
 
-    public MCPTool()
+    public McpTool()
     {
         
     }
 
-    public MCPTool(
+    public McpTool(
         string name,
         string serverId,
         bool disabled = false,
-        IEnumerable<MCPFunction>? functions = null)
+        IEnumerable<McpFunction>? functions = null)
     {
         Name = name;
         ServerId = serverId;
@@ -31,11 +31,11 @@ public class MCPTool
 }
 
 
-public class MCPFunction
+public class McpFunction
 {
     public string Name { get; set; }
 
-    public MCPFunction(string name)
+    public McpFunction(string name)
     {
         Name = name;
     } 

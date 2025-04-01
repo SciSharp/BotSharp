@@ -42,7 +42,7 @@ public class AgentUpdateModel
     /// <summary>
     /// McpTools
     /// </summary>
-    public List<MCPTool>? McpTools { get; set; }
+    public List<McpTool>? McpTools { get; set; }
 
     /// <summary>
     /// knowledge bases

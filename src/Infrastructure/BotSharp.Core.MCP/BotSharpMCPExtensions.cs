@@ -4,10 +4,11 @@ using BotSharp.Core.MCP.Hooks;
 using Microsoft.Extensions.Configuration;
 using ModelContextProtocol.Configuration;
 using ModelContextProtocol.Client;
+using BotSharp.Core.MCP.Managers;
 
 namespace BotSharp.Core.MCP;
 
-public static class BotSharpMCPExtensions
+public static class BotSharpMcpExtensions
 {
     /// <summary>
     /// Add mcp 
@@ -17,11 +18,11 @@ public static class BotSharpMCPExtensions
     /// <returns></returns>
     public static IServiceCollection AddBotSharpMCP(this IServiceCollection services, IConfiguration config)
     {
-        var settings = config.GetSection("MCPSettings").Get<MCPSettings>();
-        services.AddScoped<MCPSettings>(provider => { return settings; });
-        if (settings != null)
+        var settings = config.GetSection("MCPSettings").Get<McpSettings>();
+        services.AddScoped<McpSettings>(provider => { return settings; });
+        if (settings != null && !settings.McpServerConfigs.IsNullOrEmpty())
         {
-            var clientManager = new MCPClientManager(settings);
+            var clientManager = new McpClientManager(settings);
             services.AddSingleton(clientManager);
 
             foreach (var server in settings.McpServerConfigs)
@@ -31,13 +32,14 @@ public static class BotSharpMCPExtensions
                     .GetAwaiter()
                     .GetResult();
             }
+
             // Register hooks
-            services.AddScoped<IAgentHook, MCPToolAgentHook>();
+            services.AddScoped<IAgentHook, McpToolAgentHook>();
         }
         return services;
     }
 
-    private static async Task RegisterFunctionCall(IServiceCollection services, McpServerConfig server, MCPClientManager clientManager)
+    private static async Task RegisterFunctionCall(IServiceCollection services, McpServerConfig server, McpClientManager clientManager)
     {
         var client = await clientManager.GetMcpClientAsync(server.Id);
         var tools = await client.ListToolsAsync();

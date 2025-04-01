@@ -24,7 +24,9 @@ public class AgentViewModel
     [JsonPropertyName("merge_utility")]
     public bool MergeUtility { get; set; }
     public List<AgentUtility> Utilities { get; set; }
-    public List<MCPTool> McpTools { get; set; }
+
+    [JsonPropertyName("mcp_tools")]
+    public List<McpTool> McpTools { get; set; }
 
     [JsonPropertyName("knowledge_bases")]
     public List<AgentKnowledgeBase> KnowledgeBases { get; set; }

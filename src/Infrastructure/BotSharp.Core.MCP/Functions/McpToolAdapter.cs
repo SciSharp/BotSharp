@@ -1,4 +1,5 @@
 using System.Text.Json;
+using BotSharp.Core.MCP.Managers;
 using ModelContextProtocol.Client;
 
 namespace BotSharp.Core.MCP.Functions;
@@ -6,10 +7,10 @@ namespace BotSharp.Core.MCP.Functions;
 public class McpToolAdapter : IFunctionCallback
 {
     private readonly McpClientTool _tool;
-    private readonly MCPClientManager _clientManager;
+    private readonly McpClientManager _clientManager;
     private readonly IServiceProvider _services;
 
-    public McpToolAdapter(IServiceProvider services, McpClientTool tool, MCPClientManager client)
+    public McpToolAdapter(IServiceProvider services, McpClientTool tool, McpClientManager client)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
         _tool = tool ?? throw new ArgumentNullException(nameof(tool));

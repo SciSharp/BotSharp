@@ -1,10 +1,9 @@
 using System.Text.Json;
-
 using ModelContextProtocol.Client;
 
-namespace BotSharp.Core.MCP;
+namespace BotSharp.Core.MCP.Helpers;
 
-internal static class AIFunctionUtilities
+internal static class AiFunctionHelper
 {
     public static FunctionDef MapToFunctionDef(McpClientTool tool)
     {

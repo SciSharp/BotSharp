@@ -18,7 +18,7 @@ public class AgentDocument : MongoBase
     public List<AgentResponseMongoElement> Responses { get; set; }
     public List<string> Samples { get; set; }
     public List<AgentUtilityMongoElement> Utilities { get; set; }
-    public List<AgentMCPToolMongoElement> McpTools { get; set; }
+    public List<AgentMcpToolMongoElement> McpTools { get; set; }
     public List<AgentKnowledgeBaseMongoElement> KnowledgeBases { get; set; }
     public List<string> Profiles { get; set; }
     public List<string> Labels { get; set; }

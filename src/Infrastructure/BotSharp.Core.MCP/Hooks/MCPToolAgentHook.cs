@@ -1,17 +1,19 @@
+using BotSharp.Core.MCP.Helpers;
+using BotSharp.Core.MCP.Managers;
 using ModelContextProtocol.Client;
 
 namespace BotSharp.Core.MCP.Hooks;
 
-public class MCPToolAgentHook : AgentHookBase
+public class McpToolAgentHook : AgentHookBase
 {
     public override string SelfId => string.Empty;
 
-    public MCPToolAgentHook(IServiceProvider services, AgentSettings settings)
+    public McpToolAgentHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
     }
 
-    public override void OnAgentMCPToolLoaded(Agent agent)
+    public override void OnAgentMcpToolLoaded(Agent agent)
     {
         if (agent.Type == AgentType.Routing)
         {
@@ -24,7 +26,7 @@ public class MCPToolAgentHook : AgentHookBase
 
         agent.SecondaryFunctions ??= [];
 
-        var functions = GetMCPContent(agent).Result;
+        var functions = GetMcpContent(agent).Result;
         foreach (var fn in functions)
         {
             if (!agent.SecondaryFunctions.Any(x => x.Name.Equals(fn.Name, StringComparison.OrdinalIgnoreCase)))
@@ -34,11 +36,11 @@ public class MCPToolAgentHook : AgentHookBase
         }
     }
 
-    private async Task<IEnumerable<FunctionDef>> GetMCPContent(Agent agent)
+    private async Task<IEnumerable<FunctionDef>> GetMcpContent(Agent agent)
     {
         var functionDefs = new List<FunctionDef>();
-        var mcpClientManager = _services.GetRequiredService<MCPClientManager>();
-        var mcps = agent.McpTools;
+        var mcpClientManager = _services.GetRequiredService<McpClientManager>();
+        var mcps = agent.McpTools.Where(x => !x.Disabled);
         foreach (var item in mcps)
         {
             var mcpClient =  await mcpClientManager.GetMcpClientAsync(item.ServerId);
@@ -48,7 +50,7 @@ public class MCPToolAgentHook : AgentHookBase
                 var toolnames = item.Functions.Select(x => x.Name).ToList();
                 foreach (var tool in tools.Where(x => toolnames.Contains(x.Name, StringComparer.OrdinalIgnoreCase)))
                 {
-                    var funDef = AIFunctionUtilities.MapToFunctionDef(tool);
+                    var funDef = AiFunctionHelper.MapToFunctionDef(tool);
                     functionDefs.Add(funDef);
                 }
             }

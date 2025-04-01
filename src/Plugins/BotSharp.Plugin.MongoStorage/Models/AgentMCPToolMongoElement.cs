@@ -3,16 +3,16 @@ using BotSharp.Abstraction.Agents.Models;
 namespace BotSharp.Plugin.MongoStorage.Models;
 
 [BsonIgnoreExtraElements(Inherited = true)]
-public class AgentMCPToolMongoElement
+public class AgentMcpToolMongoElement
 {
     public string Name { get; set; }
     public string ServerId { get; set; }
     public bool Disabled { get; set; }
     public List<McpFunctionMongoElement> Functions { get; set; } = [];
 
-    public static AgentMCPToolMongoElement ToMongoElement(MCPTool tool)
+    public static AgentMcpToolMongoElement ToMongoElement(McpTool tool)
     {
-        return new AgentMCPToolMongoElement
+        return new AgentMcpToolMongoElement
         {
             Name = tool.Name,
             ServerId = tool.ServerId,
@@ -21,14 +21,14 @@ public class AgentMCPToolMongoElement
         };
     }
 
-    public static MCPTool ToDomainElement(AgentMCPToolMongoElement tool)
+    public static McpTool ToDomainElement(AgentMcpToolMongoElement tool)
     {
-        return new MCPTool
+        return new McpTool
         {
             Name = tool.Name,
             ServerId = tool.ServerId,
             Disabled = tool.Disabled,
-            Functions = tool.Functions?.Select(x => new MCPFunction(x.Name))?.ToList() ?? [],
+            Functions = tool.Functions?.Select(x => new McpFunction(x.Name))?.ToList() ?? [],
         };
     }
 }
