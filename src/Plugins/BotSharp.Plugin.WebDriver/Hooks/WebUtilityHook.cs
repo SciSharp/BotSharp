@@ -7,7 +7,6 @@ public class WebUtilityHook : IAgentUtilityHook
     private const string GO_TO_PAGE_FN = $"{PREFIX}go_to_page";
     private const string LOCATE_ELEMENT_FN = $"{PREFIX}locate_element";
     private const string ACTION_ON_ELEMENT_FN = $"{PREFIX}action_on_element";
-    private const string EXTRACT_DATA_FN = $"{PREFIX}extract_data_from_page";
 
     public void AddUtilities(List<AgentUtility> utilities)
     {
@@ -21,8 +20,7 @@ public class WebUtilityHook : IAgentUtilityHook
                     new(CLOSE_BROWSER_FN),
                     new(GO_TO_PAGE_FN),
                     new(LOCATE_ELEMENT_FN),
-                    new(ACTION_ON_ELEMENT_FN),
-                    new(EXTRACT_DATA_FN)
+                    new(ACTION_ON_ELEMENT_FN)
                 ],
                 Templates = 
                 [

@@ -45,7 +45,7 @@ public class UtilWebActionOnElementFn : IFunctionCallback
         };
         var result = await browser.ActionOnElement(msg, locatorArgs, actionArgs);
 
-        message.Content = $"{actionArgs.Action} executed {(result.IsSuccess ? "success" : "failed")}";
+        message.Content = $"{actionArgs.Action} executed {(result.IsSuccess ? "success" : "failed")}. Current page url: '{result.UrlAfterAction}'.";
 
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
