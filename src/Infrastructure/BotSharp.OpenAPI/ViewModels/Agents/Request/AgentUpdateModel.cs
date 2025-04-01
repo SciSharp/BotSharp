@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing.Models;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
@@ -42,6 +41,7 @@ public class AgentUpdateModel
     /// <summary>
     /// McpTools
     /// </summary>
+    [JsonPropertyName("mcp_tools")]
     public List<McpTool>? McpTools { get; set; }
 
     /// <summary>

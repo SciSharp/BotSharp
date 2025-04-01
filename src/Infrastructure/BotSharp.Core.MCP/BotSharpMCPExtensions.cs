@@ -20,6 +20,7 @@ public static class BotSharpMcpExtensions
     {
         var settings = config.GetSection("MCP").Get<McpSettings>();
         services.AddScoped(provider => { return settings; });
+
         if (settings != null && settings.Enabled && !settings.McpServerConfigs.IsNullOrEmpty())
         {
             var clientManager = new McpClientManager(settings);

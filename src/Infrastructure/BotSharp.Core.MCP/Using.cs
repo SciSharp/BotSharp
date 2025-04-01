@@ -13,4 +13,6 @@ global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Functions;
 global using BotSharp.Abstraction.Functions.Models;
 global using BotSharp.Abstraction.Utilities;
+global using BotSharp.Abstraction.MCP.Models;
+global using BotSharp.Abstraction.MCP.Services;
 

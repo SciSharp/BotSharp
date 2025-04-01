@@ -1,8 +1,9 @@
+using Microsoft.Extensions.Configuration;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Core.MCP.Settings;
-using Microsoft.Extensions.Configuration;
+using BotSharp.Core.MCP.Services;
 
 namespace BotSharp.Core.MCP;
 
@@ -20,6 +21,7 @@ public class McpPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        services.AddScoped<IMcpService, McpService>();
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)
