@@ -57,7 +57,7 @@ public partial class FileInstructService
         {
             Id = innerAgentId,
             Instruction = instruction
-        }, new RoleDialogModel(AgentRole.User, text));
+        }, new RoleDialogModel(AgentRole.User, instruction ?? text));
 
         var hooks = _services.GetServices<IInstructHook>();
         foreach (var hook in hooks)
@@ -90,8 +90,6 @@ public partial class FileInstructService
         }
 
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
-        var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
-
         var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "dall-e-2");
         var bytes = await DownloadFile(image);
         using var stream = new MemoryStream();
@@ -101,8 +99,7 @@ public partial class FileInstructService
         var fileName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";
         var message = await completion.GetImageVariation(new Agent()
         {
-            Id = innerAgentId,
-            Instruction = instruction
+            Id = innerAgentId
         }, new RoleDialogModel(AgentRole.User, string.Empty), stream, fileName);
 
         stream.Close();
@@ -120,9 +117,7 @@ public partial class FileInstructService
                 AgentId = innerAgentId,
                 Provider = completion.Provider,
                 Model = completion.Model,
-                TemplateName = options?.TemplateName,
                 UserMessage = string.Empty,
-                SystemInstruction = instruction,
                 CompletionText = message.Content
             });
         }
@@ -149,9 +144,8 @@ public partial class FileInstructService
         var fileName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";
         var message = await completion.GetImageEdits(new Agent()
         {
-            Id = innerAgentId,
-            Instruction = instruction
-        }, new RoleDialogModel(AgentRole.User, text), stream, fileName);
+            Id = innerAgentId
+        }, new RoleDialogModel(AgentRole.User, instruction ?? text), stream, fileName);
 
         stream.Close();
 
@@ -205,9 +199,8 @@ public partial class FileInstructService
         var maskName = $"{mask.FileName ?? "mask"}.{mask.FileExtension ?? "png"}";
         var message = await completion.GetImageEdits(new Agent()
         {
-            Id = innerAgentId,
-            Instruction = instruction
-        }, new RoleDialogModel(AgentRole.User, text), imageStream, imageName, maskStream, maskName);
+            Id = innerAgentId
+        }, new RoleDialogModel(AgentRole.User, instruction ?? text), imageStream, imageName, maskStream, maskName);
 
         imageStream.Close();
         maskStream.Close();
@@ -234,23 +227,4 @@ public partial class FileInstructService
 
         return message;
     }
-
-    #region Private methods
-    private async Task<byte[]> DownloadFile(InstructFileModel file)
-    {
-        var bytes = new byte[0];
-        if (!string.IsNullOrEmpty(file.FileUrl))
-        {
-            var http = _services.GetRequiredService<IHttpClientFactory>();
-            using var client = http.CreateClient();
-            bytes = await client.GetByteArrayAsync(file.FileUrl);
-        }
-        else if (!string.IsNullOrEmpty(file.FileData))
-        {
-            (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
-        }
-
-        return bytes;
-    }
-    #endregion
 }

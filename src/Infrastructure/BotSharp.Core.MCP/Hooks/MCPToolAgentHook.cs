@@ -1,5 +1,6 @@
 using BotSharp.Core.MCP.Helpers;
 using BotSharp.Core.MCP.Managers;
+using BotSharp.Core.MCP.Settings;
 using ModelContextProtocol.Client;
 
 namespace BotSharp.Core.MCP.Hooks;
@@ -39,6 +40,13 @@ public class McpToolAgentHook : AgentHookBase
     private async Task<IEnumerable<FunctionDef>> GetMcpContent(Agent agent)
     {
         var functionDefs = new List<FunctionDef>();
+
+        var settings = _services.GetRequiredService<McpSettings>();
+        if (settings?.Enabled != true)
+        {
+            return functionDefs;
+        }
+        
         var mcpClientManager = _services.GetRequiredService<McpClientManager>();
         var mcps = agent.McpTools.Where(x => !x.Disabled);
         foreach (var item in mcps)

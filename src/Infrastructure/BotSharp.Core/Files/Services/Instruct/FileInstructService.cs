@@ -19,6 +19,7 @@ public partial class FileInstructService : IFileInstructService
         _services = services;
     }
 
+    #region Private methods
     private void DeleteIfExistDirectory(string? dir, bool createNew = false)
     {
         if (_fileStorage.ExistDirectory(dir))
@@ -29,6 +30,23 @@ public partial class FileInstructService : IFileInstructService
         {
             _fileStorage.CreateDirectory(dir);
         }
+    }
+
+    private async Task<byte[]> DownloadFile(InstructFileModel file)
+    {
+        var bytes = new byte[0];
+        if (!string.IsNullOrEmpty(file.FileUrl))
+        {
+            var http = _services.GetRequiredService<IHttpClientFactory>();
+            using var client = http.CreateClient();
+            bytes = await client.GetByteArrayAsync(file.FileUrl);
+        }
+        else if (!string.IsNullOrEmpty(file.FileData))
+        {
+            (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
+        }
+
+        return bytes;
     }
 
     private async Task<string?> GetAgentTemplate(string agentId, string? templateName)
@@ -48,4 +66,5 @@ public partial class FileInstructService : IFileInstructService
         var instruction = agentService.RenderedTemplate(agent, templateName);
         return instruction;
     }
+    #endregion
 }
