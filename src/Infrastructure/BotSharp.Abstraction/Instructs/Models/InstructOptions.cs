@@ -5,22 +5,27 @@ public class InstructOptions
     /// <summary>
     /// Llm provider
     /// </summary>
-    public string Provider { get; set; } = null!;
+    public string? Provider { get; set; }
 
     /// <summary>
     /// Llm model
     /// </summary>
-    public string Model { get; set; } = null!;
+    public string? Model { get; set; }
+
+    /// <summary>
+    /// Agent
+    /// </summary>
+    public string? AgentId { get; set; }
+
+    /// <summary>
+    /// Agent template name
+    /// </summary>
+    public string? TemplateName { get; set; }
 
     /// <summary>
     /// Conversation id. When this field is not null, it will get dialogs from conversation.
     /// </summary>
     public string? ConversationId { get; set; }
-
-    /// <summary>
-    /// The single message. It can be append to the whole dialogs or sent alone.
-    /// </summary>
-    public string? Message { get; set; }
 
     /// <summary>
     /// Data to fill in prompt
