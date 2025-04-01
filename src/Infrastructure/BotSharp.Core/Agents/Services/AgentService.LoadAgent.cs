@@ -72,9 +72,9 @@ public partial class AgentService
                 hook.OnAgentUtilityLoaded(agent);
             }
 
-            if(agent.McpTools != null && agent.McpTools.Count >0)
+            if(!agent.McpTools.IsNullOrEmpty())
             {
-                hook.OnAgentMCPToolLoaded(agent);
+                hook.OnAgentMcpToolLoaded(agent);
             }
             
             hook.OnAgentLoaded(agent);

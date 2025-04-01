@@ -53,17 +53,17 @@ public class SqlValidateFn : IFunctionCallback
             var instructService = _services.GetRequiredService<IInstructService>();
             var agentService = _services.GetRequiredService<IAgentService>();
             var states = _services.GetRequiredService<IConversationStateService>();
-            
-            var agent = await agentService.GetAgent(BuiltInAgentId.SqlDriver);
-            var template = agent.Templates.FirstOrDefault(x => x.Name == "sql_statement_correctness")?.Content ?? string.Empty;
+
+            var query = "Correct SQL Statement and keep the comments/explanations";
             var ddl = states.GetState("table_ddls");
 
-            var correctedSql = await instructService.Instruct<string>(template, BuiltInAgentId.SqlDriver,
+            var correctedSql = await instructService.Instruct<string>(query,
                 new InstructOptions
                 {
-                    Provider = agent?.LlmConfig?.Provider ?? "openai",
-                    Model = agent?.LlmConfig?.Model ?? "gpt-4o",
-                    Message = "Correct SQL Statement and keep the comments/explanations",
+                    Provider = "openai",
+                    Model = "gpt-4o",
+                    AgentId = BuiltInAgentId.SqlDriver,
+                    TemplateName = "sql_statement_correctness",
                     Data = new Dictionary<string, object>
                     {
                         { "original_sql", message.Content },

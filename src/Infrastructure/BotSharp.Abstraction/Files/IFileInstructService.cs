@@ -1,13 +1,15 @@
+using BotSharp.Abstraction.Instructs.Models;
+
 namespace BotSharp.Abstraction.Files;
 
 public interface IFileInstructService
 {
     #region Image
-    Task<string> ReadImages(string? provider, string? model, string text, IEnumerable<InstructFileModel> images, string? agentId = null);
-    Task<RoleDialogModel> GenerateImage(string? provider, string? model, string text, string? agentId = null);
-    Task<RoleDialogModel> VaryImage(string? provider, string? model, InstructFileModel image, string? agentId = null);
-    Task<RoleDialogModel> EditImage(string? provider, string? model, string text, InstructFileModel image, string? agentId = null);
-    Task<RoleDialogModel> EditImage(string? provider, string? model, string text, InstructFileModel image, InstructFileModel mask, string? agentId = null);
+    Task<string> ReadImages(string text, IEnumerable<InstructFileModel> images, InstructOptions? options = null);
+    Task<RoleDialogModel> GenerateImage(string text, InstructOptions? options = null);
+    Task<RoleDialogModel> VaryImage(InstructFileModel image, InstructOptions? options = null);
+    Task<RoleDialogModel> EditImage(string text, InstructFileModel image, InstructOptions? options = null);
+    Task<RoleDialogModel> EditImage(string text, InstructFileModel image, InstructFileModel mask, InstructOptions? options = null);
     #endregion
 
     #region Pdf
@@ -17,11 +19,11 @@ public interface IFileInstructService
     /// <param name="prompt"></param>
     /// <param name="files">Pdf files</param>
     /// <returns></returns>
-    Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<InstructFileModel> files, string? agentId = null);
+    Task<string> ReadPdf(string text, List<InstructFileModel> files, InstructOptions? options = null);
     #endregion
 
     #region Audio
-    Task<string> SpeechToText(string? provider, string? model, InstructFileModel audio, string? text = null);
+    Task<string> SpeechToText(InstructFileModel audio, string? text = null, InstructOptions? options = null);
     #endregion
 
     #region Select file

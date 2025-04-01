@@ -1,6 +1,4 @@
 using BotSharp.Abstraction.Agents.Models;
- 
- 
 
 namespace BotSharp.OpenAPI.Controllers;
 

@@ -297,7 +297,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var settings = settingsService.GetSetting(Provider, args.Model ?? _model);
 
         var api = _services.GetRequiredService<IOpenAiRealtimeApi>();
-        var session = await api.GetSessionAsync(args, settings.ApiKey);
+        var session = await api.CreateSessionAsync(args, settings.ApiKey);
         return session;
     }
 

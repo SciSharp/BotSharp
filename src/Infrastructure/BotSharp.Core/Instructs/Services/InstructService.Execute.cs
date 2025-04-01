@@ -6,7 +6,8 @@ namespace BotSharp.Core.Instructs;
 
 public partial class InstructService
 {
-    public async Task<InstructResult> Execute(string agentId, RoleDialogModel message, string? templateName = null, string? instruction = null)
+    public async Task<InstructResult> Execute(string agentId, RoleDialogModel message,
+        string? templateName = null, string? instruction = null, IEnumerable<InstructFileModel>? files = null)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         Agent agent = await agentService.LoadAgent(agentId);
@@ -88,7 +89,8 @@ public partial class InstructService
                 new RoleDialogModel(AgentRole.User, prompt)
                 {
                     CurrentAgentId = agentId,
-                    MessageId = message.MessageId
+                    MessageId = message.MessageId,
+                    Files = files?.Select(x => new BotSharpFile { FileUrl = x.FileUrl, FileData = x.FileData }).ToList() ?? []
                 }
             });
             response.Text = result.Content;

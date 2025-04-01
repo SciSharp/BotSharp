@@ -107,7 +107,7 @@ public class Agent
     /// <summary>
     /// Agent MCP Tools
     /// </summary>
-    public List<MCPTool> McpTools { get; set; } = new();
+    public List<McpTool> McpTools { get; set; } = new();
 
     /// <summary>
     /// Agent rules
@@ -305,7 +305,7 @@ public class Agent
         return this;
     }
 
-    public Agent SetMcps(List<MCPTool> mcps)
+    public Agent SetMcpTools(List<McpTool>? mcps)
     {
         McpTools = mcps ?? [];
         return this;

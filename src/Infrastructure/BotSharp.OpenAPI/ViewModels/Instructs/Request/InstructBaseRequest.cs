@@ -10,14 +10,14 @@ public class InstructBaseRequest
     [JsonPropertyName("model")]
     public virtual string? Model { get; set; } = null;
 
-    [JsonPropertyName("model_id")]
-    public virtual string? ModelId { get; set; } = null;
-
     [JsonPropertyName("agent_id")]
     public virtual string? AgentId { get; set; }
 
+    [JsonPropertyName("template_name")]
+    public virtual string? TemplateName { get; set; }
+
     [JsonPropertyName("states")]
-    public List<MessageState> States { get; set; } = new();
+    public List<MessageState> States { get; set; } = [];
 }
 
 public class MultiModalRequest : InstructBaseRequest
@@ -26,7 +26,7 @@ public class MultiModalRequest : InstructBaseRequest
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("files")]
-    public List<InstructFileModel> Files { get; set; } = new();
+    public List<InstructFileModel> Files { get; set; } = [];
 }
 
 public class ImageGenerationRequest : InstructBaseRequest
