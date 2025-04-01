@@ -93,10 +93,9 @@ public partial class FileInstructService
             }
 
             var providerName = options.Provider ?? "openai";
-            var modelId = options?.ModelId ?? "gpt-4o";
+            var model = options?.Model ?? "gpt-4o-mini";
             var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == providerName);
-            var model = llmProviderService.GetProviderModel(provider: provider, id: modelId);
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model.Name);
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
 
             var response = await completion.GetChatCompletions(agent, new List<RoleDialogModel> { message });
             var content = response?.Content ?? string.Empty;

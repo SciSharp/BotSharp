@@ -1,5 +1,4 @@
 using OpenAI.Images;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Image;
 
