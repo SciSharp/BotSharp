@@ -18,7 +18,7 @@ public static class BotSharpMcpExtensions
     /// <returns></returns>
     public static IServiceCollection AddBotSharpMCP(this IServiceCollection services, IConfiguration config)
     {
-        var settings = config.GetSection("MCPSettings").Get<McpSettings>();
+        var settings = config.GetSection("MCP").Get<McpSettings>();
         services.AddScoped<McpSettings>(provider => { return settings; });
         if (settings != null && !settings.McpServerConfigs.IsNullOrEmpty())
         {
