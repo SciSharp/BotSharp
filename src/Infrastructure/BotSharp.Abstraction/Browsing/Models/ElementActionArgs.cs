@@ -33,6 +33,7 @@ public class ElementActionArgs
     /// <summary>
     /// Wait time in seconds
     /// </summary>
+    [JsonPropertyName("wait_time")]
     public int WaitTime { get; set; }
 
     /// <summary>
