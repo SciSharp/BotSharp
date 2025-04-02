@@ -7,13 +7,14 @@
   "disabled": false,
   "isPublic": true,
   "profiles": [ "pizza" ],
-  "mcptools": [
+  "mcpTools": [
     {
-      "serverid": "PizzaServer",
+      "name": "PizzaServer",
+      "server_id": "PizzaServer",
       "disabled": false,
       "functions": [
         {
-          "Name": "make_payment"
+          "name": "make_payment"
         }
       ]
     }
