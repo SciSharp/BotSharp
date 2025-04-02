@@ -30,7 +30,7 @@ public class UtilWebActionOnElementFn : IFunctionCallback
             }
         }
 
-        actionArgs.WaitTime = 2;
+        actionArgs.WaitTime = actionArgs.WaitTime > 0 ? actionArgs.WaitTime : 2;
 
         var conv = _services.GetRequiredService<IConversationService>();
 
