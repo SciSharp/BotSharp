@@ -84,7 +84,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
         // Set up process URL streaming or synchronous
         if (agent.Profiles.Contains("realtime"))
         {
-            processUrl += "/stream";
+            processUrl += "/inbound";
         }
         else
         {
