@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.MLTasks.Settings;
 using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Core.Realtime.Services;
@@ -76,7 +77,7 @@ public class RealtimeHub : IRealtimeHub
         if (agent.Profiles.Contains("realtime"))
         {
             var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-            model = llmProviderService.GetProviderModel("openai", "gpt-4o", realTime: true).Name;
+            model = llmProviderService.GetProviderModel("openai", "gpt-4o", modelType: LlmModelType.Realtime).Name;
         }
 
         _completer.SetModelName(model);
