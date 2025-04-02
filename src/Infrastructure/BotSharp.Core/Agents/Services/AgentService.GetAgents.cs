@@ -6,7 +6,7 @@ namespace BotSharp.Core.Agents.Services;
 public partial class AgentService
 {
 #if !DEBUG
-    [SharpCache(10, perInstanceCache: true)]
+    [SharpCache(10)]
 #endif
     public async Task<PagedItems<Agent>> GetAgents(AgentFilter filter)
     {
@@ -28,7 +28,7 @@ public partial class AgentService
     }
 
 #if !DEBUG
-    [SharpCache(10, perInstanceCache: true)]
+    [SharpCache(10)]
 #endif
     public async Task<List<IdName>> GetAgentOptions(List<string>? agentIds)
     {
@@ -40,7 +40,7 @@ public partial class AgentService
     }
 
 #if !DEBUG
-    [SharpCache(10, perInstanceCache: true)]
+    [SharpCache(10)]
 #endif
     public async Task<Agent> GetAgent(string id)
     {

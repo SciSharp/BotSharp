@@ -12,10 +12,10 @@ namespace BotSharp.Plugin.Twilio.Controllers;
 
 public class TwilioVoiceController : TwilioController
 {
-    private readonly TwilioSetting _settings;
-    private readonly IServiceProvider _services;
-    private readonly IHttpContextAccessor _context;
-    private readonly ILogger _logger;
+    protected readonly TwilioSetting _settings;
+    protected readonly IServiceProvider _services;
+    protected readonly IHttpContextAccessor _context;
+    protected readonly ILogger _logger;
 
     public TwilioVoiceController(TwilioSetting settings, IServiceProvider services, IHttpContextAccessor context, ILogger<TwilioVoiceController> logger)
     {
@@ -32,6 +32,7 @@ public class TwilioVoiceController : TwilioController
     /// <param name="states"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
+    [Obsolete("Use twilio/inbound for streaming and non-streaming instead of this endpoint")]
     [ValidateRequest]
     [HttpPost("twilio/voice/welcome")]
     public async Task<TwiMLResult> InitiateConversation(ConversationalVoiceRequest request)
@@ -352,11 +353,15 @@ public class TwilioVoiceController : TwilioController
         {
             await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnCallBusyStatus(request));
         }
+        else if (request.CallStatus == "no-answer")
+        {
+            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnCallNoAnswerStatus(request));
+        }
 
         return Ok();
     }
 
-    private Dictionary<string, string> ParseStates(List<string> states)
+    protected Dictionary<string, string> ParseStates(List<string> states)
     {
         var result = new Dictionary<string, string>();
         if (states is null || !states.Any())

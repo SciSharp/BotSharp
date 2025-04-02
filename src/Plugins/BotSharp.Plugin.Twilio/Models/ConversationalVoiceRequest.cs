@@ -65,8 +65,3 @@ public class ConversationalVoiceRequest : VoiceRequest
     public string? TranscriptionEvent { get; set; } 
     #endregion
 }
-
-public class TranscriptionData
-{
-    public string Transcript { get; set; } = null!;
-}
