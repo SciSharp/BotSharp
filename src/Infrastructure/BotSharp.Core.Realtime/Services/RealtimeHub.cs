@@ -1,3 +1,5 @@
+using BotSharp.Core.Infrastructures;
+
 namespace BotSharp.Core.Realtime.Services;
 
 public class RealtimeHub : IRealtimeHub
@@ -70,8 +72,8 @@ public class RealtimeHub : IRealtimeHub
         _conn.CurrentAgentId = agent.Id;
 
         // Set model
-        var model = agent.LlmConfig.Model;
-        if (!model.Contains("-realtime-"))
+        var model = "gpt-4o-mini-realtime";
+        if (agent.Profiles.Contains("realtime"))
         {
             var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
             model = llmProviderService.GetProviderModel("openai", "gpt-4o", realTime: true).Name;
@@ -85,14 +87,14 @@ public class RealtimeHub : IRealtimeHub
 
         var storage = _services.GetRequiredService<IConversationStorage>();
         var dialogs = convService.GetDialogHistory();
-        if (dialogs.Count == 0)
+        /*if (dialogs.Count == 0)
         {
             dialogs.Add(new RoleDialogModel(AgentRole.User, "Hi"));
             storage.Append(_conn.ConversationId, dialogs.First());
-        }
+        }*/
 
         routing.Context.SetDialogs(dialogs);
-        routing.Context.SetMessageId(_conn.ConversationId, dialogs.Last().MessageId);
+        // routing.Context.SetMessageId(_conn.ConversationId, dialogs.Last().MessageId);
 
         var states = _services.GetRequiredService<IConversationStateService>();
 
@@ -102,29 +104,7 @@ public class RealtimeHub : IRealtimeHub
                 // Not TriggerModelInference, waiting for user utter.
                 var instruction = await _completer.UpdateSession(_conn);
 
-                // Trigger model inference if there is no audio file in the conversation
-                if (!states.ContainsState("init_audio_file"))
-                {
-                    if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
-                    {
-                        await _completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
-                    }
-                    else
-                    {
-                        await _completer.TriggerModelInference("Reply based on the conversation context.");
-                    }
-                }
-                else
-                {
-                    // Append dialogs into model context
-                    var history = "[CONVERSATION HISTORY]\r\n";
-                    foreach (var message in dialogs)
-                    {
-                        history += $"{message.Role}: {message.Content}\r\n";
-                    }
-
-                    await _completer.TriggerModelInference($"{instruction}\r\n\r\n{history}\r\n\r\nAssist user without repeating your previous statement.");
-                }
+                await HookEmitter.Emit<IRealtimeHook>(_services, async hook => await hook.OnModeReady(agent, _completer));
             },
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
             {
