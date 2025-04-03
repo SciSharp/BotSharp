@@ -88,14 +88,14 @@ public class RealtimeHub : IRealtimeHub
 
         var storage = _services.GetRequiredService<IConversationStorage>();
         var dialogs = convService.GetDialogHistory();
-        /*if (dialogs.Count == 0)
+        if (dialogs.Count == 0)
         {
             dialogs.Add(new RoleDialogModel(AgentRole.User, "Hi"));
             storage.Append(_conn.ConversationId, dialogs.First());
-        }*/
+        }
 
         routing.Context.SetDialogs(dialogs);
-        // routing.Context.SetMessageId(_conn.ConversationId, dialogs.Last().MessageId);
+        routing.Context.SetMessageId(_conn.ConversationId, dialogs.Last().MessageId);
 
         var states = _services.GetRequiredService<IConversationStateService>();
 
