@@ -1,4 +1,6 @@
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.MLTasks.Settings;
+using BotSharp.Abstraction.Options;
 using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Core.Realtime.Services;
@@ -144,6 +146,12 @@ public class RealtimeHub : IRealtimeHub
                     if (message.MessageType == MessageTypeName.FunctionCall &&
                         !string.IsNullOrEmpty(message.FunctionName))
                     {
+                        if (message.FunctionName == "route_to_agent")
+                        {
+                            var instruction = JsonSerializer.Deserialize<FunctionCallFromLlm>(message.FunctionArgs, BotSharpOptions.defaultJsonOptions);
+                            await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingInstructionReceived(instruction, message));
+                        }
+
                         await routing.InvokeFunction(message.FunctionName, message);
                     }
                     else
