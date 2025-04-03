@@ -49,7 +49,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
         var text = part?.Text ?? string.Empty;
 
         RoleDialogModel responseMessage;
-        if (response.GetFunction()!=null)
+        if (response.GetFunction() != null)
         {
             responseMessage = new RoleDialogModel(AgentRole.Function, text)
             {
@@ -78,7 +78,10 @@ public class GeminiChatCompletionProvider : IChatCompletion
             {
                 Prompt = prompt,
                 Provider = Provider,
-                Model = _model
+                Model = _model,
+                PromptCount = response.UsageMetadata?.PromptTokenCount ?? 0,
+                CachedPromptCount = response.UsageMetadata?.CachedContentTokenCount ?? 0,
+                CompletionCount = response.UsageMetadata?.CandidatesTokenCount ?? 0
             });
         }
 
@@ -96,8 +99,8 @@ public class GeminiChatCompletionProvider : IChatCompletion
         }
 
         var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
-        var chatClient = client.CreateGeminiModel(_model);
-        var (prompt, messages) = PrepareOptions(chatClient,agent, conversations);
+        var chatClient = client.CreateGenerativeModel(_model);
+        var (prompt, messages) = PrepareOptions(chatClient, agent, conversations);
 
         var response = await chatClient.GenerateContentAsync(messages);
         
@@ -120,11 +123,12 @@ public class GeminiChatCompletionProvider : IChatCompletion
                 Provider = Provider,
                 Model = _model,
                 PromptCount = response?.UsageMetadata?.PromptTokenCount ?? 0,
-                CompletionCount = response?.UsageMetadata?.CandidatesTokenCount ?? 0
+                CachedPromptCount = response.UsageMetadata?.CachedContentTokenCount ?? 0,
+                CompletionCount = response.UsageMetadata?.CandidatesTokenCount ?? 0
             });
         }
 
-        if (response.GetFunction()!=null)
+        if (response.GetFunction() != null)
         {
             var toolCall = response.GetFunction();
             _logger.LogInformation($"[{agent.Name}]: {toolCall?.Name}({toolCall?.Args?.ToJsonString()})");
@@ -167,10 +171,10 @@ public class GeminiChatCompletionProvider : IChatCompletion
 
         await foreach (var response in asyncEnumerable)
         {
-            if (response.GetFunction()!=null)
+            if (response.GetFunction() != null)
             {
                 var func = response.GetFunction();
-                var update =func?.Args?.ToJsonString().ToString() ?? string.Empty;
+                var update = func?.Args?.ToJsonString().ToString() ?? string.Empty;
                 _logger.LogInformation(update);
 
                 await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, update)
@@ -212,6 +216,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
         {
             AutoCallFunction = false
         };
+
         // Assembly messages
         var contents = new List<Content>();
         var tools = new List<Tool>();
@@ -221,7 +226,6 @@ public class GeminiChatCompletionProvider : IChatCompletion
         if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
             var instruction = agentService.RenderedInstruction(agent);
-            contents.Add(new Content(instruction, AgentRole.User));
             renderedInstructions.Add(instruction);
             systemPrompts.Add(instruction);
         }
@@ -237,7 +241,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
             var parameters = !string.IsNullOrWhiteSpace(props) && props != "{}" ? new Schema()
             {
                 Type = "object",
-                Properties = JsonSerializer.Deserialize<dynamic>(props),
+                Properties = JsonSerializer.Deserialize<Dictionary<string, Schema>>(props),
                 Required = def?.Required ?? []
             } : null;
 
@@ -261,23 +265,32 @@ public class GeminiChatCompletionProvider : IChatCompletion
         {
             if (message.Role == AgentRole.Function)
             {
-                contents.Add( new Content(message.Content,AgentRole.Function)
-                {
-                    Role = AgentRole.Function,
-                    Parts =
-                    [
-                        new Part()
+                contents.Add(new Content([
+                    new Part()
+                    {
+                        FunctionCall = new FunctionCall
                         {
-                            FunctionCall = new FunctionCall
+                            Name = message.FunctionName,
+                            Args = JsonNode.Parse(message.FunctionArgs ?? "{}")
+                        }
+                    }
+                ], AgentRole.Model));
+
+                contents.Add(new Content([
+                    new Part()
+                    {
+                        FunctionResponse = new FunctionResponse
+                        {
+                            Name = message.FunctionName,
+                            Response = new JsonObject()
                             {
-                                Name = message.FunctionName,
-                                Args = JsonNode.Parse(message.FunctionArgs ?? "{}")
+                                ["result"] = message.Content ?? string.Empty
                             }
                         }
-                    ]
-                });
+                    }
+                ], AgentRole.Function));
 
-                convPrompts.Add($"{AgentRole.Assistant}: Call function {message.FunctionName}({message.FunctionArgs})");
+                convPrompts.Add($"{AgentRole.Assistant}: Call function {message.FunctionName}({message.FunctionArgs}) => {message.Content}");
             }
             else if (message.Role == AgentRole.User)
             {
@@ -299,6 +312,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
                             : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
         var request = new GenerateContentRequest
         {
+            SystemInstruction = !systemPrompts.IsNullOrEmpty() ? new Content(systemPrompts[0], AgentRole.System) : null,
             Contents = contents,
             Tools = tools,
             GenerationConfig = new()
