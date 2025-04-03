@@ -238,10 +238,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     private string GetPrompt(MessageParameters parameters)
     {
-        //parameters.System can be null?
-        if(parameters.System == null)
-            parameters.System = new List<SystemMessage>();
-        var prompt = $"{string.Join("\r\n", parameters.System.Select(x => x.Text))}\r\n";
+        var prompt = $"{string.Join("\r\n", (parameters.System??new List<SystemMessage>()).Select(x => x.Text))}\r\n";
         prompt += "\r\n[CONVERSATION]";
 
         var verbose = string.Join("\r\n", parameters.Messages

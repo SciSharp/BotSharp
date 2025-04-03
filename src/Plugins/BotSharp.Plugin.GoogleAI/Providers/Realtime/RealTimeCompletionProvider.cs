@@ -88,18 +88,15 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
 
         public async Task AppenAudioBuffer(string message)
         {
-            var audioAppend = new
-            {
-                type = "input_audio_buffer.append",
-                audio = message
-            };
-
-            await SendEventToModel(audioAppend);
+           await _client.SendAudioAsync(Convert.FromBase64String(message));
         }
 
         public async Task TriggerModelInference(string? instructions = null)
         {
-            
+            await _client.SendClientContentAsync(new BidiGenerateContentClientContent()
+            {
+                TurnComplete = true,
+            });
         }
 
         public async Task CancelModelResponse()
