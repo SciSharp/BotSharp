@@ -66,11 +66,13 @@ public class WinOSDriver : IComputerUse
         throw new NotImplementedException();
     }
 
-    public void MouseClick(ComputerUseArgs args)
+    public Task<ComputerUseOutput> MouseClick(ComputerUseArgs args)
     {
         var simulator = new EventSimulator();
         simulator.SimulateMousePress(args.MouseButton);
         simulator.SimulateMouseRelease(args.MouseButton);
+
+        return null;
     }
 
     public Task<ComputerUseOutput> InputText(ComputerUseArgs args)
