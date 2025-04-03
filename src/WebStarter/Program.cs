@@ -17,6 +17,8 @@ string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get
         "https://botsharp.scisharpstack.org",
         "https://chat.scisharpstack.org"
     };
+
+
  
  // Add BotSharp
  builder.Services.AddBotSharpCore(builder.Configuration, options =>
