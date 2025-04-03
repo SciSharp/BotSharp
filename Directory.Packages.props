@@ -18,8 +18,10 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="SharpHook" Version="5.3.8" />
+    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.7" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.0.0" />   
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.0.0" />
     <PackageVersion Include="System.Memory.Data" Version="8.0.0" />
     <PackageVersion Include="System.Text.Json" Version="8.0.5" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
@@ -33,20 +35,20 @@
     <PackageVersion Include="Nanoid" Version="3.1.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
-    <PackageVersion Include="Anthropic.SDK" Version="4.7.1" />
+    <PackageVersion Include="Anthropic.SDK" Version="5.1.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageVersion Include="NAudio" Version="2.2.1" />
     <PackageVersion Include="NAudio.Core" Version="2.2.1" />
-    <PackageVersion Include="Whisper.net" Version="1.5.0" />
-    <PackageVersion Include="Whisper.net.Runtime" Version="1.5.0" />
+    <PackageVersion Include="Whisper.net" Version="1.8.1" />
+    <PackageVersion Include="Whisper.net.Runtime" Version="1.8.1" />
     <PackageVersion Include="NCrontab" Version="3.3.3" />
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.1.0" />
     <PackageVersion Include="OpenAI" Version="2.1.0" />
-    <PackageVersion Include="MailKit" Version="4.7.0" />
+    <PackageVersion Include="MailKit" Version="4.11.0" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.8" />
     <PackageVersion Include="MySql.Data" Version="9.0.0" />
     <PackageVersion Include="NPOI" Version="2.7.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
     <PackageVersion Include="Refit" Version="8.0.0" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="8.0.0" />
     <PackageVersion Include="Jint" Version="4.1.0" />
@@ -54,8 +56,8 @@
     <PackageVersion Include="TensorFlow.Keras" Version="0.15.0" />
     <PackageVersion Include="LangChain.Providers.Google.VertexAI" Version="0.15.3-dev.58" />
     <PackageVersion Include="LLamaSharp" Version="0.21.0" />
-    <PackageVersion Include="FaissMask" Version="0.2.0" />
-    <PackageVersion Include="FastText.NetWrapper" Version="1.3.0" />
+    <PackageVersion Include="FaissMask" Version="0.4.2" />
+    <PackageVersion Include="FastText.NetWrapper" Version="1.3.1" />
     <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.3.0-preview.1.25161.3" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="8.0.0" />
     <PackageVersion Include="MongoDB.Driver" Version="3.1.0" />
@@ -67,23 +69,23 @@
     <PackageVersion Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="2.5.1" />
     <PackageVersion Include="Sdcb.PaddleOCR" Version="2.7.0.1" />
     <PackageVersion Include="Sdcb.PaddleOCR.Models.LocalV3" Version="2.7.0.1" />
-    <PackageVersion Include="System.Drawing.Common" Version="8.0.7" />
+    <PackageVersion Include="System.Drawing.Common" Version="8.0.14" />
     <PackageVersion Include="pythonnet" Version="3.0.4" />
     <PackageVersion Include="Qdrant.Client" Version="1.13.0" />
     <PackageVersion Include="Selenium.WebDriver" Version="4.27.0" />
-    <PackageVersion Include="HtmlAgilityPack" Version="1.11.71" />
+    <PackageVersion Include="HtmlAgilityPack" Version="1.12.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="1.16.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.16.0-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
     <PackageVersion Include="Sdcb.SparkDesk" Version="3.1.0" />
-    <PackageVersion Include="MySqlConnector" Version="2.3.7" />
-    <PackageVersion Include="Npgsql" Version="8.0.5" />
+    <PackageVersion Include="MySqlConnector" Version="2.4.0" />
+    <PackageVersion Include="Npgsql" Version="8.0.7" />
     <PackageVersion Include="Tencent.QCloud.Cos.Sdk" Version="5.4.39" />
     <PackageVersion Include="StackExchange.Redis" Version="2.7.27" />
     <PackageVersion Include="StrongGrid" Version="0.108.0" />
     <PackageVersion Include="Twilio.AspNet.Common" Version="8.1.1" />
     <PackageVersion Include="Twilio.AspNet.Core" Version="8.1.1" />
-    <PackageVersion Include="Microsoft.Playwright" Version="1.49.0" />
+    <PackageVersion Include="Microsoft.Playwright" Version="1.51.0" />
     <PackageVersion Include="Senparc.Weixin.MP.Middleware" Version="1.2.1" />
     <PackageVersion Include="System.Threading.Channels" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="8.0.8" />
@@ -109,7 +111,7 @@
     <PackageVersion Include="MSTest.TestFramework" Version="3.1.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-    <PackageVersion Include="ModelContextProtocol" Version="0.1.0-preview.2" /> 
+    <PackageVersion Include="ModelContextProtocol" Version="0.1.0-preview.2" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="BotSharp.Core" Version="$(BotSharpVersion)" />
