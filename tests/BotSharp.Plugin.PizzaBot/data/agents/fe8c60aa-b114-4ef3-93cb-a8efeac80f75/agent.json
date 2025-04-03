@@ -7,6 +7,18 @@
   "disabled": false,
   "isPublic": true,
   "profiles": [ "pizza" ],
+  "mcpTools": [
+    {
+      "name": "PizzaServer",
+      "server_id": "PizzaServer",
+      "disabled": false,
+      "functions": [
+        {
+          "name": "make_payment"
+        }
+      ]
+    }
+  ],
   "labels": [ "experiment" ],
   "routingRules": [
     {

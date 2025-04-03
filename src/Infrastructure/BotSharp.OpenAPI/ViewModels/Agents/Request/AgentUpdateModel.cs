@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing.Models;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
@@ -38,6 +37,12 @@ public class AgentUpdateModel
     /// Utilities
     /// </summary>
     public List<AgentUtility>? Utilities { get; set; }
+
+    /// <summary>
+    /// McpTools
+    /// </summary>
+    [JsonPropertyName("mcp_tools")]
+    public List<McpTool>? McpTools { get; set; }
 
     /// <summary>
     /// knowledge bases
@@ -103,6 +108,7 @@ public class AgentUpdateModel
             Functions = Functions ?? [],
             Responses = Responses ?? [],
             Utilities = Utilities ?? [],
+            McpTools = McpTools ?? [],
             KnowledgeBases = KnowledgeBases ?? [],
             Rules = Rules ?? [],
             LlmConfig = LlmConfig ?? new()

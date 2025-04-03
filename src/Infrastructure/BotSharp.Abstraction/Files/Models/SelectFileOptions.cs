@@ -8,9 +8,9 @@ public class SelectFileOptions
     public string? Provider { get; set; }
 
     /// <summary>
-    /// Llm model id
+    /// Llm model
     /// </summary>
-    public string? ModelId { get; set; }
+    public string? Model { get; set; }
 
     /// <summary>
     /// Agent id

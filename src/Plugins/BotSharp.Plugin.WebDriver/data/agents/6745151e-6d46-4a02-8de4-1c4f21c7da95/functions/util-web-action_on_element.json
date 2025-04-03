@@ -11,16 +11,32 @@
       "action": {
         "type": "string",
         "description": "action to perform on element",
-        "enum": [ "Click", "InputText" ]
+        "enum": [ "Click", "InputText", "DropDown", "FileUpload" ]
       },
       "content": {
         "type": "string",
         "description": "content to input in element"
       },
+      "file_urls": {
+        "type": "array",
+        "description": "The output format must be string array of file urls.",
+        "items": {
+          "type": "string",
+          "description": "file url"
+        }
+      },
+      "show_current_url": {
+        "type": "boolean",
+        "description": "check if need to extract the current url"
+      },
       "press_key": {
         "type": "string",
         "enum": [ "Enter" ],
         "description": "press key after input text"
+      },
+      "wait_time": {
+        "type": "number",
+        "description": "wait time after action in seconds"
       }
     },
     "required": [ "selector", "action" ]

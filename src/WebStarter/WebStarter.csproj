@@ -22,6 +22,13 @@
     <PackageReference Include="BotSharp.Plugin.ChatHub" />
   </ItemGroup>
 
+<Target Name="CombinedNugetPackage" BeforeTargets="PrepareForRun" Condition="$(SolutionName)=='PizzaBot'">
+  <ItemGroup>
+    <CoreContentFiles Include="$(NuGetPackageRoot)botsharp.core\$(BotSharpVersion)\content\data\**\*.*" />
+  </ItemGroup>
+  
+  <Copy SourceFiles="@(CoreContentFiles)" DestinationFolder="$(OutputPath)data\%(RecursiveDir)" />
+</Target>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
@@ -30,6 +37,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
     <ProjectReference Include="..\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Infrastructure\BotSharp.Core.MCP\BotSharp.Core.MCP.csproj" />
   </ItemGroup>
   
   <ItemGroup Condition="$(SolutionName)==BotSharp">

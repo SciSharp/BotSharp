@@ -62,6 +62,9 @@ public partial class MongoRepository
             case AgentField.Utility:
                 UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
                 break;
+            case AgentField.McpTool:
+                UpdateAgentMcpTools(agent.Id, agent.McpTools);
+                break;
             case AgentField.KnowledgeBase:
                 UpdateAgentKnowledgeBases(agent.Id, agent.KnowledgeBases);
                 break;
@@ -262,6 +265,19 @@ public partial class MongoRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
+    private void UpdateAgentMcpTools(string agentId, List<McpTool> mcps)
+    {
+        if (mcps == null) return;
+
+        var elements = mcps?.Select(x => AgentMcpToolMongoElement.ToMongoElement(x))?.ToList() ?? [];
+
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var update = Builders<AgentDocument>.Update 
+            .Set(x => x.McpTools, elements)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
     private void UpdateAgentKnowledgeBases(string agentId, List<AgentKnowledgeBase> knowledgeBases)
     {
         if (knowledgeBases == null) return;
@@ -331,6 +347,7 @@ public partial class MongoRepository
             .Set(x => x.Responses, agent.Responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.Samples, agent.Samples)
             .Set(x => x.Utilities, agent.Utilities.Select(u => AgentUtilityMongoElement.ToMongoElement(u)).ToList())
+            .Set(x => x.McpTools, agent.McpTools.Select(u => AgentMcpToolMongoElement.ToMongoElement(u)).ToList())
             .Set(x => x.KnowledgeBases, agent.KnowledgeBases.Select(u => AgentKnowledgeBaseMongoElement.ToMongoElement(u)).ToList())
             .Set(x => x.Rules, agent.Rules.Select(e => AgentRuleMongoElement.ToMongoElement(e)).ToList())
             .Set(x => x.LlmConfig, AgentLlmConfigMongoElement.ToMongoElement(agent.LlmConfig))
@@ -513,9 +530,32 @@ public partial class MongoRepository
             UserId = x.UserId,
             AgentId = x.AgentId,
             Actions = x.Actions,
-            CreatedTime = x.CreatedTime,
-            UpdatedTime = x.UpdatedTime
-        });
+            Name = x.Name,
+            IconUrl = x.IconUrl,
+            Description = x.Description,
+            Instruction = x.Instruction,
+            Samples = x.Samples ?? [],
+            IsPublic = x.IsPublic,
+            Type = x.Type,
+            InheritAgentId = x.InheritAgentId,
+            Disabled = x.Disabled,
+            MergeUtility = x.MergeUtility,
+            MaxMessageCount = x.MaxMessageCount,
+            Profiles = x.Profiles ?? [],
+            Labels = x.Labels ?? [],
+            LlmConfig = AgentLlmConfigMongoElement.ToMongoElement(x.LlmConfig),
+            ChannelInstructions = x.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToMongoElement(i))?.ToList() ?? [],
+            Templates = x.Templates?.Select(t => AgentTemplateMongoElement.ToMongoElement(t))?.ToList() ?? [],
+            Functions = x.Functions?.Select(f => FunctionDefMongoElement.ToMongoElement(f))?.ToList() ?? [],
+            Responses = x.Responses?.Select(r => AgentResponseMongoElement.ToMongoElement(r))?.ToList() ?? [],
+            RoutingRules = x.RoutingRules?.Select(r => RoutingRuleMongoElement.ToMongoElement(r))?.ToList() ?? [],
+            Utilities = x.Utilities?.Select(u => AgentUtilityMongoElement.ToMongoElement(u))?.ToList() ?? [],
+            McpTools = x.McpTools?.Select(u => AgentMcpToolMongoElement.ToMongoElement(u))?.ToList() ?? [],
+            KnowledgeBases = x.KnowledgeBases?.Select(k => AgentKnowledgeBaseMongoElement.ToMongoElement(k))?.ToList() ?? [],
+            Rules = x.Rules?.Select(e => AgentRuleMongoElement.ToMongoElement(e))?.ToList() ?? [],
+            CreatedTime = x.CreatedDateTime,
+            UpdatedTime = x.UpdatedDateTime
+        }).ToList();
 
         InsertMany("UserAgents", _dc.UserAgents, userAgentDocs);
     }
@@ -646,6 +686,7 @@ public partial class MongoRepository
             Responses = agentDoc.Responses?.Select(r => AgentResponseMongoElement.ToDomainElement(r))?.ToList() ?? [],
             RoutingRules = agentDoc.RoutingRules?.Select(r => RoutingRuleMongoElement.ToDomainElement(agentDoc.Id, agentDoc.Name, r))?.ToList() ?? [],
             Utilities = agentDoc.Utilities?.Select(u => AgentUtilityMongoElement.ToDomainElement(u))?.ToList() ?? [],
+            McpTools = agentDoc.McpTools?.Select(u => AgentMcpToolMongoElement.ToDomainElement(u))?.ToList() ?? [],
             KnowledgeBases = agentDoc.KnowledgeBases?.Select(x => AgentKnowledgeBaseMongoElement.ToDomainElement(x))?.ToList() ?? [],
             Rules = agentDoc.Rules?.Select(e => AgentRuleMongoElement.ToDomainElement(e))?.ToList() ?? []
         };

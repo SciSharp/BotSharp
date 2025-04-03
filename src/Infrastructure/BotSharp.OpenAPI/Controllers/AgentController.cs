@@ -9,16 +9,17 @@ public class AgentController : ControllerBase
     private readonly IAgentService _agentService;
     private readonly IUserIdentity _user;
     private readonly IServiceProvider _services;
-
+ 
     public AgentController(
         IAgentService agentService,
         IUserIdentity user,
-        IServiceProvider services)
+        IServiceProvider services  
+        )
     {
         _agentService = agentService;
         _user = user;
         _services = services;
-    }
+     }
 
     [HttpGet("/agent/settings")]
     public AgentSettings GetSettings()
@@ -166,7 +167,7 @@ public class AgentController : ControllerBase
         }
         return utilities.Where(x => !string.IsNullOrWhiteSpace(x.Name)).OrderBy(x => x.Name).ToList();
     }
-
+ 
     [HttpGet("/agent/labels")]
     public async Task<IEnumerable<string>> GetAgentLabels()
     {

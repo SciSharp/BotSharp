@@ -1,4 +1,6 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
@@ -199,10 +201,26 @@ public class TwilioService
     /// </summary>
     /// <param name="conversationalVoiceResponse"></param>
     /// <returns></returns>
-    public VoiceResponse ReturnBidirectionalMediaStreamsInstructions(ConversationalVoiceResponse conversationalVoiceResponse)
+    public VoiceResponse ReturnBidirectionalMediaStreamsInstructions(ConversationalVoiceResponse conversationalVoiceResponse, Agent agent)
     {
         var response = new VoiceResponse();
+
         var conversationId = conversationalVoiceResponse.ConversationId;
+
+        if (_settings.TranscribeEnabled)
+        {
+            var words = new List<string>();
+            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
+            var hints = string.Join(", ", words);
+            var start = new Start();
+            start.Transcription(
+                track: "inbound_track",
+                partialResults: false,
+                statusCallbackUrl: $"{_settings.CallbackHost}/twilio/transcribe?agent-id={conversationalVoiceResponse.AgentId}&conversation-id={conversationId}", 
+                name: conversationId,
+                hints: hints);
+            response.Append(start);
+        }
 
         if (conversationalVoiceResponse.SpeechPaths != null && conversationalVoiceResponse.SpeechPaths.Any())
         {

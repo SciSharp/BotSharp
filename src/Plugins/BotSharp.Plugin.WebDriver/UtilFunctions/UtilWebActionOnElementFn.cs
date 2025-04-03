@@ -30,11 +30,12 @@ public class UtilWebActionOnElementFn : IFunctionCallback
             }
         }
 
-        actionArgs.WaitTime = 2;
-        
+        actionArgs.WaitTime = actionArgs.WaitTime > 0 ? actionArgs.WaitTime : 2;
+
         var conv = _services.GetRequiredService<IConversationService>();
 
-        var browser = _services.GetRequiredService<IWebBrowser>();
+        var services = _services.CreateScope().ServiceProvider;
+        var browser = services.GetRequiredService<IWebBrowser>();
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var msg = new MessageInfo
         {
@@ -44,7 +45,13 @@ public class UtilWebActionOnElementFn : IFunctionCallback
         };
         var result = await browser.ActionOnElement(msg, locatorArgs, actionArgs);
 
-        message.Content = $"{actionArgs.Action} executed {(result.IsSuccess ? "success" : "failed")}";
+        message.Content = $"{actionArgs.Action} executed {(result.IsSuccess ? "success" : "failed")}.";
+
+        // Add Current Url info to the message
+        if (actionArgs.ShowCurrentUrl)
+        {
+            message.Content += $" Current page url: '{result.UrlAfterAction}'.";
+        }
 
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 

@@ -148,6 +148,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         do
         {
+            Array.Clear(buffer, 0, buffer.Length);
             result = await _webSocket.ReceiveAsync(
                 new ArraySegment<byte>(buffer), CancellationToken.None);
             
@@ -296,7 +297,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var settings = settingsService.GetSetting(Provider, args.Model ?? _model);
 
         var api = _services.GetRequiredService<IOpenAiRealtimeApi>();
-        var session = await api.GetSessionAsync(args, settings.ApiKey);
+        var session = await api.CreateSessionAsync(args, settings.ApiKey);
         return session;
     }
 
@@ -336,12 +337,12 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 InputAudioFormat = "g711_ulaw",
                 OutputAudioFormat = "g711_ulaw",
-                InputAudioTranscription = new InputAudioTranscription
+                /*InputAudioTranscription = new InputAudioTranscription
                 {
                     Model = realtimeModelSettings.InputAudioTranscription.Model,
                     Language = realtimeModelSettings.InputAudioTranscription.Language,
                     Prompt = string.Join(", ", words.Select(x => x.ToLower().Trim()).Distinct()).SubstringMax(1024)
-                },
+                },*/
                 Voice = realtimeModelSettings.Voice,
                 Instructions = instruction,
                 ToolChoice = "auto",
@@ -695,7 +696,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     public async Task<RoleDialogModel> OnConversationItemCreated(RealtimeHubConnection conn, string response)
     {
-        var item = JsonSerializer.Deserialize<ConversationItemCreated>(response).Item;
+        var item = response.JsonContent<ConversationItemCreated>().Item;
         var message = new RoleDialogModel(item.Role, item.Content.FirstOrDefault()?.Transcript);
 
         return message;

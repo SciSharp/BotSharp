@@ -77,10 +77,14 @@ public class OutboundPhoneCallFn : IFunctionCallback
             statusUrl += $"&init-audio-file={initAudioFile}";
         }
 
+        // load agent profile
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(message.CurrentAgentId);
+
         // Set up process URL streaming or synchronous
-        if (_twilioSetting.StreamingEnabled)
+        if (agent.Profiles.Contains("realtime"))
         {
-            processUrl += "/stream";
+            processUrl += "/inbound";
         }
         else
         {
@@ -119,7 +123,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
         
         await ForkConversation(args, entryAgentId, originConversationId, newConversationId, call);
 
-        message.Content = $"The generated phone initial message: \"{args.InitialMessage}.\" [NEW CONVERSATION ID: {newConversationId}, TWILIO CALL SID: {call.Sid}, STREAMING: {_twilioSetting.StreamingEnabled}, RECORDING: {_twilioSetting.RecordingEnabled}]";
+        message.Content = $"The generated phone initial message: \"{args.InitialMessage}.\" [NEW CONVERSATION ID: {newConversationId}, TWILIO CALL SID: {call.Sid}, RECORDING: {_twilioSetting.RecordingEnabled}]";
         message.StopCompletion = true;
         return true;
     }
@@ -145,14 +149,17 @@ public class OutboundPhoneCallFn : IFunctionCallback
             Title = args.InitialMessage
         });
 
+        var messageId = Guid.NewGuid().ToString();
         convStorage.Append(newConversationId, new List<RoleDialogModel>
         {
             new RoleDialogModel(AgentRole.User, "Hi")
             {
+                MessageId = messageId,
                 CurrentAgentId = entryAgentId
             },
             new RoleDialogModel(AgentRole.Assistant, args.InitialMessage)
             {
+                MessageId = messageId,
                 CurrentAgentId = entryAgentId
             }
         });
@@ -160,6 +167,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
         convService.SetConversationId(newConversationId, 
         [
             new MessageState(StateConst.ORIGIN_CONVERSATION_ID, originConversationId),
+            new MessageState("channel", "phone"),
             new MessageState("phone_from", call.From),
             new MessageState("phone_direction", call.Direction),
             new MessageState("phone_number", call.To),

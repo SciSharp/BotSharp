@@ -1,4 +1,5 @@
 using BotSharp.Core;
+using BotSharp.Core.MCP;
 using BotSharp.OpenAPI;
 using BotSharp.Logger;
 using BotSharp.Plugin.ChatHub;
@@ -23,6 +24,7 @@ string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get
      options.JsonSerializerOptions.Converters.Add(new RichContentJsonConverter());
      options.JsonSerializerOptions.Converters.Add(new TemplateMessageJsonConverter());
  }).AddBotSharpOpenAPI(builder.Configuration, allowedOrigins, builder.Environment, true)
+   .AddBotSharpMCP(builder.Configuration)
    .AddBotSharpLogger(builder.Configuration);
 
 // Add service defaults & Aspire components.

@@ -12,6 +12,8 @@ public class ElementActionArgs
 
     [JsonPropertyName("content")]
     public string? Content { get; set; }
+    [JsonPropertyName("file_urls")] 
+    public string[] FileUrl { get; set; }
 
     public ElementPosition? Position { get; set; }
 
@@ -31,7 +33,14 @@ public class ElementActionArgs
     /// <summary>
     /// Wait time in seconds
     /// </summary>
+    [JsonPropertyName("wait_time")]
     public int WaitTime { get; set; }
+
+    /// <summary>
+    /// Add current url to the content
+    /// </summary>
+    [JsonPropertyName("show_current_url")]
+    public bool ShowCurrentUrl { get; set; } = false;
 
     /// <summary>
     /// Required for deserialization

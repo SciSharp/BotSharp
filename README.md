@@ -14,7 +14,7 @@
 
 It's written in C# running on .Net Core that is full cross-platform framework, the plug-in and pipeline flow execution design is adopted to completely decouple the plug-ins. C# is a enterprise grade programming language which is widely used to code business logic in information management related system. More friendly to corporate developers. BotSharp adopts machine learning algorithm in C# directly. That will facilitate the feature of the typed language C#, and be more easier when refactoring code in system scope. 
 
-**BotSharp** is in accordance with components principle strictly, decouples every part that is needed in the platform builder. So you can choose different UI/UX, or pick up a different LLM providers. They are all modulized based on unified interfaces. **BotSharp** provides an advanced Agent abstraction layer to efficiently manage complex application scenarios in enterprises, allowing enterprise developers to efficiently integrate AI into business systems.
+**BotSharp** is in accordance with components principle strictly, decouples every part that is needed in the platform builder. So you can choose different UI/UX, or pick up a different LLM providers. They are all modularized based on unified interfaces. **BotSharp** provides an advanced Agent abstraction layer to efficiently manage complex application scenarios in enterprises, allowing enterprise developers to efficiently integrate AI into business systems.
 
 ![](./docs/architecture/assets/botsharp_diagram.png)
 
@@ -23,7 +23,7 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 * Built-in multi-agents and conversation with state management.
 * Support multiple LLM Planning approaches to handle different tasks from simple to complex.
 * Built-in RAG related interfaces, Memory based vector searching.
-* Support multiple AI platforms (ChatGPT 3.5/ 4o/ o1, Gemini 2, LLaMA 3, Claude Sonnet 3.5, HuggingFace).
+* Support multiple AI platforms (ChatGPT 3.5/ 4o/ o1, Gemini 2, LLaMA 3, Claude Sonnet 3.5,DeepSeek V3, HuggingFace).
 * Allow multiple agents with different responsibilities cooperate to complete complex tasks. 
 * Build, test, evaluate and audit your LLM agent in one place.
 * Build-in `BotSharp UI` written in [SvelteKit](https://kit.svelte.dev/).
@@ -87,6 +87,7 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 - BotSharp.Plugin.AzureOpenAI
 - BotSharp.Plugin.OpenAI
 - BotSharp.Plugin.AnthropicAI
+- BotSharp.Plugin.DeepSeekAI
 - BotSharp.Plugin.GoogleAI
 - BotSharp.Plugin.MetaAI
 - BotSharp.Plugin.HuggingFace
@@ -126,6 +127,8 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 ### Documents
 
 Read the docs: https://botsharp.readthedocs.io?wt.mc_id=AI-MVP-5005183
+
+New documentation website: https://botsharp.verdure-hiro.cn
 
 If you feel that this project is helpful to you, please Star the project, we would be very grateful.
 

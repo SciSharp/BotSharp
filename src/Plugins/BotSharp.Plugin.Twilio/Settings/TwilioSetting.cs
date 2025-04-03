@@ -7,10 +7,6 @@ public class TwilioSetting
     /// </summary>
     public string? PhoneNumber { get; set; }
 
-    /// <summary>
-    /// Enable streaming for outbound phone call
-    /// </summary>
-    public bool StreamingEnabled { get; set; } = false;
     public string AccountSID { get; set; }
     public string AuthToken { get; set; }
     public string AppSID { get; set; }
@@ -31,4 +27,5 @@ public class TwilioSetting
     public int MachineDetectionSilenceTimeout { get; set; } = 2500;
 
     public bool RecordingEnabled { get; set; } = false;
+    public bool TranscribeEnabled { get; set; } = false;
 }

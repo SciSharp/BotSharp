@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using System.Net.WebSockets;
 using Task = System.Threading.Tasks.Task;
 
-namespace BotSharp.Plugin.Twilio.Services.Stream;
+namespace BotSharp.Plugin.Twilio;
 
 /// <summary>
 /// Reference to https://github.com/twilio-samples/speech-assistant-openai-realtime-api-node/blob/main/index.js

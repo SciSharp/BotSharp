@@ -57,5 +57,11 @@ public abstract class AgentHookBase : IAgentHook
 
     public virtual void OnAgentUtilityLoaded(Agent agent)
     {
+
+    }
+
+    public virtual void OnAgentMcpToolLoaded(Agent agent)
+    {
+
     }
 }
