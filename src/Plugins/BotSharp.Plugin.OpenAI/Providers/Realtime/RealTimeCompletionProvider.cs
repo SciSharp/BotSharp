@@ -163,8 +163,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
             if (response.Type == "error")
             {
-                var error = JsonSerializer.Deserialize<ServerEventErrorResponse>(receivedText);
-                _logger.LogError($"Error: {error.Body.Message}");
+                _logger.LogError($"{response.Type}: {receivedText}");
             }
             else if (response.Type == "session.created")
             {
@@ -677,6 +676,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 Provider = Provider,
                 Model = _model,
+                Prompt = "[hook.AfterGenerated] [UNCHANGED PROMPT]",
                 CompletionCount = data.Usage.OutputTokens,
                 PromptCount = data.Usage.InputTokens
             });
