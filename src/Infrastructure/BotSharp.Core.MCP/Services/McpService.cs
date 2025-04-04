@@ -26,7 +26,6 @@ public class McpService : IMcpService
             Name = x.Name,
             TransportType = x.TransportType,
             TransportOptions = x.TransportOptions,
-            Arguments = x.Arguments,
             Location = x.Location
         });
     }

@@ -7,7 +7,7 @@ namespace BotSharp.PizzaBot.MCPServer.Tools;
 [McpServerToolType]
 public static class MakePayment
 {
-    [McpServerTool(name: "make_payment"), Description("call this function to make payment.")]
+    [McpServerTool(Name = "make_payment"), Description("call this function to make payment.")]
     public static string Make_Payment(
         [Description("order number"),Required] string order_number,
         [Description("total amount"),Required] int total_amount)
