@@ -9,7 +9,7 @@ namespace BotSharp.PizzaBot.MCPServer.Tools;
 [McpServerToolType]
 public static class PizzaPrices
 {
-    [McpServerTool(name: "get_pizza_prices"), Description("call this function to get pizza unit price.")]
+    [McpServerTool(Name = "get_pizza_prices"), Description("call this function to get pizza unit price.")]
     public static string GetPizzaPrices(
        [Description("The pizza type."), Required] string pizza_type,
        [Description("quantity of pizza"), Required] int quantity)
