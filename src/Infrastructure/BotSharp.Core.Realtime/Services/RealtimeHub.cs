@@ -49,6 +49,9 @@ public class RealtimeHub : IRealtimeHub
             {
                 await _completer.AppenAudioBuffer(_conn.Data);
             }
+            else if (_conn.Event == "user_dtmf_receiving")
+            {
+            }
             else if (_conn.Event == "user_dtmf_received")
             {
                 await HandleUserDtmfReceived();

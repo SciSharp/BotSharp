@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Utilities;
+using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Core.Realtime.Hooks;
 
@@ -29,6 +30,10 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
         {
             return;
         }
+
+        // Clear cache to force to rebuild the agent instruction
+        Utilities.ClearCache();
+
         var routing = _services.GetRequiredService<IRoutingService>();
 
         message.Role = AgentRole.Function;
