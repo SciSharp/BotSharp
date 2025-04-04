@@ -32,7 +32,11 @@ public class UtilWebLocateElementFn : IFunctionCallback
         };
         var result = await browser.LocateElement(msg, locatorArgs);
 
-        message.Content = $"Locating element {(result.IsSuccess ? "success" : "failed")}";
+        message.Content = $"Locating element {(result.IsSuccess ? "success" : "failed")}. ";
+        if (locatorArgs.IsReadContent && result.IsSuccess && !string.IsNullOrWhiteSpace(result.Body))
+        {
+            message.Content += $"Content is: \n{result.Body}";
+        }
 
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
