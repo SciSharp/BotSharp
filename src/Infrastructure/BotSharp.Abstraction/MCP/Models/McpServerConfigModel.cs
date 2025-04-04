@@ -25,11 +25,6 @@ public class McpServerConfigModel
     public string? Location { get; set; }
 
     /// <summary>
-    /// Arguments (if any) to pass to the executable.
-    /// </summary>
-    public string[]? Arguments { get; set; }
-
-    /// <summary>
     /// Additional transport-specific configuration.
     /// </summary>
     [JsonPropertyName("transport_options")]

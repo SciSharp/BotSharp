@@ -1,5 +1,5 @@
 using ModelContextProtocol.Client;
-using ModelContextProtocol.Configuration;
+using ModelContextProtocol;
 
 namespace BotSharp.Core.MCP.Settings;
 

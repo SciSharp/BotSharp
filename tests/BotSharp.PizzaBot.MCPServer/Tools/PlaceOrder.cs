@@ -7,7 +7,7 @@ namespace BotSharp.PizzaBot.MCPServer.Tools;
 [McpServerToolType]
 public static class PlaceOrder
 {
-    [McpServerTool(name: "place_an_order"), Description("Place an order when user has confirmed the pizza type and quantity.")]
+    [McpServerTool(Name = "place_an_order"), Description("Place an order when user has confirmed the pizza type and quantity.")]
     public static string PlaceAnOrder(
       [Description("The pizza type."), Required] string pizza_type,
       [Description("quantity of pizza"), Required] int quantity,
@@ -21,7 +21,7 @@ public static class PlaceOrder
         {
             throw new McpServerException("Missing required argument 'quantity'");
         }
-        if (unit_price <= 0)
+        if (unit_price < 0)
         {
             throw new McpServerException("Missing required argument 'unit_price'");
         }
