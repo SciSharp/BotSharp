@@ -36,4 +36,6 @@ public class ElementLocatingArgs
     /// </summary>
     public bool Highlight { get; set; }
     public string HighlightColor { get; set; } = "red";
+    [JsonPropertyName("is_read_content")]
+    public bool IsReadContent { get;set; }
 }

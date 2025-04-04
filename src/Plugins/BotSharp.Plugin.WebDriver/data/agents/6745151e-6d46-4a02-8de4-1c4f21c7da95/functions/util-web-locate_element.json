@@ -7,6 +7,10 @@
       "selector": {
         "type": "string",
         "description": "element selector in XPath, use syntax of Playwright in .NET"
+      },
+      "is_read_content": {
+        "type": "boolean",
+        "description": "read the content"
       }
     },
     "required": [ "selector" ]
