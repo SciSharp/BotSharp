@@ -201,8 +201,6 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
 
         public async Task<RealtimeSession> CreateSession(Agent agent, List<RoleDialogModel> conversations)
         {
-            var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
-
             var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
             var chatClient = client.CreateGenerativeModel(_model);
             var (prompt, request) = PrepareOptions(chatClient, agent, conversations);
@@ -261,22 +259,25 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
 
             var config = request.GenerationConfig;
             //Output Modality can either be text or audio
-            config.ResponseModalities = new List<Modality>([Modality.AUDIO]);
+            if (config != null)
+            {
+                config.ResponseModalities = new List<Modality>([Modality.AUDIO]);
 
-            var words = new List<string>();
-            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
+                var words = new List<string>();
+                HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
 
-            var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
+                var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
-            config.Temperature = Math.Max(realtimeModelSettings.Temperature, 0.6f);
-            config.MaxOutputTokens = realtimeModelSettings.MaxResponseOutputTokens;
+                config.Temperature = Math.Max(realtimeModelSettings.Temperature, 0.6f);
+                config.MaxOutputTokens = realtimeModelSettings.MaxResponseOutputTokens;
+            }
 
             var functions = request.Tools?.SelectMany(s => s.FunctionDeclarations).Select(x =>
             {
                 var fn = new FunctionDef
                 {
                     Name = x.Name ?? string.Empty,
-                    Description = x.Description
+                    Description = x.Description?? string.Empty,
                 };
                 fn.Parameters = x.Parameters != null
                     ? JsonSerializer.Deserialize<FunctionParametersDef>(JsonSerializer.Serialize(x.Parameters))
@@ -287,7 +288,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
             await HookEmitter.Emit<IContentGeneratingHook>(_services,
                 async hook => { await hook.OnSessionUpdated(agent, prompt, functions); });
 
-            //ToDo: Not sure what's the purpose of UpdateSession, Google Realtime conversion works right after sending the message away!
+            //ToDo: Not sure what's the purpose of UpdateSession, Google Realtime conversion works right away after sending the message!
 
             // await _client.SendSetupAsync(new BidiGenerateContentSetup()
             // {
@@ -302,11 +303,13 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
 
         public async Task InsertConversationItem(RoleDialogModel message)
         {
+            if (_client == null)
+                throw new Exception("Client is not initialized");
             if (message.Role == AgentRole.Function)
             {
                 var function = new FunctionResponse()
                 {
-                    Name = message.FunctionName,
+                    Name = message.FunctionName?? string.Empty,
                     Response = JsonNode.Parse(message.Content ?? "{}")
                 };
 
@@ -323,7 +326,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
                 await _client.SendClientContentAsync(new BidiGenerateContentClientContent()
                 {
                     TurnComplete = true,
-                    Turns = new[] { new Content(message.Content, AgentRole.User) }
+                    Turns = [new Content(message.Content, AgentRole.User)]
                 });
             }
             else
@@ -332,15 +335,15 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
             }
         }
 
-        public async Task<List<RoleDialogModel>> OnResponsedDone(RealtimeHubConnection conn, string response)
+        public Task<List<RoleDialogModel>> OnResponsedDone(RealtimeHubConnection conn, string response)
         {
             throw new NotImplementedException("");
         }
 
 
-        public async Task<RoleDialogModel> OnConversationItemCreated(RealtimeHubConnection conn, string response)
+        public Task<RoleDialogModel> OnConversationItemCreated(RealtimeHubConnection conn, string response)
         {
-            return new RoleDialogModel(AgentRole.User, response);
+            return Task.FromResult(new RoleDialogModel(AgentRole.User, response));
         }
 
         private (string, GenerateContentRequest) PrepareOptions(GenerativeModel aiModel, Agent agent,
@@ -425,7 +428,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
                         {
                             FunctionResponse = new FunctionResponse
                             {
-                                Name = message.FunctionName,
+                                Name = message.FunctionName?? string.Empty,
                                 Response = new JsonObject()
                                 {
                                     ["result"] = message.Content ?? string.Empty
@@ -476,9 +479,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
         private string GetPrompt(IEnumerable<string> systemPrompts, IEnumerable<string> funcPrompts,
             IEnumerable<string> convPrompts)
         {
-            var prompt = string.Empty;
-
-            prompt = string.Join("\r\n\r\n", systemPrompts);
+            string prompt = string.Join("\r\n\r\n", systemPrompts);
 
             if (!funcPrompts.IsNullOrEmpty())
             {
