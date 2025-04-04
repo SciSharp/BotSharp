@@ -164,6 +164,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             if (response.Type == "error")
             {
                 _logger.LogError($"{response.Type}: {receivedText}");
+                var error = JsonSerializer.Deserialize<ServerEventErrorResponse>(receivedText);
+                if (error?.Body.Type == "server_error")
+                {
+                    break;
+                }
             }
             else if (response.Type == "session.created")
             {

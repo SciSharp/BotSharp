@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Realtime;
-using BotSharp.Abstraction.Realtime.Models;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models.Stream;
 using Microsoft.AspNetCore.Http;
@@ -100,6 +99,7 @@ public class TwilioStreamMiddleware
                     }
                     else
                     {
+                        conn.Event = "user_dtmf_receiving";
                         conn.KeypadInputBuffer += dtmfResponse.Body.Digit;
                     }
                     break;
@@ -115,6 +115,7 @@ public class TwilioStreamMiddleware
                     streamSid = response.StreamSid,
                     media = new { payload = message }
                 };
+
             conn.OnModelAudioResponseDone = () =>
                 new
                 {
@@ -122,12 +123,21 @@ public class TwilioStreamMiddleware
                     streamSid = response.StreamSid,
                     mark = new { name = "responsePart" }
                 };
+
             conn.OnModelUserInterrupted = () =>
                 new
                 {
                     @event = "clear",
                     streamSid = response.StreamSid
                 };
+
+            /*if (response.Event == "dtmf")
+            {
+                // Send a Stop command to Twilio
+                string stopPlaybackCommand = "{ \"action\": \"stop_playback\" }";
+                var stopBytes = Encoding.UTF8.GetBytes(stopPlaybackCommand);
+                webSocket.SendAsync(new ArraySegment<byte>(stopBytes), WebSocketMessageType.Text, true, CancellationToken.None);
+            }*/
         });
     }
 }
