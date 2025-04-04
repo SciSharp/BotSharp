@@ -89,17 +89,20 @@ public class ChatCompletionProvider : IChatCompletion
         return responseMessage;
     }
 
-    public Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived, Func<RoleDialogModel, Task> onFunctionExecuting)
+    public Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations,
+        Func<RoleDialogModel, Task> onMessageReceived, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
         throw new NotImplementedException();
     }
 
-    public Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    public Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations,
+        Func<RoleDialogModel, Task> onMessageReceived)
     {
         throw new NotImplementedException();
     }
 
-    private (string, MessageParameters) PrepareOptions(Agent agent, List<RoleDialogModel> conversations, LlmModelSetting settings)
+    private (string, MessageParameters) PrepareOptions(Agent agent, List<RoleDialogModel> conversations,
+        LlmModelSetting settings)
     {
         var instruction = "";
         renderedInstructions = [];
@@ -178,8 +181,8 @@ public class ChatCompletionProvider : IChatCompletion
         var state = _services.GetRequiredService<IConversationStateService>();
         var temperature = decimal.Parse(state.GetState("temperature", "0.0"));
         var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
-                            ? tokens
-                            : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
+            ? tokens
+            : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
         var parameters = new MessageParameters()
         {
@@ -188,7 +191,7 @@ public class ChatCompletionProvider : IChatCompletion
             Model = settings.Name,
             Stream = false,
             Temperature = temperature,
-            Tools = new List<Anthropic.SDK.Common.Tool>() 
+            Tools = new List<Anthropic.SDK.Common.Tool>()
         };
 
         if (!string.IsNullOrEmpty(instruction))
@@ -197,9 +200,11 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 new SystemMessage(instruction)
             };
-        };
+        }
 
-        JsonSerializerOptions jsonSerializationOptions = new()
+        ;
+
+        JsonSerializerOptions? jsonSerializationOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Converters = { new JsonStringEnumConverter() },
@@ -238,7 +243,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     private string GetPrompt(MessageParameters parameters)
     {
-        var prompt = $"{string.Join("\r\n", (parameters.System??new List<SystemMessage>()).Select(x => x.Text))}\r\n";
+        var prompt = $"{string.Join("\r\n", (parameters.System ?? new List<SystemMessage>()).Select(x => x.Text))}\r\n";
         prompt += "\r\n[CONVERSATION]";
 
         var verbose = string.Join("\r\n", parameters.Messages
@@ -272,6 +277,7 @@ public class ChatCompletionProvider : IChatCompletion
                     }));
                     return $"{role}: {content}";
                 }
+
                 return string.Empty;
             }));
 
@@ -279,10 +285,12 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (parameters.Tools != null && parameters.Tools.Count > 0)
         {
-            var functions = string.Join("\r\n", parameters.Tools.Select(x =>
-            {
-                return $"\r\n{x.Function.Name}: {x.Function.Description}\r\n{JsonSerializer.Serialize(x.Function.Parameters)}";
-            }));
+            var functions = string.Join("\r\n",
+                parameters.Tools.Select(x =>
+                {
+                    return
+                        $"\r\n{x.Function.Name}: {x.Function.Description}\r\n{JsonSerializer.Serialize(x.Function.Parameters)}";
+                }));
             prompt += $"\r\n[FUNCTIONS]\r\n{functions}\r\n";
         }
 

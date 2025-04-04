@@ -11,7 +11,7 @@ using Shouldly;
 
 namespace BotSharp.Plugin.Google.Core
 {
-    public class GoogleRealTime_Tests : TestBase
+    public class GoogleRealTimeTests : TestBase
     {
         protected static Agent CreateTestAgent()
         {

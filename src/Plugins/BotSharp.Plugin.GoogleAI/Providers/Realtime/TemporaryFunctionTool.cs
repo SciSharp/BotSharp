@@ -4,11 +4,11 @@ using GenerativeAI.Types;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
 {
-    public class FakeFunctionTool:IFunctionTool
+    public class TemporaryFunctionTool:IFunctionTool
     {
         public Tool Tool { get; set; }
 
-        public FakeFunctionTool(Tool tool)
+        public TemporaryFunctionTool(Tool tool)
         {
             this.Tool = tool;
         }

@@ -9,7 +9,7 @@ using Shouldly;
 
 namespace BotSharp.Plugin.Google.Core
 {
-    public class Embedding_Tests:TestBase
+    public class EmbeddingTests:TestBase
     {
         protected static Agent CreateTestAgent()
         {

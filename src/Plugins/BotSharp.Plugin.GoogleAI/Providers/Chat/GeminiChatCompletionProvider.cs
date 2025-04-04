@@ -21,13 +21,13 @@ public class GeminiChatCompletionProvider : IChatCompletion
     public string Provider => "google-ai";
     public string Model => _model;
 
-    private GoogleAiSettings _googleSettings;
+    private GoogleAiSettings _settings;
     public GeminiChatCompletionProvider(
         IServiceProvider services,
         GoogleAiSettings googleSettings,
         ILogger<GeminiChatCompletionProvider> logger)
     {
-        _googleSettings = googleSettings;
+        _settings = googleSettings;
         _services = services;
         _logger = logger;
     }
@@ -42,7 +42,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services, _googleSettings, _logger);
+        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         var aiModel = client.CreateGenerativeModel(_model);
         var (prompt, request) = PrepareOptions(aiModel, agent, conversations);
 
@@ -101,7 +101,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services, _googleSettings, _logger);
+        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         var chatClient = client.CreateGenerativeModel(_model);
         var (prompt, messages) = PrepareOptions(chatClient, agent, conversations);
 
@@ -166,7 +166,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
 
     public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
-        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services, _googleSettings, _logger);
+        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         var chatClient = client.CreateGenerativeModel(_model);
         var (prompt, messages) = PrepareOptions(chatClient,agent, conversations);
 

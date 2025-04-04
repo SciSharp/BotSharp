@@ -11,7 +11,7 @@ using Shouldly;
 
 namespace BotSharp.Plugin.Google.Core
 {
-    public class ChatCompletion_Tests:TestBase
+    public class ChatCompletionTests:TestBase
     {
         protected static Agent CreateTestAgent()
         {
@@ -56,7 +56,7 @@ namespace BotSharp.Plugin.Google.Core
                 yield return new object[] { services.BuildServiceProvider().GetService<IChatCompletion>() ?? throw new Exception("Error while initializing"), agent, modelName };
             }
         }
-        public ChatCompletion_Tests()
+        public ChatCompletionTests()
         {
            
         }

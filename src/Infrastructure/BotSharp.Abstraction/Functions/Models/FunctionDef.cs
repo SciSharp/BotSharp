@@ -23,7 +23,7 @@ public class FunctionDef
     public string? Impact { get; set; }
 
     [JsonPropertyName("parameters")]
-    public FunctionParametersDef Parameters { get; set; } = new FunctionParametersDef();
+    public FunctionParametersDef? Parameters { get; set; } = new FunctionParametersDef();
 
     [JsonPropertyName("output")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -10,7 +10,7 @@ using Shouldly;
 
 namespace BotSharp.Plugin.Google.Core
 {
-    public class FunctionCalling_Tests : TestBase
+    public class FunctionCallingTests : TestBase
     {
         public static IEnumerable<object[]> CreateTestLLMProviders()
         {

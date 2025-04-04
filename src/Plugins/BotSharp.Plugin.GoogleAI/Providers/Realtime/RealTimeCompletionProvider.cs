@@ -33,13 +33,14 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
         private readonly ILogger<GeminiChatCompletionProvider> _logger;
         private List<string> renderedInstructions = [];
 
-        private readonly GoogleAiSettings _googleSettings;
+        private readonly GoogleAiSettings _settings;
+
         public GoogleRealTimeProvider(
             IServiceProvider services,
             GoogleAiSettings googleSettings,
             ILogger<GeminiChatCompletionProvider> logger)
         {
-            _googleSettings = googleSettings;
+            _settings = googleSettings;
             _services = services;
             _logger = logger;
         }
@@ -88,7 +89,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
 
         public async Task AppenAudioBuffer(string message)
         {
-           await _client.SendAudioAsync(Convert.FromBase64String(message));
+            await _client.SendAudioAsync(Convert.FromBase64String(message));
         }
 
         public async Task TriggerModelInference(string? instructions = null)
@@ -101,13 +102,10 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
 
         public async Task CancelModelResponse()
         {
-          
         }
 
         public async Task RemoveConversationItem(string itemId)
         {
-           
-            
         }
 
         private async Task AttachEvents()
@@ -124,8 +122,8 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
                 {
                     if (e.Payload.ServerContent.TurnComplete == true)
                     {
-                       var responseDone = await ResponseDone(conn,e.Payload.ServerContent);
-                       onModelResponseDone(responseDone);
+                        var responseDone = await ResponseDone(conn, e.Payload.ServerContent);
+                        onModelResponseDone(responseDone);
                     }
                 }
             };
@@ -139,16 +137,14 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
                 onInputAudioTranscriptionCompleted(new RoleDialogModel(AgentRole.Assistant, e.Text));
             };
             _client.GenerationInterrupted += async (sender, e) => { onUserInterrupted(); };
-            _client.AudioReceiveCompleted += async (sender, e) =>
-            {
-                onModelAudioResponseDone();
-            };
+            _client.AudioReceiveCompleted += async (sender, e) => { onModelAudioResponseDone(); };
         }
 
-        private async Task<List<RoleDialogModel>> ResponseDone(RealtimeHubConnection conn, BidiGenerateContentServerContent serverContent)
+        private async Task<List<RoleDialogModel>> ResponseDone(RealtimeHubConnection conn,
+            BidiGenerateContentServerContent serverContent)
         {
             var outputs = new List<RoleDialogModel>();
-            
+
             var parts = serverContent.ModelTurn?.Parts;
             if (parts != null)
             {
@@ -194,6 +190,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
                     Model = _model,
                 });
             }
+
             return outputs;
         }
 
@@ -206,29 +203,25 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
         {
             var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
 
-            var client = ProviderHelper.GetGeminiClient(Provider, _model, _services, _googleSettings, _logger);
+            var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
             var chatClient = client.CreateGenerativeModel(_model);
             var (prompt, request) = PrepareOptions(chatClient, agent, conversations);
 
-
             var config = request.GenerationConfig;
-            
+
             //Output Modality can either be text or audio
             config.ResponseModalities = new List<Modality>([Modality.AUDIO]);
 
-            
             var settingsService = _services.GetRequiredService<ILlmProviderService>();
             var settings = settingsService.GetSetting(Provider, _model);
 
-           
-            
             _client = chatClient.CreateMultiModalLiveClient(config,
                 systemInstruction: request.SystemInstruction?.Parts.FirstOrDefault()?.Text);
-            _client.UseGoogleSearch = _googleSettings.Gemini.UseGoogleSearch;
-            
+            _client.UseGoogleSearch = _settings.Gemini.UseGoogleSearch;
+
             if (request.Tools != null && request.Tools.Count > 0)
             {
-                var lst = (request.Tools.Select(s => (IFunctionTool)new FakeFunctionTool(s)).ToList());
+                var lst = (request.Tools.Select(s => (IFunctionTool)new TemporaryFunctionTool(s)).ToList());
 
                 _client.AddFunctionTools(lst, new ToolConfig()
                 {
@@ -261,7 +254,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
             var agentService = _services.GetRequiredService<IAgentService>();
             var agent = await agentService.LoadAgent(conn.CurrentAgentId);
 
-            var client = ProviderHelper.GetGeminiClient(Provider, _model, _services, _googleSettings, _logger);
+            var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
             var chatClient = client.CreateGenerativeModel(_model);
             var (prompt, request) = PrepareOptions(chatClient, agent, new List<RoleDialogModel>());
 
@@ -295,7 +288,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
                 async hook => { await hook.OnSessionUpdated(agent, prompt, functions); });
 
             //ToDo: Not sure what's the purpose of UpdateSession, Google Realtime conversion works right after sending the message away!
-            
+
             // await _client.SendSetupAsync(new BidiGenerateContentSetup()
             // {
             //     GenerationConfig = config,
@@ -316,7 +309,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
                     Name = message.FunctionName,
                     Response = JsonNode.Parse(message.Content ?? "{}")
                 };
-                
+
                 await _client.SendToolResponseAsync(new BidiGenerateContentToolResponse()
                 {
                     FunctionResponses = [function]
@@ -330,7 +323,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
                 await _client.SendClientContentAsync(new BidiGenerateContentClientContent()
                 {
                     TurnComplete = true,
-                    Turns = new []{new Content(message.Content, AgentRole.User)}
+                    Turns = new[] { new Content(message.Content, AgentRole.User) }
                 });
             }
             else
@@ -354,7 +347,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
             List<RoleDialogModel> conversations)
         {
             var agentService = _services.GetRequiredService<IAgentService>();
-            var googleSettings = _googleSettings;
+            var googleSettings = _settings;
             renderedInstructions = [];
 
             // Add settings
@@ -472,7 +465,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
                 GenerationConfig = new()
                 {
                     Temperature = temperature,
-                   MaxOutputTokens = maxTokens
+                    MaxOutputTokens = maxTokens
                 }
             };
 

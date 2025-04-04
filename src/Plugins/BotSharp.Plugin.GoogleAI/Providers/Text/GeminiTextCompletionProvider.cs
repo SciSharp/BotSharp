@@ -17,14 +17,14 @@ public class GeminiTextCompletionProvider : ITextCompletion
     public string Provider => "google-ai";
     public string Model => _model;
 
-    private GoogleAiSettings _googleSettings;
+    private GoogleAiSettings _settings;
     public GeminiTextCompletionProvider(
         IServiceProvider services,
         GoogleAiSettings googleSettings,
         ILogger<GeminiTextCompletionProvider> logger,
         ITokenStatistics tokenStatistics)
     {
-        _googleSettings = googleSettings;
+        _settings = googleSettings;
         _services = services;
         _logger = logger;
         _tokenStatistics = tokenStatistics;
@@ -50,7 +50,7 @@ public class GeminiTextCompletionProvider : ITextCompletion
             await hook.BeforeGenerating(agent, new List<RoleDialogModel> { userMessage });
         }
 
-        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services, _googleSettings, _logger);
+        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         var aiModel = client.CreateGenerativeModel(_model);
         PrepareOptions(aiModel);
 

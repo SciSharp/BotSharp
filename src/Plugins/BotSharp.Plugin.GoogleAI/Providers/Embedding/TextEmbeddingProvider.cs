@@ -30,7 +30,7 @@ public class TextEmbeddingProvider : ITextEmbedding
 
     public async Task<float[]> GetVectorAsync(string text)
     {
-        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services, _settings, _logger);
+        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         var embeddingClient = client.CreateEmbeddingModel(_model);
       
         var response = await embeddingClient.EmbedContentAsync(text);
@@ -40,7 +40,7 @@ public class TextEmbeddingProvider : ITextEmbedding
 
     public async Task<List<float[]>> GetVectorsAsync(List<string> texts)
     {
-        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services, _settings, _logger);
+        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         var embeddingClient = client.CreateEmbeddingModel(_model);
       
         var response = await embeddingClient.BatchEmbedContentAsync(texts.Select(s=>new Content(s, Roles.User)));
