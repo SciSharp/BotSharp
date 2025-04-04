@@ -217,16 +217,13 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
                 systemInstruction: request.SystemInstruction?.Parts.FirstOrDefault()?.Text);
             _client.UseGoogleSearch = _settings.Gemini.UseGoogleSearch;
 
-            if (request.Tools != null && request.Tools.Count > 0)
+            if (_settings.Gemini.UseGoogleSearch)
             {
-                var lst = (request.Tools.Select(s => (IFunctionTool)new TemporaryFunctionTool(s)).ToList());
-
-                _client.AddFunctionTools(lst, new ToolConfig()
+                if (request.Tools == null)
+                    request.Tools = new List<Tool>();
+                request.Tools.Add(new Tool()
                 {
-                    FunctionCallingConfig = new FunctionCallingConfig()
-                    {
-                        Mode = FunctionCallingMode.AUTO
-                    }
+                    GoogleSearch = new GoogleSearchTool()
                 });
             }
 
@@ -234,8 +231,14 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
 
             await _client.ConnectAsync();
 
-            _client.FunctionTools?.Clear();
-
+            await _client.SendSetupAsync(new BidiGenerateContentSetup()
+            {
+                GenerationConfig = config,
+                Model = Model,
+                SystemInstruction = request.SystemInstruction,
+                Tools = request.Tools?.ToArray(),
+            });
+            
             return new RealtimeSession()
             {
                 Id = _client.ConnectionId.ToString(),
@@ -271,13 +274,14 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
                 config.Temperature = Math.Max(realtimeModelSettings.Temperature, 0.6f);
                 config.MaxOutputTokens = realtimeModelSettings.MaxResponseOutputTokens;
             }
+            
 
             var functions = request.Tools?.SelectMany(s => s.FunctionDeclarations).Select(x =>
             {
                 var fn = new FunctionDef
                 {
                     Name = x.Name ?? string.Empty,
-                    Description = x.Description?? string.Empty,
+                    Description = x.Description ?? string.Empty,
                 };
                 fn.Parameters = x.Parameters != null
                     ? JsonSerializer.Deserialize<FunctionParametersDef>(JsonSerializer.Serialize(x.Parameters))
@@ -287,6 +291,16 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
 
             await HookEmitter.Emit<IContentGeneratingHook>(_services,
                 async hook => { await hook.OnSessionUpdated(agent, prompt, functions); });
+            
+            if (_settings.Gemini.UseGoogleSearch)
+            {
+                if (request.Tools == null)
+                    request.Tools = new List<Tool>();
+                request.Tools.Add(new Tool()
+                {
+                    GoogleSearch = new GoogleSearchTool()
+                });
+            }
 
             //ToDo: Not sure what's the purpose of UpdateSession, Google Realtime conversion works right away after sending the message!
 
@@ -309,7 +323,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
             {
                 var function = new FunctionResponse()
                 {
-                    Name = message.FunctionName?? string.Empty,
+                    Name = message.FunctionName ?? string.Empty,
                     Response = JsonNode.Parse(message.Content ?? "{}")
                 };
 
@@ -323,11 +337,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
             }
             else if (message.Role == AgentRole.User)
             {
-                await _client.SendClientContentAsync(new BidiGenerateContentClientContent()
-                {
-                    TurnComplete = true,
-                    Turns = [new Content(message.Content, AgentRole.User)]
-                });
+                await _client.SentTextAsync(message.Content);
             }
             else
             {
@@ -428,7 +438,7 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime
                         {
                             FunctionResponse = new FunctionResponse
                             {
-                                Name = message.FunctionName?? string.Empty,
+                                Name = message.FunctionName ?? string.Empty,
                                 Response = new JsonObject()
                                 {
                                     ["result"] = message.Content ?? string.Empty

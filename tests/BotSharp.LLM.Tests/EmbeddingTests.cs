@@ -1,4 +1,6 @@
-﻿using BotSharp.Abstraction.Agents.Enums;
+﻿
+
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
@@ -46,7 +48,6 @@ namespace BotSharp.Plugin.Google.Core
                 (services, configuration, modelName) = LLMProvider.CreateOpenAI();
                 yield return new object[] { services.BuildServiceProvider().GetService<ITextEmbedding>() ?? throw new Exception("Error while initializing"), agent, modelName };
             }
-           
         }
        
 
