@@ -142,6 +142,13 @@ public partial class FileRepository
         
     }
 
+    public async ValueTask BulkInsertAgentTasksAsync(List<AgentTask> tasks)
+    {
+        if (tasks.IsNullOrEmpty()) return;
+
+        await Task.Delay(200);
+    }
+
     public void UpdateAgentTask(AgentTask task, AgentTaskField field)
     {
         if (task == null || string.IsNullOrEmpty(task.Id)) return;

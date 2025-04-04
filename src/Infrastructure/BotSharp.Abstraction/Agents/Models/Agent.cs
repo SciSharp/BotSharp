@@ -13,8 +13,8 @@ public class Agent
     /// Agent Type
     /// </summary>
     public string Type { get; set; } = AgentType.Task;
-    public DateTime CreatedDateTime { get; set; }
-    public DateTime UpdatedDateTime { get; set; }
+    public DateTime CreatedTime { get; set; }
+    public DateTime UpdatedTime { get; set; }
 
     /// <summary>
     /// Default LLM settings
@@ -174,8 +174,8 @@ public class Agent
             Rules = agent.Rules,
             LlmConfig = agent.LlmConfig,
             KnowledgeBases = agent.KnowledgeBases,
-            CreatedDateTime = agent.CreatedDateTime,
-            UpdatedDateTime = agent.UpdatedDateTime,
+            CreatedTime = agent.CreatedTime,
+            UpdatedTime = agent.UpdatedTime,
         };
     }
 
