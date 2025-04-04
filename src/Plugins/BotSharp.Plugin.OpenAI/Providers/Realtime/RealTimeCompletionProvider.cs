@@ -144,13 +144,28 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action onUserInterrupted)
     {
         var buffer = new byte[1024 * 32];
-        WebSocketReceiveResult result;
+        // Model response timeout
+        var timeout = 30;
+        WebSocketReceiveResult? result = default;
 
         do
         {
             Array.Clear(buffer, 0, buffer.Length);
-            result = await _webSocket.ReceiveAsync(
-                new ArraySegment<byte>(buffer), CancellationToken.None);
+            
+            var taskWorker = _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            var taskTimer = Task.Delay(1000 * timeout);
+            var completedTask = await Task.WhenAny(taskWorker, taskTimer);
+
+            if (completedTask == taskWorker)
+            {
+                result = taskWorker.Result;
+            }
+            else
+            {
+                _logger.LogWarning($"Timeout {timeout} seconds waiting for Model response.");
+                await TriggerModelInference("Response user immediately");
+                continue;
+            }
             
             // Convert received data to text/audio (Twilio sends Base64-encoded audio)
             string receivedText = Encoding.UTF8.GetString(buffer, 0, result.Count);
@@ -187,7 +202,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
                 var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(receivedText);
-                await Task.Delay(1000);
                 onModelAudioTranscriptDone(data.Transcript);
             }
             else if (response.Type == "response.audio.delta")
