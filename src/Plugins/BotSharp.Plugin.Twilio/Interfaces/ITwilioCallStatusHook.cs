@@ -8,7 +8,6 @@ public interface ITwilioCallStatusHook
     Task OnVoicemailLeft(ConversationalVoiceRequest request);
     Task OnUserDisconnected(ConversationalVoiceRequest request);
     Task OnRecordingCompleted(ConversationalVoiceRequest request);
-    Task OnTranscribeCompleted(ConversationalVoiceRequest request);
     Task OnVoicemailStarting(ConversationalVoiceRequest request);
 
     /// <summary>
@@ -19,4 +18,6 @@ public interface ITwilioCallStatusHook
     /// <param name="request"></param>
     /// <returns></returns>
     Task OnCallBusyStatus(ConversationalVoiceRequest request);
+
+    Task OnCallNoAnswerStatus(ConversationalVoiceRequest request);
 }

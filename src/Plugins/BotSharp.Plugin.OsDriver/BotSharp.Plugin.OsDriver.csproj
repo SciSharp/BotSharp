@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
@@ -11,11 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+    <PackageReference Include="SixLabors.ImageSharp" />
+    <PackageReference Include="System.Drawing.Common" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FaissMask" />
-    <PackageReference Include="FastText.NetWrapper" />
+    <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction.ComputerUse\BotSharp.Abstraction.ComputerUse.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
+
 </Project>

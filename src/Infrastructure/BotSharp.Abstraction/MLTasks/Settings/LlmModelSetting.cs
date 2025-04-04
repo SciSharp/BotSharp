@@ -38,11 +38,6 @@ public class LlmModelSetting
     public bool MultiModal { get; set; }
 
     /// <summary>
-    /// If true, allow real-time interaction
-    /// </summary>
-    public bool RealTime { get; set; }
-
-    /// <summary>
     /// If true, allow generating images
     /// </summary>
     public bool ImageGeneration { get; set; }
@@ -84,5 +79,6 @@ public enum LlmModelType
     Chat = 2,
     Image = 3,
     Embedding = 4,
-    Audio = 5
+    Audio = 5,
+    Realtime = 6,
 }

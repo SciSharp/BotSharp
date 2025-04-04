@@ -29,8 +29,8 @@ public class HangupPhoneCallFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<HangupPhoneCallArgs>(message.FunctionArgs);
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var routing = _services.GetRequiredService<IRoutingService>();
-        var conversationId = routing.Context.ConversationId;
+        var convService = _services.GetRequiredService<IConversationService>();
+        var conversationId = convService.ConversationId;
         var states = _services.GetRequiredService<IConversationStateService>();
         var callSid = states.GetState("twilio_call_sid");
 

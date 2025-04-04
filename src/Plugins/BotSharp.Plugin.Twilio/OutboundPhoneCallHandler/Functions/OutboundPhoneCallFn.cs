@@ -77,10 +77,14 @@ public class OutboundPhoneCallFn : IFunctionCallback
             statusUrl += $"&init-audio-file={initAudioFile}";
         }
 
+        // load agent profile
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(message.CurrentAgentId);
+
         // Set up process URL streaming or synchronous
-        if (_twilioSetting.StreamingEnabled)
+        if (agent.Profiles.Contains("realtime"))
         {
-            processUrl += "/stream";
+            processUrl += "/inbound";
         }
         else
         {
@@ -119,7 +123,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
         
         await ForkConversation(args, entryAgentId, originConversationId, newConversationId, call);
 
-        message.Content = $"The generated phone initial message: \"{args.InitialMessage}.\" [NEW CONVERSATION ID: {newConversationId}, TWILIO CALL SID: {call.Sid}, STREAMING: {_twilioSetting.StreamingEnabled}, RECORDING: {_twilioSetting.RecordingEnabled}]";
+        message.Content = $"The generated phone initial message: \"{args.InitialMessage}.\" [NEW CONVERSATION ID: {newConversationId}, TWILIO CALL SID: {call.Sid}, RECORDING: {_twilioSetting.RecordingEnabled}]";
         message.StopCompletion = true;
         return true;
     }

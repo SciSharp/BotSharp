@@ -89,7 +89,7 @@ public class NativeWhisperProvider : IAudioTranscription
             }
 
             var bytes = _fileStorage.GetFileBytes(modelLoc);
-            _whisperProcessor = WhisperFactory.FromBuffer(buffer: bytes).CreateBuilder().WithLanguage("auto").Build();
+            _whisperProcessor = WhisperFactory.FromBuffer(bytes).CreateBuilder().WithLanguage("auto").Build();
         }
         catch (Exception ex)
         {
@@ -101,7 +101,12 @@ public class NativeWhisperProvider : IAudioTranscription
 
     private void DownloadModel(GgmlType modelType, string modelDir)
     {
-        using var modelStream = WhisperGgmlDownloader.GetGgmlModelAsync(modelType).ConfigureAwait(false).GetAwaiter().GetResult();
+        // Create an instance of WhisperGgmlDownloader
+        var downloader = WhisperGgmlDownloader.Default;
+
+        // Use the instance to call GetGgmlModelAsync
+        using var modelStream = downloader.GetGgmlModelAsync(modelType).ConfigureAwait(false).GetAwaiter().GetResult();
+
         _fileStorage.SaveFileStreamToPath(modelDir, modelStream);
         modelStream.Close();
     }

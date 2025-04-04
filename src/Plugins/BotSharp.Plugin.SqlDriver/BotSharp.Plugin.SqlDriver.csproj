@@ -100,7 +100,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" />
     <PackageReference Include="MySqlConnector" />
     <PackageReference Include="Npgsql" />
   </ItemGroup>

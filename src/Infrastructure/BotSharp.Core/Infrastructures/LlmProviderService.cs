@@ -44,7 +44,7 @@ public class LlmProviderService : ILlmProviderService
             ?.Models ?? new List<LlmModelSetting>();
     }
 
-    public LlmModelSetting GetProviderModel(string provider, string id, bool? multiModal = null, bool realTime = false, bool imageGenerate = false)
+    public LlmModelSetting GetProviderModel(string provider, string id, bool? multiModal = null, LlmModelType? modelType = null, bool imageGenerate = false)
     {
         var models = GetProviderModels(provider)
             .Where(x => x.Id == id);
@@ -54,7 +54,10 @@ public class LlmProviderService : ILlmProviderService
             models = models.Where(x => x.MultiModal == multiModal);
         }
 
-        models = models.Where(x => x.RealTime == realTime);
+        if (modelType.HasValue)
+        {
+            models = models.Where(x => x.Type == modelType.Value);
+        }
 
         models = models.Where(x => x.ImageGeneration == imageGenerate);
 
@@ -128,11 +131,6 @@ public class LlmProviderService : ILlmProviderService
             if (options.ImageGeneration.HasValue)
             {
                 models = models.Where(x => x.ImageGeneration == options.ImageGeneration.Value).ToList();
-            }
-
-            if (options.RealTime.HasValue)
-            {
-                models = models.Where(x => x.RealTime == options.RealTime.Value).ToList();
             }
 
             if (models.IsNullOrEmpty())
