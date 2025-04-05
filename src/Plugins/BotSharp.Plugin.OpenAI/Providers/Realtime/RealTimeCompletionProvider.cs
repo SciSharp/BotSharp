@@ -1,17 +1,6 @@
-using BotSharp.Abstraction.Conversations.Enums;
-using BotSharp.Abstraction.Files.Utilities;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Options;
-using BotSharp.Abstraction.Realtime;
-using BotSharp.Abstraction.Realtime.Models;
-using BotSharp.Abstraction.Routing;
-using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.OpenAI.Models.Realtime;
 using OpenAI.Chat;
 using System.Net.WebSockets;
-using System.Text;
-using System.Text.Json;
-using System.Threading;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Realtime;
 
@@ -27,7 +16,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     protected readonly IServiceProvider _services;
     protected readonly ILogger<RealTimeCompletionProvider> _logger;
 
-    protected string _model = "gpt-4o-mini-realtime-preview-2024-12-17";
+    protected string _model = "gpt-4o-mini-realtime-preview";
     private ClientWebSocket _webSocket;
 
     public RealTimeCompletionProvider(
@@ -50,14 +39,17 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
         Action onUserInterrupted)
     {
+        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+        _model = llmProviderService.GetProviderModel(Provider, "gpt-4o", modelType: LlmModelType.Realtime).Name;
+
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting(provider: "openai", conn.Model);
+        var settings = settingsService.GetSetting(Provider, _model);
 
         _webSocket = new ClientWebSocket();
         _webSocket.Options.SetRequestHeader("Authorization", $"Bearer {settings.ApiKey}");
         _webSocket.Options.SetRequestHeader("OpenAI-Beta", "realtime=v1");
 
-        await _webSocket.ConnectAsync(new Uri($"wss://api.openai.com/v1/realtime?model={conn.Model}"), CancellationToken.None);
+        await _webSocket.ConnectAsync(new Uri($"wss://api.openai.com/v1/realtime?model={_model}"), CancellationToken.None);
 
         if (_webSocket.State == WebSocketState.Open)
         {
@@ -282,41 +274,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var buffer = Encoding.UTF8.GetBytes(data);
         
         await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
-    }
-
-    public async Task<RealtimeSession> CreateSession(Agent agent, List<RoleDialogModel> conversations)
-    {
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
-
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
-        var chatClient = client.GetChatClient(_model);
-        var (prompt, messages, options) = PrepareOptions(agent, conversations);
-
-        var instruction = messages.FirstOrDefault()?.Content.FirstOrDefault()?.Text ?? agent.Description;
-
-        var args = new RealtimeSessionCreationRequest
-        {
-            Model = _model,
-            Instructions = instruction,
-            ToolChoice = "auto",
-            Tools = options.Tools.Select(x =>
-            {
-                var fn = new FunctionDef
-                {
-                    Name = x.FunctionName,
-                    Description = x.FunctionDescription
-                };
-                fn.Parameters = JsonSerializer.Deserialize<FunctionParametersDef>(x.FunctionParameters);
-                return fn;
-            }).ToArray(),
-        };
-
-        var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting(Provider, args.Model ?? _model);
-
-        var api = _services.GetRequiredService<IOpenAiRealtimeApi>();
-        var session = await api.CreateSessionAsync(args, settings.ApiKey);
-        return session;
     }
 
     public async Task<string> UpdateSession(RealtimeHubConnection conn, bool interruptResponse = true)

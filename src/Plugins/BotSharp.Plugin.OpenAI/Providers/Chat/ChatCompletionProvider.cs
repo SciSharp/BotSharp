@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Files.Utilities;
 using OpenAI.Chat;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;

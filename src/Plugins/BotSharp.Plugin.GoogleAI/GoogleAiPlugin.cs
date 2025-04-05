@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Settings;
-using BotSharp.Plugin.GoogleAi.Providers.Chat;
 using BotSharp.Plugin.GoogleAI.Providers.Embedding;
 using BotSharp.Plugin.GoogleAi.Providers.Realtime;
 using BotSharp.Plugin.GoogleAi.Providers.Text;

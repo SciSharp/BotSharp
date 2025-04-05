@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.MLTasks.Settings;
 using BotSharp.Abstraction.Options;
 using BotSharp.Core.Infrastructures;
 
@@ -76,17 +75,6 @@ public class RealtimeHub : IRealtimeHub
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(conversation.AgentId);
         _conn.CurrentAgentId = agent.Id;
-
-        // Set model
-        var model = "gpt-4o-mini-realtime";
-        if (agent.Profiles.Contains("realtime"))
-        {
-            var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-            model = llmProviderService.GetProviderModel("openai", "gpt-4o", modelType: LlmModelType.Realtime).Name;
-        }
-
-        _completer.SetModelName(model);
-        _conn.Model = model;
 
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.Push(agent.Id);

@@ -1,4 +1,4 @@
-﻿using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
@@ -45,7 +45,6 @@ namespace BotSharp.Plugin.Google.Core
                 (list => { Console.WriteLine(list); }),
                 (s => { Console.WriteLine(s); }),
                 (model => { Console.WriteLine(model); }), (() => { Console.WriteLine("UserInterrupted"); }));
-            var session = await realTimeCompleter.CreateSession(agent, new List<RoleDialogModel>());
             Thread.Sleep(1000);
             modelReady.ShouldBeTrue();
 
