@@ -31,9 +31,6 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
             return;
         }
 
-        // Clear cache to force to rebuild the agent instruction
-        Utilities.ClearCache();
-
         var routing = _services.GetRequiredService<IRoutingService>();
 
         message.Role = AgentRole.Function;
@@ -60,6 +57,9 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
         }
         else
         {
+            // Clear cache to force to rebuild the agent instruction
+            Utilities.ClearCache();
+
             // Update session for changed states
             var instruction = await hub.Completer.UpdateSession(hub.HubConn);
             await hub.Completer.InsertConversationItem(message);

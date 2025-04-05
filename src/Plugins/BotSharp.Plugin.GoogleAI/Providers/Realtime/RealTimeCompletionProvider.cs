@@ -228,31 +228,6 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         //todo Send Audio Chunks to Model, Botsharp RealTime Implementation seems to be incomplete
     }
 
-    public async Task<RealtimeSession> CreateSession(Agent agent, List<RoleDialogModel> conversations)
-    {
-        var (prompt, request) = PrepareOptions(_chatClient, agent, conversations);
-
-        var config = request.GenerationConfig;
-
-        // Output Modality can either be text or audio
-        config.ResponseModalities = new List<Modality>([Modality.AUDIO]);
-
-        await _client.SendSetupAsync(new BidiGenerateContentSetup()
-        {
-            GenerationConfig = config,
-            Model = Model,
-            SystemInstruction = request.SystemInstruction,
-            Tools = request.Tools?.ToArray(),
-        });
-        
-        return new RealtimeSession()
-        {
-            Id = _client.ConnectionId.ToString(),
-            Model = _model,
-            Voice = "default"
-        };
-    }
-
     public async Task<string> UpdateSession(RealtimeHubConnection conn, bool interruptResponse = true)
     {
         var convService = _services.GetRequiredService<IConversationService>();
