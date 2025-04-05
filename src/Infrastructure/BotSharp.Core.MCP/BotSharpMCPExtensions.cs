@@ -1,10 +1,11 @@
 using BotSharp.Core.MCP.Functions;
-using BotSharp.Core.MCP.Settings;
 using BotSharp.Core.MCP.Hooks;
-using Microsoft.Extensions.Configuration;
-using ModelContextProtocol.Configuration;
-using ModelContextProtocol.Client;
 using BotSharp.Core.MCP.Managers;
+using BotSharp.Core.MCP.Services;
+using BotSharp.Core.MCP.Settings;
+using Microsoft.Extensions.Configuration;
+using ModelContextProtocol;
+using ModelContextProtocol.Client;
 
 namespace BotSharp.Core.MCP;
 
@@ -18,6 +19,7 @@ public static class BotSharpMcpExtensions
     /// <returns></returns>
     public static IServiceCollection AddBotSharpMCP(this IServiceCollection services, IConfiguration config)
     {
+        services.AddScoped<IMcpService, McpService>();
         var settings = config.GetSection("MCP").Get<McpSettings>();
         services.AddScoped(provider => { return settings; });
 
