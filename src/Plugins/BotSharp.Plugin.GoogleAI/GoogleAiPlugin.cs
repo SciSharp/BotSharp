@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.GoogleAi.Providers.Chat;
 using BotSharp.Plugin.GoogleAI.Providers.Embedding;
+using BotSharp.Plugin.GoogleAi.Providers.Realtime;
 using BotSharp.Plugin.GoogleAi.Providers.Text;
 
 namespace BotSharp.Plugin.GoogleAi;
@@ -24,6 +25,7 @@ public class GoogleAiPlugin : IBotSharpPlugin
         services.AddScoped<ITextCompletion, GeminiTextCompletionProvider>();
         services.AddScoped<IChatCompletion, PalmChatCompletionProvider>();
         services.AddScoped<IChatCompletion, GeminiChatCompletionProvider>();
+        services.AddScoped<IRealTimeCompletion, GoogleRealTimeProvider>();
         services.AddScoped<ITextEmbedding, TextEmbeddingProvider>();
     }
 }

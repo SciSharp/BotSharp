@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>BotSharp.Plugin.Google</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="Shouldly" />
+        <PackageReference Include="xunit" />
+        <PackageReference Include="xunit.runner.visualstudio"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+      <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
+      <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.AnthropicAI\BotSharp.Plugin.AnthropicAI.csproj" />
+      <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.GoogleAI\BotSharp.Plugin.GoogleAI.csproj" />
+      <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.OpenAI\BotSharp.Plugin.OpenAI.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="appsettings.Development.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>   
+</Project>

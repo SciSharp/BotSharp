@@ -21,10 +21,13 @@ public class GeminiChatCompletionProvider : IChatCompletion
     public string Provider => "google-ai";
     public string Model => _model;
 
+    private GoogleAiSettings _settings;
     public GeminiChatCompletionProvider(
         IServiceProvider services,
+        GoogleAiSettings googleSettings,
         ILogger<GeminiChatCompletionProvider> logger)
     {
+        _settings = googleSettings;
         _services = services;
         _logger = logger;
     }

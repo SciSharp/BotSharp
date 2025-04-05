@@ -6,7 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="EntityFramework" Version="6.4.4" />
-    <PackageVersion Include="Google_GenerativeAI" Version="2.4.6" />
+    <PackageVersion Include="Google_GenerativeAI" Version="2.5.5" />
+    <PackageVersion Include="Google_GenerativeAI.Live" Version="2.5.5" />
     <PackageVersion Include="LLMSharp.Google.Palm" Version="1.0.2" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="$(AspNetCoreVersion)" />
@@ -110,7 +111,8 @@
     <PackageVersion Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageVersion Include="MSTest.TestFramework" Version="3.1.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.0" />  
+    <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="ModelContextProtocol" Version="0.1.0-preview.5" /> 
     <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.1.0-preview.5" />
   </ItemGroup>
