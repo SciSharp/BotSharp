@@ -1,5 +1,4 @@
 using LLMSharp.Google.Palm;
-using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.GoogleAi.Providers;
 

@@ -1,7 +1,6 @@
 using BotSharp.Plugin.GoogleAi.Providers;
 using GenerativeAI;
 using GenerativeAI.Types;
-using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.GoogleAI.Providers.Embedding;
 

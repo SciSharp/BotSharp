@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Loggers;
 using GenerativeAI;
 using GenerativeAI.Core;
-using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Text;
 

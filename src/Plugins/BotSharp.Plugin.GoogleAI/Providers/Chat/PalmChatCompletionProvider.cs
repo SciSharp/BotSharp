@@ -5,7 +5,6 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing;
 using LLMSharp.Google.Palm;
 using LLMSharp.Google.Palm.DiscussService;
-using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Chat;
 

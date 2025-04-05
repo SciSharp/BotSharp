@@ -6,7 +6,6 @@ using BotSharp.Abstraction.Loggers;
 using GenerativeAI;
 using GenerativeAI.Core;
 using GenerativeAI.Types;
-using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Chat;
 
