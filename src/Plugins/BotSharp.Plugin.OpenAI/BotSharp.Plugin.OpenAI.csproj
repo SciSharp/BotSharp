@@ -12,8 +12,6 @@
 
   <ItemGroup>
     <PackageReference Include="OpenAI" />
-    <PackageReference Include="Refit" />
-    <PackageReference Include="Refit.HttpClientFactory" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Functions.Models;
-
 namespace BotSharp.Plugin.OpenAI.Models.Realtime;
 
 public class RealtimeSessionCreationRequest

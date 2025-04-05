@@ -6,7 +6,6 @@ using BotSharp.Plugin.OpenAI.Providers.Text;
 using BotSharp.Plugin.OpenAI.Providers.Chat;
 using BotSharp.Plugin.OpenAI.Providers.Audio;
 using Microsoft.Extensions.Configuration;
-using Refit;
 using BotSharp.Plugin.OpenAI.Providers.Realtime;
 
 namespace BotSharp.Plugin.OpenAI;
@@ -36,8 +35,5 @@ public class OpenAiPlugin : IBotSharpPlugin
         services.AddScoped<IAudioTranscription, AudioTranscriptionProvider>();
         services.AddScoped<IAudioSynthesis, AudioSynthesisProvider>();
         services.AddScoped<IRealTimeCompletion, RealTimeCompletionProvider>();
-
-        services.AddRefitClient<IOpenAiRealtimeApi>()
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://api.openai.com"));
     }
 }

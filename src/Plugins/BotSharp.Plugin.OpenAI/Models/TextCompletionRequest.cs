@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace BotSharp.Plugin.OpenAI.Models;
 
 public class TextCompletionRequest

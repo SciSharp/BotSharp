@@ -1,9 +1,5 @@
-using BotSharp.Abstraction.MLTasks.Settings;
 using System.Net.Http;
 using System.Net.Mime;
-using System.Text.Json;
-using System.Text;
-using BotSharp.Abstraction.Options;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Text;
 
