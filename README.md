@@ -29,6 +29,7 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 * Build-in `BotSharp UI` written in [SvelteKit](https://kit.svelte.dev/).
 * Abstract standard Rich Content data structure. Integrate with popular message channels like Facebook Messenger, Slack and Telegram.
 * Provide RESTful Open API and WebSocket real-time communication.
+* Built-in MCP Integration: Visual management of MCP, enabling large model calls to Tools. Supports mainstream services like mcp.so
 
 ### Quick Started
 1. Run backend service
