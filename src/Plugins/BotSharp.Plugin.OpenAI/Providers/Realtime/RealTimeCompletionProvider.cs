@@ -241,7 +241,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "input_audio_buffer.speech_started")
             {
                 // Handle user interuption
-                if (conn.MarkQueue.Count > 0 && conn.ResponseStartTimestamp != null)
+                if (conn.ResponseStartTimestamp != null)
                 {
                     var elapsedTime = conn.LatestMediaTimestamp - conn.ResponseStartTimestamp;
 
@@ -284,7 +284,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
-    public async Task<string> UpdateSession(RealtimeHubConnection conn, bool interruptResponse = true)
+    public async Task<string> UpdateSession(RealtimeHubConnection conn)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conv = await convService.GetConversation(conn.ConversationId);
@@ -335,7 +335,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 MaxResponseOutputTokens = realtimeModelSettings.MaxResponseOutputTokens,
                 TurnDetection = new RealtimeSessionTurnDetection
                 {
-                    InterruptResponse = interruptResponse/*,
+                    InterruptResponse = realtimeModelSettings.InterruptResponse/*,
                     Threshold = realtimeModelSettings.TurnDetection.Threshold,
                     PrefixPadding = realtimeModelSettings.TurnDetection.PrefixPadding,
                     SilenceDuration = realtimeModelSettings.TurnDetection.SilenceDuration*/

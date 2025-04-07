@@ -4,7 +4,6 @@ using GenerativeAI.Core;
 using GenerativeAI.Live;
 using GenerativeAI.Live.Extensions;
 using GenerativeAI.Types;
-using System;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Realtime;
 
@@ -235,7 +234,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         //todo Send Audio Chunks to Model, Botsharp RealTime Implementation seems to be incomplete
     }
 
-    public async Task<string> UpdateSession(RealtimeHubConnection conn, bool interruptResponse = true)
+    public async Task<string> UpdateSession(RealtimeHubConnection conn)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conv = await convService.GetConversation(conn.ConversationId);

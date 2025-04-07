@@ -2,6 +2,7 @@ namespace BotSharp.Abstraction.Realtime.Models;
 
 public class RealtimeModelSettings
 {
+    public bool InterruptResponse { get; set; } = false;
     public string InputAudioFormat { get; set; } = "g711_ulaw";
     public string OutputAudioFormat { get; set; } = "g711_ulaw";
     public string Voice { get; set; } = "alloy";

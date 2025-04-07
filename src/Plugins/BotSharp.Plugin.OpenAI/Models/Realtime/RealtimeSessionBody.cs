@@ -69,6 +69,9 @@ public class RealtimeSessionTurnDetection
     [JsonPropertyName("threshold")]
     public float Threshold { get; set; } = 0.5f;*/
 
+    /// <summary>
+    /// server_vad, semantic_vad
+    /// </summary>
     [JsonPropertyName("type")]
     public string Type { get; set; } = "semantic_vad";
 

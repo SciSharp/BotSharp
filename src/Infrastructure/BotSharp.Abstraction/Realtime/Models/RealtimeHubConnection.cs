@@ -9,7 +9,6 @@ public class RealtimeHubConnection
     public long LatestMediaTimestamp { get; set; }
     public long? ResponseStartTimestamp { get; set; }
     public string KeypadInputBuffer { get; set; } = string.Empty;
-    public ConcurrentQueue<string> MarkQueue { get; set; } = new();
     public string CurrentAgentId { get; set; } = null!;
     public string ConversationId { get; set; } = null!;
     public Func<string, string> OnModelMessageReceived { get; set; } = null!;
@@ -18,7 +17,6 @@ public class RealtimeHubConnection
 
     public void ResetResponseState()
     {
-        MarkQueue.Clear();
         LastAssistantItemId = null;
         ResponseStartTimestamp = null;
     }
