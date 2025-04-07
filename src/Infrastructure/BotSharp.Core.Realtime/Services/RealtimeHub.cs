@@ -99,7 +99,9 @@ public class RealtimeHub : IRealtimeHub
                             await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingInstructionReceived(instruction, message));
                         }
 
-                        await routing.InvokeFunction(message.FunctionName, message);
+                        var delay = Task.Delay(1000);
+                        routing.InvokeFunction(message.FunctionName, message);
+                        await delay;
                     }
                     else
                     {
