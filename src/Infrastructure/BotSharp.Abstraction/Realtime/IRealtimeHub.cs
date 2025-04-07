@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Realtime.Models;
-using System.Net.WebSockets;
 
 namespace BotSharp.Abstraction.Realtime;
 
