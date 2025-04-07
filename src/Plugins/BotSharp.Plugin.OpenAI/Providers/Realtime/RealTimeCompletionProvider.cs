@@ -85,6 +85,12 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         await SendEventToModel(audioAppend);
     }
 
+    public async Task AppenAudioBuffer(ArraySegment<byte> data, int length)
+    {
+        var message = Convert.ToBase64String(data.AsSpan(0, length).ToArray());
+        await AppenAudioBuffer(message);
+    }
+
     public async Task TriggerModelInference(string? instructions = null)
     {
         // Triggering model inference
@@ -165,8 +171,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 continue;
             }
-            _logger.LogDebug($"{nameof(RealTimeCompletionProvider)} received: {receivedText}");
+
             var response = JsonSerializer.Deserialize<ServerEventResponse>(receivedText);
+
+            _logger.LogDebug($"{nameof(RealTimeCompletionProvider)} received: {response.Type} {receivedText.Length}");
 
             if (response.Type == "error")
             {
@@ -310,8 +318,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             type = "session.update",
             session = new RealtimeSessionUpdateRequest
             {
-                InputAudioFormat = "g711_ulaw",
-                OutputAudioFormat = "g711_ulaw",
+                InputAudioFormat = realtimeModelSettings.InputAudioFormat,
+                OutputAudioFormat = realtimeModelSettings.OutputAudioFormat,
                 /*InputAudioTranscription = new InputAudioTranscription
                 {
                     Model = realtimeModelSettings.InputAudioTranscription.Model,

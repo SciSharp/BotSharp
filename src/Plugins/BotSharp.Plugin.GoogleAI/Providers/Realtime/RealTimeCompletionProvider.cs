@@ -4,6 +4,7 @@ using GenerativeAI.Core;
 using GenerativeAI.Live;
 using GenerativeAI.Live.Extensions;
 using GenerativeAI.Types;
+using System;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Realtime;
 
@@ -92,6 +93,12 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     public async Task AppenAudioBuffer(string message)
     {
         await _client.SendAudioAsync(Convert.FromBase64String(message));
+    }
+
+    public async Task AppenAudioBuffer(ArraySegment<byte> data, int length)
+    {
+        var buffer = data.AsSpan(0, length).ToArray();
+        await _client.SendAudioAsync(buffer);
     }
 
     public async Task TriggerModelInference(string? instructions = null)

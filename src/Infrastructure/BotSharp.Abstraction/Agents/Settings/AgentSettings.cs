@@ -2,7 +2,7 @@ namespace BotSharp.Abstraction.Agents.Settings;
 
 public class AgentSettings
 {
-    public string DataDir { get; set; } = string.Empty;
+    public string DataDir { get; set; } = "agents";
     public string TemplateFormat { get; set; } = "liquid";
     public string HostAgentId { get; set; } = string.Empty;
     public bool EnableTranslator { get; set; } = false;

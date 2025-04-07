@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core.Realtime\BotSharp.Core.Realtime.csproj" />
+    <ProjectReference Include="..\..\src\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
+    <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.GoogleAI\BotSharp.Plugin.GoogleAI.csproj" />
+    <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.OpenAI\BotSharp.Plugin.OpenAI.csproj" />
+  </ItemGroup>
+
+</Project>
