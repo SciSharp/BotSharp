@@ -15,5 +15,5 @@ public interface IRealtimeHub
     IRealTimeCompletion Completer { get; }
     IRealTimeCompletion SetCompleter(string provider);
 
-    Task Listen(WebSocket userWebSocket, Action<string> onUserMessageReceived);
+    Task ConnectToModel(Func<string, Task> responseToUser);
 }

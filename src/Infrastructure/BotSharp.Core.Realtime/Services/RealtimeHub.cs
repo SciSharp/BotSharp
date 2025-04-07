@@ -21,53 +21,9 @@ public class RealtimeHub : IRealtimeHub
         _logger = logger;
     }
 
-    public async Task Listen(WebSocket userWebSocket, 
-        Action<string> onUserMessageReceived)
+    public async Task ConnectToModel(Func<string, Task> responseToUser)
     {
-        var buffer = new byte[1024 * 32];
-        WebSocketReceiveResult result;
-
-        do
-        {
-            Array.Clear(buffer, 0, buffer.Length);
-            result = await userWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            string receivedText = Encoding.UTF8.GetString(buffer, 0, result.Count);
-
-            if (string.IsNullOrEmpty(receivedText))
-            {
-                continue;
-            }
-
-            onUserMessageReceived(receivedText);
-
-            if (_conn.Event == "user_connected")
-            {
-                await ConnectToModel(userWebSocket);
-            }
-            else if (_conn.Event == "user_data_received")
-            {
-                await _completer.AppenAudioBuffer(_conn.Data);
-            }
-            else if (_conn.Event == "user_dtmf_receiving")
-            {
-            }
-            else if (_conn.Event == "user_dtmf_received")
-            {
-                await HandleUserDtmfReceived();
-            }
-            else if (_conn.Event == "user_disconnected")
-            {
-                await _completer.Disconnect();
-                await HandleUserDisconnected();
-            }
-        } while (!result.CloseStatus.HasValue);
-
-        await userWebSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
-    }
-
-    private async Task ConnectToModel(WebSocket userWebSocket)
-    {
-        var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
+        var hookProvider = _services.GetService<ConversationHookProvider>();
         var convService = _services.GetRequiredService<IConversationService>();
         convService.SetConversationId(_conn.ConversationId, []);
         var conversation = await convService.GetConversation(_conn.ConversationId);
@@ -103,7 +59,7 @@ public class RealtimeHub : IRealtimeHub
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
             {
                 var data = _conn.OnModelMessageReceived(audioDeltaData);
-                await SendEventToUser(userWebSocket, data);
+                await responseToUser(data);
 
                 // If this is the first delta of a new response, set the start timestamp
                 if (!_conn.ResponseStartTimestamp.HasValue)
@@ -118,12 +74,12 @@ public class RealtimeHub : IRealtimeHub
                 }
 
                 // Send mark messages to Media Streams so we know if and when AI response playback is finished
-                await SendMark(userWebSocket, _conn);
+                // await SendMark(userWebSocket, _conn);
             }, 
             onModelAudioResponseDone: async () =>
             {
                 var data = _conn.OnModelAudioResponseDone();
-                await SendEventToUser(userWebSocket, data);
+                await responseToUser(data);
             }, 
             onAudioTranscriptDone: async transcript =>
             {
@@ -151,7 +107,7 @@ public class RealtimeHub : IRealtimeHub
                         dialogs.Add(message);
                         storage.Append(_conn.ConversationId, message);
 
-                        foreach (var hook in hookProvider.HooksOrderByPriority)
+                        foreach (var hook in hookProvider?.HooksOrderByPriority ?? [])
                         {
                             hook.SetAgent(agent)
                                 .SetConversation(conversation);
@@ -172,7 +128,7 @@ public class RealtimeHub : IRealtimeHub
                 storage.Append(_conn.ConversationId, message);
                 routing.Context.SetMessageId(_conn.ConversationId, message.MessageId);
 
-                foreach (var hook in hookProvider.HooksOrderByPriority)
+                foreach (var hook in hookProvider?.HooksOrderByPriority ?? [])
                 {
                     hook.SetAgent(agent)
                         .SetConversation(conversation);
@@ -186,67 +142,8 @@ public class RealtimeHub : IRealtimeHub
                 _conn.ResetResponseState();
 
                 var data = _conn.OnModelUserInterrupted();
-                await SendEventToUser(userWebSocket, data);
+                await responseToUser(data);
             });
-    }
-
-    private async Task SendMark(WebSocket userWebSocket, RealtimeHubConnection conn)
-    {
-        if (!string.IsNullOrEmpty(conn.StreamId))
-        {
-            var markEvent = new
-            {
-                @event = "mark",
-                streamSid = conn.StreamId,
-                mark = new { name = "responsePart" }
-            };
-            await SendEventToUser(userWebSocket, markEvent);
-            conn.MarkQueue.Enqueue("responsePart");
-        }
-    }
-
-    private async Task HandleUserDtmfReceived()
-    {
-        var routing = _services.GetRequiredService<IRoutingService>();
-        var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(_conn.CurrentAgentId);
-        var dialogs = routing.Context.GetDialogs();
-        var convService = _services.GetRequiredService<IConversationService>();
-        var conversation = await convService.GetConversation(_conn.ConversationId);
-
-        var message = new RoleDialogModel(AgentRole.User, _conn.Data)
-        {
-            CurrentAgentId = routing.Context.GetCurrentAgentId()
-        };
-        dialogs.Add(message);
-
-        var storage = _services.GetRequiredService<IConversationStorage>();
-        storage.Append(_conn.ConversationId, message);
-
-        foreach (var hook in hookProvider.HooksOrderByPriority)
-        {
-            hook.SetAgent(agent)
-                .SetConversation(conversation);
-
-            await hook.OnMessageReceived(message);
-        }
-
-        await _completer.InsertConversationItem(message);
-        var instruction = await _completer.UpdateSession(_conn);
-        await _completer.TriggerModelInference($"{instruction}\r\n\r\nReply based on the user input: {message.Content}");
-    }
-
-    private async Task HandleUserDisconnected()
-    {
-
-    }
-
-    private async Task SendEventToUser(WebSocket webSocket, object message)
-    {
-        var data = JsonSerializer.Serialize(message);
-        var buffer = Encoding.UTF8.GetBytes(data);
-        await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
     public RealtimeHubConnection SetHubConnection(string conversationId)

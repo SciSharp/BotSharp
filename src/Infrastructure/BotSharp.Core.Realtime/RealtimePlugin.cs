@@ -23,5 +23,6 @@ public class RealtimePlugin : IBotSharpPlugin
 
         services.AddScoped<IRealtimeHub, RealtimeHub>();
         services.AddScoped<IConversationHook, RealtimeConversationHook>();
+        services.AddScoped<IStreamChannel, WaveStremChannel>();
     }
 }
