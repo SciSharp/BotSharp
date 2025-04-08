@@ -47,7 +47,9 @@ public class RealtimeHub : IRealtimeHub
         routing.Context.SetMessageId(_conn.ConversationId, dialogs.Last().MessageId);
 
         var states = _services.GetRequiredService<IConversationStateService>();
-        var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
+        var settings = _services.GetRequiredService<RealtimeModelSettings>();
+
+        _completer = _services.GetServices<IRealTimeCompletion>().First(x => x.Provider == settings.Provider);
 
         await _completer.Connect(_conn, 
             onModelReady: async () => 
@@ -139,7 +141,7 @@ public class RealtimeHub : IRealtimeHub
             },
             onUserInterrupted: async () =>
             {
-                if (realtimeModelSettings.InterruptResponse)
+                if (settings.InterruptResponse)
                 {
                     // Reset states
                     _conn.ResetResponseState();
@@ -158,11 +160,5 @@ public class RealtimeHub : IRealtimeHub
         };
 
         return _conn;
-    }
-
-    public IRealTimeCompletion SetCompleter(string provider)
-    {
-        _completer = _services.GetServices<IRealTimeCompletion>().First(x => x.Provider == provider);
-        return _completer;
     }
 }

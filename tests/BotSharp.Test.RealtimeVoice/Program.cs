@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.OpenAPI;
 using System.Text.Json;
-using Google.Ai.Generativelanguage.V1Beta2;
 
 var services = ServiceBuilder.CreateHostBuilder();
 var channel = services.GetRequiredService<IStreamChannel>();
@@ -23,9 +22,9 @@ conv = await convService.NewConversation(conv);
 
 await channel.ConnectAsync(conv.Id);
 
+var settings = services.GetRequiredService<RealtimeModelSettings>();
 var hub = services.GetRequiredService<IRealtimeHub>();
 var conn = hub.SetHubConnection(conv.Id);
-var completer = hub.SetCompleter("openai");
 
 await hub.ConnectToModel(async data =>
 {
@@ -65,7 +64,7 @@ do
     var seg = new ArraySegment<byte>(buffer);
     result = await channel.ReceiveAsync(seg, CancellationToken.None);
 
-    await completer.AppenAudioBuffer(seg, result.Count);
+    await hub.Completer.AppenAudioBuffer(seg, result.Count);
 
     // Display the audio level
     int audioLevel = CalculateAudioLevel(buffer, result.Count);

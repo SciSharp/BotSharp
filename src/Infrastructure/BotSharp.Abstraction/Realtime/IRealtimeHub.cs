@@ -12,7 +12,6 @@ public interface IRealtimeHub
     RealtimeHubConnection SetHubConnection(string conversationId);
 
     IRealTimeCompletion Completer { get; }
-    IRealTimeCompletion SetCompleter(string provider);
 
     Task ConnectToModel(Func<string, Task> responseToUser);
 }

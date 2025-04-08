@@ -39,8 +39,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
         Action onUserInterrupted)
     {
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        _model = llmProviderService.GetProviderModel(Provider, "gpt-4o", modelType: LlmModelType.Realtime).Name;
+        var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
+        _model = realtimeModelSettings.Model;
 
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);

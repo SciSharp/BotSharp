@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.MLTasks.Settings;
 using GenerativeAI;
 using GenerativeAI.Core;
 using GenerativeAI.Live;
@@ -65,8 +64,8 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         this.onInputAudioTranscriptionCompleted = onInputAudioTranscriptionCompleted;
         this.onUserInterrupted = onUserInterrupted;
 
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        _model = llmProviderService.GetProviderModel(Provider, "gemini-2.0", modelType: LlmModelType.Realtime).Name;
+        var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
+        _model = realtimeModelSettings.Model;
 
         var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         _chatClient = client.CreateGenerativeModel(_model);
