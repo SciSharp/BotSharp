@@ -357,6 +357,14 @@ public class TwilioVoiceController : TwilioController
         {
             await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnCallNoAnswerStatus(request));
         }
+        else if (request.CallStatus == "canceled")
+        {
+            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnCallCanceledStatus(request));
+        }
+        else if (request.CallStatus == "failed")
+        {
+            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnCallFailedStatus(request));
+        }
 
         return Ok();
     }

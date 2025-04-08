@@ -139,7 +139,7 @@ public class RealtimeHub : IRealtimeHub
                     await hook.OnMessageReceived(message);
                 }
             },
-            onUserInterrupted: async () =>
+            onInterruptionDetected: async () =>
             {
                 if (settings.InterruptResponse)
                 {
