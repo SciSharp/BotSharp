@@ -241,25 +241,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "input_audio_buffer.speech_started")
             {
                 // Handle user interuption
-                if (conn.ResponseStartTimestamp != null)
-                {
-                    var elapsedTime = conn.LatestMediaTimestamp - conn.ResponseStartTimestamp;
-
-                    if (!string.IsNullOrEmpty(conn.LastAssistantItemId))
-                    {
-                        var truncateEvent = new
-                        {
-                            type = "conversation.item.truncate",
-                            item_id = conn.LastAssistantItemId,
-                            content_index = 0,
-                            audio_end_ms = elapsedTime
-                        };
-
-                        await SendEventToModel(truncateEvent);
-                    }
-
-                    onUserInterrupted();
-                }
+                onUserInterrupted();
             }
 
         } while (!result.CloseStatus.HasValue);
