@@ -20,4 +20,8 @@ public interface ITwilioCallStatusHook
     Task OnCallBusyStatus(ConversationalVoiceRequest request);
 
     Task OnCallNoAnswerStatus(ConversationalVoiceRequest request);
+
+    Task OnCallCanceledStatus(ConversationalVoiceRequest request);
+
+    Task OnCallFailedStatus(ConversationalVoiceRequest request);
 }

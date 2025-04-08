@@ -16,7 +16,7 @@ public interface IRealTimeCompletion
         Action<List<RoleDialogModel>> onModelResponseDone,
         Action<string> onConversationItemCreated,
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
-        Action onUserInterrupted);
+        Action onInterruptionDetected);
     Task AppenAudioBuffer(string message);
     Task AppenAudioBuffer(ArraySegment<byte> data, int length);
 

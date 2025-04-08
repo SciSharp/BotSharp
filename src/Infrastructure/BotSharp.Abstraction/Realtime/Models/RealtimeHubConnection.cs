@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-
 namespace BotSharp.Abstraction.Realtime.Models;
 
 public class RealtimeHubConnection
