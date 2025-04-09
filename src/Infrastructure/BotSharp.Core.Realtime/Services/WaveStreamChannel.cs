@@ -5,7 +5,7 @@ using System.IO;
 
 namespace BotSharp.Core.Realtime.Services;
 
-public class WaveStremChannel : IStreamChannel
+public class WaveStreamChannel : IStreamChannel
 {
     private readonly IServiceProvider _services;
     private WaveInEvent _waveIn;
@@ -14,7 +14,7 @@ public class WaveStremChannel : IStreamChannel
     private readonly ConcurrentQueue<byte[]> _audioBufferQueue = new ConcurrentQueue<byte[]>();
     private readonly ILogger _logger;
 
-    public WaveStremChannel(IServiceProvider services, ILogger<WaveStremChannel> logger)
+    public WaveStreamChannel(IServiceProvider services, ILogger<WaveStreamChannel> logger)
     {
         _services = services;
         _logger = logger;
