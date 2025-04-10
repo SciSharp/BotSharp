@@ -309,6 +309,19 @@ public class TwilioService
         return response;
     }
 
+    /// <summary>
+    /// https://www.twilio.com/docs/voice/answering-machine-detection
+    /// </summary>
+    /// <param name="answeredBy"></param>
+    /// <returns></returns>
+    public bool MachineDetected(ConversationalVoiceRequest request)
+    {
+        var answeredBy = request.AnsweredBy ?? "unknown";
+        var isOutboundCall = request.Direction == "outbound-api";
+        var isMachine = answeredBy.StartsWith("machine_") || answeredBy == "fax";
+        return isOutboundCall && isMachine;
+    }
+
     public string GetSpeechPath(string conversationId, string speechPath)
     {
         if (speechPath.StartsWith("twilio/"))

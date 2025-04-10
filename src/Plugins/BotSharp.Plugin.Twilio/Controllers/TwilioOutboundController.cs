@@ -29,15 +29,12 @@ public class TwilioOutboundController : TwilioController
         var twilio = _services.GetRequiredService<TwilioService>();
 
         VoiceResponse response = default!;
-        if (request.AnsweredBy == "machine_start" &&
-            request.Direction == "outbound-api")
+        if (twilio.MachineDetected(request))
         {
             response = new VoiceResponse();
 
-            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, async hook =>
-            {
-                await hook.OnVoicemailStarting(request);
-            });
+            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, 
+                async hook => await hook.OnVoicemailStarting(request));
 
             var url = twilio.GetSpeechPath(request.ConversationId, "voicemail.mp3");
             response.Play(new Uri(url));
