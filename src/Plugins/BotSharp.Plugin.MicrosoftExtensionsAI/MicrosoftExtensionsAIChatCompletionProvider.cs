@@ -38,7 +38,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
         IServiceProvider services)
     {
         _client = client;
-        _model = _client.GetService<ChatClientMetadata>()?.ModelId;
+        _model = _client.GetService<ChatClientMetadata>()?.DefaultModelId;
         _logger = logger;
         _services = services;
     }
@@ -180,7 +180,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
 
         public override JsonElement JsonSchema => schema;
 
-        protected override Task<object?> InvokeCoreAsync(IEnumerable<KeyValuePair<string, object?>> arguments, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
+        protected override ValueTask<object?> InvokeCoreAsync(AIFunctionArguments arguments, CancellationToken cancellationToken) =>
+            throw new NotImplementedException();
     }
 }
