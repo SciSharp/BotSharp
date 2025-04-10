@@ -166,19 +166,19 @@ public class TwilioInboundController : TwilioController
             states.Add(new("init_audio_file", request.InitAudioFile));
         }
 
-        convService.SetConversationId(conversation.Id, states);
-
-        // Load agent profile
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(request.AgentId);
-
+        // Get agent from storage
+        var agent = await agentService.GetAgent(request.AgentId);
         // Enable lazy routing mode to optimize realtime experience
         if (agent.Profiles.Contains("realtime") && agent.Type == AgentType.Routing)
         {
             states.Add(new(StateConst.ROUTING_MODE, "lazy"));
         }
-        
+        convService.SetConversationId(conversation.Id, states);
         convService.SaveStates();
+        
+        // reload agent rendering with states
+        agent = await agentService.LoadAgent(request.AgentId);
 
         return (agent, conversation);
     }
