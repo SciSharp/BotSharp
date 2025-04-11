@@ -609,11 +609,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             return [];
         }
 
+        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+
         foreach (var output in data.Outputs)
         {
             if (output.Type == "function_call")
             {
-                outputs.Add(new RoleDialogModel(output.Role, output.Arguments)
+                outputs.Add(new RoleDialogModel(AgentRole.Assistant, output.Arguments)
                 {
                     CurrentAgentId = conn.CurrentAgentId,
                     FunctionName = output.Name,
@@ -622,6 +624,22 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     MessageId = output.Id,
                     MessageType = MessageTypeName.FunctionCall
                 });
+
+                // After chat completion hook
+                foreach (var hook in contentHooks)
+                {
+                    await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, $"{output.Name}\r\n{output.Arguments}")
+                    {
+                        CurrentAgentId = conn.CurrentAgentId
+                    }, new TokenStatsModel
+                    {
+                        Provider = Provider,
+                        Model = _model,
+                        Prompt = $"{output.Name}\r\n{output.Arguments}",
+                        CompletionCount = data.Usage.OutputTokens,
+                        PromptCount = data.Usage.InputTokens
+                    });
+                }
             }
             else if (output.Type == "message")
             {
@@ -633,24 +651,23 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     MessageId = output.Id,
                     MessageType = MessageTypeName.Plain
                 });
-            }
-        }
 
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
-        // After chat completion hook
-        foreach (var hook in contentHooks)
-        {
-            await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, "response.done")
-            {
-                CurrentAgentId = conn.CurrentAgentId
-            }, new TokenStatsModel
-            {
-                Provider = Provider,
-                Model = _model,
-                Prompt = "[hook.AfterGenerated] [UNCHANGED PROMPT]",
-                CompletionCount = data.Usage.OutputTokens,
-                PromptCount = data.Usage.InputTokens
-            });
+                // After chat completion hook
+                foreach (var hook in contentHooks)
+                {
+                    await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, content.Transcript)
+                    {
+                        CurrentAgentId = conn.CurrentAgentId
+                    }, new TokenStatsModel
+                    {
+                        Provider = Provider,
+                        Model = _model,
+                        Prompt = content.Transcript,
+                        CompletionCount = data.Usage.OutputTokens,
+                        PromptCount = data.Usage.InputTokens
+                    });
+                }
+            }
         }
 
         return outputs;
