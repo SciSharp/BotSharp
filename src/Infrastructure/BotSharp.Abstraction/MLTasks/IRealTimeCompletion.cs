@@ -16,14 +16,14 @@ public interface IRealTimeCompletion
         Action<List<RoleDialogModel>> onModelResponseDone,
         Action<string> onConversationItemCreated,
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
-        Action onUserInterrupted);
+        Action onInterruptionDetected);
     Task AppenAudioBuffer(string message);
     Task AppenAudioBuffer(ArraySegment<byte> data, int length);
 
     Task SendEventToModel(object message);
     Task Disconnect();
 
-    Task<string> UpdateSession(RealtimeHubConnection conn, bool interruptResponse = true);
+    Task<string> UpdateSession(RealtimeHubConnection conn);
     Task InsertConversationItem(RoleDialogModel message);
     Task RemoveConversationItem(string itemId);
     Task TriggerModelInference(string? instructions = null);

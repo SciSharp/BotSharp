@@ -47,6 +47,9 @@ public class RealtimeHub : IRealtimeHub
         routing.Context.SetMessageId(_conn.ConversationId, dialogs.Last().MessageId);
 
         var states = _services.GetRequiredService<IConversationStateService>();
+        var settings = _services.GetRequiredService<RealtimeModelSettings>();
+
+        _completer = _services.GetServices<IRealTimeCompletion>().First(x => x.Provider == settings.Provider);
 
         await _completer.Connect(_conn, 
             onModelReady: async () => 
@@ -101,9 +104,7 @@ public class RealtimeHub : IRealtimeHub
                             await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingInstructionReceived(instruction, message));
                         }
 
-                        var delay = Task.Delay(1000);
-                        routing.InvokeFunction(message.FunctionName, message);
-                        await delay;
+                        await routing.InvokeFunction(message.FunctionName, message);
                     }
                     else
                     {
@@ -140,13 +141,16 @@ public class RealtimeHub : IRealtimeHub
                     await hook.OnMessageReceived(message);
                 }
             },
-            onUserInterrupted: async () =>
+            onInterruptionDetected: async () =>
             {
-                // Reset states
-                _conn.ResetResponseState();
+                if (settings.InterruptResponse)
+                {
+                    // Reset states
+                    _conn.ResetResponseState();
 
-                var data = _conn.OnModelUserInterrupted();
-                await responseToUser(data);
+                    var data = _conn.OnModelUserInterrupted();
+                    await responseToUser(data);
+                }
             });
     }
 
@@ -158,11 +162,5 @@ public class RealtimeHub : IRealtimeHub
         };
 
         return _conn;
-    }
-
-    public IRealTimeCompletion SetCompleter(string provider)
-    {
-        _completer = _services.GetServices<IRealTimeCompletion>().First(x => x.Provider == provider);
-        return _completer;
     }
 }

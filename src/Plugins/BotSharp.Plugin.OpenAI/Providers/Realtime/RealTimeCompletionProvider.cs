@@ -40,10 +40,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<List<RoleDialogModel>> onModelResponseDone,
         Action<string> onConversationItemCreated,
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
-        Action onUserInterrupted)
+        Action onInterruptionDetected)
     {
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        _model = llmProviderService.GetProviderModel(Provider, "gpt-4o", modelType: LlmModelType.Realtime).Name;
+        var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
+        _model = realtimeModelSettings.Model;
 
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
@@ -66,7 +66,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 onModelResponseDone,
                 onConversationItemCreated,
                 onInputAudioTranscriptionCompleted,
-                onUserInterrupted);
+                onInterruptionDetected);
         }
     }
 
@@ -143,11 +143,12 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<List<RoleDialogModel>> onModelResponseDone,
         Action<string> onConversationItemCreated,
         Action<RoleDialogModel> onUserAudioTranscriptionCompleted,
-        Action onUserInterrupted)
+        Action onInterruptionDetected)
     {
         var buffer = new byte[1024 * 1024 * 32];
         // Model response timeout
-        var timeout = 30;
+        var settings = _services.GetRequiredService<RealtimeModelSettings>();
+        var timeout = settings.ModelResponseTimeout;
         WebSocketReceiveResult? result = default;
 
         do
@@ -245,25 +246,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "input_audio_buffer.speech_started")
             {
                 // Handle user interuption
-                if (conn.MarkQueue.Count > 0 && conn.ResponseStartTimestamp != null)
-                {
-                    var elapsedTime = conn.LatestMediaTimestamp - conn.ResponseStartTimestamp;
-
-                    if (!string.IsNullOrEmpty(conn.LastAssistantItemId))
-                    {
-                        var truncateEvent = new
-                        {
-                            type = "conversation.item.truncate",
-                            item_id = conn.LastAssistantItemId,
-                            content_index = 0,
-                            audio_end_ms = elapsedTime
-                        };
-
-                        await SendEventToModel(truncateEvent);
-                    }
-
-                    onUserInterrupted();
-                }
+                onInterruptionDetected();
             }
 
         } while (!result.CloseStatus.HasValue);
@@ -288,7 +271,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
-    public async Task<string> UpdateSession(RealtimeHubConnection conn, bool interruptResponse = true)
+    public async Task<string> UpdateSession(RealtimeHubConnection conn)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conv = await convService.GetConversation(conn.ConversationId);
@@ -309,9 +292,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             return fn;
         }).ToArray();
 
-        var words = new List<string>();
-        HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
-
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
         var sessionUpdate = new
@@ -321,12 +301,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 InputAudioFormat = realtimeModelSettings.InputAudioFormat,
                 OutputAudioFormat = realtimeModelSettings.OutputAudioFormat,
-                /*InputAudioTranscription = new InputAudioTranscription
-                {
-                    Model = realtimeModelSettings.InputAudioTranscription.Model,
-                    Language = realtimeModelSettings.InputAudioTranscription.Language,
-                    Prompt = string.Join(", ", words.Select(x => x.ToLower().Trim()).Distinct()).SubstringMax(1024)
-                },*/
                 Voice = realtimeModelSettings.Voice,
                 Instructions = instruction,
                 ToolChoice = "auto",
@@ -336,7 +310,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 MaxResponseOutputTokens = realtimeModelSettings.MaxResponseOutputTokens,
                 TurnDetection = new RealtimeSessionTurnDetection
                 {
-                    InterruptResponse = interruptResponse/*,
+                    InterruptResponse = realtimeModelSettings.InterruptResponse/*,
                     Threshold = realtimeModelSettings.TurnDetection.Threshold,
                     PrefixPadding = realtimeModelSettings.TurnDetection.PrefixPadding,
                     SilenceDuration = realtimeModelSettings.TurnDetection.SilenceDuration*/
@@ -347,6 +321,19 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 }
             }
         };
+
+        if (realtimeModelSettings.InputAudioTranscribe)
+        {
+            var words = new List<string>();
+            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
+
+            sessionUpdate.session.InputAudioTranscription = new InputAudioTranscription
+            {
+                Model = realtimeModelSettings.InputAudioTranscription.Model,
+                Language = realtimeModelSettings.InputAudioTranscription.Language,
+                Prompt = string.Join(", ", words.Select(x => x.ToLower().Trim()).Distinct()).SubstringMax(1024)
+            };
+        }
 
         await HookEmitter.Emit<IContentGeneratingHook>(_services, async hook =>
         {
@@ -623,11 +610,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             return [];
         }
 
+        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+
         foreach (var output in data.Outputs)
         {
             if (output.Type == "function_call")
             {
-                outputs.Add(new RoleDialogModel(output.Role, output.Arguments)
+                outputs.Add(new RoleDialogModel(AgentRole.Assistant, output.Arguments)
                 {
                     CurrentAgentId = conn.CurrentAgentId,
                     FunctionName = output.Name,
@@ -636,6 +625,22 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     MessageId = output.Id,
                     MessageType = MessageTypeName.FunctionCall
                 });
+
+                // After chat completion hook
+                foreach (var hook in contentHooks)
+                {
+                    await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, $"{output.Name}\r\n{output.Arguments}")
+                    {
+                        CurrentAgentId = conn.CurrentAgentId
+                    }, new TokenStatsModel
+                    {
+                        Provider = Provider,
+                        Model = _model,
+                        Prompt = $"{output.Name}\r\n{output.Arguments}",
+                        CompletionCount = data.Usage.OutputTokens,
+                        PromptCount = data.Usage.InputTokens
+                    });
+                }
             }
             else if (output.Type == "message")
             {
@@ -647,24 +652,23 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     MessageId = output.Id,
                     MessageType = MessageTypeName.Plain
                 });
-            }
-        }
 
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
-        // After chat completion hook
-        foreach (var hook in contentHooks)
-        {
-            await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, "response.done")
-            {
-                CurrentAgentId = conn.CurrentAgentId
-            }, new TokenStatsModel
-            {
-                Provider = Provider,
-                Model = _model,
-                Prompt = "[hook.AfterGenerated] [UNCHANGED PROMPT]",
-                CompletionCount = data.Usage.OutputTokens,
-                PromptCount = data.Usage.InputTokens
-            });
+                // After chat completion hook
+                foreach (var hook in contentHooks)
+                {
+                    await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, content.Transcript)
+                    {
+                        CurrentAgentId = conn.CurrentAgentId
+                    }, new TokenStatsModel
+                    {
+                        Provider = Provider,
+                        Model = _model,
+                        Prompt = content.Transcript,
+                        CompletionCount = data.Usage.OutputTokens,
+                        PromptCount = data.Usage.InputTokens
+                    });
+                }
+            }
         }
 
         return outputs;

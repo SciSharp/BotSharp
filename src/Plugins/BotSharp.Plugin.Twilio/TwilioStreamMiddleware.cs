@@ -53,9 +53,9 @@ public class TwilioStreamMiddleware
 
     private async Task HandleWebSocket(IServiceProvider services, string conversationId, WebSocket webSocket)
     {
+        var settings = services.GetRequiredService<RealtimeModelSettings>();
         var hub = services.GetRequiredService<IRealtimeHub>();
         var conn = hub.SetHubConnection(conversationId);
-        var completer = hub.SetCompleter("openai");
         
         // load conversation and state
         var convService = services.GetRequiredService<IConversationService>();
@@ -86,30 +86,35 @@ public class TwilioStreamMiddleware
             if (eventType == "user_connected")
             {
                 // Connect to model
-                await hub.ConnectToModel(async data =>
-                {
-                    await SendEventToUser(webSocket, data);
-                });
+                await ConnectToModel(hub, webSocket);
             }
             else if (eventType == "user_data_received")
             {
-                await completer.AppenAudioBuffer(data);
+                await hub.Completer.AppenAudioBuffer(data);
             }
             else if (eventType == "user_dtmf_receiving")
             {
             }
             else if (eventType == "user_dtmf_received")
             {
-                await HandleUserDtmfReceived(services, conn, completer, data);
+                await HandleUserDtmfReceived(services, conn, hub.Completer, data);
             }
             else if (eventType == "user_disconnected")
             {
-                await completer.Disconnect();
+                await hub.Completer.Disconnect();
                 await HandleUserDisconnected();
             }
         } while (!result.CloseStatus.HasValue);
 
         await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+    }
+
+    private async Task ConnectToModel(IRealtimeHub hub, WebSocket webSocket)
+    {
+        await hub.ConnectToModel(async data =>
+        {
+            await SendEventToUser(webSocket, data);
+        });
     }
 
     private (string, string) MapEvents(RealtimeHubConnection conn, string receivedText)
@@ -135,10 +140,6 @@ public class TwilioStreamMiddleware
                 break;
             case "stop":
                 eventType = "user_disconnected";
-                break;
-            case "mark":
-                eventType = "mark";
-                if (conn.MarkQueue.Count > 0) conn.MarkQueue.TryDequeue(out var _);
                 break;
             case "dtmf":
                 var dtmfResponse = JsonSerializer.Deserialize<StreamEventDtmfResponse>(receivedText);
@@ -210,7 +211,6 @@ public class TwilioStreamMiddleware
             };
             var message = JsonSerializer.Serialize(markEvent);
             await SendEventToUser(userWebSocket, message);
-            conn.MarkQueue.Enqueue("responsePart");
         }
     }
 

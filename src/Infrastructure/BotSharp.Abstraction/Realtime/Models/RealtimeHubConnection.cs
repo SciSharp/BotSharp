@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-
 namespace BotSharp.Abstraction.Realtime.Models;
 
 public class RealtimeHubConnection
@@ -9,7 +7,6 @@ public class RealtimeHubConnection
     public long LatestMediaTimestamp { get; set; }
     public long? ResponseStartTimestamp { get; set; }
     public string KeypadInputBuffer { get; set; } = string.Empty;
-    public ConcurrentQueue<string> MarkQueue { get; set; } = new();
     public string CurrentAgentId { get; set; } = null!;
     public string ConversationId { get; set; } = null!;
     public Func<string> OnModelReady { get; set; } = () => string.Empty;
@@ -19,7 +16,6 @@ public class RealtimeHubConnection
 
     public void ResetResponseState()
     {
-        MarkQueue.Clear();
         LastAssistantItemId = null;
         ResponseStartTimestamp = null;
     }
