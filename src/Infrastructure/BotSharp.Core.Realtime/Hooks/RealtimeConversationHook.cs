@@ -19,8 +19,11 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
             return;
         }
         // Save states
-        var states = _services.GetRequiredService<IConversationStateService>();
-        states.SaveStateByArgs(message.FunctionArgs?.JsonContent<JsonDocument>() ?? JsonDocument.Parse("{}"));
+        if (message.FunctionArgs != null && message.FunctionArgs.Length > 3)
+        {
+            var states = _services.GetRequiredService<IConversationStateService>();
+            states.SaveStateByArgs(message.FunctionArgs?.JsonContent<JsonDocument>());
+        }
     }
 
     public async Task OnFunctionExecuted(RoleDialogModel message)
