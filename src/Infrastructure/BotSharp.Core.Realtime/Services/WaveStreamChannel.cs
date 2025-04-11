@@ -85,6 +85,7 @@ public class WaveStreamChannel : IStreamChannel
     public void ClearBuffer()
     {
         _bufferedWaveProvider?.ClearBuffer();
+        _audioBufferQueue?.Clear();
     }
 
     private void WaveIn_DataAvailable(object? sender, WaveInEventArgs e)

@@ -280,7 +280,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var agent = await agentService.LoadAgent(conn.CurrentAgentId);
         var (prompt, messages, options) = PrepareOptions(agent, []);
 
-        var instruction = messages.FirstOrDefault()?.Content.FirstOrDefault()?.Text ?? agent?.Description;
+        var instruction = messages.FirstOrDefault()?.Content.FirstOrDefault()?.Text ?? agent?.Description ?? string.Empty;
         var functions = options.Tools.Select(x =>
         {
             var fn = new FunctionDef
