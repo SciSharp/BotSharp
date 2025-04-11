@@ -125,6 +125,19 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 #### UIs
 - BotSharp.Plugin.ChatbotUI
 
+### Roadmap
+
+- [ ] A2A
+- [x] MCP
+- [ ] Realtime
+- [ ] Computer Use
+- [x] Browser Use
+- [x] Database Assistant
+- [x] Code Interpreter
+- [x] Conversation Management
+- [x] Multi-Agent Routing
+- [x] Knowledge Base
+
 ### Documents
 
 Read the docs: https://botsharp.readthedocs.io?wt.mc_id=AI-MVP-5005183
