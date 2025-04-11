@@ -53,8 +53,10 @@ public class RealtimeHub : IRealtimeHub
             {
                 // Not TriggerModelInference, waiting for user utter.
                 var instruction = await _completer.UpdateSession(_conn);
-
+                var data = _conn.OnModelReady();
+                await responseToUser(data);
                 await HookEmitter.Emit<IRealtimeHook>(_services, async hook => await hook.OnModeReady(agent, _completer));
+
             },
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
             {

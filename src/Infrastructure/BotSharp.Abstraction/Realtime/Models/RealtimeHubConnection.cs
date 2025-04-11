@@ -12,6 +12,7 @@ public class RealtimeHubConnection
     public ConcurrentQueue<string> MarkQueue { get; set; } = new();
     public string CurrentAgentId { get; set; } = null!;
     public string ConversationId { get; set; } = null!;
+    public Func<string> OnModelReady { get; set; } = () => string.Empty;
     public Func<string, string> OnModelMessageReceived { get; set; } = null!;
     public Func<string> OnModelAudioResponseDone { get; set; } = null!;
     public Func<string> OnModelUserInterrupted { get; set; } = null!;

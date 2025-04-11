@@ -15,6 +15,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     protected readonly OpenAiSettings _settings;
     protected readonly IServiceProvider _services;
     protected readonly ILogger<RealTimeCompletionProvider> _logger;
+    private readonly BotSharpOptions _options;
 
     protected string _model = "gpt-4o-mini-realtime-preview";
     private ClientWebSocket _webSocket;
@@ -22,11 +23,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     public RealTimeCompletionProvider(
         OpenAiSettings settings,
         ILogger<RealTimeCompletionProvider> logger,
-        IServiceProvider services)
+        IServiceProvider services,
+        BotSharpOptions options)
     {
         _settings = settings;
         _logger = logger;
         _services = services;
+        _options = options;
     }
 
     public async Task Connect(RealtimeHubConnection conn,
@@ -45,6 +48,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
 
+        _webSocket?.Dispose();
         _webSocket = new ClientWebSocket();
         _webSocket.Options.SetRequestHeader("Authorization", $"Bearer {settings.ApiKey}");
         _webSocket.Options.SetRequestHeader("OpenAI-Beta", "realtime=v1");
@@ -141,7 +145,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<RoleDialogModel> onUserAudioTranscriptionCompleted,
         Action onUserInterrupted)
     {
-        var buffer = new byte[1024 * 32];
+        var buffer = new byte[1024 * 1024 * 32];
         // Model response timeout
         var timeout = 30;
         WebSocketReceiveResult? result = default;
@@ -276,7 +280,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         if (message is not string data)
         {
-            data = JsonSerializer.Serialize(message, BotSharpOptions.defaultJsonOptions);
+            data = JsonSerializer.Serialize(message, _options.JsonSerializerOptions);
         }
 
         var buffer = Encoding.UTF8.GetBytes(data);
@@ -291,12 +295,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(conn.CurrentAgentId);
-
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
-        var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, []);
 
-        var instruction = messages.FirstOrDefault()?.Content.FirstOrDefault()?.Text ?? agent.Description;
+        var instruction = messages.FirstOrDefault()?.Content.FirstOrDefault()?.Text ?? agent?.Description;
         var functions = options.Tools.Select(x =>
         {
             var fn = new FunctionDef
