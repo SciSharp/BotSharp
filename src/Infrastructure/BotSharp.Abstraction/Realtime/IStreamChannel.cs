@@ -9,5 +9,6 @@ public interface IStreamChannel
     Task ConnectAsync(string conversationId);
     Task<StreamReceiveResult> ReceiveAsync(ArraySegment<byte> buffer, CancellationToken cancellation);
     Task SendAsync(byte[] data, CancellationToken cancellation);
+    void ClearBuffer();
     Task CloseAsync(StreamChannelStatus status, string description, CancellationToken cancellation);
 }

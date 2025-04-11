@@ -1,7 +1,6 @@
+using System.Collections.Concurrent;
 using BotSharp.Abstraction.Realtime.Enums;
 using NAudio.Wave;
-using System.Collections.Concurrent;
-using System.IO;
 
 namespace BotSharp.Core.Realtime.Services;
 
@@ -11,7 +10,7 @@ public class WaveStreamChannel : IStreamChannel
     private WaveInEvent _waveIn;
     private WaveOutEvent _waveOut;
     private BufferedWaveProvider _bufferedWaveProvider;
-    private readonly ConcurrentQueue<byte[]> _audioBufferQueue = new ConcurrentQueue<byte[]>();
+    private readonly ConcurrentQueue<byte[]> _audioBufferQueue = [];
     private readonly ILogger _logger;
 
     public WaveStreamChannel(IServiceProvider services, ILogger<WaveStreamChannel> logger)
@@ -39,7 +38,7 @@ public class WaveStreamChannel : IStreamChannel
         // Initialize audio output for streaming
         var waveFormat = new WaveFormat(24000, 16, 1); // 24000 Hz, 16-bit PCM, Mono
         _bufferedWaveProvider = new BufferedWaveProvider(waveFormat);
-        _bufferedWaveProvider.BufferLength = 1024 * 512; // Buffer length
+        _bufferedWaveProvider.BufferLength = 1024 * 1024; // Buffer length
         _bufferedWaveProvider.DiscardOnBufferOverflow = true;
         
         _waveOut = new WaveOutEvent();
@@ -81,6 +80,12 @@ public class WaveStreamChannel : IStreamChannel
         // Add the incoming data to the buffer for continuous playback
         _bufferedWaveProvider.AddSamples(data, 0, data.Length);
         return Task.CompletedTask;
+    }
+
+    public void ClearBuffer()
+    {
+        _bufferedWaveProvider?.ClearBuffer();
+        _audioBufferQueue?.Clear();
     }
 
     private void WaveIn_DataAvailable(object? sender, WaveInEventArgs e)

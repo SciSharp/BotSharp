@@ -22,22 +22,14 @@ conv = await convService.NewConversation(conv);
 
 await channel.ConnectAsync(conv.Id);
 
-var settings = services.GetRequiredService<RealtimeModelSettings>();
 var hub = services.GetRequiredService<IRealtimeHub>();
 var conn = hub.SetHubConnection(conv.Id);
 
-await hub.ConnectToModel(async data =>
-{
-    var response = JsonSerializer.Deserialize<ModelResponseEvent>(data);
-    if (response.Event == "media")
+conn.OnModelReady = () =>
+    JsonSerializer.Serialize(new
     {
-        var message = JsonSerializer.Deserialize<ModelResponseMediaEvent>(data);
-        await channel.SendAsync(Convert.FromBase64String(message.Media), CancellationToken.None);
-    }
-});
-
-StreamReceiveResult result;
-var buffer = new byte[1024 * 8];
+        @event = "init"
+    });
 
 conn.OnModelMessageReceived = message =>
     JsonSerializer.Serialize(new
@@ -59,6 +51,23 @@ conn.OnModelUserInterrupted = () =>
         @event = "clear"
     });
 
+await hub.ConnectToModel(async data =>
+{
+    var response = JsonSerializer.Deserialize<ModelResponseEvent>(data);
+    if (response.Event == "clear")
+    {
+        channel.ClearBuffer();
+    }
+    else if (response.Event == "media")
+    {
+        var message = JsonSerializer.Deserialize<ModelResponseMediaEvent>(data);
+        await channel.SendAsync(Convert.FromBase64String(message.Media), CancellationToken.None);
+    }
+});
+
+StreamReceiveResult result;
+var buffer = new byte[1024 * 8];
+
 do
 {
     var seg = new ArraySegment<byte>(buffer);
@@ -74,29 +83,44 @@ do
 int CalculateAudioLevel(byte[] buffer, int bytesRecorded)
 {
     // Simple audio level calculation (RMS)
-    int sum = 0;
+    int bytesPerSample = 2; // 16-bit PCM = 2 bytes per sample
+    int sampleCount = bytesRecorded / bytesPerSample;
+    if (sampleCount == 0) return 0;
+
+    double sum = 0;
     for (int i = 0; i < bytesRecorded; i += 2)
     {
         if (i + 1 < bytesRecorded)
         {
             short sample = (short)((buffer[i + 1] << 8) | buffer[i]);
-            sum += Math.Abs(sample);
+            double normalized = sample / (short.MaxValue * 1.0 + 1);
+            sum += normalized * normalized;
         }
     }
-    return bytesRecorded > 0 ? sum / (bytesRecorded / 2) : 0;
+
+    double rms = Math.Sqrt(sum / sampleCount);
+    double db = 20 * Math.Log10(rms);
+
+    if (double.IsInfinity(db) || double.IsNaN(db))
+    {
+        return 0;
+    }
+
+    db = Math.Clamp(db, -100, 0);
+    return (int)((db + 100) * 1);
 }
 
 void DisplayAudioLevel(int level)
 {
+    const int sep = 50;
     // Normalize level to 0-50 range for display
-    int displayLevel = Math.Min(50, level / 100);
+    int displayLevel = (level * sep) / 100;
 
     // Clear the current line
     Console.Write("\r" + new string(' ', 60));
 
     // Display audio level as a bar
     Console.Write("\rMicrophone: [");
-    Console.Write(new string('#', displayLevel));
-    Console.Write(new string(' ', 50 - displayLevel));
+    Console.Write(new string('#', displayLevel).PadRight(sep, ' '));
     Console.Write("]");
 }
