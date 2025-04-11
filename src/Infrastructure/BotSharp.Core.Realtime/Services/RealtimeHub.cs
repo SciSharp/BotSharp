@@ -58,8 +58,7 @@ public class RealtimeHub : IRealtimeHub
                 var instruction = await _completer.UpdateSession(_conn);
                 var data = _conn.OnModelReady();
                 await responseToUser(data);
-                await HookEmitter.Emit<IRealtimeHook>(_services, async hook => await hook.OnModeReady(agent, _completer));
-
+                await HookEmitter.Emit<IRealtimeHook>(_services, async hook => await hook.OnModelReady(agent, _completer));
             },
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
             {

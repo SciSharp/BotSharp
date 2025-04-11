@@ -3,8 +3,9 @@ using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.OpenAPI;
 using System.Text.Json;
+using System.Reflection;
 
-var services = ServiceBuilder.CreateHostBuilder();
+var services = ServiceBuilder.CreateHostBuilder(Assembly.GetExecutingAssembly());
 var channel = services.GetRequiredService<IStreamChannel>();
 
 Console.WriteLine("PCM-16 Microphone Capture (24kHz Sample Rate)");

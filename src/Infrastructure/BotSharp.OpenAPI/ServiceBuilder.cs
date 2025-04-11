@@ -4,21 +4,28 @@ using BotSharp.Core.Plugins;
 using BotSharp.Logger;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using System.Reflection;
 
 namespace BotSharp.OpenAPI;
 
 public class ServiceBuilder
 {
-    public static IServiceProvider CreateHostBuilder()
+    public static IServiceProvider CreateHostBuilder(Assembly? startUp = null)
     {
         Console.WriteLine("Creating host builder...");
 
         // Set up configuration
-        var configuration = new ConfigurationBuilder()
+        var configurationBuilder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddEnvironmentVariables()
-            .Build();
+            .AddEnvironmentVariables();
+
+        if (startUp != null)
+        {
+            configurationBuilder.AddUserSecrets(startUp);
+        }
+
+        var configuration = configurationBuilder.Build();
 
         // Create host builder
         var builder = Host.CreateDefaultBuilder()
