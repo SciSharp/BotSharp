@@ -22,7 +22,6 @@ conv = await convService.NewConversation(conv);
 
 await channel.ConnectAsync(conv.Id);
 
-var settings = services.GetRequiredService<RealtimeModelSettings>();
 var hub = services.GetRequiredService<IRealtimeHub>();
 var conn = hub.SetHubConnection(conv.Id);
 
@@ -122,7 +121,6 @@ void DisplayAudioLevel(int level)
 
     // Display audio level as a bar
     Console.Write("\rMicrophone: [");
-    Console.Write(new string('#', displayLevel));
-    Console.Write(new string(' ', sep - displayLevel));
+    Console.Write(new string('#', displayLevel).PadRight(sep, ' '));
     Console.Write("]");
 }
