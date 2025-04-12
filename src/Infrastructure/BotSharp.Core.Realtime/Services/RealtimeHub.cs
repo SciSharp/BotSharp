@@ -21,7 +21,7 @@ public class RealtimeHub : IRealtimeHub
         _logger = logger;
     }
 
-    public async Task ConnectToModel(Func<string, Task> responseToUser)
+    public async Task ConnectToModel(Func<string, Task>? responseToUser = null, Func<string, Task>? init = null)
     {
         var hookProvider = _services.GetService<ConversationHookProvider>();
         var convService = _services.GetRequiredService<IConversationService>();
@@ -57,13 +57,13 @@ public class RealtimeHub : IRealtimeHub
                 // Not TriggerModelInference, waiting for user utter.
                 var instruction = await _completer.UpdateSession(_conn);
                 var data = _conn.OnModelReady();
-                await responseToUser(data);
+                await (init?.Invoke(data) ?? Task.CompletedTask);
                 await HookEmitter.Emit<IRealtimeHook>(_services, async hook => await hook.OnModelReady(agent, _completer));
             },
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
             {
                 var data = _conn.OnModelMessageReceived(audioDeltaData);
-                await responseToUser(data);
+                await (responseToUser?.Invoke(data) ?? Task.CompletedTask);
 
                 // If this is the first delta of a new response, set the start timestamp
                 if (!_conn.ResponseStartTimestamp.HasValue)
@@ -83,7 +83,7 @@ public class RealtimeHub : IRealtimeHub
             onModelAudioResponseDone: async () =>
             {
                 var data = _conn.OnModelAudioResponseDone();
-                await responseToUser(data);
+                await (responseToUser?.Invoke(data) ?? Task.CompletedTask);
             }, 
             onAudioTranscriptDone: async transcript =>
             {
@@ -148,7 +148,7 @@ public class RealtimeHub : IRealtimeHub
                     _conn.ResetResponseState();
 
                     var data = _conn.OnModelUserInterrupted();
-                    await responseToUser(data);
+                    await (responseToUser?.Invoke(data) ?? Task.CompletedTask);
                 }
             });
     }
