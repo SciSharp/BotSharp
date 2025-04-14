@@ -1,4 +1,3 @@
-using BotSharp.Plugin.OpenAI.Models.Realtime;
 using System.ClientModel;
 using System.Net.WebSockets;
 
@@ -7,10 +6,14 @@ namespace BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
 public class AsyncWebsocketDataCollectionResult : AsyncCollectionResult<ClientResult>
 {
     private readonly WebSocket _webSocket;
+    private readonly CancellationToken _cancellationToken;
 
-    public AsyncWebsocketDataCollectionResult(WebSocket webSocket)
+    public AsyncWebsocketDataCollectionResult(
+        WebSocket webSocket,
+        CancellationToken cancellationToken)
     {
         _webSocket = webSocket;
+        _cancellationToken = cancellationToken;
     }
 
     public override ContinuationToken? GetContinuationToken(ClientResult page)
@@ -20,7 +23,7 @@ public class AsyncWebsocketDataCollectionResult : AsyncCollectionResult<ClientRe
 
     public override async IAsyncEnumerable<ClientResult> GetRawPagesAsync()
     {
-        await using var enumerator = new AsyncWebsocketDataResultEnumerator(_webSocket);
+        await using var enumerator = new AsyncWebsocketDataResultEnumerator(_webSocket, _cancellationToken);
         while (await enumerator.MoveNextAsync().ConfigureAwait(false))
         {
             yield return enumerator.Current;

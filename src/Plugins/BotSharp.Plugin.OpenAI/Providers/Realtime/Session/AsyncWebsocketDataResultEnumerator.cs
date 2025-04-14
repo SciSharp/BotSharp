@@ -8,12 +8,15 @@ namespace BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
 public class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResult>
 {
     private readonly WebSocket _webSocket;
+    private readonly CancellationToken _cancellationToken;
     private readonly byte[] _buffer;
 
     public AsyncWebsocketDataResultEnumerator(
-        WebSocket webSocket)
+        WebSocket webSocket,
+        CancellationToken cancellationToken)
     {
         _webSocket = webSocket;
+        _cancellationToken = cancellationToken;
         _buffer = ArrayPool<byte>.Shared.Rent(1024 * 32);
     }
 
@@ -30,7 +33,7 @@ public class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResult>
         var response = new AiWebsocketPipelineResponse();
         while (!response.IsComplete)
         {
-            var receivedResult = await _webSocket.ReceiveAsync(new(_buffer), CancellationToken.None);
+            var receivedResult = await _webSocket.ReceiveAsync(new(_buffer), _cancellationToken);
 
             if (receivedResult.CloseStatus.HasValue)
             {

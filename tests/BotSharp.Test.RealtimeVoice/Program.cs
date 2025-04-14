@@ -4,8 +4,6 @@ using BotSharp.Abstraction.Conversations;
 using BotSharp.OpenAPI;
 using System.Text.Json;
 using System.Reflection;
-using BotSharp.Test.RealtimeVoice;
-using BotSharp.Abstraction.MLTasks;
 
 var services = ServiceBuilder.CreateHostBuilder(Assembly.GetExecutingAssembly());
 var channel = services.GetRequiredService<IStreamChannel>();
@@ -23,7 +21,7 @@ var conv = new Conversation
 };
 conv = await convService.NewConversation(conv);
 
-//await channel.ConnectAsync(conv.Id);
+await channel.ConnectAsync(conv.Id);
 
 var hub = services.GetRequiredService<IRealtimeHub>();
 var conn = hub.SetHubConnection(conv.Id);
@@ -54,50 +52,36 @@ conn.OnModelUserInterrupted = () =>
         @event = "clear"
     });
 
-var completer = services.GetServices<IRealTimeCompletion>().First(x => x.Provider == "openai");
-LocalSession session = new(completer);
-SpeakerOutput speakerOutput = new();
 
 await hub.ConnectToModel(async data =>
 {
     var response = JsonSerializer.Deserialize<ModelResponseEvent>(data);
     if (response.Event == "clear")
     {
-        //channel.ClearBuffer();
-        Console.WriteLine("Before clearing audio buffer...");
-        speakerOutput.ClearPlayback();
+        channel.ClearBuffer();
     }
     else if (response.Event == "media")
     {
         var message = JsonSerializer.Deserialize<ModelResponseMediaEvent>(data);
-        //await channel.SendAsync(Convert.FromBase64String(message.Media), CancellationToken.None);
-        speakerOutput.EnqueueForPlayback(Convert.FromBase64String(message.Media));
+        await channel.SendAsync(Convert.FromBase64String(message.Media), CancellationToken.None);
     }
-}, init: async data =>
-{
-    _ = Task.Run(async () =>
-    {
-        using MicrophoneAudioStream microphoneInput = MicrophoneAudioStream.Start();
-        await session.SendInputAudioAsync(microphoneInput);
-    });
 });
 
 StreamReceiveResult result;
 var buffer = new byte[1024 * 8];
 
-//do
-//{
-//    var seg = new ArraySegment<byte>(buffer);
-//    result = await channel.ReceiveAsync(seg, CancellationToken.None);
+do
+{
+    var seg = new ArraySegment<byte>(buffer);
+    result = await channel.ReceiveAsync(seg, CancellationToken.None);
 
-//    await hub.Completer.AppenAudioBuffer(seg, result.Count);
+    await hub.Completer.AppenAudioBuffer(seg, result.Count);
 
-//    // Display the audio level
-//    int audioLevel = CalculateAudioLevel(buffer, result.Count);
-//    DisplayAudioLevel(audioLevel);
-//} while (result.Status == StreamChannelStatus.Open);
+    // Display the audio level
+    int audioLevel = CalculateAudioLevel(buffer, result.Count);
+    DisplayAudioLevel(audioLevel);
+} while (result.Status == StreamChannelStatus.Open);
 
-while (true) { }
 
 int CalculateAudioLevel(byte[] buffer, int bytesRecorded)
 {

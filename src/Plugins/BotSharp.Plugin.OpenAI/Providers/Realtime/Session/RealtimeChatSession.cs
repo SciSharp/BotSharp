@@ -1,9 +1,7 @@
 using BotSharp.Plugin.OpenAI.Models.Realtime;
-using System;
 using System.ClientModel;
 using System.Net.WebSockets;
-using System.Text;
-using System.Threading;
+using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
 
@@ -14,7 +12,7 @@ public class RealtimeChatSession : IDisposable
 
     private ClientWebSocket _webSocket;
     private readonly object _singleReceiveLock = new();
-    private readonly SemaphoreSlim _clientSendSemaphore = new(initialCount: 1, maxCount: 1);
+    private readonly SemaphoreSlim _clientEventSemaphore = new(initialCount: 1, maxCount: 1);
     private AsyncWebsocketDataCollectionResult _receivedCollectionResult;
 
     public RealtimeChatSession(
@@ -25,7 +23,7 @@ public class RealtimeChatSession : IDisposable
         _options = options;
     }
 
-    public async Task StartAsync(string provider, string model)
+    public async Task ConnectAsync(string provider, string model, CancellationToken cancellationToken = default)
     {
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(provider, model);
@@ -35,10 +33,10 @@ public class RealtimeChatSession : IDisposable
         _webSocket.Options.SetRequestHeader("Authorization", $"Bearer {settings.ApiKey}");
         _webSocket.Options.SetRequestHeader("OpenAI-Beta", "realtime=v1");
 
-        await _webSocket.ConnectAsync(new Uri($"wss://api.openai.com/v1/realtime?model={model}"), CancellationToken.None);
+        await _webSocket.ConnectAsync(new Uri($"wss://api.openai.com/v1/realtime?model={model}"), cancellationToken);
     }
 
-    public async IAsyncEnumerable<SessionConversationUpdate> ReceiveUpdatesAsync()
+    public async IAsyncEnumerable<SessionConversationUpdate> ReceiveUpdatesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         await foreach (ClientResult result in ReceiveInnerUpdatesAsync())
         {
@@ -47,11 +45,11 @@ public class RealtimeChatSession : IDisposable
         }
     }
 
-    public async IAsyncEnumerable<ClientResult> ReceiveInnerUpdatesAsync()
+    public async IAsyncEnumerable<ClientResult> ReceiveInnerUpdatesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         lock (_singleReceiveLock)
         {
-            _receivedCollectionResult ??= new(_webSocket);
+            _receivedCollectionResult ??= new(_webSocket, cancellationToken);
         }
 
         await foreach (var result in _receivedCollectionResult)
@@ -78,7 +76,7 @@ public class RealtimeChatSession : IDisposable
             return;
         }
 
-        await _clientSendSemaphore.WaitAsync().ConfigureAwait(false);
+        await _clientEventSemaphore.WaitAsync().ConfigureAwait(false);
 
         try
         {
@@ -92,7 +90,7 @@ public class RealtimeChatSession : IDisposable
         }
         finally
         {
-            _clientSendSemaphore.Release();
+            _clientEventSemaphore.Release();
         }
     }
 
