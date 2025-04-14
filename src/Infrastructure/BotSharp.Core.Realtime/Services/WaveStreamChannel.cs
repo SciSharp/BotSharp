@@ -26,7 +26,7 @@ public class WaveStreamChannel : IStreamChannel
         {
             DeviceNumber = 0, // Default recording device
             WaveFormat = new WaveFormat(24000, 16, 1), // 24000 Hz, 16-bit PCM, Mono
-            BufferMilliseconds = 100
+            //BufferMilliseconds = 100
         };
 
         // Set up the DataAvailable event handler
@@ -38,10 +38,14 @@ public class WaveStreamChannel : IStreamChannel
         // Initialize audio output for streaming
         var waveFormat = new WaveFormat(24000, 16, 1); // 24000 Hz, 16-bit PCM, Mono
         _bufferedWaveProvider = new BufferedWaveProvider(waveFormat);
-        _bufferedWaveProvider.BufferLength = 1024 * 1024; // Buffer length
-        _bufferedWaveProvider.DiscardOnBufferOverflow = true;
-        
-        _waveOut = new WaveOutEvent();
+        _bufferedWaveProvider.BufferDuration = TimeSpan.FromMinutes(10);
+        //_bufferedWaveProvider.BufferLength = 1024 * 32; // Buffer length
+        _bufferedWaveProvider.DiscardOnBufferOverflow = false;
+
+        _waveOut = new WaveOutEvent()
+        {
+            DeviceNumber = 0
+        };
         _waveOut.Init(_bufferedWaveProvider);
         _waveOut.Play();
     }
