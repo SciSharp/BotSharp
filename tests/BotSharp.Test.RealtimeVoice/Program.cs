@@ -49,14 +49,20 @@ conn.OnModelAudioResponseDone = () =>
 conn.OnModelUserInterrupted = () =>
     JsonSerializer.Serialize(new
     {
-        @event = "clear"
+        @event = "interrupted"
+    });
+
+conn.OnUserSpeechDetected = () =>
+    JsonSerializer.Serialize(new
+    {
+        @event = "speech-detected"
     });
 
 
 await hub.ConnectToModel(async data =>
 {
     var response = JsonSerializer.Deserialize<ModelResponseEvent>(data);
-    if (response.Event == "clear")
+    if (response.Event == "speech-detected")
     {
         channel.ClearBuffer();
     }
