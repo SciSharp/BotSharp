@@ -55,14 +55,14 @@ conn.OnModelUserInterrupted = () =>
 conn.OnUserSpeechDetected = () =>
     JsonSerializer.Serialize(new
     {
-        @event = "speech-detected"
+        @event = "speech_detected"
     });
 
 
 await hub.ConnectToModel(async data =>
 {
     var response = JsonSerializer.Deserialize<ModelResponseEvent>(data);
-    if (response.Event == "speech-detected")
+    if (response.Event == "speech_detected")
     {
         channel.ClearBuffer();
     }
@@ -131,5 +131,5 @@ void DisplayAudioLevel(int level)
     // Display audio level as a bar
     Console.Write("\rMicrophone: [");
     Console.Write(new string('#', displayLevel).PadRight(sep, ' '));
-    Console.Write("]");
+    Console.Write("]\r");
 }

@@ -43,7 +43,7 @@ public class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResult>
 
             var receivedBytes = _buffer.AsMemory(0, receivedResult.Count);
             var receivedData = BinaryData.FromBytes(receivedBytes);
-            response.HandleReceivedResult(receivedResult, receivedData);
+            response.CollectReceivedResult(receivedResult, receivedData);
         }
 
         Current = ClientResult.FromResponse(response);

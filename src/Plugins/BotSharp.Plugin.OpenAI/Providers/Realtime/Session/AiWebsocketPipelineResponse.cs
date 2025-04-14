@@ -46,7 +46,7 @@ public class AiWebsocketPipelineResponse : PipelineResponse
     public bool IsComplete { get; private set; } = false;
 
 
-    public void HandleReceivedResult(WebSocketReceiveResult receivedResult, BinaryData receivedBytes)
+    public void CollectReceivedResult(WebSocketReceiveResult receivedResult, BinaryData receivedBytes)
     {
         if (ContentStream.Length == 0)
         {
