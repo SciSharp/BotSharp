@@ -79,7 +79,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
         await AttachEvents(_client);
 
-        await _client.ConnectAsync();
+        await _client.ConnectAsync(false);
     }
 
     public async Task Disconnect()
@@ -96,7 +96,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     public async Task AppenAudioBuffer(ArraySegment<byte> data, int length)
     {
         var buffer = data.AsSpan(0, length).ToArray();
-        await _client.SendAudioAsync(buffer);
+        await _client.SendAudioAsync(buffer,"audio/pcm;rate=16000");
     }
 
     public async Task TriggerModelInference(string? instructions = null)
@@ -285,10 +285,14 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
             });
         }
 
+        // if(request.Tools.Count == 0)
+        //     request.Tools = null;
+        // config.MaxOutputTokens = null;
+        
         await _client.SendSetupAsync(new BidiGenerateContentSetup()
         {
             GenerationConfig = config,
-            Model = Model,
+            Model = Model.ToModelId(),
             SystemInstruction = request.SystemInstruction,
             Tools = request.Tools?.ToArray(),
         });

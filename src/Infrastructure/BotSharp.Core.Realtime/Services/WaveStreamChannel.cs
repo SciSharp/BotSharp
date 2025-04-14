@@ -25,7 +25,7 @@ public class WaveStreamChannel : IStreamChannel
         _waveIn = new WaveInEvent
         {
             DeviceNumber = 0, // Default recording device
-            WaveFormat = new WaveFormat(24000, 16, 1), // 24000 Hz, 16-bit PCM, Mono
+            WaveFormat = new WaveFormat(16000, 16, 1), // 24000 Hz, 16-bit PCM, Mono
             BufferMilliseconds = 100
         };
 
