@@ -23,10 +23,7 @@ public class McpService : IMcpService
         return configs.Select(x => new McpServerConfigModel
         {
             Id = x.Id,
-            Name = x.Name,
-            TransportType = x.TransportType,
-            TransportOptions = x.TransportOptions,
-            Location = x.Location
+            Name = x.Name
         });
     }
 }
