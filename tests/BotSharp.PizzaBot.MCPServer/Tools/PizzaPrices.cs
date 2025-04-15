@@ -1,3 +1,4 @@
+using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -16,11 +17,11 @@ public static class PizzaPrices
     {
         if (pizza_type is null)
         {
-            throw new McpServerException("Missing required argument 'pizza_type'");
+            throw new McpException("Missing required argument 'pizza_type'");
         }
         if (quantity <= 0)
         {
-            throw new McpServerException("Missing required argument 'quantity'");
+            throw new McpException("Missing required argument 'quantity'");
         }
         double unit_price = 0;
         if (pizza_type.ToString() == "Pepperoni Pizza")

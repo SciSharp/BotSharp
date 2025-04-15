@@ -52,7 +52,7 @@ public static class BotSharpMcpExtensions
 
             services.AddScoped<IFunctionCallback>(provider =>
             {
-                var funcTool = new McpToolAdapter(provider, tool, clientManager);
+                var funcTool = new McpToolAdapter(provider, server.Name, tool, clientManager);
                 return funcTool;
             });
         }
