@@ -15,6 +15,7 @@
 ******************************************************************************/
 
 using BotSharp.Abstraction.Conversations.Enums;
+using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.SideCar;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -69,9 +70,11 @@ public class ConversationStateService : IConversationStateService
             return this;
         }
 
+        var options = _services.GetRequiredService<BotSharpOptions>();
+
         var defaultRound = -1;
         var preValue = string.Empty;
-        var currentValue = value.ToString();
+        var currentValue = value.ConvertToString(options.JsonSerializerOptions);
         var curActive = true;
         StateKeyValue? pair = null;
         StateValue? prevLeafNode = null;
