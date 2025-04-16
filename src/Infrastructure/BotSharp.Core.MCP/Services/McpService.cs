@@ -16,17 +16,26 @@ public class McpService : IMcpService
         _logger = logger;
     }
 
-    public IEnumerable<McpServerConfigModel> GetServerConfigs()
+    public IEnumerable<McpServerOptionModel> GetServerConfigs()
     {
+        var options = new List<McpServerOptionModel>();
         var settings = _services.GetRequiredService<McpSettings>();
         var configs = settings?.McpServerConfigs ?? [];
-        return configs.Select(x => new McpServerConfigModel
+
+        foreach (var config in configs)
         {
-            Id = x.Id,
-            Name = x.Name,
-            TransportType = x.TransportType,
-            TransportOptions = x.TransportOptions,
-            Location = x.Location
-        });
+            var tools = _services.GetServices<IFunctionCallback>()
+                                 .Where(x => x.Provider == config.Name)
+                                 .Select(x => x.Name);
+
+            options.Add(new McpServerOptionModel
+            {
+                Id = config.Id,
+                Name = config.Name,
+                Tools = tools
+            });
+        }
+
+        return options;
     }
 }

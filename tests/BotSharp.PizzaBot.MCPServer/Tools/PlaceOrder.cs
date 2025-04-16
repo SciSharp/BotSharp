@@ -1,3 +1,4 @@
+using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -15,15 +16,15 @@ public static class PlaceOrder
     {
         if (pizza_type is null)
         {
-            throw new McpServerException("Missing required argument 'pizza_type'");
+            throw new McpException("Missing required argument 'pizza_type'");
         }
         if (quantity <= 0)
         {
-            throw new McpServerException("Missing required argument 'quantity'");
+            throw new McpException("Missing required argument 'quantity'");
         }
         if (unit_price < 0)
         {
-            throw new McpServerException("Missing required argument 'unit_price'");
+            throw new McpException("Missing required argument 'unit_price'");
         }
  
         return "The order number is P123-01: {order_number = \"P123-01\" }";

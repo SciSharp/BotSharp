@@ -12,22 +12,21 @@ public class McpServerConfigModel
     /// </summary>
     public string Name { get; set; } = null!;
 
-    /// <summary>
-    /// The type of transport to use.
-    /// </summary>
-    [JsonPropertyName("transport_type")]
-    public string TransportType { get; set; } = null!;
+    public McpSseServerConfig? SseConfig { get; set; }
+    public McpStdioServerConfig? StdioConfig { get; set; }
+}
 
-    /// <summary>
-    /// For stdio transport: path to the executable
-    /// For HTTP transport: base URL of the server
-    /// </summary>
-    public string? Location { get; set; }
+public class McpSseServerConfig
+{
+    public string EndPoint { get; set; } = null!;
+    public TimeSpan ConnectionTimeout { get; init; } = TimeSpan.FromSeconds(30);
+    public Dictionary<string, string>? AdditionalHeaders { get; set; }
+}
 
-    /// <summary>
-    /// Additional transport-specific configuration.
-    /// </summary>
-    [JsonPropertyName("transport_options")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, string>? TransportOptions { get; set; }
+public class McpStdioServerConfig
+{
+    public string Command { get; set; } = null!;
+    public IList<string>? Arguments { get; set; }
+    public Dictionary<string, string>? EnvironmentVariables { get; set; }
+    public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromSeconds(5);
 }

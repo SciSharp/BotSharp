@@ -1,3 +1,4 @@
+using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -14,11 +15,11 @@ public static class MakePayment
     {
         if (order_number is null)
         {
-            throw new McpServerException("Missing required argument 'order_number'");
+            throw new McpException("Missing required argument 'order_number'");
         }
         if (order_number is null)
         {
-            throw new McpServerException("Missing required argument 'total_amount'");
+            throw new McpException("Missing required argument 'total_amount'");
         }
         return "Payment proceed successfully. Thank you for your business. Have a great day!";
     }

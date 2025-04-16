@@ -8,6 +8,11 @@ public class IdName
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
 
+    public IdName()
+    {
+        
+    }
+
     public IdName(string id, string name)
     {
         Id = id;

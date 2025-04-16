@@ -19,75 +19,7 @@ public class ConversationStorage : IConversationStorage
 
     public void Append(string conversationId, RoleDialogModel dialog)
     {
-        var agentId = dialog.CurrentAgentId;
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        var dialogElements = new List<DialogElement>();
-
-        // Prevent duplicate record to be inserted
-        /*var dialogs = db.GetConversationDialogs(conversationId);
-        if (dialogs.Any(x => x.MetaData.MessageId == dialog.MessageId && x.Content == dialog.Content))
-        {
-            return;
-        }*/
-
-        if (dialog.Role == AgentRole.Function)
-        {
-            var meta = new DialogMetaData
-            {
-                Role = dialog.Role,
-                AgentId = agentId,
-                MessageId = dialog.MessageId,
-                MessageType = dialog.MessageType,
-                FunctionName = dialog.FunctionName,
-                CreatedTime = dialog.CreatedAt
-            }; 
-            
-            var content = dialog.Content.RemoveNewLine();
-            if (string.IsNullOrEmpty(content))
-            {
-                return;
-            }
-            dialogElements.Add(new DialogElement
-            {
-                MetaData = meta,
-                Content = dialog.Content,
-                SecondaryContent = dialog.SecondaryContent,
-                Payload = dialog.Payload
-            });
-        }
-        else
-        {
-            var meta = new DialogMetaData
-            {
-                Role = dialog.Role,
-                AgentId = agentId,
-                MessageId = dialog.MessageId,
-                MessageType = dialog.MessageType,
-                SenderId = dialog.SenderId,
-                FunctionName = dialog.FunctionName,
-                CreatedTime = dialog.CreatedAt
-            };
-            
-            var content = dialog.Content.RemoveNewLine();
-            if (string.IsNullOrEmpty(content))
-            {
-                return;
-            }
-
-            var richContent = dialog.RichContent != null ? JsonSerializer.Serialize(dialog.RichContent, _options.JsonSerializerOptions) : null;
-            var secondaryRichContent = dialog.SecondaryRichContent != null ? JsonSerializer.Serialize(dialog.SecondaryRichContent, _options.JsonSerializerOptions) : null;
-            dialogElements.Add(new DialogElement
-            {
-                MetaData = meta,
-                Content = dialog.Content,
-                SecondaryContent = dialog.SecondaryContent,
-                RichContent = richContent,
-                SecondaryRichContent = secondaryRichContent,
-                Payload = dialog.Payload
-            });
-        }
-
-        db.AppendConversationDialogs(conversationId, dialogElements);
+        Append(conversationId, [dialog]);
     }
 
     public void Append(string conversationId, IEnumerable<RoleDialogModel> dialogs)

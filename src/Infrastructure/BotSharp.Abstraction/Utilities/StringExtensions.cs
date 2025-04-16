@@ -108,4 +108,27 @@ public static class StringExtensions
                uint.TryParse(value, out _) ||
                ulong.TryParse(value, out _);
     }
+
+
+    public static string ConvertToString<T>(this T? value, JsonSerializerOptions? jsonOptions = null)
+    {
+        if (value == null)
+        {
+            return string.Empty;
+        }
+
+        if (value is string s)
+        {
+            return s;
+        }
+
+        if (value is JsonElement elem
+            && elem.ValueKind == JsonValueKind.String)
+        {
+            return elem.ToString();
+        }
+
+        var str = JsonSerializer.Serialize(value, jsonOptions);
+        return str;
+    }
 }

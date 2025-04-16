@@ -6,17 +6,24 @@ namespace BotSharp.Core.MCP.Functions;
 
 public class McpToolAdapter : IFunctionCallback
 {
+    private readonly string _provider;
     private readonly McpClientTool _tool;
     private readonly McpClientManager _clientManager;
     private readonly IServiceProvider _services;
 
-    public McpToolAdapter(IServiceProvider services, McpClientTool tool, McpClientManager client)
+    public McpToolAdapter(
+        IServiceProvider services,
+        string serverName,
+        McpClientTool tool,
+        McpClientManager client)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
         _tool = tool ?? throw new ArgumentNullException(nameof(tool));
         _clientManager = client ?? throw new ArgumentNullException(nameof(client));
+        _provider = serverName;
     }
 
+    public string Provider => _provider;
     public string Name => _tool.Name;
 
     public async Task<bool> Execute(RoleDialogModel message)
