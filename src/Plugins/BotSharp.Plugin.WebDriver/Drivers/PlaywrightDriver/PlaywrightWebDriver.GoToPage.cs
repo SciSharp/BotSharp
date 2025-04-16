@@ -52,7 +52,13 @@ public partial class PlaywrightWebDriver
             {
                 page = await _instance.NewPage(message, args);
             }
+            var cdpSession = await context.NewCDPSessionAsync(page);
 
+            // Set CPU throttling rate
+            await cdpSession.SendAsync("Emulation.setCPUThrottlingRate", new Dictionary<string, object>
+            {
+                { "rate", 25 }
+            });
             // Active current tab
             await page.BringToFrontAsync();
             var response = await page.GotoAsync(args.Url, new PageGotoOptions
