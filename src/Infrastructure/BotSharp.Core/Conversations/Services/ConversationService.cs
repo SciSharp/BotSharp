@@ -201,8 +201,6 @@ public partial class ConversationService : IConversationService
             };
             converation = await NewConversation(sess);
         }
-
-        _conversationId = converation.Id;
         
         return converation;
     }
