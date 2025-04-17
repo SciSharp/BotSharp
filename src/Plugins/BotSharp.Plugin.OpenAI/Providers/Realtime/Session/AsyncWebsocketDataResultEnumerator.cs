@@ -24,6 +24,7 @@ public class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResult>
 
     public ValueTask DisposeAsync()
     {
+        ArrayPool<byte>.Shared.Return(_buffer, clearArray: true);
         _webSocket?.Dispose();
         return new ValueTask(Task.CompletedTask);
     }
