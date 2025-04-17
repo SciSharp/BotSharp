@@ -40,15 +40,17 @@ public class CrontabEventSubscription : BackgroundService
                         "Crontab",
                         port: 0,
                         priorityEnabled: false, 
-                        async (sender, args) =>
-                        {
-                            var scope = _services.CreateScope();
-                            cron = scope.ServiceProvider.GetRequiredService<ICrontabService>();
-                            await cron.ScheduledTimeArrived(item);
-                        }, 
+                        async (sender, args) => await HandleCrontabEvent(item), 
                         stoppingToken: stoppingToken);
                 });
             }
         }
+    }
+
+    private async Task HandleCrontabEvent(CrontabItem item)
+    {
+        using var scope = _services.CreateScope();
+        var cron = scope.ServiceProvider.GetRequiredService<ICrontabService>();
+        await cron.ScheduledTimeArrived(item);
     }
 }
