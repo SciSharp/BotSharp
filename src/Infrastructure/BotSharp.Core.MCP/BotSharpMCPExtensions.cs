@@ -43,18 +43,22 @@ public static class BotSharpMcpExtensions
 
     private static async Task RegisterFunctionCall(IServiceCollection services, McpServerConfigModel server, McpClientManager clientManager)
     {
-        var client = await clientManager.GetMcpClientAsync(server.Id);
-        var tools = await client.ListToolsAsync();
-
-        foreach (var tool in tools)
+        try
         {
-            services.AddScoped(provider => tool);
+            var client = await clientManager.GetMcpClientAsync(server.Id);
+            var tools = await client.ListToolsAsync();
 
-            services.AddScoped<IFunctionCallback>(provider =>
+            foreach (var tool in tools)
             {
-                var funcTool = new McpToolAdapter(provider, server.Name, tool, clientManager);
-                return funcTool;
-            });
+                services.AddScoped(provider => tool);
+
+                services.AddScoped<IFunctionCallback>(provider =>
+                {
+                    var funcTool = new McpToolAdapter(provider, server.Name, tool, clientManager);
+                    return funcTool;
+                });
+            }
         }
+        catch { }
     }
 }
