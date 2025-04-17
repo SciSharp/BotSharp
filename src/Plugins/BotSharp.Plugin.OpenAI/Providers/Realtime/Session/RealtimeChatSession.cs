@@ -38,7 +38,7 @@ public class RealtimeChatSession : IDisposable
 
     public async IAsyncEnumerable<SessionConversationUpdate> ReceiveUpdatesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        await foreach (ClientResult result in ReceiveInnerUpdatesAsync())
+        await foreach (ClientResult result in ReceiveInnerUpdatesAsync(cancellationToken))
         {
             var update = HandleSessionResult(result);
             yield return update;
