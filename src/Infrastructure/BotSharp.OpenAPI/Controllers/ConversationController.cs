@@ -353,7 +353,8 @@ public class ConversationController : ControllerBase
 
     #region Send message
     [HttpPost("/conversation/{agentId}/{conversationId}")]
-    public async Task<ChatResponseModel> SendMessage([FromRoute] string agentId,
+    public async Task<ChatResponseModel> SendMessage(
+        [FromRoute] string agentId,
         [FromRoute] string conversationId,
         [FromBody] NewMessageModel input)
     {
@@ -367,8 +368,8 @@ public class ConversationController : ControllerBase
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
-        conv.SetConversationId(conversationId, input.States);
         SetStates(conv, input);
+        conv.SetConversationId(conversationId, input.States);
 
         var response = new ChatResponseModel();
 
@@ -406,8 +407,8 @@ public class ConversationController : ControllerBase
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
-        conv.SetConversationId(conversationId, input.States);
         SetStates(conv, input);
+        conv.SetConversationId(conversationId, input.States);
 
         var response = new ChatResponseModel
         {
