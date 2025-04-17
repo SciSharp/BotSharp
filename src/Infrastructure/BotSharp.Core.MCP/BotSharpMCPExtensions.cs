@@ -4,7 +4,6 @@ using BotSharp.Core.MCP.Managers;
 using BotSharp.Core.MCP.Services;
 using BotSharp.Core.MCP.Settings;
 using Microsoft.Extensions.Configuration;
-using ModelContextProtocol;
 using ModelContextProtocol.Client;
 
 namespace BotSharp.Core.MCP;
@@ -21,7 +20,7 @@ public static class BotSharpMcpExtensions
     {
         services.AddScoped<IMcpService, McpService>();
         var settings = config.GetSection("MCP").Get<McpSettings>();
-        services.AddScoped(provider => { return settings; });
+        services.AddScoped(provider => settings);
 
         if (settings != null && settings.Enabled && !settings.McpServerConfigs.IsNullOrEmpty())
         {
@@ -42,20 +41,24 @@ public static class BotSharpMcpExtensions
         return services;
     }
 
-    private static async Task RegisterFunctionCall(IServiceCollection services, McpServerConfig server, McpClientManager clientManager)
+    private static async Task RegisterFunctionCall(IServiceCollection services, McpServerConfigModel server, McpClientManager clientManager)
     {
-        var client = await clientManager.GetMcpClientAsync(server.Id);
-        var tools = await client.ListToolsAsync();
-
-        foreach (var tool in tools)
+        try
         {
-            services.AddScoped(provider => { return tool; });
+            var client = await clientManager.GetMcpClientAsync(server.Id);
+            var tools = await client.ListToolsAsync();
 
-            services.AddScoped<IFunctionCallback>(provider =>
+            foreach (var tool in tools)
             {
-                var funcTool = new McpToolAdapter(provider, tool, clientManager);
-                return funcTool;
-            });
+                services.AddScoped(provider => tool);
+
+                services.AddScoped<IFunctionCallback>(provider =>
+                {
+                    var funcTool = new McpToolAdapter(provider, server.Name, tool, clientManager);
+                    return funcTool;
+                });
+            }
         }
+        catch { }
     }
 }

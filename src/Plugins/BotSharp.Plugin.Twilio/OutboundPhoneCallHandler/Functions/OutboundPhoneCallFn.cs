@@ -116,16 +116,23 @@ public class OutboundPhoneCallFn : IFunctionCallback
             record: _twilioSetting.RecordingEnabled,
             recordingStatusCallback: $"{_twilioSetting.CallbackHost}/twilio/record/status?agent-id={message.CurrentAgentId}&conversation-id={newConversationId}");
 
-        var convService = _services.GetRequiredService<IConversationService>();
-        var routing = _services.GetRequiredService<IRoutingContext>();
-        var originConversationId = convService.ConversationId;
-        var entryAgentId = routing.EntryAgentId;
-        
-        await ForkConversation(args, entryAgentId, originConversationId, newConversationId, call);
+        if (call.Status == CallResource.StatusEnum.Queued)
+        {
+            var convService = _services.GetRequiredService<IConversationService>();
+            var routing = _services.GetRequiredService<IRoutingContext>();
+            var originConversationId = convService.ConversationId;
+            var entryAgentId = routing.EntryAgentId;
 
-        message.Content = $"The generated phone initial message: \"{args.InitialMessage}.\" [NEW CONVERSATION ID: {newConversationId}, TWILIO CALL SID: {call.Sid}, RECORDING: {_twilioSetting.RecordingEnabled}]";
-        message.StopCompletion = true;
-        return true;
+            await ForkConversation(args, entryAgentId, originConversationId, newConversationId, call);
+
+            message.Content = $"The call has been successfully queued. The initial information is as follows: {args.InitialMessage}.";
+            return true;
+        }
+        else
+        {
+            message.Content = $"Failed to make a call, status is {call.Status}.";
+            return false;
+        }
     }
 
     private async Task ForkConversation(LlmContextIn args, 

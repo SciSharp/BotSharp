@@ -13,7 +13,7 @@ public class McpController : ControllerBase
     }
 
     [HttpGet("/mcp/server-configs")]
-    public IEnumerable<McpServerConfigModel> GetMcpServerConfigs()
+    public IEnumerable<McpServerOptionModel> GetMcpServerConfigs()
     {
         var mcp = _services.GetRequiredService<IMcpService>();
         return mcp.GetServerConfigs();

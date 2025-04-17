@@ -119,17 +119,18 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     {
         client.Connected += (sender, e) =>
         {
-            _logger.LogInformation("Google Realtime Client connected");
+            _logger.LogInformation("Google Realtime Client connected.");
             onModelReady();
         };
 
         client.Disconnected += (sender, e) =>
         {
-            _logger.LogInformation("Google Realtime Client disconnected");
+            _logger.LogInformation("Google Realtime Client disconnected.");
         };
 
         client.MessageReceived += async (sender, e) =>
         {
+            _logger.LogInformation("User message received.");
             if (e.Payload.SetupComplete != null)
             {
                 onConversationItemCreated(_client.ConnectionId.ToString());
@@ -156,12 +157,14 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         };
 
         client.GenerationInterrupted += (sender, e) => 
-        { 
+        {
+            _logger.LogInformation("Audio generation interrupted.");
             onUserInterrupted(); 
         };
 
         client.AudioReceiveCompleted += (sender, e) => 
-        { 
+        {
+            _logger.LogInformation("Audio receive completed.");
             onModelAudioResponseDone(); 
         };
 

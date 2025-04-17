@@ -1,6 +1,6 @@
 using BotSharp.Plugin.OpenAI.Models.Realtime;
+using BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
 using OpenAI.Chat;
-using System.Net.WebSockets;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Realtime;
 
@@ -18,7 +18,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     private readonly BotSharpOptions _options;
 
     protected string _model = "gpt-4o-mini-realtime-preview";
-    private ClientWebSocket _webSocket;
+    private RealtimeChatSession _session;
 
     public RealTimeCompletionProvider(
         OpenAiSettings settings,
@@ -45,20 +45,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
         _model = realtimeModelSettings.Model;
 
-        var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting(Provider, _model);
+        _session?.Dispose();
+        _session = new RealtimeChatSession(_services, _options);
+        await _session.ConnectAsync(Provider, _model, CancellationToken.None);
 
-        _webSocket?.Dispose();
-        _webSocket = new ClientWebSocket();
-        _webSocket.Options.SetRequestHeader("Authorization", $"Bearer {settings.ApiKey}");
-        _webSocket.Options.SetRequestHeader("OpenAI-Beta", "realtime=v1");
-
-        await _webSocket.ConnectAsync(new Uri($"wss://api.openai.com/v1/realtime?model={_model}"), CancellationToken.None);
-
-        if (_webSocket.State == WebSocketState.Open)
-        {
-            // Receive a message
-            _ = ReceiveMessage(conn,
+        _ = ReceiveMessage(conn,
                 onModelReady,
                 onModelAudioDeltaReceived,
                 onModelAudioResponseDone,
@@ -67,15 +58,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 onConversationItemCreated,
                 onInputAudioTranscriptionCompleted,
                 onInterruptionDetected);
-        }
     }
 
     public async Task Disconnect()
     {
-        if (_webSocket.State == WebSocketState.Open)
-        {
-            await _webSocket.CloseAsync(WebSocketCloseStatus.Empty, null, CancellationToken.None);
-        }
+        _session?.Disconnect();
     }
 
     public async Task AppenAudioBuffer(string message)
@@ -137,7 +124,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     private async Task ReceiveMessage(RealtimeHubConnection conn,
         Action onModelReady,
-        Action<string,string> onModelAudioDeltaReceived,
+        Action<string, string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
         Action<string> onModelAudioTranscriptDone,
         Action<List<RoleDialogModel>> onModelResponseDone,
@@ -145,41 +132,15 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<RoleDialogModel> onUserAudioTranscriptionCompleted,
         Action onInterruptionDetected)
     {
-        var buffer = new byte[1024 * 1024 * 32];
-        // Model response timeout
-        var settings = _services.GetRequiredService<RealtimeModelSettings>();
-        var timeout = settings.ModelResponseTimeout;
-        WebSocketReceiveResult? result = default;
-
-        do
+        await foreach (SessionConversationUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
         {
-            Array.Clear(buffer, 0, buffer.Length);
-            
-            var taskWorker = _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            var taskTimer = Task.Delay(1000 * timeout);
-            var completedTask = await Task.WhenAny(taskWorker, taskTimer);
-
-            if (completedTask == taskWorker)
-            {
-                result = taskWorker.Result;
-            }
-            else
-            {
-                _logger.LogWarning($"Timeout {timeout} seconds waiting for Model response.");
-                await TriggerModelInference("Response user immediately");
-                continue;
-            }
-            
-            // Convert received data to text/audio (Twilio sends Base64-encoded audio)
-            string receivedText = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            var receivedText = update?.RawResponse;
             if (string.IsNullOrEmpty(receivedText))
             {
                 continue;
             }
 
             var response = JsonSerializer.Deserialize<ServerEventResponse>(receivedText);
-
-            _logger.LogDebug($"{nameof(RealTimeCompletionProvider)} received: {response.Type} {receivedText.Length}");
 
             if (response.Type == "error")
             {
@@ -217,6 +178,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     _logger.LogDebug($"{response.Type}: {receivedText}");
                     onModelAudioDeltaReceived(audio.Delta, audio.ItemId);
                 }
+                else
+                {
+                    _logger.LogDebug($"{response.Type}: {receivedText}");
+                    onModelAudioDeltaReceived(audio.Delta, audio.ItemId);
+                }
             }
             else if (response.Type == "response.audio.done")
             {
@@ -248,27 +214,14 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 // Handle user interuption
                 onInterruptionDetected();
             }
-
-        } while (!result.CloseStatus.HasValue);
-
-        await _webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+        }
     }
 
     public async Task SendEventToModel(object message)
     {
-        if (_webSocket.State != WebSocketState.Open)
-        {
-            return;
-        }
+        if (_session == null) return;
 
-        if (message is not string data)
-        {
-            data = JsonSerializer.Serialize(message, _options.JsonSerializerOptions);
-        }
-
-        var buffer = Encoding.UTF8.GetBytes(data);
-        
-        await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+        await _session.SendEventToModel(message);
     }
 
     public async Task<string> UpdateSession(RealtimeHubConnection conn)

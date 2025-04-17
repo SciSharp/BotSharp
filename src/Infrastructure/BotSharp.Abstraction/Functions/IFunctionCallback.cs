@@ -2,6 +2,7 @@ namespace BotSharp.Abstraction.Functions;
 
 public interface IFunctionCallback
 {
+    string Provider => "Botsharp";
     string Name { get; }
 
     /// <summary>

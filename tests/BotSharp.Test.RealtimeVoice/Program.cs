@@ -49,13 +49,20 @@ conn.OnModelAudioResponseDone = () =>
 conn.OnModelUserInterrupted = () =>
     JsonSerializer.Serialize(new
     {
-        @event = "clear"
+        @event = "interrupted"
     });
+
+conn.OnUserSpeechDetected = () =>
+    JsonSerializer.Serialize(new
+    {
+        @event = "speech_detected"
+    });
+
 
 await hub.ConnectToModel(async data =>
 {
     var response = JsonSerializer.Deserialize<ModelResponseEvent>(data);
-    if (response.Event == "clear")
+    if (response.Event == "speech_detected")
     {
         channel.ClearBuffer();
     }
@@ -80,6 +87,7 @@ do
     int audioLevel = CalculateAudioLevel(buffer, result.Count);
     DisplayAudioLevel(audioLevel);
 } while (result.Status == StreamChannelStatus.Open);
+
 
 int CalculateAudioLevel(byte[] buffer, int bytesRecorded)
 {
@@ -123,5 +131,5 @@ void DisplayAudioLevel(int level)
     // Display audio level as a bar
     Console.Write("\rMicrophone: [");
     Console.Write(new string('#', displayLevel).PadRight(sep, ' '));
-    Console.Write("]");
+    Console.Write("]\r");
 }

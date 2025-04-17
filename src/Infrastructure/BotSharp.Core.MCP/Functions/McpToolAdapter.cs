@@ -6,45 +6,62 @@ namespace BotSharp.Core.MCP.Functions;
 
 public class McpToolAdapter : IFunctionCallback
 {
+    private readonly string _provider;
     private readonly McpClientTool _tool;
     private readonly McpClientManager _clientManager;
     private readonly IServiceProvider _services;
 
-    public McpToolAdapter(IServiceProvider services, McpClientTool tool, McpClientManager client)
+    public McpToolAdapter(
+        IServiceProvider services,
+        string serverName,
+        McpClientTool tool,
+        McpClientManager client)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
         _tool = tool ?? throw new ArgumentNullException(nameof(tool));
         _clientManager = client ?? throw new ArgumentNullException(nameof(client));
+        _provider = serverName;
     }
 
+    public string Provider => _provider;
     public string Name => _tool.Name;
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        // Convert arguments to dictionary format expected by mcpdotnet
-        Dictionary<string, object> argDict = JsonToDictionary(message.FunctionArgs);
-        var currentAgentId = message.CurrentAgentId;
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(currentAgentId);
-        var serverId = agent.McpTools.Where(t => t.Functions.Any(f => f.Name == Name)).FirstOrDefault().ServerId;
+        try
+        {
+            // Convert arguments to dictionary format expected by mcpdotnet
+            Dictionary<string, object> argDict = JsonToDictionary(message.FunctionArgs);
+            var currentAgentId = message.CurrentAgentId;
+            var agentService = _services.GetRequiredService<IAgentService>();
+            var agent = await agentService.LoadAgent(currentAgentId);
+            var serverId = agent.McpTools.Where(t => t.Functions.Any(f => f.Name == Name)).FirstOrDefault().ServerId;
 
-        var client =  await _clientManager.GetMcpClientAsync(serverId);
+            var client = await _clientManager.GetMcpClientAsync(serverId);
 
-        // Call the tool through mcpdotnet
-        var result = await client.CallToolAsync(_tool.Name, argDict.IsNullOrEmpty() ? new() : argDict);
+            // Call the tool through mcpdotnet
+            var result = await client.CallToolAsync(_tool.Name, !argDict.IsNullOrEmpty() ? argDict : []);
 
-        // Extract the text content from the result
-        var json = string.Join("\n", result.Content.Where(c => c.Type == "text").Select(c => c.Text));
+            // Extract the text content from the result
+            var json = string.Join("\n", result.Content.Where(c => c.Type == "text").Select(c => c.Text));
 
-        message.Content = json;
-        message.Data = json.JsonContent();
-        return true;
+            message.Content = json;
+            message.Data = json.JsonContent();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            message.Content = $"Error when calling tool {Name} of MCP server {Provider}. {ex.Message}";
+            return false;
+        }
     }
 
     private static Dictionary<string, object> JsonToDictionary(string? json)
     {
         if (string.IsNullOrEmpty(json))
+        {
             return [];
+        }
 
         using JsonDocument doc = JsonDocument.Parse(json);
         JsonElement root = doc.RootElement;

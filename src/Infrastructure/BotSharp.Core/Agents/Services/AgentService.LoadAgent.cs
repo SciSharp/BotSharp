@@ -7,7 +7,7 @@ public partial class AgentService
 {
     public static ConcurrentDictionary<string, Dictionary<string, string>> AgentParameterTypes = new();
 
-    [SharpCache(10, perInstanceCache: true)]
+    // [SharpCache(10, perInstanceCache: true)]
     public async Task<Agent> LoadAgent(string id, bool loadUtility = true)
     {
         if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString())
@@ -67,7 +67,7 @@ public partial class AgentService
                 hook.OnSamplesLoaded(agent.Samples);
             }
 
-            if (loadUtility)
+            if (loadUtility && !agent.Utilities.IsNullOrEmpty())
             {
                 hook.OnAgentUtilityLoaded(agent);
             }

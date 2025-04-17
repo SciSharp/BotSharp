@@ -201,7 +201,7 @@ public partial class ConversationService : IConversationService
             };
             converation = await NewConversation(sess);
         }
-
+        
         return converation;
     }
 

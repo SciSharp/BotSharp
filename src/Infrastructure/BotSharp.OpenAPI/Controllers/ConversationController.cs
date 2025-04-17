@@ -33,7 +33,7 @@ public class ConversationController : ControllerBase
         var conv = new Conversation
         {
             AgentId = agentId,
-            Channel = channel == default ? ConversationChannel.OpenAPI : channel.Value,
+            Channel = channel == default ? ConversationChannel.OpenAPI : channel.Value.ToString(),
             Tags = config.Tags ?? new(),
             TaskId = config.TaskId
         };

@@ -93,9 +93,7 @@ public class CrontabWatcher : BackgroundService
                     }
                     else
                     {
-                        var scope = _services.CreateScope();
-                        cron = scope.ServiceProvider.GetRequiredService<ICrontabService>();
-                        cron.ScheduledTimeArrived(item);
+                        await HandleCrontabEvent(item);
                     }
                 }
             }
@@ -105,6 +103,13 @@ public class CrontabWatcher : BackgroundService
                 continue;
             }
         }
+    }
+
+    private async Task HandleCrontabEvent(CrontabItem item)
+    {
+        using var scope = _services.CreateScope();
+        var cron = scope.ServiceProvider.GetRequiredService<ICrontabService>();
+        await cron.ScheduledTimeArrived(item);
     }
 
     private DateTime GetLastOccurrence(CrontabSchedule schedule)

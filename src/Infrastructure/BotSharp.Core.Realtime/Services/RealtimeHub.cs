@@ -150,6 +150,9 @@ public class RealtimeHub : IRealtimeHub
                     var data = _conn.OnModelUserInterrupted();
                     await (responseToUser?.Invoke(data) ?? Task.CompletedTask);
                 }
+
+                var res = _conn.OnUserSpeechDetected();
+                await (responseToUser?.Invoke(res) ?? Task.CompletedTask);
             });
     }
 
