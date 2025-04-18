@@ -560,6 +560,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var data = JsonSerializer.Deserialize<ResponseDone>(response).Body;
         if (data.Status != "completed")
         {
+            _logger.LogError(data.StatusDetails.ToString());
             return [];
         }
 

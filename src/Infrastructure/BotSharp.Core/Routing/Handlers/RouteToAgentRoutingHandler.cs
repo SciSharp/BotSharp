@@ -71,7 +71,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
         // Update next action agent's name
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(agentId);
+        var agent = await agentService.GetAgent(agentId);
         inst.AgentName = agent.Name;
 
         if (inst.ExecutingDirectly)
