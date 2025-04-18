@@ -32,8 +32,6 @@ public class UtilWebActionOnElementFn : IFunctionCallback
 
         actionArgs.WaitTime = actionArgs.WaitTime > 0 ? actionArgs.WaitTime : 2;
 
-        var conv = _services.GetRequiredService<IConversationService>();
-
         var services = _services.CreateScope().ServiceProvider;
         var browser = services.GetRequiredService<IWebBrowser>();
         var webDriverService = _services.GetRequiredService<WebDriverService>();
@@ -45,7 +43,6 @@ public class UtilWebActionOnElementFn : IFunctionCallback
             FunctionArgs = message.FunctionArgs
         };
         browser.SetServiceProvider(_services);
-        var _states = _services.GetRequiredService<IConversationStateService>();
         var result = await browser.ActionOnElement(msg, locatorArgs, actionArgs);
 
         message.Content = $"{actionArgs.Action} executed {(result.IsSuccess ? "success" : "failed")}.";
