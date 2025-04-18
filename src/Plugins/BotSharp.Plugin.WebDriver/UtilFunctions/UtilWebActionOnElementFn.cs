@@ -42,7 +42,10 @@ public class UtilWebActionOnElementFn : IFunctionCallback
             AgentId = message.CurrentAgentId,
             MessageId = message.MessageId,
             ContextId = webDriverService.GetMessageContext(message),
+            FunctionArgs = message.FunctionArgs
         };
+        browser.SetServiceProvider(_services);
+        var _states = _services.GetRequiredService<IConversationStateService>();
         var result = await browser.ActionOnElement(msg, locatorArgs, actionArgs);
 
         message.Content = $"{actionArgs.Action} executed {(result.IsSuccess ? "success" : "failed")}.";

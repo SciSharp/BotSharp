@@ -37,6 +37,10 @@
       "wait_time": {
         "type": "number",
         "description": "wait time after action in seconds"
+      },
+      "metadata": {
+        "type": "string",
+        "description": "meta data information if user provided"
       }
     },
     "required": [ "selector", "action" ]
