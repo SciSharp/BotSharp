@@ -73,9 +73,17 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     void BulkInsertAgents(List<Agent> agents)
         => throw new NotImplementedException();
+    ValueTask BulkInsertAgentsAsync(List<Agent> agents)
+       => throw new NotImplementedException();
     void BulkInsertUserAgents(List<UserAgent> userAgents)
         => throw new NotImplementedException();
+    ValueTask BulkInsertUserAgentsAsync(List<UserAgent> userAgents)
+        => throw new NotImplementedException();
     bool DeleteAgents()
+        => throw new NotImplementedException();
+    Task<bool> DeleteAgentsAsync()
+        => throw new NotImplementedException();
+    ValueTask<bool> DeleteAgentsAsync(List<string> agentIds)
         => throw new NotImplementedException();
     bool DeleteAgent(string agentId)
         => throw new NotImplementedException();
@@ -100,6 +108,8 @@ public interface IBotSharpRepository : IHaveServiceProvider
     void InsertAgentTask(AgentTask task)
         => throw new NotImplementedException();
     void BulkInsertAgentTasks(List<AgentTask> tasks)
+        => throw new NotImplementedException();
+    ValueTask BulkInsertAgentTasksAsync(List<AgentTask> tasks)
         => throw new NotImplementedException();
     void UpdateAgentTask(AgentTask task, AgentTaskField field)
         => throw new NotImplementedException();

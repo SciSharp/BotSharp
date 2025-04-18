@@ -102,8 +102,8 @@ public class AgentViewModel
             Rules = agent.Rules ?? [],
             LlmConfig = agent.LlmConfig,
             Plugin = agent.Plugin,
-            CreatedDateTime = agent.CreatedDateTime,
-            UpdatedDateTime = agent.UpdatedDateTime
+            CreatedDateTime = agent.CreatedTime,
+            UpdatedDateTime = agent.UpdatedTime
         };
     }
 }
