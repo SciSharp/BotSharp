@@ -71,7 +71,7 @@ public partial class PlaywrightWebDriver : IWebBrowser
 
     public void SetServiceProvider(IServiceProvider services)
     {
-        _instance.SetServiceProvider(_services);
+        _instance.SetServiceProvider(services);
     }
 
     public async Task PressKey(MessageInfo message, string key)

@@ -12,6 +12,7 @@ public class MessageInfo : ICacheKey
     public string? MessageId { get; set; }
     public string? TaskId { get; set; }
     public string StepId { get; set; } = Guid.NewGuid().ToString();
+    public string? FunctionArgs { get; set; }
 
     public string GetCacheKey()
         => $"{nameof(MessageInfo)}";
