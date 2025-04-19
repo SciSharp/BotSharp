@@ -129,7 +129,7 @@ public class RoutingContext : IRoutingContext
 
         // Run the routing rule
         var agency = _services.GetRequiredService<IAgentService>();
-        var agent = agency.LoadAgent(currentAgentId).Result;
+        var agent = agency.GetAgent(currentAgentId).Result;
 
         var message = new RoleDialogModel(AgentRole.User, $"Try to route to agent {agent.Name}")
         {

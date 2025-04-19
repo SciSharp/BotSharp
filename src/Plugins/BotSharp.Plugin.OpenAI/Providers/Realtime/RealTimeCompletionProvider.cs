@@ -258,7 +258,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 Instructions = instruction,
                 ToolChoice = "auto",
                 Tools = functions,
-                Modalities = [ "text", "audio" ],
+                Modalities = realtimeModelSettings.Modalities,
                 Temperature = Math.Max(options.Temperature ?? realtimeModelSettings.Temperature, 0.6f),
                 MaxResponseOutputTokens = realtimeModelSettings.MaxResponseOutputTokens,
                 TurnDetection = new RealtimeSessionTurnDetection

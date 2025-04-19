@@ -44,7 +44,7 @@ public class HangupPhoneCallFn : IFunctionCallback
         var processUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/hang-up?agent-id={message.CurrentAgentId}&conversation-id={conversationId}";
 
         // Generate initial assistant audio
-        string initAudioFile = null;
+        /*string initAudioFile = null;
         if (!string.IsNullOrEmpty(args.ResponseContent))
         {
             var completion = CompletionProvider.GetAudioSynthesizer(_services);
@@ -53,7 +53,7 @@ public class HangupPhoneCallFn : IFunctionCallback
             fileStorage.SaveSpeechFile(conversationId, initAudioFile, data);
 
             processUrl += $"&init-audio-file={initAudioFile}";
-        }
+        }*/
 
         var call = CallResource.Update(
             url: new Uri(processUrl),

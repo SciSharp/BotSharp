@@ -86,7 +86,7 @@ public class ConversationStateService : IConversationStateService
             preValue = prevLeafNode?.Data ?? string.Empty;
         }
 
-        _logger.LogInformation($"[STATE] {name} = {value}");
+        _logger.LogDebug($"[STATE] {name} = {value}");
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
 
         var isNoChange = ContainsState(name)
@@ -221,7 +221,7 @@ public class ConversationStateService : IConversationStateService
 
             var data = leafNode.Data ?? string.Empty;
             endNodes[state.Key] = data;
-            _logger.LogInformation($"[STATE] {key} : {data}");
+            _logger.LogDebug($"[STATE] {key} : {data}");
         }
 
         _logger.LogInformation($"Loaded conversation states: {conversationId}");

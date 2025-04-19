@@ -139,6 +139,12 @@ public class TwilioService
                 response.Play(new Uri(uri));
             }
         }
+        else
+        {
+            response.Pause(5);
+            response.Say("Goodbye.");
+        }
+
         response.Hangup();
         return response;
     }

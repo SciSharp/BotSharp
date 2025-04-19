@@ -5,9 +5,7 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-#if !DEBUG
     [SharpCache(10)]
-#endif
     public async Task<PagedItems<Agent>> GetAgents(AgentFilter filter)
     {
         var agents = _db.GetAgents(filter);
@@ -27,9 +25,7 @@ public partial class AgentService
         };
     }
 
-#if !DEBUG
     [SharpCache(10)]
-#endif
     public async Task<List<IdName>> GetAgentOptions(List<string>? agentIds)
     {
         var agents = _db.GetAgents(new AgentFilter
@@ -39,9 +35,7 @@ public partial class AgentService
         return agents?.Select(x => new IdName(x.Id, x.Name))?.OrderBy(x => x.Name)?.ToList() ?? [];
     }
 
-#if !DEBUG
     [SharpCache(10)]
-#endif
     public async Task<Agent> GetAgent(string id)
     {
         var profile = _db.GetAgent(id);
