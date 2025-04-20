@@ -49,8 +49,11 @@ public partial class RoutingService
             await progressService.OnFunctionExecuting(clonedMessage);
         }
         
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(clonedMessage.CurrentAgentId);
         foreach (var hook in hooks)
         {
+            hook.SetAgent(agent);
             await hook.OnFunctionExecuting(clonedMessage);
         }
 
@@ -58,7 +61,11 @@ public partial class RoutingService
 
         try
         {
-            if (!isFillDummyContent)
+            if (clonedMessage.Handled)
+            {
+                clonedMessage.Content = clonedMessage.Content;
+            }
+            else if (!isFillDummyContent)
             {
                 result = await function.Execute(clonedMessage);
             }

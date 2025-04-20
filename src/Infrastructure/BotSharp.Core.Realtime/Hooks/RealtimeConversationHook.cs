@@ -63,7 +63,7 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
             }
             else
             {
-                await hub.Completer.TriggerModelInference($"{instruction}\r\n\r\nResponse user based on function result");
+                await hub.Completer.TriggerModelInference(instruction);
             }
         }
     }
