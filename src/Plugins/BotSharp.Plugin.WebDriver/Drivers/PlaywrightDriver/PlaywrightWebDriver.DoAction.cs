@@ -80,8 +80,20 @@ public partial class PlaywrightWebDriver
         }
         else if (action.Action == BroswerActionEnum.FileUpload)
         {
-            if (action.FileUrl.Length == 0)
+            var _states = _services.GetRequiredService<IConversationStateService>();
+            var files = new List<string>();
+            if (action.FileUrl != null && action.FileUrl.Length > 0)
             {
+                files.AddRange(action.FileUrl);
+            }
+            var hooks = _services.GetServices<IWebDriverHook>();
+            foreach (var hook in hooks)
+            {
+                files.AddRange(await hook.GetUploadFiles(message));
+            }
+            if (files.Count == 0)
+            {
+                Serilog.Log.Warning($"No files found to upload: {action.Content}");
                 return;
             }
             var fileChooser = await page.RunAndWaitForFileChooserAsync(async () =>
@@ -97,7 +109,7 @@ public partial class PlaywrightWebDriver
             Directory.CreateDirectory(directory);
             var localPaths = new List<string>();
             using var httpClient = new HttpClient();
-            foreach (var fileUrl in action.FileUrl)
+            foreach (var fileUrl in files)
             {
                 var bytes = await httpClient.GetByteArrayAsync(fileUrl);
                 var fileName = new Uri(fileUrl).AbsolutePath;
