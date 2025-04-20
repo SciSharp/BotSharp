@@ -1,4 +1,4 @@
-﻿using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
@@ -26,7 +26,7 @@ namespace BotSharp.Plugin.Google.Core
             return Task.FromResult(new PagedItems<Agent>());
         }
 
-        public Task<List<IdName>> GetAgentOptions(List<string>? agentIds = null)
+        public Task<List<IdName>> GetAgentOptions(List<string>? agentIds = null, bool byName = false)
         {
             return Task.FromResult(new List<IdName> { new IdName(id: "1", name: "Fake Agent") });
         }
