@@ -162,7 +162,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
             else if (response.Type == "response.audio_transcript.delta")
             {
-
+                _logger.LogDebug($"{response.Type}: {receivedText}");
             }
             else if (response.Type == "response.audio_transcript.done")
             {
@@ -211,8 +211,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
             else if (response.Type == "input_audio_buffer.speech_started")
             {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
                 // Handle user interuption
                 onInterruptionDetected();
+            }
+            else if (response.Type == "input_audio_buffer.speech_stopped")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
             }
         }
     }

@@ -26,12 +26,18 @@ public partial class AgentService
     }
 
     [SharpCache(10)]
-    public async Task<List<IdName>> GetAgentOptions(List<string>? agentIds)
+    public async Task<List<IdName>> GetAgentOptions(List<string>? agentIdsOrNames, bool byName = false)
     {
-        var agents = _db.GetAgents(new AgentFilter
-        {
-            AgentIds = !agentIds.IsNullOrEmpty() ? agentIds : null
-        });
+        var agents = byName ? 
+            _db.GetAgents(new AgentFilter
+            {
+                AgentNames = !agentIdsOrNames.IsNullOrEmpty() ? agentIdsOrNames : null
+            }) :
+            _db.GetAgents(new AgentFilter
+            {
+                AgentIds = !agentIdsOrNames.IsNullOrEmpty() ? agentIdsOrNames : null
+            });
+
         return agents?.Select(x => new IdName(x.Id, x.Name))?.OrderBy(x => x.Name)?.ToList() ?? [];
     }
 

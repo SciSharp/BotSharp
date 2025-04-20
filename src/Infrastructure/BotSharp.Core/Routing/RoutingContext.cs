@@ -86,10 +86,12 @@ public class RoutingContext : IRoutingContext
         if (!Guid.TryParse(agentId, out _))
         {
             var agentService = _services.GetRequiredService<IAgentService>();
-            agentId = agentService.GetAgents(new AgentFilter
+            var agents = agentService.GetAgentOptions([agentId], byName: true).Result;
+
+            if (agents.Count > 0)
             {
-                AgentNames = [agentId]
-            }).Result.Items.First().Id;
+                agentId = agents.First().Id;
+            }
         }
 
         if (_stack.Count == 0 || _stack.Peek() != agentId)

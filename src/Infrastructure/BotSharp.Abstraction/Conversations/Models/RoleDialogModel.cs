@@ -67,6 +67,12 @@ public class RoleDialogModel : ITrackableMessage
     public string? FunctionArgs { get; set; }
 
     /// <summary>
+    /// Set this flag is in OnFunctionExecuting, if true, it won't be executed by InvokeFunction.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public bool Handled { get; set; } = false;
+
+    /// <summary>
     /// Function execution structured data, this data won't pass to LLM.
     /// It's ideal to render in rich content in UI.
     /// </summary>
