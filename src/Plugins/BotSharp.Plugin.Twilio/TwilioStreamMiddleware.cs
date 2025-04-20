@@ -94,6 +94,13 @@ public class TwilioStreamMiddleware
             }
             else if (eventType == "user_dtmf_receiving")
             {
+                // Send a Stop command to Twilio
+                string clearEvent = JsonSerializer.Serialize(new
+                {
+                    @event = "clear",
+                    streamSid = conn.StreamId
+                });
+                await SendEventToUser(webSocket, clearEvent);
             }
             else if (eventType == "user_dtmf_received")
             {
@@ -183,14 +190,6 @@ public class TwilioStreamMiddleware
                 streamSid = response.StreamSid
             });
 
-        /*if (response.Event == "dtmf")
-        {
-            // Send a Stop command to Twilio
-            string stopPlaybackCommand = "{ \"action\": \"stop_playback\" }";
-            var stopBytes = Encoding.UTF8.GetBytes(stopPlaybackCommand);
-            webSocket.SendAsync(new ArraySegment<byte>(stopBytes), WebSocketMessageType.Text, true, CancellationToken.None);
-        }*/
-
         return (eventType, data);
     }
 
@@ -225,7 +224,7 @@ public class TwilioStreamMiddleware
         var routing = _services.GetRequiredService<IRoutingService>();
         var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(conn.CurrentAgentId);
+        var agent = await agentService.GetAgent(conn.CurrentAgentId);
         var dialogs = routing.Context.GetDialogs();
         var convService = _services.GetRequiredService<IConversationService>();
         var conversation = await convService.GetConversation(conn.ConversationId);
@@ -248,7 +247,6 @@ public class TwilioStreamMiddleware
         }
 
         await completer.InsertConversationItem(message);
-        var instruction = await completer.UpdateSession(conn);
-        await completer.TriggerModelInference($"{instruction}\r\n\r\nReply based on the user input: {message.Content}");
+        await completer.TriggerModelInference($"Response based on the user input: {message.Content}");
     }
 }

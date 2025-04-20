@@ -141,7 +141,6 @@ public class TwilioService
         }
         else
         {
-            response.Pause(5);
             response.Say("Goodbye.");
         }
 

@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Utilities;
-using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Core.Realtime.Hooks;
 
@@ -40,33 +39,32 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
 
         if (message.FunctionName == "route_to_agent")
         {
-            var inst = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs ?? "{}") ?? new();
-            message.Content = $"I'm your AI assistant '{inst.AgentName}' to help with: '{inst.NextActionReason}'";
             hub.HubConn.CurrentAgentId = routing.Context.GetCurrentAgentId();
 
-            var instruction = await hub.Completer.UpdateSession(hub.HubConn);
-            await hub.Completer.InsertConversationItem(message);
-            await hub.Completer.TriggerModelInference($"{instruction}\r\n\r\nAssist user task: {inst.NextActionReason}");
+            await hub.Completer.UpdateSession(hub.HubConn);
+            await hub.Completer.TriggerModelInference();
         }
         else if (message.FunctionName == "util-routing-fallback_to_router")
         {
-            var inst = JsonSerializer.Deserialize<FallbackArgs>(message.FunctionArgs ?? "{}") ?? new();
-            message.Content = $"Returned to Router due to {inst.Reason}";
             hub.HubConn.CurrentAgentId = routing.Context.GetCurrentAgentId();
 
-            var instruction = await hub.Completer.UpdateSession(hub.HubConn);
-            await hub.Completer.InsertConversationItem(message);
-            await hub.Completer.TriggerModelInference(instruction);
+            await hub.Completer.UpdateSession(hub.HubConn);
+            await hub.Completer.TriggerModelInference();
         }
         else
         {
-            // Clear cache to force to rebuild the agent instruction
-            Utilities.ClearCache();
-
             // Update session for changed states
             var instruction = await hub.Completer.UpdateSession(hub.HubConn);
             await hub.Completer.InsertConversationItem(message);
-            await hub.Completer.TriggerModelInference(instruction);
+
+            if (message.StopCompletion)
+            {
+                await hub.Completer.TriggerModelInference($"Say to user: \"{message.Content}\"");
+            }
+            else
+            {
+                await hub.Completer.TriggerModelInference($"{instruction}\r\n\r\nResponse user based on function result");
+            }
         }
     }
 }
