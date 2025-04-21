@@ -19,7 +19,7 @@ public abstract class AgentHookBase : IAgentHook
         _settings = settings;
     }
 
-    public void SetAget(Agent agent)
+    public void SetAgent(Agent agent)
     {
         _agent = agent;
     }
