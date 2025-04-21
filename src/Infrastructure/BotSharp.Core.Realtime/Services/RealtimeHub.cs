@@ -51,7 +51,8 @@ public class RealtimeHub : IRealtimeHub
 
         _completer = _services.GetServices<IRealTimeCompletion>().First(x => x.Provider == settings.Provider);
 
-        await _completer.Connect(_conn, 
+        await _completer.Connect(
+            _conn, 
             onModelReady: async () => 
             {
                 // Not TriggerModelInference, waiting for user utter.
@@ -153,6 +154,10 @@ public class RealtimeHub : IRealtimeHub
 
                 var res = _conn.OnUserSpeechDetected();
                 await (responseToUser?.Invoke(res) ?? Task.CompletedTask);
+            },
+            onSessionReconnect: async () =>
+            {
+                await _completer.Disconnect();
             });
     }
 

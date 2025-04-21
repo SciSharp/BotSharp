@@ -8,7 +8,8 @@ public interface IRealTimeCompletion
     string Model { get; }
     void SetModelName(string model);
 
-    Task Connect(RealtimeHubConnection conn,
+    Task Connect(
+        RealtimeHubConnection conn,
         Action onModelReady,
         Action<string, string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
@@ -16,7 +17,9 @@ public interface IRealTimeCompletion
         Action<List<RoleDialogModel>> onModelResponseDone,
         Action<string> onConversationItemCreated,
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
-        Action onInterruptionDetected);
+        Action onInterruptionDetected,
+        Func<Task> onSessionReconnect);
+
     Task AppenAudioBuffer(string message);
     Task AppenAudioBuffer(ArraySegment<byte> data, int length);
 

@@ -9,8 +9,9 @@ namespace BotSharp.Plugin.GoogleAi.Providers.Realtime;
 public class GoogleRealTimeProvider : IRealTimeCompletion
 {
     public string Provider => "google-ai";
-    private string _model = GoogleAIModels.Gemini2FlashExp;
     public string Model => _model;
+
+    private string _model = GoogleAIModels.Gemini2FlashExp;
     private MultiModalLiveClient _client;
     private GenerativeModel _chatClient;
     private readonly IServiceProvider _services;
@@ -34,17 +35,18 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         _model = model;
     }
 
-    private Action onModelReady;
-    Action<string, string> onModelAudioDeltaReceived;
-    private Action onModelAudioResponseDone;
-    Action<string> onModelAudioTranscriptDone;
-    private Action<List<RoleDialogModel>> onModelResponseDone;
-    Action<string> onConversationItemCreated;
-    private Action<RoleDialogModel> onInputAudioTranscriptionCompleted;
-    Action onUserInterrupted;
-    RealtimeHubConnection conn;
+    private RealtimeHubConnection _conn;
+    private Action _onModelReady;
+    private Action<string, string> _onModelAudioDeltaReceived;
+    private Action _onModelAudioResponseDone;
+    private Action<string> _onModelAudioTranscriptDone;
+    private Action<List<RoleDialogModel>> _onModelResponseDone;
+    private Action<string> _onConversationItemCreated;
+    private Action<RoleDialogModel> _onInputAudioTranscriptionCompleted;
+    private Action _onUserInterrupted;
 
-    public async Task Connect(RealtimeHubConnection conn,
+    public async Task Connect(
+        RealtimeHubConnection conn,
         Action onModelReady,
         Action<string, string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
@@ -52,17 +54,18 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         Action<List<RoleDialogModel>> onModelResponseDone,
         Action<string> onConversationItemCreated,
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
-        Action onUserInterrupted)
+        Action onUserInterrupted,
+        Func<Task> onSessionReconnect)
     {
-        this.conn = conn;
-        this.onModelReady = onModelReady;
-        this.onModelAudioDeltaReceived = onModelAudioDeltaReceived;
-        this.onModelAudioResponseDone = onModelAudioResponseDone;
-        this.onModelAudioTranscriptDone = onModelAudioTranscriptDone;
-        this.onModelResponseDone = onModelResponseDone;
-        this.onConversationItemCreated = onConversationItemCreated;
-        this.onInputAudioTranscriptionCompleted = onInputAudioTranscriptionCompleted;
-        this.onUserInterrupted = onUserInterrupted;
+        _conn = conn;
+        _onModelReady = onModelReady;
+        _onModelAudioDeltaReceived = onModelAudioDeltaReceived;
+        _onModelAudioResponseDone = onModelAudioResponseDone;
+        _onModelAudioTranscriptDone = onModelAudioTranscriptDone;
+        _onModelResponseDone = onModelResponseDone;
+        _onConversationItemCreated = onConversationItemCreated;
+        _onInputAudioTranscriptionCompleted = onInputAudioTranscriptionCompleted;
+        _onUserInterrupted = onUserInterrupted;
 
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
         _model = realtimeModelSettings.Model;
@@ -120,7 +123,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         client.Connected += (sender, e) =>
         {
             _logger.LogInformation("Google Realtime Client connected.");
-            onModelReady();
+            _onModelReady();
         };
 
         client.Disconnected += (sender, e) =>
@@ -133,39 +136,39 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
             _logger.LogInformation("User message received.");
             if (e.Payload.SetupComplete != null)
             {
-                onConversationItemCreated(_client.ConnectionId.ToString());
+                _onConversationItemCreated(_client.ConnectionId.ToString());
             }
 
             if (e.Payload.ServerContent != null)
             {
                 if (e.Payload.ServerContent.TurnComplete == true)
                 {
-                    var responseDone = await ResponseDone(conn, e.Payload.ServerContent);
-                    onModelResponseDone(responseDone);
+                    var responseDone = await ResponseDone(_conn, e.Payload.ServerContent);
+                    _onModelResponseDone(responseDone);
                 }
             }
         };
 
         client.AudioChunkReceived += (sender, e) =>
         {
-            onModelAudioDeltaReceived(Convert.ToBase64String(e.Buffer), Guid.NewGuid().ToString());
+            _onModelAudioDeltaReceived(Convert.ToBase64String(e.Buffer), Guid.NewGuid().ToString());
         };
 
         client.TextChunkReceived += (sender, e) =>
         {
-            onInputAudioTranscriptionCompleted(new RoleDialogModel(AgentRole.Assistant, e.Text));
+            _onInputAudioTranscriptionCompleted(new RoleDialogModel(AgentRole.Assistant, e.Text));
         };
 
         client.GenerationInterrupted += (sender, e) => 
         {
             _logger.LogInformation("Audio generation interrupted.");
-            onUserInterrupted(); 
+            _onUserInterrupted(); 
         };
 
         client.AudioReceiveCompleted += (sender, e) => 
         {
             _logger.LogInformation("Audio receive completed.");
-            onModelAudioResponseDone(); 
+            _onModelAudioResponseDone(); 
         };
 
         client.ErrorOccurred += (sender, e) =>

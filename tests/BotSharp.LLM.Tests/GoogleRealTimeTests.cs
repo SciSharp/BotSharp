@@ -44,7 +44,8 @@ namespace BotSharp.Plugin.Google.Core
                 (s, s1) => { Console.WriteLine(s); }, () => { }, (s) => { Console.WriteLine(s); },
                 (list => { Console.WriteLine(list); }),
                 (s => { Console.WriteLine(s); }),
-                (model => { Console.WriteLine(model); }), (() => { Console.WriteLine("UserInterrupted"); }));
+                (model => { Console.WriteLine(model); }), (() => { Console.WriteLine("UserInterrupted"); }),
+                async () => await Task.CompletedTask);
             Thread.Sleep(1000);
             modelReady.ShouldBeTrue();
 
