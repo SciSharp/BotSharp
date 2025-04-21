@@ -7,12 +7,11 @@ public class TwilioSetting
     /// </summary>
     public string? PhoneNumber { get; set; }
 
-    public string AccountSID { get; set; }
-    public string AuthToken { get; set; }
+    public string AccountSID { get; set; } = null!;
     public string AppSID { get; set; }
     public string ApiKeySID { get; set; }
     public string ApiSecret { get; set; }
-    public string CallbackHost { get; set; }
+    public string CallbackHost { get; set; } = null!;
 
     public string SpeechModel { get; set; } = "googlev2_telephony";
     public string? MessagingShortCode { get; set; }
@@ -22,11 +21,15 @@ public class TwilioSetting
     /// </summary>
     public string? CsrAgentNumber { get; set; }
 
-    public int MaxGatherAttempts { get; set; } = 4;
+    public int MaxGatherAttempts { get; set; } = 10;
+
+    public int GatherTimeout { get; set; } = 1;
 
     public string? MachineDetection { get; set; }
     public int MachineDetectionSilenceTimeout { get; set; } = 2500;
 
     public bool RecordingEnabled { get; set; } = false;
     public bool TranscribeEnabled { get; set; } = false;
+
+    public bool GenerateReplyAudio { get; set; } = true;
 }

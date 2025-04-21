@@ -215,7 +215,7 @@ public class TwilioVoiceController : TwilioController
         var reply = await sessionManager.GetAssistantReplyAsync(request.ConversationId, request.SeqNum);
         VoiceResponse response;
         
-        if (request.AIResponseWaitTime > 5)
+        if (request.AIResponseWaitTime > 10)
         {
             // Wait AI Response Timeout
             await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
@@ -256,11 +256,19 @@ public class TwilioVoiceController : TwilioController
                 {
                     AgentId = request.AgentId,
                     ConversationId = request.ConversationId,
-                    SpeechPaths = [$"twilio/voice/speeches/{request.ConversationId}/{reply.SpeechFileName}"],
                     CallbackPath = $"twilio/voice/receive/{nextSeqNum}?agent-id={request.AgentId}&conversation-id={request.ConversationId}&{twilio.GenerateStatesParameter(request.States)}",
                     ActionOnEmptyResult = true,
                     Hints = reply.Hints
                 };
+
+                if (!string.IsNullOrEmpty(reply.SpeechFileName))
+                {
+                    instruction.SpeechPaths = [$"twilio/voice/speeches/{request.ConversationId}/{reply.SpeechFileName}"];
+                }
+                else
+                {
+                    instruction.Text = reply.Content;
+                }
 
                 await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
                 {

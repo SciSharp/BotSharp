@@ -25,7 +25,7 @@ public class TwilioMessageQueueService : BackgroundService
     {
         _queue = queue;
         _serviceProvider = serviceProvider;
-        _throttler = new SemaphoreSlim(10, 10);
+        _throttler = new SemaphoreSlim(20, 20);
         _logger = logger;
     }
 
@@ -103,7 +103,13 @@ public class TwilioMessageQueueService : BackgroundService
                 };
             }
         );
-        reply.SpeechFileName = await GetReplySpeechFileName(message.ConversationId, reply, sp);
+
+        var settings = sp.GetRequiredService<TwilioSetting>();
+        if (settings.GenerateReplyAudio)
+        {
+            reply.SpeechFileName = await GetReplySpeechFileName(message.ConversationId, reply, sp);
+        }
+        
         reply.Hints = GetHints(reply);
         await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
     }
