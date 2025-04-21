@@ -13,6 +13,12 @@ public class Agent
     /// Agent Type
     /// </summary>
     public string Type { get; set; } = AgentType.Task;
+
+    /// <summary>
+    /// Routing Mode: lazy or eager
+    /// </summary>
+    public string Mode { get; set; } = "eager";
+
     public DateTime CreatedDateTime { get; set; }
     public DateTime UpdatedDateTime { get; set; }
 
@@ -156,6 +162,7 @@ public class Agent
             Name = agent.Name,
             Description = agent.Description,
             Type = agent.Type,
+            Mode = agent.Mode,
             Instruction = agent.Instruction,
             ChannelInstructions = agent.ChannelInstructions,
             Functions = agent.Functions,
@@ -272,6 +279,17 @@ public class Agent
     public Agent SetAgentType(string type)
     {
         Type = type;
+        return this;
+    }
+
+    /// <summary>
+    /// Set agent mode: lazy or eager
+    /// </summary>
+    /// <param name="mode"></param>
+    /// <returns></returns>
+    public Agent SetAgentMode(string mode)
+    {
+        Mode = mode;
         return this;
     }
 

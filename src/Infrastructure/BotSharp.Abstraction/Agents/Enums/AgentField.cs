@@ -8,6 +8,7 @@ public enum AgentField
     IsPublic,
     Disabled,
     Type,
+    Mode,
     InheritAgentId,
     Profile,
     Label,

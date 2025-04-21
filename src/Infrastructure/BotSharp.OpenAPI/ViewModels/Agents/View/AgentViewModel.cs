@@ -12,6 +12,7 @@ public class AgentViewModel
     public string Name { get; set; }
     public string Description { get; set; }
     public string Type { get; set; } = AgentType.Task;
+    public string Mode { get; set; } = null!;
     public string Instruction { get; set; }
 
     [JsonPropertyName("channel_instructions")]
@@ -82,6 +83,7 @@ public class AgentViewModel
             Name = agent.Name,
             Description = agent.Description,
             Type = agent.Type,
+            Mode = agent.Mode,
             Instruction = agent.Instruction,
             ChannelInstructions = agent.ChannelInstructions ?? [],
             Templates = agent.Templates ?? [],
