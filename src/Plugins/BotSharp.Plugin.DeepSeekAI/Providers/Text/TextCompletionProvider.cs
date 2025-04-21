@@ -61,6 +61,9 @@ public class TextCompletionProvider : ITextCompletion
             MessageId = messageId
         };
 
+        var tokenUsage = response?.Value?.Usage;
+        var inputTokenDetails = response?.Value?.Usage?.InputTokenDetails;
+
         foreach (var hook in contentHooks)
         {
             await hook.AfterGenerated(responseMessage, new TokenStatsModel
@@ -68,8 +71,9 @@ public class TextCompletionProvider : ITextCompletion
                 Prompt = text,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response?.Value?.Usage?.InputTokenCount ?? default,
-                CompletionCount = response?.Value?.Usage?.OutputTokenCount ?? default
+                TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
+                CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
+                TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
             });
         }
 

@@ -52,6 +52,45 @@ public class ModelTokenUsage
 
     [JsonPropertyName("output_tokens")]
     public int OutputTokens { get; set; }
+
+    [JsonPropertyName("input_token_details")]
+    public InputTokenDetail? InputTokenDetails { get; set; }
+
+    [JsonPropertyName("output_token_details")]
+    public OutputTokenDetail? OutputTokenDetails { get; set; }
+}
+
+public class InputTokenDetail
+{
+    [JsonPropertyName("text_tokens")]
+    public int? TextTokens { get; set; }
+
+    [JsonPropertyName("audio_tokens")]
+    public int? AudioTokens { get; set; }
+
+    [JsonPropertyName("cached_tokens")]
+    public int? CachedTokens { get; set; }
+
+    [JsonPropertyName("cached_tokens_details")]
+    public CachedTokenDetail? CachedTokenDetails { get; set; }
+}
+
+public class CachedTokenDetail
+{
+    [JsonPropertyName("text_tokens")]
+    public int? TextTokens { get; set; }
+
+    [JsonPropertyName("audio_tokens")]
+    public int? AudioTokens { get; set; }
+}
+
+public class OutputTokenDetail
+{
+    [JsonPropertyName("text_tokens")]
+    public int? TextTokens { get; set; }
+
+    [JsonPropertyName("audio_tokens")]
+    public int? AudioTokens { get; set; }
 }
 
 public class ModelResponseDoneOutput

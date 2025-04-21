@@ -69,8 +69,8 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response.Usage.PromptTokens,
-                CompletionCount = response.Usage.CompletionTokens
+                TextInputTokens = response.Usage.PromptTokens,
+                TextOutputTokens = response.Usage.CompletionTokens
             });
         }
 
@@ -108,8 +108,8 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response.Usage.PromptTokens,
-                CompletionCount = response.Usage.CompletionTokens
+                TextInputTokens = response.Usage.PromptTokens,
+                TextOutputTokens = response.Usage.CompletionTokens
             });
         }
 

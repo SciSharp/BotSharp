@@ -64,9 +64,8 @@ public class GeminiTextCompletionProvider : ITextCompletion
                 Prompt = text,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response.UsageMetadata?.PromptTokenCount ?? 0,
-                CachedPromptCount = response.UsageMetadata?.CachedContentTokenCount ?? 0,
-                CompletionCount = response.UsageMetadata?.CandidatesTokenCount ?? 0
+                TextInputTokens = response?.UsageMetadata?.PromptTokenCount ?? 0,
+                TextOutputTokens = response?.UsageMetadata?.CandidatesTokenCount ?? 0
             });
         }
 

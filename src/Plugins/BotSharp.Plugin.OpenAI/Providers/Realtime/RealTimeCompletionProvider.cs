@@ -178,11 +178,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     _logger.LogDebug($"{response.Type}: {receivedText}");
                     onModelAudioDeltaReceived(audio.Delta, audio.ItemId);
                 }
-                else
-                {
-                    _logger.LogDebug($"{response.Type}: {receivedText}");
-                    onModelAudioDeltaReceived(audio.Delta, audio.ItemId);
-                }
             }
             else if (response.Type == "response.audio.done")
             {
@@ -571,6 +566,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
 
+        var inputTokenDetails = data.Usage?.InputTokenDetails;
+        var outputTokenDetails = data.Usage?.OutputTokenDetails;
+
         foreach (var output in data.Outputs)
         {
             if (output.Type == "function_call")
@@ -591,13 +589,18 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, $"{output.Name}\r\n{output.Arguments}")
                     {
                         CurrentAgentId = conn.CurrentAgentId
-                    }, new TokenStatsModel
+                    },
+                    new TokenStatsModel
                     {
                         Provider = Provider,
                         Model = _model,
                         Prompt = $"{output.Name}\r\n{output.Arguments}",
-                        CompletionCount = data.Usage.OutputTokens,
-                        PromptCount = data.Usage.InputTokens
+                        TextInputTokens = inputTokenDetails?.TextTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
+                        CachedTextInputTokens = data.Usage?.InputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
+                        AudioInputTokens = inputTokenDetails?.AudioTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
+                        CachedAudioInputTokens = inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
+                        TextOutputTokens = outputTokenDetails?.TextTokens ?? 0,
+                        AudioOutputTokens = outputTokenDetails?.AudioTokens ?? 0
                     });
                 }
             }
@@ -618,13 +621,18 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, content.Transcript)
                     {
                         CurrentAgentId = conn.CurrentAgentId
-                    }, new TokenStatsModel
+                    },
+                    new TokenStatsModel
                     {
                         Provider = Provider,
                         Model = _model,
                         Prompt = content.Transcript,
-                        CompletionCount = data.Usage.OutputTokens,
-                        PromptCount = data.Usage.InputTokens
+                        TextInputTokens = inputTokenDetails?.TextTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
+                        CachedTextInputTokens = data.Usage?.InputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
+                        AudioInputTokens = inputTokenDetails?.AudioTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
+                        CachedAudioInputTokens = inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
+                        TextOutputTokens = outputTokenDetails?.TextTokens ?? 0,
+                        AudioOutputTokens = outputTokenDetails?.AudioTokens ?? 0
                     });
                 }
             }

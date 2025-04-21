@@ -73,6 +73,9 @@ public class ChatCompletionProvider : IChatCompletion
             };
         }
 
+        var tokenUsage = response?.Value?.Usage;
+        var inputTokenDetails = response?.Value?.Usage?.InputTokenDetails;
+
         // After chat completion hook
         foreach (var hook in contentHooks)
         {
@@ -81,8 +84,9 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response.Value?.Usage?.InputTokenCount ?? 0,
-                CompletionCount = response.Value?.Usage?.OutputTokenCount ?? 0
+                TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
+                CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
+                TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
             });
         }
 
@@ -115,6 +119,9 @@ public class ChatCompletionProvider : IChatCompletion
             RenderedInstruction = string.Join("\r\n", renderedInstructions)
         };
 
+        var tokenUsage = response?.Value?.Usage;
+        var inputTokenDetails = response?.Value?.Usage?.InputTokenDetails;
+
         // After chat completion hook
         foreach (var hook in hooks)
         {
@@ -123,8 +130,9 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response.Value?.Usage?.InputTokenCount ?? 0,
-                CompletionCount = response.Value?.Usage?.OutputTokenCount ?? 0
+                TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
+                CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
+                TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
             });
         }
 

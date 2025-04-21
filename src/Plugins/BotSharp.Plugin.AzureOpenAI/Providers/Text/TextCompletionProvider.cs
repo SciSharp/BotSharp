@@ -78,14 +78,15 @@ public class TextCompletionProvider : ITextCompletion
             CurrentAgentId = agentId,
             MessageId = messageId
         };
+
         Task.WaitAll(contentHooks.Select(hook =>
             hook.AfterGenerated(responseMessage, new TokenStatsModel
             {
                 Prompt = text,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response.Usage?.PromptTokens ?? default,
-                CompletionCount = response.Usage?.CompletionTokens ?? default
+                TextInputTokens = response?.Usage?.PromptTokens ?? 0,
+                TextOutputTokens = response?.Usage?.CompletionTokens ?? 0
             })).ToArray());
 
         return completion.Trim();

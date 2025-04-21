@@ -43,21 +43,11 @@ public class LlmModelSetting
     public bool ImageGeneration { get; set; }
 
     /// <summary>
-    /// Prompt cost per 1K token
-    /// </summary>
-    public float PromptCost { get; set; }
-
-    /// <summary>
-    /// Completion cost per 1K token
-    /// </summary>
-    public float CompletionCost { get; set; }
-
-    /// <summary>
     /// Embedding dimension
     /// </summary>
     public int Dimension { get; set; }
 
-    public LlmCost AdditionalCost { get; set; } = new();
+    public LlmCost Cost { get; set; } = new();
 
     public override string ToString()
     {
@@ -65,12 +55,20 @@ public class LlmModelSetting
     }
 }
 
+/// <summary>
+/// Cost per 1K tokens
+/// </summary>
 public class LlmCost
 {
-    public float CachedPromptCost { get; set; } = 0f;
-    public float AudioPromptCost { get; set; } = 0f;
-    public float ReasoningCompletionCost { get; } = 0f;
-    public float AudioCompletionCost { get; } = 0f;
+    // Input
+    public float TextInputCost { get; set; } = 0f;
+    public float CachedTextInputCost { get; set; } = 0f;
+    public float AudioInputCost { get; set; } = 0f;
+    public float CachedAudioInputCost { get; set; } = 0f;
+
+    // Output
+    public float TextOutputCost { get; set; } = 0f;
+    public float AudioOutputCost { get; set; } = 0f;
 }
 
 public enum LlmModelType
