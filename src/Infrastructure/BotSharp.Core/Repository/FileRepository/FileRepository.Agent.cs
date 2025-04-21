@@ -27,6 +27,9 @@ namespace BotSharp.Core.Repository
                 case AgentField.Type:
                     UpdateAgentType(agent.Id, agent.Type);
                     break;
+                case AgentField.Mode:
+                    UpdateAgentMode(agent.Id, agent.Mode);
+                    break;
                 case AgentField.InheritAgentId:
                     UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
                     break;
@@ -137,6 +140,17 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.Type = type;
+            agent.UpdatedDateTime = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(agent, _options);
+            File.WriteAllText(agentFile, json);
+        }
+
+        private void UpdateAgentMode(string agentId, string mode)
+        {
+            var (agent, agentFile) = GetAgentFromFile(agentId);
+            if (agent == null) return;
+
+            agent.Mode = mode;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
