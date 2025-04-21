@@ -551,8 +551,8 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var auditData = FileUtility.BuildFileDataFromFile(file);
-            var content = await fileInstruct.SpeechToText(new InstructFileModel { FileData = auditData }, text, new InstructOptions
+            var audioData = FileUtility.BuildFileDataFromFile(file);
+            var content = await fileInstruct.SpeechToText(new InstructFileModel { FileData = audioData }, text, new InstructOptions
             {
                 Provider = provider,
                 Model = model,

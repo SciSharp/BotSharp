@@ -1,3 +1,4 @@
+using Azure;
 using BotSharp.Abstraction.Files.Utilities;
 using OpenAI.Chat;
 using System.ClientModel;
@@ -40,12 +41,13 @@ public class ChatCompletionProvider : IChatCompletion
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
+        ClientResult<ChatCompletion>? response = null;
         ChatCompletion value = default;
         RoleDialogModel responseMessage;
 
         try
         {
-            var response = chatClient.CompleteChat(messages, options);
+            response = chatClient.CompleteChat(messages, options);
             value = response.Value;
 
             var reason = value.FinishReason;
@@ -101,6 +103,9 @@ public class ChatCompletionProvider : IChatCompletion
             };
         }
 
+        var tokenUsage = response?.Value?.Usage;
+        var inputTokenDetails = response?.Value?.Usage?.InputTokenDetails;
+
         // After chat completion hook
         foreach (var hook in contentHooks)
         {
@@ -109,8 +114,9 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = value?.Usage?.InputTokenCount ?? 0,
-                CompletionCount = value?.Usage?.OutputTokenCount ?? 0
+                TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
+                CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
+                TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
             });
         }
 
@@ -146,6 +152,9 @@ public class ChatCompletionProvider : IChatCompletion
             RenderedInstruction = string.Join("\r\n", renderedInstructions)
         };
 
+        var tokenUsage = response?.Value?.Usage;
+        var inputTokenDetails = response?.Value?.Usage?.InputTokenDetails;
+
         // After chat completion hook
         foreach (var hook in hooks)
         {
@@ -154,8 +163,9 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response.Value?.Usage?.InputTokenCount ?? 0,
-                CompletionCount = response.Value?.Usage?.OutputTokenCount ?? 0
+                TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
+                CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
+                TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
             });
         }
 

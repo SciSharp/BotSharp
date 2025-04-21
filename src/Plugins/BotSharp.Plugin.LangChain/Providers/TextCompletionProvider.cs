@@ -46,14 +46,14 @@ namespace BotSharp.Plugin.VertexAI.Providers
             };
 
             Task.WaitAll(contentHooks.Select(hook =>
-            hook.AfterGenerated(responseMessage, new TokenStatsModel
-            {
-                Prompt = text,
-                Provider = Provider,
-                Model = _model,
-                PromptCount = response.Usage.TotalTokens,
-                CompletionCount = response.Usage.OutputTokens
-            })).ToArray());
+                hook.AfterGenerated(responseMessage, new TokenStatsModel
+                {
+                    Prompt = text,
+                    Provider = Provider,
+                    Model = _model,
+                    TextInputTokens = response.Usage.InputTokens,
+                    TextOutputTokens = response.Usage.OutputTokens
+                })).ToArray());
 
             return response.LastMessageContent;
         }

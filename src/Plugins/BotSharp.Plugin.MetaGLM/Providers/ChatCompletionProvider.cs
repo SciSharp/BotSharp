@@ -78,8 +78,8 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response.usage.GetValueOrDefault("prompt_tokens"),
-                CompletionCount = response.usage.GetValueOrDefault("completion_tokens")
+                TextInputTokens = response.usage.GetValueOrDefault("prompt_tokens"),
+                TextOutputTokens = response.usage.GetValueOrDefault("completion_tokens")
             });
         }
 

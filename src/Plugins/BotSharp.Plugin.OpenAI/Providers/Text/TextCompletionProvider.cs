@@ -73,8 +73,8 @@ public class TextCompletionProvider : ITextCompletion
                 Prompt = text,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response.Usage?.PromptTokens ?? default,
-                CompletionCount = response.Usage?.CompletionTokens ?? default
+                TextInputTokens = response.Usage?.PromptTokens ?? 0,
+                TextOutputTokens = response.Usage?.CompletionTokens ?? 0
             })).ToArray());
 
         return completion.Trim();
