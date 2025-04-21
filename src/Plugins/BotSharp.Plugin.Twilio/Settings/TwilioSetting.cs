@@ -14,6 +14,7 @@ public class TwilioSetting
     public string ApiSecret { get; set; }
     public string CallbackHost { get; set; }
 
+    public string SpeechModel { get; set; } = "googlev2_telephony";
     public string? MessagingShortCode { get; set; }
 
     /// <summary>
