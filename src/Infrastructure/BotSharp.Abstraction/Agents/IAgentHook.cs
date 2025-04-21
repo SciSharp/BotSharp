@@ -9,7 +9,7 @@ public interface IAgentHook
     /// </summary>
     string SelfId { get; }
     Agent Agent { get; }
-    void SetAget(Agent agent);
+    void SetAgent(Agent agent);
 
     /// <summary>
     /// Triggered when agent is loading.
