@@ -76,7 +76,7 @@ public class RealtimeChatSession : IDisposable
             return;
         }
 
-        await _clientEventSemaphore.WaitAsync().ConfigureAwait(false);
+        await _clientEventSemaphore.WaitAsync();
 
         try
         {

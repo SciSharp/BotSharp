@@ -169,10 +169,9 @@ public class TwilioInboundController : TwilioController
         var agentService = _services.GetRequiredService<IAgentService>();
         // Get agent from storage
         var agent = await agentService.GetAgent(request.AgentId);
-        // Enable lazy routing mode to optimize realtime experience
-        if (agent.Profiles.Contains("realtime") && agent.Type == AgentType.Routing)
+        if (agent.Type == AgentType.Routing)
         {
-            states.Add(new(StateConst.ROUTING_MODE, "lazy"));
+            states.Add(new(StateConst.ROUTING_MODE, agent.Mode));
         }
         convService.SetConversationId(conversation.Id, states);
         convService.SaveStates();

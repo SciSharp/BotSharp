@@ -49,7 +49,7 @@ public static class Utilities
     {
         // Clear whole cache.
         var sharpCache = new SharpCacheAttribute(0);
-        sharpCache.ClearCacheAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        sharpCache.ClearCacheAsync().GetAwaiter().GetResult();
     }
 
     public static string HideMiddleDigits(string input, bool isEmail = false)

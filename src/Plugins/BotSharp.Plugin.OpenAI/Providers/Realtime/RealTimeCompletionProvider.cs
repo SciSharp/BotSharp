@@ -162,7 +162,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
             else if (response.Type == "response.audio_transcript.delta")
             {
-
+                _logger.LogDebug($"{response.Type}: {receivedText}");
             }
             else if (response.Type == "response.audio_transcript.done")
             {
@@ -206,8 +206,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
             else if (response.Type == "input_audio_buffer.speech_started")
             {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
                 // Handle user interuption
                 onInterruptionDetected();
+            }
+            else if (response.Type == "input_audio_buffer.speech_stopped")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
             }
         }
     }
@@ -253,7 +258,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 Instructions = instruction,
                 ToolChoice = "auto",
                 Tools = functions,
-                Modalities = [ "text", "audio" ],
+                Modalities = realtimeModelSettings.Modalities,
                 Temperature = Math.Max(options.Temperature ?? realtimeModelSettings.Temperature, 0.6f),
                 MaxResponseOutputTokens = realtimeModelSettings.MaxResponseOutputTokens,
                 TurnDetection = new RealtimeSessionTurnDetection
@@ -555,6 +560,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var data = JsonSerializer.Deserialize<ResponseDone>(response).Body;
         if (data.Status != "completed")
         {
+            _logger.LogError(data.StatusDetails.ToString());
             return [];
         }
 

@@ -66,9 +66,9 @@ public class TwilioService
             },
             Action = new Uri($"{_settings.CallbackHost}/{conversationalVoiceResponse.CallbackPath}"),
             Enhanced = true,
-            SpeechModel = Gather.SpeechModelEnum.PhoneCall,
+            SpeechModel = _settings.SpeechModel,
             SpeechTimeout = "auto", // timeout > 0 ? timeout.ToString() : "3",
-            Timeout = conversationalVoiceResponse.Timeout > 0 ? conversationalVoiceResponse.Timeout : 3,
+            Timeout = Math.Max(_settings.GatherTimeout, 1),
             ActionOnEmptyResult = conversationalVoiceResponse.ActionOnEmptyResult,
             Hints = conversationalVoiceResponse.Hints
         };
@@ -80,6 +80,12 @@ public class TwilioService
                 gather.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
             }
         }
+
+        if (!string.IsNullOrEmpty(conversationalVoiceResponse.Text))
+        {
+            gather.Say(conversationalVoiceResponse.Text);
+        }
+
         response.Append(gather);
         return response;
     }
@@ -106,9 +112,9 @@ public class TwilioService
             },
             Action = new Uri($"{_settings.CallbackHost}/{voiceResponse.CallbackPath}"),
             Enhanced = true,
-            SpeechModel = Gather.SpeechModelEnum.PhoneCall,
+            SpeechModel = _settings.SpeechModel,
             SpeechTimeout = "auto", // conversationalVoiceResponse.Timeout > 0 ? conversationalVoiceResponse.Timeout.ToString() : "3",
-            Timeout = voiceResponse.Timeout > 0 ? voiceResponse.Timeout : 3,
+            Timeout = Math.Max(_settings.GatherTimeout, 1),
             ActionOnEmptyResult = voiceResponse.ActionOnEmptyResult,
         };
         response.Append(gather);
@@ -139,6 +145,11 @@ public class TwilioService
                 response.Play(new Uri(uri));
             }
         }
+        else
+        {
+            response.Say("Goodbye.");
+        }
+
         response.Hangup();
         return response;
     }

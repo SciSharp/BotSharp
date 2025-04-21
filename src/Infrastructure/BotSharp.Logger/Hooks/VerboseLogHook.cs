@@ -38,7 +38,7 @@ public class VerboseLogHook : IContentGeneratingHook
         if (!_convSettings.ShowVerboseLog || string.IsNullOrEmpty(tokenStats.Prompt)) return;
 
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(message.CurrentAgentId);
+        var agent = await agentService.GetAgent(message.CurrentAgentId);
 
         var log = message.Role == AgentRole.Function ?
                 $"[{agent?.Name}]: {message.Indication} {message.FunctionName}({message.FunctionArgs})" :

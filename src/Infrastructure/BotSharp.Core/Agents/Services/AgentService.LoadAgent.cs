@@ -50,7 +50,7 @@ public partial class AgentService
                 continue;
             }
 
-            hook.SetAget(agent);
+            hook.SetAgent(agent);
 
             if (!string.IsNullOrEmpty(agent.Instruction))
             {

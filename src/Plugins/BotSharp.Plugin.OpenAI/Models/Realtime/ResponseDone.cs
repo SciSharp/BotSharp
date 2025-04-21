@@ -128,7 +128,32 @@ public class ResponseDoneStatusDetail
     public string Type { get; set; } = null!;
 
     [JsonPropertyName("reason")]
-    public string Reason { get; set; } = null!;
+    public string? Reason { get; set; } = null!;
+
+    [JsonPropertyName("error")]
+    public ResponseDoneErrorStatus? Error { get; set; } = null!;
+
+    public override string ToString()
+    {
+        return $"{Type}: {Reason} ({Error})";
+    }
+}
+
+public class ResponseDoneErrorStatus
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = null!;
+
+    [JsonPropertyName("message")]
+    public string? Message { get; set; } = null!;
+
+    [JsonPropertyName("code")]
+    public string? Code { get; set; } = null!;
+
+    public override string ToString()
+    {
+        return $"{Type}: {Message} ({Code})";
+    }
 }
 
 public class ResponseDoneOutputContent
