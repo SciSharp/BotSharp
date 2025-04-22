@@ -4,7 +4,7 @@ using System.Net.WebSockets;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
 
-public class AiWebsocketPipelineResponse : PipelineResponse
+internal class AiWebsocketPipelineResponse : PipelineResponse
 {
 
     public AiWebsocketPipelineResponse()

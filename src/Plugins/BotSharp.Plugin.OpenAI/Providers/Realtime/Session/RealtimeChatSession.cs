@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
 
-public class RealtimeChatSession : IDisposable
+internal class RealtimeChatSession : IDisposable
 {
     private readonly IServiceProvider _services;
     private readonly BotSharpOptions _options;

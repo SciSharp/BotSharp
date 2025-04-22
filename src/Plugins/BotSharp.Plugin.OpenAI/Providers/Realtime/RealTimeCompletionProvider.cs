@@ -139,7 +139,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<RoleDialogModel> onUserAudioTranscriptionCompleted,
         Action onInterruptionDetected)
     {
-        DateTime? prevTime = null;
+        DateTime? startTime = null;
 
         await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
         {
@@ -153,11 +153,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
             if (_settings?.ModelResponseTimeout > 0
                 && !string.IsNullOrWhiteSpace(_settings?.ModelResponseTimeoutEndEvent)
-                && prevTime.HasValue
-                && (DateTime.UtcNow - prevTime.Value).TotalSeconds >= _settings.ModelResponseTimeout
+                && startTime.HasValue
+                && (DateTime.UtcNow - startTime.Value).TotalSeconds >= _settings.ModelResponseTimeout
                 && response.Type != _settings.ModelResponseTimeoutEndEvent)
             {
-                prevTime = null;
+                startTime = null;
                 await TriggerModelInference("Responsd to user immediately");
                 continue;
             }
@@ -217,7 +217,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 var item = JsonSerializer.Deserialize<ConversationItemCreated>(receivedText)?.Item;
                 if (item?.Role == "user")
                 {
-                    prevTime = DateTime.UtcNow;
+                    startTime = DateTime.UtcNow;
                 }
 
                 onConversationItemCreated(receivedText);
@@ -242,6 +242,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 _logger.LogInformation($"{response.Type}: {receivedText}");
             }
         }
+
+        _session.Dispose();
     }
 
     public async Task SendEventToModel(object message)
