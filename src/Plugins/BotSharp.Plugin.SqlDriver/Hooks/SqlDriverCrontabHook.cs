@@ -9,6 +9,7 @@ public class SqlDriverCrontabHook : ICrontabHook
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
+    public string[]? Triggers => ["SqlDriverRuleTrigger"];
     public SqlDriverCrontabHook(IServiceProvider services, ILogger<SqlDriverCrontabHook> logger)
     {
         _services = services;
