@@ -54,8 +54,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         Action<List<RoleDialogModel>> onModelResponseDone,
         Action<string> onConversationItemCreated,
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
-        Action onUserInterrupted,
-        Func<Task> onSessionReconnect)
+        Action onUserInterrupted)
     {
         _conn = conn;
         _onModelReady = onModelReady;

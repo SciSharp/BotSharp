@@ -41,8 +41,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<List<RoleDialogModel>> onModelResponseDone,
         Action<string> onConversationItemCreated,
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
-        Action onInterruptionDetected,
-        Func<Task> onSessionReconnect)
+        Action onInterruptionDetected)
     {
         _model = _settings.Model;
 

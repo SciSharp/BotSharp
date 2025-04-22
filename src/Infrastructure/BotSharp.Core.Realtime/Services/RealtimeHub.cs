@@ -154,10 +154,6 @@ public class RealtimeHub : IRealtimeHub
 
                 var res = _conn.OnUserSpeechDetected();
                 await (responseToUser?.Invoke(res) ?? Task.CompletedTask);
-            },
-            onSessionReconnect: async () =>
-            {
-                await _completer.Disconnect();
             });
     }
 
