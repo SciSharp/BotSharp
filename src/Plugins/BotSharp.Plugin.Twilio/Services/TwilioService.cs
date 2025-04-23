@@ -240,7 +240,7 @@ public class TwilioService
 
         var connect = new Connect();
         var host = _settings.CallbackHost.Split("://").Last();
-        connect.Stream(url: $"wss://{host}/twilio/stream/{conversationId}");
+        connect.Stream(url: $"wss://{host}/twilio/stream/{agent.Id}/{conversationId}");
         response.Append(connect);
 
         return response;
