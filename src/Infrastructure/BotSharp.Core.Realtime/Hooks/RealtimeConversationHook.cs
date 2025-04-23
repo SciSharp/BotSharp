@@ -57,7 +57,11 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
             var instruction = await hub.Completer.UpdateSession(hub.HubConn);
             await hub.Completer.InsertConversationItem(message);
 
-            if (message.StopCompletion)
+            if (string.IsNullOrEmpty(message.Content))
+            {
+                return;
+            }
+            else if (message.StopCompletion)
             {
                 await hub.Completer.TriggerModelInference($"Say to user: \"{message.Content}\"");
             }

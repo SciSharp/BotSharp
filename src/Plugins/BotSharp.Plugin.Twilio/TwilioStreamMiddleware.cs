@@ -34,11 +34,13 @@ public class TwilioStreamMiddleware
             if (httpContext.WebSockets.IsWebSocketRequest)
             {
                 var services = httpContext.RequestServices;
-                var conversationId = request.Path.Value.Split("/").Last();
+                var parts = request.Path.Value.Split("/");
+                var agentId = parts[3];
+                var conversationId = parts[4];
                 using WebSocket webSocket = await httpContext.WebSockets.AcceptWebSocketAsync();
                 try
                 {
-                    await HandleWebSocket(services, conversationId, webSocket);
+                    await HandleWebSocket(services, agentId, conversationId, webSocket);
                 }
                 catch (Exception ex)
                 {
@@ -51,12 +53,13 @@ public class TwilioStreamMiddleware
         await _next(httpContext);
     }
 
-    private async Task HandleWebSocket(IServiceProvider services, string conversationId, WebSocket webSocket)
+    private async Task HandleWebSocket(IServiceProvider services, string agentId, string conversationId, WebSocket webSocket)
     {
         var settings = services.GetRequiredService<RealtimeModelSettings>();
         var hub = services.GetRequiredService<IRealtimeHub>();
         var conn = hub.SetHubConnection(conversationId);
-        
+        conn.CurrentAgentId = agentId;
+
         // load conversation and state
         var convService = services.GetRequiredService<IConversationService>();
         convService.SetConversationId(conversationId, []);
@@ -66,6 +69,9 @@ public class TwilioStreamMiddleware
             await hook.OnStreamingStarted(conn);
         }
         convService.States.Save();
+
+        var routing = services.GetRequiredService<IRoutingService>();
+        routing.Context.Push(agentId);
 
         var buffer = new byte[1024 * 32];
         WebSocketReceiveResult result;
@@ -136,6 +142,7 @@ public class TwilioStreamMiddleware
             case "start":
                 eventType = "user_connected";
                 var startResponse = JsonSerializer.Deserialize<StreamEventStartResponse>(receivedText);
+                conn.UserSessionId = startResponse.Body.CallSid;
                 data = JsonSerializer.Serialize(startResponse.Body.CustomParameters);
                 conn.ResetStreamState();
                 break;
