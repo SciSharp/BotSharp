@@ -44,7 +44,7 @@ var app = builder.Build();
 
 // Enable SignalR
 app.MapHub<SignalRHub>("/chatHub");
-app.UseMiddleware<WebSocketsMiddleware>();
+app.UseMiddleware<ChatHubMiddleware>();
 
 // Use BotSharp
 app.UseBotSharp()

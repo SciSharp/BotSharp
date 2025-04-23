@@ -34,3 +34,4 @@ global using BotSharp.Abstraction.Messaging.Models.RichContent;
 global using BotSharp.Abstraction.Templating;
 global using BotSharp.Plugin.ChatHub.Settings;
 global using BotSharp.Plugin.ChatHub.Enums;
+global using BotSharp.Plugin.ChatHub.Models.Stream;
