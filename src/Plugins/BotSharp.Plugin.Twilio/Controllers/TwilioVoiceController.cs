@@ -176,7 +176,7 @@ public class TwilioVoiceController : TwilioController
                     ActionOnEmptyResult = true
                 };
 
-                if (request.Attempts == 3)
+                if (request.Attempts == 5)
                 {
                     instruction.SpeechPaths.Add($"twilio/say-it-again-{Random.Shared.Next(1, 5)}.mp3");
                 }
