@@ -17,6 +17,12 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
         {
             return;
         }
+        
+        if (message.FunctionName == "response_to_user")
+        {
+            return;
+        }
+
         // Save states
         if (message.FunctionArgs != null && message.FunctionArgs.Length > 3)
         {
@@ -49,6 +55,11 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
             hub.HubConn.CurrentAgentId = routing.Context.GetCurrentAgentId();
 
             await hub.Completer.UpdateSession(hub.HubConn);
+            await hub.Completer.TriggerModelInference();
+        }
+        else if (message.FunctionName == "response_to_user")
+        {
+            await hub.Completer.InsertConversationItem(message);
             await hub.Completer.TriggerModelInference();
         }
         else

@@ -7,6 +7,8 @@ Follow these steps to handle user request:
 4. You must include all required args for the selected agent, but you must not make up any parameters when there is no exact value provided, those parameters must set value as null if not declared.
 {% if routing_mode != 'lazy' %}
 5. Response must be in JSON format.
+{% else %}
+5. If user is greeting, you can call function response_to_user with a greeting message.
 {% endif %}
 
 {% if routing_requirements and routing_requirements != empty %}
