@@ -1,4 +1,5 @@
 using BotSharp.Plugin.Twilio.Models;
+using BotSharp.Plugin.Twilio.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
@@ -24,7 +25,17 @@ public class TwilioReconnectController : TwilioController
         var connect = new Connect();
         var host = _settings.CallbackHost.Split("://").Last();
         connect.Stream(url: $"wss://{host}/twilio/stream/{request.AgentId}/{request.ConversationId}");
-        response.Pause(1);
+        if (!string.IsNullOrEmpty(request.InitAudioFile))
+        {
+            var twilio = _services.GetRequiredService<TwilioService>();
+            var audioUrl = twilio.GetSpeechPath(request.ConversationId, request.InitAudioFile);
+            response.Play(new Uri(audioUrl));
+        }
+        else
+        {
+            // Leave a pause to allow disposing objects.
+            response.Pause(1);
+        }
         response.Append(connect);
         return TwiML(response);
     }

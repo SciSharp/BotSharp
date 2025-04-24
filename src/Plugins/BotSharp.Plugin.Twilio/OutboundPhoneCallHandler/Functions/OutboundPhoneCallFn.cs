@@ -82,7 +82,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
         var agent = await agentService.GetAgent(message.CurrentAgentId);
 
         // Set up process URL streaming or synchronous
-        if (agent.Profiles.Contains("realtime"))
+        if (agent.Labels.Contains("realtime"))
         {
             processUrl += "/inbound";
         }

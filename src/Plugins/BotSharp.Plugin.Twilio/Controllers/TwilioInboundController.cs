@@ -74,7 +74,7 @@ public class TwilioInboundController : TwilioController
         }
         else
         {
-            if (agent.Profiles.Contains("realtime"))
+            if (agent.Labels.Contains("realtime"))
             {
                 response = twilio.ReturnBidirectionalMediaStreamsInstructions(instruction, agent);
             }
