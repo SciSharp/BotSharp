@@ -123,6 +123,9 @@
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\agent.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\functions\response_to_user.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\instructions\instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

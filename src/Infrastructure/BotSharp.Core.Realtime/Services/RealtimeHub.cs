@@ -30,7 +30,7 @@ public class RealtimeHub : IRealtimeHub
 
         var routing = _services.GetRequiredService<IRoutingService>();
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(_conn.CurrentAgentId);
+        var agent = await agentService.GetAgent(_conn.CurrentAgentId);
 
         var storage = _services.GetRequiredService<IConversationStorage>();
         var dialogs = convService.GetDialogHistory();
