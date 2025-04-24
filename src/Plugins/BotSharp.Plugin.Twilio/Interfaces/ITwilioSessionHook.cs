@@ -86,6 +86,6 @@ public interface ITwilioSessionHook
     /// </summary>
     /// <param name="message"></param>
     /// <returns></returns>
-    Task<bool> ShouldReconnect(RoleDialogModel message)
+    Task<bool> ShouldReconnect(ConversationalVoiceRequest request, RoleDialogModel message)
         => Task.FromResult(false);
 }
