@@ -86,7 +86,7 @@ public class RoutingContext : IRoutingContext
         if (!Guid.TryParse(agentId, out _))
         {
             var agentService = _services.GetRequiredService<IAgentService>();
-            var agents = agentService.GetAgentOptions([agentId], byName: true).Result;
+            var agents = agentService.GetAgentOptions([agentId]).Result;
 
             if (agents.Count > 0)
             {

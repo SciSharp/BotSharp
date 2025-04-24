@@ -74,7 +74,7 @@ await hub.ConnectToModel(async data =>
 });
 
 StreamReceiveResult result;
-var buffer = new byte[1024 * 8];
+var buffer = new byte[1024 * 32];
 
 do
 {

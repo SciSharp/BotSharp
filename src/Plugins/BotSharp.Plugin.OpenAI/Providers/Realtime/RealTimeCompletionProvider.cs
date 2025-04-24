@@ -1,6 +1,10 @@
 using BotSharp.Plugin.OpenAI.Models.Realtime;
 using BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
+using Newtonsoft.Json.Linq;
 using OpenAI.Chat;
+using System.Collections.Concurrent;
+using System.Threading.Channels;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Realtime;
 
@@ -19,6 +23,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     protected string _model = "gpt-4o-mini-realtime-preview";
     private RealtimeChatSession _session;
+
+    //private Channel<AudioMessage> _messageChannel;
+    //private ConcurrentDictionary<string, AudioMessage> _messageDic;
 
     public RealTimeCompletionProvider(
         OpenAiSettings settings,
@@ -45,6 +52,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
         _model = realtimeModelSettings.Model;
 
+        //_messageDic = new();
+        //_messageChannel = Channel.CreateUnbounded<AudioMessage>(new UnboundedChannelOptions
+        //{
+        //    SingleReader = true,
+        //    SingleWriter = true
+        //});
+
         _session?.Dispose();
         _session = new RealtimeChatSession(_services, _options);
         await _session.ConnectAsync(Provider, _model, CancellationToken.None);
@@ -58,10 +72,43 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 onConversationItemCreated,
                 onInputAudioTranscriptionCompleted,
                 onInterruptionDetected);
+
+        //_ = Task.Run(async () =>
+        //{
+        //    await foreach (var item in _messageChannel.Reader.ReadAllAsync())
+        //    {
+        //        var start = DateTime.UtcNow;
+        //        while (_messageDic.TryGetValue(item.ItemId, out var found) && !string.IsNullOrEmpty(found.Transcript))
+        //        {
+        //            if (found.Event == "conversation.item.input_audio_transcription.completed")
+        //            {
+        //                var message = await OnUserAudioTranscriptionCompleted(conn, found.ReceivedText);
+        //                if (!string.IsNullOrEmpty(message.Content))
+        //                {
+        //                    onInputAudioTranscriptionCompleted(message);
+        //                }
+        //                _messageDic.TryRemove(found.ItemId, out _);
+        //            }
+        //            else if (found.Event == "response.done")
+        //            {
+        //                var messages = await OnResponsedDone(conn, found.ReceivedText);
+        //                onModelResponseDone(messages);
+        //                _messageDic.TryRemove(found.ItemId, out _);
+        //            }
+
+        //            if ((DateTime.UtcNow - start).TotalSeconds > 2)
+        //            {
+        //                _messageDic.TryRemove(found.ItemId, out _);
+        //                start = DateTime.UtcNow;
+        //            }
+        //        }
+        //    }
+        //});
     }
 
     public async Task Disconnect()
     {
+
         _session?.Disconnect();
     }
 
@@ -187,17 +234,51 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "response.done")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
+
+                //var data = JsonSerializer.Deserialize<ResponseDone>(receivedText);
+                //var output = data.Body.Outputs.FirstOrDefault();
+
+                //if (output != null && _messageDic.TryGetValue(output.Id, out var item))
+                //{
+                //    item.Event = response.Type;
+                //    item.ReceivedText = receivedText;
+                //    item.Transcript = output.Content.FirstOrDefault()?.Transcript;
+                //}
+
                 var messages = await OnResponsedDone(conn, receivedText);
                 onModelResponseDone(messages);
             }
             else if (response.Type == "conversation.item.created")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
+
+                var data = JsonSerializer.Deserialize<ConversationItemCreated>(receivedText);
+                //_messageDic.TryAdd(data.Item.Id, new AudioMessage
+                //{
+                //    ItemId = data.Item.Id,
+                //    ReceivedText = receivedText
+                //});
+                //await _messageChannel.Writer.WriteAsync(new AudioMessage
+                //{
+                //    ItemId = data.Item.Id,
+                //    ReceivedText = receivedText
+                //});
+
+                await Task.Delay(500);
                 onConversationItemCreated(receivedText);
             }
             else if (response.Type == "conversation.item.input_audio_transcription.completed")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
+
+                //var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(receivedText);
+                //if (_messageDic.TryGetValue(data.ItemId, out var item))
+                //{
+                //    item.Event = response.Type;
+                //    item.ReceivedText = receivedText;
+                //    item.Transcript = data.Transcript;
+                //}
+
                 var message = await OnUserAudioTranscriptionCompleted(conn, receivedText);
                 if (!string.IsNullOrEmpty(message.Content))
                 {
@@ -213,8 +294,18 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "input_audio_buffer.speech_stopped")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
+                await Task.Delay(500);
+            }
+            else if (response.Type == "input_audio_buffer.committed")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+                await Task.Delay(500);
             }
         }
+
+        //_messageChannel?.Writer.TryComplete();
+        //_messageChannel = null;
+        _session.Dispose();
     }
 
     public async Task SendEventToModel(object message)
@@ -657,4 +748,12 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         return message;
     }
+}
+
+class AudioMessage
+{
+    public string ItemId { get; set; }
+    public string Event { get; set; }
+    public string ReceivedText { get; set; }
+    public string? Transcript { get; set; }
 }

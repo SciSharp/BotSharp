@@ -39,12 +39,12 @@ public class RealtimeHub : IRealtimeHub
         var dialogs = convService.GetDialogHistory();
         if (dialogs.Count == 0)
         {
-            dialogs.Add(new RoleDialogModel(AgentRole.User, "Hi"));
-            storage.Append(_conn.ConversationId, dialogs.First());
+            //dialogs.Add(new RoleDialogModel(AgentRole.User, "Hi"));
+            //storage.Append(_conn.ConversationId, dialogs.First());
         }
 
         routing.Context.SetDialogs(dialogs);
-        routing.Context.SetMessageId(_conn.ConversationId, dialogs.Last().MessageId);
+        routing.Context.SetMessageId(_conn.ConversationId, dialogs.LastOrDefault()?.MessageId ?? Guid.NewGuid().ToString());
 
         var states = _services.GetRequiredService<IConversationStateService>();
         var settings = _services.GetRequiredService<RealtimeModelSettings>();

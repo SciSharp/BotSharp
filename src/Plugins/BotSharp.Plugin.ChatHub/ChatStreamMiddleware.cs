@@ -58,12 +58,13 @@ public class ChatStreamMiddleware
         convService.SetConversationId(conversationId, []);
         await convService.GetConversationRecordOrCreateNew(agentId);
 
-        var buffer = new byte[1024 * 1024 * 8];
+        var buffer = new byte[1024 * 32];
         WebSocketReceiveResult result;
 
         do
         {
             result = await webSocket.ReceiveAsync(new(buffer), CancellationToken.None);
+
             if (result.MessageType != WebSocketMessageType.Text)
             {
                 continue;
@@ -109,7 +110,10 @@ public class ChatStreamMiddleware
     private async Task SendEventToUser(WebSocket webSocket, string message)
     {
         var buffer = Encoding.UTF8.GetBytes(message);
-        await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+        if (!webSocket.CloseStatus.HasValue)
+        {
+            await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+        }
     }
 
     private (string, string) MapEvents(RealtimeHubConnection conn, string receivedText)
