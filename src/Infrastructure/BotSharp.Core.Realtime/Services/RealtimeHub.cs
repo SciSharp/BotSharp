@@ -39,8 +39,8 @@ public class RealtimeHub : IRealtimeHub
         var dialogs = convService.GetDialogHistory();
         if (dialogs.Count == 0)
         {
-            //dialogs.Add(new RoleDialogModel(AgentRole.User, "Hi"));
-            //storage.Append(_conn.ConversationId, dialogs.First());
+            dialogs.Add(new RoleDialogModel(AgentRole.User, "Hi"));
+            storage.Append(_conn.ConversationId, dialogs.First());
         }
 
         routing.Context.SetDialogs(dialogs);
