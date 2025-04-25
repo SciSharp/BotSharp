@@ -28,23 +28,14 @@ public class RealtimeHub : IRealtimeHub
         convService.SetConversationId(_conn.ConversationId, []);
         var conversation = await convService.GetConversation(_conn.ConversationId);
 
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(conversation.AgentId);
-        _conn.CurrentAgentId = agent.Id;
-
         var routing = _services.GetRequiredService<IRoutingService>();
-        routing.Context.Push(agent.Id);
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(_conn.CurrentAgentId);
 
         var storage = _services.GetRequiredService<IConversationStorage>();
         var dialogs = convService.GetDialogHistory();
-        if (dialogs.Count == 0)
-        {
-            dialogs.Add(new RoleDialogModel(AgentRole.User, "Hi"));
-            storage.Append(_conn.ConversationId, dialogs.First());
-        }
-
         routing.Context.SetDialogs(dialogs);
-        routing.Context.SetMessageId(_conn.ConversationId, dialogs.LastOrDefault()?.MessageId ?? Guid.NewGuid().ToString());
+        routing.Context.SetMessageId(_conn.ConversationId, Guid.Empty.ToString());
 
         var states = _services.GetRequiredService<IConversationStateService>();
         var settings = _services.GetRequiredService<RealtimeModelSettings>();

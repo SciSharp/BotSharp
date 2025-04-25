@@ -3,6 +3,7 @@ namespace BotSharp.Abstraction.Realtime.Models;
 public class RealtimeHubConnection
 {
     public string StreamId { get; set; } = null!;
+    public string UserSessionId {get;set;} = null!; 
     public string? LastAssistantItemId { get; set; } = null!;
     public long LatestMediaTimestamp { get; set; }
     public long? ResponseStartTimestamp { get; set; }

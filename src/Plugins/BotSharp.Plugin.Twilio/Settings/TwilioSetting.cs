@@ -32,4 +32,5 @@ public class TwilioSetting
     public bool TranscribeEnabled { get; set; } = false;
 
     public bool GenerateReplyAudio { get; set; } = true;
+    public bool GenerateEndingAudio { get; set; } = true;
 }

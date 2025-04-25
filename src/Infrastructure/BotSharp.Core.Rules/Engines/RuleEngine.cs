@@ -18,7 +18,7 @@ public class RuleEngine : IRuleEngine
         _logger = logger;
     }
 
-    public async Task Triggered(IRuleTrigger trigger, string data, List<MessageState>? states = null)
+    public async Task<IEnumerable<string>> Triggered(IRuleTrigger trigger, string data, List<MessageState>? states = null)
     {
         // Pull all user defined rules
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -36,7 +36,7 @@ public class RuleEngine : IRuleEngine
 
         // Trigger the agents
         var instructService = _services.GetRequiredService<IInstructService>();
-        
+        var newConversationIds = new List<string>();
 
         foreach (var agent in preFilteredAgents)
         {
@@ -68,6 +68,7 @@ public class RuleEngine : IRuleEngine
                 msg => Task.CompletedTask);
 
             convService.SaveStates();
+            newConversationIds.Add(conv.Id);
 
             /*foreach (var rule in agent.Rules)
             {
@@ -88,5 +89,7 @@ public class RuleEngine : IRuleEngine
                 }
             }*/
         }
+
+        return newConversationIds;
     }
 }

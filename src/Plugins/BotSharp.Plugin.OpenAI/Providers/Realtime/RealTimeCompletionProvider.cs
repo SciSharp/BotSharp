@@ -194,9 +194,20 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "response.done")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
-
-                var messages = await OnResponsedDone(conn, receivedText);
-                onModelResponseDone(messages);
+                var data = JsonSerializer.Deserialize<ResponseDone>(receivedText).Body;
+                if (data.Status != "completed")
+                {
+                    if (data.StatusDetails.Type == "incomplete" && data.StatusDetails.Reason == "max_output_tokens")
+                    {
+                        onInterruptionDetected();
+                        await TriggerModelInference("Response user concisely");
+                    }
+                }
+                else
+                {
+                    var messages = await OnResponsedDone(conn, receivedText);
+                    onModelResponseDone(messages);
+                }
             }
             else if (response.Type == "conversation.item.created")
             {
@@ -311,6 +322,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         });
 
         await SendEventToModel(sessionUpdate);
+
+        await Task.Delay(300);
 
         return instruction;
     }
@@ -577,7 +590,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var data = JsonSerializer.Deserialize<ResponseDone>(response).Body;
         if (data.Status != "completed")
         {
-            _logger.LogError($"{data.StatusDetails.ToString()}");
+            _logger.LogError(data.StatusDetails.ToString());
+            /*if (data.StatusDetails.Type == "incomplete" && data.StatusDetails.Reason == "max_output_tokens")
+            {
+                await TriggerModelInference("Response user concisely");
+            }*/
             return [];
         }
 
