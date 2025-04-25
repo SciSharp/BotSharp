@@ -115,7 +115,11 @@ public class CrontabService : ICrontabService, ITaskFeeder
     public async Task ScheduledTimeArrived(CrontabItem item)
     {
         _logger.LogDebug($"ScheduledTimeArrived {item}");
-        
+        HookEmitter.Emit<ICrontabAuthenticationHook>(_services, hook =>
+        {
+            hook.SetUserIdentity(item);
+        });
+
         await HookEmitter.Emit<ICrontabHook>(_services, async hook =>
         {
             if (hook.Triggers == null || hook.Triggers.Contains(item.Title))
