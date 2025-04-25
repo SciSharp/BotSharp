@@ -51,7 +51,8 @@ public class RealtimeHub : IRealtimeHub
 
         _completer = _services.GetServices<IRealTimeCompletion>().First(x => x.Provider == settings.Provider);
 
-        await _completer.Connect(_conn, 
+        await _completer.Connect(
+            conn: _conn, 
             onModelReady: async () => 
             {
                 // Not TriggerModelInference, waiting for user utter.

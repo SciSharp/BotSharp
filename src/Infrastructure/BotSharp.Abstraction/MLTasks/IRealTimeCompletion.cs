@@ -8,7 +8,8 @@ public interface IRealTimeCompletion
     string Model { get; }
     void SetModelName(string model);
 
-    Task Connect(RealtimeHubConnection conn,
+    Task Connect(
+        RealtimeHubConnection conn,
         Action onModelReady,
         Action<string, string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,

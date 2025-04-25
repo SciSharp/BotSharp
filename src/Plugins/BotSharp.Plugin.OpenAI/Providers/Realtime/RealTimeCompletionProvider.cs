@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Options;
 using BotSharp.Plugin.OpenAI.Models.Realtime;
 using BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
 using Newtonsoft.Json.Linq;
@@ -16,10 +17,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     public string Provider => "openai";
     public string Model => _model;
 
-    protected readonly OpenAiSettings _settings;
-    protected readonly IServiceProvider _services;
-    protected readonly ILogger<RealTimeCompletionProvider> _logger;
-    private readonly BotSharpOptions _options;
+    private readonly RealtimeModelSettings _settings;
+    private readonly IServiceProvider _services;
+    private readonly ILogger<RealTimeCompletionProvider> _logger;
+    private readonly BotSharpOptions _botsharpOptions;
 
     protected string _model = "gpt-4o-mini-realtime-preview";
     private RealtimeChatSession _session;
@@ -28,18 +29,19 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     //private ConcurrentDictionary<string, AudioMessage> _messageDic;
 
     public RealTimeCompletionProvider(
-        OpenAiSettings settings,
+        RealtimeModelSettings settings,
         ILogger<RealTimeCompletionProvider> logger,
         IServiceProvider services,
-        BotSharpOptions options)
+        BotSharpOptions botsharpOptions)
     {
         _settings = settings;
         _logger = logger;
         _services = services;
-        _options = options;
+        _botsharpOptions = botsharpOptions;
     }
 
-    public async Task Connect(RealtimeHubConnection conn,
+    public async Task Connect(
+        RealtimeHubConnection conn,
         Action onModelReady,
         Action<string,string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
@@ -59,11 +61,15 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         //    SingleWriter = true
         //});
 
-        _session?.Dispose();
-        _session = new RealtimeChatSession(_services, _options);
+        if (_session != null)
+        {
+            _session.Dispose();
+        }
+        _session = new RealtimeChatSession(_services, _botsharpOptions);
         await _session.ConnectAsync(Provider, _model, CancellationToken.None);
 
-        _ = ReceiveMessage(conn,
+        _ = ReceiveMessage(
+                conn,
                 onModelReady,
                 onModelAudioDeltaReceived,
                 onModelAudioResponseDone,
@@ -179,7 +185,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<RoleDialogModel> onUserAudioTranscriptionCompleted,
         Action onInterruptionDetected)
     {
-        await foreach (SessionConversationUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
+        await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
         {
             var receivedText = update?.RawResponse;
             if (string.IsNullOrEmpty(receivedText))
@@ -336,28 +342,26 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             return fn;
         }).ToArray();
 
-        var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
-
         var sessionUpdate = new
         {
             type = "session.update",
             session = new RealtimeSessionUpdateRequest
             {
-                InputAudioFormat = realtimeModelSettings.InputAudioFormat,
-                OutputAudioFormat = realtimeModelSettings.OutputAudioFormat,
-                Voice = realtimeModelSettings.Voice,
+                InputAudioFormat = _settings.InputAudioFormat,
+                OutputAudioFormat = _settings.OutputAudioFormat,
+                Voice = _settings.Voice,
                 Instructions = instruction,
                 ToolChoice = "auto",
                 Tools = functions,
-                Modalities = realtimeModelSettings.Modalities,
-                Temperature = Math.Max(options.Temperature ?? realtimeModelSettings.Temperature, 0.6f),
-                MaxResponseOutputTokens = realtimeModelSettings.MaxResponseOutputTokens,
+                Modalities = _settings.Modalities,
+                Temperature = Math.Max(options.Temperature ?? _settings.Temperature, 0.6f),
+                MaxResponseOutputTokens = _settings.MaxResponseOutputTokens,
                 TurnDetection = new RealtimeSessionTurnDetection
                 {
-                    InterruptResponse = realtimeModelSettings.InterruptResponse/*,
-                    Threshold = realtimeModelSettings.TurnDetection.Threshold,
-                    PrefixPadding = realtimeModelSettings.TurnDetection.PrefixPadding,
-                    SilenceDuration = realtimeModelSettings.TurnDetection.SilenceDuration*/
+                    InterruptResponse = _settings.InterruptResponse/*,
+                    Threshold = _settings.TurnDetection.Threshold,
+                    PrefixPadding = _settings.TurnDetection.PrefixPadding,
+                    SilenceDuration = _settings.TurnDetection.SilenceDuration*/
                 },
                 InputAudioNoiseReduction = new InputAudioNoiseReduction
                 {
@@ -366,15 +370,15 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
         };
 
-        if (realtimeModelSettings.InputAudioTranscribe)
+        if (_settings.InputAudioTranscribe)
         {
             var words = new List<string>();
             HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
 
             sessionUpdate.session.InputAudioTranscription = new InputAudioTranscription
             {
-                Model = realtimeModelSettings.InputAudioTranscription.Model,
-                Language = realtimeModelSettings.InputAudioTranscription.Language,
+                Model = _settings.InputAudioTranscription.Model,
+                Language = _settings.InputAudioTranscription.Language,
                 Prompt = string.Join(", ", words.Select(x => x.ToLower().Trim()).Distinct()).SubstringMax(1024)
             };
         }
@@ -651,7 +655,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var data = JsonSerializer.Deserialize<ResponseDone>(response).Body;
         if (data.Status != "completed")
         {
-            _logger.LogError(data.StatusDetails.ToString());
+            _logger.LogError($"{data.StatusDetails.ToString()}");
             return [];
         }
 

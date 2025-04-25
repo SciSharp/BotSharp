@@ -1,10 +1,10 @@
 namespace BotSharp.Plugin.OpenAI.Models.Realtime;
 
-public class SessionConversationUpdate
+public class ChatSessionUpdate
 {
     public string RawResponse { get; set; }
 
-    public SessionConversationUpdate()
+    public ChatSessionUpdate()
     {
         
     }

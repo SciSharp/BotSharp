@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
 
-public class RealtimeChatSession : IDisposable
+internal class RealtimeChatSession : IDisposable
 {
     private readonly IServiceProvider _services;
     private readonly BotSharpOptions _options;
@@ -36,7 +36,7 @@ public class RealtimeChatSession : IDisposable
         await _webSocket.ConnectAsync(new Uri($"wss://api.openai.com/v1/realtime?model={model}"), cancellationToken);
     }
 
-    public async IAsyncEnumerable<SessionConversationUpdate> ReceiveUpdatesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<ChatSessionUpdate> ReceiveUpdatesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         await foreach (ClientResult result in ReceiveInnerUpdatesAsync(cancellationToken))
         {
@@ -58,12 +58,12 @@ public class RealtimeChatSession : IDisposable
         }
     }
 
-    private SessionConversationUpdate HandleSessionResult(ClientResult result)
+    private ChatSessionUpdate HandleSessionResult(ClientResult result)
     {
         using var response = result.GetRawResponse();
         var bytes = response.Content.ToArray();
         var text = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-        return new SessionConversationUpdate
+        return new ChatSessionUpdate
         {
             RawResponse = text
         };

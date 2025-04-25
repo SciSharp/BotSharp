@@ -5,7 +5,7 @@ using System.Net.WebSockets;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
 
-public class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResult>
+internal class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResult>
 {
     private readonly WebSocket _webSocket;
     private readonly CancellationToken _cancellationToken;
