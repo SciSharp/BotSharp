@@ -1,4 +1,3 @@
-using Azure;
 using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Realtime.Models;
 using Microsoft.AspNetCore.Http;
@@ -52,6 +51,7 @@ public class ChatStreamMiddleware
     {
         var hub = services.GetRequiredService<IRealtimeHub>();
         var conn = hub.SetHubConnection(conversationId);
+        conn.CurrentAgentId = agentId;
 
         // load conversation and state
         var convService = services.GetRequiredService<IConversationService>();
