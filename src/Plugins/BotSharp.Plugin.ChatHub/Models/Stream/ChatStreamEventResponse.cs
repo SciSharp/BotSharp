@@ -10,6 +10,12 @@ internal class ChatStreamEventResponse
 
 internal class ChatStreamMediaEventResponse : ChatStreamEventResponse
 {
+    [JsonPropertyName("body")]
+    public MediaEventResponseBody Body { get; set; }
+}
+
+internal class MediaEventResponseBody
+{
     [JsonPropertyName("payload")]
     public string Payload { get; set; }
 }

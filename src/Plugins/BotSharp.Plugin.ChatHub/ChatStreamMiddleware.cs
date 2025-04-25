@@ -128,7 +128,7 @@ public class ChatStreamMiddleware
                 break;
             case "media":
                 var mediaResponse = JsonSerializer.Deserialize<ChatStreamMediaEventResponse>(receivedText);
-                data = mediaResponse?.Payload ?? string.Empty;
+                data = mediaResponse?.Body?.Payload ?? string.Empty;
                 break;
             case "disconnect":
                 break;
