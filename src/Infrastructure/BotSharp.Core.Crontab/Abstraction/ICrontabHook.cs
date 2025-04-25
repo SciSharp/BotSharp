@@ -1,16 +1,20 @@
 namespace BotSharp.Core.Crontab.Abstraction;
 
-public interface ICrontabHook
+public abstract class ICrontabHook
 {
-    string[]? Triggers
+    public string[]? Triggers
         => null;
 
-    Task OnCronTriggered(CrontabItem item)
+    public virtual void OnAuthenticate(CrontabItem item)
+    {
+    }
+
+    public Task OnCronTriggered(CrontabItem item)
         => Task.CompletedTask;
 
-    Task OnTaskExecuting(CrontabItem item)
+    public Task OnTaskExecuting(CrontabItem item)
         => Task.CompletedTask;
 
-    Task OnTaskExecuted(CrontabItem item)
+    public Task OnTaskExecuted(CrontabItem item)
         => Task.CompletedTask;
 }
