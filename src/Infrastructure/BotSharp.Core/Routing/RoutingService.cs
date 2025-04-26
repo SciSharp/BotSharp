@@ -28,17 +28,12 @@ public partial class RoutingService : IRoutingService
 
     public async Task<RoleDialogModel> InstructDirect(Agent agent, RoleDialogModel message)
     {
-        var handlers = _services.GetServices<IRoutingHandler>();
-
-        var handler = handlers.FirstOrDefault(x => x.Name == "route_to_agent");
-
         var conv = _services.GetRequiredService<IConversationService>();
         var storage = _services.GetRequiredService<IConversationStorage>();
         storage.Append(conv.ConversationId, message);
 
         var dialogs = conv.GetDialogHistory();
         Context.SetDialogs(dialogs);
-        handler.SetDialogs(dialogs);
 
         var inst = new FunctionCallFromLlm
         {
@@ -50,28 +45,14 @@ public partial class RoutingService : IRoutingService
             ExecutingDirectly = true
         };
 
-        var result = await handler.Handle(this, inst, message);
+        message.Instruction = inst;
+        var result = await InvokeFunction("route_to_agent", message);
 
         var response = dialogs.Last();
         response.MessageId = message.MessageId;
         response.Instruction = inst;
 
         return response;
-    }
-
-    public List<RoutingHandlerDef> GetHandlers(Agent router)
-    {
-        var reasoner = GetReasoner(router);
-
-        return _services.GetServices<IRoutingHandler>()
-            .Where(x => x.Planers == null || x.Planers.Contains(reasoner.GetType().Name))
-            .Where(x => !string.IsNullOrEmpty(x.Description))
-            .Select((x, i) => new RoutingHandlerDef
-            {
-                Name = x.Name,
-                Description = x.Description,
-                Parameters = x.Parameters
-            }).ToList();
     }
 
 #if !DEBUG

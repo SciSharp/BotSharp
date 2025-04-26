@@ -15,19 +15,6 @@ public class RoutingArgs
     [JsonPropertyName("conversation_end")]
     public bool ConversationEnd { get; set; }
 
-    [JsonPropertyName("task_completed")]
-    public bool TaskCompleted { get; set; }
-
-    [JsonPropertyName("is_new_task")]
-    public bool IsNewTask { get; set; }
-
-    /// <summary>
-    /// The content of replying to user
-    /// </summary>
-    [JsonPropertyName("response")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string Response { get; set; } = string.Empty;
-
     /// <summary>
     /// Agent for next action based on user latest response
     /// </summary>
@@ -38,10 +25,12 @@ public class RoutingArgs
     /// <summary>
     /// Agent who can achieve user original goal
     /// </summary>
+    [Obsolete("Will be replaced by dedicate Reasoner")]
     [JsonPropertyName("user_goal_agent")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string OriginalAgent { get; set; } = string.Empty;
 
+    [Obsolete("Will be replaced by dedicate Reasoner")]
     [JsonPropertyName("user_goal_description")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string UserGoal { get; set; } = string.Empty;
@@ -50,13 +39,6 @@ public class RoutingArgs
     {
         var route = string.IsNullOrEmpty(AgentName) ? "" : $"<Route to {AgentName.ToUpper()} because {NextActionReason}>";
 
-        if (string.IsNullOrEmpty(Response))
-        {
-            return $"[{Function} {route}]";
-        }
-        else
-        {
-            return $"[{Function} {route}] => {Response}";
-        }
+        return $"[{Function} {route}]";
     }
 }

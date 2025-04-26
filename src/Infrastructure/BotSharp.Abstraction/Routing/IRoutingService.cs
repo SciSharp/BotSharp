@@ -26,8 +26,6 @@ public interface IRoutingService
     /// <returns></returns>
     RoutingRule[] GetRulesByAgentId(string id);
 
-    List<RoutingHandlerDef> GetHandlers(Agent router);
-
     //void ResetRecursiveCounter();
     //int GetRecursiveCounter();
     //void SetRecursiveCounter(int counter);

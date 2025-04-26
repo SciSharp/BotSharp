@@ -155,14 +155,6 @@ public partial class ConversationService
             var conversation = _services.GetRequiredService<IConversationService>();
             var updatedConversation = await conversation.UpdateConversationTitle(_conversationId, response.Instruction.NextActionReason);
 
-            // Emit conversation task completed hook
-            if (response.Instruction.TaskCompleted)
-            {
-                await HookEmitter.Emit<IConversationHook>(_services, async hook =>
-                    await hook.OnTaskCompleted(response)
-                );
-            }
-
             // Emit conversation ending hook
             if (response.Instruction.ConversationEnd)
             {

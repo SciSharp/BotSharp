@@ -58,11 +58,8 @@ public partial class RoutingService
             // Save states
             states.SaveStateByArgs(inst.Arguments);
 
-#if DEBUG
-            Console.WriteLine($"*** Next Instruction *** {inst}");
-#else
-            _logger.LogInformation($"*** Next Instruction *** {inst}");
-#endif
+            _logger.LogDebug($"*** Next Instruction *** {inst}");
+
             await reasoner.AgentExecuting(_router, inst, message, dialogs);
 
             // Handover to Task Agent
@@ -79,7 +76,7 @@ public partial class RoutingService
 
             await reasoner.AgentExecuted(_router, inst, response, dialogs);
 
-            if (loopCount >= reasoner.MaxLoopCount || _context.IsEmpty)
+            if (loopCount >= reasoner.MaxLoopCount || _context.IsEmpty || response.StopCompletion)
             {
                 break;
             }

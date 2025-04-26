@@ -150,17 +150,6 @@ public static class BotSharpCoreExtensions
         var loader = new PluginLoader(services, config, pluginSettings);
         loader.Load(assembly =>
         {
-            // Register routing handlers
-            var handlers = assembly.GetTypes()
-                .Where(x => x.IsClass)
-                .Where(x => x.GetInterface(nameof(IRoutingHandler)) != null)
-                .ToArray();
-
-            foreach (var handler in handlers)
-            {
-                services.AddScoped(typeof(IRoutingHandler), handler);
-            }
-
             // Register function callback
             var functions = assembly.GetTypes()
                 .Where(x => x.IsClass

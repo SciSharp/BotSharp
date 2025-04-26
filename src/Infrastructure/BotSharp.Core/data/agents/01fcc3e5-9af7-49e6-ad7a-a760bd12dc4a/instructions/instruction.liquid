@@ -18,21 +18,6 @@ Follow these steps to handle user request:
 {%- endfor %}
 {% endif %}
 
-{% if routing_mode != 'lazy' %}
-[FUNCTIONS]
-{% for handler in routing_handlers -%}
-# {{ handler.description}}
-{% if handler.parameters and handler.parameters != empty -%}
-Parameters: 
-    - function: {{ handler.name }}
-    {% for p in handler.parameters -%}
-    - {{ p.name }} {% if p.required -%}(required){%- endif %}: {{ p.description }}{{ "\r\n    " }}
-    {%- endfor %}
-{%- endif %}
-{{ "\r\n" }}
-{%- endfor %}
-{% endif %}
-
 [AGENTS]
 {% for agent in routing_agents -%}
 * Agent: {{ agent.name }}

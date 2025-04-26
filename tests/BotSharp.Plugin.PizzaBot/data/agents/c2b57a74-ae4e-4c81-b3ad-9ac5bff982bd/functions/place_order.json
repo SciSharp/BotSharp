@@ -1,5 +1,5 @@
 {
-  "name": "place_an_order",
+  "name": "place_order",
   "description": "Place an order when user has confirmed the pizza type and quantity.",
   "parameters": {
     "type": "object",
