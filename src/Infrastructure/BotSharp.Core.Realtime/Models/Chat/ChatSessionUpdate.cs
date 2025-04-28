@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.OpenAI.Models.Realtime;
+namespace BotSharp.Core.Realtime.Models.Chat;
 
 public class ChatSessionUpdate
 {

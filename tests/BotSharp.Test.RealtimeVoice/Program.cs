@@ -25,6 +25,7 @@ await channel.ConnectAsync(conv.Id);
 
 var hub = services.GetRequiredService<IRealtimeHub>();
 var conn = hub.SetHubConnection(conv.Id);
+conn.CurrentAgentId = conv.AgentId;
 
 conn.OnModelReady = () =>
     JsonSerializer.Serialize(new

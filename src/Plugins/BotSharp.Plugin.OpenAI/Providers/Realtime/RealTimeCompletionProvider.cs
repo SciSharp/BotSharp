@@ -1,7 +1,7 @@
+using BotSharp.Core.Realtime.Models.Chat;
+using BotSharp.Core.Realtime.Websocket.Chat;
 using BotSharp.Plugin.OpenAI.Models.Realtime;
-using BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
 using OpenAI.Chat;
-using System;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Realtime;
 
@@ -44,15 +44,25 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
         Action onInterruptionDetected)
     {
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
+
         _model = realtimeModelSettings.Model;
+        var settings = settingsService.GetSetting(Provider, _model);
 
         if (_session != null)
         {
             _session.Dispose();
         }
-        _session = new RealtimeChatSession(_services, _botsharpOptions);
-        await _session.ConnectAsync(Provider, _model, CancellationToken.None);
+        _session = new RealtimeChatSession(_services, _botsharpOptions.JsonSerializerOptions);
+        await _session.ConnectAsync(
+            new Uri($"wss://api.openai.com/v1/realtime?model={_model}"),
+            new Dictionary<string, string>
+            {
+                {"Authorization", $"Bearer {settings.ApiKey}"},
+                {"OpenAI-Beta", "realtime=v1"}
+            },
+            CancellationToken.None);
 
         _ = ReceiveMessage(
                 conn,
@@ -600,6 +610,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
 
+        var prompts = new List<string>();
         var inputTokenDetails = data.Usage?.InputTokenDetails;
         var outputTokenDetails = data.Usage?.OutputTokenDetails;
 
@@ -617,26 +628,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     MessageType = MessageTypeName.FunctionCall
                 });
 
-                // After chat completion hook
-                foreach (var hook in contentHooks)
-                {
-                    await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, $"{output.Name}\r\n{output.Arguments}")
-                    {
-                        CurrentAgentId = conn.CurrentAgentId
-                    },
-                    new TokenStatsModel
-                    {
-                        Provider = Provider,
-                        Model = _model,
-                        Prompt = $"{output.Name}\r\n{output.Arguments}",
-                        TextInputTokens = inputTokenDetails?.TextTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
-                        CachedTextInputTokens = data.Usage?.InputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
-                        AudioInputTokens = inputTokenDetails?.AudioTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
-                        CachedAudioInputTokens = inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
-                        TextOutputTokens = outputTokenDetails?.TextTokens ?? 0,
-                        AudioOutputTokens = outputTokenDetails?.AudioTokens ?? 0
-                    });
-                }
+                prompts.Add($"{output.Name}({output.Arguments})");
             }
             else if (output.Type == "message")
             {
@@ -649,27 +641,30 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     MessageType = MessageTypeName.Plain
                 });
 
-                // After chat completion hook
-                foreach (var hook in contentHooks)
-                {
-                    await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, content.Transcript)
-                    {
-                        CurrentAgentId = conn.CurrentAgentId
-                    },
-                    new TokenStatsModel
-                    {
-                        Provider = Provider,
-                        Model = _model,
-                        Prompt = content.Transcript,
-                        TextInputTokens = inputTokenDetails?.TextTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
-                        CachedTextInputTokens = data.Usage?.InputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
-                        AudioInputTokens = inputTokenDetails?.AudioTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
-                        CachedAudioInputTokens = inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
-                        TextOutputTokens = outputTokenDetails?.TextTokens ?? 0,
-                        AudioOutputTokens = outputTokenDetails?.AudioTokens ?? 0
-                    });
-                }
+                prompts.Add(content.Transcript);
             }
+        }
+
+        var text = string.Join("\r\n", prompts);
+        // After chat completion hook
+        foreach (var hook in contentHooks)
+        {
+            await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, text)
+            {
+                CurrentAgentId = conn.CurrentAgentId
+            },
+            new TokenStatsModel
+            {
+                Provider = Provider,
+                Model = _model,
+                Prompt = text,
+                TextInputTokens = inputTokenDetails?.TextTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
+                CachedTextInputTokens = data.Usage?.InputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
+                AudioInputTokens = inputTokenDetails?.AudioTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
+                CachedAudioInputTokens = inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
+                TextOutputTokens = outputTokenDetails?.TextTokens ?? 0,
+                AudioOutputTokens = outputTokenDetails?.AudioTokens ?? 0
+            });
         }
 
         return outputs;

@@ -1,14 +1,13 @@
-using BotSharp.Plugin.OpenAI.Models.Realtime;
 using System.ClientModel;
-using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
+using BotSharp.Core.Realtime.Models.Chat;
 
-namespace BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
+namespace BotSharp.Core.Realtime.Websocket.Chat;
 
-internal class RealtimeChatSession : IDisposable
+public class RealtimeChatSession : IDisposable
 {
     private readonly IServiceProvider _services;
-    private readonly BotSharpOptions _options;
+    private readonly JsonSerializerOptions _jsonOptions;
 
     private ClientWebSocket _webSocket;
     private readonly object _singleReceiveLock = new();
@@ -17,23 +16,23 @@ internal class RealtimeChatSession : IDisposable
 
     public RealtimeChatSession(
         IServiceProvider services,
-        BotSharpOptions options)
+        JsonSerializerOptions jsonOptions)
     {
         _services = services;
-        _options = options;
+        _jsonOptions = jsonOptions;
     }
 
-    public async Task ConnectAsync(string provider, string model, CancellationToken cancellationToken = default)
+    public async Task ConnectAsync(Uri uri, Dictionary<string, string> headers, CancellationToken cancellationToken = default)
     {
-        var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting(provider, model);
-
         _webSocket?.Dispose();
         _webSocket = new ClientWebSocket();
-        _webSocket.Options.SetRequestHeader("Authorization", $"Bearer {settings.ApiKey}");
-        _webSocket.Options.SetRequestHeader("OpenAI-Beta", "realtime=v1");
 
-        await _webSocket.ConnectAsync(new Uri($"wss://api.openai.com/v1/realtime?model={model}"), cancellationToken);
+        foreach (var header in headers)
+        {
+            _webSocket.Options.SetRequestHeader(header.Key, header.Value);
+        }
+
+        await _webSocket.ConnectAsync(uri, cancellationToken);
     }
 
     public async IAsyncEnumerable<ChatSessionUpdate> ReceiveUpdatesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -82,7 +81,7 @@ internal class RealtimeChatSession : IDisposable
         {
             if (message is not string data)
             {
-                data = JsonSerializer.Serialize(message, _options.JsonSerializerOptions);
+                data = JsonSerializer.Serialize(message, _jsonOptions);
             }
 
             var buffer = Encoding.UTF8.GetBytes(data);

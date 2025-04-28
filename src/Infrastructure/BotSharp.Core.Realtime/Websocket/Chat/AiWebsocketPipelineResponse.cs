@@ -1,10 +1,9 @@
 using System.ClientModel.Primitives;
 using System.Net;
-using System.Net.WebSockets;
 
-namespace BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
+namespace BotSharp.Core.Realtime.Websocket.Chat;
 
-internal class AiWebsocketPipelineResponse : PipelineResponse
+public class AiWebsocketPipelineResponse : PipelineResponse
 {
     public AiWebsocketPipelineResponse()
     {
