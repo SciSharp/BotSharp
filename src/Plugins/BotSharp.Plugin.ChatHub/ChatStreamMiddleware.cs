@@ -109,9 +109,9 @@ public class ChatStreamMiddleware
 
     private async Task SendEventToUser(WebSocket webSocket, string message)
     {
-        var buffer = Encoding.UTF8.GetBytes(message);
-        if (!webSocket.CloseStatus.HasValue)
+        if (webSocket.State == WebSocketState.Open)
         {
+            var buffer = Encoding.UTF8.GetBytes(message);
             await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
         }
     }

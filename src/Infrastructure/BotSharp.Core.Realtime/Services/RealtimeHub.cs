@@ -47,7 +47,7 @@ public class RealtimeHub : IRealtimeHub
             onModelReady: async () => 
             {
                 // Not TriggerModelInference, waiting for user utter.
-                var instruction = await _completer.UpdateSession(_conn);
+                var instruction = await _completer.UpdateSession(_conn, isInit: true);
                 var data = _conn.OnModelReady();
                 await (init?.Invoke(data) ?? Task.CompletedTask);
                 await HookEmitter.Emit<IRealtimeHook>(_services, async hook => await hook.OnModelReady(agent, _completer));

@@ -85,7 +85,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         await SendContentLog(conversationId, input);
     }
 
-    public async Task OnSessionUpdated(Agent agent, string instruction, FunctionDef[] functions)
+    public async Task OnSessionUpdated(Agent agent, string instruction, FunctionDef[] functions, bool isInit = false)
     {
         var conversationId = _state.GetConversationId();
         if (string.IsNullOrEmpty(conversationId)) return;
@@ -97,6 +97,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             log += $"\r\n\r\n[FUNCTIONS]:\r\n\r\n{string.Join("\r\n\r\n", functions.Select(x => JsonSerializer.Serialize(x, BotSharpOptions.defaultJsonOptions)))}";
         }
         _logger.LogInformation(log);
+
+        if (isInit) return;
 
         var message = new RoleDialogModel(AgentRole.Assistant, log)
         {

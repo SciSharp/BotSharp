@@ -24,7 +24,7 @@ public interface IRealTimeCompletion
     Task SendEventToModel(object message);
     Task Disconnect();
 
-    Task<string> UpdateSession(RealtimeHubConnection conn);
+    Task<string> UpdateSession(RealtimeHubConnection conn, bool isInit = false);
     Task InsertConversationItem(RoleDialogModel message);
     Task RemoveConversationItem(string itemId);
     Task TriggerModelInference(string? instructions = null);

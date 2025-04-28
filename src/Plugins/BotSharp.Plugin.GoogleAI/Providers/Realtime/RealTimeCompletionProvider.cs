@@ -238,7 +238,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         //todo Send Audio Chunks to Model, Botsharp RealTime Implementation seems to be incomplete
     }
 
-    public async Task<string> UpdateSession(RealtimeHubConnection conn)
+    public async Task<string> UpdateSession(RealtimeHubConnection conn, bool isInit = false)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conv = await convService.GetConversation(conn.ConversationId);
@@ -278,7 +278,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         }).ToArray();
 
         await HookEmitter.Emit<IContentGeneratingHook>(_services,
-            async hook => { await hook.OnSessionUpdated(agent, prompt, functions); });
+            async hook => { await hook.OnSessionUpdated(agent, prompt, functions, isInit); });
         
         if (_settings.Gemini.UseGoogleSearch)
         {

@@ -264,7 +264,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         await _session.SendEventToModel(message);
     }
 
-    public async Task<string> UpdateSession(RealtimeHubConnection conn)
+    public async Task<string> UpdateSession(RealtimeHubConnection conn, bool isInit = false)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conv = await convService.GetConversation(conn.ConversationId);
@@ -328,13 +328,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         await HookEmitter.Emit<IContentGeneratingHook>(_services, async hook =>
         {
-            await hook.OnSessionUpdated(agent, instruction, functions);
+            await hook.OnSessionUpdated(agent, instruction, functions, isInit);
         });
 
         await SendEventToModel(sessionUpdate);
-
         await Task.Delay(300);
-
         return instruction;
     }
 
