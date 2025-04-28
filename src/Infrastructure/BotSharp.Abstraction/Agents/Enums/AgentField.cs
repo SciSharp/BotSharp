@@ -16,6 +16,7 @@ public enum AgentField
     Instruction,
     Function,
     Template,
+    Link,
     Response,
     Sample,
     LlmConfig,

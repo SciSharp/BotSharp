@@ -47,6 +47,12 @@ public class Agent
     public List<AgentTemplate> Templates { get; set; } = new();
 
     /// <summary>
+    /// Links that can be filled into parent prompt
+    /// </summary>
+    [JsonIgnore]
+    public List<AgentLink> Links { get; set; } = new();
+
+    /// <summary>
     /// Agent tasks
     /// </summary>
     [JsonIgnore]
@@ -168,6 +174,8 @@ public class Agent
             Functions = agent.Functions,
             Responses = agent.Responses,
             Samples = agent.Samples,
+            Templates = agent.Templates,
+            Links = agent.Links,
             Utilities = agent.Utilities,
             McpTools = agent.McpTools,
             Knowledges = agent.Knowledges,
@@ -201,6 +209,12 @@ public class Agent
     public Agent SetTemplates(List<AgentTemplate> templates)
     {
         Templates = templates ?? [];
+        return this;
+    }
+
+    public Agent SetLinks(List<AgentLink> links)
+    {
+        Links = links ?? [];
         return this;
     }
 

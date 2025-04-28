@@ -52,10 +52,12 @@ public partial class AgentService
                 var functions = GetFunctionsFromFile(dir);
                 var responses = GetResponsesFromFile(dir);
                 var templates = GetTemplatesFromFile(dir);
+                var links = GetLinksFromFile(dir);
                 var samples = GetSamplesFromFile(dir);
                 agent.SetInstruction(defaultInstruction)
                      .SetChannelInstructions(channelInstructions)
                      .SetTemplates(templates)
+                     .SetLinks(links)
                      .SetFunctions(functions)
                      .SetResponses(responses)
                      .SetSamples(samples);

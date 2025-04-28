@@ -45,7 +45,7 @@ public class AgentPlugin : IBotSharpPlugin
         {
             var settingService = provider.GetRequiredService<ISettingService>();
             var render = provider.GetRequiredService<ITemplateRender>();
-            render.Register(typeof(AgentSettings));
+            render.RegisterType(typeof(AgentSettings));
             return settingService.Bind<AgentSettings>("Agent");
         });
     }

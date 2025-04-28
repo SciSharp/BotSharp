@@ -24,6 +24,7 @@ public partial class FileRepository : IBotSharpRepository
     private const string AGENT_INSTRUCTIONS_FOLDER = "instructions";
     private const string AGENT_FUNCTIONS_FOLDER = "functions";
     private const string AGENT_TEMPLATES_FOLDER = "templates";
+    private const string AGENT_LINKS_FOLDER = "links";
     private const string AGENT_RESPONSES_FOLDER = "responses";
     private const string AGENT_TASKS_FOLDER = "tasks";
     private const string AGENT_TASK_PREFIX = "#metadata";
@@ -228,6 +229,7 @@ public partial class FileRepository : IBotSharpRepository
                                      .SetChannelInstructions(channelInstructions)
                                      .SetFunctions(FetchFunctions(d))
                                      .SetTemplates(FetchTemplates(d))
+                                     .SetLinks(FetchLinks(d))
                                      .SetResponses(FetchResponses(d))
                                      .SetSamples(FetchSamples(d));
                         _agents.Add(agent);
@@ -386,7 +388,7 @@ public partial class FileRepository : IBotSharpRepository
 
         foreach (var file in Directory.GetFiles(templateDir))
         {
-            var fileName = file.Split(Path.DirectorySeparatorChar).Last();
+            var fileName = Path.GetFileName(file);
             var splitIdx = fileName.LastIndexOf(".");
             var name = fileName.Substring(0, splitIdx);
             var extension = fileName.Substring(splitIdx + 1);
@@ -398,6 +400,29 @@ public partial class FileRepository : IBotSharpRepository
         }
 
         return templates;
+    }
+
+    private List<AgentLink> FetchLinks(string fileDir)
+    {
+        var links = new List<AgentLink>();
+        var linkDir = Path.Combine(fileDir, AGENT_LINKS_FOLDER);
+
+        if (!Directory.Exists(linkDir)) return links;
+
+        foreach (var file in Directory.GetFiles(linkDir))
+        {
+            var fileName = Path.GetFileName(file);
+            var splitIdx = fileName.LastIndexOf(".");
+            var name = fileName.Substring(0, splitIdx);
+            var extension = fileName.Substring(splitIdx + 1);
+            if (extension.Equals(_agentSettings.TemplateFormat, StringComparison.OrdinalIgnoreCase))
+            {
+                var content = File.ReadAllText(file);
+                links.Add(new AgentLink(name, content));
+            }
+
+        }
+        return links;
     }
 
     private List<AgentTask> FetchTasks(string fileDir)

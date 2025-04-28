@@ -15,6 +15,7 @@ public class AgentDocument : MongoBase
     public int? MaxMessageCount { get; set; }
     public List<ChannelInstructionMongoElement> ChannelInstructions { get; set; }
     public List<AgentTemplateMongoElement> Templates { get; set; }
+    public List<AgentLinkMongoElement> Links { get; set; }
     public List<FunctionDefMongoElement> Functions { get; set; }
     public List<AgentResponseMongoElement> Responses { get; set; }
     public List<string> Samples { get; set; }

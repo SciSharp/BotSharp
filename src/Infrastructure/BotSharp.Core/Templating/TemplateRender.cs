@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Translation.Models;
 using Fluid;
+using Fluid.Ast;
 using System.Collections;
 using System.Reflection;
 
@@ -40,17 +41,71 @@ public class TemplateRender : ITemplateRender
         {
             var context = new TemplateContext(dict, _options);
             template = t.Render(context);
-            return template;
         }
         else
         {
             _logger.LogWarning(error);
-            return template;
         }
+
+        return template;
     }
 
+    public bool RegisterTag(string tag, Dictionary<string, string> content, Dictionary<string, object>? data = null)
+    {
+        _parser.RegisterIdentifierTag(tag, (identifier, writer, encoder, context) =>
+        {
+            if (content?.TryGetValue(identifier, out var value) == true)
+            {
+                var str = Render(value, data ?? []);
+                writer.Write(str);
+            }
+            else
+            {
+                writer.Write(string.Empty);
+            }
+            return Statement.Normal();
+        });
 
-    public void Register(Type type)
+        return true;
+    }
+
+    public bool RegisterTags(Dictionary<string, List<AgentPromptBase>> tags, Dictionary<string, object>? data = null)
+    {
+        if (tags.IsNullOrEmpty()) return false;
+
+        foreach (var item in tags)
+        {
+            var tag = item.Key;
+            if (string.IsNullOrWhiteSpace(tag)
+                || item.Value.IsNullOrEmpty())
+            {
+                continue;
+            }
+
+            foreach (var prompt in item.Value)
+            {
+                _parser.RegisterIdentifierTag(tag, (identifier, writer, encoder, context) =>
+                {
+                    var found = item.Value.FirstOrDefault(x => x.Name.IsEqualTo(identifier));
+                    if (found != null)
+                    {
+                        var str = Render(found.Content, data ?? []);
+                        writer.Write(str);
+                    }
+                    else
+                    {
+                        writer.Write(string.Empty);
+                    }
+
+                    return Statement.Normal();
+                });
+            }
+        }
+
+        return true;
+    }
+
+    public void RegisterType(Type type)
     {
         if (type == null || IsStringType(type)) return;
 
@@ -59,7 +114,7 @@ public class TemplateRender : ITemplateRender
             if (type.IsGenericType)
             {
                 var genericType = type.GetGenericArguments()[0];
-                Register(genericType);
+                RegisterType(genericType);
             }
         }
         else if (IsTrackToNextLevel(type))
@@ -68,7 +123,7 @@ public class TemplateRender : ITemplateRender
             var props = type.GetProperties();
             foreach (var prop in props)
             {
-                Register(prop.PropertyType);
+                RegisterType(prop.PropertyType);
             }
         }
     }

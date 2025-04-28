@@ -51,6 +51,9 @@ namespace BotSharp.Core.Repository
                 case AgentField.Template:
                     UpdateAgentTemplates(agent.Id, agent.Templates);
                     break;
+                case AgentField.Link:
+                    UpdateAgentLinks(agent.Id, agent.Links);
+                    break;
                 case AgentField.Response:
                     UpdateAgentResponses(agent.Id, agent.Responses);
                     break;
@@ -325,6 +328,23 @@ namespace BotSharp.Core.Repository
             }
         }
 
+        private void UpdateAgentLinks(string agentId, List<AgentLink> links)
+        {
+            if (links == null) return;
+
+            var (agent, agentFile) = GetAgentFromFile(agentId);
+            if (agent == null) return;
+
+            var linkDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_LINKS_FOLDER);
+            DeleteBeforeCreateDirectory(linkDir);
+
+            foreach (var link in links)
+            {
+                var file = Path.Combine(linkDir, $"{link.Name}.{_agentSettings.TemplateFormat}");
+                File.WriteAllText(file, link.Content);
+            }
+        }
+
         private void UpdateAgentResponses(string agentId, List<AgentResponse> responses)
         {
             if (responses == null) return;
@@ -404,6 +424,7 @@ namespace BotSharp.Core.Repository
             UpdateAgentInstructions(inputAgent.Id, inputAgent.Instruction, inputAgent.ChannelInstructions);
             UpdateAgentResponses(inputAgent.Id, inputAgent.Responses);
             UpdateAgentTemplates(inputAgent.Id, inputAgent.Templates);
+            UpdateAgentLinks(inputAgent.Id, inputAgent.Links);
             UpdateAgentFunctions(inputAgent.Id, inputAgent.Functions);
             UpdateAgentSamples(inputAgent.Id, inputAgent.Samples);
         }
@@ -447,11 +468,13 @@ namespace BotSharp.Core.Repository
                 var functions = FetchFunctions(dir);
                 var samples = FetchSamples(dir);
                 var templates = FetchTemplates(dir);
+                var links = FetchLinks(dir);
                 var responses = FetchResponses(dir);
                 return record.SetInstruction(defaultInstruction)
                              .SetChannelInstructions(channelInstructions)
                              .SetFunctions(functions)
                              .SetTemplates(templates)
+                             .SetLinks(links)
                              .SetSamples(samples)
                              .SetResponses(responses);
             }

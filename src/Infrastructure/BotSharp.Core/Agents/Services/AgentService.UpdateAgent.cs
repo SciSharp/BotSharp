@@ -38,6 +38,7 @@ public partial class AgentService
         record.ChannelInstructions = agent.ChannelInstructions ?? [];
         record.Functions = agent.Functions ?? [];
         record.Templates = agent.Templates ?? [];
+        record.Links = agent.Links ?? [];
         record.Responses = agent.Responses ?? [];
         record.Samples = agent.Samples ?? [];
         record.Utilities = agent.Utilities ?? [];
@@ -105,6 +106,7 @@ public partial class AgentService
                        .SetInstruction(foundAgent.Instruction)
                        .SetChannelInstructions(foundAgent.ChannelInstructions)
                        .SetTemplates(foundAgent.Templates)
+                       .SetLinks(foundAgent.Links)
                        .SetFunctions(foundAgent.Functions)
                        .SetResponses(foundAgent.Responses)
                        .SetSamples(foundAgent.Samples)
@@ -196,10 +198,12 @@ public partial class AgentService
                 var functions = GetFunctionsFromFile(dir);
                 var responses = GetResponsesFromFile(dir);
                 var templates = GetTemplatesFromFile(dir);
+                var links = GetLinksFromFile(dir);
                 var samples = GetSamplesFromFile(dir);
                 return agent.SetInstruction(defaultInstruction)
                             .SetChannelInstructions(channelInstructions)
-                            .SetTemplates(templates)                             
+                            .SetTemplates(templates)
+                            .SetLinks(links)
                             .SetFunctions(functions)
                             .SetResponses(responses)
                             .SetSamples(samples);
