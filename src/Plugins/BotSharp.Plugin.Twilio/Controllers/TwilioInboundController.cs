@@ -107,6 +107,12 @@ public class TwilioInboundController : TwilioController
                     response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/reply/{seqNum}?agent-id={request.AgentId}&conversation-id={request.ConversationId}&{twilio.GenerateStatesParameter(request.States)}"), HttpMethod.Post);
                 }
             }
+
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(1500);
+                await twilio.StartRecording(request.CallSid, request.AgentId, request.ConversationId);
+            });
         }
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
