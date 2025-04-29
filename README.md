@@ -129,7 +129,7 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 
 - [ ] A2A
 - [x] MCP
-- [ ] Realtime
+- [x] Realtime
 - [ ] Computer Use
 - [x] Browser Use
 - [x] Database Assistant
