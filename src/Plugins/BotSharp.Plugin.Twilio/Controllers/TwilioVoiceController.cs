@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Twilio.Http;
 using Task = System.Threading.Tasks.Task;
+using BotSharp.Abstraction.Infrastructures;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
 
@@ -341,58 +342,43 @@ public class TwilioVoiceController : TwilioController
     public async Task<ActionResult> PhoneCallStatus(ConversationalVoiceRequest request)
     {
         var twilio = _services.GetRequiredService<TwilioService>();
-        if (request.CallStatus == "completed")
+
+        // Define the options with the predicate
+        var emitOptions = new HookEmitOption<ITwilioCallStatusHook>
         {
-            if (twilio.MachineDetected(request))
-            {
-                // voicemail
-                await HookEmitter.Emit<ITwilioCallStatusHook>(_services,
-                    async hook =>
-                    {
-                        if (hook.IsMatch(request)) await hook.OnVoicemailLeft(request);
-                    });
-            }
-            else
-            {
-                // phone call completed
-                await HookEmitter.Emit<ITwilioCallStatusHook>(_services,
-                    async hook =>
-                    {
-                        if (hook.IsMatch(request)) await hook.OnUserDisconnected(request);
-                    });
-            }
-        }
-        else if (request.CallStatus == "busy")
+            ShouldExecute = hook => hook.IsMatch(request)
+        };
+
+        switch (request.CallStatus)
         {
-            await HookEmitter.Emit<ITwilioCallStatusHook>(_services,
-                async hook =>
+            case "completed":
+                if (twilio.MachineDetected(request))
                 {
-                    if (hook.IsMatch(request)) await hook.OnCallBusyStatus(request);
-                });
-        }
-        else if (request.CallStatus == "no-answer")
-        {
-            await HookEmitter.Emit<ITwilioCallStatusHook>(_services,
-                async hook =>
+                    // voicemail
+                    await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnVoicemailLeft(request), emitOptions);
+                }
+                else
                 {
-                    if (hook.IsMatch(request)) await hook.OnCallNoAnswerStatus(request);
-                });
-        }
-        else if (request.CallStatus == "canceled")
-        {
-            await HookEmitter.Emit<ITwilioCallStatusHook>(_services,
-                async hook => 
-                { 
-                    if (hook.IsMatch(request)) await hook.OnCallCanceledStatus(request); 
-                });
-        }
-        else if (request.CallStatus == "failed")
-        {
-            await HookEmitter.Emit<ITwilioCallStatusHook>(_services,
-                async hook => 
-                { 
-                    if (hook.IsMatch(request)) await hook.OnCallFailedStatus(request); 
-                });
+                    // phone call completed
+                    await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnUserDisconnected(request), emitOptions);
+                }
+                break;
+
+            case "busy":
+                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnCallBusyStatus(request), emitOptions);
+                break;
+
+            case "no-answer":
+                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnCallNoAnswerStatus(request), emitOptions);
+                break;
+
+            case "canceled":
+                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnCallCanceledStatus(request), emitOptions);
+                break;
+
+            case "failed":
+                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnCallFailedStatus(request), emitOptions);
+                break;
         }
 
         return Ok();
