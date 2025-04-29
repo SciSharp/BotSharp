@@ -214,7 +214,7 @@ public class TwilioVoiceController : TwilioController
 
         var reply = await sessionManager.GetAssistantReplyAsync(request.ConversationId, request.SeqNum);
         VoiceResponse response;
-        
+
         if (request.AIResponseWaitTime > 10)
         {
             // Wait AI Response Timeout
@@ -381,18 +381,22 @@ public class TwilioVoiceController : TwilioController
         else if (request.CallStatus == "canceled")
         {
             await HookEmitter.Emit<ITwilioCallStatusHook>(_services,
-                async hook => 
-                { 
-                    if (hook.IsMatch(request)) await hook.OnCallCanceledStatus(request); 
+                async hook =>
+                {
+                    if (hook.IsMatch(request)) await hook.OnCallCanceledStatus(request);
                 });
         }
         else if (request.CallStatus == "failed")
         {
             await HookEmitter.Emit<ITwilioCallStatusHook>(_services,
-                async hook => 
-                { 
-                    if (hook.IsMatch(request)) await hook.OnCallFailedStatus(request); 
+                async hook =>
+                {
+                    if (hook.IsMatch(request)) await hook.OnCallFailedStatus(request);
                 });
+        }
+        else
+        {
+            _logger.LogError($"Unknown call status: {request.CallStatus}, {request.CallSid}");
         }
 
         return Ok();
