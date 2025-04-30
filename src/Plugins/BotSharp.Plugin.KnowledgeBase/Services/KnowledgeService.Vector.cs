@@ -64,7 +64,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when creating a vector collection ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when creating a vector collection ({collectionName}).");
             return false;
         }
     }
@@ -86,8 +86,35 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when getting vector db collections. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when getting vector db collections.");
             return Enumerable.Empty<VectorCollectionConfig>();
+        }
+    }
+
+    public async Task<VectorCollectionDetails?> GetVectorCollectionDetails(string collectionName)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(collectionName)) return null;
+
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var configs = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+            {
+                CollectionNames = [collectionName]
+            }).ToList();
+
+            var vectorDb = GetVectorDb();
+            var details = await vectorDb.GetCollectionDetails(collectionName);
+            if (details != null)
+            {
+                details.BasicInfo = configs.FirstOrDefault();
+            }
+            return details;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Error when getting vector db collection details.");
+            return null;
         }
     }
 
@@ -118,7 +145,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when deleting collection ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when deleting collection ({collectionName}).");
             return false;
         }
     }
@@ -146,7 +173,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when creating vector collection data. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when creating vector collection data.");
             return false;
         }
     }
@@ -155,13 +182,15 @@ public partial class KnowledgeService
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(collectionName) || string.IsNullOrWhiteSpace(update.Text) || !Guid.TryParse(update.Id, out var guid))
+            if (string.IsNullOrWhiteSpace(collectionName)
+                || string.IsNullOrWhiteSpace(update.Text)
+                || !Guid.TryParse(update.Id, out var guid))
             {
                 return false;
             }
 
             var db = GetVectorDb();
-            var found = await db.GetCollectionData(collectionName, new List<Guid> { guid });
+            var found = await db.GetCollectionData(collectionName, [guid]);
             if (found.IsNullOrEmpty())
             {
                 return false;
@@ -176,7 +205,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when updating vector collection data. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when updating vector collection data.");
             return false;
         }
     }
@@ -185,18 +214,18 @@ public partial class KnowledgeService
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(collectionName) || string.IsNullOrWhiteSpace(update.Text) || !Guid.TryParse(update.Id, out var guid))
+            if (string.IsNullOrWhiteSpace(collectionName)
+                || string.IsNullOrWhiteSpace(update.Text)
+                || !Guid.TryParse(update.Id, out var guid))
             {
                 return false;
             }
 
             var db = GetVectorDb();
-            var found = await db.GetCollectionData(collectionName, new List<Guid> { guid }, 
-                withVector: true, 
-                withPayload: true);
+            var found = await db.GetCollectionData(collectionName, [guid], withVector: true, withPayload: true);
             if (!found.IsNullOrEmpty())
             {
-                if (found.First().Data["text"].ToString() == update.Text)
+                if (found.First().Data[KnowledgePayloadName.Text].ToString() == update.Text)
                 {
                     // Only update payload
                     return await db.Upsert(collectionName, guid, found.First().Vector, update.Text, update.Payload);
@@ -212,7 +241,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when updating vector collection data. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when updating vector collection data.");
             return false;
         }
     }
@@ -231,7 +260,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when deleting vector collection data ({collectionName}-{id}). {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when deleting vector collection data ({collectionName}-{id}).");
             return false;
         }
     }
@@ -246,7 +275,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when deleting vector collection data ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when deleting vector collection data ({collectionName}).");
             return false;
         }
     }
@@ -266,7 +295,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when getting vector knowledge collection data ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when getting vector knowledge collection data ({collectionName}).");
             return new StringIdPagedItems<VectorSearchResult>();
         }
     }
@@ -287,7 +316,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when searching vector knowledge ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when searching vector knowledge ({collectionName}).");
             return Enumerable.Empty<VectorSearchResult>();
         }
     }
