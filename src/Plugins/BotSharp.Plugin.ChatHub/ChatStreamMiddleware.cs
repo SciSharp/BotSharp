@@ -70,6 +70,8 @@ public class ChatStreamMiddleware
                 continue;
             }
 
+            Console.WriteLine($"Close status: {result.CloseStatus}, End of message: {result.EndOfMessage}");
+
             var receivedText = Encoding.UTF8.GetString(buffer, 0, result.Count);
             if (string.IsNullOrEmpty(receivedText))
             {
@@ -92,11 +94,12 @@ public class ChatStreamMiddleware
             else if (eventType == "disconnect")
             {
                 await hub.Completer.Disconnect();
+                break;
             }
         }
         while (!webSocket.CloseStatus.HasValue);
 
-        await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+        await webSocket.CloseAsync(result?.CloseStatus ?? WebSocketCloseStatus.NormalClosure, result?.CloseStatusDescription, CancellationToken.None);
     }
 
     private async Task ConnectToModel(IRealtimeHub hub, WebSocket webSocket)

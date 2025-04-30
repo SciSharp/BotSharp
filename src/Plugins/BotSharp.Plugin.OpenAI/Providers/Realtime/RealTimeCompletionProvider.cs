@@ -78,7 +78,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     public async Task Disconnect()
     {
-
         _session?.Disconnect();
     }
 
