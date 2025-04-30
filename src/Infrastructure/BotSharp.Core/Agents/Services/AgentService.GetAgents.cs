@@ -48,8 +48,8 @@ public partial class AgentService
 
         if (profile == null)
         {
-            _logger.LogError($"Can't find agent {id}");
-            return null;
+            //_logger.LogError($"Can't find agent {id}");
+            throw new ArgumentException($"Can't find agent {id}");
         }
 
         // Load llm config
