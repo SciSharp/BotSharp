@@ -7,6 +7,7 @@ using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.Types;
 using Conversation = BotSharp.Abstraction.Conversations.Models.Conversation;
@@ -123,6 +124,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
             var originConversationId = convService.ConversationId;
             var entryAgentId = routing.EntryAgentId;
 
+            states.SetState(StateConst.PHONE_CALL_SUCCESSED, true);
             await ForkConversation(args, entryAgentId, originConversationId, newConversationId, call);
 
             message.Content = $"The call has been successfully queued. The initial information is as follows: {args.InitialMessage}.";
@@ -130,6 +132,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
         }
         else
         {
+            states.SetState(StateConst.PHONE_CALL_SUCCESSED, false);
             message.Content = $"Failed to make a call, status is {call.Status}.";
             return false;
         }
