@@ -123,7 +123,6 @@ public class OutboundPhoneCallFn : IFunctionCallback
             var originConversationId = convService.ConversationId;
             var entryAgentId = routing.EntryAgentId;
 
-            states.SetState(StateConst.PHONE_CALL_SUCCESSED, true);
             await ForkConversation(args, entryAgentId, originConversationId, newConversationId, call);
 
             message.Content = $"The call has been successfully queued. The initial information is as follows: {args.InitialMessage}.";
@@ -131,7 +130,6 @@ public class OutboundPhoneCallFn : IFunctionCallback
         }
         else
         {
-            states.SetState(StateConst.PHONE_CALL_SUCCESSED, false);
             message.Content = $"Failed to make a call, status is {call.Status}.";
             return false;
         }
