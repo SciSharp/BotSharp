@@ -7,7 +7,6 @@ using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.Types;
 using Conversation = BotSharp.Abstraction.Conversations.Models.Conversation;
