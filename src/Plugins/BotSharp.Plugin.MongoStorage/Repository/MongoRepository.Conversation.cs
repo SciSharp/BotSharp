@@ -371,6 +371,10 @@ public partial class MongoRepository
         {
             convFilters.Add(convBuilder.Eq(x => x.Channel, filter.Channel));
         }
+        if (!string.IsNullOrEmpty(filter?.ChannelId))
+        {
+            convFilters.Add(convBuilder.Eq(x => x.ChannelId, filter.ChannelId));
+        }
         if (!string.IsNullOrEmpty(filter?.UserId))
         {
             convFilters.Add(convBuilder.Eq(x => x.UserId, filter.UserId));

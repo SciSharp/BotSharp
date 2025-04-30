@@ -12,6 +12,7 @@ public class ConversationFilter
     public string? AgentId { get; set; }
     public string? Status { get; set; }
     public string? Channel { get; set; }
+    public string? ChannelId { get; set; }
     public string? UserId { get; set; }
     public DateTime? StartTime { get; set; }
 

@@ -38,6 +38,10 @@ public class TwilioRecordController : TwilioController
             // recording completed
             await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnRecordingCompleted(request));
         }
+        else
+        {
+            _logger.LogError($"Unknown record status: {request.CallStatus}, {request.CallSid}");
+        }
 
         return Ok();
     }
