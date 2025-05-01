@@ -32,7 +32,7 @@ internal class FunctionExecutorFactory
                 {
                     var mcpServerId  = agent?.McpTools?.Where(x => x.Functions.Any(y => y.Name == funDef.Name))
                         .FirstOrDefault().ServerId;
-                    return new MCPFunctionExecutor(mcpServerId, functionName, serviceProvider);
+                    return new MCPToolExecutor(mcpServerId, functionName, serviceProvider);
                 }
             }
         }

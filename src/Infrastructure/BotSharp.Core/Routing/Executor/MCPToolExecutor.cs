@@ -3,14 +3,14 @@ using ModelContextProtocol.Client;
 
 namespace BotSharp.Core.Routing.Executor;
 
-public class MCPFunctionExecutor: IFunctionExecutor
+public class MCPToolExecutor: IFunctionExecutor
 {
     private readonly McpClientManager _clientManager;
     private string mcpServer;
     private string funcName;
     private readonly IServiceProvider _services;
 
-    public MCPFunctionExecutor(string mcpserver, string functionName, IServiceProvider services)
+    public MCPToolExecutor(string mcpserver, string functionName, IServiceProvider services)
     { 
         _services = services;
         this.mcpServer = mcpserver;
