@@ -70,8 +70,6 @@ public class ChatStreamMiddleware
                 continue;
             }
 
-            Console.WriteLine($"Close status: {result.CloseStatus}, End of message: {result.EndOfMessage}");
-
             var receivedText = Encoding.UTF8.GetString(buffer, 0, result.Count);
             if (string.IsNullOrEmpty(receivedText))
             {

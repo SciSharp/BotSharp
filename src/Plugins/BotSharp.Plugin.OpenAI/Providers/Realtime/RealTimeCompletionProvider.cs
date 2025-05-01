@@ -629,16 +629,16 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
             else if (output.Type == "message")
             {
-                var content = output.Content.FirstOrDefault();
+                var content = output.Content.FirstOrDefault()?.Transcript ?? string.Empty;
 
-                outputs.Add(new RoleDialogModel(output.Role, content.Transcript)
+                outputs.Add(new RoleDialogModel(output.Role, content)
                 {
                     CurrentAgentId = conn.CurrentAgentId,
                     MessageId = output.Id,
                     MessageType = MessageTypeName.Plain
                 });
 
-                prompts.Add(content.Transcript);
+                prompts.Add(content);
             }
         }
 
@@ -683,12 +683,4 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         return message;
     }
-}
-
-class AudioMessage
-{
-    public string ItemId { get; set; }
-    public string Event { get; set; }
-    public string ReceivedText { get; set; }
-    public string? Transcript { get; set; }
 }
