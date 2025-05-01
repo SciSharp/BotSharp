@@ -23,7 +23,9 @@ public class McpClientManager : IDisposable
             transport = new SseClientTransport(new SseClientTransportOptions
             {
                 Name = config.Name,
-                Endpoint = new Uri(config.SseConfig.EndPoint)
+                Endpoint = new Uri(config.SseConfig.EndPoint),
+                AdditionalHeaders = config.SseConfig.AdditionalHeaders,
+                ConnectionTimeout = config.SseConfig.ConnectionTimeout
             });
         }
         else if (config.StdioConfig != null)
@@ -33,7 +35,8 @@ public class McpClientManager : IDisposable
                 Name = config.Name,
                 Command = config.StdioConfig.Command,
                 Arguments = config.StdioConfig.Arguments,
-                EnvironmentVariables = config.StdioConfig.EnvironmentVariables
+                EnvironmentVariables = config.StdioConfig.EnvironmentVariables,
+                ShutdownTimeout = config.StdioConfig.ShutdownTimeout
             });
         }
         else
