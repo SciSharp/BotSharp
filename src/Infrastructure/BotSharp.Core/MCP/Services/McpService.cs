@@ -1,5 +1,7 @@
+using BotSharp.Core.MCP.Managers;
 using BotSharp.Core.MCP.Settings;
 using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Client;
 
 namespace BotSharp.Core.MCP.Services;
 
@@ -7,13 +9,16 @@ public class McpService : IMcpService
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<McpService> _logger;
+    private readonly McpClientManager _mcpClientManager;
 
     public McpService(
         IServiceProvider services,
-        ILogger<McpService> logger)
+        ILogger<McpService> logger, 
+        McpClientManager mcpClient)
     {
         _services = services;
         _logger = logger;
+        _mcpClientManager = mcpClient;
     }
 
     public IEnumerable<McpServerOptionModel> GetServerConfigs()
@@ -24,9 +29,9 @@ public class McpService : IMcpService
 
         foreach (var config in configs)
         {
-            var tools = _services.GetServices<IFunctionCallback>()
-                                 .Where(x => x.Provider == config.Name)
-                                 .Select(x => x.Name);
+            var tools = _mcpClientManager.GetMcpClientAsync(config.Id)
+                .Result.ListToolsAsync()
+                .Result.Select(x=> x.Name);
 
             options.Add(new McpServerOptionModel
             {
