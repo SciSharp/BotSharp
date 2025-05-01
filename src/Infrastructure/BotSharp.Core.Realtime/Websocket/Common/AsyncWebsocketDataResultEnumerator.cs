@@ -1,21 +1,28 @@
+using BotSharp.Core.Realtime.Models.Options;
 using System.Buffers;
 using System.ClientModel;
 
-namespace BotSharp.Core.Realtime.Websocket.Chat;
+namespace BotSharp.Core.Realtime.Websocket.Common;
 
-public class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResult>
+internal class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResult>
 {
     private readonly WebSocket _webSocket;
+    private readonly ChatSessionOptions? _sessionOptions;
     private readonly CancellationToken _cancellationToken;
     private readonly byte[] _buffer;
 
+    private const int DEFAULT_BUFFER_SIZE = 1024 * 32;
+
     public AsyncWebsocketDataResultEnumerator(
         WebSocket webSocket,
+        ChatSessionOptions? sessionOptions,
         CancellationToken cancellationToken)
     {
         _webSocket = webSocket;
+        _sessionOptions = sessionOptions;
         _cancellationToken = cancellationToken;
-        _buffer = ArrayPool<byte>.Shared.Rent(1024 * 32);
+        var bufferSize = sessionOptions?.BufferSize > 0 ? sessionOptions.BufferSize.Value : DEFAULT_BUFFER_SIZE;
+        _buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
     }
 
     public ClientResult Current { get; private set; }
@@ -29,7 +36,7 @@ public class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResult>
 
     public async ValueTask<bool> MoveNextAsync()
     {
-        var response = new AiWebsocketPipelineResponse();
+        var response = new WebsocketPipelineResponse();
         while (!response.IsComplete)
         {
             var receivedResult = await _webSocket.ReceiveAsync(new(_buffer), _cancellationToken);

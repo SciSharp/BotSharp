@@ -15,3 +15,7 @@ global using BotSharp.Abstraction.Agents;
 global using BotSharp.Abstraction.Routing;
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Conversations.Models;
+
+global using BotSharp.Core.Realtime.Models.Chat;
+global using BotSharp.Core.Realtime.Models.Options;
+global using BotSharp.Core.Realtime.Websocket.Chat;

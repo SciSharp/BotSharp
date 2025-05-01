@@ -1,5 +1,3 @@
-using BotSharp.Core.Realtime.Models.Chat;
-using BotSharp.Core.Realtime.Websocket.Chat;
 using BotSharp.Plugin.OpenAI.Models.Realtime;
 using OpenAI.Chat;
 
@@ -19,7 +17,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     private readonly BotSharpOptions _botsharpOptions;
 
     protected string _model = "gpt-4o-mini-realtime-preview";
-    private RealtimeChatSession _session;
+    private LlmRealtimeSession _session;
 
     public RealTimeCompletionProvider(
         RealtimeModelSettings settings,
@@ -54,15 +52,18 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         {
             _session.Dispose();
         }
-        _session = new RealtimeChatSession(_services, _botsharpOptions.JsonSerializerOptions);
+        _session = new LlmRealtimeSession(_services, new ChatSessionOptions
+        {
+            JsonOptions = _botsharpOptions.JsonSerializerOptions
+        });
         await _session.ConnectAsync(
-            new Uri($"wss://api.openai.com/v1/realtime?model={_model}"),
-            new Dictionary<string, string>
+            uri: new Uri($"wss://api.openai.com/v1/realtime?model={_model}"),
+            headers: new Dictionary<string, string>
             {
                 {"Authorization", $"Bearer {settings.ApiKey}"},
                 {"OpenAI-Beta", "realtime=v1"}
             },
-            CancellationToken.None);
+            cancellationToken: CancellationToken.None);
 
         _ = ReceiveMessage(
                 conn,

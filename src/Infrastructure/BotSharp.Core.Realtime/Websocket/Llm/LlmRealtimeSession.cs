@@ -1,25 +1,27 @@
 using System.ClientModel;
 using System.Runtime.CompilerServices;
 using BotSharp.Core.Realtime.Models.Chat;
+using BotSharp.Core.Realtime.Models.Options;
+using BotSharp.Core.Realtime.Websocket.Common;
 
-namespace BotSharp.Core.Realtime.Websocket.Chat;
+namespace BotSharp.Core.Realtime.Websocket.Llm;
 
-public class RealtimeChatSession : IDisposable
+public class LlmRealtimeSession : IDisposable
 {
     private readonly IServiceProvider _services;
-    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly ChatSessionOptions? _sessionOptions;
 
     private ClientWebSocket _webSocket;
     private readonly object _singleReceiveLock = new();
     private readonly SemaphoreSlim _clientEventSemaphore = new(initialCount: 1, maxCount: 1);
     private AsyncWebsocketDataCollectionResult _receivedCollectionResult;
 
-    public RealtimeChatSession(
+    public LlmRealtimeSession(
         IServiceProvider services,
-        JsonSerializerOptions jsonOptions)
+        ChatSessionOptions? sessionOptions = null)
     {
         _services = services;
-        _jsonOptions = jsonOptions;
+        _sessionOptions = sessionOptions;
     }
 
     public async Task ConnectAsync(Uri uri, Dictionary<string, string> headers, CancellationToken cancellationToken = default)
@@ -44,11 +46,11 @@ public class RealtimeChatSession : IDisposable
         }
     }
 
-    public async IAsyncEnumerable<ClientResult> ReceiveInnerUpdatesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    private async IAsyncEnumerable<ClientResult> ReceiveInnerUpdatesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         lock (_singleReceiveLock)
         {
-            _receivedCollectionResult ??= new(_webSocket, cancellationToken);
+            _receivedCollectionResult ??= new(_webSocket, _sessionOptions, cancellationToken);
         }
 
         await foreach (var result in _receivedCollectionResult)
@@ -81,7 +83,7 @@ public class RealtimeChatSession : IDisposable
         {
             if (message is not string data)
             {
-                data = JsonSerializer.Serialize(message, _jsonOptions);
+                data = JsonSerializer.Serialize(message, _sessionOptions?.JsonOptions);
             }
 
             var buffer = Encoding.UTF8.GetBytes(data);

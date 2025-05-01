@@ -1,11 +1,11 @@
 using System.ClientModel.Primitives;
 using System.Net;
 
-namespace BotSharp.Core.Realtime.Websocket.Chat;
+namespace BotSharp.Core.Realtime.Websocket.Common;
 
-public class AiWebsocketPipelineResponse : PipelineResponse
+internal class WebsocketPipelineResponse : PipelineResponse
 {
-    public AiWebsocketPipelineResponse()
+    public WebsocketPipelineResponse()
     {
         
     }
@@ -53,7 +53,7 @@ public class AiWebsocketPipelineResponse : PipelineResponse
         }
         else if (receivedResult.MessageType != WebSocketMessageType.Text)
         {
-            throw new NotImplementedException($"{nameof(AiWebsocketPipelineResponse)} currently supports only text messages.");
+            throw new NotImplementedException($"{nameof(WebsocketPipelineResponse)} currently supports only text messages.");
         }
 
         var rawBytes = receivedBytes.ToArray();

@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Realtime;
-using BotSharp.Abstraction.Realtime.Models;
 using Microsoft.AspNetCore.Http;
 using System.Net.WebSockets;
 
@@ -9,6 +7,7 @@ public class ChatStreamMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ChatStreamMiddleware> _logger;
+    private BotSharpRealtimeSession _session;
 
     public ChatStreamMiddleware(
         RequestDelegate next,
@@ -38,6 +37,7 @@ public class ChatStreamMiddleware
                 }
                 catch (Exception ex)
                 {
+                    _session?.Dispose();
                     _logger.LogError(ex, $"Error when connecting Chat stream. ({ex.Message})");
                 }
                 return;
@@ -49,6 +49,13 @@ public class ChatStreamMiddleware
 
     private async Task HandleWebSocket(IServiceProvider services, string agentId, string conversationId, WebSocket webSocket)
     {
+        _session?.Dispose();
+        _session = new BotSharpRealtimeSession(services, webSocket, new ChatSessionOptions
+        {
+            BufferSize = 1024 * 16,
+            JsonOptions = BotSharpOptions.defaultJsonOptions
+        });
+
         var hub = services.GetRequiredService<IRealtimeHub>();
         var conn = hub.SetHubConnection(conversationId);
         conn.CurrentAgentId = agentId;
@@ -58,26 +65,15 @@ public class ChatStreamMiddleware
         convService.SetConversationId(conversationId, []);
         await convService.GetConversationRecordOrCreateNew(agentId);
 
-        var buffer = new byte[1024 * 32];
-        WebSocketReceiveResult result;
-
-        do
+        await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
         {
-            result = await webSocket.ReceiveAsync(new(buffer), CancellationToken.None);
-
-            if (result.MessageType != WebSocketMessageType.Text)
-            {
-                continue;
-            }
-
-            var receivedText = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            var receivedText = update?.RawResponse;
             if (string.IsNullOrEmpty(receivedText))
             {
                 continue;
             }
 
             var (eventType, data) = MapEvents(conn, receivedText);
-
             if (eventType == "start")
             {
                 await ConnectToModel(hub, webSocket);
@@ -95,26 +91,17 @@ public class ChatStreamMiddleware
                 break;
             }
         }
-        while (!webSocket.CloseStatus.HasValue);
 
-        await webSocket.CloseAsync(result?.CloseStatus ?? WebSocketCloseStatus.NormalClosure, result?.CloseStatusDescription, CancellationToken.None);
+        _session?.Disconnect();
+        _session?.Dispose();
     }
 
     private async Task ConnectToModel(IRealtimeHub hub, WebSocket webSocket)
     {
         await hub.ConnectToModel(async data =>
         {
-            await SendEventToUser(webSocket, data);
+            await _session.SendEvent(data);
         });
-    }
-
-    private async Task SendEventToUser(WebSocket webSocket, string message)
-    {
-        if (webSocket.State == WebSocketState.Open)
-        {
-            var buffer = Encoding.UTF8.GetBytes(message);
-            await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
-        }
     }
 
     private (string, string) MapEvents(RealtimeHubConnection conn, string receivedText)
