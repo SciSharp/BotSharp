@@ -484,8 +484,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to send content log in {nameof(StreamingLogHook)} (conversation id: {conversationId})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to send content log in {nameof(StreamingLogHook)} (conversation id: {conversationId}).");
         }
     }
 
@@ -504,8 +503,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to send state log in {nameof(StreamingLogHook)} (conversation id: {conversationId})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to send state log in {nameof(StreamingLogHook)} (conversation id: {conversationId}).");
         }
     }
 
@@ -524,8 +522,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to send agent queue log in {nameof(StreamingLogHook)} (conversation id: {conversationId})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to send agent queue log in {nameof(StreamingLogHook)} (conversation id: {conversationId}).");
         }
     }
 
@@ -544,8 +541,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to send state change in {nameof(StreamingLogHook)} (conversation id: {conversationId})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to send state change in {nameof(StreamingLogHook)} (conversation id: {conversationId}).");
         }
     }
 

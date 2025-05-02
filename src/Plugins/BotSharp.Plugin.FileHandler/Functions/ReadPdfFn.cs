@@ -86,7 +86,7 @@ public class ReadPdfFn : IFunctionCallback
         catch (Exception ex)
         {
             var error = $"Error when analyzing pdf file(s).";
-            _logger.LogWarning($"{error} {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"{error}");
             return error;
         }
     }

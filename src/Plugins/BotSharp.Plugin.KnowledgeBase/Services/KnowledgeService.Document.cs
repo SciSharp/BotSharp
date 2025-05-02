@@ -98,7 +98,7 @@ public partial class KnowledgeService
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error when processing knowledge file ({file.FileName}). {ex.Message}\r\n{ex.InnerException}");
+                _logger.LogError(ex, $"Error when processing knowledge file ({file.FileName}).");
                 failedFiles.Add(file.FileName);
                 continue;
             }
@@ -170,9 +170,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when importing doc content to knowledgebase ({collectionName}-{fileName})" +
-                $"\r\n{ex.Message}" +
-                $"\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when importing doc content to knowledgebase ({collectionName}-{fileName})");
             return false;
         }
     }
@@ -214,9 +212,8 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when deleting knowledge document " +
-                $"(Collection: {collectionName}, File id: {fileId})" +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when deleting knowledge document " +
+                $"(Collection: {collectionName}, File id: {fileId})");
             return false;
         }
     }

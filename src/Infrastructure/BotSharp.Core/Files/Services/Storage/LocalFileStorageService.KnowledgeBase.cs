@@ -31,9 +31,8 @@ public partial class LocalFileStorageService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when saving knowledge file " +
-                $"(Vector store provider: {vectorStoreProvider}, Collection: {collectionName}, File name: {fileName})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when saving knowledge file " +
+                $"(Vector store provider: {vectorStoreProvider}, Collection: {collectionName}, File name: {fileName}).");
             return false;
         }
     }

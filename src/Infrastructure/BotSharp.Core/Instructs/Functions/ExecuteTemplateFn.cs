@@ -84,7 +84,7 @@ public class ExecuteTemplateFn : IFunctionCallback
         catch (Exception ex)
         {
             var error = $"Error when getting agent {agent.Name} instruction response.";
-            _logger.LogWarning($"{error} {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"{error} (template name: {templateName})");
             return error;
         }
 

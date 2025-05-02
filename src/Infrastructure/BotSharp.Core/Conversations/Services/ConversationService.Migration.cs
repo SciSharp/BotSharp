@@ -53,7 +53,7 @@ public partial class ConversationService
 #if DEBUG
                     Console.WriteLine($"\r\n{error}\r\n");
 #else
-                    _logger.LogError($"{error}");
+                    _logger.LogError(ex, $"{error}");
 #endif
                 }
             }

@@ -456,7 +456,7 @@ public class QdrantDb : IVectorDb
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error when downloading Qdrant snapshot (Endpoint: {url}, Snapshot: {snapshotFileName}). {ex.Message}\r\n{ex.InnerException}");
+                _logger.LogError(ex, $"Error when downloading Qdrant snapshot (Endpoint: {url}, Snapshot: {snapshotFileName}).");
                 return BinaryData.Empty;
             }
         }
@@ -497,7 +497,7 @@ public class QdrantDb : IVectorDb
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error when uploading Qdrant snapshot (Endpoint: {url}, Snapshot: {snapshotFileName}). {ex.Message}\r\n{ex.InnerException}");
+                _logger.LogError(ex, $"Error when uploading Qdrant snapshot (Endpoint: {url}, Snapshot: {snapshotFileName}).");
                 return false;
             }
         }

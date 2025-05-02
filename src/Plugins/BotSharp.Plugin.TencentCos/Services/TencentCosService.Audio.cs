@@ -17,7 +17,7 @@ public partial class TencentCosService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when saving speech file. {fileName} ({conversationId})\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when saving speech file. {fileName} (conv id: {conversationId})");
             return false;
         }
     }

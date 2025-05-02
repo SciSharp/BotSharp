@@ -89,7 +89,7 @@ public class BotSharpStatsService : IBotSharpStatsService
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error when updating global stats {input.Metric}-{input.Dimension}-{input.DimRefVal}. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogError(ex, $"Error when updating global stats {input.Metric}-{input.Dimension}-{input.DimRefVal}.");
             return false;
         }
     }

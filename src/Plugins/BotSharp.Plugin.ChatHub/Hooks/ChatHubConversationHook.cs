@@ -195,8 +195,7 @@ public class ChatHubConversationHook : ConversationHookBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to init client conversation in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})" +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to init client conversation in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
         }
     }
 
@@ -215,8 +214,7 @@ public class ChatHubConversationHook : ConversationHookBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to receive assistant message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})" +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to receive assistant message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
         }
     }
 
@@ -235,8 +233,7 @@ public class ChatHubConversationHook : ConversationHookBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to receive assistant message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})" +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to receive assistant message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
         }
 
     }
@@ -256,8 +253,7 @@ public class ChatHubConversationHook : ConversationHookBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to generate sender action in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})" +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to generate sender action in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
         }
     }
 
@@ -276,8 +272,7 @@ public class ChatHubConversationHook : ConversationHookBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to delete message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})" +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to delete message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
         }
     }
 
@@ -296,8 +291,7 @@ public class ChatHubConversationHook : ConversationHookBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to generate notification in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})" +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to generate notification in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
         }
     }
     #endregion

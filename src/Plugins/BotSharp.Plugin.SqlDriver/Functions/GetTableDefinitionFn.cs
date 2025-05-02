@@ -73,7 +73,7 @@ public class GetTableDefinitionFn : IFunctionCallback
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error when getting ddl statement of table {table}. {ex.Message}\r\n{ex.InnerException}");
+                _logger.LogWarning(ex, $"Error when getting ddl statement of table {table}.");
             }
         }
 
@@ -125,7 +125,7 @@ public class GetTableDefinitionFn : IFunctionCallback
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error when getting ddl statement of table {table}. {ex.Message}\r\n{ex.InnerException}");
+                _logger.LogWarning(ex, $"Error when getting ddl statement of table {table}.");
             }
         }
 
@@ -165,7 +165,7 @@ public class GetTableDefinitionFn : IFunctionCallback
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error when getting ddl statement of table {table}. {ex.Message}\r\n{ex.InnerException}");
+                _logger.LogWarning(ex, $"Error when getting ddl statement of table {table}.");
             }
         }
         connection.Close();
