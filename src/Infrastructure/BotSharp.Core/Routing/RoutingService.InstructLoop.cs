@@ -7,15 +7,13 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public async Task<RoleDialogModel> InstructLoop(Agent agent, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         RoleDialogModel response = default;
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var convService = _services.GetRequiredService<IConversationService>();
         var storage = _services.GetRequiredService<IConversationStorage>();
-
-        _router = await agentService.LoadAgent(message.CurrentAgentId);
 
         var states = _services.GetRequiredService<IConversationStateService>();
         var executor = _services.GetRequiredService<IExecutor>();
