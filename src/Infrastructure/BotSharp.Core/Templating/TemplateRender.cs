@@ -5,7 +5,9 @@ using BotSharp.Abstraction.Translation.Models;
 using Fluid;
 using Fluid.Ast;
 using System.Collections;
+using System.IO;
 using System.Reflection;
+using System.Text.Encodings.Web;
 
 namespace BotSharp.Core.Templating;
 
@@ -33,6 +35,8 @@ public class TemplateRender : ITemplateRender
         _options.MemberAccessStrategy.Register<FunctionParametersDef>();
         _options.MemberAccessStrategy.Register<UserIdentity>();
         _options.MemberAccessStrategy.Register<TranslationInput>();
+
+        _parser.RegisterIdentifierTag("link", RenderIdentifierTag);
     }
 
     public string Render(string template, Dictionary<string, object> dict)
@@ -48,61 +52,6 @@ public class TemplateRender : ITemplateRender
         }
 
         return template;
-    }
-
-    public bool RegisterTag(string tag, Dictionary<string, string> content, Dictionary<string, object>? data = null)
-    {
-        _parser.RegisterIdentifierTag(tag, (identifier, writer, encoder, context) =>
-        {
-            if (content?.TryGetValue(identifier, out var value) == true)
-            {
-                var str = Render(value, data ?? []);
-                writer.Write(str);
-            }
-            else
-            {
-                writer.Write(string.Empty);
-            }
-            return Statement.Normal();
-        });
-
-        return true;
-    }
-
-    public bool RegisterTags(Dictionary<string, List<AgentPromptBase>> tags, Dictionary<string, object>? data = null)
-    {
-        if (tags.IsNullOrEmpty()) return false;
-
-        foreach (var item in tags)
-        {
-            var tag = item.Key;
-            if (string.IsNullOrWhiteSpace(tag)
-                || item.Value.IsNullOrEmpty())
-            {
-                continue;
-            }
-
-            foreach (var prompt in item.Value)
-            {
-                _parser.RegisterIdentifierTag(tag, (identifier, writer, encoder, context) =>
-                {
-                    var found = item.Value.FirstOrDefault(x => x.Name.IsEqualTo(identifier));
-                    if (found != null)
-                    {
-                        var str = Render(found.Content, data ?? []);
-                        writer.Write(str);
-                    }
-                    else
-                    {
-                        writer.Write(string.Empty);
-                    }
-
-                    return Statement.Normal();
-                });
-            }
-        }
-
-        return true;
     }
 
     public void RegisterType(Type type)
@@ -130,6 +79,39 @@ public class TemplateRender : ITemplateRender
 
 
     #region Private methods
+    private static async ValueTask<Completion> RenderIdentifierTag(string identifier, TextWriter writer, TextEncoder encoder, TemplateContext context)
+    {
+        try
+        {
+            var value = await context.Model.GetValueAsync(TemplateRenderConstant.RENDER_AGENT, context);
+            var agent = value?.ToObjectValue() as Agent;
+            var found = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(identifier));
+            var key = $"{agent?.Id} | {identifier}";
+
+            if (found == null || context.AmbientValues.TryGetValue(key, out var visited) && (bool)visited)
+            {
+                writer.Write(string.Empty);
+            }
+            else if (_parser.TryParse(found.Content, out var t, out _))
+            {
+                context.AmbientValues[key] = true;
+                var rendered = t.Render(context);
+                writer.Write(rendered);
+                context.AmbientValues.Remove(key);
+            }
+            else
+            {
+                writer.Write(string.Empty);
+            }
+        }
+        catch
+        {
+            writer.Write(string.Empty);
+        }
+
+        return Completion.Normal;
+    }
+
     private static bool IsStringType(Type type)
     {
         return type == typeof(string);

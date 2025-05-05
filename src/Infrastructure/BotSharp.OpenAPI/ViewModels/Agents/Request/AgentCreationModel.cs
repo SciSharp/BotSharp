@@ -24,8 +24,6 @@ public class AgentCreationModel
     /// </summary>
     public List<AgentTemplate> Templates { get; set; } = new();
 
-    public List<AgentLink> Links { get; set; } = new();
-
     /// <summary>
     /// LLM callable function definition
     /// </summary>
@@ -72,7 +70,6 @@ public class AgentCreationModel
             Instruction = Instruction,
             ChannelInstructions = ChannelInstructions,
             Templates = Templates,
-            Links = Links,
             Functions = Functions,
             Responses = Responses,
             Samples = Samples,

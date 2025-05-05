@@ -18,7 +18,6 @@ public class AgentViewModel
     [JsonPropertyName("channel_instructions")]
     public List<ChannelInstruction> ChannelInstructions { get; set; }
     public List<AgentTemplate> Templates { get; set; }
-    public List<AgentLink> Links { get; set; }
     public List<FunctionDef> Functions { get; set; }
     public List<AgentResponse> Responses { get; set; }
     public List<string> Samples { get; set; }
@@ -88,7 +87,6 @@ public class AgentViewModel
             Instruction = agent.Instruction,
             ChannelInstructions = agent.ChannelInstructions ?? [],
             Templates = agent.Templates ?? [],
-            Links = agent.Links ?? [],
             Functions = agent.Functions ?? [],
             Responses = agent.Responses ?? [],
             Samples = agent.Samples ?? [],

@@ -26,11 +26,6 @@ public class AgentUpdateModel
     public List<AgentTemplate>? Templates { get; set; }
 
     /// <summary>
-    /// Links
-    /// </summary>
-    public List<AgentLink>? Links { get; set; }
-
-    /// <summary>
     /// Samples
     /// </summary>
     public List<string>? Samples { get; set; }
@@ -110,7 +105,6 @@ public class AgentUpdateModel
             Instruction = Instruction ?? string.Empty,
             ChannelInstructions = ChannelInstructions ?? [],
             Templates = Templates ?? [],
-            Links = Links ?? [],
             Functions = Functions ?? [],
             Responses = Responses ?? [],
             Utilities = Utilities ?? [],

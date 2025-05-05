@@ -41,6 +41,7 @@ global using BotSharp.Abstraction.Statistics.Enums;
 global using BotSharp.Abstraction.Statistics.Services;
 global using BotSharp.Abstraction.Loggers.Services;
 global using BotSharp.Abstraction.Infrastructures.Events;
+global using BotSharp.Abstraction.Templating.Constants;
 global using BotSharp.Core.Repository;
 global using BotSharp.Core.Routing;
 global using BotSharp.Core.Agents.Services;

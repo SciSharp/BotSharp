@@ -1,17 +1,22 @@
 namespace BotSharp.Abstraction.Agents.Models;
 
-public class AgentTemplate : AgentPromptBase
+public class AgentTemplate
 {
-    public AgentTemplate() : base()
+    public string Name { get; set; }
+    public string Content { get; set; }
+
+    public AgentTemplate()
     {
     }
 
-    public AgentTemplate(string name, string content) : base(name, content)
+    public AgentTemplate(string name, string content)
     {
+        Name = name;
+        Content = content;
     }
 
     public override string ToString()
     {
-        return base.ToString();
+        return Name;
     }
 }

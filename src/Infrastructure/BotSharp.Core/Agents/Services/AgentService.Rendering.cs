@@ -22,7 +22,7 @@ public partial class AgentService
             agent.TemplateDict[t.Key] = t.Value;
         }
 
-        RenderAgentLinks(agent, agent.TemplateDict);
+        agent.TemplateDict[TemplateRenderConstant.RENDER_AGENT] = agent;
         var res = render.Render(string.Join("\r\n", instructions), agent.TemplateDict);
         return res;
     }
@@ -129,6 +129,7 @@ public partial class AgentService
         }
 
         // render liquid template
+        agent.TemplateDict[TemplateRenderConstant.RENDER_AGENT] = agent;
         var content = render.Render(template, agent.TemplateDict);
 
         HookEmitter.Emit<IContentGeneratingHook>(_services, async hook =>
@@ -136,27 +137,5 @@ public partial class AgentService
         ).Wait();
 
         return content;
-    }
-
-    private void RenderAgentLinks(Agent agent, Dictionary<string, object> dict)
-    {
-        var render = _services.GetRequiredService<ITemplateRender>();
-
-        var links = new Dictionary<string, string>();
-        agent.Links ??= [];
-
-        foreach (var link in agent.Links)
-        {
-            if (string.IsNullOrWhiteSpace(link.Name)
-                || string.IsNullOrWhiteSpace(link.Content))
-            {
-                continue;
-            }
-
-            links[link.Name] = link.Content;
-        }
-
-        render.RegisterTag("link", links, dict);
-        return;
     }
 }

@@ -111,26 +111,6 @@ public partial class AgentService
         return templates;
     }
 
-    private List<AgentLink> GetLinksFromFile(string fileDir)
-    {
-        var links = new List<AgentLink>();
-        var linkDir = Path.Combine(fileDir, "links");
-        if (!Directory.Exists(linkDir)) return links;
-
-        foreach (var file in Directory.GetFiles(linkDir))
-        {
-            var extension = Path.GetExtension(file).Substring(1);
-            if (extension.IsEqualTo(_agentSettings.TemplateFormat))
-            {
-                var name = Path.GetFileNameWithoutExtension(file);
-                var content = File.ReadAllText(file);
-                links.Add(new AgentLink(name, content));
-            }
-        }
-
-        return links;
-    }
-
     private List<FunctionDef> GetFunctionsFromFile(string fileDir)
     {
         var functions = new List<FunctionDef>();

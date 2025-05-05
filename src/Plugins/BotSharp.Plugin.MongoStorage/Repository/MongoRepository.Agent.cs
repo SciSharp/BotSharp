@@ -52,9 +52,6 @@ public partial class MongoRepository
             case AgentField.Template:
                 UpdateAgentTemplates(agent.Id, agent.Templates);
                 break;
-            case AgentField.Link:
-                UpdateAgentLinks(agent.Id, agent.Links);
-                break;
             case AgentField.Response:
                 UpdateAgentResponses(agent.Id, agent.Responses);
                 break;
@@ -240,19 +237,6 @@ public partial class MongoRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
-    private void UpdateAgentLinks(string agentId, List<AgentLink> links)
-    {
-        if (links == null) return;
-
-        var linksToUpdate = links.Select(t => AgentLinkMongoElement.ToMongoElement(t)).ToList();
-        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
-        var update = Builders<AgentDocument>.Update
-            .Set(x => x.Links, linksToUpdate)
-            .Set(x => x.UpdatedTime, DateTime.UtcNow);
-
-        _dc.Agents.UpdateOne(filter, update);
-    }
-
     private void UpdateAgentResponses(string agentId, List<AgentResponse> responses)
     {
         if (responses == null || string.IsNullOrWhiteSpace(agentId)) return;
@@ -372,7 +356,6 @@ public partial class MongoRepository
             .Set(x => x.Instruction, agent.Instruction)
             .Set(x => x.ChannelInstructions, agent.ChannelInstructions.Select(i => ChannelInstructionMongoElement.ToMongoElement(i)).ToList())
             .Set(x => x.Templates, agent.Templates.Select(t => AgentTemplateMongoElement.ToMongoElement(t)).ToList())
-            .Set(x => x.Links, agent.Links.Select(t => AgentLinkMongoElement.ToMongoElement(t)).ToList())
             .Set(x => x.Functions, agent.Functions.Select(f => FunctionDefMongoElement.ToMongoElement(f)).ToList())
             .Set(x => x.Responses, agent.Responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.Samples, agent.Samples)
@@ -555,7 +538,6 @@ public partial class MongoRepository
             LlmConfig = AgentLlmConfigMongoElement.ToMongoElement(x.LlmConfig),
             ChannelInstructions = x.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToMongoElement(i))?.ToList() ?? [],
             Templates = x.Templates?.Select(t => AgentTemplateMongoElement.ToMongoElement(t))?.ToList() ?? [],
-            Links = x.Links?.Select(l => AgentLinkMongoElement.ToMongoElement(l))?.ToList() ?? [],
             Functions = x.Functions?.Select(f => FunctionDefMongoElement.ToMongoElement(f))?.ToList() ?? [],
             Responses = x.Responses?.Select(r => AgentResponseMongoElement.ToMongoElement(r))?.ToList() ?? [],
             RoutingRules = x.RoutingRules?.Select(r => RoutingRuleMongoElement.ToMongoElement(r))?.ToList() ?? [],
@@ -652,7 +634,6 @@ public partial class MongoRepository
             LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(agentDoc.LlmConfig),
             ChannelInstructions = agentDoc.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToDomainElement(i))?.ToList() ?? [],
             Templates = agentDoc.Templates?.Select(t => AgentTemplateMongoElement.ToDomainElement(t))?.ToList() ?? [],
-            Links = agentDoc.Links?.Select(l => AgentLinkMongoElement.ToDomainElement(l))?.ToList() ?? [],
             Functions = agentDoc.Functions?.Select(f => FunctionDefMongoElement.ToDomainElement(f)).ToList() ?? [],
             Responses = agentDoc.Responses?.Select(r => AgentResponseMongoElement.ToDomainElement(r))?.ToList() ?? [],
             RoutingRules = agentDoc.RoutingRules?.Select(r => RoutingRuleMongoElement.ToDomainElement(agentDoc.Id, agentDoc.Name, r))?.ToList() ?? [],
