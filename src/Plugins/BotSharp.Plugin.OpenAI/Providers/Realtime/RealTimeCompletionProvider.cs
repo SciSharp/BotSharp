@@ -52,10 +52,12 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         {
             _session.Dispose();
         }
+
         _session = new LlmRealtimeSession(_services, new ChatSessionOptions
         {
             JsonOptions = _botsharpOptions.JsonSerializerOptions
         });
+
         await _session.ConnectAsync(
             uri: new Uri($"wss://api.openai.com/v1/realtime?model={_model}"),
             headers: new Dictionary<string, string>
@@ -79,7 +81,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     public async Task Disconnect()
     {
-        _session?.Disconnect();
+        if (_session != null)
+        {
+            await _session.Disconnect();
+            _session.Dispose();
+        }
     }
 
     public async Task AppenAudioBuffer(string message)
@@ -139,7 +145,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         });
     }
 
-    private async Task ReceiveMessage(RealtimeHubConnection conn,
+    private async Task ReceiveMessage(
+        RealtimeHubConnection conn,
         Action onModelReady,
         Action<string, string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,

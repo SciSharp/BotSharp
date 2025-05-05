@@ -92,15 +92,19 @@ public class ChatStreamMiddleware
             }
         }
 
-        _session?.Disconnect();
-        _session?.Dispose();
+
+        await _session.Disconnect();
+        _session.Dispose();
     }
 
     private async Task ConnectToModel(IRealtimeHub hub, WebSocket webSocket)
     {
         await hub.ConnectToModel(async data =>
         {
-            await _session.SendEvent(data);
+            if (_session != null)
+            {
+                await _session.SendEvent(data);
+            }
         });
     }
 
