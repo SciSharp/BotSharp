@@ -1,0 +1,16 @@
+{
+  "name": "util-crontab-task_wait",
+  "description": "wait for a peroid of time then process",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "delay_time": {
+        "type": "number",
+        "description": "delay time in seconds"
+      }
+    },
+    "required": [
+      "delay_time"
+    ]
+  }
+}

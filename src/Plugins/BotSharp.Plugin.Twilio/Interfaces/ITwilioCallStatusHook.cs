@@ -5,10 +5,11 @@ namespace BotSharp.Plugin.Twilio.Interfaces;
 
 public interface ITwilioCallStatusHook
 {
-    Task OnVoicemailLeft(ConversationalVoiceRequest request);
-    Task OnUserDisconnected(ConversationalVoiceRequest request);
-    Task OnRecordingCompleted(ConversationalVoiceRequest request);
-    Task OnVoicemailStarting(ConversationalVoiceRequest request);
+    bool IsMatch(ConversationalVoiceRequest request) => true;
+    Task OnVoicemailLeft(ConversationalVoiceRequest request) => Task.CompletedTask;
+    Task OnUserDisconnected(ConversationalVoiceRequest request) => Task.CompletedTask;
+    Task OnRecordingCompleted(ConversationalVoiceRequest request) => Task.CompletedTask;
+    Task OnVoicemailStarting(ConversationalVoiceRequest request)=> Task.CompletedTask;
 
     /// <summary>
     /// 1. The recipient's phone line is already engaged.
@@ -17,11 +18,11 @@ public interface ITwilioCallStatusHook
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    Task OnCallBusyStatus(ConversationalVoiceRequest request);
+    Task OnCallBusyStatus(ConversationalVoiceRequest request)=> Task.CompletedTask;
 
-    Task OnCallNoAnswerStatus(ConversationalVoiceRequest request);
+    Task OnCallNoAnswerStatus(ConversationalVoiceRequest request) => Task.CompletedTask;
 
-    Task OnCallCanceledStatus(ConversationalVoiceRequest request);
+    Task OnCallCanceledStatus(ConversationalVoiceRequest request)=> Task.CompletedTask;
 
-    Task OnCallFailedStatus(ConversationalVoiceRequest request);
+    Task OnCallFailedStatus(ConversationalVoiceRequest request)=> Task.CompletedTask;
 }
