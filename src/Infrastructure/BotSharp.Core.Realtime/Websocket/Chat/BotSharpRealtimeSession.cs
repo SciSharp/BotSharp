@@ -68,7 +68,7 @@ public class BotSharpRealtimeSession : IDisposable
     {
         if (_websocket.State == WebSocketState.Open)
         {
-            await _websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+            await _websocket.CloseAsync(WebSocketCloseStatus.Empty, null, CancellationToken.None);
         }
     }
 
