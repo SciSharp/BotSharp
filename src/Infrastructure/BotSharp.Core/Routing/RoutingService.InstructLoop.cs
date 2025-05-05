@@ -15,6 +15,8 @@ public partial class RoutingService
         var convService = _services.GetRequiredService<IConversationService>();
         var storage = _services.GetRequiredService<IConversationStorage>();
 
+        _router = await agentService.GetAgent(message.CurrentAgentId);
+
         var states = _services.GetRequiredService<IConversationStateService>();
         var executor = _services.GetRequiredService<IExecutor>();
 
