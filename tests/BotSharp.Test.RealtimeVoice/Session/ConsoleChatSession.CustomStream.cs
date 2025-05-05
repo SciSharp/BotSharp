@@ -14,7 +14,7 @@ internal partial class ConsoleChatSession
         DisplayRemarks();
 
         var (hub, conversationId) = await Setup(agentId);
-        var audioOut = new AudioOut();
+        var audioOut = AudioOut.Init();
 
         await hub.ConnectToModel(
             responseToUser: async data =>

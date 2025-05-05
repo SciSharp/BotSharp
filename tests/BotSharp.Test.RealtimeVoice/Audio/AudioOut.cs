@@ -12,7 +12,7 @@ internal class AudioOut : IDisposable
     private readonly BufferedWaveProvider _waveProvider;
     private readonly WaveOutEvent _waveOutEvent;
 
-    public AudioOut()
+    private AudioOut()
     {
         var audioFormat = new WaveFormat(
             rate: SAMPLE_RATE,
@@ -32,6 +32,8 @@ internal class AudioOut : IDisposable
         _waveOutEvent.Init(_waveProvider);
         _waveOutEvent.Play();
     }
+
+    public static AudioOut Init() => new();
 
     public void Enqueue(BinaryData data)
     {
