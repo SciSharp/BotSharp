@@ -88,7 +88,7 @@ public class TemplateRender : ITemplateRender
             var found = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(identifier));
             var key = $"{agent?.Id} | {identifier}";
 
-            if (found == null || context.AmbientValues.TryGetValue(key, out var visited) && (bool)visited)
+            if (found == null || (context.AmbientValues.TryGetValue(key, out var visited) && (bool)visited))
             {
                 writer.Write(string.Empty);
             }
