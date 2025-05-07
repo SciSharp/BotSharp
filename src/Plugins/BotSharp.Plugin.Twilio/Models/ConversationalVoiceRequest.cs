@@ -17,7 +17,10 @@ public class ConversationalVoiceRequest : VoiceRequest
     public int AIResponseWaitTime { get; set; } = 0;
     public string? AIResponseErrorMessage { get; set; } = string.Empty;
 
-    public string Intent { get; set; } = string.Empty;
+    /// <summary>
+    /// Initial intent when incoming call connected
+    /// </summary>
+    public string? Intent { get; set; }
 
     [FromQuery(Name = "init-audio-file")]
     public string? InitAudioFile { get; set; }

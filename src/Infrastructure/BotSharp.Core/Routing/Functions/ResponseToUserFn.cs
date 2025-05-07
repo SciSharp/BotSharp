@@ -20,8 +20,8 @@ public class ResponseToUserFn : IFunctionCallback
 
     public Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
-        message.Content = args.Response;
+        var args = JsonSerializer.Deserialize<ResponseUserArgs>(message.FunctionArgs);
+        message.Content = args.Content;
         message.Handled = true;
         message.StopCompletion = true;
         return Task.FromResult(true);

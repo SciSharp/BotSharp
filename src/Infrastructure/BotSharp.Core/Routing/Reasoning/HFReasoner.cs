@@ -38,43 +38,21 @@ public class HFReasoner : IRoutingReasoner
     {
         var next = GetNextStepPrompt(router);
 
-        RoleDialogModel response = default;
-        var inst = new FunctionCallFromLlm();
-
         var completion = CompletionProvider.GetChatCompletion(_services,
             provider: router?.LlmConfig?.Provider,
             model: router?.LlmConfig?.Model);
 
-        int retryCount = 0;
-        while (retryCount < 3)
+        dialogs = new List<RoleDialogModel>
         {
-            try
+            new RoleDialogModel(AgentRole.User, next)
             {
-                dialogs = new List<RoleDialogModel>
-                {
-                    new RoleDialogModel(AgentRole.User, next)
-                    {
-                        FunctionName = nameof(HFReasoner),
-                        MessageId = messageId
-                    }
-                };
-                response = await completion.GetChatCompletions(router, dialogs);
+                FunctionName = nameof(HFReasoner),
+                MessageId = messageId
+            }
+        };
+        var response = await completion.GetChatCompletions(router, dialogs);
 
-                inst = response.Content.JsonContent<FunctionCallFromLlm>();
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"{ex.Message}: {response.Content}");
-                inst.Function = "response_to_user";
-                inst.Response = ex.Message;
-                inst.AgentName = "Router";
-            }
-            finally
-            {
-                retryCount++;
-            }
-        }
+        var inst = response.Content.JsonContent<FunctionCallFromLlm>();
 
         // Fix LLM malformed response
         ReasonerHelper.FixMalformedResponse(_services, inst);

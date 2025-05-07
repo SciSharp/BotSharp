@@ -1,15 +1,14 @@
 {
   "name": "response_to_user",
-  "description": "Response to user without routing to any other agent",
-  "visibility_expression": "{% if states.routing_mode == 'lazy' %}visible{% endif %}",
+  "description": "Response to user without routing to any other agent, user has no specific request.",
   "parameters": {
     "type": "object",
     "properties": {
-      "response": {
+      "content": {
         "type": "string",
         "description": "Response content"
       }
     },
-    "required": [ "response" ]
+    "required": [ "content" ]
   }
 }

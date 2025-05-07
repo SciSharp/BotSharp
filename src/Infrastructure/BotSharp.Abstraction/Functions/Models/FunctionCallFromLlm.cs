@@ -36,13 +36,6 @@ public class FunctionCallFromLlm : RoutingArgs
     {
         var route = string.IsNullOrEmpty(AgentName) ? "" : $"<Route to {AgentName.ToUpper()} because {NextActionReason}>";
 
-        if (string.IsNullOrEmpty(Response))
-        {
-            return $"[{Function} {route} {JsonSerializer.Serialize(Arguments)}]: {Question}";
-        }
-        else
-        {
-            return $"[{Function} {route} {JsonSerializer.Serialize(Arguments)}]: {Question} => {Response}";
-        }
+        return $"[{Function} {route} {JsonSerializer.Serialize(Arguments)}]: {Question}";
     }
 }

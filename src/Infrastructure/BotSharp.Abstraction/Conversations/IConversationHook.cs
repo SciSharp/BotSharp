@@ -70,21 +70,6 @@ public interface IConversationHook
     Task OnResponseGenerated(RoleDialogModel message);
 
     /// <summary>
-    /// LLM detected user requested a new task different from previous topic.
-    /// </summary>
-    /// <param name="message"></param>
-    /// <returns></returns>
-    Task OnNewTaskDetected(RoleDialogModel message, string reason);
-
-    /// <summary>
-    /// LLM detected the current task is completed.
-    /// It's useful for the situation of multiple tasks in the same conversation.
-    /// </summary>
-    /// <param name="conversation"></param>
-    /// <returns></returns>
-    Task OnTaskCompleted(RoleDialogModel message);
-
-    /// <summary>
     /// LLM detected the whole conversation is going to be end.
     /// </summary>
     /// <param name="conversation"></param>

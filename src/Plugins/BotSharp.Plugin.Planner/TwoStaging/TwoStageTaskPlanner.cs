@@ -70,14 +70,14 @@ public partial class TwoStageTaskPlanner : ITaskPlanner
 
     public List<RoleDialogModel> BeforeHandleContext(FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
-        var question = inst.Response;
+        // var question = inst.Response;
 
         var taskAgentDialogs = new List<RoleDialogModel>
         {
-            new RoleDialogModel(AgentRole.User, question)
+            /*new RoleDialogModel(AgentRole.User, question)
             {
                 MessageId = message.MessageId,
-            }
+            }*/
         };
 
         return taskAgentDialogs;
