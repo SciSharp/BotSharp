@@ -1,4 +1,4 @@
-namespace BotSharp.Core.Crontab.Abstraction;
+namespace BotSharp.Abstraction.Crontab;
 
 /// <summary>
 /// Provide a cron source for the crontab service.

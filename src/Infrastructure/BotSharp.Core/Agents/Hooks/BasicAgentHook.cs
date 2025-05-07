@@ -25,18 +25,8 @@ public class BasicAgentHook : AgentHookBase
 
         var (functions, templates) = GetUtilityContent(agent);
 
-        foreach (var fn in functions)
-        {
-            if (!agent.SecondaryFunctions.Any(x => x.Name.Equals(fn.Name, StringComparison.OrdinalIgnoreCase)))
-            {
-                agent.SecondaryFunctions.Add(fn);
-            }
-        }
-
-        foreach (var prompt in templates)
-        {
-            agent.SecondaryInstructions.Add(prompt);
-        }
+        agent.SecondaryFunctions = agent.SecondaryFunctions.Concat(functions).DistinctBy(x => x.Name).ToList();
+        agent.SecondaryInstructions = agent.SecondaryInstructions.Concat(templates).Distinct().ToList();
     }
      
 

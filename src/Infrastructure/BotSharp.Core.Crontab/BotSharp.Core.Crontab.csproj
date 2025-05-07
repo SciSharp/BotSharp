@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
@@ -9,6 +9,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Models\**" />
+    <EmbeddedResource Remove="Models\**" />
+    <None Remove="Models\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-crontab-schedule_task.json" />
@@ -33,10 +39,6 @@
 
   <ItemGroup>
     <PackageReference Include="NCrontab" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>

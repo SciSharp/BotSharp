@@ -1,4 +1,6 @@
-namespace BotSharp.Core.Realtime.Models.Options;
+using System.Text.Json;
+
+namespace BotSharp.Abstraction.Realtime.Models.Session;
 
 public class ChatSessionOptions
 {

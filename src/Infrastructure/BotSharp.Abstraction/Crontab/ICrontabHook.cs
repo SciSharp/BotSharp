@@ -1,4 +1,4 @@
-namespace BotSharp.Core.Crontab.Abstraction;
+namespace BotSharp.Abstraction.Crontab;
 
 public interface ICrontabHook
 {

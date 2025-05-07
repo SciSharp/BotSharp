@@ -28,13 +28,7 @@ public class McpToolAgentHook : AgentHookBase
         agent.SecondaryFunctions ??= [];
 
         var functions = GetMcpContent(agent).Result;
-        foreach (var fn in functions)
-        {
-            if (!agent.SecondaryFunctions.Any(x => x.Name.Equals(fn.Name, StringComparison.OrdinalIgnoreCase)))
-            {
-                agent.SecondaryFunctions.Add(fn);
-            }
-        }
+        agent.SecondaryFunctions = agent.SecondaryFunctions.Concat(functions).DistinctBy(x => x.Name).ToList();
     }
 
     private async Task<IEnumerable<FunctionDef>> GetMcpContent(Agent agent)

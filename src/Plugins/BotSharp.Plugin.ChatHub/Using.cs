@@ -32,12 +32,6 @@ global using BotSharp.Abstraction.Messaging.Models.RichContent;
 global using BotSharp.Abstraction.Templating;
 global using BotSharp.Abstraction.Realtime;
 global using BotSharp.Abstraction.Realtime.Models;
-global using BotSharp.OpenAPI.ViewModels.Conversations;
-global using BotSharp.OpenAPI.ViewModels.Users;
 global using BotSharp.Plugin.ChatHub.Settings;
 global using BotSharp.Plugin.ChatHub.Enums;
 global using BotSharp.Plugin.ChatHub.Models.Stream;
-
-global using BotSharp.Core.Realtime.Models.Chat;
-global using BotSharp.Core.Realtime.Models.Options;
-global using BotSharp.Core.Realtime.Websocket.Chat;

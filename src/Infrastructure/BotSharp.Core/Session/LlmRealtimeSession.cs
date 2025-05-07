@@ -1,10 +1,8 @@
 using System.ClientModel;
+using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
-using BotSharp.Core.Realtime.Models.Chat;
-using BotSharp.Core.Realtime.Models.Options;
-using BotSharp.Core.Realtime.Websocket.Common;
 
-namespace BotSharp.Core.Realtime.Websocket.Llm;
+namespace BotSharp.Core.Session;
 
 public class LlmRealtimeSession : IDisposable
 {

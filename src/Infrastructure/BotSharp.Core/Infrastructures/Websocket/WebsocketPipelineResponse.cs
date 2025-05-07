@@ -1,7 +1,9 @@
 using System.ClientModel.Primitives;
+using System.IO;
 using System.Net;
+using System.Net.WebSockets;
 
-namespace BotSharp.Core.Realtime.Websocket.Common;
+namespace BotSharp.Core.Infrastructures.Websocket;
 
 internal class WebsocketPipelineResponse : PipelineResponse
 {

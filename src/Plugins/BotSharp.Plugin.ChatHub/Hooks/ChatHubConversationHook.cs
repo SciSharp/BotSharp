@@ -1,4 +1,6 @@
+using BotSharp.Abstraction.Conversations.Dtos;
 using BotSharp.Abstraction.SideCar;
+using BotSharp.Abstraction.Users.Dtos;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
@@ -43,10 +45,10 @@ public class ChatHubConversationHook : ConversationHookBase
         if (!AllowSendingMessage()) return;
 
         var userService = _services.GetRequiredService<IUserService>();
-        var conv = ConversationViewModel.FromSession(conversation);
+        var conv = ConversationDto.FromSession(conversation);
 
         var user = await userService.GetUser(conv.User.Id);
-        conv.User = UserViewModel.FromUser(user);
+        conv.User = UserDto.FromUser(user);
 
         await InitClientConversation(conv.Id, conv);
         await base.OnConversationInitialized(conversation);
@@ -61,13 +63,13 @@ public class ChatHubConversationHook : ConversationHookBase
         var sender = await userService.GetMyProfile();
 
         // Update console conversation UI for CSR
-        var model = new ChatResponseModel()
+        var model = new ChatResponseDto()
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
             Payload = message.Payload,
             Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
-            Sender = UserViewModel.FromUser(sender)
+            Sender = UserDto.FromUser(sender)
         };
         await ReceiveClientMessage(conv.ConversationId, model);
 
@@ -107,7 +109,7 @@ public class ChatHubConversationHook : ConversationHookBase
 
         var conv = _services.GetRequiredService<IConversationService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        var json = JsonSerializer.Serialize(new ChatResponseModel()
+        var json = JsonSerializer.Serialize(new ChatResponseDto()
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
@@ -116,7 +118,7 @@ public class ChatHubConversationHook : ConversationHookBase
             RichContent = message.SecondaryRichContent ?? message.RichContent,
             Data = message.Data,
             States = state.GetStates(),
-            Sender = new UserViewModel()
+            Sender = new()
             {
                 FirstName = "AI",
                 LastName = "Assistant",
@@ -140,7 +142,7 @@ public class ChatHubConversationHook : ConversationHookBase
     public override async Task OnNotificationGenerated(RoleDialogModel message)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        var json = JsonSerializer.Serialize(new ChatResponseModel()
+        var json = JsonSerializer.Serialize(new ChatResponseDto()
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
@@ -148,7 +150,7 @@ public class ChatHubConversationHook : ConversationHookBase
             Function = message.FunctionName,
             RichContent = message.SecondaryRichContent ?? message.RichContent,
             Data = message.Data,
-            Sender = new UserViewModel()
+            Sender = new()
             {
                 FirstName = "AI",
                 LastName = "Assistant",
@@ -163,7 +165,7 @@ public class ChatHubConversationHook : ConversationHookBase
 
     public override async Task OnMessageDeleted(string conversationId, string messageId)
     {
-        var model = new ChatResponseModel
+        var model = new ChatResponseDto
         {
             ConversationId = conversationId,
             MessageId = messageId
@@ -180,7 +182,7 @@ public class ChatHubConversationHook : ConversationHookBase
         return sidecar == null || !sidecar.IsEnabled();
     }
 
-    private async Task InitClientConversation(string conversationId, ConversationViewModel conversation)
+    private async Task InitClientConversation(string conversationId, ConversationDto conversation)
     {
         try
         {
@@ -199,7 +201,7 @@ public class ChatHubConversationHook : ConversationHookBase
         }
     }
 
-    private async Task ReceiveClientMessage(string conversationId, ChatResponseModel model)
+    private async Task ReceiveClientMessage(string conversationId, ChatResponseDto model)
     {
         try
         {
@@ -257,7 +259,7 @@ public class ChatHubConversationHook : ConversationHookBase
         }
     }
 
-    private async Task DeleteMessage(string conversationId, ChatResponseModel model)
+    private async Task DeleteMessage(string conversationId, ChatResponseDto model)
     {
         try
         {
