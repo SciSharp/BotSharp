@@ -82,7 +82,7 @@ public class Agent
     public PluginDef Plugin {  get; set; }
 
     [JsonIgnore]
-    public bool Installed => Plugin.Enabled;
+    public bool Installed => Plugin?.Enabled == true;
 
     /// <summary>
     /// Default is True, user will enable this by installing appropriate plugin.
@@ -168,6 +168,7 @@ public class Agent
             Functions = agent.Functions,
             Responses = agent.Responses,
             Samples = agent.Samples,
+            Templates = agent.Templates,
             Utilities = agent.Utilities,
             McpTools = agent.McpTools,
             Knowledges = agent.Knowledges,

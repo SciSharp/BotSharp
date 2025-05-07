@@ -68,7 +68,7 @@ public class GenerateImageFn : IFunctionCallback
         catch (Exception ex)
         {
             var error = $"Error when generating image.";
-            _logger.LogWarning($"{error} {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"{error}");
             return error;
         }
     }

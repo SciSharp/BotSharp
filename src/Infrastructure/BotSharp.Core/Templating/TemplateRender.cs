@@ -3,8 +3,11 @@ using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Translation.Models;
 using Fluid;
+using Fluid.Ast;
 using System.Collections;
+using System.IO;
 using System.Reflection;
+using System.Text.Encodings.Web;
 
 namespace BotSharp.Core.Templating;
 
@@ -32,6 +35,8 @@ public class TemplateRender : ITemplateRender
         _options.MemberAccessStrategy.Register<FunctionParametersDef>();
         _options.MemberAccessStrategy.Register<UserIdentity>();
         _options.MemberAccessStrategy.Register<TranslationInput>();
+
+        _parser.RegisterIdentifierTag("link", RenderIdentifierTag);
     }
 
     public string Render(string template, Dictionary<string, object> dict)
@@ -40,17 +45,16 @@ public class TemplateRender : ITemplateRender
         {
             var context = new TemplateContext(dict, _options);
             template = t.Render(context);
-            return template;
         }
         else
         {
             _logger.LogWarning(error);
-            return template;
         }
+
+        return template;
     }
 
-
-    public void Register(Type type)
+    public void RegisterType(Type type)
     {
         if (type == null || IsStringType(type)) return;
 
@@ -59,7 +63,7 @@ public class TemplateRender : ITemplateRender
             if (type.IsGenericType)
             {
                 var genericType = type.GetGenericArguments()[0];
-                Register(genericType);
+                RegisterType(genericType);
             }
         }
         else if (IsTrackToNextLevel(type))
@@ -68,13 +72,46 @@ public class TemplateRender : ITemplateRender
             var props = type.GetProperties();
             foreach (var prop in props)
             {
-                Register(prop.PropertyType);
+                RegisterType(prop.PropertyType);
             }
         }
     }
 
 
     #region Private methods
+    private static async ValueTask<Completion> RenderIdentifierTag(string identifier, TextWriter writer, TextEncoder encoder, TemplateContext context)
+    {
+        try
+        {
+            var value = await context.Model.GetValueAsync(TemplateRenderConstant.RENDER_AGENT, context);
+            var agent = value?.ToObjectValue() as Agent;
+            var found = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(identifier));
+            var key = $"{agent?.Id} | {identifier}";
+
+            if (found == null || (context.AmbientValues.TryGetValue(key, out var visited) && (bool)visited))
+            {
+                writer.Write(string.Empty);
+            }
+            else if (_parser.TryParse(found.Content, out var t, out _))
+            {
+                context.AmbientValues[key] = true;
+                var rendered = t.Render(context);
+                writer.Write(rendered);
+                context.AmbientValues.Remove(key);
+            }
+            else
+            {
+                writer.Write(string.Empty);
+            }
+        }
+        catch
+        {
+            writer.Write(string.Empty);
+        }
+
+        return Completion.Normal;
+    }
+
     private static bool IsStringType(Type type)
     {
         return type == typeof(string);

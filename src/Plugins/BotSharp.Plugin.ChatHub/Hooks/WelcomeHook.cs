@@ -103,8 +103,7 @@ public class WelcomeHook : ConversationHookBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to send event in {nameof(WelcomeHook)} (conversation id: {conversationId})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to send event in {nameof(WelcomeHook)} (conversation id: {conversationId}).");
         }
     }
 }

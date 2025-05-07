@@ -82,8 +82,8 @@ public class DbKnowledgeService
             }
             catch (Exception ex)
             {
-                var note = $"Error processing table {table}: {ex.Message}\r\n{ex.InnerException}";
-                _logger.LogWarning(note);
+                var note = $"Error processing table {table}.";
+                _logger.LogWarning(ex, note);
             }
         }
 

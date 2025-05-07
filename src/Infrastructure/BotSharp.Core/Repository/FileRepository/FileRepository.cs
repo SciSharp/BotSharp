@@ -386,7 +386,7 @@ public partial class FileRepository : IBotSharpRepository
 
         foreach (var file in Directory.GetFiles(templateDir))
         {
-            var fileName = file.Split(Path.DirectorySeparatorChar).Last();
+            var fileName = Path.GetFileName(file);
             var splitIdx = fileName.LastIndexOf(".");
             var name = fileName.Substring(0, splitIdx);
             var extension = fileName.Substring(splitIdx + 1);

@@ -10,6 +10,8 @@ public interface IVectorDb
         => throw new NotImplementedException();
     Task<IEnumerable<string>> GetCollections()
         => throw new NotImplementedException();
+    Task<VectorCollectionDetails?> GetCollectionDetails(string collectionName)
+        => throw new NotImplementedException();
     Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter)
         => throw new NotImplementedException();
     Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,

@@ -31,7 +31,7 @@ public class ConversationPlugin : IBotSharpPlugin
         {
             var settingService = provider.GetRequiredService<ISettingService>();
             var render = provider.GetRequiredService<ITemplateRender>();
-            render.Register(typeof(ConversationSetting));
+            render.RegisterType(typeof(ConversationSetting));
             return settingService.Bind<ConversationSetting>("Conversation");
         });
 

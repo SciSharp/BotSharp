@@ -1,42 +1,43 @@
-using BotSharp.Plugin.OpenAI.Models.Realtime;
 using System.ClientModel;
-using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
+using BotSharp.Core.Realtime.Models.Chat;
+using BotSharp.Core.Realtime.Models.Options;
+using BotSharp.Core.Realtime.Websocket.Common;
 
-namespace BotSharp.Plugin.OpenAI.Providers.Realtime.Session;
+namespace BotSharp.Core.Realtime.Websocket.Llm;
 
-public class RealtimeChatSession : IDisposable
+public class LlmRealtimeSession : IDisposable
 {
     private readonly IServiceProvider _services;
-    private readonly BotSharpOptions _options;
+    private readonly ChatSessionOptions? _sessionOptions;
 
     private ClientWebSocket _webSocket;
     private readonly object _singleReceiveLock = new();
     private readonly SemaphoreSlim _clientEventSemaphore = new(initialCount: 1, maxCount: 1);
     private AsyncWebsocketDataCollectionResult _receivedCollectionResult;
 
-    public RealtimeChatSession(
+    public LlmRealtimeSession(
         IServiceProvider services,
-        BotSharpOptions options)
+        ChatSessionOptions? sessionOptions = null)
     {
         _services = services;
-        _options = options;
+        _sessionOptions = sessionOptions;
     }
 
-    public async Task ConnectAsync(string provider, string model, CancellationToken cancellationToken = default)
+    public async Task ConnectAsync(Uri uri, Dictionary<string, string> headers, CancellationToken cancellationToken = default)
     {
-        var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting(provider, model);
-
         _webSocket?.Dispose();
         _webSocket = new ClientWebSocket();
-        _webSocket.Options.SetRequestHeader("Authorization", $"Bearer {settings.ApiKey}");
-        _webSocket.Options.SetRequestHeader("OpenAI-Beta", "realtime=v1");
 
-        await _webSocket.ConnectAsync(new Uri($"wss://api.openai.com/v1/realtime?model={model}"), cancellationToken);
+        foreach (var header in headers)
+        {
+            _webSocket.Options.SetRequestHeader(header.Key, header.Value);
+        }
+
+        await _webSocket.ConnectAsync(uri, cancellationToken);
     }
 
-    public async IAsyncEnumerable<SessionConversationUpdate> ReceiveUpdatesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<ChatSessionUpdate> ReceiveUpdatesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         await foreach (ClientResult result in ReceiveInnerUpdatesAsync(cancellationToken))
         {
@@ -45,11 +46,11 @@ public class RealtimeChatSession : IDisposable
         }
     }
 
-    public async IAsyncEnumerable<ClientResult> ReceiveInnerUpdatesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    private async IAsyncEnumerable<ClientResult> ReceiveInnerUpdatesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         lock (_singleReceiveLock)
         {
-            _receivedCollectionResult ??= new(_webSocket, cancellationToken);
+            _receivedCollectionResult ??= new(_webSocket, _sessionOptions, cancellationToken);
         }
 
         await foreach (var result in _receivedCollectionResult)
@@ -58,12 +59,12 @@ public class RealtimeChatSession : IDisposable
         }
     }
 
-    private SessionConversationUpdate HandleSessionResult(ClientResult result)
+    private ChatSessionUpdate HandleSessionResult(ClientResult result)
     {
         using var response = result.GetRawResponse();
         var bytes = response.Content.ToArray();
         var text = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-        return new SessionConversationUpdate
+        return new ChatSessionUpdate
         {
             RawResponse = text
         };
@@ -82,7 +83,7 @@ public class RealtimeChatSession : IDisposable
         {
             if (message is not string data)
             {
-                data = JsonSerializer.Serialize(message, _options.JsonSerializerOptions);
+                data = JsonSerializer.Serialize(message, _sessionOptions?.JsonOptions);
             }
 
             var buffer = Encoding.UTF8.GetBytes(data);

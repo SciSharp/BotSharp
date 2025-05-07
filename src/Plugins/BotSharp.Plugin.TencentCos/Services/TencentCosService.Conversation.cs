@@ -138,7 +138,7 @@ public partial class TencentCosService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error when saving message file {file.FileName}: {ex.Message}\r\n{ex.InnerException}");
+                _logger.LogWarning(ex,$"Error when saving message file {file.FileName} (conv id: {conversationId}).");
                 continue;
             }
         }
@@ -318,7 +318,7 @@ public partial class TencentCosService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when getting message file screenshots {file} (messageId: {messageId}), Error: {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when getting message file screenshots {file} (messageId: {messageId}).");
             return files;
         }
     }

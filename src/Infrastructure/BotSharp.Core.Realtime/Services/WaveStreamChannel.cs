@@ -39,6 +39,7 @@ public class WaveStreamChannel : IStreamChannel
         var waveFormat = new WaveFormat(24000, 16, 1); // 24000 Hz, 16-bit PCM, Mono
         _bufferedWaveProvider = new BufferedWaveProvider(waveFormat);
         _bufferedWaveProvider.BufferDuration = TimeSpan.FromMinutes(10);
+        //_bufferedWaveProvider.BufferLength = 1024;
         _bufferedWaveProvider.DiscardOnBufferOverflow = true;
 
         _waveOut = new WaveOutEvent()

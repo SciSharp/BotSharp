@@ -26,7 +26,7 @@ public partial class FileRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error when saving crontab item: {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogError(ex, $"Error when saving crontab item (agent id: {cron.AgentId}, conv id: {cron.ConversationId}).");
             return false;
         }
     }
@@ -57,7 +57,7 @@ public partial class FileRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error when deleting crontab item (${conversationId}): {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogError(ex, $"Error when deleting crontab item (conv id: {conversationId}).");
             return false;
         }
     }

@@ -94,7 +94,7 @@ public class NativeWhisperProvider : IAudioTranscription
         catch (Exception ex)
         {
             var error = "Failed to load whisper model";
-            _logger.LogWarning($"${error}: {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"{error}");
             throw new Exception($"{error}: {ex.Message}");
         }
     }

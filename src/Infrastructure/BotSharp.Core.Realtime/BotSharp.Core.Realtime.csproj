@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="NAudio" />
+    <PackageReference Include="System.ClientModel" />
   </ItemGroup>
 
   <ItemGroup>

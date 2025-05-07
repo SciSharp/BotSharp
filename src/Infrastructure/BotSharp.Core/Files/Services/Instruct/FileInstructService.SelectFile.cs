@@ -108,7 +108,7 @@ public partial class FileInstructService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when selecting files. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when selecting files.");
             return new List<MessageFileModel>();
         }
     }

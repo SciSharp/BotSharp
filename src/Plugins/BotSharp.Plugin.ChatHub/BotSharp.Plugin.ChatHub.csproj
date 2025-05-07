@@ -20,6 +20,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Core.Crontab\BotSharp.Core.Crontab.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\BotSharp.Core.Realtime\BotSharp.Core.Realtime.csproj" />
     <ProjectReference Include="..\..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
   </ItemGroup>
 </Project>

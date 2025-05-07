@@ -3,11 +3,11 @@ using System.Text.RegularExpressions;
 
 namespace BotSharp.Plugin.ChatHub;
 
-public class WebSocketsMiddleware
+public class ChatHubMiddleware
 {
     private readonly RequestDelegate _next;
 
-    public WebSocketsMiddleware(RequestDelegate next)
+    public ChatHubMiddleware(RequestDelegate next)
     {
         _next = next;
     }

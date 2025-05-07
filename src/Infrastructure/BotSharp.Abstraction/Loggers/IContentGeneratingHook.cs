@@ -47,5 +47,5 @@ public interface IContentGeneratingHook
     /// <param name="instruction"></param>
     /// <param name="functions"></param>
     /// <returns></returns>
-    Task OnSessionUpdated(Agent agent, string instruction, FunctionDef[] functions) => Task.CompletedTask;
+    Task OnSessionUpdated(Agent agent, string instruction, FunctionDef[] functions, bool isInit = false) => Task.CompletedTask;
 }

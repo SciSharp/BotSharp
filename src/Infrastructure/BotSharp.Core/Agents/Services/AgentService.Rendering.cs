@@ -22,6 +22,7 @@ public partial class AgentService
             agent.TemplateDict[t.Key] = t.Value;
         }
 
+        agent.TemplateDict[TemplateRenderConstant.RENDER_AGENT] = agent;
         var res = render.Render(string.Join("\r\n", instructions), agent.TemplateDict);
         return res;
     }
@@ -128,6 +129,7 @@ public partial class AgentService
         }
 
         // render liquid template
+        agent.TemplateDict[TemplateRenderConstant.RENDER_AGENT] = agent;
         var content = render.Render(template, agent.TemplateDict);
 
         HookEmitter.Emit<IContentGeneratingHook>(_services, async hook =>
