@@ -6,6 +6,8 @@ using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using Twilio.Jwt.AccessToken;
+using Twilio.Rest.Api.V2010.Account.Call;
+using Task = System.Threading.Tasks.Task;
 using Token = Twilio.Jwt.AccessToken.Token;
 
 namespace BotSharp.Plugin.Twilio.Services;
@@ -120,6 +122,22 @@ public class TwilioService
         response.Append(gather);
 
         return response;
+    }
+
+    public async Task StartRecording(string callSid, string agentId, string conversationId)
+    {
+        if (_settings.RecordingEnabled)
+        {
+            // https://help.twilio.com/articles/360010317333-Recording-Incoming-Twilio-Voice-Calls
+            var recordStatusUrl = $"{_settings.CallbackHost}/twilio/record/status?agent-id={agentId}&conversation-id={conversationId}";
+            var recording = await RecordingResource.CreateAsync(pathCallSid: callSid,
+                recordingStatusCallback: new Uri(recordStatusUrl),
+                trim: "trim-silence",
+                recordingChannels: "dual",
+                recordingTrack: "both");
+
+            _logger.LogInformation($"Recording started: {recording.CallSid} {recording.Sid}");
+        }
     }
 
     public VoiceResponse HangUp(string speechPath)

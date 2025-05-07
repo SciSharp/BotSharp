@@ -107,6 +107,12 @@ public class TwilioInboundController : TwilioController
                     response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/reply/{seqNum}?agent-id={request.AgentId}&conversation-id={request.ConversationId}&{twilio.GenerateStatesParameter(request.States)}"), HttpMethod.Post);
                 }
             }
+
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(1500);
+                await twilio.StartRecording(request.CallSid, request.AgentId, request.ConversationId);
+            });
         }
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
@@ -146,7 +152,7 @@ public class TwilioInboundController : TwilioController
                 AgentId = request.AgentId,
                 Channel = ConversationChannel.Phone,
                 ChannelId = request.CallSid,
-                Title = $"Incoming phone call from {request.From}",
+                Title = request.Intent ?? $"Incoming phone call from {request.From}",
                 Tags = [],
             };
 
@@ -161,6 +167,15 @@ public class TwilioInboundController : TwilioController
             new("twilio_call_sid", request.CallSid),
         };
 
+        var requestStates = ParseStates(request.States);
+        foreach (var s in requestStates)
+        {
+            if (!states.Any(x => x.Key == s.Key))
+            {
+                states.Add(new MessageState(s.Key, s.Value));
+            }
+        }
+
         if (request.InitAudioFile != null)
         {
             states.Add(new("init_audio_file", request.InitAudioFile));
@@ -173,7 +188,20 @@ public class TwilioInboundController : TwilioController
         {
             states.Add(new(StateConst.ROUTING_MODE, agent.Mode));
         }
+
         convService.SetConversationId(conversation.Id, states);
+
+        if (!string.IsNullOrEmpty(request.Intent))
+        {
+            var storage = _services.GetRequiredService<IConversationStorage>();
+
+            storage.Append(conversation.Id, new RoleDialogModel(AgentRole.User, request.Intent)
+            {
+                CurrentAgentId = conversation.Id,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
         convService.SaveStates();
         
         // reload agent rendering with states

@@ -430,6 +430,10 @@ public partial class FileRepository
             {
                 matched = matched && record.Channel == filter.Channel;
             }
+            if(filter?.ChannelId != null)
+            {
+                matched = matched && record.ChannelId == filter.ChannelId;
+            }
             if (filter?.UserId != null)
             {
                 matched = matched && record.UserId == filter.UserId;
