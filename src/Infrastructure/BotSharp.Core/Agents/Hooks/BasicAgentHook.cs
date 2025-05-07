@@ -25,12 +25,13 @@ public class BasicAgentHook : AgentHookBase
 
         var (functions, templates) = GetUtilityContent(agent);
 
-        agent.SecondaryFunctions = agent.SecondaryFunctions.Concat(functions).DistinctBy(x => x.Name).ToList();
-        agent.SecondaryInstructions = agent.SecondaryInstructions.Concat(templates).Distinct().ToList();
+        agent.SecondaryFunctions = agent.SecondaryFunctions.Concat(functions).DistinctBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList();
+        var contents = templates.Select(x => x.Content);
+        agent.SecondaryInstructions = agent.SecondaryInstructions.Concat(contents).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
      
 
-    private (IEnumerable<FunctionDef>, IEnumerable<string>) GetUtilityContent(Agent agent)
+    private (IEnumerable<FunctionDef>, IEnumerable<AgentTemplate>) GetUtilityContent(Agent agent)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var (functionNames, templateNames) = GetUniqueContent(agent.Utilities);
@@ -50,7 +51,7 @@ public class BasicAgentHook : AgentHookBase
 
         var ua = db.GetAgent(BuiltInAgentId.UtilityAssistant);
         var functions = ua?.Functions?.Where(x => functionNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.ToList() ?? [];
-        var templates = ua?.Templates?.Where(x => templateNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.Select(x => x.Content)?.ToList() ?? [];
+        var templates = ua?.Templates?.Where(x => templateNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.ToList() ?? [];
         return (functions, templates);
     }
 

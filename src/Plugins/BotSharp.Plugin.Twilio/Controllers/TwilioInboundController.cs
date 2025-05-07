@@ -167,6 +167,12 @@ public class TwilioInboundController : TwilioController
             new("twilio_call_sid", request.CallSid),
         };
 
+        if (request.Direction == "inbound")
+        {
+            states.Add(new MessageState("calling_phone_from", request.From));
+            states.Add(new MessageState("calling_phone_to", request.To));
+        }
+
         var requestStates = ParseStates(request.States);
         foreach (var s in requestStates)
         {
