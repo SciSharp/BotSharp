@@ -231,7 +231,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 _logger.LogInformation($"{response.Type}: {receivedText}");
 
                 var data = JsonSerializer.Deserialize<ConversationItemCreated>(receivedText);
-                await Task.Delay(500);
                 onConversationItemCreated(receivedText);
             }
             else if (response.Type == "conversation.item.input_audio_transcription.completed")
@@ -253,7 +252,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "input_audio_buffer.speech_stopped")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
-                await Task.Delay(500);
             }
             else if (response.Type == "input_audio_buffer.committed")
             {
