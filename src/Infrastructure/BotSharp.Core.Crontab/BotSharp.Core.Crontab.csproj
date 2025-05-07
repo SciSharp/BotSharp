@@ -11,12 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Models\**" />
-    <EmbeddedResource Remove="Models\**" />
-    <None Remove="Models\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-crontab-schedule_task.json" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-crontab-schedule_task.fn.liquid" />
   </ItemGroup>

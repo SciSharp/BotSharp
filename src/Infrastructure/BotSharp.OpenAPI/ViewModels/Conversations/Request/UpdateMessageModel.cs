@@ -6,7 +6,7 @@ namespace BotSharp.OpenAPI.ViewModels.Conversations;
 public class UpdateMessageModel
 {
     [JsonPropertyName("message")]
-    public ChatResponseDto Message { get; set; } = null!;
+    public ChatResponseModel Message { get; set; } = null!;
 
     [JsonPropertyName("inner_index")]
     public int InnerIndex { get; set; }
