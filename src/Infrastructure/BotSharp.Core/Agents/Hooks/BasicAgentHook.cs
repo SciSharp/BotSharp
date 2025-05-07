@@ -35,12 +35,15 @@ public class BasicAgentHook : AgentHookBase
 
         foreach (var prompt in templates)
         {
-            agent.SecondaryInstructions.Add(prompt);
+            if (!agent.SecondaryInstructions.Any(x => x.Contains(prompt.Content, StringComparison.OrdinalIgnoreCase)))
+            {
+                agent.SecondaryInstructions.Add(prompt.Content);
+            }
         }
     }
      
 
-    private (IEnumerable<FunctionDef>, IEnumerable<string>) GetUtilityContent(Agent agent)
+    private (IEnumerable<FunctionDef>, IEnumerable<AgentTemplate>) GetUtilityContent(Agent agent)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var (functionNames, templateNames) = GetUniqueContent(agent.Utilities);
@@ -60,7 +63,7 @@ public class BasicAgentHook : AgentHookBase
 
         var ua = db.GetAgent(BuiltInAgentId.UtilityAssistant);
         var functions = ua?.Functions?.Where(x => functionNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.ToList() ?? [];
-        var templates = ua?.Templates?.Where(x => templateNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.Select(x => x.Content)?.ToList() ?? [];
+        var templates = ua?.Templates?.Where(x => templateNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.ToList() ?? [];
         return (functions, templates);
     }
 
