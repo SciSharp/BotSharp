@@ -1,7 +1,8 @@
-using BotSharp.Core.Realtime.Models.Options;
+using BotSharp.Abstraction.Realtime.Models.Session;
 using System.ClientModel;
+using System.Net.WebSockets;
 
-namespace BotSharp.Core.Realtime.Websocket.Common;
+namespace BotSharp.Core.Infrastructures.Websocket;
 
 internal class AsyncWebsocketDataCollectionResult : AsyncCollectionResult<ClientResult>
 {

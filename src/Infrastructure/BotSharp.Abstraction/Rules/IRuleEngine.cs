@@ -1,6 +1,4 @@
-using BotSharp.Abstraction.Models;
-
-namespace BotSharp.Core.Rules.Engines;
+namespace BotSharp.Abstraction.Rules;
 
 public interface IRuleEngine
 {

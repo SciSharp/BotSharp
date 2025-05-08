@@ -29,10 +29,8 @@ global using BotSharp.Abstraction.MLTasks.Settings;
 global using BotSharp.Abstraction.Options;
 global using BotSharp.Abstraction.Realtime;
 global using BotSharp.Abstraction.Realtime.Models;
+global using BotSharp.Abstraction.Realtime.Models.Session;
 global using BotSharp.Core.Infrastructures;
+global using BotSharp.Core.Session;
 global using BotSharp.Plugin.OpenAI.Models;
 global using BotSharp.Plugin.OpenAI.Settings;
-
-global using BotSharp.Core.Realtime.Models.Chat;
-global using BotSharp.Core.Realtime.Models.Options;
-global using BotSharp.Core.Realtime.Websocket.Llm;

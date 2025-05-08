@@ -1,8 +1,8 @@
-using BotSharp.Core.Realtime.Websocket.Common;
 using System.ClientModel;
+using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 
-namespace BotSharp.Core.Realtime.Websocket.Chat;
+namespace BotSharp.Core.Session;
 
 public class BotSharpRealtimeSession : IDisposable
 {

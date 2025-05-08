@@ -36,7 +36,10 @@ public class TemplateRender : ITemplateRender
         _options.MemberAccessStrategy.Register<UserIdentity>();
         _options.MemberAccessStrategy.Register<TranslationInput>();
 
-        _parser.RegisterIdentifierTag("link", RenderIdentifierTag);
+        _parser.RegisterIdentifierTag("link", (string identifier, TextWriter writer, TextEncoder encoder, TemplateContext context) =>
+        {
+            return RenderIdentifierTag("link", identifier, writer, encoder, context);
+        });
     }
 
     public string Render(string template, Dictionary<string, object> dict)
@@ -79,14 +82,14 @@ public class TemplateRender : ITemplateRender
 
 
     #region Private methods
-    private static async ValueTask<Completion> RenderIdentifierTag(string identifier, TextWriter writer, TextEncoder encoder, TemplateContext context)
+    private static async ValueTask<Completion> RenderIdentifierTag(string tag, string identifier, TextWriter writer, TextEncoder encoder, TemplateContext context)
     {
         try
         {
             var value = await context.Model.GetValueAsync(TemplateRenderConstant.RENDER_AGENT, context);
             var agent = value?.ToObjectValue() as Agent;
             var found = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(identifier));
-            var key = $"{agent?.Id} | {identifier}";
+            var key = $"{agent?.Id} | {tag} | {identifier}";
 
             if (found == null || (context.AmbientValues.TryGetValue(key, out var visited) && (bool)visited))
             {

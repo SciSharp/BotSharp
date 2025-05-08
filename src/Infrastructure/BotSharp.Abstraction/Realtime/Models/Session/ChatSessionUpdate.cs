@@ -1,4 +1,4 @@
-namespace BotSharp.Core.Realtime.Models.Chat;
+namespace BotSharp.Abstraction.Realtime.Models.Session;
 
 public class ChatSessionUpdate
 {

@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Realtime.Models.Session;
+using BotSharp.Core.Session;
 using Microsoft.AspNetCore.Http;
 using System.Net.WebSockets;
 

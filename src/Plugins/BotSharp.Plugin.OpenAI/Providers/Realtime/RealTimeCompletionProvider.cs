@@ -11,7 +11,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     public string Provider => "openai";
     public string Model => _model;
 
-    private readonly RealtimeModelSettings _settings;
     private readonly IServiceProvider _services;
     private readonly ILogger<RealTimeCompletionProvider> _logger;
     private readonly BotSharpOptions _botsharpOptions;
@@ -20,12 +19,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     private LlmRealtimeSession _session;
 
     public RealTimeCompletionProvider(
-        RealtimeModelSettings settings,
-        ILogger<RealTimeCompletionProvider> logger,
         IServiceProvider services,
+        ILogger<RealTimeCompletionProvider> logger,
         BotSharpOptions botsharpOptions)
     {
-        _settings = settings;
         _logger = logger;
         _services = services;
         _botsharpOptions = botsharpOptions;
@@ -290,26 +287,27 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             return fn;
         }).ToArray();
 
+        var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
         var sessionUpdate = new
         {
             type = "session.update",
             session = new RealtimeSessionUpdateRequest
             {
-                InputAudioFormat = _settings.InputAudioFormat,
-                OutputAudioFormat = _settings.OutputAudioFormat,
-                Voice = _settings.Voice,
+                InputAudioFormat = realtimeModelSettings.InputAudioFormat,
+                OutputAudioFormat = realtimeModelSettings.OutputAudioFormat,
+                Voice = realtimeModelSettings.Voice,
                 Instructions = instruction,
                 ToolChoice = "auto",
                 Tools = functions,
-                Modalities = _settings.Modalities,
-                Temperature = Math.Max(options.Temperature ?? _settings.Temperature, 0.6f),
-                MaxResponseOutputTokens = _settings.MaxResponseOutputTokens,
+                Modalities = realtimeModelSettings.Modalities,
+                Temperature = Math.Max(options.Temperature ?? realtimeModelSettings.Temperature, 0.6f),
+                MaxResponseOutputTokens = realtimeModelSettings.MaxResponseOutputTokens,
                 TurnDetection = new RealtimeSessionTurnDetection
                 {
-                    InterruptResponse = _settings.InterruptResponse/*,
-                    Threshold = _settings.TurnDetection.Threshold,
-                    PrefixPadding = _settings.TurnDetection.PrefixPadding,
-                    SilenceDuration = _settings.TurnDetection.SilenceDuration*/
+                    InterruptResponse = realtimeModelSettings.InterruptResponse/*,
+                    Threshold = realtimeModelSettings.TurnDetection.Threshold,
+                    PrefixPadding = realtimeModelSettings.TurnDetection.PrefixPadding,
+                    SilenceDuration = realtimeModelSettings.TurnDetection.SilenceDuration*/
                 },
                 InputAudioNoiseReduction = new InputAudioNoiseReduction
                 {
@@ -318,15 +316,15 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
         };
 
-        if (_settings.InputAudioTranscribe)
+        if (realtimeModelSettings.InputAudioTranscribe)
         {
             var words = new List<string>();
             HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
 
             sessionUpdate.session.InputAudioTranscription = new InputAudioTranscription
             {
-                Model = _settings.InputAudioTranscription.Model,
-                Language = _settings.InputAudioTranscription.Language,
+                Model = realtimeModelSettings.InputAudioTranscription.Model,
+                Language = realtimeModelSettings.InputAudioTranscription.Language,
                 Prompt = string.Join(", ", words.Select(x => x.ToLower().Trim()).Distinct()).SubstringMax(1024)
             };
         }

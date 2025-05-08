@@ -59,6 +59,9 @@ public static class BotSharpMcpExtensions
                 });
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error when registering {server?.Name} MCP tools. {ex.Message}\r\n{ex.InnerException}");
+        }
     }
 }
