@@ -53,11 +53,17 @@ public partial class FileRepository
         var newItem = new BotSharpStats
         {
             AgentId = delta.AgentId,
-            AgentCallCount = delta.AgentCallCountDelta,
-            PromptTokens = delta.PromptTokensDelta,
-            CompletionTokens = delta.CompletionTokensDelta,
-            PromptTotalCost = delta.PromptTotalCostDelta,
-            CompletionTotalCost = delta.CompletionTotalCostDelta,
+            Count = new()
+            {
+                AgentCallCount = delta.CountDelta.AgentCallCountDelta
+            },
+            LlmCost = new()
+            {
+                PromptTokens = delta.LlmCostDelta.PromptTokensDelta,
+                CompletionTokens = delta.LlmCostDelta.CompletionTokensDelta,
+                PromptTotalCost = delta.LlmCostDelta.PromptTotalCostDelta,
+                CompletionTotalCost = delta.LlmCostDelta.CompletionTotalCostDelta,
+            },
             RecordTime = delta.RecordTime,
             StartTime = startTime,
             EndTime = endTime,
@@ -82,11 +88,11 @@ public partial class FileRepository
             {
                 found.AgentId = delta.AgentId;
                 found.RecordTime = delta.RecordTime;
-                found.AgentCallCount += delta.AgentCallCountDelta;
-                found.PromptTokens += delta.PromptTokensDelta;
-                found.CompletionTokens += delta.CompletionTokensDelta;
-                found.PromptTotalCost += delta.PromptTotalCostDelta;
-                found.CompletionTotalCost += delta.CompletionTotalCostDelta;
+                found.Count.AgentCallCount += delta.CountDelta.AgentCallCountDelta;
+                found.LlmCost.PromptTokens += delta.LlmCostDelta.PromptTokensDelta;
+                found.LlmCost.CompletionTokens += delta.LlmCostDelta.CompletionTokensDelta;
+                found.LlmCost.PromptTotalCost += delta.LlmCostDelta.PromptTotalCostDelta;
+                found.LlmCost.CompletionTotalCost += delta.LlmCostDelta.CompletionTotalCostDelta;
                 found.StartTime = startTime;
                 found.EndTime = endTime;
                 found.Interval = delta.Interval;

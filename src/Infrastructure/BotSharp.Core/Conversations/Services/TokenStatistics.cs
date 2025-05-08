@@ -78,10 +78,13 @@ public class TokenStatistics : ITokenStatistics
             AgentId = agentId,
             RecordTime = DateTime.UtcNow,
             IntervalType = StatsInterval.Day,
-            PromptTokensDelta = stats.TotalInputTokens,
-            CompletionTokensDelta = stats.TotalOutputTokens,
-            PromptTotalCostDelta = deltaPromptCost,
-            CompletionTotalCostDelta = deltaCompletionCost
+            LlmCostDelta = new()
+            {
+                PromptTokensDelta = stats.TotalInputTokens,
+                CompletionTokensDelta = stats.TotalOutputTokens,
+                PromptTotalCostDelta = deltaPromptCost,
+                CompletionTotalCostDelta = deltaCompletionCost
+            }
         };
         globalStats.UpdateStats($"global-{metric}-{dim}-{agentId}", delta);
     }

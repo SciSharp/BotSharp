@@ -33,7 +33,10 @@ public class GlobalStatsConversationHook : IContentGeneratingHook
             AgentId = agentId,
             RecordTime = DateTime.UtcNow,
             IntervalType = StatsInterval.Day,
-            AgentCallCountDelta = 1
+            CountDelta = new()
+            {
+                AgentCallCountDelta = 1
+            }
         };
         globalStats.UpdateStats($"global-{metric}-{dim}-{agentId}", delta);
     }

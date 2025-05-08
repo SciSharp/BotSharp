@@ -23,16 +23,22 @@ public partial class MongoRepository
         };
 
         var filterDef = builder.And(filters);
-        var found = _dc.GlobalStatistics.Find(filterDef).FirstOrDefault();
+        var found = _dc.GlobalStats.Find(filterDef).FirstOrDefault();
 
         return found != null ? new BotSharpStats
         {
             AgentId = agentId,
-            AgentCallCount = found.AgentCallCount,
-            PromptTokens = found.PromptTokens,
-            CompletionTokens = found.CompletionTokens,
-            PromptTotalCost = found.PromptTotalCost,
-            CompletionTotalCost = found.CompletionTotalCost,
+            Count = new()
+            {
+                AgentCallCount = found.Count.AgentCallCount
+            },
+            LlmCost = new()
+            {
+                PromptTokens = found.LlmCost.PromptTokens,
+                CompletionTokens = found.LlmCost.CompletionTokens,
+                PromptTotalCost = found.LlmCost.PromptTotalCost,
+                CompletionTotalCost = found.LlmCost.CompletionTotalCost
+            },
             RecordTime = found.RecordTime,
             StartTime = startTime,
             EndTime = endTime,
@@ -61,17 +67,17 @@ public partial class MongoRepository
         var filterDef = builder.And(filters);
         var updateDef = Builders<GlobalStatisticsDocument>.Update
                             .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
-                            .Inc(x => x.AgentCallCount, delta.AgentCallCountDelta)
-                            .Inc(x => x.PromptTokens, delta.PromptTokensDelta)
-                            .Inc(x => x.CompletionTokens, delta.CompletionTokensDelta)
-                            .Inc(x => x.PromptTotalCost, delta.PromptTotalCostDelta)
-                            .Inc(x => x.CompletionTotalCost, delta.CompletionTotalCostDelta)
+                            .Inc(x => x.Count.AgentCallCount, delta.CountDelta.AgentCallCountDelta)
+                            .Inc(x => x.LlmCost.PromptTokens, delta.LlmCostDelta.PromptTokensDelta)
+                            .Inc(x => x.LlmCost.CompletionTokens, delta.LlmCostDelta.CompletionTokensDelta)
+                            .Inc(x => x.LlmCost.PromptTotalCost, delta.LlmCostDelta.PromptTotalCostDelta)
+                            .Inc(x => x.LlmCost.CompletionTotalCost, delta.LlmCostDelta.CompletionTotalCostDelta)
                             .Set(x => x.StartTime, startTime)
                             .Set(x => x.EndTime, endTime)
                             .Set(x => x.Interval, delta.Interval)
                             .Set(x => x.RecordTime, delta.RecordTime);
 
-        _dc.GlobalStatistics.UpdateOne(filterDef, updateDef, _options);
+        _dc.GlobalStats.UpdateOne(filterDef, updateDef, _options);
         return true;
     }
 }

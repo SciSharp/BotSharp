@@ -7,20 +7,11 @@ public class BotSharpStats
     [JsonPropertyName("agent_id")]
     public string AgentId { get; set; } = null!;
 
-    [JsonPropertyName("agent_call_count")]
-    public int AgentCallCount { get; set; }
+    [JsonPropertyName("count")]
+    public StatsCount Count { get; set; } = new();
 
-    [JsonPropertyName("prompt_tokens")]
-    public int PromptTokens { get; set; }
-
-    [JsonPropertyName("completion_tokens")]
-    public int CompletionTokens { get; set; }
-
-    [JsonPropertyName("prompt_total_cost")]
-    public float PromptTotalCost { get; set; }
-
-    [JsonPropertyName("completion_total_cost")]
-    public float CompletionTotalCost { get; set; }
+    [JsonPropertyName("llm_cost")]
+    public StatsLlmCost LlmCost { get; set; } = new();
 
     [JsonPropertyName("record_time")]
     public DateTime RecordTime { get; set; } = DateTime.UtcNow;
@@ -83,4 +74,25 @@ public class BotSharpStats
         endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
         return (startTime, endTime);
     }
+}
+
+public class StatsCount
+{
+    [JsonPropertyName("agent_call_count")]
+    public long AgentCallCount { get; set; }
+}
+
+public class StatsLlmCost
+{
+    [JsonPropertyName("prompt_tokens")]
+    public long PromptTokens { get; set; }
+
+    [JsonPropertyName("completion_tokens")]
+    public long CompletionTokens { get; set; }
+
+    [JsonPropertyName("prompt_total_cost")]
+    public float PromptTotalCost { get; set; }
+
+    [JsonPropertyName("completion_total_cost")]
+    public float CompletionTotalCost { get; set; }
 }

@@ -5,11 +5,8 @@ namespace BotSharp.Abstraction.Statistics.Models;
 public class BotSharpStatsDelta
 {
     public string AgentId { get; set; } = null!;
-    public int AgentCallCountDelta { get; set; }
-    public int PromptTokensDelta { get; set; }
-    public int CompletionTokensDelta { get; set; }
-    public float PromptTotalCostDelta { get; set; }
-    public float CompletionTotalCostDelta { get; set; }
+    public StatsCountDelta CountDelta { get; set; } = new();
+    public StatsLlmCostDelta LlmCostDelta { get; set; } = new();
     public DateTime RecordTime { get; set; } = DateTime.UtcNow;
     public StatsInterval IntervalType { get; set; } = StatsInterval.Day;
 
@@ -27,4 +24,17 @@ public class BotSharpStatsDelta
             }
         }
     }
+}
+
+public class StatsCountDelta
+{
+    public int AgentCallCountDelta { get; set; }
+}
+
+public class StatsLlmCostDelta
+{
+    public int PromptTokensDelta { get; set; }
+    public int CompletionTokensDelta { get; set; }
+    public float PromptTotalCostDelta { get; set; }
+    public float CompletionTotalCostDelta { get; set; }
 }
