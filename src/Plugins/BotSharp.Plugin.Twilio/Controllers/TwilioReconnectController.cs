@@ -17,7 +17,7 @@ public class TwilioReconnectController : TwilioController
         _logger = logger;
     }
 
-    [ValidateRequest]
+    // [ValidateRequest]
     [HttpPost("twilio/stream/reconnect")]
     public async Task<TwiMLResult> Reconnect(ConversationalVoiceRequest request)
     {
