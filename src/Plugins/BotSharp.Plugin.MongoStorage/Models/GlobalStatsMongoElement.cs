@@ -1,10 +1,12 @@
 namespace BotSharp.Plugin.MongoStorage.Models;
 
+[BsonIgnoreExtraElements(Inherited = true)]
 public class StatsCountMongoElement
 {
     public long AgentCallCount { get; set; }
 }
 
+[BsonIgnoreExtraElements(Inherited = true)]
 public class StatsLlmCostMongoElement
 {
     public long PromptTokens { get; set; }
