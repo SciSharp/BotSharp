@@ -4,17 +4,23 @@ namespace BotSharp.Abstraction.Statistics.Models;
 
 public class BotSharpStats
 {
-    [JsonPropertyName("metric")]
-    public string Metric { get; set; } = null!;
+    [JsonPropertyName("agent_id")]
+    public string AgentId { get; set; } = null!;
 
-    [JsonPropertyName("dimension")]
-    public string Dimension { get; set; } = null!;
+    [JsonPropertyName("agent_call_count")]
+    public int AgentCallCount { get; set; }
 
-    [JsonPropertyName("dim_ref_val")]
-    public string DimRefVal { get; set; } = null!;
+    [JsonPropertyName("prompt_tokens")]
+    public int PromptTokens { get; set; }
 
-    [JsonPropertyName("data")]
-    public IDictionary<string, double> Data { get; set; } = new Dictionary<string, double>();
+    [JsonPropertyName("completion_tokens")]
+    public int CompletionTokens { get; set; }
+
+    [JsonPropertyName("prompt_total_cost")]
+    public float PromptTotalCost { get; set; }
+
+    [JsonPropertyName("completion_total_cost")]
+    public float CompletionTotalCost { get; set; }
 
     [JsonPropertyName("record_time")]
     public DateTime RecordTime { get; set; } = DateTime.UtcNow;
@@ -44,10 +50,12 @@ public class BotSharpStats
     [JsonPropertyName("end_time")]
     public DateTime EndTime { get; set; }
 
+
     public override string ToString()
     {
-        return $"{Metric}-{Dimension}-{DimRefVal} ({Interval}): {Data?.Count ?? 0}";
+        return $"Stats: {AgentId}-{IntervalType}";
     }
+
 
     public static (DateTime, DateTime) BuildTimeInterval(DateTime recordTime, StatsInterval interval)
     {
