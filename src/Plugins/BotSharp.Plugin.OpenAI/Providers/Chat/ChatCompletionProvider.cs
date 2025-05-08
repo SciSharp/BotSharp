@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Models;
 using OpenAI.Chat;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
@@ -10,6 +11,11 @@ public class ChatCompletionProvider : IChatCompletion
 
     protected string _model;
     private List<string> renderedInstructions = [];
+
+    private readonly Dictionary<string, float> _defaultTemperature = new()
+    {
+        { "o4-mini", 1.0f }
+    };
 
     public virtual string Provider => "openai";
     public string Model => _model;
@@ -220,16 +226,7 @@ public class ChatCompletionProvider : IChatCompletion
         renderedInstructions = [];
 
         var messages = new List<ChatMessage>();
-
-        var temperature = float.Parse(state.GetState("temperature", "0.0"));
-        var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
-                            ? tokens
-                            : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
-        var options = new ChatCompletionOptions()
-        {
-            Temperature = temperature,
-            MaxOutputTokenCount = maxTokens
-        };
+        var options = InitChatCompletionOption(agent);
 
         var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
         foreach (var function in functions)
@@ -389,6 +386,27 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         return prompt;
+    }
+
+    private ChatCompletionOptions InitChatCompletionOption(Agent agent)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+
+        var temperature = float.Parse(state.GetState("temperature", "0.0"));
+        if (_defaultTemperature.ContainsKey(_model))
+        {
+            temperature = _defaultTemperature[_model];
+        }
+
+        var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
+                        ? tokens
+                        : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
+
+        return new ChatCompletionOptions()
+        {
+            Temperature = temperature,
+            MaxOutputTokenCount = maxTokens
+        };
     }
 
     public void SetModelName(string model)

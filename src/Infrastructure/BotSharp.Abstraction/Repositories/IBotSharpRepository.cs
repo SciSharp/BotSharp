@@ -187,9 +187,9 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #endregion
 
     #region Statistics
-    BotSharpStats? GetGlobalStats(string metric, string dimension, string dimRefVal, DateTime recordTime, StatsInterval interval)
+    BotSharpStats? GetGlobalStats(string agentId, DateTime recordTime, StatsInterval interval)
         => throw new NotImplementedException();
-    bool SaveGlobalStats(BotSharpStats body)
+    bool SaveGlobalStats(BotSharpStatsDelta delta)
         => throw new NotImplementedException();
 
     #endregion
