@@ -20,7 +20,7 @@ public partial class TencentCosService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when getting files: {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when getting files (path: {relativePath}).");
             return Enumerable.Empty<string>();
         }
     }
@@ -33,7 +33,7 @@ public partial class TencentCosService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when getting file bytes: {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when getting file bytes (url: {fileStorageUrl}).");
             return Array.Empty<byte>();
         }
     }
@@ -48,7 +48,7 @@ public partial class TencentCosService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when saving file stream to path: {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when saving file stream to path ({filePath}).");
             return false;
         }
     }
@@ -63,7 +63,7 @@ public partial class TencentCosService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when saving file bytes to path: {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when saving file bytes to path ({filePath}).");
             return false;
         }
     }

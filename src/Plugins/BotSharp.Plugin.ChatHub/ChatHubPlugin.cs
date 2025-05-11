@@ -1,5 +1,4 @@
-using BotSharp.Abstraction.Interpreters.Settings;
-using BotSharp.Core.Crontab.Abstraction;
+using BotSharp.Abstraction.Crontab;
 using BotSharp.Plugin.ChatHub.Hooks;
 using Microsoft.Extensions.Configuration;
 

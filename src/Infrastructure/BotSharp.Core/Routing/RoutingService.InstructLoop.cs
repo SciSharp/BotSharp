@@ -7,7 +7,7 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public async Task<RoleDialogModel> InstructLoop(Agent agent, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         RoleDialogModel response = default;
 
@@ -15,7 +15,7 @@ public partial class RoutingService
         var convService = _services.GetRequiredService<IConversationService>();
         var storage = _services.GetRequiredService<IConversationStorage>();
 
-        _router = await agentService.LoadAgent(message.CurrentAgentId);
+        _router = await agentService.GetAgent(message.CurrentAgentId);
 
         var states = _services.GetRequiredService<IConversationStateService>();
         var executor = _services.GetRequiredService<IExecutor>();
@@ -58,11 +58,8 @@ public partial class RoutingService
             // Save states
             states.SaveStateByArgs(inst.Arguments);
 
-#if DEBUG
-            Console.WriteLine($"*** Next Instruction *** {inst}");
-#else
-            _logger.LogInformation($"*** Next Instruction *** {inst}");
-#endif
+            _logger.LogDebug($"*** Next Instruction *** {inst}");
+
             await reasoner.AgentExecuting(_router, inst, message, dialogs);
 
             // Handover to Task Agent
@@ -79,7 +76,7 @@ public partial class RoutingService
 
             await reasoner.AgentExecuted(_router, inst, response, dialogs);
 
-            if (loopCount >= reasoner.MaxLoopCount || _context.IsEmpty)
+            if (loopCount >= reasoner.MaxLoopCount || _context.IsEmpty || response.StopCompletion)
             {
                 break;
             }

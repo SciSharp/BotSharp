@@ -66,7 +66,7 @@ public partial class FileInstructService
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error when analyzing pdf in file service: {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogError(ex, $"Error when analyzing pdf in file service.");
             return content;
         }
         finally
@@ -113,7 +113,7 @@ public partial class FileInstructService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error when saving pdf file: {ex.Message}\r\n{ex.InnerException}");
+                _logger.LogWarning(ex, $"Error when saving pdf file.");
                 continue;
             }
         }
@@ -141,7 +141,7 @@ public partial class FileInstructService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error when converting pdf file to images ({file}): {ex.Message}\r\n{ex.InnerException}");
+                _logger.LogWarning(ex, $"Error when converting pdf file to images ({file}).");
                 continue;
             }
         }

@@ -45,7 +45,7 @@ public partial class InstructService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when getting ai response, {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when getting ai response");
         }
 
         return result;

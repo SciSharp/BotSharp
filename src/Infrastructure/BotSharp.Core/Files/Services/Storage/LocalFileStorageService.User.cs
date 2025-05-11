@@ -40,7 +40,7 @@ public partial class LocalFileStorageService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when saving user avatar: {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Error when saving user avatar (user id: {_user.Id})");
             return false;
         }
     }

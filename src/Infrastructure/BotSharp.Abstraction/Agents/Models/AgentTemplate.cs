@@ -7,7 +7,6 @@ public class AgentTemplate
 
     public AgentTemplate()
     {
-        
     }
 
     public AgentTemplate(string name, string content)

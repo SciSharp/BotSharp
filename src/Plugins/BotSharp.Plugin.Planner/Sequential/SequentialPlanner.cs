@@ -41,7 +41,7 @@ public class SequentialPlanner : ITaskPlanner
         var decomposation = await GetDecomposedStepAsync(router, messageId, dialogs);
         if (decomposation.TotalRemainingSteps > 0 && _lastInst != null)
         {
-            _lastInst.Response = decomposation.Description;
+            // _lastInst.Response = decomposation.Description;
             _lastInst.NextActionReason = $"Having {decomposation.TotalRemainingSteps} steps left.";
             return _lastInst;
         }
@@ -62,8 +62,6 @@ public class SequentialPlanner : ITaskPlanner
 
         var next = GetNextStepPrompt(router);
 
-        var inst = new FunctionCallFromLlm();
-
         // text completion
         /*var agentService = _services.GetRequiredService<IAgentService>();
         var instruction = agentService.RenderedInstruction(router);
@@ -76,43 +74,26 @@ public class SequentialPlanner : ITaskPlanner
             provider: router?.LlmConfig?.Provider,
             model: router?.LlmConfig?.Model);
 
-        int retryCount = 0;
-        while (retryCount < 3)
-        {
-            string text = string.Empty;
-            try
-            {
-                // text completion
-                // text = await completion.GetCompletion(content, router.Id, messageId);
-                dialogs = new List<RoleDialogModel>
-                {
-                    new RoleDialogModel(AgentRole.User, next)
-                    {
-                        FunctionName = nameof(SequentialPlanner),
-                        MessageId = messageId
-                    }
-                };
-                var response = await completion.GetChatCompletions(router, dialogs);
 
-                inst = response.Content.JsonContent<FunctionCallFromLlm>();
-                break;
-            }
-            catch (Exception ex)
+        string text = string.Empty;
+
+        // text completion
+        // text = await completion.GetCompletion(content, router.Id, messageId);
+        dialogs = new List<RoleDialogModel>
+        {
+            new RoleDialogModel(AgentRole.User, next)
             {
-                _logger.LogError($"{ex.Message}: {text}");
-                inst.Function = "response_to_user";
-                inst.Response = ex.Message;
-                inst.AgentName = "Router";
+                FunctionName = nameof(SequentialPlanner),
+                MessageId = messageId
             }
-            finally
-            {
-                retryCount++;
-            }
-        }
+        };
+        var response = await completion.GetChatCompletions(router, dialogs);
+
+        var inst = response.Content.JsonContent<FunctionCallFromLlm>();
 
         if (decomposation.TotalRemainingSteps > 0)
         {
-            inst.Response = decomposation.Description;
+            // inst.Response = decomposation.Description;
             inst.NextActionReason = $"{decomposation.TotalRemainingSteps} steps left.";
             inst.HandleDialogsByPlanner = true;
         }
@@ -125,10 +106,10 @@ public class SequentialPlanner : ITaskPlanner
     {
         var taskAgentDialogs = new List<RoleDialogModel>
         {
-            new RoleDialogModel(AgentRole.User, inst.Response)
+            /*new RoleDialogModel(AgentRole.User, inst.Response)
             {
                 MessageId = message.MessageId,
-            }
+            }*/
         };
 
         return taskAgentDialogs;

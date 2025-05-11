@@ -90,7 +90,7 @@ public class EditImageFn : IFunctionCallback
         catch (Exception ex)
         {
             var error = $"Error when getting image edit response. {ex.Message}";
-            _logger.LogWarning($"{error}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"{error}");
             return error;
         }
     }

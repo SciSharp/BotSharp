@@ -27,7 +27,7 @@ public class VerboseLogHook : IContentGeneratingHook
         if (dialog != null)
         {
             var log = $"{dialog.Role}: {dialog.Content} [msg_id: {dialog.MessageId}] ==>";
-            _logger.LogInformation(log);
+            _logger.LogDebug(log);
         }
         
         await Task.CompletedTask;
@@ -44,7 +44,7 @@ public class VerboseLogHook : IContentGeneratingHook
                 $"[{agent?.Name}]: {message.Indication} {message.FunctionName}({message.FunctionArgs})" :
                 $"[{agent?.Name}]: {message.Content}" + $" <== [msg_id: {message.MessageId}]";
 
-        _logger.LogInformation(tokenStats.Prompt);
-        _logger.LogInformation(log);
+        _logger.LogDebug(tokenStats.Prompt);
+        _logger.LogDebug(log);
     }
 }

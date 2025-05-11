@@ -1,7 +1,7 @@
+using BotSharp.Abstraction.Crontab;
 using BotSharp.Abstraction.Crontab.Models;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.SideCar;
-using BotSharp.Core.Crontab.Abstraction;
 
 namespace BotSharp.Plugin.SqlDriver.Hooks;
 

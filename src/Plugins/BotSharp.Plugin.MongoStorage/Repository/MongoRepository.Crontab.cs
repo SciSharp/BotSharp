@@ -26,7 +26,7 @@ public partial class MongoRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error when saving crontab item: {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogError(ex, $"Error when saving crontab item (agent id: {item.AgentId}, conv id: {item.ConversationId}).");
             return false;
         }
     }

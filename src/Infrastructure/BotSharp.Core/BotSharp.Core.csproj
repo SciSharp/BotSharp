@@ -222,6 +222,7 @@
     <PackageReference Include="Nanoid" />
     <PackageReference Include="Rougamo.Fody" />
     <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="System.ClientModel" />
   </ItemGroup>
 
   <ItemGroup>

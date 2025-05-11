@@ -203,8 +203,8 @@ public class MongoDbContext
     public IMongoCollection<CrontabItemDocument> CrontabItems
         => GetCollectionOrCreate<CrontabItemDocument>("CronTabItems");
 
-    public IMongoCollection<GlobalStatisticsDocument> GlobalStatistics
-        => GetCollectionOrCreate<GlobalStatisticsDocument>("GlobalStatistics");
+    public IMongoCollection<GlobalStatisticsDocument> GlobalStats
+        => GetCollectionOrCreate<GlobalStatisticsDocument>("GlobalStats");
 
     public IMongoCollection<InstructionLogDocument> InstructionLogs
         => CreateInstructionLogIndex();

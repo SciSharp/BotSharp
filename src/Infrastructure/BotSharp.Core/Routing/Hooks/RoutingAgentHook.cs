@@ -59,7 +59,6 @@ public class RoutingAgentHook : AgentHookBase
         }
 
         dict["routing_agents"] = agents;
-        dict["routing_handlers"] = routing.GetHandlers(_agent);
 
         return base.OnInstructionLoaded(template, dict);
     }

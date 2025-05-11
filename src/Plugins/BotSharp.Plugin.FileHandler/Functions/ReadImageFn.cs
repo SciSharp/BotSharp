@@ -108,7 +108,7 @@ public class ReadImageFn : IFunctionCallback
         catch (Exception ex)
         {
             var error = $"Error when analyzing images.";
-            _logger.LogWarning($"{error} {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"{error}");
             return error;
         }
     }

@@ -10,6 +10,7 @@ public class ConversationItemBody
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = null!;
+
     [JsonPropertyName("type")]
     public string Type { get; set; } = null!;
 

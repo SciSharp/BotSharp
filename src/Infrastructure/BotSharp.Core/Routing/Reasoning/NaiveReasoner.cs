@@ -41,53 +41,22 @@ public class NaiveReasoner : IRoutingReasoner
     {
         var next = GetNextStepPrompt(router);
 
-        var inst = new FunctionCallFromLlm();
-
-        // text completion
-        /*var agentService = _services.GetRequiredService<IAgentService>();
-        var instruction = agentService.RenderedInstruction(router);
-        var content = $"{instruction}\r\n###\r\n{next}";
-        content =  content + "\r\nResponse: ";
-        var completion = CompletionProvider.GetTextCompletion(_services);*/
-
         // chat completion
         var completion = CompletionProvider.GetChatCompletion(_services,
             provider: router?.LlmConfig?.Provider,
             model: router?.LlmConfig?.Model);
 
-        int retryCount = 0;
-        while (retryCount < 3)
+        dialogs = new List<RoleDialogModel>
         {
-            string text = string.Empty;
-            try
+            new RoleDialogModel(AgentRole.User, next)
             {
-                // text completion
-                // text = await completion.GetCompletion(content, router.Id, messageId);
-                dialogs = new List<RoleDialogModel>
-                {
-                    new RoleDialogModel(AgentRole.User, next)
-                    {
-                        FunctionName = nameof(NaiveReasoner),
-                        MessageId = messageId
-                    }
-                };
-                var response = await completion.GetChatCompletions(router, dialogs);
+                FunctionName = nameof(NaiveReasoner),
+                MessageId = messageId
+            }
+        };
+        var response = await completion.GetChatCompletions(router, dialogs);
 
-                inst = (response.FunctionArgs ?? response.Content).JsonContent<FunctionCallFromLlm>();
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"{ex.Message}: {text}");
-                inst.Function = "response_to_user";
-                inst.Response = ex.Message;
-                inst.AgentName = "Router";
-            }
-            finally
-            {
-                retryCount++;
-            }
-        }
+        var inst = (response.FunctionArgs ?? response.Content).JsonContent<FunctionCallFromLlm>();
 
         // Fix LLM malformed response
         ReasonerHelper.FixMalformedResponse(_services, inst);

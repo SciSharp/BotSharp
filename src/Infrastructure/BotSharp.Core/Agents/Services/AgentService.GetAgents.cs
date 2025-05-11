@@ -44,13 +44,17 @@ public partial class AgentService
     [SharpCache(10)]
     public async Task<Agent> GetAgent(string id)
     {
-        var profile = _db.GetAgent(id);
+         if (string.IsNullOrWhiteSpace(id))
+         {
+             return null;
+         }
 
-        if (profile == null)
-        {
-            _logger.LogError($"Can't find agent {id}");
-            return null;
-        }
+         var profile = _db.GetAgent(id);
+         if (profile == null)
+         {
+             _logger.LogError($"Can't find agent {id}");
+             return null;
+         }
 
         // Load llm config
         var agentSetting = _services.GetRequiredService<AgentSettings>();

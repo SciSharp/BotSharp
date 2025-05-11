@@ -64,7 +64,7 @@ public class HandleEmailSenderFn : IFunctionCallback
         catch (Exception ex)
         {
             var msg = $"Failed to send the email. {ex.Message}";
-            _logger.LogError($"{msg}\n(Error: {ex.Message}\r\n{ex.InnerException})");
+            _logger.LogError(ex, $"{msg}");
             message.Content = msg;
             return false;
         }

@@ -73,21 +73,20 @@ public class TokenStatistics : ITokenStatistics
         var dim = "agent";
         var agentId = message.CurrentAgentId ?? string.Empty;
         var globalStats = _services.GetRequiredService<IBotSharpStatsService>();
-        var body = new BotSharpStatsInput
+        var delta = new BotSharpStatsDelta
         {
-            Metric = metric,
-            Dimension = dim,
-            DimRefVal = agentId,
+            AgentId = agentId,
             RecordTime = DateTime.UtcNow,
             IntervalType = StatsInterval.Day,
-            Data = [
-                new StatsKeyValuePair("prompt_token_count_total", stats.TotalInputTokens),
-                new StatsKeyValuePair("completion_token_count_total", stats.TotalOutputTokens),
-                new StatsKeyValuePair("prompt_cost_total", deltaPromptCost),
-                new StatsKeyValuePair("completion_cost_total", deltaCompletionCost)
-            ]
+            LlmCostDelta = new()
+            {
+                PromptTokensDelta = stats.TotalInputTokens,
+                CompletionTokensDelta = stats.TotalOutputTokens,
+                PromptTotalCostDelta = deltaPromptCost,
+                CompletionTotalCostDelta = deltaCompletionCost
+            }
         };
-        globalStats.UpdateStats($"global-{metric}-{dim}-{agentId}", body);
+        globalStats.UpdateStats($"global-{metric}-{dim}-{agentId}", delta);
     }
 
     public void PrintStatistics()

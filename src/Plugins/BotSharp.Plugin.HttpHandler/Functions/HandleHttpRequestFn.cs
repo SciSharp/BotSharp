@@ -45,7 +45,7 @@ public class HandleHttpRequestFn : IFunctionCallback
         catch (Exception ex)
         {
             var msg = $"Fail when sending http request. Url: {url}, method: {method}, content: {content}";
-            _logger.LogError($"{msg}\n(Error: {ex.Message}\r\n{ex.InnerException})");
+            _logger.LogError(ex, $"{msg}");
             message.Content = msg;
             return false;
         }
