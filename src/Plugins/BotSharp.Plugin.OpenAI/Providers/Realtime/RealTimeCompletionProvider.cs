@@ -402,7 +402,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         }
         else
         {
-            throw new NotImplementedException("");
+            throw new NotImplementedException($"Unrecognized role {message.Role}.");
         }
     }
 

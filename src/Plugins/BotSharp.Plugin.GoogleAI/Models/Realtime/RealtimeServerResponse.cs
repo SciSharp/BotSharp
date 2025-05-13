@@ -30,6 +30,12 @@ internal class RealtimeGenerateContentServerContent
 
     [JsonPropertyName("modelTurn")]
     public Content? ModelTurn { get; set; }
+
+    [JsonPropertyName("inputTranscription")]
+    public RealtimeGenerateContentTranscription? InputTranscription { get; set; }
+
+    [JsonPropertyName("outputTranscription")]
+    public RealtimeGenerateContentTranscription? OutputTranscription { get; set; }
 }
 
 internal class RealtimeUsageMetaData
@@ -58,4 +64,10 @@ internal class RealtimeTokenDetail
 
     [JsonPropertyName("tokenCount")]
     public int? TokenCount { get; set; }
+}
+
+internal class RealtimeGenerateContentTranscription
+{
+    [JsonPropertyName("text")]
+    public string? Text { get; set; }
 }
