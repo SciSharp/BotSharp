@@ -671,7 +671,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         return outputs;
     }
 
-    public async Task<RoleDialogModel> OnUserAudioTranscriptionCompleted(RealtimeHubConnection conn, string response)
+    private async Task<RoleDialogModel> OnUserAudioTranscriptionCompleted(RealtimeHubConnection conn, string response)
     {
         var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(response);
         return new RoleDialogModel(AgentRole.User, data.Transcript)

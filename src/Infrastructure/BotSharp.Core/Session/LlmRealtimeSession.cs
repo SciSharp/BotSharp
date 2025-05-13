@@ -22,14 +22,17 @@ public class LlmRealtimeSession : IDisposable
         _sessionOptions = sessionOptions;
     }
 
-    public async Task ConnectAsync(Uri uri, Dictionary<string, string> headers, CancellationToken cancellationToken = default)
+    public async Task ConnectAsync(Uri uri, Dictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
     {
         _webSocket?.Dispose();
         _webSocket = new ClientWebSocket();
 
-        foreach (var header in headers)
+        if (!headers.IsNullOrEmpty())
         {
-            _webSocket.Options.SetRequestHeader(header.Key, header.Value);
+            foreach (var header in headers)
+            {
+                _webSocket.Options.SetRequestHeader(header.Key, header.Value);
+            }
         }
 
         await _webSocket.ConnectAsync(uri, cancellationToken);

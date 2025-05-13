@@ -1,0 +1,19 @@
+{
+  "name": "get_weather",
+  "description": "Get weather information for user.",
+  "visibility_expression": "{% if states.channel != 'email' %}visible{% endif %}",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "city": {
+        "type": "string",
+        "description": "The city where the user wants to get weather information."
+      },
+      "state": {
+        "type": "string",
+        "description": "The state where the user wants to get weather information."
+      }
+    },
+    "required": [ "city", "state" ]
+  }
+}

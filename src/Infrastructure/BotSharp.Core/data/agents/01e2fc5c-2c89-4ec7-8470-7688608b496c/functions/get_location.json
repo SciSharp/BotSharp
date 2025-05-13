@@ -1,0 +1,20 @@
+{
+  "name": "get_location",
+  "description": "Get location information for user.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "city": {
+        "type": "string",
+        "visibility_expression": "{% if states.channel == 'email' %}visible{% endif %}",
+        "description": "The location city that user wants to know about."
+      },
+      "county": {
+        "type": "string",
+        "visibility_expression": "{% if states.channel != 'email' %}visible{% endif %}",
+        "description": "The location county that user wants to know about."
+      }
+    },
+    "required": [ "city", "county" ]
+  }
+}
