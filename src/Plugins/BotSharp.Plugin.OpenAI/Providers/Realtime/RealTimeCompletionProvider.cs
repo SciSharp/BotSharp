@@ -30,14 +30,14 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     public async Task Connect(
         RealtimeHubConnection conn,
-        Action onModelReady,
-        Action<string,string> onModelAudioDeltaReceived,
-        Action onModelAudioResponseDone,
-        Action<string> onModelAudioTranscriptDone,
-        Action<List<RoleDialogModel>> onModelResponseDone,
-        Action<string> onConversationItemCreated,
-        Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
-        Action onInterruptionDetected)
+        Func<Task> onModelReady,
+        Func<string, string, Task> onModelAudioDeltaReceived,
+        Func<Task> onModelAudioResponseDone,
+        Func<string, Task> onModelAudioTranscriptDone,
+        Func<List<RoleDialogModel>, Task> onModelResponseDone,
+        Func<string, Task> onConversationItemCreated,
+        Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
+        Func<Task> onInterruptionDetected)
     {
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
@@ -72,7 +72,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 onModelAudioTranscriptDone,
                 onModelResponseDone,
                 onConversationItemCreated,
-                onInputAudioTranscriptionCompleted,
+                onInputAudioTranscriptionDone,
                 onInterruptionDetected);
     }
 
@@ -144,14 +144,14 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     private async Task ReceiveMessage(
         RealtimeHubConnection conn,
-        Action onModelReady,
-        Action<string, string> onModelAudioDeltaReceived,
-        Action onModelAudioResponseDone,
-        Action<string> onModelAudioTranscriptDone,
-        Action<List<RoleDialogModel>> onModelResponseDone,
-        Action<string> onConversationItemCreated,
-        Action<RoleDialogModel> onUserAudioTranscriptionCompleted,
-        Action onInterruptionDetected)
+        Func<Task> onModelReady,
+        Func<string, string, Task> onModelAudioDeltaReceived,
+        Func<Task> onModelAudioResponseDone,
+        Func<string, Task> onModelAudioTranscriptDone,
+        Func<List<RoleDialogModel>, Task> onModelResponseDone,
+        Func<string, Task> onConversationItemCreated,
+        Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
+        Func<Task> onInterruptionDetected)
     {
         await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
         {
@@ -175,7 +175,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "session.created")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
-                onModelReady();
+                await onModelReady();
             }
             else if (response.Type == "session.updated")
             {
@@ -189,7 +189,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
                 var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(receivedText);
-                onModelAudioTranscriptDone(data.Transcript);
+                await onModelAudioTranscriptDone(data.Transcript);
             }
             else if (response.Type == "response.audio.delta")
             {
@@ -197,13 +197,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 if (audio?.Delta != null)
                 {
                     _logger.LogDebug($"{response.Type}: {receivedText}");
-                    onModelAudioDeltaReceived(audio.Delta, audio.ItemId);
+                    await onModelAudioDeltaReceived(audio.Delta, audio.ItemId);
                 }
             }
             else if (response.Type == "response.audio.done")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
-                onModelAudioResponseDone();
+                await onModelAudioResponseDone();
             }
             else if (response.Type == "response.done")
             {
@@ -213,14 +213,14 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 {
                     if (data.StatusDetails.Type == "incomplete" && data.StatusDetails.Reason == "max_output_tokens")
                     {
-                        onInterruptionDetected();
+                        await onInterruptionDetected();
                         await TriggerModelInference("Response user concisely");
                     }
                 }
                 else
                 {
                     var messages = await OnResponsedDone(conn, receivedText);
-                    onModelResponseDone(messages);
+                    await onModelResponseDone(messages);
                 }
             }
             else if (response.Type == "conversation.item.created")
@@ -228,7 +228,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 _logger.LogInformation($"{response.Type}: {receivedText}");
 
                 var data = JsonSerializer.Deserialize<ConversationItemCreated>(receivedText);
-                onConversationItemCreated(receivedText);
+                await onConversationItemCreated(receivedText);
             }
             else if (response.Type == "conversation.item.input_audio_transcription.completed")
             {
@@ -237,14 +237,14 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 var message = await OnUserAudioTranscriptionCompleted(conn, receivedText);
                 if (!string.IsNullOrEmpty(message.Content))
                 {
-                    onUserAudioTranscriptionCompleted(message);
+                    await onInputAudioTranscriptionDone(message);
                 }
             }
             else if (response.Type == "input_audio_buffer.speech_started")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
                 // Handle user interuption
-                onInterruptionDetected();
+                await onInterruptionDetected();
             }
             else if (response.Type == "input_audio_buffer.speech_stopped")
             {

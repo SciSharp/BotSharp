@@ -76,8 +76,8 @@ public class RealtimeHub : IRealtimeHub
             {
                 var data = _conn.OnModelAudioResponseDone();
                 await (responseToUser?.Invoke(data) ?? Task.CompletedTask);
-            }, 
-            onAudioTranscriptDone: async transcript =>
+            },
+            onModelAudioTranscriptDone: async transcript =>
             {
 
             },
@@ -117,7 +117,7 @@ public class RealtimeHub : IRealtimeHub
             {
                 
             },
-            onInputAudioTranscriptionCompleted: async message =>
+            onInputAudioTranscriptionDone: async message =>
             {
                 // append input audio transcript to conversation
                 dialogs.Add(message);

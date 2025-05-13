@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Realtime.Models.Session;
 using BotSharp.Core.Session;
+using BotSharp.Plugin.GoogleAI.Models.Realtime;
 using GenerativeAI;
 using GenerativeAI.Core;
 using GenerativeAI.Live;
@@ -9,6 +10,7 @@ using GenerativeAI.Types;
 using GenerativeAI.Types.Converters;
 using Google.Ai.Generativelanguage.V1Beta2;
 using Google.Api;
+using System;
 using System.Threading;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Realtime;
@@ -29,6 +31,17 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     private readonly BotSharpOptions _botsharpOptions;
     private readonly GoogleAiSettings _settings;
 
+    private const string DEFAULT_MIME_TYPE = "audio/pcm;rate=16000";
+
+    private readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter(), new DateOnlyJsonConverter(), new TimeOnlyJsonConverter() },
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement
+    };
+
     public GoogleRealTimeProvider(
         IServiceProvider services,
         GoogleAiSettings settings,
@@ -47,25 +60,26 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     }
 
     private RealtimeHubConnection _conn;
-    private Action _onModelReady;
-    private Action<string, string> _onModelAudioDeltaReceived;
-    private Action _onModelAudioResponseDone;
-    private Action<string> _onModelAudioTranscriptDone;
-    private Action<List<RoleDialogModel>> _onModelResponseDone;
-    private Action<string> _onConversationItemCreated;
-    private Action<RoleDialogModel> _onInputAudioTranscriptionCompleted;
-    private Action _onUserInterrupted;
+    private Func<Task> _onModelReady;
+    private Func<string, string, Task> _onModelAudioDeltaReceived;
+    private Func<Task> _onModelAudioResponseDone;
+    private Func<string, Task> _onModelAudioTranscriptDone;
+    private Func<List<RoleDialogModel>, Task> _onModelResponseDone;
+    private Func<string, Task> _onConversationItemCreated;
+    private Func<RoleDialogModel, Task> _onInputAudioTranscriptionDone;
+    private Func<Task> _onUserInterrupted;
     
 
-    public async Task Connect(RealtimeHubConnection conn,
-        Action onModelReady,
-        Action<string, string> onModelAudioDeltaReceived,
-        Action onModelAudioResponseDone,
-        Action<string> onModelAudioTranscriptDone,
-        Action<List<RoleDialogModel>> onModelResponseDone,
-        Action<string> onConversationItemCreated,
-        Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
-        Action onUserInterrupted)
+    public async Task Connect(
+        RealtimeHubConnection conn,
+        Func<Task> onModelReady,
+        Func<string, string, Task> onModelAudioDeltaReceived,
+        Func<Task> onModelAudioResponseDone,
+        Func<string, Task> onModelAudioTranscriptDone,
+        Func<List<RoleDialogModel>, Task> onModelResponseDone,
+        Func<string, Task> onConversationItemCreated,
+        Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
+        Func<Task> onInterruptionDetected)
     {
         _conn = conn;
         _onModelReady = onModelReady;
@@ -74,8 +88,8 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         _onModelAudioTranscriptDone = onModelAudioTranscriptDone;
         _onModelResponseDone = onModelResponseDone;
         _onConversationItemCreated = onConversationItemCreated;
-        _onInputAudioTranscriptionCompleted = onInputAudioTranscriptionCompleted;
-        _onUserInterrupted = onUserInterrupted;
+        _onInputAudioTranscriptionDone = onInputAudioTranscriptionDone;
+        _onUserInterrupted = onInterruptionDetected;
 
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
@@ -83,81 +97,114 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         _model = realtimeModelSettings.Model;
         var modelSettings = settingsService.GetSetting(Provider, _model);
 
-        //if (_session != null)
-        //{
-        //    _session.Dispose();
-        //}
+        if (_session != null)
+        {
+            _session.Dispose();
+        }
 
-        //_session = new LlmRealtimeSession(_services, new ChatSessionOptions
-        //{
-        //    JsonOptions = new JsonSerializerOptions
+        _session = new LlmRealtimeSession(_services, new ChatSessionOptions
+        {
+            JsonOptions = _jsonOptions
+        });
+
+        await _session.ConnectAsync(
+            uri: new Uri($"wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key={modelSettings.ApiKey}"),
+            cancellationToken: CancellationToken.None);
+
+        await onModelReady();
+
+        _ = ReceiveMessage(
+            conn,
+            onModelReady,
+            onModelAudioDeltaReceived,
+            onModelAudioResponseDone,
+            onModelAudioTranscriptDone,
+            onModelResponseDone,
+            onConversationItemCreated,
+            onInputAudioTranscriptionDone,
+            onInterruptionDetected);
+
+
+        //var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
+        //_chatClient = client.CreateGenerativeModel(_model);
+        //_client = _chatClient.CreateMultiModalLiveClient(
+        //    config: new GenerationConfig
         //    {
-        //        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        //        PropertyNameCaseInsensitive = true,
-        //        Converters = { new JsonStringEnumConverter(), new DateOnlyJsonConverter(), new TimeOnlyJsonConverter() },
-        //        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        //        TypeInfoResolver = TypesSerializerContext.Default,
-        //        UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement,
+        //        ResponseModalities = [Modality.AUDIO],
+        //    },
+        //    systemInstruction: "You are a helpful assistant.",
+        //    logger: _logger);
 
-        //    }
-        //});
+        //await AttachEvents(_client);
 
-        //await _session.ConnectAsync(
-        //    uri: new Uri($"wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key={modelSettings.ApiKey}"),
-        //    cancellationToken: CancellationToken.None);
-
-        ////await UpdateSession(conn, true);
-
-        //_ = ReceiveMessage(
-        //    conn,
-        //    onModelReady,
-        //    onModelAudioDeltaReceived,
-        //    onModelAudioResponseDone,
-        //    onModelAudioTranscriptDone,
-        //    onModelResponseDone,
-        //    onConversationItemCreated,
-        //    onInputAudioTranscriptionCompleted,
-        //    onUserInterrupted);
-
-
-        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
-        _chatClient = client.CreateGenerativeModel(_model);
-        _client = _chatClient.CreateMultiModalLiveClient(
-            config: new GenerationConfig
-            {
-                ResponseModalities = [Modality.AUDIO],
-            },
-            systemInstruction: "You are a helpful assistant.",
-            logger: _logger);
-
-        await AttachEvents(_client);
-
-        await _client.ConnectAsync(false);
+        //await _client.ConnectAsync(false);
     }
-
 
     private async Task ReceiveMessage(
         RealtimeHubConnection conn,
-        Action onModelReady,
-        Action<string, string> onModelAudioDeltaReceived,
-        Action onModelAudioResponseDone,
-        Action<string> onModelAudioTranscriptDone,
-        Action<List<RoleDialogModel>> onModelResponseDone,
-        Action<string> onConversationItemCreated,
-        Action<RoleDialogModel> onUserAudioTranscriptionCompleted,
-        Action onInterruptionDetected)
+        Func<Task> onModelReady,
+        Func<string, string, Task> onModelAudioDeltaReceived,
+        Func<Task> onModelAudioResponseDone,
+        Func<string, Task> onModelAudioTranscriptDone,
+        Func<List<RoleDialogModel>, Task> onModelResponseDone,
+        Func<string, Task> onConversationItemCreated,
+        Func<RoleDialogModel, Task> onInputAudioTranscriptionCompleted,
+        Func<Task> onInterruptionDetected)
     {
         await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
         {
             var receivedText = update?.RawResponse;
-            Console.WriteLine($"Received text: {receivedText}");
-
             if (string.IsNullOrEmpty(receivedText))
             {
                 continue;
             }
 
-            
+            Console.WriteLine($"Received text: {receivedText}");
+            try
+            {
+                var response = JsonSerializer.Deserialize<RealtimeServerResponse>(receivedText, _jsonOptions);
+
+                if (response == null)
+                {
+                    continue;
+                }
+
+                if (response.SetupComplete != null)
+                {
+                    _logger.LogInformation($"Session setup completed.");
+                }
+                else if (response.ServerContent != null)
+                {
+                    if (response.ServerContent.ModelTurn != null)
+                    {
+                        _logger.LogInformation($"Model audio delta received.");
+                        var parts = response.ServerContent.ModelTurn.Parts;
+                        if (!parts.IsNullOrEmpty())
+                        {
+                            foreach (var part in parts)
+                            {
+                                if (!string.IsNullOrEmpty(part.InlineData?.Data))
+                                {
+                                    await onModelAudioDeltaReceived(part.InlineData.Data, string.Empty);
+                                }
+                            }
+                        }
+                    }
+                    else if (response.ServerContent.GenerationComplete == true)
+                    {
+                        _logger.LogInformation($"Model generation completed.");
+                    }
+                    else if (response.ServerContent.TurnComplete == true)
+                    {
+                        _logger.LogInformation($"Model turn completed.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error when deserializing server response.");
+                continue;
+            }
         }
 
         _session.Dispose();
@@ -166,42 +213,42 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
     public async Task Disconnect()
     {
-        //if (_session != null)
-        //{
-        //    await _session.Disconnect();
-        //}
-
-        if (_client != null)
+        if (_session != null)
         {
-            await _client.DisconnectAsync();
+            await _session.Disconnect();
         }
+
+        //if (_client != null)
+        //{
+        //    await _client.DisconnectAsync();
+        //}
     }
 
     public async Task AppenAudioBuffer(string message)
     {
-        await _client.SendAudioAsync(Convert.FromBase64String(message));
+        //await _client.SendAudioAsync(Convert.FromBase64String(message));
 
-        //await SendEventToModel(new BidiClientPayload
-        //{
-        //    RealtimeInput = new()
-        //    {
-        //        MediaChunks = [ new() { Data = message, MimeType = "audio/pcm; rate=16000" } ]
-        //    }
-        //});
+        await SendEventToModel(new BidiClientPayload
+        {
+            RealtimeInput = new()
+            {
+                MediaChunks = [new() { Data = message, MimeType = DEFAULT_MIME_TYPE }]
+            }
+        });
     }
 
     public async Task AppenAudioBuffer(ArraySegment<byte> data, int length)
     {
         var buffer = data.AsSpan(0, length).ToArray();
-        await _client.SendAudioAsync(buffer, "audio/pcm; rate=16000");
+        //await _client.SendAudioAsync(buffer, "audio/pcm;rate=16000");
 
-        //await SendEventToModel(new BidiClientPayload
-        //{
-        //    RealtimeInput = new()
-        //    {
-        //        MediaChunks = [new() { Data = Convert.ToBase64String(buffer), MimeType = "audio/pcm; rate=16000" }]
-        //    }
-        //});
+        await SendEventToModel(new BidiClientPayload
+        {
+            RealtimeInput = new()
+            {
+                MediaChunks = [new() { Data = Convert.ToBase64String(buffer), MimeType = DEFAULT_MIME_TYPE }]
+            }
+        });
     }
 
     public async Task TriggerModelInference(string? instructions = null)
@@ -210,22 +257,20 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                     ? new Content(instructions, AgentRole.User)
                     : null;
 
-        await _client.SendClientContentAsync(new BidiGenerateContentClientContent()
-        {
-            Turns = content != null ? [content] : null,
-            TurnComplete = true,
-        });
-
-        
-
-        //await SendEventToModel(new BidiClientPayload
+        //await _client.SendClientContentAsync(new BidiGenerateContentClientContent()
         //{
-        //    ClientContent = new()
-        //    {
-        //        Turns = content != null ? [content] : null,
-        //        TurnComplete = true
-        //    }
+        //    Turns = content != null ? [content] : null,
+        //    TurnComplete = true,
         //});
+
+        await SendEventToModel(new BidiClientPayload
+        {
+            ClientContent = new()
+            {
+                Turns = content != null ? [content] : null,
+                TurnComplete = true
+            }
+        });
     }
 
     public async Task CancelModelResponse()
@@ -276,7 +321,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
         client.TextChunkReceived += (sender, e) =>
         {
-            _onInputAudioTranscriptionCompleted(new RoleDialogModel(AgentRole.Assistant, e.Text));
+            _onInputAudioTranscriptionDone(new RoleDialogModel(AgentRole.Assistant, e.Text));
         };
 
         client.GenerationInterrupted += (sender, e) => 
@@ -358,9 +403,9 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     {
         //todo Send Audio Chunks to Model, Botsharp RealTime Implementation seems to be incomplete
 
-        //if (_session == null) return;
+        if (_session == null) return;
 
-        //await _session.SendEventToModel(message);
+        await _session.SendEventToModel(message);
     }
 
     public async Task<string> UpdateSession(RealtimeHubConnection conn, bool isInit = false)
@@ -414,24 +459,24 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
             });
         }
 
-        await _client.SendSetupAsync(new BidiGenerateContentSetup()
-        {
-            GenerationConfig = config,
-            Model = Model.ToModelId(),
-            SystemInstruction = request.SystemInstruction,
-            //Tools = request.Tools?.ToArray(),
-        });
-
-        //await SendEventToModel(new BidiClientPayload
+        //await _client.SendSetupAsync(new BidiGenerateContentSetup()
         //{
-        //    Setup = new BidiGenerateContentSetup()
-        //    {
-        //        GenerationConfig = config,
-        //        Model = $"models/{_model}",
-        //        SystemInstruction = new Content(agent.Instruction, AgentRole.System),
-        //        //Tools = request.Tools?.ToArray(),
-        //    }
+        //    GenerationConfig = config,
+        //    Model = Model.ToModelId(),
+        //    SystemInstruction = request.SystemInstruction,
+        //    //Tools = request.Tools?.ToArray(),
         //});
+
+        await SendEventToModel(new BidiClientPayload
+        {
+            Setup = new BidiGenerateContentSetup()
+            {
+                GenerationConfig = config,
+                Model = Model.ToModelId(),
+                SystemInstruction = request.SystemInstruction,
+                Tools = []
+            }
+        });
 
         return prompt;
     }
@@ -448,42 +493,42 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                 Response = JsonNode.Parse(message.Content ?? "{}")
             };
 
-            await _client.SendToolResponseAsync(new BidiGenerateContentToolResponse()
-            {
-                FunctionResponses = [function]
-            });
-
-            //await SendEventToModel(new BidiClientPayload
+            //await _client.SendToolResponseAsync(new BidiGenerateContentToolResponse()
             //{
-            //    ToolResponse = new()
-            //    {
-            //        FunctionResponses = [function]
-            //    }
+            //    FunctionResponses = [function]
             //});
+
+            await SendEventToModel(new BidiClientPayload
+            {
+                ToolResponse = new()
+                {
+                    FunctionResponses = [function]
+                }
+            });
         }
         else if (message.Role == AgentRole.Assistant)
         {
-            //await SendEventToModel(new BidiClientPayload
-            //{
-            //    ClientContent = new()
-            //    {
-            //        Turns = [new Content(message.Content, AgentRole.Model)],
-            //        TurnComplete = true
-            //    }
-            //});
+            await SendEventToModel(new BidiClientPayload
+            {
+                ClientContent = new()
+                {
+                    Turns = [new Content(message.Content, AgentRole.Model)],
+                    TurnComplete = true
+                }
+            });
         }
         else if (message.Role == AgentRole.User)
         {
-            await _client.SentTextAsync(message.Content);
+            //await _client.SentTextAsync(message.Content);
 
-            //await SendEventToModel(new BidiClientPayload
-            //{
-            //    ClientContent = new()
-            //    {
-            //        Turns = [new Content(message.Content, AgentRole.User)],
-            //        TurnComplete = true
-            //    }
-            //});
+            await SendEventToModel(new BidiClientPayload
+            {
+                ClientContent = new()
+                {
+                    Turns = [new Content(message.Content, AgentRole.User)],
+                    TurnComplete = true
+                }
+            });
         }
         else
         {

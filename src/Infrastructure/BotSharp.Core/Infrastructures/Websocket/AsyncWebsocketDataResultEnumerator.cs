@@ -44,7 +44,9 @@ internal class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResul
 
             if (receivedResult.CloseStatus.HasValue)
             {
-                Console.WriteLine($"Web socket close status: {receivedResult.CloseStatus}");
+#if DEBUG
+                Console.WriteLine($"Websocket close: {receivedResult.CloseStatus} {receivedResult.CloseStatusDescription}");
+#endif
                 Current = null;
                 return false;
             }
