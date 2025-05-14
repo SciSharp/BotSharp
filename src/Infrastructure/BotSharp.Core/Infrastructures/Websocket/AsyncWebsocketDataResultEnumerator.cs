@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Realtime.Models.Session;
 using System.Buffers;
 using System.ClientModel;
 using System.Net.WebSockets;

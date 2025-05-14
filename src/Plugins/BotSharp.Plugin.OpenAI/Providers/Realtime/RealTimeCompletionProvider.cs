@@ -40,9 +40,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Func<Task> onInterruptionDetected)
     {
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
+        var realtimeSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
-        _model = realtimeModelSettings.Model;
+        _model = realtimeSettings.Model;
         var settings = settingsService.GetSetting(Provider, _model);
 
         if (_session != null)
@@ -65,6 +65,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             cancellationToken: CancellationToken.None);
 
         _ = ReceiveMessage(
+                _services,
                 conn,
                 onModelReady,
                 onModelAudioDeltaReceived,
@@ -80,7 +81,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     {
         if (_session != null)
         {
-            await _session.Disconnect();
+            await _session.DisconnectAsync();
             _session.Dispose();
         }
     }
@@ -143,6 +144,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     }
 
     private async Task ReceiveMessage(
+        IServiceProvider services,
         RealtimeHubConnection conn,
         Func<Task> onModelReady,
         Func<string, string, Task> onModelAudioDeltaReceived,
@@ -153,6 +155,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
         Func<Task> onInterruptionDetected)
     {
+        DateTime? startTime = null;
+        var realtimeSettings = _services.GetRequiredService<RealtimeModelSettings>();
+
         await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
         {
             var receivedText = update?.RawResponse;
@@ -162,6 +167,17 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
 
             var response = JsonSerializer.Deserialize<ServerEventResponse>(receivedText);
+
+            if (realtimeSettings?.ModelResponseTimeoutSeconds > 0
+                && !string.IsNullOrWhiteSpace(realtimeSettings?.ModelResponseTimeoutEndEvent)
+                && startTime.HasValue
+                && (DateTime.UtcNow - startTime.Value).TotalSeconds >= realtimeSettings.ModelResponseTimeoutSeconds
+                && response.Type != realtimeSettings.ModelResponseTimeoutEndEvent)
+            {
+                startTime = null;
+                await TriggerModelInference("Responsd to user immediately");
+                continue;
+            }
 
             if (response.Type == "error")
             {
@@ -228,6 +244,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 _logger.LogInformation($"{response.Type}: {receivedText}");
 
                 var data = JsonSerializer.Deserialize<ConversationItemCreated>(receivedText);
+                if (data?.Item?.Role == "user")
+                {
+                    startTime = DateTime.UtcNow;
+                }
+
                 await onConversationItemCreated(receivedText);
             }
             else if (response.Type == "conversation.item.input_audio_transcription.completed")
@@ -263,7 +284,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     {
         if (_session == null) return;
 
-        await _session.SendEventToModel(message);
+        await _session.SendEventToModelAsync(message);
     }
 
     public async Task<string> UpdateSession(RealtimeHubConnection conn, bool isInit = false)
@@ -406,7 +427,101 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         }
     }
 
-    protected (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
+    
+    public void SetModelName(string model)
+    {
+        _model = model;
+    }
+
+    #region Private methods
+    private async Task<List<RoleDialogModel>> OnResponsedDone(RealtimeHubConnection conn, string response)
+    {
+        var outputs = new List<RoleDialogModel>();
+
+        var data = JsonSerializer.Deserialize<ResponseDone>(response).Body;
+        if (data.Status != "completed")
+        {
+            _logger.LogError(data.StatusDetails.ToString());
+            /*if (data.StatusDetails.Type == "incomplete" && data.StatusDetails.Reason == "max_output_tokens")
+            {
+                await TriggerModelInference("Response user concisely");
+            }*/
+            return [];
+        }
+
+        var prompts = new List<string>();
+        var inputTokenDetails = data.Usage?.InputTokenDetails;
+        var outputTokenDetails = data.Usage?.OutputTokenDetails;
+
+        foreach (var output in data.Outputs)
+        {
+            if (output.Type == "function_call")
+            {
+                outputs.Add(new RoleDialogModel(AgentRole.Assistant, output.Arguments)
+                {
+                    CurrentAgentId = conn.CurrentAgentId,
+                    FunctionName = output.Name,
+                    FunctionArgs = output.Arguments,
+                    ToolCallId = output.CallId,
+                    MessageId = output.Id,
+                    MessageType = MessageTypeName.FunctionCall
+                });
+
+                prompts.Add($"{output.Name}({output.Arguments})");
+            }
+            else if (output.Type == "message")
+            {
+                var content = output.Content.FirstOrDefault()?.Transcript ?? string.Empty;
+
+                outputs.Add(new RoleDialogModel(output.Role, content)
+                {
+                    CurrentAgentId = conn.CurrentAgentId,
+                    MessageId = output.Id,
+                    MessageType = MessageTypeName.Plain
+                });
+
+                prompts.Add(content);
+            }
+        }
+
+
+        // After chat completion hook
+        var text = string.Join("\r\n", prompts);
+        var contentHooks = _services.GetServices<IContentGeneratingHook>();
+
+        foreach (var hook in contentHooks)
+        {
+            await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, text)
+            {
+                CurrentAgentId = conn.CurrentAgentId
+            },
+            new TokenStatsModel
+            {
+                Provider = Provider,
+                Model = _model,
+                Prompt = text,
+                TextInputTokens = inputTokenDetails?.TextTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
+                CachedTextInputTokens = data.Usage?.InputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
+                AudioInputTokens = inputTokenDetails?.AudioTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
+                CachedAudioInputTokens = inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
+                TextOutputTokens = outputTokenDetails?.TextTokens ?? 0,
+                AudioOutputTokens = outputTokenDetails?.AudioTokens ?? 0
+            });
+        }
+
+        return outputs;
+    }
+
+    private async Task<RoleDialogModel> OnUserAudioTranscriptionCompleted(RealtimeHubConnection conn, string response)
+    {
+        var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(response);
+        return new RoleDialogModel(AgentRole.User, data.Transcript)
+        {
+            CurrentAgentId = conn.CurrentAgentId
+        };
+    }
+
+    private (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -588,103 +703,5 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         return prompt;
     }
-
-    public void SetModelName(string model)
-    {
-        _model = model;
-    }
-
-    public async Task<List<RoleDialogModel>> OnResponsedDone(RealtimeHubConnection conn, string response)
-    {
-        var outputs = new List<RoleDialogModel>();
-
-        var data = JsonSerializer.Deserialize<ResponseDone>(response).Body;
-        if (data.Status != "completed")
-        {
-            _logger.LogError(data.StatusDetails.ToString());
-            /*if (data.StatusDetails.Type == "incomplete" && data.StatusDetails.Reason == "max_output_tokens")
-            {
-                await TriggerModelInference("Response user concisely");
-            }*/
-            return [];
-        }
-
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
-
-        var prompts = new List<string>();
-        var inputTokenDetails = data.Usage?.InputTokenDetails;
-        var outputTokenDetails = data.Usage?.OutputTokenDetails;
-
-        foreach (var output in data.Outputs)
-        {
-            if (output.Type == "function_call")
-            {
-                outputs.Add(new RoleDialogModel(AgentRole.Assistant, output.Arguments)
-                {
-                    CurrentAgentId = conn.CurrentAgentId,
-                    FunctionName = output.Name,
-                    FunctionArgs = output.Arguments,
-                    ToolCallId = output.CallId,
-                    MessageId = output.Id,
-                    MessageType = MessageTypeName.FunctionCall
-                });
-
-                prompts.Add($"{output.Name}({output.Arguments})");
-            }
-            else if (output.Type == "message")
-            {
-                var content = output.Content.FirstOrDefault()?.Transcript ?? string.Empty;
-
-                outputs.Add(new RoleDialogModel(output.Role, content)
-                {
-                    CurrentAgentId = conn.CurrentAgentId,
-                    MessageId = output.Id,
-                    MessageType = MessageTypeName.Plain
-                });
-
-                prompts.Add(content);
-            }
-        }
-
-        var text = string.Join("\r\n", prompts);
-        // After chat completion hook
-        foreach (var hook in contentHooks)
-        {
-            await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, text)
-            {
-                CurrentAgentId = conn.CurrentAgentId
-            },
-            new TokenStatsModel
-            {
-                Provider = Provider,
-                Model = _model,
-                Prompt = text,
-                TextInputTokens = inputTokenDetails?.TextTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
-                CachedTextInputTokens = data.Usage?.InputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
-                AudioInputTokens = inputTokenDetails?.AudioTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
-                CachedAudioInputTokens = inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
-                TextOutputTokens = outputTokenDetails?.TextTokens ?? 0,
-                AudioOutputTokens = outputTokenDetails?.AudioTokens ?? 0
-            });
-        }
-
-        return outputs;
-    }
-
-    private async Task<RoleDialogModel> OnUserAudioTranscriptionCompleted(RealtimeHubConnection conn, string response)
-    {
-        var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(response);
-        return new RoleDialogModel(AgentRole.User, data.Transcript)
-        {
-            CurrentAgentId = conn.CurrentAgentId
-        };
-    }
-
-    public async Task<RoleDialogModel> OnConversationItemCreated(RealtimeHubConnection conn, string response)
-    {
-        var item = response.JsonContent<ConversationItemCreated>().Item;
-        var message = new RoleDialogModel(item.Role, item.Content.FirstOrDefault()?.Transcript);
-
-        return message;
-    }
+    #endregion
 }

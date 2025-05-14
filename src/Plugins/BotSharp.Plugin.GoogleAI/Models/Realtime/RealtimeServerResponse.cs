@@ -12,6 +12,9 @@ internal class RealtimeServerResponse
 
     [JsonPropertyName("usageMetadata")]
     public RealtimeUsageMetaData? UsageMetaData { get; set; }
+
+    [JsonPropertyName("toolCall")]
+    public RealtimeToolCall? ToolCall { get; set; }
 }
 
 
@@ -70,4 +73,22 @@ internal class RealtimeGenerateContentTranscription
 {
     [JsonPropertyName("text")]
     public string? Text { get; set; }
+}
+
+internal class RealtimeToolCall
+{
+    [JsonPropertyName("functionCalls")]
+    public List<RealtimeFunctionCall>? FunctionCalls { get; set; }
+}
+
+internal class RealtimeFunctionCall
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; }
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+
+    [JsonPropertyName("args")]
+    public JsonNode? Args { get; set; }
 }

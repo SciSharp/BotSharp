@@ -20,14 +20,14 @@ public class GetWeatherFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<Location>(message.FunctionArgs, BotSharpOptions.defaultJsonOptions);
+        //var args = JsonSerializer.Deserialize<Location>(message.FunctionArgs, BotSharpOptions.defaultJsonOptions);
 
-        var sidecar = _services.GetService<IConversationSideCar>();
-        var states = GetSideCarStates();
+        //var sidecar = _services.GetService<IConversationSideCar>();
+        //var states = GetSideCarStates();
 
-        var userMessage = $"Please find the information at location {args.City}, {args.State}";
-        var response = await sidecar.SendMessage(BuiltInAgentId.Chatbot, userMessage, states: states);
-        message.Content = $"It is a sunny day {response.Content}.";
+        //var userMessage = $"Please find the information at location {args.City}, {args.State}";
+        //var response = await sidecar.SendMessage(BuiltInAgentId.Chatbot, userMessage, states: states);
+        message.Content = $"It is a sunny day.";
         return true;
     }
 

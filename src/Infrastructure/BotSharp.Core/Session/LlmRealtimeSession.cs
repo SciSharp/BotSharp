@@ -71,7 +71,7 @@ public class LlmRealtimeSession : IDisposable
         };
     }
 
-    public async Task SendEventToModel(object message)
+    public async Task SendEventToModelAsync(object message)
     {
         if (_webSocket.State != WebSocketState.Open)
         {
@@ -96,7 +96,7 @@ public class LlmRealtimeSession : IDisposable
         }
     }
 
-    public async Task Disconnect()
+    public async Task DisconnectAsync()
     {
         if (_webSocket.State == WebSocketState.Open)
         {

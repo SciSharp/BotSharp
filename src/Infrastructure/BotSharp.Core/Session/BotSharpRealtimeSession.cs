@@ -55,7 +55,7 @@ public class BotSharpRealtimeSession : IDisposable
         };
     }
 
-    public async Task SendEvent(string message)
+    public async Task SendEventAsync(string message)
     {
         if (_websocket.State == WebSocketState.Open)
         {
@@ -64,7 +64,7 @@ public class BotSharpRealtimeSession : IDisposable
         }
     }
 
-    public async Task Disconnect()
+    public async Task DisconnectAsync()
     {
         if (_websocket.State == WebSocketState.Open)
         {

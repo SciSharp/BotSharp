@@ -1,6 +1,4 @@
 using BotSharp.Abstraction.Realtime.Models;
-using System;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BotSharp.Abstraction.MLTasks;
 
@@ -20,6 +18,7 @@ public interface IRealTimeCompletion
         Func<string, Task> onConversationItemCreated,
         Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
         Func<Task> onInterruptionDetected);
+
     Task AppenAudioBuffer(string message);
     Task AppenAudioBuffer(ArraySegment<byte> data, int length);
 
@@ -31,6 +30,4 @@ public interface IRealTimeCompletion
     Task RemoveConversationItem(string itemId);
     Task TriggerModelInference(string? instructions = null);
     Task CancelModelResponse();
-    Task<List<RoleDialogModel>> OnResponsedDone(RealtimeHubConnection conn, string response);
-    Task<RoleDialogModel> OnConversationItemCreated(RealtimeHubConnection conn, string response);
 }

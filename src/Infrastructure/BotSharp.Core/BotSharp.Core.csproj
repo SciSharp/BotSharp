@@ -211,9 +211,6 @@
     <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_weather.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_location.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>

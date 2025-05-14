@@ -42,6 +42,7 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
         var routing = _services.GetRequiredService<IRoutingService>();
 
         message.Role = AgentRole.Function;
+        //message.Role = AgentRole.Assistant;
 
         if (message.FunctionName == "route_to_agent")
         {
