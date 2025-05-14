@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Planning;
 
 namespace BotSharp.Core.Routing.Reasoning;
@@ -18,17 +19,50 @@ public class InstructExecutor : IExecutor
         RoleDialogModel message,
         List<RoleDialogModel> dialogs)
     {
-        message.Instruction = inst;
+        var states = _services.GetRequiredService<IConversationStateService>();
+        var goalAgent = states.GetState(StateConst.EXPECTED_GOAL_AGENT);
+        if (!string.IsNullOrEmpty(goalAgent) && inst.OriginalAgent != goalAgent)
+        {
+            inst.OriginalAgent = goalAgent;
+            // Emit hook
+            await HookEmitter.Emit<IRoutingHook>(_services, async hook =>
+                await hook.OnRoutingInstructionRevised(inst, message)
+            );
+        }
 
-        var handlers = _services.GetServices<IRoutingHandler>();
-        var handler = handlers.FirstOrDefault(x => x.Name == inst.Function);
-        handler.SetDialogs(dialogs);
+        message.FunctionArgs = JsonSerializer.Serialize(inst);
+        if (message.FunctionName != null)
+        {
+            var msg = RoleDialogModel.From(message, role: AgentRole.Function);
+            await routing.InvokeFunction(message.FunctionName, msg);
+        }
 
-        var handled = await handler.Handle(routing, inst, message);
+        var agentId = routing.Context.GetCurrentAgentId();
 
-        // For client display purpose
+        // Update next action agent's name
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(agentId);
+        inst.AgentName = agent.Name;
+
+        if (inst.ExecutingDirectly)
+        {
+            message.Content = inst.Question;
+        }
+
+        if (agent.Disabled)
+        {
+            var content = $"This agent ({agent.Name}) is disabled, please install the corresponding plugin ({agent.Plugin.Name}) to activate this agent.";
+
+            message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: content);
+            dialogs.Add(message);
+        }
+        else
+        {
+            var ret = await routing.InvokeAgent(agentId, dialogs);
+        }
+
         var response = dialogs.Last();
-        response.MessageId = message.MessageId;
+        
         response.Instruction = inst;
 
         return response;

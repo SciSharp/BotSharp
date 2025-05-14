@@ -28,17 +28,16 @@ public class GlobalStatsConversationHook : IContentGeneratingHook
         var metric = StatsMetric.AgentCall;
         var dim = "agent";
         var agentId = message.CurrentAgentId ?? string.Empty;
-        var body = new BotSharpStatsInput
+        var delta = new BotSharpStatsDelta
         {
-            Metric = metric,
-            Dimension = dim,
-            DimRefVal = agentId,
+            AgentId = agentId,
             RecordTime = DateTime.UtcNow,
             IntervalType = StatsInterval.Day,
-            Data = [
-                new StatsKeyValuePair("agent_call_count", 1)
-            ]
+            CountDelta = new()
+            {
+                AgentCallCountDelta = 1
+            }
         };
-        globalStats.UpdateStats($"global-{metric}-{dim}-{agentId}", body);
+        globalStats.UpdateStats($"global-{metric}-{dim}-{agentId}", delta);
     }
 }

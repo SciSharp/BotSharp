@@ -64,8 +64,7 @@ public class SignalRHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to add chat group in {nameof(SignalRHub)} (conversation id: {conversationId})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to add chat group in {nameof(SignalRHub)} (conversation id: {conversationId}).");
         }
     }
 }

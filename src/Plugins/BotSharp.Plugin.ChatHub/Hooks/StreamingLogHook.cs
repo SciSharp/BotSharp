@@ -85,7 +85,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         await SendContentLog(conversationId, input);
     }
 
-    public async Task OnSessionUpdated(Agent agent, string instruction, FunctionDef[] functions)
+    public async Task OnSessionUpdated(Agent agent, string instruction, FunctionDef[] functions, bool isInit = false)
     {
         var conversationId = _state.GetConversationId();
         if (string.IsNullOrEmpty(conversationId)) return;
@@ -97,6 +97,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             log += $"\r\n\r\n[FUNCTIONS]:\r\n\r\n{string.Join("\r\n\r\n", functions.Select(x => JsonSerializer.Serialize(x, BotSharpOptions.defaultJsonOptions)))}";
         }
         _logger.LogInformation(log);
+
+        if (isInit) return;
 
         var message = new RoleDialogModel(AgentRole.Assistant, log)
         {
@@ -482,8 +484,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to send content log in {nameof(StreamingLogHook)} (conversation id: {conversationId})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to send content log in {nameof(StreamingLogHook)} (conversation id: {conversationId}).");
         }
     }
 
@@ -502,8 +503,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to send state log in {nameof(StreamingLogHook)} (conversation id: {conversationId})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to send state log in {nameof(StreamingLogHook)} (conversation id: {conversationId}).");
         }
     }
 
@@ -522,8 +522,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to send agent queue log in {nameof(StreamingLogHook)} (conversation id: {conversationId})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to send agent queue log in {nameof(StreamingLogHook)} (conversation id: {conversationId}).");
         }
     }
 
@@ -542,8 +541,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to send state change in {nameof(StreamingLogHook)} (conversation id: {conversationId})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to send state change in {nameof(StreamingLogHook)} (conversation id: {conversationId}).");
         }
     }
 

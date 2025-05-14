@@ -294,7 +294,7 @@ public class RoutingContext : IRoutingContext
 
         // Set next handling agent for lazy routing mode
         var states = _services.GetRequiredService<IConversationStateService>();
-        var routingMode = states.GetState(StateConst.ROUTING_MODE, "hard");
+        var routingMode = states.GetState(StateConst.ROUTING_MODE, "eager");
         if (routingMode == "lazy")
         {
             var agentId = GetCurrentAgentId();

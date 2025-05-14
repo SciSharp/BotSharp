@@ -10,6 +10,7 @@ public interface IKnowledgeService
     Task<bool> CreateVectorCollection(string collectionName, string collectionType, int dimension, string provider, string model);
     Task<bool> DeleteVectorCollection(string collectionName);
     Task<IEnumerable<VectorCollectionConfig>> GetVectorCollections(string? type = null);
+    Task<VectorCollectionDetails?> GetVectorCollectionDetails(string collectionName);
     Task<IEnumerable<VectorSearchResult>> SearchVectorKnowledge(string query, string collectionName, VectorSearchOptions options);
     Task<StringIdPagedItems<VectorSearchResult>> GetPagedVectorCollectionData(string collectionName, VectorFilter filter);
     Task<bool> DeleteVectorCollectionData(string collectionName, string id);

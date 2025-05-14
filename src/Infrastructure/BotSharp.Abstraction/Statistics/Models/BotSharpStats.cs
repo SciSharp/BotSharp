@@ -4,17 +4,14 @@ namespace BotSharp.Abstraction.Statistics.Models;
 
 public class BotSharpStats
 {
-    [JsonPropertyName("metric")]
-    public string Metric { get; set; } = null!;
+    [JsonPropertyName("agent_id")]
+    public string AgentId { get; set; } = null!;
 
-    [JsonPropertyName("dimension")]
-    public string Dimension { get; set; } = null!;
+    [JsonPropertyName("count")]
+    public StatsCount Count { get; set; } = new();
 
-    [JsonPropertyName("dim_ref_val")]
-    public string DimRefVal { get; set; } = null!;
-
-    [JsonPropertyName("data")]
-    public IDictionary<string, double> Data { get; set; } = new Dictionary<string, double>();
+    [JsonPropertyName("llm_cost")]
+    public StatsLlmCost LlmCost { get; set; } = new();
 
     [JsonPropertyName("record_time")]
     public DateTime RecordTime { get; set; } = DateTime.UtcNow;
@@ -44,10 +41,12 @@ public class BotSharpStats
     [JsonPropertyName("end_time")]
     public DateTime EndTime { get; set; }
 
+
     public override string ToString()
     {
-        return $"{Metric}-{Dimension}-{DimRefVal} ({Interval}): {Data?.Count ?? 0}";
+        return $"Stats: {AgentId}-{IntervalType}";
     }
+
 
     public static (DateTime, DateTime) BuildTimeInterval(DateTime recordTime, StatsInterval interval)
     {
@@ -75,4 +74,25 @@ public class BotSharpStats
         endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
         return (startTime, endTime);
     }
+}
+
+public class StatsCount
+{
+    [JsonPropertyName("agent_call_count")]
+    public long AgentCallCount { get; set; }
+}
+
+public class StatsLlmCost
+{
+    [JsonPropertyName("prompt_tokens")]
+    public long PromptTokens { get; set; }
+
+    [JsonPropertyName("completion_tokens")]
+    public long CompletionTokens { get; set; }
+
+    [JsonPropertyName("prompt_total_cost")]
+    public float PromptTotalCost { get; set; }
+
+    [JsonPropertyName("completion_total_cost")]
+    public float CompletionTotalCost { get; set; }
 }

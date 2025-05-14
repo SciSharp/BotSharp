@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Users.Dtos;
 using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -108,7 +109,7 @@ public class ConversationController : ControllerBase
                     CreatedAt = message.CreatedAt,
                     Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Data = message.Data,
-                    Sender = UserViewModel.FromUser(user),
+                    Sender = UserDto.FromUser(user),
                     Payload = message.Payload,
                     HasMessageFiles = fileMessages.Any(x => x.MessageId.IsEqualTo(message.MessageId) && x.FileSource == FileSourceType.User)
                 });
@@ -124,7 +125,7 @@ public class ConversationController : ControllerBase
                     Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Function = message.FunctionName,
                     Data = message.Data,
-                    Sender = new UserViewModel
+                    Sender = new()
                     {
                         FirstName = agent?.Name ?? "Unkown",
                         Role = message.Role,

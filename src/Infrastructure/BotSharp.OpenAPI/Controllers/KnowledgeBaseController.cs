@@ -34,6 +34,13 @@ public class KnowledgeBaseController : ControllerBase
         return collections.Select(x => VectorCollectionConfigViewModel.From(x));
     }
 
+    [HttpGet("knowledge/vector/{collection}/details")]
+    public async Task<VectorCollectionDetailsViewModel?> GetVectorCollectionDetails([FromRoute] string collection)
+    {
+        var details = await _knowledgeService.GetVectorCollectionDetails(collection);
+        return VectorCollectionDetailsViewModel.From(details);
+    }
+
     [HttpPost("knowledge/vector/create-collection")]
     public async Task<bool> CreateVectorCollection([FromBody] CreateVectorCollectionRequest request)
     {

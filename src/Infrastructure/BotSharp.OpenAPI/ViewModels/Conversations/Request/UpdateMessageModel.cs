@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Dtos;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Conversations;

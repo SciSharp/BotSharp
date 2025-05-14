@@ -6,7 +6,7 @@
     "properties": {
       "order_number": {
         "type": "string",
-        "description": "order number."
+        "description": "order number, value must be provided by user."
       }
     },
     "required": [ "order_number" ]

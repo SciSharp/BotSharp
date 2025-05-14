@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Dtos;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
@@ -63,13 +64,13 @@ public class WelcomeHook : ConversationHookBase
                     RichContent = richContent
                 };
 
-                var json = JsonSerializer.Serialize(new ChatResponseModel()
+                var json = JsonSerializer.Serialize(new ChatResponseDto()
                 {
                     ConversationId = conversation.Id,
                     MessageId = dialog.MessageId,
                     Text = message.Text,
                     RichContent = richContent,
-                    Sender = new UserViewModel()
+                    Sender = new()
                     {
                         FirstName = agent.Name,
                         LastName = "",
@@ -103,8 +104,7 @@ public class WelcomeHook : ConversationHookBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to send event in {nameof(WelcomeHook)} (conversation id: {conversationId})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning(ex, $"Failed to send event in {nameof(WelcomeHook)} (conversation id: {conversationId}).");
         }
     }
 }

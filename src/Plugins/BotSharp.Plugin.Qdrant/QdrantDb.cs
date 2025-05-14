@@ -96,6 +96,39 @@ public class QdrantDb : IVectorDb
         var collections = await GetClient().ListCollectionsAsync();
         return collections.ToList();
     }
+
+    public async Task<VectorCollectionDetails?> GetCollectionDetails(string collectionName)
+    {
+        var exist = await DoesCollectionExist(collectionName);
+
+        if (!exist) return null;
+
+        var client = GetClient();
+        var details = await client.GetCollectionInfoAsync(collectionName);
+
+        if (details == null) return null;
+
+        return new VectorCollectionDetails
+        {
+            Status = details.Status.ToString(),
+            OptimizerStatus = details.OptimizerStatus.ToString(),
+            SegmentsCount = details.SegmentsCount,
+            InnerConfig = new VectorCollectionDetailConfig
+            {
+                Param = new VectorCollectionDetailConfigParam
+                {
+                    ShardNumber = details.Config?.Params?.ShardNumber,
+                    ShardingMethod = details.Config?.Params?.ShardingMethod.ToString(),
+                    ReplicationFactor = details.Config?.Params?.ReplicationFactor,
+                    WriteConsistencyFactor = details.Config?.Params?.WriteConsistencyFactor,
+                    ReadFanOutFactor = details.Config?.Params?.ReadFanOutFactor
+                }
+            },
+            VectorsCount = details.VectorsCount,
+            IndexedVectorsCount = details.IndexedVectorsCount,
+            PointsCount = details.PointsCount
+        };
+    }
     #endregion
 
     #region Collection data
@@ -423,7 +456,7 @@ public class QdrantDb : IVectorDb
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error when downloading Qdrant snapshot (Endpoint: {url}, Snapshot: {snapshotFileName}). {ex.Message}\r\n{ex.InnerException}");
+                _logger.LogError(ex, $"Error when downloading Qdrant snapshot (Endpoint: {url}, Snapshot: {snapshotFileName}).");
                 return BinaryData.Empty;
             }
         }
@@ -464,7 +497,7 @@ public class QdrantDb : IVectorDb
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error when uploading Qdrant snapshot (Endpoint: {url}, Snapshot: {snapshotFileName}). {ex.Message}\r\n{ex.InnerException}");
+                _logger.LogError(ex, $"Error when uploading Qdrant snapshot (Endpoint: {url}, Snapshot: {snapshotFileName}).");
                 return false;
             }
         }

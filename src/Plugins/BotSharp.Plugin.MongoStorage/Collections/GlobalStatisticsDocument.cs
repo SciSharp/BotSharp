@@ -2,10 +2,10 @@ namespace BotSharp.Plugin.MongoStorage.Collections;
 
 public class GlobalStatisticsDocument : MongoBase
 {
-    public string Metric { get; set; } = default!;
-    public string Dimension { get; set; } = default!;
-    public string DimRefVal { get; set; } = default!;
-    public IDictionary<string, double> Data { get; set; } = new Dictionary<string, double>();
+    public string AgentId { get; set; } = null!;
+    public StatsCountMongoElement Count { get; set; } = new();
+    public StatsLlmCostMongoElement LlmCost { get; set; } = new();
+
     public DateTime RecordTime { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }

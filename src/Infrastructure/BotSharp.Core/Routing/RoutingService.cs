@@ -26,52 +26,38 @@ public partial class RoutingService : IRoutingService
         _logger = logger;
     }
 
-    public async Task<RoleDialogModel> InstructDirect(Agent agent, RoleDialogModel message)
+    public async Task<RoleDialogModel> InstructDirect(Agent agent, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
-        var handlers = _services.GetServices<IRoutingHandler>();
-
-        var handler = handlers.FirstOrDefault(x => x.Name == "route_to_agent");
-
         var conv = _services.GetRequiredService<IConversationService>();
         var storage = _services.GetRequiredService<IConversationStorage>();
         storage.Append(conv.ConversationId, message);
 
-        var dialogs = conv.GetDialogHistory();
+        dialogs.Add(message);
         Context.SetDialogs(dialogs);
-        handler.SetDialogs(dialogs);
 
-        var inst = new FunctionCallFromLlm
+        var routing = _services.GetRequiredService<IRoutingService>();
+        routing.Context.Push(agent.Id, "instruct directly");
+        var agentId = routing.Context.GetCurrentAgentId();
+
+        // Update next action agent's name
+        var agentService = _services.GetRequiredService<IAgentService>();
+
+        if (agent.Disabled)
         {
-            Function = "route_to_agent",
-            Question = message.Content,
-            NextActionReason = message.Content,
-            AgentName = agent.Name,
-            OriginalAgent = agent.Name,
-            ExecutingDirectly = true
-        };
+            var content = $"This agent ({agent.Name}) is disabled, please install the corresponding plugin ({agent.Plugin.Name}) to activate this agent.";
 
-        var result = await handler.Handle(this, inst, message);
+            message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: content);
+            dialogs.Add(message);
+        }
+        else
+        {
+            var ret = await routing.InvokeAgent(agentId, dialogs);
+        }
 
         var response = dialogs.Last();
         response.MessageId = message.MessageId;
-        response.Instruction = inst;
 
         return response;
-    }
-
-    public List<RoutingHandlerDef> GetHandlers(Agent router)
-    {
-        var reasoner = GetReasoner(router);
-
-        return _services.GetServices<IRoutingHandler>()
-            .Where(x => x.Planers == null || x.Planers.Contains(reasoner.GetType().Name))
-            .Where(x => !string.IsNullOrEmpty(x.Description))
-            .Select((x, i) => new RoutingHandlerDef
-            {
-                Name = x.Name,
-                Description = x.Description,
-                Parameters = x.Parameters
-            }).ToList();
     }
 
 #if !DEBUG

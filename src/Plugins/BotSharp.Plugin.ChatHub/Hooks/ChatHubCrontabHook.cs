@@ -1,5 +1,6 @@
+using BotSharp.Abstraction.Conversations.Dtos;
+using BotSharp.Abstraction.Crontab;
 using BotSharp.Abstraction.Crontab.Models;
-using BotSharp.Core.Crontab.Abstraction;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
@@ -34,13 +35,13 @@ public class ChatHubCrontabHook : ICrontabHook
 
     public async Task OnCronTriggered(CrontabItem item)
     {
-        var json = JsonSerializer.Serialize(new ChatResponseModel()
+        var json = JsonSerializer.Serialize(new ChatResponseDto()
         {
             ConversationId = item.ConversationId,
             MessageId = Guid.NewGuid().ToString(),
             Text = item.ExecutionResult,
             Function = "",
-            Sender = new UserViewModel()
+            Sender = new()
             {
                 FirstName = "Crontab",
                 LastName = "AI",

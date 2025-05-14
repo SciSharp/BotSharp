@@ -4,7 +4,7 @@ namespace BotSharp.Core.Infrastructures;
 
 public static class HookEmitter
 {
-    public static HookEmittedResult Emit<T>(IServiceProvider services, Action<T> action, HookEmitOption? option = null)
+    public static HookEmittedResult Emit<T>(IServiceProvider services, Action<T> action, HookEmitOption<T>? option = null)
     {
         var logger = services.GetRequiredService<ILogger<T>>();
         var result = new HookEmittedResult();
@@ -15,12 +15,15 @@ public static class HookEmitter
         {
             try
             {
-                logger.LogDebug($"Emit hook action on {action.Method.Name}({hook.GetType().Name})");
-                action(hook);
-
-                if (option.OnlyOnce)
+                if (option.ShouldExecute == null || option.ShouldExecute(hook))
                 {
-                    break;
+                    logger.LogDebug($"Emit hook action on {action.Method.Name}({hook.GetType().Name})");
+                    action(hook);
+
+                    if (option.OnlyOnce)
+                    {
+                        break;
+                    }
                 }
             }
             catch (Exception ex)
@@ -32,7 +35,7 @@ public static class HookEmitter
         return result;
     }
 
-    public static async Task<HookEmittedResult> Emit<T>(IServiceProvider services, Func<T, Task> action, HookEmitOption? option = null)
+    public static async Task<HookEmittedResult> Emit<T>(IServiceProvider services, Func<T, Task> action, HookEmitOption<T>? option = null)
     {
         var logger = services.GetRequiredService<ILogger<T>>();
         var result = new HookEmittedResult();
@@ -43,12 +46,15 @@ public static class HookEmitter
         {
             try
             {
-                logger.LogDebug($"Emit hook action on {action.Method.Name}({hook.GetType().Name})");
-                await action(hook);
-
-                if (option.OnlyOnce)
+                if (option.ShouldExecute == null || option.ShouldExecute(hook))
                 {
-                    break;
+                    logger.LogDebug($"Emit hook action on {action.Method.Name}({hook.GetType().Name})");
+                    await action(hook);
+
+                    if (option.OnlyOnce)
+                    {
+                        break;
+                    }
                 }
             }
             catch (Exception ex)

@@ -1,7 +1,6 @@
 {
   "name": "route_to_agent",
   "description": "Route request to appropriate AI agent.",
-  "visibility_expression": "{% if states.routing_mode == 'lazy' %}visible{% endif %}",
   "parameters": {
     "type": "object",
     "properties": {
