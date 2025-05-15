@@ -273,13 +273,10 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
     public async Task<string> UpdateSession(RealtimeHubConnection conn, bool isInit = false)
     {
-        var convService = _services.GetRequiredService<IConversationService>();
         var agentService = _services.GetRequiredService<IAgentService>();
         var realtimeSetting = _services.GetRequiredService<RealtimeModelSettings>();
 
-        var conv = await convService.GetConversation(conn.ConversationId);
         var agent = await agentService.LoadAgent(conn.CurrentAgentId);
-
         var (prompt, request) = PrepareOptions(agent, []);
 
         var config = request.GenerationConfig;
