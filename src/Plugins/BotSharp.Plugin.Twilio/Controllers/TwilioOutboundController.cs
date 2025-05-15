@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
@@ -33,8 +34,12 @@ public class TwilioOutboundController : TwilioController
         {
             response = new VoiceResponse();
 
+            var emitOptions = new HookEmitOption<ITwilioCallStatusHook>
+            {
+                ShouldExecute = hook => hook.IsMatch(request)
+            };
             await HookEmitter.Emit<ITwilioCallStatusHook>(_services, 
-                async hook => await hook.OnVoicemailStarting(request));
+                async hook => await hook.OnVoicemailStarting(request), emitOptions);
 
             var url = twilio.GetSpeechPath(request.ConversationId, "voicemail.mp3");
             response.Play(new Uri(url));
