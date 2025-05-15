@@ -293,7 +293,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         var routing = _services.GetRequiredService<IRoutingService>();
         var agentId = routing.Context.GetCurrentAgentId();
         var agent = await _agentService.GetAgent(agentId);
-        if (agent == null) return;
+
         var input = new ContentLogInputModel()
         {
             Name = agent.Name,
