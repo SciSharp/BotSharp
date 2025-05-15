@@ -30,7 +30,8 @@ public class SqlReviewFn : IFunctionCallback
         if (args != null && !args.IsSqlTemplate && args.ContainsSqlStatements)
         {
             await HookEmitter.Emit<IPlanningHook>(_services, async hook =>
-                await hook.OnSourceCodeGenerated(nameof(SqlGenerationPlanner), message, "sql")
+                await hook.OnSourceCodeGenerated(nameof(SqlGenerationPlanner), message, "sql"),
+                message.CurrentAgentId
             );
         }
         return true;

@@ -319,7 +319,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         if (realtimeModelSettings.InputAudioTranscribe)
         {
             var words = new List<string>();
-            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
+            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)), agent.Id);
 
             sessionUpdate.session.InputAudioTranscription = new InputAudioTranscription
             {
@@ -332,7 +332,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         await HookEmitter.Emit<IContentGeneratingHook>(_services, async hook =>
         {
             await hook.OnSessionUpdated(agent, instruction, functions, isInit);
-        });
+        }, agent.Id);
 
         await SendEventToModel(sessionUpdate);
         await Task.Delay(300);

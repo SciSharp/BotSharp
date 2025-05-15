@@ -43,10 +43,6 @@ public partial class FileInstructService
                 }
             });
 
-            var emitOptions = new HookEmitOption<IInstructHook>
-            {
-                ShouldExecute = hook => hook.IsMatch(innerAgentId)
-            };
             await HookEmitter.Emit<IInstructHook>(_services, async hook =>
                 await hook.OnResponseGenerated(new InstructResponseModel
                 {
@@ -57,7 +53,7 @@ public partial class FileInstructService
                     UserMessage = text,
                     SystemInstruction = instruction,
                     CompletionText = message.Content
-                }), emitOptions);
+                }), innerAgentId);
 
             return message.Content;
         }

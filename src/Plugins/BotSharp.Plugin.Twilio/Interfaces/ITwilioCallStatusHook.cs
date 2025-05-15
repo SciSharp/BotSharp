@@ -1,11 +1,11 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Plugin.Twilio.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace BotSharp.Plugin.Twilio.Interfaces;
 
-public interface ITwilioCallStatusHook
+public interface ITwilioCallStatusHook : IHookBase
 {
-    bool IsMatch(ConversationalVoiceRequest request) => true;
     Task OnVoicemailLeft(ConversationalVoiceRequest request) => Task.CompletedTask;
     Task OnUserDisconnected(ConversationalVoiceRequest request) => Task.CompletedTask;
     Task OnRecordingCompleted(ConversationalVoiceRequest request) => Task.CompletedTask;

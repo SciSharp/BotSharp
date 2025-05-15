@@ -13,11 +13,7 @@ public partial class AgentService
     {
         if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString()) return null;
 
-        var emitOptions = new HookEmitOption<IAgentHook>
-        {
-            ShouldExecute = hook => hook.IsMatch(id)
-        };
-        HookEmitter.Emit<IAgentHook>(_services, hook => hook.OnAgentLoading(ref id), emitOptions);
+        HookEmitter.Emit<IAgentHook>(_services, hook => hook.OnAgentLoading(ref id), id);
 
         var agent = await GetAgent(id);
         if (agent == null) return null;
@@ -61,7 +57,7 @@ public partial class AgentService
 
             hook.OnAgentLoaded(agent);
 
-        }, emitOptions);
+        }, id);
 
         _logger.LogInformation($"Loaded agent {agent}.");
 

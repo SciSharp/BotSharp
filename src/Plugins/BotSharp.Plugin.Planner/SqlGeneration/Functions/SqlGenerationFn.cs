@@ -90,7 +90,7 @@ public class SqlGenerationFn : IFunctionCallback
         {
             var requirement = await x.GetSummaryAdditionalRequirements(nameof(SqlGenerationPlanner), message);
             additionalRequirements.Add(requirement);
-        });
+        }, message.CurrentAgentId);
 
         var globalKnowledges = new List<string>();
         foreach (var hook in knowledgeHooks)

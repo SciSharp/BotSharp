@@ -25,9 +25,8 @@ public class InstructExecutor : IExecutor
         {
             inst.OriginalAgent = goalAgent;
             // Emit hook
-            await HookEmitter.Emit<IRoutingHook>(_services, async hook =>
-                await hook.OnRoutingInstructionRevised(inst, message)
-            );
+            await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingInstructionRevised(inst, message), 
+                message.CurrentAgentId);
         }
 
         message.FunctionArgs = JsonSerializer.Serialize(inst);

@@ -1,10 +1,11 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Realtime.Models;
 using BotSharp.Plugin.Twilio.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace BotSharp.Plugin.Twilio.Interfaces;
 
-public interface ITwilioSessionHook
+public interface ITwilioSessionHook : IHookBase
 {
     /// <summary>
     /// Before session creating

@@ -61,10 +61,6 @@ public class ExecuteTemplateFn : IFunctionCallback
                 new(AgentRole.User, text)
             });
 
-            var emitOptions = new HookEmitOption<IInstructHook>
-            {
-                ShouldExecute = hook => hook.IsMatch(agent.Id)
-            };
             await HookEmitter.Emit<IInstructHook>(_services, async hook =>
                 await hook.OnResponseGenerated(new InstructResponseModel
                 {
@@ -74,7 +70,7 @@ public class ExecuteTemplateFn : IFunctionCallback
                     Model = completion.Model,
                     UserMessage = text,
                     CompletionText = response.Content
-                }), emitOptions);
+                }), agent.Id);
 
             return response.Content;
         }

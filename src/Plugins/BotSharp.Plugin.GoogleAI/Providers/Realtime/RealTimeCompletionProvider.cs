@@ -255,7 +255,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
             config.ResponseModalities = new List<Modality>([Modality.AUDIO]);
 
             var words = new List<string>();
-            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
+            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)), agent.Id);
 
             var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
@@ -278,7 +278,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         }).ToArray();
 
         await HookEmitter.Emit<IContentGeneratingHook>(_services,
-            async hook => { await hook.OnSessionUpdated(agent, prompt, functions, isInit); });
+            async hook => { await hook.OnSessionUpdated(agent, prompt, functions, isInit); }, agent.Id);
         
         if (_settings.Gemini.UseGoogleSearch)
         {

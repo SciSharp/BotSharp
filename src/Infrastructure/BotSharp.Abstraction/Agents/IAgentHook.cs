@@ -1,16 +1,11 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Hooks;
 
 namespace BotSharp.Abstraction.Agents;
 
-public interface IAgentHook
+public interface IAgentHook : IHookBase
 {
-    /// <summary>
-    /// Agent Id
-    /// </summary>
-    string SelfId { get; }
     Agent Agent { get; }
-
-    bool IsMatch(string id) => string.IsNullOrEmpty(SelfId) || SelfId == id;
     void SetAgent(Agent agent);
 
     /// <summary>

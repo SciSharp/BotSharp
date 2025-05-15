@@ -59,10 +59,6 @@ public class InstructModeController : ControllerBase
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
         var response = await textCompletion.GetCompletion(input.Text, agentId, Guid.NewGuid().ToString());
 
-        var emitOptions = new HookEmitOption<IInstructHook>
-        {
-            ShouldExecute = hook => hook.IsMatch(agentId)
-        };
         await HookEmitter.Emit<IInstructHook>(_services, async hook =>
             await hook.OnResponseGenerated(new InstructResponseModel
             {
@@ -72,7 +68,7 @@ public class InstructModeController : ControllerBase
                 TemplateName = input.Template,
                 UserMessage = input.Text,
                 CompletionText = response
-            }), emitOptions);
+            }), agentId);
 
         return response;
     }
@@ -101,10 +97,6 @@ public class InstructModeController : ControllerBase
             }
         });
 
-        var emitOptions = new HookEmitOption<IInstructHook>
-        {
-            ShouldExecute = hook => hook.IsMatch(agentId)
-        };
         await HookEmitter.Emit<IInstructHook>(_services, async hook =>
             await hook.OnResponseGenerated(new InstructResponseModel
             {
@@ -115,7 +107,7 @@ public class InstructModeController : ControllerBase
                 UserMessage = input.Text,
                 SystemInstruction = message.RenderedInstruction,
                 CompletionText = message.Content
-            }), emitOptions);
+            }), agentId);
 
         return message.Content;
     }

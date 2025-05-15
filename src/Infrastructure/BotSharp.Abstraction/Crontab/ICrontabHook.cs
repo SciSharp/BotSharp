@@ -1,6 +1,8 @@
+using BotSharp.Abstraction.Hooks;
+
 namespace BotSharp.Abstraction.Crontab;
 
-public interface ICrontabHook
+public interface ICrontabHook : IHookBase
 {
     string[]? Triggers
         => null;
