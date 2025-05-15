@@ -1,21 +1,20 @@
+using BotSharp.Abstraction.Routing.Executor;
 using BotSharp.Core.MCP.Managers;
 using ModelContextProtocol.Client;
 
 namespace BotSharp.Core.Routing.Executor;
 
-public class MCPToolExecutor: IFunctionExecutor
+public class McpToolExecutor: IFunctionExecutor
 {
-    private readonly McpClientManager _clientManager;
-    private string mcpServer;
-    private string funcName;
     private readonly IServiceProvider _services;
+    private readonly string _mcpServerId;
+    private readonly string _functionName;
 
-    public MCPToolExecutor(string mcpserver, string functionName, IServiceProvider services)
+    public McpToolExecutor(IServiceProvider services, string mcpServerId, string functionName)
     { 
         _services = services;
-        this.mcpServer = mcpserver;
-        this.funcName = functionName;
-        _clientManager = services.GetRequiredService<McpClientManager>();
+        _mcpServerId = mcpServerId;
+        _functionName = functionName;
     }
 
     public async Task<bool> ExecuteAsync(RoleDialogModel message)
@@ -23,12 +22,13 @@ public class MCPToolExecutor: IFunctionExecutor
         try
         {
             // Convert arguments to dictionary format expected by mcpdotnet
-            Dictionary<string, object> argDict = JsonToDictionary(message.FunctionArgs);      
+            Dictionary<string, object> argDict = JsonToDictionary(message.FunctionArgs);
 
-            var client = await _clientManager.GetMcpClientAsync(mcpServer);
+            var clientManager = _services.GetRequiredService<McpClientManager>();
+            var client = await clientManager.GetMcpClientAsync(_mcpServerId);
 
             // Call the tool through mcpdotnet
-            var result = await client.CallToolAsync(funcName, !argDict.IsNullOrEmpty() ? argDict : []);
+            var result = await client.CallToolAsync(_functionName, !argDict.IsNullOrEmpty() ? argDict : []);
 
             // Extract the text content from the result
             var json = string.Join("\n", result.Content.Where(c => c.Type == "text").Select(c => c.Text));
@@ -39,7 +39,7 @@ public class MCPToolExecutor: IFunctionExecutor
         }
         catch (Exception ex)
         {
-            message.Content = $"Error when calling tool {funcName} of MCP server {mcpServer}. {ex.Message}";
+            message.Content = $"Error when calling tool {_functionName} of MCP server {_mcpServerId}. {ex.Message}";
             return false;
         }
     }

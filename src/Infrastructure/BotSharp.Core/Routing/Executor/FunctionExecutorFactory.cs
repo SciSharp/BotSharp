@@ -1,41 +1,31 @@
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Routing.Executor;
 
 namespace BotSharp.Core.Routing.Executor;
 
 internal class FunctionExecutorFactory
 {
-    public static IFunctionExecutor Create(string functionName, Agent agent, IFunctionCallback functioncall, IServiceProvider serviceProvider)
+    public static IFunctionExecutor? Create(IServiceProvider services, string functionName, Agent agent)
     {
-        if(functioncall != null)
+        var functionCall = services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == functionName);
+        if (functionCall != null)
         {
-            return new FunctionCallbackExecutor(functioncall);
+            return new FunctionCallbackExecutor(functionCall);
         }
 
-        var funDef = agent?.Functions?.FirstOrDefault(x => x.Name == functionName);
-        if (funDef != null)
+        var functions = (agent?.Functions ?? []).Concat(agent?.SecondaryFunctions ?? []);
+        var funcDef = functions.FirstOrDefault(x => x.Name == functionName);
+        if (!string.IsNullOrWhiteSpace(funcDef?.Output))
         {
-            if (!string.IsNullOrWhiteSpace(funDef?.Output))
-            {
-                return new DummyFunctionExecutor(funDef,serviceProvider);
-            }                
+            return new DummyFunctionExecutor(services, funcDef);
         }
-        else
+
+        var mcpServerId = agent?.McpTools?.Where(x => x.Functions.Any(y => y.Name == funcDef?.Name))?.FirstOrDefault()?.ServerId;
+        if (!string.IsNullOrWhiteSpace(mcpServerId))
         {
-            funDef = agent?.SecondaryFunctions?.FirstOrDefault(x => x.Name == functionName);
-            if (funDef != null)
-            {
-                if (!string.IsNullOrWhiteSpace(funDef?.Output))
-                {
-                    return new DummyFunctionExecutor(funDef, serviceProvider);
-                }
-                else
-                {
-                    var mcpServerId  = agent?.McpTools?.Where(x => x.Functions.Any(y => y.Name == funDef.Name))
-                        .FirstOrDefault().ServerId;
-                    return new MCPToolExecutor(mcpServerId, functionName, serviceProvider);
-                }
-            }
+            return new McpToolExecutor(services, mcpServerId, functionName);
         }
+        
         return null;
     }
 }

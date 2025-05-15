@@ -1,19 +1,25 @@
-using System.Text.Json;
 using ModelContextProtocol.Client;
 
 namespace BotSharp.Core.MCP.Helpers;
 
 internal static class AiFunctionHelper
 {
-    public static FunctionDef MapToFunctionDef(McpClientTool tool)
+    public static FunctionDef? MapToFunctionDef(McpClientTool tool)
     {
         if (tool == null)
         {
-            throw new ArgumentNullException(nameof(tool));
+            return null;
         }
 
-        var properties = tool.JsonSchema.GetProperty("properties");
-        var required = tool.JsonSchema.GetProperty("required");
+        if (!tool.JsonSchema.TryGetProperty("properties", out var properties))
+        {
+            properties = JsonDocument.Parse("{}").RootElement;
+        }
+
+        if (!tool.JsonSchema.TryGetProperty("required", out var required))
+        {
+            required = JsonDocument.Parse("[]").RootElement;
+        }
 
         var funDef = new FunctionDef
         {
@@ -23,8 +29,8 @@ internal static class AiFunctionHelper
             Parameters = new FunctionParametersDef
             {
                 Type = "object",
-                Properties = JsonDocument.Parse(properties.GetRawText()),
-                Required = JsonSerializer.Deserialize<List<string>>(required.GetRawText())
+                Properties = JsonDocument.Parse(properties.GetRawText() ?? "{}"),
+                Required = JsonSerializer.Deserialize<List<string>>(required.GetRawText() ?? "[]") ?? []
             }
         };
 
