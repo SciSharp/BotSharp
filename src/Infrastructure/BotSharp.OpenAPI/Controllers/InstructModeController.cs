@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Files.Utilities;
+using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Core.Infrastructures;
@@ -58,14 +59,7 @@ public class InstructModeController : ControllerBase
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
         var response = await textCompletion.GetCompletion(input.Text, agentId, Guid.NewGuid().ToString());
 
-        var hooks = _services.GetServices<IInstructHook>();
-        foreach (var hook in hooks)
-        {
-            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agentId)
-            {
-                continue;
-            }
-
+        await HookEmitter.Emit<IInstructHook>(_services, async hook =>
             await hook.OnResponseGenerated(new InstructResponseModel
             {
                 AgentId = agentId,
@@ -74,8 +68,8 @@ public class InstructModeController : ControllerBase
                 TemplateName = input.Template,
                 UserMessage = input.Text,
                 CompletionText = response
-            });
-        }
+            }), agentId);
+
         return response;
     }
 
@@ -103,14 +97,7 @@ public class InstructModeController : ControllerBase
             }
         });
 
-        var hooks = _services.GetServices<IInstructHook>();
-        foreach (var hook in hooks)
-        {
-            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agentId)
-            {
-                continue;
-            }
-
+        await HookEmitter.Emit<IInstructHook>(_services, async hook =>
             await hook.OnResponseGenerated(new InstructResponseModel
             {
                 AgentId = agentId,
@@ -120,8 +107,8 @@ public class InstructModeController : ControllerBase
                 UserMessage = input.Text,
                 SystemInstruction = message.RenderedInstruction,
                 CompletionText = message.Content
-            });
-        }
+            }), agentId);
+
         return message.Content;
     }
     #endregion

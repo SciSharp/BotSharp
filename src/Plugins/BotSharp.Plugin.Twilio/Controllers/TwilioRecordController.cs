@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
@@ -36,7 +37,7 @@ public class TwilioRecordController : TwilioController
             convService.SaveStates();
 
             // recording completed
-            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnRecordingCompleted(request));
+            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnRecordingCompleted(request), request.AgentId);
         }
         else
         {

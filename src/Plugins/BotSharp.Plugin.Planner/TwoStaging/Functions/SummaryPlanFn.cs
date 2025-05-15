@@ -68,7 +68,8 @@ public class SummaryPlanFn : IFunctionCallback
         message.Content = summary.Content;
 
         await HookEmitter.Emit<IPlanningHook>(_services, async hook =>
-            await hook.OnPlanningCompleted(nameof(TwoStageTaskPlanner), message)
+            await hook.OnPlanningCompleted(nameof(TwoStageTaskPlanner), message),
+            message.CurrentAgentId
         );
 
         return true;
@@ -88,7 +89,7 @@ public class SummaryPlanFn : IFunctionCallback
         {
             var requirement = await x.GetSummaryAdditionalRequirements(nameof(TwoStageTaskPlanner), message);
             additionalRequirements.Add(requirement);
-        });
+        }, message.CurrentAgentId);
 
         var globalKnowledges = new List<string>();
         foreach (var hook in knowledgeHooks)

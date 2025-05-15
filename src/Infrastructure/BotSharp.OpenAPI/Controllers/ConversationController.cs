@@ -328,7 +328,8 @@ public class ConversationController : ControllerBase
         };
 
         await HookEmitter.Emit<IConversationHook>(_services, async hook =>
-            await hook.OnNotificationGenerated(inputMsg)
+            await hook.OnNotificationGenerated(inputMsg),
+            routing.Context.GetCurrentAgentId()
         );
 
         return response;

@@ -30,7 +30,7 @@ public class SqlDriverPlanningHook : IPlanningHook
         await HookEmitter.Emit<ISqlDriverHook>(_services, async (hook) =>
         {
             await hook.SqlGenerated(msg);
-        });
+        }, msg.CurrentAgentId);
 
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         if (!settings.ExecuteSqlSelectAutonomous)

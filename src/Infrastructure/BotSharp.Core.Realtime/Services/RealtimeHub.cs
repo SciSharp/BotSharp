@@ -49,7 +49,8 @@ public class RealtimeHub : IRealtimeHub
                 // Not TriggerModelInference, waiting for user utter.
                 var instruction = await _completer.UpdateSession(_conn, isInit: true);
                 var data = _conn.OnModelReady();
-                await HookEmitter.Emit<IRealtimeHook>(_services, async hook => await hook.OnModelReady(agent, _completer));
+                await HookEmitter.Emit<IRealtimeHook>(_services, async hook => await hook.OnModelReady(agent, _completer), 
+                    agent.Id);
                 await (init?.Invoke(data) ?? Task.CompletedTask);
             },
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
@@ -92,7 +93,8 @@ public class RealtimeHub : IRealtimeHub
                         if (message.FunctionName == "route_to_agent")
                         {
                             var instruction = JsonSerializer.Deserialize<FunctionCallFromLlm>(message.FunctionArgs, BotSharpOptions.defaultJsonOptions);
-                            await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingInstructionReceived(instruction, message));
+                            await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingInstructionReceived(instruction, message),
+                                agent.Id);
                         }
 
                         await routing.InvokeFunction(message.FunctionName, message);

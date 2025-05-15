@@ -235,7 +235,8 @@ public class TwilioService
         if (_settings.TranscribeEnabled)
         {
             var words = new List<string>();
-            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
+            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)), 
+                agent.Id);
             var hints = string.Join(", ", words);
             var start = new Start();
             start.Transcription(
@@ -323,10 +324,8 @@ public class TwilioService
                 ActionOnEmptyResult = true
             };
 
-            await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
-            {
-                await hook.OnWaitingAgentResponse(request, instruction);
-            });
+            await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook => await hook.OnWaitingAgentResponse(request, instruction), 
+                request.AgentId);
 
             response = ReturnInstructions(instruction);
         }

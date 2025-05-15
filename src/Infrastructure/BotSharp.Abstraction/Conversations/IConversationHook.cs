@@ -1,6 +1,8 @@
+using BotSharp.Abstraction.Hooks;
+
 namespace BotSharp.Abstraction.Conversations;
 
-public interface IConversationHook
+public interface IConversationHook : IHookBase
 {
     int Priority { get; }
     Agent Agent { get; }
