@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs;
 using System.IO;
+using BotSharp.Abstraction.Infrastructures;
 
 namespace BotSharp.Core.Files.Services;
 
@@ -24,14 +25,11 @@ public partial class FileInstructService
             }
         });
 
-        var hooks = _services.GetServices<IInstructHook>();
-        foreach (var hook in hooks)
+        var emitOptions = new HookEmitOption<IInstructHook>
         {
-            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != innerAgentId)
-            {
-                continue;
-            }
-
+            ShouldExecute = hook => hook.IsMatch(innerAgentId)
+        };
+        await HookEmitter.Emit<IInstructHook>(_services, async hook => 
             await hook.OnResponseGenerated(new InstructResponseModel
             {
                 AgentId = innerAgentId,
@@ -41,8 +39,7 @@ public partial class FileInstructService
                 UserMessage = text,
                 SystemInstruction = instruction,
                 CompletionText = message.Content
-            });
-        }
+            }), emitOptions);
 
         return message.Content;
     }
@@ -59,14 +56,11 @@ public partial class FileInstructService
             Instruction = instruction
         }, new RoleDialogModel(AgentRole.User, instruction ?? text));
 
-        var hooks = _services.GetServices<IInstructHook>();
-        foreach (var hook in hooks)
+        var emitOptions = new HookEmitOption<IInstructHook>
         {
-            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != innerAgentId)
-            {
-                continue;
-            }
-
+            ShouldExecute = hook => hook.IsMatch(innerAgentId)
+        };
+        await HookEmitter.Emit<IInstructHook>(_services, async hook =>
             await hook.OnResponseGenerated(new InstructResponseModel
             {
                 AgentId = innerAgentId,
@@ -76,8 +70,7 @@ public partial class FileInstructService
                 UserMessage = text,
                 SystemInstruction = instruction,
                 CompletionText = message.Content
-            });
-        }
+            }), emitOptions);
 
         return message;
     }
@@ -104,14 +97,11 @@ public partial class FileInstructService
 
         stream.Close();
 
-        var hooks = _services.GetServices<IInstructHook>();
-        foreach (var hook in hooks)
+        var emitOptions = new HookEmitOption<IInstructHook>
         {
-            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != innerAgentId)
-            {
-                continue;
-            }
-
+            ShouldExecute = hook => hook.IsMatch(innerAgentId)
+        };
+        await HookEmitter.Emit<IInstructHook>(_services, async hook =>
             await hook.OnResponseGenerated(new InstructResponseModel
             {
                 AgentId = innerAgentId,
@@ -119,8 +109,7 @@ public partial class FileInstructService
                 Model = completion.Model,
                 UserMessage = string.Empty,
                 CompletionText = message.Content
-            });
-        }
+            }), emitOptions);
 
         return message;
     }
@@ -150,13 +139,11 @@ public partial class FileInstructService
         stream.Close();
 
         var hooks = _services.GetServices<IInstructHook>();
-        foreach (var hook in hooks)
+        var emitOptions = new HookEmitOption<IInstructHook>
         {
-            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != innerAgentId)
-            {
-                continue;
-            }
-
+            ShouldExecute = hook => hook.IsMatch(innerAgentId)
+        };
+        await HookEmitter.Emit<IInstructHook>(_services, async hook =>
             await hook.OnResponseGenerated(new InstructResponseModel
             {
                 AgentId = innerAgentId,
@@ -166,8 +153,7 @@ public partial class FileInstructService
                 UserMessage = text,
                 SystemInstruction = instruction,
                 CompletionText = message.Content
-            });
-        }
+            }), emitOptions);
 
         return message;
     }
@@ -205,14 +191,11 @@ public partial class FileInstructService
         imageStream.Close();
         maskStream.Close();
 
-        var hooks = _services.GetServices<IInstructHook>();
-        foreach (var hook in hooks)
+        var emitOptions = new HookEmitOption<IInstructHook>
         {
-            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != innerAgentId)
-            {
-                continue;
-            }
-
+            ShouldExecute = hook => hook.IsMatch(innerAgentId)
+        };
+        await HookEmitter.Emit<IInstructHook>(_services, async hook =>
             await hook.OnResponseGenerated(new InstructResponseModel
             {
                 AgentId = innerAgentId,
@@ -222,8 +205,7 @@ public partial class FileInstructService
                 UserMessage = text,
                 SystemInstruction = instruction,
                 CompletionText = message.Content
-            });
-        }
+            }), emitOptions);
 
         return message;
     }

@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 
@@ -60,14 +61,11 @@ public class ExecuteTemplateFn : IFunctionCallback
                 new(AgentRole.User, text)
             });
 
-            var hooks = _services.GetServices<IInstructHook>();
-            foreach (var hook in hooks)
+            var emitOptions = new HookEmitOption<IInstructHook>
             {
-                if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agent.Id)
-                {
-                    continue;
-                }
-
+                ShouldExecute = hook => hook.IsMatch(agent.Id)
+            };
+            await HookEmitter.Emit<IInstructHook>(_services, async hook =>
                 await hook.OnResponseGenerated(new InstructResponseModel
                 {
                     AgentId = agent.Id,
@@ -76,8 +74,7 @@ public class ExecuteTemplateFn : IFunctionCallback
                     Model = completion.Model,
                     UserMessage = text,
                     CompletionText = response.Content
-                });
-            }
+                }), emitOptions);
 
             return response.Content;
         }

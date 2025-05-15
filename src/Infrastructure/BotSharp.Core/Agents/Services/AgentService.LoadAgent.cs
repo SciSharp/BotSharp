@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Abstraction.Routing.Models;
 using System.Collections.Concurrent;
 
@@ -10,29 +11,16 @@ public partial class AgentService
     // [SharpCache(10, perInstanceCache: true)]
     public async Task<Agent> LoadAgent(string id, bool loadUtility = true)
     {
-        if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString())
+        if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString()) return null;
+
+        var emitOptions = new HookEmitOption<IAgentHook>
         {
-            return null;
-        }
-
-        var hooks = _services.GetServices<IAgentHook>();
-
-        // Before agent is loaded.
-        foreach (var hook in hooks)
-        {
-            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != id)
-            {
-                continue;
-            }
-
-            hook.OnAgentLoading(ref id);
-        }
+            ShouldExecute = hook => hook.IsMatch(id)
+        };
+        HookEmitter.Emit<IAgentHook>(_services, hook => hook.OnAgentLoading(ref id), emitOptions);
 
         var agent = await GetAgent(id);
-        if (agent == null)
-        {
-            return null;
-        }
+        if (agent == null) return null;
 
         await InheritAgent(agent);
         OverrideInstructionByChannel(agent);
@@ -43,13 +31,7 @@ public partial class AgentService
         PopulateState(agent.TemplateDict);
 
         // After agent is loaded
-        foreach (var hook in hooks)
-        {
-            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != id)
-            {
-                continue;
-            }
-
+        HookEmitter.Emit<IAgentHook>(_services, hook => {
             hook.SetAgent(agent);
 
             if (!string.IsNullOrEmpty(agent.Instruction))
@@ -72,13 +54,14 @@ public partial class AgentService
                 hook.OnAgentUtilityLoaded(agent);
             }
 
-            if(!agent.McpTools.IsNullOrEmpty())
+            if (!agent.McpTools.IsNullOrEmpty())
             {
                 hook.OnAgentMcpToolLoaded(agent);
             }
-            
+
             hook.OnAgentLoaded(agent);
-        }
+
+        }, emitOptions);
 
         _logger.LogInformation($"Loaded agent {agent}.");
 

@@ -9,6 +9,8 @@ public interface IAgentHook
     /// </summary>
     string SelfId { get; }
     Agent Agent { get; }
+
+    bool IsMatch(string id) => string.IsNullOrEmpty(SelfId) || SelfId == id;
     void SetAgent(Agent agent);
 
     /// <summary>
