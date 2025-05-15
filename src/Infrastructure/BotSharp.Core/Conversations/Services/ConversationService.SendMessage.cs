@@ -158,16 +158,14 @@ public partial class ConversationService
             // Emit conversation ending hook
             if (response.Instruction.ConversationEnd)
             {
-                await HookEmitter.Emit<IConversationHook>(_services, async hook =>
-                    await hook.OnConversationEnding(response)
-                );
+                await HookEmitter.Emit<IConversationHook>(_services, async hook => await hook.OnConversationEnding(response),
+                    response.CurrentAgentId);
                 response.FunctionName = "conversation_end";
             }
         }
 
-        await HookEmitter.Emit<IConversationHook>(_services, async hook =>
-            await hook.OnResponseGenerated(response)
-        );
+        await HookEmitter.Emit<IConversationHook>(_services, async hook => await hook.OnResponseGenerated(response),
+            response.CurrentAgentId);
 
         await onResponseReceived(response);
 

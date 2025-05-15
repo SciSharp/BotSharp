@@ -132,9 +132,8 @@ public partial class AgentService
         agent.TemplateDict[TemplateRenderConstant.RENDER_AGENT] = agent;
         var content = render.Render(template, agent.TemplateDict);
 
-        HookEmitter.Emit<IContentGeneratingHook>(_services, async hook =>
-            await hook.OnRenderingTemplate(agent, templateName, content)
-        ).Wait();
+        HookEmitter.Emit<IContentGeneratingHook>(_services, async hook => await hook.OnRenderingTemplate(agent, templateName, content),
+            agent.Id).Wait();
 
         return content;
     }

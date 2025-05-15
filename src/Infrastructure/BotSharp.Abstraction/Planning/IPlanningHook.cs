@@ -1,6 +1,8 @@
+using BotSharp.Abstraction.Hooks;
+
 namespace BotSharp.Abstraction.Planning;
 
-public interface IPlanningHook
+public interface IPlanningHook : IHookBase
 {
     Task<string> GetSummaryAdditionalRequirements(string planner, RoleDialogModel message)
         => Task.FromResult(string.Empty);

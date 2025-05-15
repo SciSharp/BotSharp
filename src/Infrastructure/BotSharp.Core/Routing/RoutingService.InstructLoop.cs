@@ -51,9 +51,8 @@ public partial class RoutingService
         int loopCount = 1;
         while (true)
         {
-            await HookEmitter.Emit<IRoutingHook>(_services, async hook =>
-                await hook.OnRoutingInstructionReceived(inst, message)
-            );
+            await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingInstructionReceived(inst, message),
+                agent.Id);
 
             // Save states
             states.SaveStateByArgs(inst.Arguments);

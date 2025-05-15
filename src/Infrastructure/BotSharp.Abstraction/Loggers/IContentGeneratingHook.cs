@@ -1,11 +1,12 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Hooks;
 
 namespace BotSharp.Abstraction.Loggers;
 
 /// <summary>
 /// Model content generating hook, it can be used for logging, metrics and tracing.
 /// </summary>
-public interface IContentGeneratingHook
+public interface IContentGeneratingHook : IHookBase
 {
     /// <summary>
     /// Before content generating.

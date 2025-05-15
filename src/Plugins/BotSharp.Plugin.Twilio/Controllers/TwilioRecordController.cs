@@ -37,11 +37,7 @@ public class TwilioRecordController : TwilioController
             convService.SaveStates();
 
             // recording completed
-            var emitOptions = new HookEmitOption<ITwilioCallStatusHook>
-            {
-                ShouldExecute = hook => hook.IsMatch(request)
-            };
-            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnRecordingCompleted(request), emitOptions);
+            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnRecordingCompleted(request), request.AgentId);
         }
         else
         {

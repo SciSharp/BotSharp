@@ -1,8 +1,9 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Hooks;
 
 namespace BotSharp.Abstraction.Routing;
 
-public interface IRoutingHook
+public interface IRoutingHook : IHookBase
 {
     /// <summary>
     /// Routing instruction is received from Router

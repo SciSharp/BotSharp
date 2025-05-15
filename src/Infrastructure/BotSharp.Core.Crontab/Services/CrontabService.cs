@@ -125,6 +125,6 @@ public class CrontabService : ICrontabService, ITaskFeeder
                 await hook.OnCronTriggered(item);
                 await hook.OnTaskExecuted(item);
             }
-        });
+        }, item.AgentId);
     }
 }

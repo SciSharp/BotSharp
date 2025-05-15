@@ -157,7 +157,8 @@ public class TwilioMessageQueueService : BackgroundService
         var agentService = sp.GetRequiredService<IAgentService>();
         var agent = agentService.GetAgent(agentId).Result;
         var extraWords = new List<string>();
-        HookEmitter.Emit<IRealtimeHook>(sp, hook => extraWords.AddRange(hook.OnModelTranscriptPrompt(agent)));
+        HookEmitter.Emit<IRealtimeHook>(sp, hook => extraWords.AddRange(hook.OnModelTranscriptPrompt(agent)),
+            agentId);
 
         var phrases = reply.Content.Split(',', StringSplitOptions.RemoveEmptyEntries);
         int capcity = 100;

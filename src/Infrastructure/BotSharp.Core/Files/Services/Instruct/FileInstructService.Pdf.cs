@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Files.Converters;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.Infrastructures;
 
 namespace BotSharp.Core.Files.Services;
 
@@ -42,14 +43,7 @@ public partial class FileInstructService
                 }
             });
 
-            var hooks = _services.GetServices<IInstructHook>();
-            foreach (var hook in hooks)
-            {
-                if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != innerAgentId)
-                {
-                    continue;
-                }
-
+            await HookEmitter.Emit<IInstructHook>(_services, async hook =>
                 await hook.OnResponseGenerated(new InstructResponseModel
                 {
                     AgentId = innerAgentId,
@@ -59,8 +53,7 @@ public partial class FileInstructService
                     UserMessage = text,
                     SystemInstruction = instruction,
                     CompletionText = message.Content
-                });
-            }
+                }), innerAgentId);
 
             return message.Content;
         }
