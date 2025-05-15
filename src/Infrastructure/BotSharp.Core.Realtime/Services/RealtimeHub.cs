@@ -96,6 +96,8 @@ public class RealtimeHub : IRealtimeHub
                         }
 
                         await routing.InvokeFunction(message.FunctionName, message);
+                        dialogs.Add(message);
+                        storage.Append(_conn.ConversationId, message);
                     }
                     else
                     {

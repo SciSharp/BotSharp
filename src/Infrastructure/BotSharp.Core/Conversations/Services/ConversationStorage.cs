@@ -40,6 +40,8 @@ public class ConversationStorage : IConversationStorage
                     MessageId = dialog.MessageId,
                     MessageType = dialog.MessageType,
                     FunctionName = dialog.FunctionName,
+                    FunctionArgs = dialog.FunctionArgs,
+                    ToolCallId = dialog.ToolCallId,
                     CreatedTime = dialog.CreatedAt
                 };
 
@@ -109,7 +111,6 @@ public class ConversationStorage : IConversationStorage
             var currentAgentId = meta.AgentId;
             var messageId = meta.MessageId;
             var messageType = meta.MessageType;
-            var function = meta.FunctionName;
             var senderId = role == AgentRole.Function ? currentAgentId : meta.SenderId;
             var createdAt = meta.CreatedTime;
             var richContent = !string.IsNullOrEmpty(dialog.RichContent) ? 
@@ -124,7 +125,9 @@ public class ConversationStorage : IConversationStorage
                 MessageType = messageType,
                 CreatedAt = createdAt,
                 SenderId = senderId,
-                FunctionName = function,
+                FunctionName = meta.FunctionName,
+                FunctionArgs = meta.FunctionArgs,
+                ToolCallId = meta.ToolCallId,
                 RichContent = richContent,
                 SecondaryContent = secondaryContent,
                 SecondaryRichContent = secondaryRichContent,

@@ -65,9 +65,7 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
         else
         {
             // Update session for changed states
-
-            // TO DO
-            //var instruction = await hub.Completer.UpdateSession(hub.HubConn);
+            var instruction = await hub.Completer.UpdateSession(hub.HubConn);
             await hub.Completer.InsertConversationItem(message);
 
             if (string.IsNullOrEmpty(message.Content))
@@ -81,7 +79,7 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
             //}
             //else
             //{
-            //    await hub.Completer.TriggerModelInference();
+            //    await hub.Completer.TriggerModelInference(instruction);
             //}
         }
     }

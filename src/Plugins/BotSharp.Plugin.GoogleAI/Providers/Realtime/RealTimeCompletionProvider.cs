@@ -32,6 +32,20 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement
     };
 
+    private RealtimeTranscriptionResponse _inputStream = new();
+    private RealtimeTranscriptionResponse _outputStream = new();
+
+
+    private RealtimeHubConnection _conn;
+    private Func<Task> _onModelReady;
+    private Func<string, string, Task> _onModelAudioDeltaReceived;
+    private Func<Task> _onModelAudioResponseDone;
+    private Func<string, Task> _onModelAudioTranscriptDone;
+    private Func<List<RoleDialogModel>, Task> _onModelResponseDone;
+    private Func<string, Task> _onConversationItemCreated;
+    private Func<RoleDialogModel, Task> _onInputAudioTranscriptionDone;
+    private Func<Task> _onInterruptionDetected;
+
     public GoogleRealTimeProvider(
         IServiceProvider services,
         GoogleAiSettings settings,
@@ -58,17 +72,26 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
         Func<Task> onInterruptionDetected)
     {
+        _conn = conn;
+        _onModelReady = onModelReady;
+        _onModelAudioDeltaReceived = onModelAudioDeltaReceived;
+        _onModelAudioResponseDone = onModelAudioResponseDone;
+        _onModelAudioTranscriptDone = onModelAudioTranscriptDone;
+        _onModelResponseDone = onModelResponseDone;
+        _onConversationItemCreated = onConversationItemCreated;
+        _onInputAudioTranscriptionDone = onInputAudioTranscriptionDone;
+        _onInterruptionDetected = onInterruptionDetected;
+
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
         _model = realtimeModelSettings.Model;
         var modelSettings = settingsService.GetSetting(Provider, _model);
 
-        if (_session != null)
-        {
-            _session.Dispose();
-        }
+        Reset();
 
+        _inputStream = new();
+        _outputStream = new();
         _session = new LlmRealtimeSession(_services, new ChatSessionOptions
         {
             JsonOptions = _jsonOptions
@@ -79,32 +102,11 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
         await onModelReady();
 
-        _ = ReceiveMessage(
-            conn,
-            onModelReady,
-            onModelAudioDeltaReceived,
-            onModelAudioResponseDone,
-            onModelAudioTranscriptDone,
-            onModelResponseDone,
-            onConversationItemCreated,
-            onInputAudioTranscriptionDone,
-            onInterruptionDetected);
+        _ = ReceiveMessage();
     }
 
-    private async Task ReceiveMessage(
-        RealtimeHubConnection conn,
-        Func<Task> onModelReady,
-        Func<string, string, Task> onModelAudioDeltaReceived,
-        Func<Task> onModelAudioResponseDone,
-        Func<string, Task> onModelAudioTranscriptDone,
-        Func<List<RoleDialogModel>, Task> onModelResponseDone,
-        Func<string, Task> onConversationItemCreated,
-        Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
-        Func<Task> onInterruptionDetected)
+    private async Task ReceiveMessage()
     {
-        using var inputStream = new RealtimeTranscriptionResponse();
-        using var outputStream = new RealtimeTranscriptionResponse();
-
         await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
         {
             var receivedText = update?.RawResponse;
@@ -128,6 +130,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                 else if (response.SessionResumptionUpdate != null)
                 {
                     _logger.LogInformation($"Session resumption update => New handle: {response.SessionResumptionUpdate.NewHandle}, Resumable: {response.SessionResumptionUpdate.Resumable}");
+                    _conn.PrevSessionId = response.SessionResumptionUpdate?.NewHandle;
                 }
                 else if (response.ToolCall != null && !response.ToolCall.FunctionCalls.IsNullOrEmpty())
                 {
@@ -137,20 +140,20 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
                     if (functionCall != null)
                     {
-                        var messages = OnFunctionCall(conn, functionCall);
-                        await onModelResponseDone(messages);
+                        var messages = OnFunctionCall(_conn, functionCall);
+                        await _onModelResponseDone(messages);
                     }
                 }
                 else if (response.ServerContent != null)
                 {
                     if (response.ServerContent.InputTranscription?.Text != null)
                     {
-                        inputStream.Collect(response.ServerContent.InputTranscription.Text);
+                        _inputStream.Collect(response.ServerContent.InputTranscription.Text);
                     }
 
                     if (response.ServerContent.OutputTranscription?.Text != null)
                     {
-                        outputStream.Collect(response.ServerContent.OutputTranscription.Text);
+                        _outputStream.Collect(response.ServerContent.OutputTranscription.Text);
                     }
 
                     if (response.ServerContent.ModelTurn != null)
@@ -158,13 +161,13 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                         _logger.LogInformation($"Model audio delta received.");
 
                         // Handle input transcription
-                        var inputTranscription = inputStream.GetText();
+                        var inputTranscription = _inputStream.GetText();
                         if (!string.IsNullOrEmpty(inputTranscription))
                         {
-                            var message = OnUserAudioTranscriptionCompleted(conn, inputTranscription);
-                            await onInputAudioTranscriptionDone(message);
+                            var message = OnUserAudioTranscriptionCompleted(_conn, inputTranscription);
+                            await _onInputAudioTranscriptionDone(message);
                         }
-                        inputStream.Clear();
+                        _inputStream.Clear();
 
                         var parts = response.ServerContent.ModelTurn.Parts;
                         if (!parts.IsNullOrEmpty())
@@ -173,7 +176,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                             {
                                 if (!string.IsNullOrEmpty(part.InlineData?.Data))
                                 {
-                                    await onModelAudioDeltaReceived(part.InlineData.Data, string.Empty);
+                                    await _onModelAudioDeltaReceived(part.InlineData.Data, string.Empty);
                                 }
                             }
                         }
@@ -187,14 +190,14 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                         _logger.LogInformation($"Model turn completed.");
 
                         // Handle output transcription
-                        var outputTranscription = outputStream.GetText();
+                        var outputTranscription = _outputStream.GetText();
                         if (!string.IsNullOrEmpty(outputTranscription))
                         {
-                            var messages = await OnResponseDone(conn, outputTranscription, response.UsageMetaData);
-                            await onModelResponseDone(messages);
+                            var messages = await OnResponseDone(_conn, outputTranscription, response.UsageMetaData);
+                            await _onModelResponseDone(messages);
                         }
-                        inputStream.Clear();
-                        outputStream.Clear();
+                        _inputStream.Clear();
+                        _outputStream.Clear();
                     }
                 }
             }
@@ -205,6 +208,8 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
             }
         }
 
+        _inputStream.Dispose();
+        _outputStream.Dispose();
         _session.Dispose();
     }
 
@@ -213,7 +218,10 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     {
         if (_session != null)
         {
+            _inputStream?.Dispose();
+            _outputStream?.Dispose();
             await _session.DisconnectAsync();
+            _session.Dispose();
         }
     }
 
@@ -242,8 +250,9 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
     public async Task TriggerModelInference(string? instructions = null)
     {
-        var content = new Content(instructions ?? "Please respond to user.", AgentRole.User);
+        if (string.IsNullOrWhiteSpace(instructions)) return;
 
+        var content = new Content(instructions, AgentRole.User);
         await SendEventToModel(new BidiClientPayload
         {
             ClientContent = new()
@@ -273,13 +282,18 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
     public async Task<string> UpdateSession(RealtimeHubConnection conn, bool isInit = false)
     {
+        if (!isInit)
+        {
+            return null;
+        }
+
         var agentService = _services.GetRequiredService<IAgentService>();
         var realtimeSetting = _services.GetRequiredService<RealtimeModelSettings>();
 
         var agent = await agentService.LoadAgent(conn.CurrentAgentId);
         var (prompt, request) = PrepareOptions(agent, []);
 
-        var config = request.GenerationConfig;
+        var config = request.GenerationConfig ?? new();
         if (config != null)
         {
             //Output Modality can either be text or audio
@@ -317,7 +331,8 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
             });
         }
 
-        await SendEventToModel(new RealtimeClientPayload
+
+        var payload = new RealtimeClientPayload
         {
             Setup = new RealtimeGenerateContentSetup()
             {
@@ -328,8 +343,14 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                 InputAudioTranscription = realtimeSetting.InputAudioTranscribe ? new() : null,
                 OutputAudioTranscription = realtimeSetting.InputAudioTranscribe ? new() : null,
                 SessionResumption = new()
+                {
+                    Handle = _conn.PrevSessionId
+                }
             }
-        });
+        };
+
+        Console.WriteLine($"Setup payload: {JsonSerializer.Serialize(payload, _jsonOptions)}");
+        await SendEventToModel(payload);
 
         return prompt;
     }
@@ -595,6 +616,16 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     private Uri BuildWebsocketUri(string apiKey, string version = "v1alpha")
     {
         return new Uri($"wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.{version}.GenerativeService.BidiGenerateContent?key={apiKey}");
+    }
+
+    private void Reset()
+    {
+        _inputStream?.Clear();
+        _outputStream?.Clear();
+
+        _inputStream?.Dispose();
+        _outputStream?.Dispose();
+        _session?.Dispose();
     }
     #endregion
 }
