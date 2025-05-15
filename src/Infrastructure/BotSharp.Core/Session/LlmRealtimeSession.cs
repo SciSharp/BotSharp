@@ -106,6 +106,7 @@ public class LlmRealtimeSession : IDisposable
 
     public void Dispose()
     {
+        _clientEventSemaphore?.Dispose();
         _webSocket?.Dispose();
     }
 }

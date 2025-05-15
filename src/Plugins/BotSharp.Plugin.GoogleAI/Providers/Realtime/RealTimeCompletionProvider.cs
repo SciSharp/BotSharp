@@ -113,7 +113,6 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                 continue;
             }
 
-            Console.WriteLine($"Received text: {receivedText}");
             try
             {
                 var response = JsonSerializer.Deserialize<RealtimeServerResponse>(receivedText, _jsonOptions);
@@ -126,10 +125,15 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                 {
                     _logger.LogInformation($"Session setup completed.");
                 }
+                else if (response.SessionResumptionUpdate != null)
+                {
+                    _logger.LogInformation($"Session resumption update => New handle: {response.SessionResumptionUpdate.NewHandle}, Resumable: {response.SessionResumptionUpdate.Resumable}");
+                }
                 else if (response.ToolCall != null && !response.ToolCall.FunctionCalls.IsNullOrEmpty())
                 {
-                    var functionCall = response.ToolCall.FunctionCalls.First();
-                    _logger.LogInformation($"Tool call received {functionCall.Name}({functionCall.Args?.ToJsonString(_jsonOptions) ?? string.Empty}).");
+                    var functionCall = response.ToolCall.FunctionCalls!.First();
+
+                    _logger.LogInformation($"Tool call received: {functionCall.Name}({functionCall.Args?.ToJsonString(_jsonOptions) ?? string.Empty}).");
 
                     if (functionCall != null)
                     {
@@ -154,7 +158,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                         _logger.LogInformation($"Model audio delta received.");
 
                         // Handle input transcription
-                        var inputTranscription = inputStream.GetString();
+                        var inputTranscription = inputStream.GetText();
                         if (!string.IsNullOrEmpty(inputTranscription))
                         {
                             var message = OnUserAudioTranscriptionCompleted(conn, inputTranscription);
@@ -182,7 +186,8 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                     {
                         _logger.LogInformation($"Model turn completed.");
 
-                        var outputTranscription = outputStream.GetString();
+                        // Handle output transcription
+                        var outputTranscription = outputStream.GetText();
                         if (!string.IsNullOrEmpty(outputTranscription))
                         {
                             var messages = await OnResponseDone(conn, outputTranscription, response.UsageMetaData);
@@ -237,13 +242,13 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
     public async Task TriggerModelInference(string? instructions = null)
     {
-        var content = new Content("Please respond to me.", AgentRole.User);
+        var content = new Content(instructions ?? "Please respond to user.", AgentRole.User);
 
         await SendEventToModel(new BidiClientPayload
         {
             ClientContent = new()
             {
-                Turns = null,
+                Turns = [content],
                 TurnComplete = true
             }
         });
@@ -269,9 +274,10 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     public async Task<string> UpdateSession(RealtimeHubConnection conn, bool isInit = false)
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        var conv = await convService.GetConversation(conn.ConversationId);
-
         var agentService = _services.GetRequiredService<IAgentService>();
+        var realtimeSetting = _services.GetRequiredService<RealtimeModelSettings>();
+
+        var conv = await convService.GetConversation(conn.ConversationId);
         var agent = await agentService.LoadAgent(conn.CurrentAgentId);
 
         var (prompt, request) = PrepareOptions(agent, []);
@@ -285,10 +291,8 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
             var words = new List<string>();
             HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
 
-            var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
-
-            config.Temperature = Math.Max(realtimeModelSettings.Temperature, 0.6f);
-            config.MaxOutputTokens = realtimeModelSettings.MaxResponseOutputTokens;
+            config.Temperature = Math.Max(realtimeSetting.Temperature, 0.6f);
+            config.MaxOutputTokens = realtimeSetting.MaxResponseOutputTokens;
         }
         
         var functions = request.Tools?.SelectMany(s => s.FunctionDeclarations).Select(x =>
@@ -316,7 +320,6 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
             });
         }
 
-        var realtimeSetting = _services.GetRequiredService<RealtimeModelSettings>();
         await SendEventToModel(new RealtimeClientPayload
         {
             Setup = new RealtimeGenerateContentSetup()
@@ -326,7 +329,8 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                 SystemInstruction = request.SystemInstruction,
                 Tools = request.Tools?.ToArray(),
                 InputAudioTranscription = realtimeSetting.InputAudioTranscribe ? new() : null,
-                OutputAudioTranscription = realtimeSetting.InputAudioTranscribe ? new() : null
+                OutputAudioTranscription = realtimeSetting.InputAudioTranscribe ? new() : null,
+                SessionResumption = new()
             }
         });
 
@@ -339,6 +343,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         {
             var function = new FunctionResponse()
             {
+                Id = message.ToolCallId,
                 Name = message.FunctionName ?? string.Empty,
                 Response = new JsonObject()
                 {

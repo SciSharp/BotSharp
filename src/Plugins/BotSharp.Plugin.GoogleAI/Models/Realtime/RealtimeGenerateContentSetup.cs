@@ -21,6 +21,15 @@ internal class RealtimeGenerateContentSetup
 
     [JsonPropertyName("outputAudioTranscription")]
     public AudioTranscriptionConfig? OutputAudioTranscription { get; set; }
+
+    [JsonPropertyName("sessionResumption")]
+    public SessionResumptionConfig? SessionResumption { get; set; }
 }
 
 internal class AudioTranscriptionConfig { }
+
+internal class SessionResumptionConfig
+{
+    [JsonPropertyName("handle")]
+    public string? Handle { get; set; }
+}

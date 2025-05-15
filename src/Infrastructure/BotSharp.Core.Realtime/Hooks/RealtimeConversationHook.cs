@@ -42,7 +42,6 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
         var routing = _services.GetRequiredService<IRoutingService>();
 
         message.Role = AgentRole.Function;
-        //message.Role = AgentRole.Assistant;
 
         if (message.FunctionName == "route_to_agent")
         {
@@ -66,21 +65,24 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
         else
         {
             // Update session for changed states
-            var instruction = await hub.Completer.UpdateSession(hub.HubConn);
+
+            // TO DO
+            //var instruction = await hub.Completer.UpdateSession(hub.HubConn);
             await hub.Completer.InsertConversationItem(message);
 
             if (string.IsNullOrEmpty(message.Content))
             {
                 return;
             }
-            else if (message.StopCompletion)
-            {
-                await hub.Completer.TriggerModelInference($"Say to user: \"{message.Content}\"");
-            }
-            else
-            {
-                await hub.Completer.TriggerModelInference(instruction);
-            }
+
+            //if (message.StopCompletion)
+            //{
+            //    await hub.Completer.TriggerModelInference($"Say to user: \"{message.Content}\"");
+            //}
+            //else
+            //{
+            //    await hub.Completer.TriggerModelInference();
+            //}
         }
     }
 }

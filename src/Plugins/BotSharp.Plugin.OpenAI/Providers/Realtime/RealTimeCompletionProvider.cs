@@ -65,7 +65,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             cancellationToken: CancellationToken.None);
 
         _ = ReceiveMessage(
-                _services,
+                realtimeSettings,
                 conn,
                 onModelReady,
                 onModelAudioDeltaReceived,
@@ -144,7 +144,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     }
 
     private async Task ReceiveMessage(
-        IServiceProvider services,
+        RealtimeModelSettings realtimeSettings,
         RealtimeHubConnection conn,
         Func<Task> onModelReady,
         Func<string, string, Task> onModelAudioDeltaReceived,
@@ -156,7 +156,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Func<Task> onInterruptionDetected)
     {
         DateTime? startTime = null;
-        var realtimeSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
         await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
         {

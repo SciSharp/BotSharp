@@ -15,6 +15,9 @@ internal class RealtimeServerResponse
 
     [JsonPropertyName("toolCall")]
     public RealtimeToolCall? ToolCall { get; set; }
+
+    [JsonPropertyName("sessionResumptionUpdate")]
+    public RealtimeSessionResumptionUpdate? SessionResumptionUpdate { get; set; }
 }
 
 
@@ -91,4 +94,13 @@ internal class RealtimeFunctionCall
 
     [JsonPropertyName("args")]
     public JsonNode? Args { get; set; }
+}
+
+internal class RealtimeSessionResumptionUpdate
+{
+    [JsonPropertyName("newHandle")]
+    public string? NewHandle { get; set; }
+
+    [JsonPropertyName("resumable")]
+    public bool? Resumable { get; set; }
 }

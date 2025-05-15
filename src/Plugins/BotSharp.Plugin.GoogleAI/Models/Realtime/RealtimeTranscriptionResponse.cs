@@ -28,7 +28,7 @@ internal class RealtimeTranscriptionResponse : IDisposable
         _contentStream.Position = 0;
     }
 
-    public string GetString()
+    public string GetText()
     {
         if (_contentStream.Length == 0)
         {

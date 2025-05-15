@@ -41,6 +41,7 @@ public class ConversationPlugin : IBotSharpPlugin
             return settingService.Bind<GoogleApiSettings>("GoogleApi");
         });
 
+        services.AddScoped<ConversationHookProvider>();
         services.AddScoped<IConversationStorage, ConversationStorage>();
         services.AddScoped<IConversationService, ConversationService>();
         services.AddScoped<IConversationProgressService, ConversationProgressService>();
