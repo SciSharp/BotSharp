@@ -271,6 +271,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
                     {
                         FunctionCall = new FunctionCall
                         {
+                            Id = message.ToolCallId,
                             Name = message.FunctionName,
                             Args = JsonNode.Parse(message.FunctionArgs ?? "{}")
                         }
@@ -282,6 +283,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
                     {
                         FunctionResponse = new FunctionResponse
                         {
+                            Id = message.ToolCallId,
                             Name = message.FunctionName,
                             Response = new JsonObject()
                             {

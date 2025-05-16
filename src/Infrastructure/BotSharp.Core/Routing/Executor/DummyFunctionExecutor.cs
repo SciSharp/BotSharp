@@ -1,18 +1,18 @@
+using BotSharp.Abstraction.Routing.Executor;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Routing.Executor;
 
 public class DummyFunctionExecutor: IFunctionExecutor
 {
-    private FunctionDef functionDef;
     private readonly IServiceProvider _services;
+    private readonly FunctionDef _functionDef;
 
-    public DummyFunctionExecutor(FunctionDef function, IServiceProvider services)
+    public DummyFunctionExecutor(IServiceProvider services, FunctionDef functionDef)
     {
-        functionDef = function;
         _services = services;
+        _functionDef = functionDef;
     }
-
 
     public async Task<bool> ExecuteAsync(RoleDialogModel message)
     {           
@@ -25,7 +25,7 @@ public class DummyFunctionExecutor: IFunctionExecutor
             dict[item.Key] = item.Value;
         }
 
-        var text = render.Render(functionDef.Output, dict);
+        var text = render.Render(_functionDef.Output!, dict);
         message.Content = text;
         return true;
     }

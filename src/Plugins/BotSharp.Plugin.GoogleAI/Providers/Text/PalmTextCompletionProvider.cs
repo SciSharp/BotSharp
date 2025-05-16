@@ -1,10 +1,8 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Hooks;
-using BotSharp.Abstraction.Loggers;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Text;
 
+[Obsolete]
 public class PalmTextCompletionProvider : ITextCompletion
 {
     private readonly IServiceProvider _services;

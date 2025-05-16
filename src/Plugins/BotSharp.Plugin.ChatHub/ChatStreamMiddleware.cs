@@ -94,8 +94,7 @@ public class ChatStreamMiddleware
             }
         }
 
-
-        await _session.Disconnect();
+        await _session.DisconnectAsync();
         _session.Dispose();
     }
 
@@ -105,7 +104,7 @@ public class ChatStreamMiddleware
         {
             if (_session != null)
             {
-                await _session.SendEvent(data);
+                await _session.SendEventAsync(data);
             }
         });
     }

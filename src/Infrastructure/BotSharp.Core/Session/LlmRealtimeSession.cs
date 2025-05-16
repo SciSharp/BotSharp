@@ -22,14 +22,17 @@ public class LlmRealtimeSession : IDisposable
         _sessionOptions = sessionOptions;
     }
 
-    public async Task ConnectAsync(Uri uri, Dictionary<string, string> headers, CancellationToken cancellationToken = default)
+    public async Task ConnectAsync(Uri uri, Dictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
     {
         _webSocket?.Dispose();
         _webSocket = new ClientWebSocket();
 
-        foreach (var header in headers)
+        if (!headers.IsNullOrEmpty())
         {
-            _webSocket.Options.SetRequestHeader(header.Key, header.Value);
+            foreach (var header in headers)
+            {
+                _webSocket.Options.SetRequestHeader(header.Key, header.Value);
+            }
         }
 
         await _webSocket.ConnectAsync(uri, cancellationToken);
@@ -68,7 +71,7 @@ public class LlmRealtimeSession : IDisposable
         };
     }
 
-    public async Task SendEventToModel(object message)
+    public async Task SendEventToModelAsync(object message)
     {
         if (_webSocket.State != WebSocketState.Open)
         {
@@ -93,7 +96,7 @@ public class LlmRealtimeSession : IDisposable
         }
     }
 
-    public async Task Disconnect()
+    public async Task DisconnectAsync()
     {
         if (_webSocket.State == WebSocketState.Open)
         {
@@ -103,6 +106,7 @@ public class LlmRealtimeSession : IDisposable
 
     public void Dispose()
     {
+        _clientEventSemaphore?.Dispose();
         _webSocket?.Dispose();
     }
 }

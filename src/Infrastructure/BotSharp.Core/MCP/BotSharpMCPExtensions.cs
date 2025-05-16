@@ -18,15 +18,11 @@ public static class BotSharpMcpExtensions
     {
         var settings = config.GetSection("MCP").Get<McpSettings>();
         services.AddScoped(provider => settings);
+        services.AddScoped<IMcpService, McpService>();
 
         if (settings != null && settings.Enabled && !settings.McpServerConfigs.IsNullOrEmpty())
         {
-            services.AddScoped<IMcpService, McpService>();
-
-            var clientManager = new McpClientManager(settings);
-            services.AddScoped(provider => clientManager);
-
-            // Register hooks
+            services.AddScoped<McpClientManager>();
             services.AddScoped<IAgentHook, McpToolAgentHook>();
         }
         return services;

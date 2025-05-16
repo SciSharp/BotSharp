@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Hooks;
 
 namespace UnitTest
 {    
@@ -14,18 +15,16 @@ namespace UnitTest
             services.AddSingleton<IConversationHook, TestHookC>();
             services.AddSingleton<IConversationHook, TestHookA>();
             services.AddSingleton<IConversationHook, TestHookB>();
-            
-            services.AddSingleton<ConversationHookProvider>();
 
             var serviceProvider = services.BuildServiceProvider();
-            var conversationHookProvider = serviceProvider.GetService<ConversationHookProvider>();
+            var hooks = serviceProvider.GetHooksOrderByPriority<IConversationHook>(string.Empty);
 
-            Assert.AreEqual(3, conversationHookProvider.Hooks.Count());
+            Assert.AreEqual(3, hooks.Count());
 
             var prevHook = default(IConversationHook);
 
             // Assert priority
-            foreach (var hook in conversationHookProvider.HooksOrderByPriority)
+            foreach (var hook in hooks)
             {
                 if (prevHook != null)
                 {

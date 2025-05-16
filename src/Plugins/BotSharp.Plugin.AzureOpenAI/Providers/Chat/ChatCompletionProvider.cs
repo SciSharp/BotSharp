@@ -305,10 +305,10 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 messages.Add(new AssistantChatMessage(new List<ChatToolCall>
                 {
-                    ChatToolCall.CreateFunctionToolCall(message.FunctionName, message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? string.Empty))
+                    ChatToolCall.CreateFunctionToolCall(message.ToolCallId ?? message.FunctionName, message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? "{}"))
                 }));
 
-                messages.Add(new ToolChatMessage(message.FunctionName, message.Content));
+                messages.Add(new ToolChatMessage(message.ToolCallId ?? message.FunctionName, message.Content));
             }
             else if (message.Role == AgentRole.User)
             {

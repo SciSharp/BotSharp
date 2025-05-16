@@ -13,9 +13,9 @@ public class McpController : ControllerBase
     }
 
     [HttpGet("/mcp/server-configs")]
-    public IEnumerable<McpServerOptionModel> GetMcpServerConfigs()
+    public async Task<IEnumerable<McpServerOptionModel>> GetMcpServerConfigs()
     {
         var mcp = _services.GetRequiredService<IMcpService>();
-        return mcp.GetServerConfigs();
+        return await mcp.GetServerConfigsAsync();
     }
 }

@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Realtime.Models.Session;
 using System.Buffers;
 using System.ClientModel;
 using System.Net.WebSockets;
@@ -44,6 +43,9 @@ internal class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResul
 
             if (receivedResult.CloseStatus.HasValue)
             {
+#if DEBUG
+                Console.WriteLine($"Websocket close: {receivedResult.CloseStatus} {receivedResult.CloseStatusDescription}");
+#endif
                 Current = null;
                 return false;
             }

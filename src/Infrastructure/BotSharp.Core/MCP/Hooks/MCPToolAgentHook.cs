@@ -41,18 +41,26 @@ public class McpToolAgentHook : AgentHookBase
             return functionDefs;
         }
         
-        var mcpClientManager = _services.GetRequiredService<McpClientManager>();
-        var mcps = agent.McpTools.Where(x => !x.Disabled);
+        var mcpClientManager = _services.GetService<McpClientManager>();
+        if (mcpClientManager == null)
+        {
+            return functionDefs;
+        }
+
+        var mcps = agent.McpTools?.Where(x => !x.Disabled) ?? [];
         foreach (var item in mcps)
         {
             var mcpClient =  await mcpClientManager.GetMcpClientAsync(item.ServerId);
-            if (mcpClient != null)
+            if (mcpClient == null) continue;
+
+            var tools = await mcpClient.ListToolsAsync();
+            var toolNames = item.Functions.Select(x => x.Name).ToList();
+            var targetTools = tools.Where(x => toolNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase));
+            foreach (var tool in targetTools)
             {
-                var tools = await mcpClient.ListToolsAsync();
-                var toolnames = item.Functions.Select(x => x.Name).ToList();
-                foreach (var tool in tools.Where(x => toolnames.Contains(x.Name, StringComparer.OrdinalIgnoreCase)))
+                var funDef = AiFunctionHelper.MapToFunctionDef(tool);
+                if (funDef != null)
                 {
-                    var funDef = AiFunctionHelper.MapToFunctionDef(tool);
                     functionDefs.Add(funDef);
                 }
             }
