@@ -221,6 +221,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Nanoid" />
     <PackageReference Include="Rougamo.Fody" />
+    <PackageReference Include="ModelContextProtocol" />
     <PackageReference Include="System.ClientModel" />
   </ItemGroup>
 
