@@ -512,6 +512,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                     {
                         FunctionCall = new FunctionCall
                         {
+                            Id = message.ToolCallId,
                             Name = message.FunctionName,
                             Args = JsonNode.Parse(message.FunctionArgs ?? "{}")
                         }
@@ -523,6 +524,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                     {
                         FunctionResponse = new FunctionResponse
                         {
+                            Id = message.ToolCallId,
                             Name = message.FunctionName ?? string.Empty,
                             Response = new JsonObject()
                             {
