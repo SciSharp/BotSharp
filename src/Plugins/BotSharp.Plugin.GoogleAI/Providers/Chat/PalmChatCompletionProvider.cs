@@ -5,6 +5,7 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing;
 using LLMSharp.Google.Palm;
 using LLMSharp.Google.Palm.DiscussService;
+using BotSharp.Abstraction.Hooks;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Chat;
 
@@ -29,7 +30,7 @@ public class PalmChatCompletionProvider : IChatCompletion
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
 
         // Before chat completion hook
         foreach (var hook in contentHooks)

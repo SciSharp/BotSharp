@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using GenerativeAI;
 using GenerativeAI.Core;
 using GenerativeAI.Live;
@@ -216,7 +217,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
             }
         }
 
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(conn.CurrentAgentId);
         // After chat completion hook
         foreach (var hook in contentHooks)
         {

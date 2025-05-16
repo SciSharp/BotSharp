@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Loggers;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Text;
@@ -27,7 +28,7 @@ public class PalmTextCompletionProvider : ITextCompletion
 
     public async Task<string> GetCompletion(string text, string agentId, string messageId)
     {
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agentId);
 
         // Before completion hook
         var agent = new Agent() { Id = agentId };

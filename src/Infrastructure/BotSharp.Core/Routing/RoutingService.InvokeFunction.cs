@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Routing;
@@ -28,10 +29,6 @@ public partial class RoutingService
         var clonedMessage = RoleDialogModel.From(message);
         clonedMessage.FunctionName = name;
 
-        var hooks = _services
-            .GetRequiredService<ConversationHookProvider>()
-            .HooksOrderByPriority;
-
         var progressService = _services.GetService<IConversationProgressService>();
 
         // Before executing functions
@@ -51,6 +48,7 @@ public partial class RoutingService
         
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(clonedMessage.CurrentAgentId);
+        var hooks = _services.GetHooksOrderByPriority<IConversationHook>(clonedMessage.CurrentAgentId);
         foreach (var hook in hooks)
         {
             hook.SetAgent(agent);
