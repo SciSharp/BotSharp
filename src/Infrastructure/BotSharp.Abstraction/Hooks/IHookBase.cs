@@ -12,6 +12,6 @@ namespace BotSharp.Abstraction.Hooks
         /// Agent Id
         /// </summary>
         string SelfId => string.Empty;
-        bool IsMatch(string id) => string.IsNullOrEmpty(SelfId) || SelfId == id;
+        bool IsMatch(string agentId) => string.IsNullOrEmpty(SelfId) || SelfId == agentId;
     }
 }

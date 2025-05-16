@@ -9,7 +9,7 @@ public static class HookEmitter
     {
         var logger = services.GetRequiredService<ILogger<T>>();
         var result = new HookEmittedResult();
-        var hooks = services.GetServices<T>().Where(p => p.IsMatch(agentId));
+        var hooks = services.GetHooks<T>(agentId);
         option = option ?? new();
 
         foreach (var hook in hooks)
@@ -40,7 +40,7 @@ public static class HookEmitter
     {
         var logger = services.GetRequiredService<ILogger<T>>();
         var result = new HookEmittedResult();
-        var hooks = services.GetServices<T>().Where(p => p.IsMatch(agentId));
+        var hooks = services.GetHooks<T>(agentId);
         option = option ?? new();
 
         foreach (var hook in hooks)

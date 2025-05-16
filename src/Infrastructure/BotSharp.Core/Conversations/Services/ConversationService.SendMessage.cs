@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
@@ -29,7 +30,6 @@ public partial class ConversationService
         var dialogs = conv.GetDialogHistory();
 
         var statistics = _services.GetRequiredService<ITokenStatistics>();
-        var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
 
         RoleDialogModel response = message;
         bool stopCompletion = false;
@@ -44,7 +44,8 @@ public partial class ConversationService
             message.Payload = replyMessage.Payload;
         }
 
-        foreach (var hook in hookProvider.HooksOrderByPriority)
+        var hooks = _services.GetHooksOrderByPriority<IConversationHook>(message.CurrentAgentId);
+        foreach (var hook in hooks)
         {
             hook.SetAgent(agent)
                 .SetConversation(conversation);

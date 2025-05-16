@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Plugin.OpenAI.Models.Realtime;
 using OpenAI.Chat;
 
@@ -609,7 +610,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             return [];
         }
 
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(conn.CurrentAgentId);
 
         var prompts = new List<string>();
         var inputTokenDetails = data.Usage?.InputTokenDetails;

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.MLTasks;
@@ -23,7 +24,7 @@ public partial class InstructService
         }
 
         // Trigger before completion hooks
-        var hooks = _services.GetServices<IInstructHook>().Where(p => p.IsMatch(agentId));
+        var hooks = _services.GetHooks<IInstructHook>(agentId);
         foreach (var hook in hooks)
         {
             await hook.BeforeCompletion(agent, message);

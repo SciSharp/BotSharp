@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Conversations.Enums;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -116,7 +117,7 @@ public partial class ConversationService : IConversationService
 
         db.CreateNewConversation(record);
 
-        var hooks = _services.GetServices<IConversationHook>();
+        var hooks = _services.GetHooks<IConversationHook>(record.AgentId);
 
         foreach (var hook in hooks)
         {

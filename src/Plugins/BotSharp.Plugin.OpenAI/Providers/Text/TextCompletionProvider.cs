@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using System.Net.Http;
 using System.Net.Mime;
 
@@ -25,7 +26,7 @@ public class TextCompletionProvider : ITextCompletion
 
     public async Task<string> GetCompletion(string text, string agentId, string messageId)
     {
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agentId);
 
         // Before chat completion hook
         var agent = new Agent()

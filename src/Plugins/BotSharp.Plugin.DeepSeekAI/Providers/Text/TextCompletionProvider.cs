@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
 
@@ -22,7 +23,7 @@ public class TextCompletionProvider : ITextCompletion
 
     public async Task<string> GetCompletion(string text, string agentId, string messageId)
     {
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agentId);
         var state = _services.GetRequiredService<IConversationStateService>();
 
         // Before chat completion hook

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Realtime.Models;
@@ -63,7 +64,7 @@ public class TwilioStreamMiddleware
         // load conversation and state
         var convService = services.GetRequiredService<IConversationService>();
         convService.SetConversationId(conversationId, []);
-        var hooks = services.GetServices<ITwilioSessionHook>();
+        var hooks = services.GetHooks<ITwilioSessionHook>(agentId);
         foreach (var hook in hooks)
         {
             await hook.OnStreamingStarted(conn);
@@ -229,7 +230,6 @@ public class TwilioStreamMiddleware
     private async Task HandleUserDtmfReceived(IServiceProvider _services, RealtimeHubConnection conn, IRealTimeCompletion completer, string data)
     {
         var routing = _services.GetRequiredService<IRoutingService>();
-        var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(conn.CurrentAgentId);
         var dialogs = routing.Context.GetDialogs();
@@ -245,7 +245,8 @@ public class TwilioStreamMiddleware
         var storage = _services.GetRequiredService<IConversationStorage>();
         storage.Append(conn.ConversationId, message);
 
-        foreach (var hook in hookProvider.HooksOrderByPriority)
+        var hooks = _services.GetHooksOrderByPriority<IConversationHook>(conn.CurrentAgentId);
+        foreach (var hook in hooks)
         {
             hook.SetAgent(agent)
                 .SetConversation(conversation);
