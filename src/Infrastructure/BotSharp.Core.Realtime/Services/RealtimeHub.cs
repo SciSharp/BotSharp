@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Options;
 using BotSharp.Core.Infrastructures;
 
@@ -23,7 +24,6 @@ public class RealtimeHub : IRealtimeHub
 
     public async Task ConnectToModel(Func<string, Task>? responseToUser = null, Func<string, Task>? init = null)
     {
-        var hookProvider = _services.GetService<ConversationHookProvider>();
         var convService = _services.GetRequiredService<IConversationService>();
         convService.SetConversationId(_conn.ConversationId, []);
         var conversation = await convService.GetConversation(_conn.ConversationId);
@@ -107,7 +107,8 @@ public class RealtimeHub : IRealtimeHub
                         dialogs.Add(message);
                         storage.Append(_conn.ConversationId, message);
 
-                        foreach (var hook in hookProvider?.HooksOrderByPriority ?? [])
+                        var hooks = _services.GetHooksOrderByPriority<IConversationHook>(_conn.CurrentAgentId);
+                        foreach (var hook in hooks)
                         {
                             hook.SetAgent(agent)
                                 .SetConversation(conversation);
@@ -128,7 +129,8 @@ public class RealtimeHub : IRealtimeHub
                 storage.Append(_conn.ConversationId, message);
                 routing.Context.SetMessageId(_conn.ConversationId, message.MessageId);
 
-                foreach (var hook in hookProvider?.HooksOrderByPriority ?? [])
+                var hooks = _services.GetHooksOrderByPriority<IConversationHook>(_conn.CurrentAgentId);
+                foreach (var hook in hooks)
                 {
                     hook.SetAgent(agent)
                         .SetConversation(conversation);

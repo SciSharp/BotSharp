@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Loggers;
 using GenerativeAI;
 using GenerativeAI.Core;
@@ -33,7 +34,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
 
         // Before chat completion hook
         foreach (var hook in contentHooks)
@@ -91,7 +92,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
 
     public async Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
-        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var hooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
 
         // Before chat completion hook
         foreach (var hook in hooks)

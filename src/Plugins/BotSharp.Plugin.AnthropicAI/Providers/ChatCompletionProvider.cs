@@ -1,5 +1,6 @@
 using Anthropic.SDK.Common;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MLTasks.Settings;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -29,7 +30,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
 
         // Before chat completion hook
         foreach (var hook in contentHooks)

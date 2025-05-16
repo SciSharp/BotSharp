@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Plugin.OpenAI.Models.Realtime;
 using OpenAI.Chat;
 
@@ -285,9 +286,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     public async Task<string> UpdateSession(RealtimeHubConnection conn, bool isInit = false)
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        var conv = await convService.GetConversation(conn.ConversationId);
-
         var agentService = _services.GetRequiredService<IAgentService>();
+
+        var conv = await convService.GetConversation(conn.ConversationId);
         var agent = await agentService.LoadAgent(conn.CurrentAgentId);
         var (prompt, messages, options) = PrepareOptions(agent, []);
 
@@ -482,7 +483,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         // After chat completion hook
         var text = string.Join("\r\n", prompts);
-        var contentHooks = _services.GetServices<IContentGeneratingHook>();
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(conn.CurrentAgentId);
 
         foreach (var hook in contentHooks)
         {

@@ -1,4 +1,5 @@
 using System.Threading;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Realtime.Models.Session;
 using BotSharp.Core.Session;
 using BotSharp.Plugin.GoogleAI.Models.Realtime;
@@ -425,7 +426,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
         if (usage != null)
         {
-            var contentHooks = _services.GetServices<IContentGeneratingHook>();
+            var contentHooks = _services.GetHooks<IContentGeneratingHook>(conn.CurrentAgentId);
             foreach (var hook in contentHooks)
             {
                 await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, text)
