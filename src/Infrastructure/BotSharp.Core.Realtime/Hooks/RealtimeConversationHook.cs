@@ -73,14 +73,14 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
                 return;
             }
 
-            //if (message.StopCompletion)
-            //{
-            //    await hub.Completer.TriggerModelInference($"Say to user: \"{message.Content}\"");
-            //}
-            //else
-            //{
-            //    await hub.Completer.TriggerModelInference(instruction);
-            //}
+            if (message.StopCompletion)
+            {
+                await hub.Completer.TriggerModelInference($"Say to user: \"{message.Content}\"");
+            }
+            else
+            {
+                await hub.Completer.TriggerModelInference(instruction);
+            }
         }
     }
 }

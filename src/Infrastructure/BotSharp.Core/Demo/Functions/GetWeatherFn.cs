@@ -1,7 +1,7 @@
 using BotSharp.Abstraction.Functions;
 using System.Text.Json.Serialization;
 
-namespace BotSharp.Core.Functions;
+namespace BotSharp.Core.Demo.Functions;
 
 public class GetWeatherFn : IFunctionCallback
 {
@@ -19,6 +19,7 @@ public class GetWeatherFn : IFunctionCallback
     {
         //var args = JsonSerializer.Deserialize<Location>(message.FunctionArgs, BotSharpOptions.defaultJsonOptions);
         message.Content = $"It is a sunny day.";
+        //message.StopCompletion = true;
         return true;
     }
 }
@@ -27,12 +28,4 @@ class Location
 {
     [JsonPropertyName("city")]
     public string? City { get; set; }
-
-    [JsonPropertyName("state")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? State { get; set; }
-
-    [JsonPropertyName("county")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? County { get; set; }
 }

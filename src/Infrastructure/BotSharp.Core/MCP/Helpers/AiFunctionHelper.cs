@@ -11,14 +11,17 @@ internal static class AiFunctionHelper
             return null;
         }
 
-        if (!tool.JsonSchema.TryGetProperty("properties", out var properties))
+        var properties = "{}";
+        var required = "[]";
+
+        if (tool.JsonSchema.TryGetProperty("properties", out var p))
         {
-            properties = JsonDocument.Parse("{}").RootElement;
+            properties = p.GetRawText();
         }
 
-        if (!tool.JsonSchema.TryGetProperty("required", out var required))
+        if (tool.JsonSchema.TryGetProperty("required", out var r))
         {
-            required = JsonDocument.Parse("[]").RootElement;
+            required = r.GetRawText();
         }
 
         var funDef = new FunctionDef
@@ -29,8 +32,8 @@ internal static class AiFunctionHelper
             Parameters = new FunctionParametersDef
             {
                 Type = "object",
-                Properties = JsonDocument.Parse(properties.GetRawText() ?? "{}"),
-                Required = JsonSerializer.Deserialize<List<string>>(required.GetRawText() ?? "[]") ?? []
+                Properties = JsonDocument.Parse(properties),
+                Required = JsonSerializer.Deserialize<List<string>>(required) ?? []
             }
         };
 

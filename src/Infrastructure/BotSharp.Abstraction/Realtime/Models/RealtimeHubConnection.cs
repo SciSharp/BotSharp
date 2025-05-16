@@ -10,7 +10,6 @@ public class RealtimeHubConnection
     public string KeypadInputBuffer { get; set; } = string.Empty;
     public string CurrentAgentId { get; set; } = null!;
     public string ConversationId { get; set; } = null!;
-    public string? PrevSessionId { get; set; }
     public Func<string> OnModelReady { get; set; } = () => string.Empty;
     public Func<string, string> OnModelMessageReceived { get; set; } = null!;
     public Func<string> OnModelAudioResponseDone { get; set; } = null!;

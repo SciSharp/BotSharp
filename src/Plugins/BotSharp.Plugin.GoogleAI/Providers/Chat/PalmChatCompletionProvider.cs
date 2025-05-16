@@ -1,13 +1,10 @@
-using BotSharp.Abstraction.Agents;
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Loggers;
-using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing;
 using LLMSharp.Google.Palm;
 using LLMSharp.Google.Palm.DiscussService;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Chat;
 
+[Obsolete]
 public class PalmChatCompletionProvider : IChatCompletion
 {
     private readonly IServiceProvider _services;

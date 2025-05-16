@@ -89,7 +89,6 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         var modelSettings = settingsService.GetSetting(Provider, _model);
 
         Reset();
-
         _inputStream = new();
         _outputStream = new();
         _session = new LlmRealtimeSession(_services, new ChatSessionOptions
@@ -99,9 +98,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
         var uri = BuildWebsocketUri(modelSettings.ApiKey, "v1beta");
         await _session.ConnectAsync(uri: uri, cancellationToken: CancellationToken.None);
-
         await onModelReady();
-
         _ = ReceiveMessage();
     }
 
@@ -130,7 +127,6 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                 else if (response.SessionResumptionUpdate != null)
                 {
                     _logger.LogInformation($"Session resumption update => New handle: {response.SessionResumptionUpdate.NewHandle}, Resumable: {response.SessionResumptionUpdate.Resumable}");
-                    _conn.PrevSessionId = response.SessionResumptionUpdate?.NewHandle;
                 }
                 else if (response.ToolCall != null && !response.ToolCall.FunctionCalls.IsNullOrEmpty())
                 {
@@ -227,7 +223,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
     public async Task AppenAudioBuffer(string message)
     {
-        await SendEventToModel(new BidiClientPayload
+        await SendEventToModel(new RealtimeClientPayload
         {
             RealtimeInput = new()
             {
@@ -239,7 +235,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     public async Task AppenAudioBuffer(ArraySegment<byte> data, int length)
     {
         var buffer = data.AsSpan(0, length).ToArray();
-        await SendEventToModel(new BidiClientPayload
+        await SendEventToModel(new RealtimeClientPayload
         {
             RealtimeInput = new()
             {
@@ -253,7 +249,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         if (string.IsNullOrWhiteSpace(instructions)) return;
 
         var content = new Content(instructions, AgentRole.User);
-        await SendEventToModel(new BidiClientPayload
+        await SendEventToModel(new RealtimeClientPayload
         {
             ClientContent = new()
             {
@@ -284,7 +280,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     {
         if (!isInit)
         {
-            return null;
+            return string.Empty;
         }
 
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -294,18 +290,14 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         var (prompt, request) = PrepareOptions(agent, []);
 
         var config = request.GenerationConfig ?? new();
-        if (config != null)
-        {
-            //Output Modality can either be text or audio
-            config.ResponseModalities = [Modality.AUDIO];
+        //Output Modality can either be text or audio
+        config.ResponseModalities = [Modality.AUDIO];
+        config.Temperature = Math.Max(realtimeSetting.Temperature, 0.6f);
+        config.MaxOutputTokens = realtimeSetting.MaxResponseOutputTokens;
 
-            var words = new List<string>();
-            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)), agent.Id);
+        var words = new List<string>();
+        HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)), agent.Id);
 
-            config.Temperature = Math.Max(realtimeSetting.Temperature, 0.6f);
-            config.MaxOutputTokens = realtimeSetting.MaxResponseOutputTokens;
-        }
-        
         var functions = request.Tools?.SelectMany(s => s.FunctionDeclarations).Select(x =>
         {
             var fn = new FunctionDef
@@ -331,7 +323,6 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
             });
         }
 
-
         var payload = new RealtimeClientPayload
         {
             Setup = new RealtimeGenerateContentSetup()
@@ -341,15 +332,11 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                 SystemInstruction = request.SystemInstruction,
                 Tools = request.Tools?.ToArray(),
                 InputAudioTranscription = realtimeSetting.InputAudioTranscribe ? new() : null,
-                OutputAudioTranscription = realtimeSetting.InputAudioTranscribe ? new() : null,
-                SessionResumption = new()
-                {
-                    Handle = _conn.PrevSessionId
-                }
+                OutputAudioTranscription = realtimeSetting.InputAudioTranscribe ? new() : null
             }
         };
 
-        Console.WriteLine($"Setup payload: {JsonSerializer.Serialize(payload, _jsonOptions)}");
+        _logger.LogInformation($"Setup payload: {JsonSerializer.Serialize(payload, _jsonOptions)}");
         await SendEventToModel(payload);
 
         return prompt;
@@ -369,7 +356,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                 }
             };
 
-            await SendEventToModel(new BidiClientPayload
+            await SendEventToModel(new RealtimeClientPayload
             {
                 ToolResponse = new()
                 {
@@ -379,7 +366,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         }
         else if (message.Role == AgentRole.Assistant)
         {
-            await SendEventToModel(new BidiClientPayload
+            await SendEventToModel(new RealtimeClientPayload
             {
                 ClientContent = new()
                 {
@@ -390,7 +377,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         }
         else if (message.Role == AgentRole.User)
         {
-            await SendEventToModel(new BidiClientPayload
+            await SendEventToModel(new RealtimeClientPayload
             {
                 ClientContent = new()
                 {
@@ -613,7 +600,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         };
     }
 
-    private Uri BuildWebsocketUri(string apiKey, string version = "v1alpha")
+    private Uri BuildWebsocketUri(string apiKey, string version = "v1beta")
     {
         return new Uri($"wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.{version}.GenerativeService.BidiGenerateContent?key={apiKey}");
     }

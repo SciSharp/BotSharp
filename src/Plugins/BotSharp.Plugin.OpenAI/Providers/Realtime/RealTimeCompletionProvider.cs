@@ -45,11 +45,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         _model = realtimeSettings.Model;
         var settings = settingsService.GetSetting(Provider, _model);
 
-        if (_session != null)
-        {
-            _session.Dispose();
-        }
-
+        _session?.Dispose();
         _session = new LlmRealtimeSession(_services, new ChatSessionOptions
         {
             JsonOptions = _botsharpOptions.JsonSerializerOptions
@@ -75,72 +71,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 onConversationItemCreated,
                 onInputAudioTranscriptionDone,
                 onInterruptionDetected);
-    }
-
-    public async Task Disconnect()
-    {
-        if (_session != null)
-        {
-            await _session.DisconnectAsync();
-            _session.Dispose();
-        }
-    }
-
-    public async Task AppenAudioBuffer(string message)
-    {
-        var audioAppend = new
-        {
-            type = "input_audio_buffer.append",
-            audio = message
-        };
-
-        await SendEventToModel(audioAppend);
-    }
-
-    public async Task AppenAudioBuffer(ArraySegment<byte> data, int length)
-    {
-        var message = Convert.ToBase64String(data.AsSpan(0, length).ToArray());
-        await AppenAudioBuffer(message);
-    }
-
-    public async Task TriggerModelInference(string? instructions = null)
-    {
-        // Triggering model inference
-        if (!string.IsNullOrEmpty(instructions))
-        {
-            await SendEventToModel(new
-            {
-                type = "response.create",
-                response = new
-                {
-                    instructions
-                }
-            });
-        }
-        else
-        {
-            await SendEventToModel(new
-            {
-                type = "response.create"
-            });
-        }
-    }
-
-    public async Task CancelModelResponse()
-    {
-        await SendEventToModel(new
-        {
-            type = "response.cancel"
-        });
-    }
-
-    public async Task RemoveConversationItem(string itemId)
-    {
-        await SendEventToModel(new
-        {
-            type = "conversation.item.delete",
-            item_id = itemId
-        });
     }
 
     private async Task ReceiveMessage(
@@ -277,6 +207,72 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         }
 
         _session.Dispose();
+    }
+
+    public async Task Disconnect()
+    {
+        if (_session != null)
+        {
+            await _session.DisconnectAsync();
+            _session.Dispose();
+        }
+    }
+
+    public async Task AppenAudioBuffer(string message)
+    {
+        var audioAppend = new
+        {
+            type = "input_audio_buffer.append",
+            audio = message
+        };
+
+        await SendEventToModel(audioAppend);
+    }
+
+    public async Task AppenAudioBuffer(ArraySegment<byte> data, int length)
+    {
+        var message = Convert.ToBase64String(data.AsSpan(0, length).ToArray());
+        await AppenAudioBuffer(message);
+    }
+
+    public async Task TriggerModelInference(string? instructions = null)
+    {
+        // Triggering model inference
+        if (!string.IsNullOrEmpty(instructions))
+        {
+            await SendEventToModel(new
+            {
+                type = "response.create",
+                response = new
+                {
+                    instructions
+                }
+            });
+        }
+        else
+        {
+            await SendEventToModel(new
+            {
+                type = "response.create"
+            });
+        }
+    }
+
+    public async Task CancelModelResponse()
+    {
+        await SendEventToModel(new
+        {
+            type = "response.cancel"
+        });
+    }
+
+    public async Task RemoveConversationItem(string itemId)
+    {
+        await SendEventToModel(new
+        {
+            type = "conversation.item.delete",
+            item_id = itemId
+        });
     }
 
     public async Task SendEventToModel(object message)

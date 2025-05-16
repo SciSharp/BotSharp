@@ -42,8 +42,8 @@ internal class RealtimeTranscriptionResponse : IDisposable
 
     public void Clear()
     {
-        _contentStream.SetLength(0);
         _contentStream.Position = 0;
+        _contentStream.SetLength(0);
     }
 
     public void Dispose()
