@@ -39,8 +39,6 @@ public partial class RoutingService
             await progressService.OnFunctionExecuting(clonedMessage);
         }
         
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.GetAgent(clonedMessage.CurrentAgentId);
         var hooks = _services.GetHooksOrderByPriority<IConversationHook>(clonedMessage.CurrentAgentId);
         foreach (var hook in hooks)
         {

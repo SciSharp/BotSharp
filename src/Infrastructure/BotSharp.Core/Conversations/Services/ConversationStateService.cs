@@ -174,7 +174,6 @@ public class ConversationStateService : IConversationStateService
             return endNodes;
         }
 
-        var _routingContext = _services.GetRequiredService<IRoutingContext>();
         var curMsgId = _routingContext.MessageId;
         var dialogs = _db.GetConversationDialogs(conversationId);
         var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User)
