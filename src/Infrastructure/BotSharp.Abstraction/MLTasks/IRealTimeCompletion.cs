@@ -14,10 +14,12 @@ public interface IRealTimeCompletion
         Func<string, string, Task> onModelAudioDeltaReceived,
         Func<Task> onModelAudioResponseDone,
         Func<string, Task> onModelAudioTranscriptDone,
-        Func<List<RoleDialogModel>, Task> onModelResponseDone,
+        Func<List<RoleDialogModel>, Task<bool>> onModelResponseDone,
         Func<string, Task> onConversationItemCreated,
         Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
         Func<Task> onInterruptionDetected);
+
+    Task Reconnect(RealtimeHubConnection conn);
 
     Task AppenAudioBuffer(string message);
     Task AppenAudioBuffer(ArraySegment<byte> data, int length);

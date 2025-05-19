@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Attributes;
 using BotSharp.Abstraction.Roles;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -20,15 +21,10 @@ public class RoleController : ControllerBase
         _user = user;
     }
 
+    [BotSharpAuth]
     [HttpPost("/role/refresh")]
     public async Task<bool> RefreshRoles()
     {
-        var isValid = await IsValidUser();
-        if (!isValid)
-        {
-            return false;
-        }
-
         return await _roleService.RefreshRoles();
     }
 
@@ -39,18 +35,13 @@ public class RoleController : ControllerBase
         return await _roleService.GetRoleOptions();
     }
 
+    [BotSharpAuth]
     [HttpPost("/roles")]
     public async Task<IEnumerable<RoleViewModel>> GetRoles([FromBody] RoleFilter? filter = null)
     {
         if (filter == null)
         {
             filter = RoleFilter.Empty();
-        }
-
-        var isValid = await IsValidUser();
-        if (!isValid)
-        {
-            return Enumerable.Empty<RoleViewModel>();
         }
 
         var roles = await _roleService.GetRoles(filter);
@@ -64,25 +55,13 @@ public class RoleController : ControllerBase
         return RoleViewModel.FromRole(role);
     }
 
+    [BotSharpAuth]
     [HttpPut("/role")]
     public async Task<bool> UpdateRole([FromBody] RoleUpdateModel model)
     {
         if (model == null) return false;
 
-        var isValid = await IsValidUser();
-        if (!isValid)
-        {
-            return false;
-        }
-
         var role = RoleUpdateModel.ToRole(model);
         return await _roleService.UpdateRole(role, isUpdateRoleAgents: true);
-    }
-
-    private async Task<bool> IsValidUser()
-    {
-        var userService = _services.GetRequiredService<IUserService>();
-        var (isAdmin, _) = await userService.IsAdminUser(_user.Id);
-        return isAdmin;
     }
 }

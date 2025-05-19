@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Attributes;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Core.Plugins;
@@ -10,15 +11,10 @@ public class PluginController(IServiceProvider services, IUserIdentity user, Plu
 {
     private readonly IUserIdentity _user = user;
 
+    [BotSharpAuth]
     [HttpGet("/plugins")]
     public async Task<PagedItems<PluginDef>> GetPlugins([FromQuery] PluginFilter filter)
     {
-        var isValid = await IsValidUser();
-        if (!isValid)
-        {
-            return new PagedItems<PluginDef>();
-        }
-
         var loader = services.GetRequiredService<PluginLoader>();
         return loader.GetPagedPlugins(services, filter);
     }
@@ -72,6 +68,7 @@ public class PluginController(IServiceProvider services, IUserIdentity user, Plu
         return menu;
     }
 
+    [BotSharpAuth]
     [HttpPost("/plugin/{id}/install")]
     public PluginDef InstallPlugin([FromRoute] string id)
     {
@@ -79,17 +76,11 @@ public class PluginController(IServiceProvider services, IUserIdentity user, Plu
         return loader.UpdatePluginStatus(services, id, true);
     }
 
+    [BotSharpAuth]
     [HttpPost("/plugin/{id}/remove")]
     public PluginDef RemovePluginStats([FromRoute] string id)
     {
         var loader = services.GetRequiredService<PluginLoader>();
         return loader.UpdatePluginStatus(services, id, false);
-    }
-
-    private async Task<bool> IsValidUser()
-    {
-        var userService = services.GetRequiredService<IUserService>();
-        var (isAdmin, _) = await userService.IsAdminUser(_user.Id);
-        return isAdmin;
     }
 }

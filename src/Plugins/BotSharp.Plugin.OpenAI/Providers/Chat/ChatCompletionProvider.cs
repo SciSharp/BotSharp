@@ -272,7 +272,7 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 messages.Add(new AssistantChatMessage(new List<ChatToolCall>
                 {
-                    ChatToolCall.CreateFunctionToolCall(message.ToolCallId ?? message.FunctionName, message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? "{}"))
+                    ChatToolCall.CreateFunctionToolCall(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? "{}"))
                 }));
 
                 messages.Add(new ToolChatMessage(message.ToolCallId ?? message.FunctionName, message.Content));

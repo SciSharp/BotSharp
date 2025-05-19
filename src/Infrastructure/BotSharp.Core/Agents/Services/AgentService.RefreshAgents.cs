@@ -16,14 +16,6 @@ public partial class AgentService
             return refreshResult;
         }
 
-        var userIdentity = _services.GetRequiredService<IUserIdentity>();
-        var userService = _services.GetRequiredService<IUserService>();
-        var (isValid, _) = await userService.IsAdminUser(userIdentity.Id);
-        if (!isValid)
-        {
-            return "Unauthorized user.";
-        }
-
         var agentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                                     dbSettings.FileRepository,
                                     _agentSettings.DataDir);

@@ -13,6 +13,7 @@ public class LlmRealtimeSession : IDisposable
     private readonly object _singleReceiveLock = new();
     private readonly SemaphoreSlim _clientEventSemaphore = new(initialCount: 1, maxCount: 1);
     private AsyncWebsocketDataCollectionResult _receivedCollectionResult;
+    private bool _disposed = false;
 
     public LlmRealtimeSession(
         IServiceProvider services,
@@ -24,6 +25,7 @@ public class LlmRealtimeSession : IDisposable
 
     public async Task ConnectAsync(Uri uri, Dictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
     {
+        _disposed = false;
         _webSocket?.Dispose();
         _webSocket = new ClientWebSocket();
 
@@ -73,31 +75,43 @@ public class LlmRealtimeSession : IDisposable
 
     public async Task SendEventToModelAsync(object message)
     {
-        if (_webSocket.State != WebSocketState.Open)
-        {
-            return;
-        }
-
-        await _clientEventSemaphore.WaitAsync();
-
         try
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            await _clientEventSemaphore.WaitAsync();
+
+            if (_webSocket.State != WebSocketState.Open)
+            {
+                return;
+            }
+
             if (message is not string data)
             {
                 data = JsonSerializer.Serialize(message, _sessionOptions?.JsonOptions);
             }
+
+            //Console.WriteLine($"Sending event to model {data.Substring(0, 20)}");
 
             var buffer = Encoding.UTF8.GetBytes(data);
             await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
         }
         finally
         {
-            _clientEventSemaphore.Release();
+            if (!_disposed)
+            {
+                _clientEventSemaphore.Release();
+            }
         }
     }
 
     public async Task DisconnectAsync()
     {
+        if (_disposed) return;
+
         if (_webSocket.State == WebSocketState.Open)
         {
             await _webSocket.CloseAsync(WebSocketCloseStatus.Empty, null, CancellationToken.None);
@@ -106,6 +120,9 @@ public class LlmRealtimeSession : IDisposable
 
     public void Dispose()
     {
+        if (_disposed) return;
+
+        _disposed = true;
         _clientEventSemaphore?.Dispose();
         _webSocket?.Dispose();
     }

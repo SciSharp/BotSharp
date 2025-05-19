@@ -16,8 +16,19 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     private readonly ILogger<RealTimeCompletionProvider> _logger;
     private readonly BotSharpOptions _botsharpOptions;
 
-    protected string _model = "gpt-4o-mini-realtime-preview";
+    private string _model = "gpt-4o-mini-realtime-preview";
     private LlmRealtimeSession _session;
+    private bool _isBlocking = false;
+
+    private RealtimeHubConnection _conn;
+    private Func<Task> _onModelReady;
+    private Func<string, string, Task> _onModelAudioDeltaReceived;
+    private Func<Task> _onModelAudioResponseDone;
+    private Func<string, Task> _onModelAudioTranscriptDone;
+    private Func<List<RoleDialogModel>, Task<bool>> _onModelResponseDone;
+    private Func<string, Task> _onConversationItemCreated;
+    private Func<RoleDialogModel, Task> _onInputAudioTranscriptionDone;
+    private Func<Task> _onInterruptionDetected;
 
     public RealTimeCompletionProvider(
         IServiceProvider services,
@@ -35,11 +46,21 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Func<string, string, Task> onModelAudioDeltaReceived,
         Func<Task> onModelAudioResponseDone,
         Func<string, Task> onModelAudioTranscriptDone,
-        Func<List<RoleDialogModel>, Task> onModelResponseDone,
+        Func<List<RoleDialogModel>, Task<bool>> onModelResponseDone,
         Func<string, Task> onConversationItemCreated,
         Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
         Func<Task> onInterruptionDetected)
     {
+        _conn = conn;
+        _onModelReady = onModelReady;
+        _onModelAudioDeltaReceived = onModelAudioDeltaReceived;
+        _onModelAudioResponseDone = onModelAudioResponseDone;
+        _onModelAudioTranscriptDone = onModelAudioTranscriptDone;
+        _onModelResponseDone = onModelResponseDone;
+        _onConversationItemCreated = onConversationItemCreated;
+        _onInputAudioTranscriptionDone = onInputAudioTranscriptionDone;
+        _onInterruptionDetected = onInterruptionDetected;
+
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var realtimeSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
@@ -61,31 +82,12 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             },
             cancellationToken: CancellationToken.None);
 
-        _ = ReceiveMessage(
-                realtimeSettings,
-                conn,
-                onModelReady,
-                onModelAudioDeltaReceived,
-                onModelAudioResponseDone,
-                onModelAudioTranscriptDone,
-                onModelResponseDone,
-                onConversationItemCreated,
-                onInputAudioTranscriptionDone,
-                onInterruptionDetected);
+        _ = ReceiveMessage(realtimeSettings);
     }
 
-    private async Task ReceiveMessage(
-        RealtimeModelSettings realtimeSettings,
-        RealtimeHubConnection conn,
-        Func<Task> onModelReady,
-        Func<string, string, Task> onModelAudioDeltaReceived,
-        Func<Task> onModelAudioResponseDone,
-        Func<string, Task> onModelAudioTranscriptDone,
-        Func<List<RoleDialogModel>, Task> onModelResponseDone,
-        Func<string, Task> onConversationItemCreated,
-        Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
-        Func<Task> onInterruptionDetected)
+    private async Task ReceiveMessage(RealtimeModelSettings realtimeSettings)
     {
+        var isReconnect = false;
         DateTime? startTime = null;
 
         await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
@@ -121,7 +123,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "session.created")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
-                await onModelReady();
+                _isBlocking = false;
+                await _onModelReady();
             }
             else if (response.Type == "session.updated")
             {
@@ -135,7 +138,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
                 var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(receivedText);
-                await onModelAudioTranscriptDone(data.Transcript);
+                await _onModelAudioTranscriptDone(data.Transcript);
             }
             else if (response.Type == "response.audio.delta")
             {
@@ -143,13 +146,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 if (audio?.Delta != null)
                 {
                     _logger.LogDebug($"{response.Type}: {receivedText}");
-                    await onModelAudioDeltaReceived(audio.Delta, audio.ItemId);
+                    await _onModelAudioDeltaReceived(audio.Delta, audio.ItemId);
                 }
             }
             else if (response.Type == "response.audio.done")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
-                await onModelAudioResponseDone();
+                await _onModelAudioResponseDone();
             }
             else if (response.Type == "response.done")
             {
@@ -159,14 +162,14 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 {
                     if (data.StatusDetails.Type == "incomplete" && data.StatusDetails.Reason == "max_output_tokens")
                     {
-                        await onInterruptionDetected();
+                        await _onInterruptionDetected();
                         await TriggerModelInference("Response user concisely");
                     }
                 }
                 else
                 {
-                    var messages = await OnResponsedDone(conn, receivedText);
-                    await onModelResponseDone(messages);
+                    var messages = await OnResponsedDone(_conn, receivedText);
+                    isReconnect = await _onModelResponseDone(messages);
                 }
             }
             else if (response.Type == "conversation.item.created")
@@ -179,23 +182,23 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     startTime = DateTime.UtcNow;
                 }
 
-                await onConversationItemCreated(receivedText);
+                await _onConversationItemCreated(receivedText);
             }
             else if (response.Type == "conversation.item.input_audio_transcription.completed")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
 
-                var message = await OnUserAudioTranscriptionCompleted(conn, receivedText);
+                var message = await OnUserAudioTranscriptionCompleted(_conn, receivedText);
                 if (!string.IsNullOrEmpty(message.Content))
                 {
-                    await onInputAudioTranscriptionDone(message);
+                    await _onInputAudioTranscriptionDone(message);
                 }
             }
             else if (response.Type == "input_audio_buffer.speech_started")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
                 // Handle user interuption
-                await onInterruptionDetected();
+                await _onInterruptionDetected();
             }
             else if (response.Type == "input_audio_buffer.speech_stopped")
             {
@@ -205,13 +208,48 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
             }
+
+            if (isReconnect)
+            {
+                break;
+            }
         }
 
-        _session.Dispose();
+        if (isReconnect)
+        {
+            await Reconnect(_conn);
+        }
+        else
+        {
+            _session.Dispose();
+        }
+    }
+
+
+    public async Task Reconnect(RealtimeHubConnection conn)
+    {
+        _logger.LogInformation($"Reconnecting {Provider} realtime server...");
+
+        _isBlocking = true;
+        _conn = conn;
+        await Disconnect();
+        await Task.Delay(500);
+        await Connect(
+                _conn,
+                _onModelReady,
+                _onModelAudioDeltaReceived,
+                _onModelAudioResponseDone,
+                _onModelAudioTranscriptDone,
+                _onModelResponseDone,
+                _onConversationItemCreated,
+                _onInputAudioTranscriptionDone,
+                _onInterruptionDetected);
     }
 
     public async Task Disconnect()
     {
+        _logger.LogInformation($"Disconnecting {Provider} realtime server...");
+
         if (_session != null)
         {
             await _session.DisconnectAsync();
@@ -221,6 +259,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     public async Task AppenAudioBuffer(string message)
     {
+        if (_isBlocking) return;
+
         var audioAppend = new
         {
             type = "input_audio_buffer.append",
@@ -232,6 +272,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     public async Task AppenAudioBuffer(ArraySegment<byte> data, int length)
     {
+        if (_isBlocking) return;
+
         var message = Convert.ToBase64String(data.AsSpan(0, length).ToArray());
         await AppenAudioBuffer(message);
     }

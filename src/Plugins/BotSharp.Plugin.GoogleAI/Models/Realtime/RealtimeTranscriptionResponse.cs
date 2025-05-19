@@ -9,6 +9,8 @@ internal class RealtimeTranscriptionResponse : IDisposable
         
     }
 
+    private bool _disposed = false;
+
     private MemoryStream _contentStream = new();
     public Stream? ContentStream
     {
@@ -20,6 +22,8 @@ internal class RealtimeTranscriptionResponse : IDisposable
 
     public void Collect(string text)
     {
+        if (_disposed) return;
+
         var binary = BinaryData.FromString(text);
         var bytes = binary.ToArray();
 
@@ -30,7 +34,7 @@ internal class RealtimeTranscriptionResponse : IDisposable
 
     public string GetText()
     {
-        if (_contentStream.Length == 0)
+        if (_disposed || _contentStream.Length == 0)
         {
             return string.Empty;
         }
@@ -42,12 +46,21 @@ internal class RealtimeTranscriptionResponse : IDisposable
 
     public void Clear()
     {
-        _contentStream.Position = 0;
-        _contentStream.SetLength(0);
+        try
+        {
+            if (_disposed) return;
+
+            _contentStream.Position = 0;
+            _contentStream.SetLength(0);
+        }
+        catch { }
     }
 
     public void Dispose()
     {
+        if (_disposed) return;
+
+        _disposed = true;
         _contentStream?.Dispose();
     }
 }
