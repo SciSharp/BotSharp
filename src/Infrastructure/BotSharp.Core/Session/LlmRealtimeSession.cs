@@ -94,8 +94,6 @@ public class LlmRealtimeSession : IDisposable
                 data = JsonSerializer.Serialize(message, _sessionOptions?.JsonOptions);
             }
 
-            //Console.WriteLine($"Sending event to model {data.Substring(0, 20)}");
-
             var buffer = Encoding.UTF8.GetBytes(data);
             await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
         }
