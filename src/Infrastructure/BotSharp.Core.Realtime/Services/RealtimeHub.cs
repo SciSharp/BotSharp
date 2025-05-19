@@ -124,7 +124,10 @@ public class RealtimeHub : IRealtimeHub
                     if (isReconnect) break;
                 }
 
-                return isReconnect;
+                if (isReconnect)
+                {
+                    await _completer.Reconnect(_conn);
+                }
             },
             onConversationItemCreated: async response =>
             {

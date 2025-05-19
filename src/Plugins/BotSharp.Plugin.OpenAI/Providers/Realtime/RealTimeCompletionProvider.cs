@@ -25,7 +25,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     private Func<string, string, Task> _onModelAudioDeltaReceived;
     private Func<Task> _onModelAudioResponseDone;
     private Func<string, Task> _onModelAudioTranscriptDone;
-    private Func<List<RoleDialogModel>, Task<bool>> _onModelResponseDone;
+    private Func<List<RoleDialogModel>, Task> _onModelResponseDone;
     private Func<string, Task> _onConversationItemCreated;
     private Func<RoleDialogModel, Task> _onInputAudioTranscriptionDone;
     private Func<Task> _onInterruptionDetected;
@@ -46,11 +46,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Func<string, string, Task> onModelAudioDeltaReceived,
         Func<Task> onModelAudioResponseDone,
         Func<string, Task> onModelAudioTranscriptDone,
-        Func<List<RoleDialogModel>, Task<bool>> onModelResponseDone,
+        Func<List<RoleDialogModel>, Task> onModelResponseDone,
         Func<string, Task> onConversationItemCreated,
         Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
         Func<Task> onInterruptionDetected)
     {
+        _logger.LogInformation($"Connecting {Provider} realtime server...");
+
         _conn = conn;
         _onModelReady = onModelReady;
         _onModelAudioDeltaReceived = onModelAudioDeltaReceived;
@@ -87,7 +89,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     private async Task ReceiveMessage(RealtimeModelSettings realtimeSettings)
     {
-        var isReconnect = false;
         DateTime? startTime = null;
 
         await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
@@ -169,7 +170,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 else
                 {
                     var messages = await OnResponsedDone(_conn, receivedText);
-                    isReconnect = await _onModelResponseDone(messages);
+                    await _onModelResponseDone(messages);
                 }
             }
             else if (response.Type == "conversation.item.created")
@@ -208,21 +209,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
             }
-
-            if (isReconnect)
-            {
-                break;
-            }
         }
 
-        if (isReconnect)
-        {
-            await Reconnect(_conn);
-        }
-        else
-        {
-            _session.Dispose();
-        }
+        _session.Dispose();
     }
 
 

@@ -42,7 +42,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     private Func<string, string, Task> _onModelAudioDeltaReceived;
     private Func<Task> _onModelAudioResponseDone;
     private Func<string, Task> _onModelAudioTranscriptDone;
-    private Func<List<RoleDialogModel>, Task<bool>> _onModelResponseDone;
+    private Func<List<RoleDialogModel>, Task> _onModelResponseDone;
     private Func<string, Task> _onConversationItemCreated;
     private Func<RoleDialogModel, Task> _onInputAudioTranscriptionDone;
     private Func<Task> _onInterruptionDetected;
@@ -68,11 +68,13 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         Func<string, string, Task> onModelAudioDeltaReceived,
         Func<Task> onModelAudioResponseDone,
         Func<string, Task> onModelAudioTranscriptDone,
-        Func<List<RoleDialogModel>, Task<bool>> onModelResponseDone,
+        Func<List<RoleDialogModel>, Task> onModelResponseDone,
         Func<string, Task> onConversationItemCreated,
         Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
         Func<Task> onInterruptionDetected)
     {
+        _logger.LogInformation($"Connecting {Provider} realtime server...");
+
         _conn = conn;
         _onModelReady = onModelReady;
         _onModelAudioDeltaReceived = onModelAudioDeltaReceived;
@@ -106,8 +108,6 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
     private async Task ReceiveMessage()
     {
-        var isReconnect = false;
-
         await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
         {
             var receivedText = update?.RawResponse;
@@ -142,7 +142,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                     if (functionCall != null)
                     {
                         var messages = OnFunctionCall(_conn, functionCall);
-                        isReconnect = await _onModelResponseDone(messages);
+                        await _onModelResponseDone(messages);
                     }
                 }
                 else if (response.ServerContent != null)
@@ -161,9 +161,9 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                     {
                         // Handle input transcription
                         var inputTranscription = _inputStream.GetText();
-                        if (!string.IsNullOrEmpty(inputTranscription))
+                        if (!string.IsNullOrWhiteSpace(inputTranscription))
                         {
-                            var message = OnUserAudioTranscriptionCompleted(_conn, inputTranscription);
+                            var message = OnUserAudioTranscriptionCompleted(_conn, inputTranscription ?? string.Empty);
                             await _onInputAudioTranscriptionDone(message);
                         }
                         _inputStream.Clear();
@@ -190,16 +190,14 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
                         // Handle output transcription
                         var outputTranscription = _outputStream.GetText();
-                        var messages = await OnResponseDone(_conn, outputTranscription ?? string.Empty, response.UsageMetaData);
-                        isReconnect = await _onModelResponseDone(messages);
+                        if (!string.IsNullOrWhiteSpace(outputTranscription))
+                        {
+                            var messages = await OnResponseDone(_conn, outputTranscription ?? string.Empty, response.UsageMetaData);
+                            await _onModelResponseDone(messages);
+                        }
                         _inputStream.Clear();
                         _outputStream.Clear();
                     }
-                }
-
-                if (isReconnect)
-                {
-                    break;
                 }
             }
             catch (Exception ex)
@@ -209,16 +207,9 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
             }
         }
 
-        if (isReconnect)
-        {
-            await Reconnect(_conn);
-        }
-        else
-        {
-            _inputStream.Dispose();
-            _outputStream.Dispose();
-            _session.Dispose();
-        }
+        _inputStream.Dispose();
+        _outputStream.Dispose();
+        _session.Dispose();
     }
 
 
@@ -369,8 +360,8 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                 Model = Model.ToModelId(),
                 SystemInstruction = request.SystemInstruction,
                 Tools = request.Tools?.ToArray(),
-                InputAudioTranscription = realtimeSetting.InputAudioTranscribe ? new() : null,
-                OutputAudioTranscription = realtimeSetting.InputAudioTranscribe ? new() : null
+                InputAudioTranscription = new(),
+                OutputAudioTranscription = new()
             }
         };
 

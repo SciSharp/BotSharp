@@ -27,7 +27,7 @@ public sealed class MicrosoftExtensionsAITextEmbeddingProvider : ITextEmbedding
 
     /// <inheritdoc/>
     public async Task<float[]> GetVectorAsync(string text) =>
-        (await _generator.GenerateEmbeddingVectorAsync(text, CreateOptions())).ToArray();
+        (await _generator.GenerateVectorAsync(text, CreateOptions())).ToArray();
 
     /// <inheritdoc/>
     public async Task<List<float[]>> GetVectorsAsync(List<string> texts)

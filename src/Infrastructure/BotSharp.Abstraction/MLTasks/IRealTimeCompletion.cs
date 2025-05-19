@@ -14,7 +14,7 @@ public interface IRealTimeCompletion
         Func<string, string, Task> onModelAudioDeltaReceived,
         Func<Task> onModelAudioResponseDone,
         Func<string, Task> onModelAudioTranscriptDone,
-        Func<List<RoleDialogModel>, Task<bool>> onModelResponseDone,
+        Func<List<RoleDialogModel>, Task> onModelResponseDone,
         Func<string, Task> onConversationItemCreated,
         Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
         Func<Task> onInterruptionDetected);

@@ -11,6 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Providers\Realtime\2lpg51hd.uih~" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="OpenAI" />
   </ItemGroup>
 
