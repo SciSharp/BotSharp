@@ -1,0 +1,14 @@
+{
+  "name": "get_weather",
+  "description": "Get weather information for user.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "city": {
+        "type": "string",
+        "description": "The city where the user wants to get weather information."
+      }
+    },
+    "required": [ "city" ]
+  }
+}

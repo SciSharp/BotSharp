@@ -1,6 +1,4 @@
-using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Hooks;
-using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Routing.Executor;
 
 namespace BotSharp.Core.Routing;
@@ -9,14 +7,11 @@ public partial class RoutingService
 {
     public async Task<bool> InvokeFunction(string name, RoleDialogModel message)
     {
-        var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == name);
-       
         var currentAgentId = message.CurrentAgentId;
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(currentAgentId);
 
-        IFunctionExecutor funcExecutor = FunctionExecutorFactory.Create(name, agent, function, _services);
-
+        var funcExecutor = FunctionExecutorFactory.Create(_services, name, agent);
         if (funcExecutor == null)
         {
             message.StopCompletion = true;
@@ -25,13 +20,11 @@ public partial class RoutingService
             return false;
         }
 
-
         // Clone message
         var clonedMessage = RoleDialogModel.From(message);
         clonedMessage.FunctionName = name;
 
         var progressService = _services.GetService<IConversationProgressService>();
-
         clonedMessage.Indication = await funcExecutor.GetIndicatorAsync(message);
 
         if (progressService?.OnFunctionExecuting != null)

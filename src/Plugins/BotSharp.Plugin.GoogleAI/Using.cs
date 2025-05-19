@@ -16,14 +16,15 @@ global using BotSharp.Abstraction.Agents.Constants;
 global using BotSharp.Abstraction.Agents.Models;
 global using BotSharp.Abstraction.MLTasks;
 global using BotSharp.Abstraction.Utilities;
-global using BotSharp.Plugin.GoogleAi.Settings;
 global using BotSharp.Abstraction.Realtime;
 global using BotSharp.Abstraction.Realtime.Models;
 global using BotSharp.Core.Infrastructures;
-global using BotSharp.Plugin.GoogleAi.Providers.Chat;
 global using BotSharp.Abstraction.Agents;
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Conversations;
 global using BotSharp.Abstraction.Conversations.Enums;
 global using BotSharp.Abstraction.Functions.Models;
 global using BotSharp.Abstraction.Loggers;
+
+global using BotSharp.Plugin.GoogleAi.Settings;
+global using BotSharp.Plugin.GoogleAi.Providers.Chat;
