@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories.Settings;
 using Whisper.net;
 using Whisper.net.Ggml;
 

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories.Settings;
 using System.IO;
 using System.Reflection;
 

@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories.Enums;
+using BotSharp.Abstraction.Repositories.Settings;
 using BotSharp.Plugin.MongoStorage.Repository;
 
 namespace BotSharp.Plugin.MongoStorage;

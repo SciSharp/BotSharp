@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories.Enums;
+using BotSharp.Abstraction.Repositories.Settings;
 using BotSharp.Abstraction.Settings;
 using Microsoft.Extensions.Configuration;
 

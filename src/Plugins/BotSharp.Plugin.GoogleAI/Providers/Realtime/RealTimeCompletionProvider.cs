@@ -97,7 +97,9 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         _outputStream = new();
         _session = new LlmRealtimeSession(_services, new ChatSessionOptions
         {
-            JsonOptions = _jsonOptions
+            Provider = Provider,
+            JsonOptions = _jsonOptions,
+            Logger = _logger
         });
 
         var uri = BuildWebsocketUri(modelSettings.ApiKey, "v1beta");

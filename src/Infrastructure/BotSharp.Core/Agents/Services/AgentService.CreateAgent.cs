@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories.Settings;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Users.Enums;
 using System.IO;

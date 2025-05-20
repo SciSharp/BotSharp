@@ -72,7 +72,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         _session?.Dispose();
         _session = new LlmRealtimeSession(_services, new ChatSessionOptions
         {
-            JsonOptions = _botsharpOptions.JsonSerializerOptions
+            Provider = Provider,
+            JsonOptions = _botsharpOptions.JsonSerializerOptions,
+            Logger = _logger
         });
 
         await _session.ConnectAsync(

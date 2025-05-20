@@ -54,6 +54,7 @@ public class ChatStreamMiddleware
         _session?.Dispose();
         _session = new BotSharpRealtimeSession(services, webSocket, new ChatSessionOptions
         {
+            Provider = "BotSharp Chat Stream",
             BufferSize = 1024 * 16,
             JsonOptions = BotSharpOptions.defaultJsonOptions
         });

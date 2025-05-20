@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.Repositories;
+namespace BotSharp.Abstraction.Repositories.Settings;
 
 public class BotSharpDatabaseSettings : DatabaseBasicSettings
 {
