@@ -22,7 +22,7 @@ public class TwilioTranscribeController : TwilioController
         _logger = logger;
     }
 
-    // [ValidateRequest]
+    [ValidateRequest]
     [HttpPost("twilio/transcribe")]
     public async Task<ActionResult> PhoneRecordingTranscribe(ConversationalVoiceRequest request)
     {

@@ -296,7 +296,7 @@ public class TwilioVoiceController : TwilioController
         return result;
     }
 
-    // [ValidateRequest]
+    [ValidateRequest]
     [HttpPost("twilio/voice/hang-up")]
     public async Task<TwiMLResult> Hangup(ConversationalVoiceRequest request)
     {
@@ -316,7 +316,7 @@ public class TwilioVoiceController : TwilioController
         return TwiML(response);
     }
 
-    // [ValidateRequest]
+    [ValidateRequest]
     [HttpPost("twilio/voice/transfer-call")]
     public async Task<TwiMLResult> TransferCall(ConversationalVoiceRequest request)
     {
@@ -337,7 +337,7 @@ public class TwilioVoiceController : TwilioController
         return TwiML(response);
     }
 
-    // [ValidateRequest]
+    [ValidateRequest]
     [HttpPost("twilio/voice/status")]
     public async Task<ActionResult> PhoneCallStatus(ConversationalVoiceRequest request)
     {

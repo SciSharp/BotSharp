@@ -27,7 +27,7 @@ public class TwilioInboundController : TwilioController
         _logger = logger;
     }
 
-    // [ValidateRequest]
+    [ValidateRequest]
     [HttpPost("twilio/inbound")]
     public async Task<TwiMLResult> InitiateStreamConversation(ConversationalVoiceRequest request)
     {

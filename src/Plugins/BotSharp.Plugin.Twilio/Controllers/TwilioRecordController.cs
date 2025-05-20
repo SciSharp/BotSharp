@@ -19,7 +19,7 @@ public class TwilioRecordController : TwilioController
         _logger = logger;
     }
 
-    // [ValidateRequest]
+    [ValidateRequest]
     [HttpPost("twilio/record/status")]
     public async Task<ActionResult> PhoneRecordingStatus(ConversationalVoiceRequest request)
     {

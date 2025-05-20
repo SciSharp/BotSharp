@@ -22,7 +22,7 @@ public class TwilioOutboundController : TwilioController
         _logger = logger;
     }
 
-    // [ValidateRequest]
+    [ValidateRequest]
     [HttpPost("twilio/voice/init-outbound-call")]
     public async Task<TwiMLResult> InitiateOutboundCall(ConversationalVoiceRequest request)
     {
