@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.MLTasks;
@@ -23,14 +24,9 @@ public partial class InstructService
         }
 
         // Trigger before completion hooks
-        var hooks = _services.GetServices<IInstructHook>();
+        var hooks = _services.GetHooks<IInstructHook>(agentId);
         foreach (var hook in hooks)
         {
-            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agentId)
-            {
-                continue;
-            }
-
             await hook.BeforeCompletion(agent, message);
 
             // Interrupted by hook
@@ -99,11 +95,6 @@ public partial class InstructService
 
         foreach (var hook in hooks)
         {
-            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agentId)
-            {
-                continue;
-            }
-
             await hook.AfterCompletion(agent, response);
             await hook.OnResponseGenerated(new InstructResponseModel
             {

@@ -10,14 +10,15 @@ public interface IRealTimeCompletion
 
     Task Connect(
         RealtimeHubConnection conn,
-        Action onModelReady,
-        Action<string, string> onModelAudioDeltaReceived,
-        Action onModelAudioResponseDone,
-        Action<string> onAudioTranscriptDone,
-        Action<List<RoleDialogModel>> onModelResponseDone,
-        Action<string> onConversationItemCreated,
-        Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
-        Action onInterruptionDetected);
+        Func<Task> onModelReady,
+        Func<string, string, Task> onModelAudioDeltaReceived,
+        Func<Task> onModelAudioResponseDone,
+        Func<string, Task> onModelAudioTranscriptDone,
+        Func<List<RoleDialogModel>, Task> onModelResponseDone,
+        Func<string, Task> onConversationItemCreated,
+        Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
+        Func<Task> onInterruptionDetected);
+
     Task AppenAudioBuffer(string message);
     Task AppenAudioBuffer(ArraySegment<byte> data, int length);
 
@@ -29,6 +30,4 @@ public interface IRealTimeCompletion
     Task RemoveConversationItem(string itemId);
     Task TriggerModelInference(string? instructions = null);
     Task CancelModelResponse();
-    Task<List<RoleDialogModel>> OnResponsedDone(RealtimeHubConnection conn, string response);
-    Task<RoleDialogModel> OnConversationItemCreated(RealtimeHubConnection conn, string response);
 }

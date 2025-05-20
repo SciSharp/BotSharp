@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Infrastructures.Enums;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -31,9 +32,7 @@ public partial class ConversationService
             states.CleanStates(excludedStates);
         }
 
-        var hooks = _services
-            .GetRequiredService<ConversationHookProvider>()
-            .HooksOrderByPriority;
+        var hooks = _services.GetHooksOrderByPriority<IConversationHook>(routingCtx.GetCurrentAgentId());
 
         // Before executing functions
         foreach (var hook in hooks)

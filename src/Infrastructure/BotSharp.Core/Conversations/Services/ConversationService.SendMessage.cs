@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
@@ -29,7 +30,6 @@ public partial class ConversationService
         var dialogs = conv.GetDialogHistory();
 
         var statistics = _services.GetRequiredService<ITokenStatistics>();
-        var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
 
         RoleDialogModel response = message;
         bool stopCompletion = false;
@@ -44,7 +44,8 @@ public partial class ConversationService
             message.Payload = replyMessage.Payload;
         }
 
-        foreach (var hook in hookProvider.HooksOrderByPriority)
+        var hooks = _services.GetHooksOrderByPriority<IConversationHook>(message.CurrentAgentId);
+        foreach (var hook in hooks)
         {
             hook.SetAgent(agent)
                 .SetConversation(conversation);
@@ -158,16 +159,14 @@ public partial class ConversationService
             // Emit conversation ending hook
             if (response.Instruction.ConversationEnd)
             {
-                await HookEmitter.Emit<IConversationHook>(_services, async hook =>
-                    await hook.OnConversationEnding(response)
-                );
+                await HookEmitter.Emit<IConversationHook>(_services, async hook => await hook.OnConversationEnding(response),
+                    response.CurrentAgentId);
                 response.FunctionName = "conversation_end";
             }
         }
 
-        await HookEmitter.Emit<IConversationHook>(_services, async hook =>
-            await hook.OnResponseGenerated(response)
-        );
+        await HookEmitter.Emit<IConversationHook>(_services, async hook => await hook.OnResponseGenerated(response),
+            response.CurrentAgentId);
 
         await onResponseReceived(response);
 

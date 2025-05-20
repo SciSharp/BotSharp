@@ -40,11 +40,16 @@ namespace BotSharp.Plugin.Google.Core
             var realTimeCompleter = services.BuildServiceProvider().GetService<IRealTimeCompletion>();
             realTimeCompleter.SetModelName(GoogleAIModels.Gemini2FlashExp);
             bool modelReady = false;
-            await realTimeCompleter.Connect(new RealtimeHubConnection(), () => { modelReady = true; },
-                (s, s1) => { Console.WriteLine(s); }, () => { }, (s) => { Console.WriteLine(s); },
-                (list => { Console.WriteLine(list); }),
-                (s => { Console.WriteLine(s); }),
-                (model => { Console.WriteLine(model); }), (() => { Console.WriteLine("UserInterrupted"); }));
+            await realTimeCompleter.Connect(
+                new RealtimeHubConnection(),
+                async () => { modelReady = true; },
+                async (s, s1) => { Console.WriteLine(s); },
+                async () => { },
+                async (s) => { Console.WriteLine(s); },
+                async list => { Console.WriteLine(list); },
+                async s => { Console.WriteLine(s); },
+                async model => { Console.WriteLine(model); },
+                async  () => { Console.WriteLine("UserInterrupted"); });
             Thread.Sleep(1000);
             modelReady.ShouldBeTrue();
 

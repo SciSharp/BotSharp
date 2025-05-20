@@ -1,14 +1,15 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Infrastructures;
 
 namespace BotSharp.Core.Infrastructures;
 
 public static class HookEmitter
 {
-    public static HookEmittedResult Emit<T>(IServiceProvider services, Action<T> action, HookEmitOption<T>? option = null)
+    public static HookEmittedResult Emit<T>(IServiceProvider services, Action<T> action, string agentId, HookEmitOption<T>? option = null) where T : IHookBase
     {
         var logger = services.GetRequiredService<ILogger<T>>();
         var result = new HookEmittedResult();
-        var hooks = services.GetServices<T>();
+        var hooks = services.GetHooks<T>(agentId);
         option = option ?? new();
 
         foreach (var hook in hooks)
@@ -35,11 +36,11 @@ public static class HookEmitter
         return result;
     }
 
-    public static async Task<HookEmittedResult> Emit<T>(IServiceProvider services, Func<T, Task> action, HookEmitOption<T>? option = null)
+    public static async Task<HookEmittedResult> Emit<T>(IServiceProvider services, Func<T, Task> action, string agentId, HookEmitOption<T>? option = null) where T : IHookBase
     {
         var logger = services.GetRequiredService<ILogger<T>>();
         var result = new HookEmittedResult();
-        var hooks = services.GetServices<T>();
+        var hooks = services.GetHooks<T>(agentId);
         option = option ?? new();
 
         foreach (var hook in hooks)

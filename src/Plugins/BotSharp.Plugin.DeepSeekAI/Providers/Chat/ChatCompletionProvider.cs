@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
 using BotSharp.Abstraction.Files;
 using BotSharp.Plugin.DeepSeek.Providers;
+using BotSharp.Abstraction.Hooks;
 
 namespace BotSharp.Plugin.DeepSeekAI.Providers.Chat;
 
@@ -25,7 +26,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
 
         // Before chat completion hook
         foreach (var hook in contentHooks)
@@ -95,7 +96,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     public async Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
-        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var hooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
 
         // Before chat completion hook
         foreach (var hook in hooks)

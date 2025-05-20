@@ -65,7 +65,7 @@ public class TwilioVoiceController : TwilioController
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
             await hook.OnSessionCreating(request, instruction);
-        });
+        }, request.AgentId);
 
         var twilio = _services.GetRequiredService<TwilioService>();
         if (string.IsNullOrWhiteSpace(request.Intent))
@@ -98,7 +98,7 @@ public class TwilioVoiceController : TwilioController
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
             await hook.OnSessionCreated(request);
-        });
+        }, request.AgentId);
 
         return TwiML(response);
     }
@@ -151,7 +151,7 @@ public class TwilioVoiceController : TwilioController
             await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
             {
                 await hook.OnReceivedUserMessage(request);
-            });
+            }, request.AgentId);
         }
         else
         {
@@ -161,7 +161,7 @@ public class TwilioVoiceController : TwilioController
                 await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
                 {
                     await hook.OnAgentHangUp(request);
-                });
+                }, request.AgentId);
 
                 response = twilio.HangUp(string.Empty);
             }
@@ -185,7 +185,7 @@ public class TwilioVoiceController : TwilioController
                 await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
                 {
                     await hook.OnWaitingUserResponse(request, instruction);
-                });
+                }, request.AgentId);
 
                 response = twilio.ReturnInstructions(instruction);
             }
@@ -223,7 +223,7 @@ public class TwilioVoiceController : TwilioController
             {
                 request.AIResponseErrorMessage = $"AI response timeout: AIResponseWaitTime greater than {request.AIResponseWaitTime}, please check internal error log!";
                 await hook.OnAgentHangUp(request);
-            });
+            }, request.AgentId);
 
             response = twilio.HangUp($"twilio/error.mp3");
         }
@@ -238,7 +238,7 @@ public class TwilioVoiceController : TwilioController
                 await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
                 {
                     await hook.OnAgentTransferring(request, _settings);
-                });
+                }, request.AgentId);
 
                 response = twilio.DialCsrAgent($"twilio/voice/speeches/{request.ConversationId}/{reply.SpeechFileName}");
             }
@@ -249,7 +249,7 @@ public class TwilioVoiceController : TwilioController
                 await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
                 {
                     await hook.OnAgentHangUp(request);
-                });
+                }, request.AgentId);
             }
             else
             {
@@ -274,7 +274,7 @@ public class TwilioVoiceController : TwilioController
                 await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
                 {
                     await hook.OnAgentResponsing(request, instruction);
-                });
+                }, request.AgentId);
 
                 response = twilio.ReturnInstructions(instruction);
             }
@@ -343,41 +343,35 @@ public class TwilioVoiceController : TwilioController
     {
         var twilio = _services.GetRequiredService<TwilioService>();
 
-        // Define the options with the predicate
-        var emitOptions = new HookEmitOption<ITwilioCallStatusHook>
-        {
-            ShouldExecute = hook => hook.IsMatch(request)
-        };
-
         switch (request.CallStatus)
         {
             case "completed":
                 if (twilio.MachineDetected(request))
                 {
                     // voicemail
-                    await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnVoicemailLeft(request), emitOptions);
+                    await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnVoicemailLeft(request), request.AgentId);
                 }
                 else
                 {
                     // phone call completed
-                    await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnUserDisconnected(request), emitOptions);
+                    await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnUserDisconnected(request), request.AgentId);
                 }
                 break;
 
             case "busy":
-                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnCallBusyStatus(request), emitOptions);
+                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnCallBusyStatus(request), request.AgentId);
                 break;
 
             case "no-answer":
-                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnCallNoAnswerStatus(request), emitOptions);
+                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnCallNoAnswerStatus(request), request.AgentId);
                 break;
 
             case "canceled":
-                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnCallCanceledStatus(request), emitOptions);
+                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnCallCanceledStatus(request), request.AgentId);
                 break;
 
             case "failed":
-                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnCallFailedStatus(request), emitOptions);
+                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnCallFailedStatus(request), request.AgentId);
                 break;
             default:
                 _logger.LogError($"Unknown call status: {request.CallStatus}, {request.CallSid}");

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Plugin.OpenAI.Models.Realtime;
 using OpenAI.Chat;
 
@@ -30,26 +31,22 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     public async Task Connect(
         RealtimeHubConnection conn,
-        Action onModelReady,
-        Action<string,string> onModelAudioDeltaReceived,
-        Action onModelAudioResponseDone,
-        Action<string> onModelAudioTranscriptDone,
-        Action<List<RoleDialogModel>> onModelResponseDone,
-        Action<string> onConversationItemCreated,
-        Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
-        Action onInterruptionDetected)
+        Func<Task> onModelReady,
+        Func<string, string, Task> onModelAudioDeltaReceived,
+        Func<Task> onModelAudioResponseDone,
+        Func<string, Task> onModelAudioTranscriptDone,
+        Func<List<RoleDialogModel>, Task> onModelResponseDone,
+        Func<string, Task> onConversationItemCreated,
+        Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
+        Func<Task> onInterruptionDetected)
     {
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
+        var realtimeSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
-        _model = realtimeModelSettings.Model;
+        _model = realtimeSettings.Model;
         var settings = settingsService.GetSetting(Provider, _model);
 
-        if (_session != null)
-        {
-            _session.Dispose();
-        }
-
+        _session?.Dispose();
         _session = new LlmRealtimeSession(_services, new ChatSessionOptions
         {
             JsonOptions = _botsharpOptions.JsonSerializerOptions
@@ -65,6 +62,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             cancellationToken: CancellationToken.None);
 
         _ = ReceiveMessage(
+                realtimeSettings,
                 conn,
                 onModelReady,
                 onModelAudioDeltaReceived,
@@ -72,15 +70,151 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 onModelAudioTranscriptDone,
                 onModelResponseDone,
                 onConversationItemCreated,
-                onInputAudioTranscriptionCompleted,
+                onInputAudioTranscriptionDone,
                 onInterruptionDetected);
+    }
+
+    private async Task ReceiveMessage(
+        RealtimeModelSettings realtimeSettings,
+        RealtimeHubConnection conn,
+        Func<Task> onModelReady,
+        Func<string, string, Task> onModelAudioDeltaReceived,
+        Func<Task> onModelAudioResponseDone,
+        Func<string, Task> onModelAudioTranscriptDone,
+        Func<List<RoleDialogModel>, Task> onModelResponseDone,
+        Func<string, Task> onConversationItemCreated,
+        Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
+        Func<Task> onInterruptionDetected)
+    {
+        DateTime? startTime = null;
+
+        await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
+        {
+            var receivedText = update?.RawResponse;
+            if (string.IsNullOrEmpty(receivedText))
+            {
+                continue;
+            }
+
+            var response = JsonSerializer.Deserialize<ServerEventResponse>(receivedText);
+
+            if (realtimeSettings?.ModelResponseTimeoutSeconds > 0
+                && !string.IsNullOrWhiteSpace(realtimeSettings?.ModelResponseTimeoutEndEvent)
+                && startTime.HasValue
+                && (DateTime.UtcNow - startTime.Value).TotalSeconds >= realtimeSettings.ModelResponseTimeoutSeconds
+                && response.Type != realtimeSettings.ModelResponseTimeoutEndEvent)
+            {
+                startTime = null;
+                await TriggerModelInference("Responsd to user immediately");
+                continue;
+            }
+
+            if (response.Type == "error")
+            {
+                _logger.LogError($"{response.Type}: {receivedText}");
+                var error = JsonSerializer.Deserialize<ServerEventErrorResponse>(receivedText);
+                if (error?.Body.Type == "server_error")
+                {
+                    break;
+                }
+            }
+            else if (response.Type == "session.created")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+                await onModelReady();
+            }
+            else if (response.Type == "session.updated")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+            }
+            else if (response.Type == "response.audio_transcript.delta")
+            {
+                _logger.LogDebug($"{response.Type}: {receivedText}");
+            }
+            else if (response.Type == "response.audio_transcript.done")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+                var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(receivedText);
+                await onModelAudioTranscriptDone(data.Transcript);
+            }
+            else if (response.Type == "response.audio.delta")
+            {
+                var audio = JsonSerializer.Deserialize<ResponseAudioDelta>(receivedText);
+                if (audio?.Delta != null)
+                {
+                    _logger.LogDebug($"{response.Type}: {receivedText}");
+                    await onModelAudioDeltaReceived(audio.Delta, audio.ItemId);
+                }
+            }
+            else if (response.Type == "response.audio.done")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+                await onModelAudioResponseDone();
+            }
+            else if (response.Type == "response.done")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+                var data = JsonSerializer.Deserialize<ResponseDone>(receivedText).Body;
+                if (data.Status != "completed")
+                {
+                    if (data.StatusDetails.Type == "incomplete" && data.StatusDetails.Reason == "max_output_tokens")
+                    {
+                        await onInterruptionDetected();
+                        await TriggerModelInference("Response user concisely");
+                    }
+                }
+                else
+                {
+                    var messages = await OnResponsedDone(conn, receivedText);
+                    await onModelResponseDone(messages);
+                }
+            }
+            else if (response.Type == "conversation.item.created")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+
+                var data = JsonSerializer.Deserialize<ConversationItemCreated>(receivedText);
+                if (data?.Item?.Role == "user")
+                {
+                    startTime = DateTime.UtcNow;
+                }
+
+                await onConversationItemCreated(receivedText);
+            }
+            else if (response.Type == "conversation.item.input_audio_transcription.completed")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+
+                var message = await OnUserAudioTranscriptionCompleted(conn, receivedText);
+                if (!string.IsNullOrEmpty(message.Content))
+                {
+                    await onInputAudioTranscriptionDone(message);
+                }
+            }
+            else if (response.Type == "input_audio_buffer.speech_started")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+                // Handle user interuption
+                await onInterruptionDetected();
+            }
+            else if (response.Type == "input_audio_buffer.speech_stopped")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+            }
+            else if (response.Type == "input_audio_buffer.committed")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+            }
+        }
+
+        _session.Dispose();
     }
 
     public async Task Disconnect()
     {
         if (_session != null)
         {
-            await _session.Disconnect();
+            await _session.DisconnectAsync();
             _session.Dispose();
         }
     }
@@ -142,136 +276,19 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         });
     }
 
-    private async Task ReceiveMessage(
-        RealtimeHubConnection conn,
-        Action onModelReady,
-        Action<string, string> onModelAudioDeltaReceived,
-        Action onModelAudioResponseDone,
-        Action<string> onModelAudioTranscriptDone,
-        Action<List<RoleDialogModel>> onModelResponseDone,
-        Action<string> onConversationItemCreated,
-        Action<RoleDialogModel> onUserAudioTranscriptionCompleted,
-        Action onInterruptionDetected)
-    {
-        await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
-        {
-            var receivedText = update?.RawResponse;
-            if (string.IsNullOrEmpty(receivedText))
-            {
-                continue;
-            }
-
-            var response = JsonSerializer.Deserialize<ServerEventResponse>(receivedText);
-
-            if (response.Type == "error")
-            {
-                _logger.LogError($"{response.Type}: {receivedText}");
-                var error = JsonSerializer.Deserialize<ServerEventErrorResponse>(receivedText);
-                if (error?.Body.Type == "server_error")
-                {
-                    break;
-                }
-            }
-            else if (response.Type == "session.created")
-            {
-                _logger.LogInformation($"{response.Type}: {receivedText}");
-                onModelReady();
-            }
-            else if (response.Type == "session.updated")
-            {
-                _logger.LogInformation($"{response.Type}: {receivedText}");
-            }
-            else if (response.Type == "response.audio_transcript.delta")
-            {
-                _logger.LogDebug($"{response.Type}: {receivedText}");
-            }
-            else if (response.Type == "response.audio_transcript.done")
-            {
-                _logger.LogInformation($"{response.Type}: {receivedText}");
-                var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(receivedText);
-                onModelAudioTranscriptDone(data.Transcript);
-            }
-            else if (response.Type == "response.audio.delta")
-            {
-                var audio = JsonSerializer.Deserialize<ResponseAudioDelta>(receivedText);
-                if (audio?.Delta != null)
-                {
-                    _logger.LogDebug($"{response.Type}: {receivedText}");
-                    onModelAudioDeltaReceived(audio.Delta, audio.ItemId);
-                }
-            }
-            else if (response.Type == "response.audio.done")
-            {
-                _logger.LogInformation($"{response.Type}: {receivedText}");
-                onModelAudioResponseDone();
-            }
-            else if (response.Type == "response.done")
-            {
-                _logger.LogInformation($"{response.Type}: {receivedText}");
-                var data = JsonSerializer.Deserialize<ResponseDone>(receivedText).Body;
-                if (data.Status != "completed")
-                {
-                    if (data.StatusDetails.Type == "incomplete" && data.StatusDetails.Reason == "max_output_tokens")
-                    {
-                        onInterruptionDetected();
-                        await TriggerModelInference("Response user concisely");
-                    }
-                }
-                else
-                {
-                    var messages = await OnResponsedDone(conn, receivedText);
-                    onModelResponseDone(messages);
-                }
-            }
-            else if (response.Type == "conversation.item.created")
-            {
-                _logger.LogInformation($"{response.Type}: {receivedText}");
-
-                var data = JsonSerializer.Deserialize<ConversationItemCreated>(receivedText);
-                onConversationItemCreated(receivedText);
-            }
-            else if (response.Type == "conversation.item.input_audio_transcription.completed")
-            {
-                _logger.LogInformation($"{response.Type}: {receivedText}");
-
-                var message = await OnUserAudioTranscriptionCompleted(conn, receivedText);
-                if (!string.IsNullOrEmpty(message.Content))
-                {
-                    onUserAudioTranscriptionCompleted(message);
-                }
-            }
-            else if (response.Type == "input_audio_buffer.speech_started")
-            {
-                _logger.LogInformation($"{response.Type}: {receivedText}");
-                // Handle user interuption
-                onInterruptionDetected();
-            }
-            else if (response.Type == "input_audio_buffer.speech_stopped")
-            {
-                _logger.LogInformation($"{response.Type}: {receivedText}");
-            }
-            else if (response.Type == "input_audio_buffer.committed")
-            {
-                _logger.LogInformation($"{response.Type}: {receivedText}");
-            }
-        }
-
-        _session.Dispose();
-    }
-
     public async Task SendEventToModel(object message)
     {
         if (_session == null) return;
 
-        await _session.SendEventToModel(message);
+        await _session.SendEventToModelAsync(message);
     }
 
     public async Task<string> UpdateSession(RealtimeHubConnection conn, bool isInit = false)
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        var conv = await convService.GetConversation(conn.ConversationId);
-
         var agentService = _services.GetRequiredService<IAgentService>();
+
+        var conv = await convService.GetConversation(conn.ConversationId);
         var agent = await agentService.LoadAgent(conn.CurrentAgentId);
         var (prompt, messages, options) = PrepareOptions(agent, []);
 
@@ -319,7 +336,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         if (realtimeModelSettings.InputAudioTranscribe)
         {
             var words = new List<string>();
-            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)));
+            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)), agent.Id);
 
             sessionUpdate.session.InputAudioTranscription = new InputAudioTranscription
             {
@@ -332,7 +349,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         await HookEmitter.Emit<IContentGeneratingHook>(_services, async hook =>
         {
             await hook.OnSessionUpdated(agent, instruction, functions, isInit);
-        });
+        }, agent.Id);
 
         await SendEventToModel(sessionUpdate);
         await Task.Delay(300);
@@ -402,11 +419,105 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         }
         else
         {
-            throw new NotImplementedException("");
+            throw new NotImplementedException($"Unrecognized role {message.Role}.");
         }
     }
 
-    protected (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
+    
+    public void SetModelName(string model)
+    {
+        _model = model;
+    }
+
+    #region Private methods
+    private async Task<List<RoleDialogModel>> OnResponsedDone(RealtimeHubConnection conn, string response)
+    {
+        var outputs = new List<RoleDialogModel>();
+
+        var data = JsonSerializer.Deserialize<ResponseDone>(response).Body;
+        if (data.Status != "completed")
+        {
+            _logger.LogError(data.StatusDetails.ToString());
+            /*if (data.StatusDetails.Type == "incomplete" && data.StatusDetails.Reason == "max_output_tokens")
+            {
+                await TriggerModelInference("Response user concisely");
+            }*/
+            return [];
+        }
+
+        var prompts = new List<string>();
+        var inputTokenDetails = data.Usage?.InputTokenDetails;
+        var outputTokenDetails = data.Usage?.OutputTokenDetails;
+
+        foreach (var output in data.Outputs)
+        {
+            if (output.Type == "function_call")
+            {
+                outputs.Add(new RoleDialogModel(AgentRole.Assistant, output.Arguments)
+                {
+                    CurrentAgentId = conn.CurrentAgentId,
+                    FunctionName = output.Name,
+                    FunctionArgs = output.Arguments,
+                    ToolCallId = output.CallId,
+                    MessageId = output.Id,
+                    MessageType = MessageTypeName.FunctionCall
+                });
+
+                prompts.Add($"{output.Name}({output.Arguments})");
+            }
+            else if (output.Type == "message")
+            {
+                var content = output.Content.FirstOrDefault()?.Transcript ?? string.Empty;
+
+                outputs.Add(new RoleDialogModel(output.Role, content)
+                {
+                    CurrentAgentId = conn.CurrentAgentId,
+                    MessageId = output.Id,
+                    MessageType = MessageTypeName.Plain
+                });
+
+                prompts.Add(content);
+            }
+        }
+
+
+        // After chat completion hook
+        var text = string.Join("\r\n", prompts);
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(conn.CurrentAgentId);
+
+        foreach (var hook in contentHooks)
+        {
+            await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, text)
+            {
+                CurrentAgentId = conn.CurrentAgentId
+            },
+            new TokenStatsModel
+            {
+                Provider = Provider,
+                Model = _model,
+                Prompt = text,
+                TextInputTokens = inputTokenDetails?.TextTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
+                CachedTextInputTokens = data.Usage?.InputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
+                AudioInputTokens = inputTokenDetails?.AudioTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
+                CachedAudioInputTokens = inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
+                TextOutputTokens = outputTokenDetails?.TextTokens ?? 0,
+                AudioOutputTokens = outputTokenDetails?.AudioTokens ?? 0
+            });
+        }
+
+        return outputs;
+    }
+
+    private async Task<RoleDialogModel> OnUserAudioTranscriptionCompleted(RealtimeHubConnection conn, string response)
+    {
+        var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(response);
+        return new RoleDialogModel(AgentRole.User, data.Transcript)
+        {
+            CurrentAgentId = conn.CurrentAgentId
+        };
+    }
+
+    private (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -588,103 +699,5 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         return prompt;
     }
-
-    public void SetModelName(string model)
-    {
-        _model = model;
-    }
-
-    public async Task<List<RoleDialogModel>> OnResponsedDone(RealtimeHubConnection conn, string response)
-    {
-        var outputs = new List<RoleDialogModel>();
-
-        var data = JsonSerializer.Deserialize<ResponseDone>(response).Body;
-        if (data.Status != "completed")
-        {
-            _logger.LogError(data.StatusDetails.ToString());
-            /*if (data.StatusDetails.Type == "incomplete" && data.StatusDetails.Reason == "max_output_tokens")
-            {
-                await TriggerModelInference("Response user concisely");
-            }*/
-            return [];
-        }
-
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
-
-        var prompts = new List<string>();
-        var inputTokenDetails = data.Usage?.InputTokenDetails;
-        var outputTokenDetails = data.Usage?.OutputTokenDetails;
-
-        foreach (var output in data.Outputs)
-        {
-            if (output.Type == "function_call")
-            {
-                outputs.Add(new RoleDialogModel(AgentRole.Assistant, output.Arguments)
-                {
-                    CurrentAgentId = conn.CurrentAgentId,
-                    FunctionName = output.Name,
-                    FunctionArgs = output.Arguments,
-                    ToolCallId = output.CallId,
-                    MessageId = output.Id,
-                    MessageType = MessageTypeName.FunctionCall
-                });
-
-                prompts.Add($"{output.Name}({output.Arguments})");
-            }
-            else if (output.Type == "message")
-            {
-                var content = output.Content.FirstOrDefault()?.Transcript ?? string.Empty;
-
-                outputs.Add(new RoleDialogModel(output.Role, content)
-                {
-                    CurrentAgentId = conn.CurrentAgentId,
-                    MessageId = output.Id,
-                    MessageType = MessageTypeName.Plain
-                });
-
-                prompts.Add(content);
-            }
-        }
-
-        var text = string.Join("\r\n", prompts);
-        // After chat completion hook
-        foreach (var hook in contentHooks)
-        {
-            await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, text)
-            {
-                CurrentAgentId = conn.CurrentAgentId
-            },
-            new TokenStatsModel
-            {
-                Provider = Provider,
-                Model = _model,
-                Prompt = text,
-                TextInputTokens = inputTokenDetails?.TextTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
-                CachedTextInputTokens = data.Usage?.InputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
-                AudioInputTokens = inputTokenDetails?.AudioTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
-                CachedAudioInputTokens = inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
-                TextOutputTokens = outputTokenDetails?.TextTokens ?? 0,
-                AudioOutputTokens = outputTokenDetails?.AudioTokens ?? 0
-            });
-        }
-
-        return outputs;
-    }
-
-    public async Task<RoleDialogModel> OnUserAudioTranscriptionCompleted(RealtimeHubConnection conn, string response)
-    {
-        var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(response);
-        return new RoleDialogModel(AgentRole.User, data.Transcript)
-        {
-            CurrentAgentId = conn.CurrentAgentId
-        };
-    }
-
-    public async Task<RoleDialogModel> OnConversationItemCreated(RealtimeHubConnection conn, string response)
-    {
-        var item = response.JsonContent<ConversationItemCreated>().Item;
-        var message = new RoleDialogModel(item.Role, item.Content.FirstOrDefault()?.Transcript);
-
-        return message;
-    }
+    #endregion
 }

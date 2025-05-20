@@ -12,7 +12,12 @@ public class RealtimeModelSettings
     public string Voice { get; set; } = "alloy";
     public float Temperature { get; set; } = 0.8f;
     public int MaxResponseOutputTokens { get; set; } = 512;
-    public int ModelResponseTimeout { get; set; } = 30;
+    public int ModelResponseTimeoutSeconds { get; set; } = 30;
+
+    /// <summary>
+    /// Whether the target event arrives after ModelResponseTimeoutSeconds, e.g., "response.done"
+    /// </summary>
+    public string? ModelResponseTimeoutEndEvent { get; set; }
     public AudioTranscription InputAudioTranscription { get; set; } = new();
     public ModelTurnDetection TurnDetection { get; set; } = new();
 }

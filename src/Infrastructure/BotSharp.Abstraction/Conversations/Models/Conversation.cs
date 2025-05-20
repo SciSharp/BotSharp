@@ -47,15 +47,19 @@ public class DialogElement
     public string Content { get; set; } = default!;
 
     [JsonPropertyName("secondary_content")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? SecondaryContent { get; set; }
 
     [JsonPropertyName("rich_content")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? RichContent { get; set; }
 
     [JsonPropertyName("secondary_rich_content")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? SecondaryRichContent { get; set; }
 
     [JsonPropertyName("payload")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Payload { get; set; }
 
     public DialogElement()
@@ -95,7 +99,16 @@ public class DialogMetaData
     public string MessageType { get; set; } = default!;
 
     [JsonPropertyName("function_name")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? FunctionName { get; set; }
+
+    [JsonPropertyName("function_args")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FunctionArgs { get; set; }
+
+    [JsonPropertyName("tool_call_id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ToolCallId { get; set; }
 
     [JsonPropertyName("sender_id")]
     public string? SenderId { get; set; }

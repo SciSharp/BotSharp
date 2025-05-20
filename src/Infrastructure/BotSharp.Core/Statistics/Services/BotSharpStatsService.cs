@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Abstraction.Statistics.Settings;
 
 namespace BotSharp.Core.Statistics.Services;

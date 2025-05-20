@@ -76,7 +76,7 @@ public class RealtimeSessionTurnDetection
     public string Type { get; set; } = "semantic_vad";
 
     [JsonPropertyName("eagerness")]
-    public string eagerness { get;set; } = "auto";
+    public string Eagerness { get;set; } = "auto";
 }
 
 public class InputAudioTranscription

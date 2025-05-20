@@ -72,7 +72,8 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
             {
                 return;
             }
-            else if (message.StopCompletion)
+
+            if (message.StopCompletion)
             {
                 await hub.Completer.TriggerModelInference($"Say to user: \"{message.Content}\"");
             }

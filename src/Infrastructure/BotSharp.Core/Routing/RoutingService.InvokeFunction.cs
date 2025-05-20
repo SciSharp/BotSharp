@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Templating;
+using BotSharp.Abstraction.Hooks;
+using BotSharp.Core.Routing.Executor;
 
 namespace BotSharp.Core.Routing;
 
@@ -7,50 +7,32 @@ public partial class RoutingService
 {
     public async Task<bool> InvokeFunction(string name, RoleDialogModel message)
     {
-        var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == name);
+        var currentAgentId = message.CurrentAgentId;
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(currentAgentId);
 
-        var isFillDummyContent = false;
-        var dummyFuncResponse = string.Empty;
-        if (function == null)
+        var funcExecutor = FunctionExecutorFactory.Create(_services, name, agent);
+        if (funcExecutor == null)
         {
-            dummyFuncResponse = await GetDummyFunctionOutput(name, message);
-            isFillDummyContent = !string.IsNullOrEmpty(dummyFuncResponse);
-            if (!isFillDummyContent)
-            {
-                message.StopCompletion = true;
-                message.Content = $"Can't find function implementation of {name}.";
-                _logger.LogError(message.Content);
-                return false;
-            }
+            message.StopCompletion = true;
+            message.Content = $"Can't find function implementation of {name}.";
+            _logger.LogError(message.Content);
+            return false;
         }
 
         // Clone message
         var clonedMessage = RoleDialogModel.From(message);
         clonedMessage.FunctionName = name;
 
-        var hooks = _services
-            .GetRequiredService<ConversationHookProvider>()
-            .HooksOrderByPriority;
-
         var progressService = _services.GetService<IConversationProgressService>();
-
-        // Before executing functions
-        if (!isFillDummyContent)
-        {
-            clonedMessage.Indication = await function.GetIndication(message);
-        }
-        else
-        {
-            clonedMessage.Indication = "Running";
-        }
+        clonedMessage.Indication = await funcExecutor.GetIndicatorAsync(message);
 
         if (progressService?.OnFunctionExecuting != null)
         {
             await progressService.OnFunctionExecuting(clonedMessage);
         }
         
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.GetAgent(clonedMessage.CurrentAgentId);
+        var hooks = _services.GetHooksOrderByPriority<IConversationHook>(clonedMessage.CurrentAgentId);
         foreach (var hook in hooks)
         {
             hook.SetAgent(agent);
@@ -61,19 +43,7 @@ public partial class RoutingService
 
         try
         {
-            if (clonedMessage.Handled)
-            {
-                clonedMessage.Content = clonedMessage.Content;
-            }
-            else if (!isFillDummyContent)
-            {
-                result = await function.Execute(clonedMessage);
-            }
-            else
-            {
-                clonedMessage.Content = dummyFuncResponse;
-                result = true;
-            }
+            result = await funcExecutor.ExecuteAsync(clonedMessage);
 
             // After functions have been executed
             foreach (var hook in hooks)
@@ -111,41 +81,6 @@ public partial class RoutingService
             message.Content = JsonSerializer.Serialize(message.Data);
         }
 
-        // Save to Storage as well
-        /*if (!message.StopCompletion && message.FunctionName != "route_to_agent")
-        {
-            var storage = _services.GetRequiredService<IConversationStorage>();
-            storage.Append(Context.ConversationId, message);
-        }*/
-
         return result;
-    }
-
-    private async Task<string?> GetDummyFunctionOutput(string functionName, RoleDialogModel message)
-    {
-        if (string.IsNullOrEmpty(message.CurrentAgentId))
-        {
-            return null;
-        }
-
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.GetAgent(message.CurrentAgentId);
-        var found = agent?.Functions?.FirstOrDefault(x => x.Name == functionName);
-        if (string.IsNullOrWhiteSpace(found?.Output))
-        {
-            return null;
-        }
-
-        var render = _services.GetRequiredService<ITemplateRender>();
-        var state = _services.GetRequiredService<IConversationStateService>();
-
-        var dict = new Dictionary<string, object>();
-        foreach (var item in state.GetStates())
-        {
-            dict[item.Key] = item.Value;
-        }
-
-        var text = render.Render(found.Output, dict);
-        return text;
     }
 }

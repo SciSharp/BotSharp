@@ -96,6 +96,8 @@
     <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.simulator.liquid" />
     <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.simulator.liquid" />
     <None Remove="data\plugins\config.json" />
+
+    <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_weather.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -204,6 +206,11 @@
     <Content Include="data\plugins\config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    
+    
+    <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_weather.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -221,6 +228,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Nanoid" />
     <PackageReference Include="Rougamo.Fody" />
+    <PackageReference Include="ModelContextProtocol" />
     <PackageReference Include="System.ClientModel" />
   </ItemGroup>
 

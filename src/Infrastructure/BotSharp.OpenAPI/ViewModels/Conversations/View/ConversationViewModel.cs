@@ -1,9 +1,13 @@
 using BotSharp.Abstraction.Conversations.Dtos;
+using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Conversations;
 
 public class ConversationViewModel : ConversationDto
 {
+    [JsonPropertyName("is_realtime_enabled")]
+    public bool IsRealtimeEnabled { get; set; }
+
     public static ConversationViewModel FromSession(Conversation sess)
     {
         return new ConversationViewModel

@@ -49,7 +49,8 @@ public class TwilioTranscribeController : TwilioController
 
                 // transcription completed
                 transcript.Language = request.LanguageCode;
-                await HookEmitter.Emit<IRealtimeHook>(_services, async x => await x.OnTranscribeCompleted(message, transcript));
+                await HookEmitter.Emit<IRealtimeHook>(_services, async x => await x.OnTranscribeCompleted(message, transcript),
+                    request.AgentId);
             }
         }
 

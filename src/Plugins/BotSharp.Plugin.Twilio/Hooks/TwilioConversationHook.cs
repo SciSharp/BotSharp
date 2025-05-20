@@ -3,6 +3,7 @@ using Task = System.Threading.Tasks.Task;
 using Twilio.Rest.Api.V2010.Account;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
+using BotSharp.Abstraction.Hooks;
 
 namespace BotSharp.Plugin.Twilio.Hooks;
 
@@ -23,7 +24,7 @@ public class TwilioConversationHook : ConversationHookBase, IConversationHook
 
     public override async Task OnFunctionExecuted(RoleDialogModel message)
     {
-        var hooks = _services.GetServices<ITwilioSessionHook>();
+        var hooks = _services.GetHooks<ITwilioSessionHook>(message.CurrentAgentId);
 
         var routing = _services.GetRequiredService<IRoutingService>();
         var conversationId = routing.Context.ConversationId;

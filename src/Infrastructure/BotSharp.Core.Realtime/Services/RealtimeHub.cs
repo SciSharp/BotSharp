@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Options;
 using BotSharp.Core.Infrastructures;
 
@@ -23,7 +24,6 @@ public class RealtimeHub : IRealtimeHub
 
     public async Task ConnectToModel(Func<string, Task>? responseToUser = null, Func<string, Task>? init = null)
     {
-        var hookProvider = _services.GetService<ConversationHookProvider>();
         var convService = _services.GetRequiredService<IConversationService>();
         convService.SetConversationId(_conn.ConversationId, []);
         var conversation = await convService.GetConversation(_conn.ConversationId);
@@ -49,7 +49,8 @@ public class RealtimeHub : IRealtimeHub
                 // Not TriggerModelInference, waiting for user utter.
                 var instruction = await _completer.UpdateSession(_conn, isInit: true);
                 var data = _conn.OnModelReady();
-                await HookEmitter.Emit<IRealtimeHook>(_services, async hook => await hook.OnModelReady(agent, _completer));
+                await HookEmitter.Emit<IRealtimeHook>(_services, async hook => await hook.OnModelReady(agent, _completer), 
+                    agent.Id);
                 await (init?.Invoke(data) ?? Task.CompletedTask);
             },
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
@@ -76,8 +77,8 @@ public class RealtimeHub : IRealtimeHub
             {
                 var data = _conn.OnModelAudioResponseDone();
                 await (responseToUser?.Invoke(data) ?? Task.CompletedTask);
-            }, 
-            onAudioTranscriptDone: async transcript =>
+            },
+            onModelAudioTranscriptDone: async transcript =>
             {
 
             },
@@ -92,10 +93,13 @@ public class RealtimeHub : IRealtimeHub
                         if (message.FunctionName == "route_to_agent")
                         {
                             var instruction = JsonSerializer.Deserialize<FunctionCallFromLlm>(message.FunctionArgs, BotSharpOptions.defaultJsonOptions);
-                            await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingInstructionReceived(instruction, message));
+                            await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingInstructionReceived(instruction, message),
+                                agent.Id);
                         }
 
                         await routing.InvokeFunction(message.FunctionName, message);
+                        dialogs.Add(message);
+                        storage.Append(_conn.ConversationId, message);
                     }
                     else
                     {
@@ -103,7 +107,8 @@ public class RealtimeHub : IRealtimeHub
                         dialogs.Add(message);
                         storage.Append(_conn.ConversationId, message);
 
-                        foreach (var hook in hookProvider?.HooksOrderByPriority ?? [])
+                        var hooks = _services.GetHooksOrderByPriority<IConversationHook>(_conn.CurrentAgentId);
+                        foreach (var hook in hooks)
                         {
                             hook.SetAgent(agent)
                                 .SetConversation(conversation);
@@ -117,14 +122,15 @@ public class RealtimeHub : IRealtimeHub
             {
                 
             },
-            onInputAudioTranscriptionCompleted: async message =>
+            onInputAudioTranscriptionDone: async message =>
             {
                 // append input audio transcript to conversation
                 dialogs.Add(message);
                 storage.Append(_conn.ConversationId, message);
                 routing.Context.SetMessageId(_conn.ConversationId, message.MessageId);
 
-                foreach (var hook in hookProvider?.HooksOrderByPriority ?? [])
+                var hooks = _services.GetHooksOrderByPriority<IConversationHook>(_conn.CurrentAgentId);
+                foreach (var hook in hooks)
                 {
                     hook.SetAgent(agent)
                         .SetConversation(conversation);
