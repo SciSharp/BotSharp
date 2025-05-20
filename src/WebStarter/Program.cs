@@ -9,7 +9,12 @@ using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog();
+Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .WriteTo.Console()
+            .CreateLogger();
+
+builder.Host.UseSerilog(Log.Logger);
 
 string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[]
     {
@@ -18,8 +23,6 @@ string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get
         "https://chat.scisharpstack.org"
     };
 
-
- 
  // Add BotSharp
  builder.Services.AddBotSharpCore(builder.Configuration, options =>
  {
