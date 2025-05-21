@@ -16,7 +16,6 @@ public partial class RoutingService
         var storage = _services.GetRequiredService<IConversationStorage>();
 
         _router = agent;
-
         var states = _services.GetRequiredService<IConversationStateService>();
         var executor = _services.GetRequiredService<IExecutor>();
 
