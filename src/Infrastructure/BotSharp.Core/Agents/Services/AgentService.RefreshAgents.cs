@@ -67,7 +67,7 @@ public partial class AgentService
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to migrate agent in file directory: {dir}\r\nError: {ex.Message}");
+                _logger.LogError(ex, $"Failed to migrate agent in file directory: {dir}\r\nError: {ex.Message}");
             }
         }
 

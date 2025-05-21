@@ -17,7 +17,7 @@ public class Agent
     /// <summary>
     /// Routing Mode: lazy or eager
     /// </summary>
-    public string Mode { get; set; } = "eager";
+    public string Mode { get; set; } = AgentMode.Eager;
 
     public DateTime CreatedDateTime { get; set; }
     public DateTime UpdatedDateTime { get; set; }
@@ -277,7 +277,7 @@ public class Agent
         return this;
     }
 
-    public Agent SetAgentType(string type)
+    public Agent SetType(string type)
     {
         Type = type;
         return this;
@@ -288,7 +288,7 @@ public class Agent
     /// </summary>
     /// <param name="mode"></param>
     /// <returns></returns>
-    public Agent SetAgentMode(string mode)
+    public Agent SetMode(string mode)
     {
         Mode = mode;
         return this;

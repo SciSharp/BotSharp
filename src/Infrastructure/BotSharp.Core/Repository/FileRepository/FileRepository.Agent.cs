@@ -383,11 +383,12 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.Name = inputAgent.Name;
-            agent.Description = inputAgent.Description;
+            agent.Type = inputAgent.Type;
+            agent.Mode = inputAgent.Mode;
             agent.IsPublic = inputAgent.IsPublic;
             agent.Disabled = inputAgent.Disabled;
+            agent.Description = inputAgent.Description;
             agent.MergeUtility = inputAgent.MergeUtility;
-            agent.Type = inputAgent.Type;
             agent.Profiles = inputAgent.Profiles;
             agent.Labels = inputAgent.Labels;
             agent.Utilities = inputAgent.Utilities;
