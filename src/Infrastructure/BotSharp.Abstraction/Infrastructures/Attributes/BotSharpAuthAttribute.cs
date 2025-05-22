@@ -26,7 +26,7 @@ public class BotSharpAuthAttribute : Attribute, IAsyncAuthorizationFilter
         var (isAdmin, user) = await userService.IsAdminUser(userIdentity.Id);
         if (!isAdmin || user == null)
         {
-            context.Result = new BadRequestResult();
+            context.Result = new UnauthorizedResult();
         }
     }
 }
