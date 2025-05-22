@@ -8,7 +8,7 @@ public enum AgentField
     IsPublic,
     Disabled,
     Type,
-    Mode,
+    RoutingMode,
     InheritAgentId,
     Profile,
     Label,

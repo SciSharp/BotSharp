@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Plugins.Models;
+using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.Tasks.Models;
 
 namespace BotSharp.Abstraction.Agents.Models;
@@ -17,7 +18,8 @@ public class Agent
     /// <summary>
     /// Routing Mode: lazy or eager
     /// </summary>
-    public string Mode { get; set; } = AgentMode.Eager;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Mode { get; set; }
 
     public DateTime CreatedDateTime { get; set; }
     public DateTime UpdatedDateTime { get; set; }

@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Routing.Enums;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
 
@@ -8,7 +9,11 @@ public class AgentCreationModel
     public string Name { get; set; }
     public string Description { get; set; }
     public string Type { get; set; } = AgentType.Task;
-    public string Mode { get; set; } = AgentMode.Eager;
+
+    /// <summary>
+    /// Agent routing mode
+    /// </summary>
+    public string? Mode { get; set; }
 
     /// <summary>
     /// LLM default system instructions

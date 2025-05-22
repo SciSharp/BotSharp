@@ -12,7 +12,9 @@ public class AgentViewModel
     public string Name { get; set; }
     public string Description { get; set; }
     public string Type { get; set; } = AgentType.Task;
-    public string Mode { get; set; } = null!;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Mode { get; set; }
     public string Instruction { get; set; }
 
     [JsonPropertyName("channel_instructions")]

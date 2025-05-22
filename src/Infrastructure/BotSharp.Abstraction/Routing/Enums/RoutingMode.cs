@@ -1,6 +1,6 @@
-namespace BotSharp.Abstraction.Agents.Enums;
+namespace BotSharp.Abstraction.Routing.Enums;
 
-public class AgentMode
+public class RoutingMode
 {
     public const string Eager = "eager";
     public const string Lazy = "lazy";

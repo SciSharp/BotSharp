@@ -5,7 +5,7 @@ public class AgentDocument : MongoBase
     public string Name { get; set; } = default!;
     public string Description { get; set; } = default!;
     public string Type { get; set; } = default!;
-    public string Mode { get; set; } = default!;
+    public string? Mode { get; set; }
     public string? InheritAgentId { get; set; }
     public string? IconUrl { get; set; }
     public string Instruction { get; set; } = default!;

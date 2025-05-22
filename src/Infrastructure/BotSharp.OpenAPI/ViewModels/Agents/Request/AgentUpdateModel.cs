@@ -9,7 +9,11 @@ public class AgentUpdateModel
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Type { get; set; } = AgentType.Task;
-    public string Mode { get; set; } = AgentMode.Eager;
+
+    /// <summary>
+    /// Agent routing mode
+    /// </summary>
+    public string? Mode { get; set; }
 
     /// <summary>
     /// Instruction
