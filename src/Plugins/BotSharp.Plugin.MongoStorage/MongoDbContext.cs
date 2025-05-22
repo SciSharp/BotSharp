@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Repositories.Settings;
+
 namespace BotSharp.Plugin.MongoStorage;
 
 public class MongoDbContext

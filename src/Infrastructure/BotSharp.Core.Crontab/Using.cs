@@ -6,6 +6,7 @@ global using Microsoft.Extensions.DependencyInjection;
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Crontab;
 global using BotSharp.Abstraction.Crontab.Models;
+global using BotSharp.Abstraction.Crontab.Settings;
 global using BotSharp.Abstraction.Agents;
 global using BotSharp.Abstraction.Plugins;
 global using BotSharp.Abstraction.Conversations.Models;

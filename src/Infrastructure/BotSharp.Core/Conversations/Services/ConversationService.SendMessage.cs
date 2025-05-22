@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
+using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -83,10 +84,10 @@ public partial class ConversationService
             {
                 // Check the routing mode
                 var states = _services.GetRequiredService<IConversationStateService>();
-                var routingMode = states.GetState(StateConst.ROUTING_MODE, "eager");
+                var routingMode = states.GetState(StateConst.ROUTING_MODE, RoutingMode.Eager);
                 routing.Context.Push(agent.Id, reason: "request started", updateLazyRouting: false);
 
-                if (routingMode == "lazy")
+                if (routingMode == RoutingMode.Lazy)
                 {
                     message.CurrentAgentId = states.GetState(StateConst.LAZY_ROUTING_AGENT_ID, message.CurrentAgentId);
                     routing.Context.Push(message.CurrentAgentId, reason: "lazy routing", updateLazyRouting: false);

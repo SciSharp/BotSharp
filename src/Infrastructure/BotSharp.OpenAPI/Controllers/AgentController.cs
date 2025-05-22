@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Infrastructures.Attributes;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -108,6 +109,7 @@ public class AgentController : ControllerBase
         return AgentViewModel.FromAgent(createdAgent);
     }
 
+    [BotSharpAuth]
     [HttpPost("/refresh-agents")]
     public async Task<string> RefreshAgents()
     {

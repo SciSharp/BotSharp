@@ -24,7 +24,9 @@ public class DistributedLocker : IDistributedLocker
         var redis = _services.GetService<IConnectionMultiplexer>();
         if (redis == null)
         {
+#if !DEBUG
             _logger.LogInformation($"The Redis server is experiencing issues and is not functioning as expected.");
+#endif
             await action();
             return true;
         }
@@ -50,7 +52,9 @@ public class DistributedLocker : IDistributedLocker
         var redis = _services.GetRequiredService<IConnectionMultiplexer>();
         if (redis == null)
         {
+#if !DEBUG
             _logger.LogWarning($"The Redis server is experiencing issues and is not functioning as expected.");
+#endif
             action();
             return false;
         }

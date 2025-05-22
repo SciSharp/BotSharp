@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Realtime.Models.Session;
 using System.ClientModel;
 using System.Net.WebSockets;
 
@@ -7,16 +6,16 @@ namespace BotSharp.Core.Infrastructures.Websocket;
 internal class AsyncWebsocketDataCollectionResult : AsyncCollectionResult<ClientResult>
 {
     private readonly WebSocket _webSocket;
-    private readonly ChatSessionOptions? _sessionOptions;
+    private readonly ChatSessionOptions? _options;
     private readonly CancellationToken _cancellationToken;
 
     public AsyncWebsocketDataCollectionResult(
         WebSocket webSocket,
-        ChatSessionOptions? sessionOptions,
+        ChatSessionOptions? options,
         CancellationToken cancellationToken)
     {
         _webSocket = webSocket;
-        _sessionOptions = sessionOptions;
+        _options = options;
         _cancellationToken = cancellationToken;
     }
 
@@ -27,7 +26,7 @@ internal class AsyncWebsocketDataCollectionResult : AsyncCollectionResult<Client
 
     public override async IAsyncEnumerable<ClientResult> GetRawPagesAsync()
     {
-        await using var enumerator = new AsyncWebsocketDataResultEnumerator(_webSocket, _sessionOptions, _cancellationToken);
+        await using var enumerator = new AsyncWebsocketDataResultEnumerator(_webSocket, _options, _cancellationToken);
         while (await enumerator.MoveNextAsync().ConfigureAwait(false))
         {
             yield return enumerator.Current;

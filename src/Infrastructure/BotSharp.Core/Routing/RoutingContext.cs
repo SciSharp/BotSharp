@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Infrastructures.Enums;
+using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing;
@@ -290,8 +291,8 @@ public class RoutingContext : IRoutingContext
 
         // Set next handling agent for lazy routing mode
         var states = _services.GetRequiredService<IConversationStateService>();
-        var routingMode = states.GetState(StateConst.ROUTING_MODE, "eager");
-        if (routingMode == "lazy")
+        var routingMode = states.GetState(StateConst.ROUTING_MODE, RoutingMode.Eager);
+        if (routingMode == RoutingMode.Lazy)
         {
             var agentId = GetCurrentAgentId();
             if (agentId != BuiltInAgentId.Fallback)

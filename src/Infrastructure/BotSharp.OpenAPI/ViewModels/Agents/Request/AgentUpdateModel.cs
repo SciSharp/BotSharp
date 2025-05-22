@@ -9,6 +9,12 @@ public class AgentUpdateModel
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Type { get; set; } = AgentType.Task;
+
+    /// <summary>
+    /// Agent routing mode
+    /// </summary>
+    public string? Mode { get; set; }
+
     /// <summary>
     /// Instruction
     /// </summary>
@@ -93,12 +99,13 @@ public class AgentUpdateModel
         var agent = new Agent()
         {
             Name = Name ?? string.Empty,
-            Description = Description ?? string.Empty,
+            Type = Type,
+            Mode = Mode,
             IsPublic = IsPublic,
             Disabled = Disabled,
+            Description = Description ?? string.Empty,
             MergeUtility = MergeUtility,
             MaxMessageCount = MaxMessageCount,
-            Type = Type,
             Profiles = Profiles ?? [],
             Labels = Labels ?? [],
             RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? [],

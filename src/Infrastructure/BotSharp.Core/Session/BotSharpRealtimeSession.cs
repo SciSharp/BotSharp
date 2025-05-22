@@ -11,6 +11,7 @@ public class BotSharpRealtimeSession : IDisposable
     private readonly ChatSessionOptions? _sessionOptions;
     private readonly object _singleReceiveLock = new();
     private AsyncWebsocketDataCollectionResult _receivedCollectionResult;
+    private bool _disposed = false;
 
     public BotSharpRealtimeSession(
         IServiceProvider services,
@@ -57,23 +58,30 @@ public class BotSharpRealtimeSession : IDisposable
 
     public async Task SendEventAsync(string message)
     {
-        if (_websocket.State == WebSocketState.Open)
+        if (_disposed || _websocket.State != WebSocketState.Open)
         {
-            var buffer = Encoding.UTF8.GetBytes(message);
-            await _websocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+            return;
         }
+
+        var buffer = Encoding.UTF8.GetBytes(message);
+        await _websocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
     public async Task DisconnectAsync()
     {
-        if (_websocket.State == WebSocketState.Open)
+        if (_disposed || _websocket.State != WebSocketState.Open)
         {
-            await _websocket.CloseAsync(WebSocketCloseStatus.Empty, null, CancellationToken.None);
+            return;
         }
+
+        await _websocket.CloseAsync(WebSocketCloseStatus.Empty, null, CancellationToken.None);
     }
 
     public void Dispose()
     {
+        if (_disposed) return;
+
+        _disposed = true;
         _websocket.Dispose();
     }
 }

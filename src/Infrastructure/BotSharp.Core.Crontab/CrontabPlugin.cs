@@ -32,11 +32,22 @@ public class CrontabPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        var settings = new CrontabSettings();
+        config.Bind("Crontab", settings);
+        services.AddSingleton(settings);
+
         services.AddScoped<IAgentUtilityHook, CrontabUtilityHook>();
         services.AddScoped<ICrontabService, CrontabService>();
         services.AddScoped<ITaskFeeder, CrontabService>();
 
-        services.AddHostedService<CrontabWatcher>();
-        services.AddHostedService<CrontabEventSubscription>();
+        if (settings.Watcher?.Enabled == true)
+        {
+            services.AddHostedService<CrontabWatcher>();
+        }
+
+        if (settings.EventSubscriber?.Enabled == true)
+        {
+            services.AddHostedService<CrontabEventSubscription>();
+        }
     }
 }

@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Routing.Enums;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
 
@@ -8,6 +9,11 @@ public class AgentCreationModel
     public string Name { get; set; }
     public string Description { get; set; }
     public string Type { get; set; } = AgentType.Task;
+
+    /// <summary>
+    /// Agent routing mode
+    /// </summary>
+    public string? Mode { get; set; }
 
     /// <summary>
     /// LLM default system instructions
@@ -66,6 +72,10 @@ public class AgentCreationModel
         return new Agent
         {
             Name = Name,
+            Type = Type,
+            Mode = Mode,
+            Disabled = Disabled,
+            IsPublic = IsPublic,
             Description = Description,
             Instruction = Instruction,
             ChannelInstructions = ChannelInstructions,
@@ -75,9 +85,6 @@ public class AgentCreationModel
             Samples = Samples,
             Utilities = Utilities,
             McpTools = McpTools,
-            IsPublic = IsPublic,
-            Type = Type,
-            Disabled = Disabled,
             MergeUtility = MergeUtility,
             MaxMessageCount = MaxMessageCount,
             Profiles = Profiles,

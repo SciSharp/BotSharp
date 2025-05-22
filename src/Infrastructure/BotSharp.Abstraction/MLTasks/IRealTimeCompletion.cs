@@ -19,6 +19,8 @@ public interface IRealTimeCompletion
         Func<RoleDialogModel, Task> onInputAudioTranscriptionDone,
         Func<Task> onInterruptionDetected);
 
+    Task Reconnect(RealtimeHubConnection conn);
+
     Task AppenAudioBuffer(string message);
     Task AppenAudioBuffer(ArraySegment<byte> data, int length);
 

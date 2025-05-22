@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using System.Buffers;
 using System.ClientModel;
 using System.Net.WebSockets;
@@ -7,7 +8,7 @@ namespace BotSharp.Core.Infrastructures.Websocket;
 internal class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResult>
 {
     private readonly WebSocket _webSocket;
-    private readonly ChatSessionOptions? _sessionOptions;
+    private readonly ChatSessionOptions? _options;
     private readonly CancellationToken _cancellationToken;
     private readonly byte[] _buffer;
 
@@ -15,13 +16,13 @@ internal class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResul
 
     public AsyncWebsocketDataResultEnumerator(
         WebSocket webSocket,
-        ChatSessionOptions? sessionOptions,
+        ChatSessionOptions? options,
         CancellationToken cancellationToken)
     {
         _webSocket = webSocket;
-        _sessionOptions = sessionOptions;
+        _options = options;
         _cancellationToken = cancellationToken;
-        var bufferSize = sessionOptions?.BufferSize > 0 ? sessionOptions.BufferSize.Value : DEFAULT_BUFFER_SIZE;
+        var bufferSize = options?.BufferSize > 0 ? options.BufferSize.Value : DEFAULT_BUFFER_SIZE;
         _buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
     }
 
@@ -44,7 +45,10 @@ internal class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResul
             if (receivedResult.CloseStatus.HasValue)
             {
 #if DEBUG
-                Console.WriteLine($"Websocket close: {receivedResult.CloseStatus} {receivedResult.CloseStatusDescription}");
+                if (_options?.Logger != null)
+                {
+                    _options.Logger.LogWarning($"{_options?.Provider} Websocket close: ({receivedResult.CloseStatus}) {receivedResult.CloseStatusDescription}");
+                }
 #endif
                 Current = null;
                 return false;

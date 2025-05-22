@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories.Enums;
+using BotSharp.Abstraction.Repositories.Settings;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 using System.IO;
@@ -93,12 +94,12 @@ public partial class AgentService
         {
             clonedAgent.SetId(foundAgent.Id)
                        .SetName(foundAgent.Name)
-                       .SetDescription(foundAgent.Description)
+                       .SetType(foundAgent.Type)
+                       .SetRoutingMode(foundAgent.Mode)
                        .SetIsPublic(foundAgent.IsPublic)
                        .SetDisabled(foundAgent.Disabled)
+                       .SetDescription(foundAgent.Description)
                        .SetMergeUtility(foundAgent.MergeUtility)
-                       .SetAgentType(foundAgent.Type)
-                       .SetAgentMode(foundAgent.Mode)
                        .SetProfiles(foundAgent.Profiles)
                        .SetLabels(foundAgent.Labels)
                        .SetRoutingRules(foundAgent.RoutingRules)

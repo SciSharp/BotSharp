@@ -28,8 +28,8 @@ public partial class MongoRepository
             case AgentField.Type:
                 UpdateAgentType(agent.Id, agent.Type);
                 break;
-            case AgentField.Mode:
-                UpdateAgentMode(agent.Id, agent.Mode);
+            case AgentField.RoutingMode:
+                UpdateAgentRoutingMode(agent.Id, agent.Mode);
                 break;
             case AgentField.InheritAgentId:
                 UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
@@ -139,7 +139,7 @@ public partial class MongoRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
-    private void UpdateAgentMode(string agentId, string mode)
+    private void UpdateAgentRoutingMode(string agentId, string? mode)
     {
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update

@@ -5,6 +5,7 @@ using FunctionDef = BotSharp.Abstraction.Functions.Models.FunctionDef;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Tasks.Models;
+using BotSharp.Abstraction.Repositories.Settings;
 
 namespace BotSharp.Core.Repository;
 

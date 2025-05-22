@@ -16,6 +16,7 @@ using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Templating;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Realtime;
+using BotSharp.Abstraction.Repositories.Settings;
 
 namespace BotSharp.Core;
 
@@ -70,17 +71,6 @@ public static class BotSharpCoreExtensions
 
         return services;
     }
-
-    //public static IServiceCollection UsingFileRepository(this IServiceCollection services, IConfiguration config)
-    //{
-    //    services.AddScoped<IBotSharpRepository>(sp =>
-    //    {
-    //        var myDatabaseSettings = sp.GetRequiredService<BotSharpDatabaseSettings>();
-    //        return new FileRepository(myDatabaseSettings, sp);
-    //    });
-
-    //    return services;
-    //}
 
     public static IApplicationBuilder UseBotSharp(this IApplicationBuilder app)
     {

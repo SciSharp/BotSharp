@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories.Enums;
+using BotSharp.Abstraction.Repositories.Settings;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -14,14 +15,6 @@ public partial class AgentService
             refreshResult = $"Invalid database repository setting: {dbSettings.Default}";
             _logger.LogWarning(refreshResult);
             return refreshResult;
-        }
-
-        var userIdentity = _services.GetRequiredService<IUserIdentity>();
-        var userService = _services.GetRequiredService<IUserService>();
-        var (isValid, _) = await userService.IsAdminUser(userIdentity.Id);
-        if (!isValid)
-        {
-            return "Unauthorized user.";
         }
 
         var agentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
@@ -74,7 +67,7 @@ public partial class AgentService
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to migrate agent in file directory: {dir}\r\nError: {ex.Message}");
+                _logger.LogError(ex, $"Failed to migrate agent in file directory: {dir}\r\nError: {ex.Message}");
             }
         }
 

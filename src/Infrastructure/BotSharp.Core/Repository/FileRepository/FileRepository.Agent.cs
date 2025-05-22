@@ -27,8 +27,8 @@ namespace BotSharp.Core.Repository
                 case AgentField.Type:
                     UpdateAgentType(agent.Id, agent.Type);
                     break;
-                case AgentField.Mode:
-                    UpdateAgentMode(agent.Id, agent.Mode);
+                case AgentField.RoutingMode:
+                    UpdateAgentRoutingMode(agent.Id, agent.Mode);
                     break;
                 case AgentField.InheritAgentId:
                     UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
@@ -145,7 +145,7 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(agentFile, json);
         }
 
-        private void UpdateAgentMode(string agentId, string mode)
+        private void UpdateAgentRoutingMode(string agentId, string? mode)
         {
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
@@ -383,11 +383,12 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.Name = inputAgent.Name;
-            agent.Description = inputAgent.Description;
+            agent.Type = inputAgent.Type;
+            agent.Mode = inputAgent.Mode;
             agent.IsPublic = inputAgent.IsPublic;
             agent.Disabled = inputAgent.Disabled;
+            agent.Description = inputAgent.Description;
             agent.MergeUtility = inputAgent.MergeUtility;
-            agent.Type = inputAgent.Type;
             agent.Profiles = inputAgent.Profiles;
             agent.Labels = inputAgent.Labels;
             agent.Utilities = inputAgent.Utilities;

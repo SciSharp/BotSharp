@@ -9,6 +9,7 @@ public class Agent
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+
     /// <summary>
     /// Agent Type
     /// </summary>
@@ -17,7 +18,8 @@ public class Agent
     /// <summary>
     /// Routing Mode: lazy or eager
     /// </summary>
-    public string Mode { get; set; } = "eager";
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Mode { get; set; }
 
     public DateTime CreatedDateTime { get; set; }
     public DateTime UpdatedDateTime { get; set; }
@@ -277,18 +279,18 @@ public class Agent
         return this;
     }
 
-    public Agent SetAgentType(string type)
+    public Agent SetType(string type)
     {
         Type = type;
         return this;
     }
 
     /// <summary>
-    /// Set agent mode: lazy or eager
+    /// Set agent routing mode: lazy or eager
     /// </summary>
     /// <param name="mode"></param>
     /// <returns></returns>
-    public Agent SetAgentMode(string mode)
+    public Agent SetRoutingMode(string? mode)
     {
         Mode = mode;
         return this;

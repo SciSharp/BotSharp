@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories.Settings;
 using Microsoft.Data.SqlClient;
 using System.Data.Common;
 
