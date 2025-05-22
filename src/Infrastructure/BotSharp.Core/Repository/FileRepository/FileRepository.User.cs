@@ -263,8 +263,15 @@ public partial class FileRepository
         }
 
         var userFile = Path.Combine(dir, USER_FILE);
-        user.UpdatedTime = DateTime.UtcNow;
-        File.WriteAllText(userFile, JsonSerializer.Serialize(user, _options));
+        var userJson = File.ReadAllText(userFile);
+        var curUser = JsonSerializer.Deserialize<User>(userJson, _options);
+        if (curUser == null) return false;
+
+        curUser.Type = user.Type;
+        curUser.Role = user.Role;
+        curUser.Permissions = user.Permissions;
+        curUser.UpdatedTime = DateTime.UtcNow;
+        File.WriteAllText(userFile, JsonSerializer.Serialize(curUser, _options));
 
         if (updateUserAgents)
         {
