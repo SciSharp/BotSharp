@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Plugins.Models;
-using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.Tasks.Models;
 
 namespace BotSharp.Abstraction.Agents.Models;
@@ -10,6 +9,7 @@ public class Agent
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+
     /// <summary>
     /// Agent Type
     /// </summary>
@@ -286,11 +286,11 @@ public class Agent
     }
 
     /// <summary>
-    /// Set agent mode: lazy or eager
+    /// Set agent routing mode: lazy or eager
     /// </summary>
     /// <param name="mode"></param>
     /// <returns></returns>
-    public Agent SetMode(string mode)
+    public Agent SetRoutingMode(string? mode)
     {
         Mode = mode;
         return this;

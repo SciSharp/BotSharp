@@ -95,7 +95,7 @@ public partial class AgentService
             clonedAgent.SetId(foundAgent.Id)
                        .SetName(foundAgent.Name)
                        .SetType(foundAgent.Type)
-                       .SetMode(foundAgent.Mode)
+                       .SetRoutingMode(foundAgent.Mode)
                        .SetIsPublic(foundAgent.IsPublic)
                        .SetDisabled(foundAgent.Disabled)
                        .SetDescription(foundAgent.Description)
