@@ -381,7 +381,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         await HookEmitter.Emit<IContentGeneratingHook>(_services, async hook =>
         {
-            await hook.OnSessionUpdated(agent, instruction, functions, isInit);
+            await hook.OnSessionUpdated(agent, instruction, functions, isInit: false);
         }, agent.Id);
 
         await SendEventToModel(sessionUpdate);

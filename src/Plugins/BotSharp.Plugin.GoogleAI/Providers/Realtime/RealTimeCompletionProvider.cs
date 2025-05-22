@@ -343,7 +343,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         }).ToArray();
 
         await HookEmitter.Emit<IContentGeneratingHook>(_services,
-            async hook => { await hook.OnSessionUpdated(agent, prompt, functions, isInit); }, agent.Id);
+            async hook => { await hook.OnSessionUpdated(agent, prompt, functions, isInit: false); }, agent.Id);
         
         if (_settings.Gemini.UseGoogleSearch)
         {
