@@ -56,9 +56,10 @@ public class HandleHttpRequestFn : IFunctionCallback
         if (string.IsNullOrEmpty(url)) return null;
 
         using var client = _httpClientFactory.CreateClient();
-        PrepareRequestHeaders(client);
-
+        
         var (uri, request) = BuildHttpRequest(url, method, content);
+        PrepareRequestHeaders(client, uri);
+
         var response = await client.SendAsync(request);
         if (response == null || !response.IsSuccessStatusCode)
         {
@@ -68,12 +69,12 @@ public class HandleHttpRequestFn : IFunctionCallback
         return response;
     }
 
-    private void PrepareRequestHeaders(HttpClient client)
+    private void PrepareRequestHeaders(HttpClient client, Uri uri)
     {
         var hooks = _services.GetServices<IHttpRequestHook>();
         foreach (var hook in hooks)
         {
-            hook.OnAddHttpHeaders(client.DefaultRequestHeaders);
+            hook.OnAddHttpHeaders(client.DefaultRequestHeaders, uri);
         }
     }
 
@@ -115,8 +116,8 @@ public class HandleHttpRequestFn : IFunctionCallback
 
         switch (localMethod)
         {
-            case "GET":
-                matchMethod = HttpMethod.Get;
+            case "POST":
+                matchMethod = HttpMethod.Post;
                 break;
             case "DELETE":
                 matchMethod = HttpMethod.Delete;
@@ -124,11 +125,11 @@ public class HandleHttpRequestFn : IFunctionCallback
             case "PUT":
                 matchMethod = HttpMethod.Put;
                 break;
-            case "Patch":
+            case "PATCH":
                 matchMethod = HttpMethod.Patch;
                 break;
             default:
-                matchMethod = HttpMethod.Post;
+                matchMethod = HttpMethod.Get;
                 break;
         }
         return matchMethod;
