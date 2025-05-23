@@ -20,7 +20,7 @@ public class BasicHttpRequestHook : IHttpRequestHook
         _context = context;
     }
 
-    public void OnAddHttpHeaders(HttpHeaders headers)
+    public void OnAddHttpHeaders(HttpHeaders headers, Uri uri)
     {
         var settings = _services.GetRequiredService<HttpHandlerSettings>();
 

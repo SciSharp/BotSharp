@@ -4,5 +4,5 @@ namespace BotSharp.Abstraction.Http;
 
 public interface IHttpRequestHook
 {
-    void OnAddHttpHeaders(HttpHeaders headers);
+    void OnAddHttpHeaders(HttpHeaders headers, Uri uri);
 }
