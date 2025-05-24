@@ -415,7 +415,18 @@ public class ConversationStateService : IConversationStateService
 
     private bool CheckArgType(string name, string value)
     {
-        var agentTypes = AgentService.AgentParameterTypes.SelectMany(p => p.Value).ToList();
+        // Defensive: Ensure AgentParameterTypes is not null or empty and values are not null
+        if (AgentService.AgentParameterTypes == null || !AgentService.AgentParameterTypes.Any())
+            return true;
+
+        var agentTypes = AgentService.AgentParameterTypes
+            .Where(p => p.Value != null)
+            .SelectMany(p => p.Value)
+            .ToList();
+
+        if (agentTypes == null || agentTypes.Count == 0)
+            return true;
+            
         var found = agentTypes.FirstOrDefault(t => t.Key == name); 
         if (found.Key != null)
         {
