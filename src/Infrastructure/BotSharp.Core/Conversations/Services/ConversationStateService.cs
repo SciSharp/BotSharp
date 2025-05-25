@@ -416,7 +416,7 @@ public class ConversationStateService : IConversationStateService
     private bool CheckArgType(string name, string value)
     {
         // Defensive: Ensure AgentParameterTypes is not null or empty and values are not null
-        if (AgentService.AgentParameterTypes == null || !AgentService.AgentParameterTypes.Any())
+        if (AgentService.AgentParameterTypes.IsNullOrEmpty())
             return true;
 
         var agentTypes = AgentService.AgentParameterTypes

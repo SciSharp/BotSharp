@@ -6,7 +6,7 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    public static ConcurrentDictionary<string, Dictionary<string, string>> AgentParameterTypes = new();
+    public static ConcurrentDictionary<string, ConcurrentDictionary<string, string>> AgentParameterTypes = new();
 
     // [SharpCache(10, perInstanceCache: true)]
     public async Task<Agent> LoadAgent(string id, bool loadUtility = true)
@@ -101,26 +101,18 @@ public partial class AgentService
 
     private void AddOrUpdateRoutesParameters(string agentId, List<RoutingRule> routingRules)
     {
-        if (!AgentParameterTypes.TryGetValue(agentId, out var parameterTypes))
-        {
-            parameterTypes = new();
-        }
+        var parameterTypes = AgentParameterTypes.GetOrAdd(agentId, _ => new());
 
         foreach (var rule in routingRules.Where(x => x.Required))
         {
             if (string.IsNullOrEmpty(rule.FieldType)) continue;
-            parameterTypes.TryAdd(rule.Field, rule.FieldType);
+            parameterTypes[rule.Field] = rule.FieldType;
         }
-
-        AgentParameterTypes.TryAdd(agentId, parameterTypes);
     }
 
     private void AddOrUpdateFunctionsParameters(string agentId, List<FunctionDef> functions)
     {
-        if (!AgentParameterTypes.TryGetValue(agentId, out var parameterTypes))
-        {
-            parameterTypes = new();
-        }
+        var parameterTypes = AgentParameterTypes.GetOrAdd(agentId, _ => new());
 
         var parameters = functions.Select(p => p.Parameters);
         foreach (var param in parameters)
@@ -131,11 +123,9 @@ public partial class AgentService
                 var node = prop.Value;
                 if (node.TryGetProperty("type", out var type))
                 {
-                    parameterTypes.TryAdd(name, type.GetString());
+                    parameterTypes[name] = type.GetString();
                 }
             }
         }
-
-        AgentParameterTypes.TryAdd(agentId, parameterTypes);
     }
 }
