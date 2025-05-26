@@ -98,7 +98,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
         }
 
         var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
-        var chatClient = client.CreateGenerativeModel(_model);
+        var chatClient = client.CreateGenerativeModel(_model.ToModelId());
         var (prompt, messages) = PrepareOptions(chatClient, agent, conversations);
 
         var response = await chatClient.GenerateContentAsync(messages);
@@ -162,7 +162,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
     public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
         var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
-        var chatClient = client.CreateGenerativeModel(_model);
+        var chatClient = client.CreateGenerativeModel(_model.ToModelId());
         var (prompt, messages) = PrepareOptions(chatClient,agent, conversations);
 
         var asyncEnumerable = chatClient.StreamContentAsync(messages);

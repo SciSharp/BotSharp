@@ -7,7 +7,7 @@ public static class ProviderHelper
     public static GenerativeAI.GoogleAi GetGeminiClient(string provider, string model, IServiceProvider services)
     {
         var aiSettings = services.GetRequiredService<GoogleAiSettings>();
-        if (aiSettings == null || aiSettings.Gemini ==null || string.IsNullOrEmpty(aiSettings.Gemini.ApiKey))
+        if (string.IsNullOrEmpty(aiSettings?.Gemini?.ApiKey))
         {
             var settingsService = services.GetRequiredService<ILlmProviderService>();
             var settings = settingsService.GetSetting(provider, model);
