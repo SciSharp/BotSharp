@@ -1,9 +1,6 @@
-using System.Text.Json.Nodes;
-using BotSharp.Abstraction.Agents;
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Hooks;
-using BotSharp.Abstraction.Loggers;
 using GenerativeAI;
 using GenerativeAI.Core;
 using GenerativeAI.Types;
@@ -43,7 +40,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
         }
 
         var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
-        var aiModel = client.CreateGenerativeModel(_model);
+        var aiModel = client.CreateGenerativeModel(_model.ToModelId());
         var (prompt, request) = PrepareOptions(aiModel, agent, conversations);
 
         var response = await aiModel.GenerateContentAsync(request);
@@ -207,6 +204,10 @@ public class GeminiChatCompletionProvider : IChatCompletion
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var googleSettings = _services.GetRequiredService<GoogleAiSettings>();
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model);
+        var allowMultiModal = settings != null && settings.MultiModal;
         renderedInstructions = [];
 
         // Add settings
@@ -298,7 +299,50 @@ public class GeminiChatCompletionProvider : IChatCompletion
             else if (message.Role == AgentRole.User)
             {
                 var text = !string.IsNullOrWhiteSpace(message.Payload) ? message.Payload : message.Content;
-                contents.Add(new Content(text, AgentRole.User));
+                var contentParts = new List<Part> { new() { Text = text } };
+
+                if (allowMultiModal && !message.Files.IsNullOrEmpty())
+                {
+                    foreach (var file in message.Files)
+                    {
+                        if (!string.IsNullOrEmpty(file.FileData))
+                        {
+                            var (contentType, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
+                            contentParts.Add(new Part()
+                            {
+                                InlineData = new()
+                                {
+                                    MimeType = contentType,
+                                    Data = Convert.ToBase64String(bytes)
+                                }
+                            });
+                        }
+                        else if (!string.IsNullOrEmpty(file.FileStorageUrl))
+                        {
+                            var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
+                            var bytes = fileStorage.GetFileBytes(file.FileStorageUrl);
+                            contentParts.Add(new Part()
+                            {
+                                InlineData = new()
+                                {
+                                    MimeType = contentType,
+                                    Data = Convert.ToBase64String(bytes)
+                                }
+                            });
+                        }
+                        else if (!string.IsNullOrEmpty(file.FileUrl))
+                        {
+                            contentParts.Add(new Part()
+                            {
+                                FileData = new()
+                                {
+                                    FileUri = file.FileUrl
+                                }
+                            });
+                        }
+                    }
+                }
+                contents.Add(new Content(contentParts, AgentRole.User));
                 convPrompts.Add($"{AgentRole.User}: {text}");
             }
             else if (message.Role == AgentRole.Assistant)

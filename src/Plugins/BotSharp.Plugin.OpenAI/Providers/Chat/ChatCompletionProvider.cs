@@ -218,7 +218,6 @@ public class ChatCompletionProvider : IChatCompletion
     protected (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var state = _services.GetRequiredService<IConversationStateService>();
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);

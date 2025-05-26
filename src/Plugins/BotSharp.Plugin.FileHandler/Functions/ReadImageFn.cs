@@ -35,7 +35,7 @@ public class ReadImageFn : IFunctionCallback
         {
             Id = BuiltInAgentId.UtilityAssistant,
             Name = "Utility Agent",
-            Instruction = fromAgent?.Instruction ?? args.UserRequest ?? "Please describe the image(s).",
+            Instruction = fromAgent?.Instruction ?? args?.UserRequest ?? "Please describe the image(s).",
             TemplateDict = new Dictionary<string, object>()
         };
 

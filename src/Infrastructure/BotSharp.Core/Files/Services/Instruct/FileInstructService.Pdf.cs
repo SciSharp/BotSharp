@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Files.Converters;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs;
-using BotSharp.Abstraction.Infrastructures;
 
 namespace BotSharp.Core.Files.Services;
 
@@ -22,14 +21,24 @@ public partial class FileInstructService
 
         try
         {
+            var provider = options?.Provider ?? "openai";
             var pdfFiles = await DownloadFiles(sessionDir, files);
-            var images = await ConvertPdfToImages(pdfFiles);
-            if (images.IsNullOrEmpty()) return content;
+
+            var targetFiles = pdfFiles;
+            if (provider != "google-ai")
+            {
+                targetFiles = await ConvertPdfToImages(pdfFiles);
+            }
+
+            if (targetFiles.IsNullOrEmpty())
+            {
+                return content;
+            }
 
             var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
             var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
 
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: options?.Provider ?? "openai",
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: provider,
                 model: options?.Model ?? "gpt-4o", multiModal: true);
             var message = await completion.GetChatCompletions(new Agent()
             {
@@ -39,7 +48,7 @@ public partial class FileInstructService
             {
                 new RoleDialogModel(AgentRole.User, text)
                 {
-                    Files = images.Select(x => new BotSharpFile { FileStorageUrl = x }).ToList()
+                    Files = targetFiles.Select(x => new BotSharpFile { FileStorageUrl = x }).ToList()
                 }
             });
 
