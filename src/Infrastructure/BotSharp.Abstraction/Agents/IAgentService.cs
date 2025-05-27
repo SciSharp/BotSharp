@@ -36,6 +36,8 @@ public interface IAgentService
 
     FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def);
 
+    bool RenderUtility(Agent agent, AgentUtility utility);
+
     /// <summary>
     /// Get agent detail without trigger any hook.
     /// </summary>

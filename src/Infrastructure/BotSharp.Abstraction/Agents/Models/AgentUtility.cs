@@ -4,6 +4,10 @@ public class AgentUtility
 {
     public string Name { get; set; }
     public bool Disabled { get; set; }
+
+    [JsonPropertyName("visibility_expression")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? VisibilityExpression { get; set; }
     public IEnumerable<UtilityFunction> Functions { get; set; } = [];
     public IEnumerable<UtilityTemplate> Templates { get; set; } = [];
 

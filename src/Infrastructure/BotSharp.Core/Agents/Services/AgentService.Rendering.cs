@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Templating;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 
 namespace BotSharp.Core.Agents.Services;
@@ -136,5 +137,21 @@ public partial class AgentService
             agent.Id).Wait();
 
         return content;
+    }
+
+    public bool RenderUtility(Agent agent, AgentUtility utility)
+    {
+        if (string.IsNullOrWhiteSpace(utility?.VisibilityExpression))
+        {
+            return true;
+        }
+
+        var render = _services.GetRequiredService<ITemplateRender>();
+        var result = render.Render(utility.VisibilityExpression, new Dictionary<string, object>
+        {
+            { "states", agent.TemplateDict }
+        });
+
+        return result == "visible";
     }
 }

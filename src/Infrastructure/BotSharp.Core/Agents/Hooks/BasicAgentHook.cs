@@ -19,9 +19,9 @@ public class BasicAgentHook : AgentHookBase
         var isConvMode = conv.IsConversationMode();
         if (!isConvMode) return;
 
+        agent.Utilities ??= [];
         agent.SecondaryFunctions ??= [];
         agent.SecondaryInstructions ??= [];
-        agent.Utilities ??= [];
 
         var (functions, templates) = GetUtilityContent(agent);
 
@@ -34,7 +34,7 @@ public class BasicAgentHook : AgentHookBase
     private (IEnumerable<FunctionDef>, IEnumerable<AgentTemplate>) GetUtilityContent(Agent agent)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var (functionNames, templateNames) = GetUniqueContent(agent.Utilities);
+        var (functionNames, templateNames) = FilterUtilityContent(agent.Utilities, agent);
 
         if (agent.MergeUtility)
         {
@@ -43,7 +43,7 @@ public class BasicAgentHook : AgentHookBase
             if (!string.IsNullOrEmpty(entryAgentId))
             {
                 var entryAgent = db.GetAgent(entryAgentId, basicsOnly: true);
-                var (fns, tps) = GetUniqueContent(entryAgent?.Utilities);
+                var (fns, tps) = FilterUtilityContent(entryAgent?.Utilities, agent);
                 functionNames = functionNames.Concat(fns).Distinct().ToList();
                 templateNames = templateNames.Concat(tps).Distinct().ToList();
             }
@@ -55,22 +55,34 @@ public class BasicAgentHook : AgentHookBase
         return (functions, templates);
     }
 
-    private (IEnumerable<string>, IEnumerable<string>) GetUniqueContent(IEnumerable<AgentUtility>? utilities)
+    private (IEnumerable<string>, IEnumerable<string>) FilterUtilityContent(IEnumerable<AgentUtility>? utilities, Agent agent)
     {
         if (utilities.IsNullOrEmpty())
         {
             return ([], []);
         }
 
-        utilities = utilities?.Where(x => !string.IsNullOrEmpty(x.Name) && !x.Disabled)?.ToList() ?? [];
-        var functionNames = utilities.SelectMany(x => x.Functions)
-                                     .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith(UTIL_PREFIX))
-                                     .Select(x => x.Name)
-                                     .Distinct().ToList();
-        var templateNames = utilities.SelectMany(x => x.Templates)
-                                     .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith(UTIL_PREFIX))
-                                     .Select(x => x.Name)
-                                     .Distinct().ToList();
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var innerUtilities = utilities!.Where(x =>
+        {
+            var isVisible = !string.IsNullOrEmpty(x.Name) && !x.Disabled;
+            if (!isVisible)
+            {
+                return isVisible;
+            }
+
+            isVisible = agentService.RenderUtility(agent, x);
+            return isVisible;
+        }).ToList();
+
+        var functionNames = innerUtilities.SelectMany(x => x.Functions)
+                                         .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith(UTIL_PREFIX))
+                                         .Select(x => x.Name)
+                                         .Distinct().ToList();
+        var templateNames = innerUtilities.SelectMany(x => x.Templates)
+                                         .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith(UTIL_PREFIX))
+                                         .Select(x => x.Name)
+                                         .Distinct().ToList();
 
         return (functionNames, templateNames);
     }   
