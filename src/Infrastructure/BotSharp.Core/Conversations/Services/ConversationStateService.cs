@@ -419,12 +419,10 @@ public class ConversationStateService : IConversationStateService
         if (AgentService.AgentParameterTypes.IsNullOrEmpty())
             return true;
 
-        var agentTypes = AgentService.AgentParameterTypes
-            .Where(p => p.Value != null)
-            .SelectMany(p => p.Value)
-            .ToList();
+        if (!AgentService.AgentParameterTypes.TryGetValue(_routingContext.GetCurrentAgentId(), out var agentTypes))
+            return true;
 
-        if (agentTypes == null || agentTypes.Count == 0)
+        if (agentTypes.IsNullOrEmpty())
             return true;
             
         var found = agentTypes.FirstOrDefault(t => t.Key == name); 
