@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Routing;
+
 namespace BotSharp.Plugin.FileHandler.Functions;
 
 public class ReadPdfFn : IFunctionCallback
@@ -25,20 +27,31 @@ public class ReadPdfFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
         var conv = _services.GetRequiredService<IConversationService>();
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
         var agentService = _services.GetRequiredService<IAgentService>();
 
-        var wholeDialogs = conv.GetDialogHistory();
-        var dialogs = await AssembleFiles(conv.ConversationId, wholeDialogs);
-        var agent = await agentService.LoadAgent(BuiltInAgentId.UtilityAssistant);
-        var fileAgent = new Agent
+        Agent? fromAgent = null;
+        if (!string.IsNullOrEmpty(message.CurrentAgentId))
         {
-            Id = agent?.Id ?? Guid.Empty.ToString(),
-            Name = agent?.Name ?? "Unkown",
-            Instruction = !string.IsNullOrWhiteSpace(args?.UserRequest) ? args.UserRequest : "Please describe the pdf file(s).",
+            fromAgent = await agentService.LoadAgent(message.CurrentAgentId);
+        }
+
+        var agent = new Agent
+        {
+            Id = BuiltInAgentId.UtilityAssistant,
+            Name = "Utility Agent",
+            Instruction = fromAgent?.Instruction ?? args?.UserRequest ?? "Please describe the pdf file(s).",
             TemplateDict = new Dictionary<string, object>()
         };
 
-        var response = await GetChatCompletion(fileAgent, dialogs);
+        var wholeDialogs = routingCtx.GetDialogs();
+        if (wholeDialogs.IsNullOrEmpty())
+        {
+            wholeDialogs = conv.GetDialogHistory();
+        }
+
+        var dialogs = await AssembleFiles(conv.ConversationId, wholeDialogs);
+        var response = await GetChatCompletion(agent, dialogs);
         message.Content = response;
         return true;
     }
