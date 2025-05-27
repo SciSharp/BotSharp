@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Templating;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 
 namespace BotSharp.Core.Agents.Services;

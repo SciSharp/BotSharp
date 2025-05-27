@@ -66,13 +66,7 @@ public class BasicAgentHook : AgentHookBase
         var innerUtilities = utilities!.Where(x =>
         {
             var isVisible = !string.IsNullOrEmpty(x.Name) && !x.Disabled;
-            if (!isVisible)
-            {
-                return isVisible;
-            }
-
-            isVisible = agentService.RenderUtility(agent, x);
-            return isVisible;
+            return isVisible && agentService.RenderUtility(agent, x);
         }).ToList();
 
         var functionNames = innerUtilities.SelectMany(x => x.Functions)
