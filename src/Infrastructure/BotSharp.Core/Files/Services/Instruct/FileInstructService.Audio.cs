@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Instructs.Models;
-using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
@@ -18,7 +17,7 @@ public partial class FileInstructService
         using var stream = audioBinary.ToStream();
         stream.Position = 0;
 
-        var fileName = $"{audio.FileName ?? "audio"}.{audio.FileExtension ?? "wav"}";
+        var fileName = $"{audio.FileName.IfNullOrEmptyAs("audio")}.{audio.FileExtension.IfNullOrEmptyAs("wav")}";
         var content = await completion.TranscriptTextAsync(stream, fileName, text ?? string.Empty);
         stream.Close();
         return content;

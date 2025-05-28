@@ -1,3 +1,4 @@
+using BotSharp.OpenAPI.ViewModels.Instructs.Request;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.Abstraction.Instructs.Models;
@@ -17,7 +18,7 @@ public class InstructBaseRequest
     public virtual string? TemplateName { get; set; }
 
     [JsonPropertyName("states")]
-    public List<MessageState> States { get; set; } = [];
+    public List<InstructState> States { get; set; } = [];
 }
 
 public class MultiModalRequest : InstructBaseRequest

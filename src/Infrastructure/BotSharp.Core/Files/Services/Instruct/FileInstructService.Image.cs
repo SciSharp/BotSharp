@@ -82,7 +82,7 @@ public partial class FileInstructService
         using var stream = binary.ToStream();
         stream.Position = 0;
 
-        var fileName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";
+        var fileName = $"{image.FileName.IfNullOrEmptyAs("image")}.{image.FileExtension.IfNullOrEmptyAs("png")}";
         var message = await completion.GetImageVariation(new Agent()
         {
             Id = innerAgentId
@@ -118,7 +118,7 @@ public partial class FileInstructService
         using var stream = binary.ToStream();
         stream.Position = 0;
 
-        var fileName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";
+        var fileName = $"{image.FileName.IfNullOrEmptyAs("image")}.{image.FileExtension.IfNullOrEmptyAs("png")}";
         var message = await completion.GetImageEdits(new Agent()
         {
             Id = innerAgentId
@@ -162,8 +162,8 @@ public partial class FileInstructService
         using var maskStream = maskBinary.ToStream();
         maskStream.Position = 0;
 
-        var imageName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";
-        var maskName = $"{mask.FileName ?? "mask"}.{mask.FileExtension ?? "png"}";
+        var imageName = $"{image.FileName.IfNullOrEmptyAs("image")}.{image.FileExtension.IfNullOrEmptyAs("png")}";
+        var maskName = $"{mask.FileName.IfNullOrEmptyAs("mask")}.{mask.FileExtension.IfNullOrEmptyAs("png")}";
         var message = await completion.GetImageEdits(new Agent()
         {
             Id = innerAgentId
