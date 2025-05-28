@@ -289,7 +289,7 @@ public class ChatCompletionProvider : IChatCompletion
                         if (!string.IsNullOrEmpty(file.FileData))
                         {
                             var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType ?? file.ContentType, ChatImageDetailLevel.Auto);
+                            var contentPart = ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(binary.ToArray()), contentType, ChatImageDetailLevel.Auto);
                             contentParts.Add(contentPart);
                         }
                         else if (!string.IsNullOrEmpty(file.FileStorageUrl))

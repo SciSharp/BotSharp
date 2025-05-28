@@ -115,7 +115,7 @@ public class InstructModeController : ControllerBase
 
     #region Read image
     [HttpPost("/instruct/multi-modal")]
-    public async Task<string> MultiModalCompletion([FromBody] MultiModalRequest input)
+    public async Task<string> MultiModalCompletion([FromBody] MultiModalFileRequest input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
@@ -141,28 +141,25 @@ public class InstructModeController : ControllerBase
     }
 
     [HttpPost("/instruct/multi-modal/upload")]
-    public async Task<MultiModalViewModel> MultiModalCompletion(IFormFile file, [FromForm] string text, [FromForm] string? provider = null,
-        [FromForm] string? model = null, [FromForm] List<MessageState>? states = null,
-        [FromForm] string? agentId = null, [FromForm] string? templateName = null)
+    public async Task<MultiModalViewModel> MultiModalCompletion([FromForm] IEnumerable<IFormFile> files, [FromForm] MultiModalRequest request)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        states?.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        request?.States?.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
         var viewModel = new MultiModalViewModel();
 
         try
         {
-            var data = FileUtility.BuildFileDataFromFile(file);
-            var files = new List<InstructFileModel>
+            var fileModels = files.Select(x => new InstructFileModel
             {
-                new InstructFileModel { FileData = data }
-            };
+                FileData = FileUtility.BuildFileDataFromFile(x)
+            }).ToList();
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var content = await fileInstruct.ReadImages(text, files, new InstructOptions
+            var content = await fileInstruct.ReadImages(request?.Text ?? string.Empty, fileModels, new InstructOptions
             {
-                Provider = provider,
-                Model = model,
-                AgentId = agentId,
-                TemplateName = templateName
+                Provider = request?.Provider,
+                Model = request?.Model,
+                AgentId = request?.AgentId,
+                TemplateName = request?.TemplateName
             });
             viewModel.Content = content;
             return viewModel;
@@ -424,7 +421,7 @@ public class InstructModeController : ControllerBase
 
     #region Pdf
     [HttpPost("/instruct/pdf-completion")]
-    public async Task<PdfCompletionViewModel> PdfCompletion([FromBody] MultiModalRequest input)
+    public async Task<PdfCompletionViewModel> PdfCompletion([FromBody] MultiModalFileRequest input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));

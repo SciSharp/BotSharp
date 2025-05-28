@@ -24,7 +24,10 @@ public class MultiModalRequest : InstructBaseRequest
 {
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
+}
 
+public class MultiModalFileRequest : MultiModalRequest
+{
     [JsonPropertyName("files")]
     public List<InstructFileModel> Files { get; set; } = [];
 }

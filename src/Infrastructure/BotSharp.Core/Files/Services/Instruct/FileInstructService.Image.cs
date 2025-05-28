@@ -22,8 +22,7 @@ public partial class FileInstructService
                 Files = images?.Select(x => new BotSharpFile
                 {
                     FileUrl = x.FileUrl,
-                    FileData = x.FileData,
-                    ContentType = x.ContentType
+                    FileData = x.FileData
                 }).ToList() ?? []
             }
         });

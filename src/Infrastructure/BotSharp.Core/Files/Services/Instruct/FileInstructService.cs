@@ -35,19 +35,28 @@ public partial class FileInstructService : IFileInstructService
     private async Task<BinaryData> DownloadFile(InstructFileModel file)
     {
         var binary = BinaryData.Empty;
-        if (!string.IsNullOrEmpty(file.FileUrl))
-        {
-            var http = _services.GetRequiredService<IHttpClientFactory>();
-            using var client = http.CreateClient();
-            var bytes = await client.GetByteArrayAsync(file.FileUrl);
-            binary = BinaryData.FromBytes(bytes);
-        }
-        else if (!string.IsNullOrEmpty(file.FileData))
-        {
-            (_, binary) = FileUtility.GetFileInfoFromData(file.FileData);
-        }
 
-        return binary;
+        try
+        {
+            if (!string.IsNullOrEmpty(file.FileUrl))
+            {
+                var http = _services.GetRequiredService<IHttpClientFactory>();
+                using var client = http.CreateClient();
+                var bytes = await client.GetByteArrayAsync(file.FileUrl);
+                binary = BinaryData.FromBytes(bytes);
+            }
+            else if (!string.IsNullOrEmpty(file.FileData))
+            {
+                (_, binary) = FileUtility.GetFileInfoFromData(file.FileData);
+            }
+
+            return binary;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Error when downloading file {file.FileUrl}");
+            return binary;
+        }
     }
 
     private async Task<string?> GetAgentTemplate(string agentId, string? templateName)

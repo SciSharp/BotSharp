@@ -85,38 +85,31 @@ public partial class FileInstructService
             return Enumerable.Empty<string>();
         }
 
+        var downloadTasks = files.Select(x => DownloadFile(x));
+        await Task.WhenAll(downloadTasks);
+
         var locs = new List<string>();
-        foreach (var file in files)
+        for (int i = 0; i < files.Count; i++)
         {
+            var binary = downloadTasks.ElementAt(i).Result;
+            if (binary == null || binary.IsEmpty)
+            {
+                continue;
+            }
+
             try
             {
-                var binary = BinaryData.Empty;
-                if (!string.IsNullOrEmpty(file.FileUrl))
-                {
-                    var http = _services.GetRequiredService<IHttpClientFactory>();
-                    using var client = http.CreateClient();
-                    var bytes = await client.GetByteArrayAsync(file.FileUrl);
-                    binary = BinaryData.FromBytes(bytes);
-                }
-                else if (!string.IsNullOrEmpty(file.FileData))
-                {
-                    (_, binary) = FileUtility.GetFileInfoFromData(file.FileData);
-                }
+                var guid = Guid.NewGuid().ToString();
+                var fileDir = _fileStorage.BuildDirectory(dir, guid);
+                DeleteIfExistDirectory(fileDir, createNew: true);
 
-                if (!binary.IsEmpty)
-                {
-                    var guid = Guid.NewGuid().ToString();
-                    var fileDir = _fileStorage.BuildDirectory(dir, guid);
-                    DeleteIfExistDirectory(fileDir, createNew: true);
-
-                    var outputDir = _fileStorage.BuildDirectory(fileDir, $"{guid}.{extension}");
-                    _fileStorage.SaveFileBytesToPath(outputDir, binary);
-                    locs.Add(outputDir);
-                }
+                var outputDir = _fileStorage.BuildDirectory(fileDir, $"{guid}.{extension}");
+                _fileStorage.SaveFileBytesToPath(outputDir, binary);
+                locs.Add(outputDir);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, $"Error when saving {extension} file.");
+                _logger.LogWarning(ex, $"Error when saving #{i + 1} {extension} file.");
                 continue;
             }
         }
