@@ -128,8 +128,8 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
                         else if (!string.IsNullOrEmpty(file.FileStorageUrl))
                         {
                             var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
-                            var bytes = fileStorage!.GetFileBytes(file.FileStorageUrl);
-                            contents.Add(new DataContent(bytes, contentType));
+                            var binary = fileStorage!.GetFileBytes(file.FileStorageUrl);
+                            contents.Add(new DataContent(binary.ToMemory(), contentType));
                         }
                         else if (!string.IsNullOrEmpty(file.FileUrl))
                         {

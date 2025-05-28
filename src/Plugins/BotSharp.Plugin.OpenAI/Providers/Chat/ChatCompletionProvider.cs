@@ -288,15 +288,15 @@ public class ChatCompletionProvider : IChatCompletion
                     {
                         if (!string.IsNullOrEmpty(file.FileData))
                         {
-                            var (contentType, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(bytes), contentType, ChatImageDetailLevel.Auto);
+                            var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
+                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType ?? file.ContentType, ChatImageDetailLevel.Auto);
                             contentParts.Add(contentPart);
                         }
                         else if (!string.IsNullOrEmpty(file.FileStorageUrl))
                         {
                             var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
-                            var bytes = fileStorage.GetFileBytes(file.FileStorageUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(bytes), contentType, ChatImageDetailLevel.Auto);
+                            var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
+                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType, ChatImageDetailLevel.Auto);
                             contentParts.Add(contentPart);
                         }
                         else if (!string.IsNullOrEmpty(file.FileUrl))

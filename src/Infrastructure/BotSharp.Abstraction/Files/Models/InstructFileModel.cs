@@ -10,9 +10,16 @@ public class InstructFileModel : FileBase
     public string? FileExtension { get; set; } = string.Empty;
 
     /// <summary>
-    /// External file url
+    /// File url
     /// </summary>
     [JsonPropertyName("file_url")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? FileUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// File MIME type
+    /// </summary>
+    [JsonPropertyName("content_type")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ContentType { get; set; }
 }

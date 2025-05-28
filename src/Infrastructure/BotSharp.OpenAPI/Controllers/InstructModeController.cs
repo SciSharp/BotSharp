@@ -135,7 +135,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in reading images. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             return error;
         }
     }
@@ -170,7 +170,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in reading image upload. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             viewModel.Message = error;
             return viewModel;
         }
@@ -202,7 +202,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in image generation. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             imageViewModel.Message = error;
             return imageViewModel;
         }
@@ -239,7 +239,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in image variation. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             imageViewModel.Message = error;
             return imageViewModel;
         }
@@ -272,7 +272,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in image variation upload. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             imageViewModel.Message = error;
             return imageViewModel;
         }
@@ -306,7 +306,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in image edit. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             imageViewModel.Message = error;
             return imageViewModel;
         }
@@ -341,7 +341,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in image edit upload. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             imageViewModel.Message = error;
             return imageViewModel;
         }
@@ -377,7 +377,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in image mask edit. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             imageViewModel.Message = error;
             return imageViewModel;
         }
@@ -415,7 +415,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in image mask edit upload. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             imageViewModel.Message = error;
             return imageViewModel;
         }
@@ -446,7 +446,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in pdf completion. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             viewModel.Message = error;
             return viewModel;
         }
@@ -483,7 +483,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in pdf completion upload. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             viewModel.Message = error;
             return viewModel;
         }
@@ -519,7 +519,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in speech to text. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             viewModel.Message = error;
             return viewModel;
         }
@@ -553,7 +553,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in speech-to-text upload. {ex.Message}";
-            _logger.LogError(error);
+            _logger.LogError(ex, error);
             viewModel.Message = error;
             return viewModel;
         }

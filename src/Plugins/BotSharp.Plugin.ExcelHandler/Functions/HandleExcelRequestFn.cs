@@ -113,8 +113,8 @@ public class HandleExcelRequestFn : IFunctionCallback
 
             _currentFileName = Path.GetFileName(file.FileStorageUrl);
 
-            var bytes = _fileStorage.GetFileBytes(file.FileStorageUrl);
-            var workbook = ConvertToWorkBook(bytes);
+            var binary = _fileStorage.GetFileBytes(file.FileStorageUrl);
+            var workbook = ConvertToWorkBook(binary.ToArray());
 
             var currentCommandList = _mySqlService.WriteExcelDataToDB(workbook);
             sqlCommandList.AddRange(currentCommandList);

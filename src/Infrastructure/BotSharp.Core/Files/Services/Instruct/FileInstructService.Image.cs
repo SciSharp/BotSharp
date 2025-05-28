@@ -1,7 +1,5 @@
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs;
-using System.IO;
-using BotSharp.Abstraction.Infrastructures;
 
 namespace BotSharp.Core.Files.Services;
 
@@ -21,7 +19,12 @@ public partial class FileInstructService
         {
             new RoleDialogModel(AgentRole.User, text)
             {
-                Files = images?.Select(x => new BotSharpFile { FileUrl = x.FileUrl, FileData = x.FileData }).ToList() ?? []
+                Files = images?.Select(x => new BotSharpFile
+                {
+                    FileUrl = x.FileUrl,
+                    FileData = x.FileData,
+                    ContentType = x.ContentType
+                }).ToList() ?? []
             }
         });
 
@@ -76,9 +79,8 @@ public partial class FileInstructService
 
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
         var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "dall-e-2");
-        var bytes = await DownloadFile(image);
-        using var stream = new MemoryStream();
-        stream.Write(bytes, 0, bytes.Length);
+        var binary = await DownloadFile(image);
+        using var stream = binary.ToStream();
         stream.Position = 0;
 
         var fileName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";
@@ -113,9 +115,8 @@ public partial class FileInstructService
         var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
 
         var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "dall-e-2");
-        var bytes = await DownloadFile(image);
-        using var stream = new MemoryStream();
-        stream.Write(bytes, 0, bytes.Length);
+        var binary = await DownloadFile(image);
+        using var stream = binary.ToStream();
         stream.Position = 0;
 
         var fileName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";
@@ -153,15 +154,13 @@ public partial class FileInstructService
         var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
 
         var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "dall-e-2");
-        var imageBytes = await DownloadFile(image);
-        var maskBytes = await DownloadFile(mask);
+        var imageBinary = await DownloadFile(image);
+        var maskBinary = await DownloadFile(mask);
 
-        using var imageStream = new MemoryStream();
-        imageStream.Write(imageBytes, 0, imageBytes.Length);
+        using var imageStream = imageBinary.ToStream();
         imageStream.Position = 0;
 
-        using var maskStream = new MemoryStream();
-        maskStream.Write(maskBytes, 0, maskBytes.Length);
+        using var maskStream = maskBinary.ToStream();
         maskStream.Position = 0;
 
         var imageName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";

@@ -132,9 +132,9 @@ public partial class TencentCosService
 
             try
             {
-                var (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
+                var (_, binary) = FileUtility.GetFileInfoFromData(file.FileData);
                 var subDir = $"{dir}/{source}/{i + 1}";
-                _cosClient.BucketClient.UploadBytes($"{subDir}/{file.FileName}", bytes);
+                _cosClient.BucketClient.UploadBytes($"{subDir}/{file.FileName}", binary.ToArray());
             }
             catch (Exception ex)
             {

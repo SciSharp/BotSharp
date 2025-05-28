@@ -90,8 +90,8 @@ public class HandleEmailSenderFn : IFunctionCallback
         {
             if (string.IsNullOrEmpty(file.FileStorageUrl)) continue;
 
-            var fileBytes = fileStorage.GetFileBytes(file.FileStorageUrl);
-            builder.Attachments.Add($"{file.FileName}.{file.FileExtension}", fileBytes, ContentType.Parse(file.ContentType));
+            var fileBinary = fileStorage.GetFileBytes(file.FileStorageUrl);
+            builder.Attachments.Add($"{file.FileName}.{file.FileExtension}", fileBinary.ToArray(), ContentType.Parse(file.ContentType));
             Thread.Sleep(100);
         }
     }

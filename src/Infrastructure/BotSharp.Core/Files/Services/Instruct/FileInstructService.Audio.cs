@@ -14,9 +14,8 @@ public partial class FileInstructService
         }
 
         var completion = CompletionProvider.GetAudioTranscriber(_services, provider: options?.Provider, model: options?.Model);
-        var audioBytes = await DownloadFile(audio);
-        using var stream = new MemoryStream();
-        stream.Write(audioBytes, 0, audioBytes.Length);
+        var audioBinary = await DownloadFile(audio);
+        using var stream = audioBinary.ToStream();
         stream.Position = 0;
 
         var fileName = $"{audio.FileName ?? "audio"}.{audio.FileExtension ?? "wav"}";

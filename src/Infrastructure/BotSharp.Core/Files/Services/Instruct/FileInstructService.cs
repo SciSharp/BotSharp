@@ -32,21 +32,22 @@ public partial class FileInstructService : IFileInstructService
         }
     }
 
-    private async Task<byte[]> DownloadFile(InstructFileModel file)
+    private async Task<BinaryData> DownloadFile(InstructFileModel file)
     {
-        var bytes = new byte[0];
+        var binary = BinaryData.Empty;
         if (!string.IsNullOrEmpty(file.FileUrl))
         {
             var http = _services.GetRequiredService<IHttpClientFactory>();
             using var client = http.CreateClient();
-            bytes = await client.GetByteArrayAsync(file.FileUrl);
+            var bytes = await client.GetByteArrayAsync(file.FileUrl);
+            binary = BinaryData.FromBytes(bytes);
         }
         else if (!string.IsNullOrEmpty(file.FileData))
         {
-            (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
+            (_, binary) = FileUtility.GetFileInfoFromData(file.FileData);
         }
 
-        return bytes;
+        return binary;
     }
 
     private async Task<string?> GetAgentTemplate(string agentId, string? templateName)

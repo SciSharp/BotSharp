@@ -245,8 +245,8 @@ public class UserController : ControllerBase
     private FileContentResult BuildFileResult(string file)
     {
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var bytes = fileStorage.GetFileBytes(file);
-        return File(bytes, "application/octet-stream", Path.GetFileName(file));
+        var binary = fileStorage.GetFileBytes(file);
+        return File(binary.ToArray(), "application/octet-stream", Path.GetFileName(file));
     }
     #endregion
 }

@@ -22,7 +22,7 @@ public partial class FileInstructService
         try
         {
             var provider = options?.Provider ?? "openai";
-            var pdfFiles = await DownloadFiles(sessionDir, files);
+            var pdfFiles = await DownloadAndSaveFiles(sessionDir, files);
 
             var targetFiles = pdfFiles;
             if (provider != "google-ai")
@@ -78,7 +78,7 @@ public partial class FileInstructService
     }
 
     #region Private methods
-    private async Task<IEnumerable<string>> DownloadFiles(string dir, List<InstructFileModel> files, string extension = "pdf")
+    private async Task<IEnumerable<string>> DownloadAndSaveFiles(string dir, List<InstructFileModel> files, string extension = "pdf")
     {
         if (string.IsNullOrWhiteSpace(dir) || files.IsNullOrEmpty())
         {
@@ -90,32 +90,33 @@ public partial class FileInstructService
         {
             try
             {
-                var bytes = new byte[0];
+                var binary = BinaryData.Empty;
                 if (!string.IsNullOrEmpty(file.FileUrl))
                 {
                     var http = _services.GetRequiredService<IHttpClientFactory>();
                     using var client = http.CreateClient();
-                    bytes = await client.GetByteArrayAsync(file.FileUrl);
+                    var bytes = await client.GetByteArrayAsync(file.FileUrl);
+                    binary = BinaryData.FromBytes(bytes);
                 }
                 else if (!string.IsNullOrEmpty(file.FileData))
                 {
-                    (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
+                    (_, binary) = FileUtility.GetFileInfoFromData(file.FileData);
                 }
 
-                if (!bytes.IsNullOrEmpty())
+                if (!binary.IsEmpty)
                 {
                     var guid = Guid.NewGuid().ToString();
                     var fileDir = _fileStorage.BuildDirectory(dir, guid);
-                    DeleteIfExistDirectory(fileDir, true);
+                    DeleteIfExistDirectory(fileDir, createNew: true);
 
                     var outputDir = _fileStorage.BuildDirectory(fileDir, $"{guid}.{extension}");
-                    _fileStorage.SaveFileBytesToPath(outputDir, bytes);
+                    _fileStorage.SaveFileBytesToPath(outputDir, binary);
                     locs.Add(outputDir);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, $"Error when saving pdf file.");
+                _logger.LogWarning(ex, $"Error when saving {extension} file.");
                 continue;
             }
         }

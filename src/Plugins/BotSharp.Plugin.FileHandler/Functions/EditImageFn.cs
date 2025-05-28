@@ -77,9 +77,8 @@ public class EditImageFn : IFunctionCallback
             };
 
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
-            var fileBytes = fileStorage.GetFileBytes(image.FileStorageUrl);
-            using var stream = new MemoryStream();
-            stream.Write(fileBytes);
+            var fileBinary = fileStorage.GetFileBytes(image.FileStorageUrl);
+            using var stream = fileBinary.ToStream();
             stream.Position = 0;
             var result = await completion.GetImageEdits(agent, dialog, stream, image.FileName ?? string.Empty);
             stream.Close();
