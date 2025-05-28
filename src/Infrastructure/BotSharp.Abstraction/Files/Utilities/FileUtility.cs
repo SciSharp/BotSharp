@@ -20,7 +20,7 @@ public static class FileUtility
 
         if (!data.StartsWith("data:"))
         {
-            return (null, BinaryData.FromString(data));
+            return (null, BinaryData.FromBytes(Convert.FromBase64String(data)));
         }
 
         var typeStartIdx = data.IndexOf(':');
@@ -30,7 +30,7 @@ public static class FileUtility
         var base64startIdx = data.IndexOf(',');
         var base64Str = data.Substring(base64startIdx + 1);
 
-        return (contentType, BinaryData.FromString(base64Str));
+        return (contentType, BinaryData.FromBytes(Convert.FromBase64String(base64Str)));
     }
 
     public static string BuildFileDataFromFile(string fileName, BinaryData binary)

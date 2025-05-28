@@ -141,7 +141,8 @@ public class InstructModeController : ControllerBase
     }
 
     [HttpPost("/instruct/multi-modal/upload")]
-    public async Task<MultiModalViewModel> MultiModalCompletion([FromForm] IEnumerable<IFormFile> files, [FromForm] MultiModalRequest request)
+    public async Task<MultiModalViewModel> MultiModalCompletion([FromForm] IEnumerable<IFormFile> files, [FromForm] MultiModalRequest request,
+        [FromForm] List<MessageState>? states = null, [FromForm] List<string>? list = null)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         request?.States?.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));

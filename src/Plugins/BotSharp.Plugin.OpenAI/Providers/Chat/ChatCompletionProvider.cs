@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Hooks;
 using OpenAI.Chat;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
@@ -289,7 +290,7 @@ public class ChatCompletionProvider : IChatCompletion
                         if (!string.IsNullOrEmpty(file.FileData))
                         {
                             var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(binary.ToArray()), contentType, ChatImageDetailLevel.Auto);
+                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType, ChatImageDetailLevel.Auto);
                             contentParts.Add(contentPart);
                         }
                         else if (!string.IsNullOrEmpty(file.FileStorageUrl))
