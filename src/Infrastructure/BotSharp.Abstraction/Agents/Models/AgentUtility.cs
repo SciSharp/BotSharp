@@ -26,7 +26,8 @@ public class AgentUtility
 public class UtilityItem
 {
     [JsonPropertyName("function_name")]
-    public string FunctionName { get; set; } = string.Empty;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FunctionName { get; set; }
 
     [JsonPropertyName("template_name")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -36,34 +37,3 @@ public class UtilityItem
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? VisibilityExpression { get; set; }
 }
-
-//public class UtilityFunction : UtilityBase
-//{
-//    public UtilityFunction()
-//    {
-        
-//    }
-
-//    public UtilityFunction(string name)
-//    {
-//        Name = name;
-//    }
-//}
-
-//public class UtilityTemplate : UtilityBase
-//{
-//    public UtilityTemplate()
-//    {
-        
-//    }
-
-//    public UtilityTemplate(string name)
-//    {
-//        Name = name;
-//    }
-//}
-
-//public class UtilityBase
-//{
-//    public string Name { get; set; }
-//}

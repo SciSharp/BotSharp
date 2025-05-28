@@ -48,7 +48,7 @@ public class AgentUtilityMongoElement
 
 public class AgentUtilityItemMongoElement
 {
-    public string FunctionName { get; set; } = string.Empty;
+    public string? FunctionName { get; set; }
     public string? TemplateName { get; set; }
     public string? VisibilityExpression { get; set; }
 }
