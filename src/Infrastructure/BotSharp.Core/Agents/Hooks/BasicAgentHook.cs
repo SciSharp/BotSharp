@@ -63,21 +63,33 @@ public class BasicAgentHook : AgentHookBase
         }
 
         var agentService = _services.GetRequiredService<IAgentService>();
-        var innerUtilities = utilities!.Where(x =>
+        var innerUtilities = utilities!.Where(x => !string.IsNullOrEmpty(x.Name) && !x.Disabled).ToList();
+
+        var functionNames = new List<string>();
+        var templateNames = new List<string>();
+
+        foreach (var utility in innerUtilities)
         {
-            var isVisible = !string.IsNullOrEmpty(x.Name) && !x.Disabled;
-            return isVisible && agentService.RenderUtility(agent, x);
-        }).ToList();
+            var isVisible = agentService.RenderVisibility(utility.VisibilityExpression, agent.TemplateDict);
+            if (!isVisible || utility.Items.IsNullOrEmpty()) continue;
 
-        var functionNames = innerUtilities.SelectMany(x => x.Functions)
-                                         .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith(UTIL_PREFIX))
-                                         .Select(x => x.Name)
-                                         .Distinct().ToList();
-        var templateNames = innerUtilities.SelectMany(x => x.Templates)
-                                         .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith(UTIL_PREFIX))
-                                         .Select(x => x.Name)
-                                         .Distinct().ToList();
+            foreach (var item in utility.Items)
+            {
+                isVisible = agentService.RenderVisibility(item.VisibilityExpression, agent.TemplateDict);
+                if (!isVisible) continue;
 
-        return (functionNames, templateNames);
+                if (item.FunctionName?.StartsWith(UTIL_PREFIX) == true)
+                {
+                    functionNames.Add(item.FunctionName);
+                }
+
+                if (item.TemplateName?.StartsWith(UTIL_PREFIX) == true)
+                {
+                    templateNames.Add(item.TemplateName);
+                }
+            }
+        }
+
+        return (functionNames.Distinct(), templateNames.Distinct());
     }   
 }

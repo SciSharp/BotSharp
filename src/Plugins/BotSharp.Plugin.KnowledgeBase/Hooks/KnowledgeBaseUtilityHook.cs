@@ -9,9 +9,15 @@ public class KnowledgeBaseUtilityHook : IAgentUtilityHook
     {
         var utility = new AgentUtility
         {
+            Category = "knowledge",
             Name = UtilityName.KnowledgeRetrieval,
-            Functions = [new(KNOWLEDGE_RETRIEVAL_FN)],
-            Templates = [new($"{KNOWLEDGE_RETRIEVAL_FN}.fn")]
+            Items = [
+                new UtilityItem
+                {
+                    FunctionName = KNOWLEDGE_RETRIEVAL_FN,
+                    TemplateName = $"{KNOWLEDGE_RETRIEVAL_FN}.fn"
+                }
+            ]
         };
 
         utilities.Add(utility);

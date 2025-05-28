@@ -62,7 +62,7 @@ namespace BotSharp.Plugin.Google.Core
             return def.Parameters;
         }
 
-        public bool RenderUtility(Agent agent, AgentUtility utility)
+        public bool RenderVisibility(string? visibilityExpression, Dictionary<string, object> dict)
         {
             return true;
         }

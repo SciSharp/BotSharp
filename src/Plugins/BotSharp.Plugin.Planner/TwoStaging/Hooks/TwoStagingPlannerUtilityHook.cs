@@ -10,16 +10,24 @@ public class TwoStagingPlannerUtilityHook : IAgentUtilityHook
     {
         var utility = new AgentUtility
         {
+            Category = "planner",
             Name = UtilityName.TwoStagePlanner,
-            Functions = [
-                new(PRIMARY_STAGE_FN),
-                new(SECONDARY_STAGE_FN),
-                new(SUMMARY_FN)
-            ],
-            Templates = [
-                new($"{PRIMARY_STAGE_FN}.fn"),
-                new($"{SECONDARY_STAGE_FN}.fn"),
-                new($"{SUMMARY_FN}.fn")
+            Items = [
+                new UtilityItem
+                {
+                    FunctionName = PRIMARY_STAGE_FN,
+                    TemplateName = $"{PRIMARY_STAGE_FN}.fn"
+                },
+                new UtilityItem
+                {
+                    FunctionName = SECONDARY_STAGE_FN,
+                    TemplateName = $"{SECONDARY_STAGE_FN}.fn"
+                },
+                new UtilityItem
+                {
+                    FunctionName = SUMMARY_FN,
+                    TemplateName = $"{SUMMARY_FN}.fn"
+                }
             ]
         };
 

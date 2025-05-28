@@ -9,9 +9,14 @@ public class InstructUtilityHook : IAgentUtilityHook
     {
         utilities.Add(new AgentUtility
         {
-            Name = "instruct.template",
-            Functions = [new($"{EXECUTE_TEMPLATE}")],
-            Templates = [new($"{EXECUTE_TEMPLATE}.fn")]
+            Category = "instruct",
+            Name = "template",
+            Items = [
+                new UtilityItem {
+                    FunctionName = $"{EXECUTE_TEMPLATE}",
+                    TemplateName = $"{EXECUTE_TEMPLATE}.fn"
+                }
+            ]
         });
     }
 }

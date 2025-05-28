@@ -9,9 +9,15 @@ public class AudioHandlerUtilityHook : IAgentUtilityHook
     {
         var utility = new AgentUtility
         {
+            Category = "audio",
             Name = UtilityName.AudioHandler,
-            Functions = [new(HANDLER_AUDIO)],
-            Templates = [new($"{HANDLER_AUDIO}.fn")]
+            Items = [
+                new UtilityItem
+                {
+                    FunctionName = HANDLER_AUDIO,
+                    TemplateName = $"{HANDLER_AUDIO}.fn"
+                }
+            ]
         };
 
         utilities.Add(utility);
