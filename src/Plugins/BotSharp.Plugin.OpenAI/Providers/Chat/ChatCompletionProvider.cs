@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Hooks;
 using OpenAI.Chat;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
