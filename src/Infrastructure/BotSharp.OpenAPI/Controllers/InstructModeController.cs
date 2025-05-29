@@ -1,12 +1,9 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Files.Utilities;
-using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Core.Infrastructures;
 using BotSharp.OpenAPI.ViewModels.Instructs;
-using BotSharp.OpenAPI.ViewModels.Instructs.Request;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.OpenAPI.Controllers;
 
