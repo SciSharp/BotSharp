@@ -71,14 +71,10 @@ public partial class AgentService
 
         var state = _services.GetRequiredService<IConversationStateService>();
         var channel = state.GetState("channel");
-
-        if (string.IsNullOrWhiteSpace(channel))
-        {
-            return;
-        }
-
+        
         var found = instructions.FirstOrDefault(x => x.Channel.IsEqualTo(channel));
-        agent.Instruction = !string.IsNullOrWhiteSpace(found?.Instruction) ? found.Instruction : agent.Instruction;
+        var defaultInstruction = instructions.FirstOrDefault(x => x.Channel == string.Empty);
+        agent.Instruction = !string.IsNullOrWhiteSpace(found?.Instruction) ? found.Instruction : defaultInstruction?.Instruction;
     }
 
     private void PopulateState(Dictionary<string, object> dict)
