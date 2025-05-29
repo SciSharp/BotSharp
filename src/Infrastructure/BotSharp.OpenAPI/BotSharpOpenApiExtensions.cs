@@ -11,6 +11,8 @@ using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.JsonWebTokens;
 using BotSharp.OpenAPI.BackgroundServices;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication;
 
 namespace BotSharp.OpenAPI;
 
@@ -61,6 +63,9 @@ public static class BotSharpOpenApiExtensions
             }
         }).AddCookie(options =>
         {
+            // Add these lines for cross-origin cookie support
+            options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         }).AddPolicyScheme(schema, "Mixed authentication", options =>
         {
             // runs on each request
@@ -82,15 +87,16 @@ public static class BotSharpOpenApiExtensions
             };
         });
 
+        #region OpenId
         // GitHub OAuth
         if (!string.IsNullOrWhiteSpace(config["OAuth:GitHub:ClientId"]) && !string.IsNullOrWhiteSpace(config["OAuth:GitHub:ClientSecret"]))
         {
             builder = builder.AddGitHub(options =>
-             {
-                 options.ClientId = config["OAuth:GitHub:ClientId"];
-                 options.ClientSecret = config["OAuth:GitHub:ClientSecret"];
-                 options.Scope.Add("user:email");
-             });
+            {
+                options.ClientId = config["OAuth:GitHub:ClientId"];
+                options.ClientSecret = config["OAuth:GitHub:ClientSecret"];
+                options.Events.OnTicketReceived = OnTicketReceivedContext;
+            });
         }
 
         // Google Identiy OAuth
@@ -100,6 +106,7 @@ public static class BotSharpOpenApiExtensions
             {
                 options.ClientId = config["OAuth:Google:ClientId"];
                 options.ClientSecret = config["OAuth:Google:ClientSecret"];
+                options.Events.OnTicketReceived = OnTicketReceivedContext;
             });
         }
 
@@ -113,8 +120,9 @@ public static class BotSharpOpenApiExtensions
                 options.ClientId = config["OAuth:Keycloak:ClientId"];
                 options.ClientSecret = config["OAuth:Keycloak:ClientSecret"];
                 options.AccessType = AspNet.Security.OAuth.Keycloak.KeycloakAuthenticationAccessType.Confidential;
-                int version = Convert.ToInt32(config["OAuth:Keycloak:Version"]??"22") ;
-                options.Version = new Version(version,0);
+                int version = Convert.ToInt32(config["OAuth:Keycloak:Version"] ?? "22");
+                options.Version = new Version(version, 0);
+                options.Events.OnTicketReceived = OnTicketReceivedContext;
             });
         }
 
@@ -129,13 +137,17 @@ public static class BotSharpOpenApiExtensions
                 options.Backchannel = builder.Services.BuildServiceProvider()
                     .GetRequiredService<IHttpClientFactory>()
                     .CreateClient();
+                options.Events.OnTicketReceived = OnTicketReceivedContext;
             });
         }
+        #endregion
 
         // Add services to the container.
         services.AddControllers()
             .AddJsonOptions(options =>
             {
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 options.JsonSerializerOptions.Converters.Add(new RichContentJsonConverter());
                 options.JsonSerializerOptions.Converters.Add(new TemplateMessageJsonConverter());
             });
@@ -180,6 +192,16 @@ public static class BotSharpOpenApiExtensions
         });
 
         return services;
+    }
+
+    private static async Task OnTicketReceivedContext(TicketReceivedContext context)
+    {
+        var services = context.HttpContext.RequestServices;
+        var hooks = services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            await hook.OAuthCompleted(context);
+        }
     }
 
     /// <summary>
