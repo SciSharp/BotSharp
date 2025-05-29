@@ -1,20 +1,21 @@
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService
 {
-    public async Task<string> GetConversationSummary(IEnumerable<string> conversationIds)
+    public async Task<string> GetConversationSummary(ConversationSummaryModel model)
     {
-        if (conversationIds.IsNullOrEmpty()) return string.Empty;
+        if (model.ConversationIds.IsNullOrEmpty()) return string.Empty;
 
         var routing = _services.GetRequiredService<IRoutingService>();
         var agentService = _services.GetRequiredService<IAgentService>();
 
         var contents = new List<string>();
-        foreach ( var conversationId in conversationIds)
+        foreach (var conversationId in model.ConversationIds)
         {
             if (string.IsNullOrEmpty(conversationId)) continue;
 
@@ -31,16 +32,16 @@ public partial class ConversationService
 
         if (contents.IsNullOrEmpty()) return string.Empty;
 
-        var router = await agentService.LoadAgent(AIAssistant);
-        var prompt = GetPrompt(router, contents);
-        var summary = await Summarize(router, prompt);
+        var agent = await agentService.LoadAgent(model.AgentId);
+        var prompt = GetPrompt(agent, model.TemplateName, contents);
+        var summary = await Summarize(agent, prompt);
 
         return summary;
     }
 
-    private string GetPrompt(Agent agent, List<string> contents)
+    private string GetPrompt(Agent agent, string templateName, List<string> contents)
     {
-        var template = agent.Templates.First(x => x.Name == "conversation.summary").Content;
+        var template = agent.Templates.First(x => x.Name == templateName).Content;
         var render = _services.GetRequiredService<ITemplateRender>();
 
         var texts = new List<string>();
