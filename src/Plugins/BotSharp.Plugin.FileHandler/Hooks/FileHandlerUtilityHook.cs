@@ -37,6 +37,7 @@ public class FileHandlerUtilityHook : IAgentUtilityHook
             },
             new AgentUtility
             {
+                Category = "file",
                 Name = UtilityName.ImageEditor,
                 Items = [
                     new UtilityItem
