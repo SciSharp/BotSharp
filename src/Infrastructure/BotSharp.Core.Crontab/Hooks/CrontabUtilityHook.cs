@@ -15,9 +15,19 @@ public class CrontabUtilityHook : IAgentUtilityHook
         {
             new AgentUtility
             {
+                Category = "crontab",
                 Name = UtilityName.ScheduleTask,
-                Functions = [new(SCHEDULE_TASK_FN), new(TASK_WAIT_FN)],
-                Templates = [new($"{SCHEDULE_TASK_FN}.fn")]
+                Items = [
+                    new UtilityItem
+                    {
+                        FunctionName = SCHEDULE_TASK_FN,
+                        TemplateName = $"{SCHEDULE_TASK_FN}.fn"
+                    },
+                    new UtilityItem
+                    {
+                        FunctionName = TASK_WAIT_FN
+                    },
+                ]
             }
         };
 

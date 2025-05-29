@@ -11,9 +11,15 @@ public class HttpHandlerUtilityHook : IAgentUtilityHook
     {
         var utility = new AgentUtility
         {
+            Category = "http",
             Name = UtilityName.HttpHandler,
-            Functions = [new(HTTP_HANDLER_FN)],
-            Templates = [new($"{HTTP_HANDLER_FN}.fn")]
+            Items = [
+                new UtilityItem
+                {
+                    FunctionName = HTTP_HANDLER_FN,
+                    TemplateName = $"{HTTP_HANDLER_FN}.fn"
+                }
+            ]
         };
 
         utilities.Add(utility);

@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Files;
-using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;

@@ -167,7 +167,9 @@ public class AgentController : ControllerBase
         {
             hook.AddUtilities(utilities);
         }
-        return utilities.Where(x => !string.IsNullOrWhiteSpace(x.Name)).OrderBy(x => x.Name).ToList();
+        return utilities.Where(x => !string.IsNullOrWhiteSpace(x.Category)
+                                 && !string.IsNullOrWhiteSpace(x.Name)
+                                 && !x.Items.IsNullOrEmpty()).ToList();
     }
  
     [HttpGet("/agent/labels")]

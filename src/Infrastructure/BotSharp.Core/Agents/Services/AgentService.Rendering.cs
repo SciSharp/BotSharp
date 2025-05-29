@@ -46,12 +46,7 @@ public partial class AgentService
 
         if (!string.IsNullOrWhiteSpace(def.VisibilityExpression))
         {
-            var render = _services.GetRequiredService<ITemplateRender>();
-            var result = render.Render(def.VisibilityExpression, new Dictionary<string, object>
-            {
-                { "states", agent.TemplateDict }
-            });
-            isRender = isRender && result == "visible";
+            isRender = RenderVisibility(def.VisibilityExpression, agent.TemplateDict);
         }
 
         return isRender;
@@ -76,12 +71,7 @@ public partial class AgentService
             if (node.TryGetProperty(visibleExpress, out var element))
             {
                 var expression = element.GetString();
-                var render = _services.GetRequiredService<ITemplateRender>();
-                var result = render.Render(expression, new Dictionary<string, object>
-                {
-                    { "states", agent.TemplateDict }
-                });
-                matched = result == "visible";
+                matched = RenderVisibility(expression, agent.TemplateDict);
             }
 
             if (matched)
@@ -136,5 +126,21 @@ public partial class AgentService
             agent.Id).Wait();
 
         return content;
+    }
+
+    public bool RenderVisibility(string? visibilityExpression, Dictionary<string, object> dict)
+    {
+        if (string.IsNullOrWhiteSpace(visibilityExpression))
+        {
+            return true;
+        }
+
+        var render = _services.GetRequiredService<ITemplateRender>();
+        var result = render.Render(visibilityExpression, new Dictionary<string, object>
+        {
+            { "states", dict ?? [] }
+        });
+
+        return result.IsEqualTo("visible");
     }
 }

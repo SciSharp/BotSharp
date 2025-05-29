@@ -13,27 +13,50 @@ public class FileHandlerUtilityHook : IAgentUtilityHook
         {
             new AgentUtility
             {
+                Category = "file",
                 Name = UtilityName.ImageGenerator,
-                Functions = [new(GENERATE_IMAGE_FN)],
-                Templates = [new($"{GENERATE_IMAGE_FN}.fn")]
+                Items = [
+                    new UtilityItem
+                    {
+                        FunctionName = GENERATE_IMAGE_FN,
+                        TemplateName = $"{GENERATE_IMAGE_FN}.fn"
+                    }    
+                ]
             },
             new AgentUtility
             {
+                Category = "file",
                 Name = UtilityName.ImageReader,
-                Functions = [new(READ_IMAGE_FN)],
-                Templates = [new($"{READ_IMAGE_FN}.fn")]
+                Items = [
+                    new UtilityItem
+                    {
+                        FunctionName = READ_IMAGE_FN,
+                        TemplateName = $"{READ_IMAGE_FN}.fn"
+                    }
+                ]
             },
             new AgentUtility
             {
                 Name = UtilityName.ImageEditor,
-                Functions = [new(EDIT_IMAGE_FN)],
-                Templates = [new($"{EDIT_IMAGE_FN}.fn")]
+                Items = [
+                    new UtilityItem
+                    {
+                        FunctionName = EDIT_IMAGE_FN,
+                        TemplateName = $"{EDIT_IMAGE_FN}.fn"
+                    }
+                ]
             },
             new AgentUtility
             {
+                Category = "file",
                 Name = UtilityName.PdfReader,
-                Functions = [new(READ_PDF_FN)],
-                Templates = [new($"{READ_PDF_FN}.fn")]
+                Items = [
+                    new UtilityItem
+                    {
+                        FunctionName = READ_PDF_FN,
+                        TemplateName = $"{READ_PDF_FN}.fn"
+                    }
+                ]
             }
         };
 

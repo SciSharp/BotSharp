@@ -16,17 +16,29 @@ public class OutboundPhoneCallHandlerUtilityHook : IAgentUtilityHook
     {
         var utility = new AgentUtility
         {
+            Category = "phone",
             Name = UtilityName.OutboundPhoneCall,
-            Functions = 
-            [
-                new($"{OUTBOUND_PHONE_CALL_FN}"),
-                new($"{TRANSFER_PHONE_CALL_FN}"),
-                new($"{HANGUP_PHONE_CALL_FN}"),
-                new($"{TEXT_MESSAGE_FN}"),
-                new($"{LEAVE_VOICEMAIL_FN}")
-            ],
-            Templates = 
-            [
+            Items = [
+                new UtilityItem
+                {
+                    FunctionName = OUTBOUND_PHONE_CALL_FN
+                },
+                new UtilityItem
+                {
+                    FunctionName = TRANSFER_PHONE_CALL_FN
+                },
+                new UtilityItem
+                {
+                    FunctionName = HANGUP_PHONE_CALL_FN
+                },
+                new UtilityItem
+                {
+                    FunctionName = TEXT_MESSAGE_FN
+                },
+                new UtilityItem
+                {
+                    FunctionName = LEAVE_VOICEMAIL_FN
+                }
             ]
         };
 
