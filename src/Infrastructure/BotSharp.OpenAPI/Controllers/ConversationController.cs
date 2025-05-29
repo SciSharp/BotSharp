@@ -185,7 +185,7 @@ public class ConversationController : ControllerBase
     public async Task<string> GetConversationSummary([FromBody] ConversationSummaryModel input)
     {
         var service = _services.GetRequiredService<IConversationService>();
-        return await service.GetConversationSummary(input.ConversationIds);
+        return await service.GetConversationSummary(input);
     }
 
     [HttpPut("/conversation/{conversationId}/update-title")]

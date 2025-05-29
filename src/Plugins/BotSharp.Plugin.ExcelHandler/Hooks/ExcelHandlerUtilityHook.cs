@@ -9,9 +9,15 @@ public class ExcelHandlerUtilityHook : IAgentUtilityHook
     {
         var utility = new AgentUtility
         {
+            Category = "file",
             Name = UtilityName.ExcelHandler,
-            Functions = [new(HANDLER_EXCEL)],
-            Templates = [new($"{HANDLER_EXCEL}.fn")]
+            Items = [
+                new UtilityItem
+                {
+                    FunctionName = HANDLER_EXCEL,
+                    TemplateName = $"{HANDLER_EXCEL}.fn"
+                }
+            ]
         };
 
         utilities.Add(utility);

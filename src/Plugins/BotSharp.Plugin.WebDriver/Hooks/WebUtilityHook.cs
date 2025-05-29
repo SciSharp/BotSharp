@@ -14,18 +14,27 @@ public class WebUtilityHook : IAgentUtilityHook
         {
             new AgentUtility
             {
-                Name = "web.tools",
-                Functions = 
-                [
-                    new(CLOSE_BROWSER_FN),
-                    new(GO_TO_PAGE_FN),
-                    new(LOCATE_ELEMENT_FN),
-                    new(ACTION_ON_ELEMENT_FN)
-                ],
-                Templates = 
-                [
-                    new($"{GO_TO_PAGE_FN}.fn"),
-                    new($"{ACTION_ON_ELEMENT_FN}.fn")
+                Category = "web",
+                Name = "browser.tools",
+                Items = [
+                    new UtilityItem
+                    {
+                        FunctionName = GO_TO_PAGE_FN,
+                        TemplateName = $"{GO_TO_PAGE_FN}.fn"
+                    },
+                    new UtilityItem
+                    {
+                        FunctionName = ACTION_ON_ELEMENT_FN,
+                        TemplateName = $"{ACTION_ON_ELEMENT_FN}.fn"
+                    },
+                    new UtilityItem
+                    {
+                        FunctionName = LOCATE_ELEMENT_FN
+                    },
+                    new UtilityItem
+                    {
+                        FunctionName = CLOSE_BROWSER_FN
+                    }
                 ]
             }
         };

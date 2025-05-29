@@ -10,9 +10,20 @@ public class RoutingUtilityHook : IAgentUtilityHook
     {
         utilities.Add(new AgentUtility
         {
+            Category = "routing",
             Name = "routing.tools",
-            Functions = [new($"{REDIRECT_TO_AGENT}"), new($"{FALLBACK_TO_ROUTER}")],
-            Templates = [new($"{REDIRECT_TO_AGENT}.fn"), new($"{FALLBACK_TO_ROUTER}.fn")]
+            Items = [
+                new UtilityItem
+                {
+                    FunctionName = $"{REDIRECT_TO_AGENT}",
+                    TemplateName = $"{REDIRECT_TO_AGENT}.fn"
+                },
+                new UtilityItem
+                {
+                    FunctionName = $"{FALLBACK_TO_ROUTER}",
+                    TemplateName = $"{FALLBACK_TO_ROUTER}.fn"
+                }
+            ]
         });
     }
 }

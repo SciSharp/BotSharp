@@ -5,19 +5,26 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 [BsonIgnoreExtraElements(Inherited = true)]
 public class AgentUtilityMongoElement
 {
+    public string Category { get; set; } = default!;
     public string Name { get; set; } = default!;
     public bool Disabled { get; set; }
-    public List<UtilityFunctionMongoElement> Functions { get; set; } = [];
-    public List<UtilityTemplateMongoElement> Templates { get; set; } = [];
+    public string? VisibilityExpression { get; set; }
+    public List<AgentUtilityItemMongoElement> Items { get; set; } = [];
 
     public static AgentUtilityMongoElement ToMongoElement(AgentUtility utility)
     {
         return new AgentUtilityMongoElement
         {
+            Category = utility.Category,
             Name = utility.Name,
             Disabled = utility.Disabled,
-            Functions = utility.Functions?.Select(x => new UtilityFunctionMongoElement(x.Name))?.ToList() ?? [],
-            Templates = utility.Templates?.Select(x => new UtilityTemplateMongoElement(x.Name))?.ToList() ?? []
+            VisibilityExpression = utility.VisibilityExpression,
+            Items = utility.Items?.Select(x => new AgentUtilityItemMongoElement
+            {
+                FunctionName = x.FunctionName,
+                TemplateName = x.TemplateName,
+                VisibilityExpression = x.VisibilityExpression
+            })?.ToList() ?? []
         };
     }
 
@@ -25,20 +32,23 @@ public class AgentUtilityMongoElement
     {
         return new AgentUtility
         {
+            Category = utility.Category,
             Name = utility.Name,
             Disabled = utility.Disabled,
-            Functions = utility.Functions?.Select(x => new UtilityFunction(x.Name))?.ToList() ?? [],
-            Templates = utility.Templates?.Select(x => new UtilityTemplate(x.Name))?.ToList() ?? []
+            VisibilityExpression = utility.VisibilityExpression,
+            Items = utility.Items?.Select(x => new UtilityItem
+            {
+                FunctionName = x.FunctionName,
+                TemplateName = x.TemplateName,
+                VisibilityExpression = x.VisibilityExpression
+            })?.ToList() ?? [],
         };
     }
 }
 
-public class UtilityFunctionMongoElement(string name)
+public class AgentUtilityItemMongoElement
 {
-    public string Name { get; set; } = name;
-}
-
-public class UtilityTemplateMongoElement(string name)
-{
-    public string Name { get; set; } = name;
+    public string? FunctionName { get; set; }
+    public string? TemplateName { get; set; }
+    public string? VisibilityExpression { get; set; }
 }

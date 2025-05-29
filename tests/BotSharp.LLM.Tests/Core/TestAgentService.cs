@@ -6,6 +6,7 @@ using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Utilities;
+using NetTopologySuite.Algorithm;
 
 namespace BotSharp.Plugin.Google.Core
 {
@@ -59,6 +60,11 @@ namespace BotSharp.Plugin.Google.Core
         public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def)
         {
             return def.Parameters;
+        }
+
+        public bool RenderVisibility(string? visibilityExpression, Dictionary<string, object> dict)
+        {
+            return true;
         }
 
         public Task<Agent> GetAgent(string id)

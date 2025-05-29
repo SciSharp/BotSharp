@@ -14,18 +14,24 @@ public class SqlUtilityHook : IAgentUtilityHook
         {
             new AgentUtility
             {
-                Name = "db.tools",
-                Functions = 
-                [
-                    new(SQL_TABLE_DEFINITION_FN),
-                    new(VERIFY_DICTIONARY_TERM_FN),
-                    new(SQL_SELECT_FN),
-                ],
-                Templates = 
-                [
-                    new($"{VERIFY_DICTIONARY_TERM_FN}.fn"),
-                    new($"{SQL_TABLE_DEFINITION_FN}.fn"),
-                    new($"{SQL_EXECUTOR_FN}.fn")
+                Category = "database",
+                Name = "sql.tools",
+                Items = [
+                    new UtilityItem
+                    {
+                        FunctionName = SQL_TABLE_DEFINITION_FN,
+                        TemplateName = $"{SQL_TABLE_DEFINITION_FN}.fn"
+                    },
+                    new UtilityItem
+                    {
+                        FunctionName = VERIFY_DICTIONARY_TERM_FN,
+                        TemplateName = $"{VERIFY_DICTIONARY_TERM_FN}.fn"
+                    },
+                    new UtilityItem
+                    {
+                        FunctionName = SQL_SELECT_FN,
+                        TemplateName = $"{SQL_EXECUTOR_FN}.fn"
+                    }
                 ]
             }
         };

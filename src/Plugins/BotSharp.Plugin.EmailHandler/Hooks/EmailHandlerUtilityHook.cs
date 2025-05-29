@@ -13,9 +13,20 @@ public class EmailHandlerUtilityHook : IAgentUtilityHook
     {
         var utility = new AgentUtility
         {
+            Category = "email",
             Name = UtilityName.EmailHandler,
-            Functions = [new(EMAIL_READER_FN), new(EMAIL_SENDER_FN)],
-            Templates = [new($"{EMAIL_READER_FN}.fn"), new($"{EMAIL_SENDER_FN}.fn")]
+            Items = [
+                new UtilityItem
+                {
+                    FunctionName = EMAIL_READER_FN,
+                    TemplateName = $"{EMAIL_READER_FN}.fn"
+                },
+                new UtilityItem
+                {
+                    FunctionName = EMAIL_SENDER_FN,
+                    TemplateName = $"{EMAIL_SENDER_FN}.fn"
+                }
+            ]
         };
 
         utilities.Add(utility);

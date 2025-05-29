@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Abstraction.Routing.Models;
 using System.Collections.Concurrent;
 
@@ -18,12 +17,15 @@ public partial class AgentService
         var agent = await GetAgent(id);
         if (agent == null) return null;
 
+        agent.TemplateDict = [];
+        agent.SecondaryInstructions = [];
+        agent.SecondaryFunctions = [];
+
         await InheritAgent(agent);
         OverrideInstructionByChannel(agent);
         AddOrUpdateParameters(agent);
 
         // Populate state into dictionary
-        agent.TemplateDict = new Dictionary<string, object>();
         PopulateState(agent.TemplateDict);
 
         // After agent is loaded

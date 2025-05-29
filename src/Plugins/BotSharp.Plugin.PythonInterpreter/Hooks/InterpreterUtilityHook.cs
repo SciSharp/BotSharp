@@ -8,9 +8,15 @@ public class InterpreterUtilityHook : IAgentUtilityHook
     {
         var utility = new AgentUtility()
         {
+            Category = "coding",
             Name = UtilityName.PythonInterpreter,
-            Functions = [new(FUNCTION_NAME)],
-            Templates = [new($"{FUNCTION_NAME}.fn")]
+            Items = [
+                new UtilityItem
+                {
+                    FunctionName = FUNCTION_NAME,
+                    TemplateName = $"{FUNCTION_NAME}.fn"
+                }
+            ]
         };
 
         utilities.Add(utility);
