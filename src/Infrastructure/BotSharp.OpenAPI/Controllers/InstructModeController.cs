@@ -91,7 +91,12 @@ public class InstructModeController : ControllerBase
         {
             new RoleDialogModel(AgentRole.User, input.Text)
             {
-                Files = input.Files?.Select(x => new BotSharpFile { FileUrl = x.FileUrl, FileData = x.FileData }).ToList() ?? []
+                Files = input.Files?.Select(x => new BotSharpFile
+                {
+                    FileUrl = x.FileUrl,
+                    FileData = x.FileData,
+                    ContentType = x.ContentType
+                }).ToList() ?? []
             }
         });
 
@@ -256,7 +261,7 @@ public class InstructModeController : ControllerBase
             {
                 FileData = fileData,
                 FileName = Path.GetFileNameWithoutExtension(file.FileName),
-                FileExtension = Path.GetExtension(file.FileName).Substring(1)
+                FileExtension = Path.GetExtension(file.FileName)
             },
             new InstructOptions
             {
@@ -327,7 +332,7 @@ public class InstructModeController : ControllerBase
             {
                 FileData = fileData,
                 FileName = Path.GetFileNameWithoutExtension(file.FileName),
-                FileExtension = Path.GetExtension(file.FileName).Substring(1)
+                FileExtension = Path.GetExtension(file.FileName)
             },
             new InstructOptions
             {
@@ -404,13 +409,13 @@ public class InstructModeController : ControllerBase
                 {
                     FileData = imageData,
                     FileName = Path.GetFileNameWithoutExtension(image.FileName),
-                    FileExtension = Path.GetExtension(image.FileName).Substring(1)
+                    FileExtension = Path.GetExtension(image.FileName)
                 },
                 new InstructFileModel
                 {
                     FileData = maskData,
                     FileName = Path.GetFileNameWithoutExtension(mask.FileName),
-                    FileExtension = Path.GetExtension(mask.FileName).Substring(1)
+                    FileExtension = Path.GetExtension(mask.FileName)
                 },
                 new InstructOptions
                 {
@@ -550,7 +555,7 @@ public class InstructModeController : ControllerBase
             { 
                 FileData = audioData,
                 FileName = Path.GetFileNameWithoutExtension(file.FileName),
-                FileExtension = Path.GetExtension(file.FileName).Substring(1)
+                FileExtension = Path.GetExtension(file.FileName)
             },
             request?.Text ?? string.Empty,
             new InstructOptions

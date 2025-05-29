@@ -17,7 +17,7 @@ public partial class FileInstructService
         using var stream = audioBinary.ToStream();
         stream.Position = 0;
 
-        var fileName = $"{audio.FileName.IfNullOrEmptyAs("audio")}.{audio.FileExtension.IfNullOrEmptyAs("wav")}";
+        var fileName = BuildFileName(audio.FileName, audio.FileExtension, "audio", "wav");
         var content = await completion.TranscriptTextAsync(stream, fileName, text ?? string.Empty);
         stream.Close();
         return content;

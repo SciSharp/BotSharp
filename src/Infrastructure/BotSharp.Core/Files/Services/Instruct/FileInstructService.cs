@@ -1,4 +1,6 @@
 
+using static System.Net.Mime.MediaTypeNames;
+
 namespace BotSharp.Core.Files.Services;
 
 public partial class FileInstructService : IFileInstructService
@@ -75,6 +77,14 @@ public partial class FileInstructService : IFileInstructService
 
         var instruction = agentService.RenderedTemplate(agent, templateName);
         return instruction;
+    }
+
+    private string BuildFileName(string? name, string? extension, string defaultName, string defaultExtension)
+    {
+        var fname = name.IfNullOrEmptyAs(defaultName);
+        var fextension = extension.IfNullOrEmptyAs(defaultExtension);
+        fextension = fextension.StartsWith(".") ? fextension.Substring(1) : fextension;
+        return $"{name}.{fextension}";
     }
     #endregion
 }

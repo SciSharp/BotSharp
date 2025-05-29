@@ -312,7 +312,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
                             {
                                 InlineData = new()
                                 {
-                                    MimeType = contentType ?? file.ContentType,
+                                    MimeType = contentType.IfNullOrEmptyAs(file.ContentType),
                                     Data = Convert.ToBase64String(binary.ToArray())
                                 }
                             });
@@ -325,7 +325,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
                             {
                                 InlineData = new()
                                 {
-                                    MimeType = contentType,
+                                    MimeType = contentType.IfNullOrEmptyAs(file.ContentType),
                                     Data = Convert.ToBase64String(binary.ToArray())
                                 }
                             });

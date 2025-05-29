@@ -308,7 +308,7 @@ public class ChatCompletionProvider : IChatCompletion
                     ChatToolCall.CreateFunctionToolCall(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? "{}"))
                 }));
 
-                messages.Add(new ToolChatMessage(message.ToolCallId ?? message.FunctionName, message.Content));
+                messages.Add(new ToolChatMessage(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.Content));
             }
             else if (message.Role == AgentRole.User)
             {
@@ -323,14 +323,14 @@ public class ChatCompletionProvider : IChatCompletion
                         if (!string.IsNullOrEmpty(file.FileData))
                         {
                             var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType, ChatImageDetailLevel.Auto);
+                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), ChatImageDetailLevel.Auto);
                             contentParts.Add(contentPart);
                         }
                         else if (!string.IsNullOrEmpty(file.FileStorageUrl))
                         {
                             var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
                             var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType, ChatImageDetailLevel.Auto);
+                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), ChatImageDetailLevel.Auto);
                             contentParts.Add(contentPart);
                         }
                         else if (!string.IsNullOrEmpty(file.FileUrl))

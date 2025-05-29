@@ -22,7 +22,8 @@ public partial class FileInstructService
                 Files = images?.Select(x => new BotSharpFile
                 {
                     FileUrl = x.FileUrl,
-                    FileData = x.FileData
+                    FileData = x.FileData,
+                    ContentType = x.ContentType
                 }).ToList() ?? []
             }
         });
@@ -82,7 +83,7 @@ public partial class FileInstructService
         using var stream = binary.ToStream();
         stream.Position = 0;
 
-        var fileName = $"{image.FileName.IfNullOrEmptyAs("image")}.{image.FileExtension.IfNullOrEmptyAs("png")}";
+        var fileName = BuildFileName(image.FileName, image.FileExtension, "image", "png");
         var message = await completion.GetImageVariation(new Agent()
         {
             Id = innerAgentId
@@ -118,7 +119,7 @@ public partial class FileInstructService
         using var stream = binary.ToStream();
         stream.Position = 0;
 
-        var fileName = $"{image.FileName.IfNullOrEmptyAs("image")}.{image.FileExtension.IfNullOrEmptyAs("png")}";
+        var fileName = BuildFileName(image.FileName, image.FileExtension, "image", "png");
         var message = await completion.GetImageEdits(new Agent()
         {
             Id = innerAgentId
@@ -162,8 +163,8 @@ public partial class FileInstructService
         using var maskStream = maskBinary.ToStream();
         maskStream.Position = 0;
 
-        var imageName = $"{image.FileName.IfNullOrEmptyAs("image")}.{image.FileExtension.IfNullOrEmptyAs("png")}";
-        var maskName = $"{mask.FileName.IfNullOrEmptyAs("mask")}.{mask.FileExtension.IfNullOrEmptyAs("png")}";
+        var imageName = BuildFileName(image.FileName, image.FileExtension, "image", "png");
+        var maskName = BuildFileName(image.FileName, image.FileExtension, "mask", "png");
         var message = await completion.GetImageEdits(new Agent()
         {
             Id = innerAgentId
