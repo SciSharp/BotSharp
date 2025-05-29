@@ -1,9 +1,9 @@
-﻿using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
 
 namespace BotSharp.Plugin.Google.Core
 {
-    public class NullFileStorageService:IFileStorageService
+    public class NullFileStorageService : IFileStorageService
     {
         public string GetDirectory(string conversationId)
         {
@@ -15,9 +15,10 @@ namespace BotSharp.Plugin.Google.Core
             return new List<string> { "FakeFile1.txt", "FakeFile2.txt" };
         }
 
-        public byte[] GetFileBytes(string fileStorageUrl)
+        public BinaryData GetFileBytes(string fileStorageUrl)
         {
-            return new byte[] { 0x00, 0x01, 0x02 };
+            var bytes = new byte[] { 0x00, 0x01, 0x02 };
+            return BinaryData.FromBytes(bytes);
         }
 
         public bool SaveFileStreamToPath(string filePath, Stream stream)
@@ -25,7 +26,7 @@ namespace BotSharp.Plugin.Google.Core
             return true;
         }
 
-        public bool SaveFileBytesToPath(string filePath, byte[] bytes)
+        public bool SaveFileBytesToPath(string filePath, BinaryData binary)
         {
             return true;
         }

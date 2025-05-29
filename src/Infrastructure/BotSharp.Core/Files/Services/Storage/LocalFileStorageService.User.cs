@@ -34,8 +34,8 @@ public partial class LocalFileStorageService
             }
 
             dir = GetUserAvatarDir(user?.Id, createNewDir: true);
-            var (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
-            File.WriteAllBytes(Path.Combine(dir, file.FileName), bytes);
+            var (_, binary) = FileUtility.GetFileInfoFromData(file.FileData);
+            File.WriteAllBytes(Path.Combine(dir, file.FileName), binary.ToArray());
             return true;
         }
         catch (Exception ex)
