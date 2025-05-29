@@ -70,6 +70,11 @@ public partial class AgentService
         }
 
         profile.Plugin = GetPlugin(profile.Id);
+
+        //add default instruction to ChannelInstructions
+        var defaultInstruction = new ChannelInstruction() { Channel = string.Empty, Instruction = profile?.Instruction };
+        profile.ChannelInstructions.Insert(0, defaultInstruction);
+
         return profile;
     }
 
