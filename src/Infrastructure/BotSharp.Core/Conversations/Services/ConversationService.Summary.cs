@@ -104,12 +104,15 @@ public partial class ConversationService
             var role = dialog.Role;
             if (role == AgentRole.Function) continue;
 
-            if (role != AgentRole.User)
+            if (role == AgentRole.User)
+            {
+                conversation += $"{role}: {dialog.Payload ?? dialog.Content}\r\n";
+            }
+            else
             {
                 role = AgentRole.Assistant;
-            }
-
-            conversation += $"{role}: {dialog.Payload ?? dialog.Content}\r\n";
+                conversation += $"{role}: {dialog.Content}\r\n";
+            }            
         }
 
         if (string.IsNullOrEmpty(conversation))
