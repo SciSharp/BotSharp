@@ -6,7 +6,6 @@ using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Utilities;
-using NetTopologySuite.Algorithm;
 
 namespace BotSharp.Plugin.Google.Core
 {
@@ -110,6 +109,11 @@ namespace BotSharp.Plugin.Google.Core
         public PluginDef GetPlugin(string agentId)
         {
             return new PluginDef();
+        }
+
+        public Task<IEnumerable<AgentUtility>> GetAgentUtilityOptions()
+        {
+            return Task.FromResult(Enumerable.Empty<AgentUtility>());
         }
     }
 }
