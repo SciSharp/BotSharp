@@ -30,5 +30,4 @@ global using BotSharp.Plugin.SqlDriver.Models;
 global using BotSharp.Plugin.SqlDriver.Hooks;
 global using BotSharp.Plugin.SqlDriver.Services;
 global using BotSharp.Plugin.SqlDriver.Interfaces;
-global using BotSharp.Plugin.SqlDriver.Helpers;
 global using BotSharp.Plugin.SqlDriver.Settings;

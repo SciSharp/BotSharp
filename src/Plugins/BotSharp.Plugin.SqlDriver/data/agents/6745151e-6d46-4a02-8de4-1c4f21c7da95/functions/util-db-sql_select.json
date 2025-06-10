@@ -4,6 +4,16 @@
   "parameters": {
     "type": "object",
     "properties": {
+      "db_provider": {
+        "type": "string",
+        "enum": [
+          "mysql",
+          "postgresql",
+          "mssql",
+          "redshift"
+        ],
+        "description": "The database engine."
+      },
       "sql_statement": {
         "type": "string",
         "description": "SQL statement with SELECT"
@@ -55,6 +65,6 @@
         "required": [ "name", "value" ]
       }
     },
-    "required": [ "sql_statement", "reason", "table", "parameters", "return_field" ]
+    "required": [ "db_provider", "sql_statement", "reason", "table", "parameters", "return_field" ]
   }
 }

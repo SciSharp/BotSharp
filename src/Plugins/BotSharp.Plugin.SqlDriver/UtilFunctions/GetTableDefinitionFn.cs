@@ -23,16 +23,16 @@ public class GetTableDefinitionFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<SqlStatement>(message.FunctionArgs);
         var tables = args.Tables;
+        var dbType = args.DBProvider;
+        var schema = args.Schema;
         var agentService = _services.GetRequiredService<IAgentService>();
-        var dbHook = _services.GetRequiredService<ISqlDriverHook>();
-        var dbType = dbHook.GetDatabaseType(message);
 
         // Get table DDL from database
         var tableDdls = dbType switch
         {
             "mysql" => GetDdlFromMySql(tables),
             "sqlserver" => GetDdlFromSqlServer(tables),
-            "redshift" => GetDdlFromRedshift(tables),
+            "redshift" => GetDdlFromRedshift(tables,schema),
             _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
         };
     
@@ -127,7 +127,7 @@ public class GetTableDefinitionFn : IFunctionCallback
         return tableDdls;
     }
 
-    private List<string> GetDdlFromRedshift(string[] tables)
+    private List<string> GetDdlFromRedshift(string[] tables, string schema)
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         var tableDdls = new List<string>();
