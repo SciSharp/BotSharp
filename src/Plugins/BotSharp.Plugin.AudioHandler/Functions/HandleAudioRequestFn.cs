@@ -87,8 +87,8 @@ public class HandleAudioRequestFn : IFunctionCallback
             var fileName = Path.GetFileName(file.FileStorageUrl);
             if (!ParseAudioFileType(fileName)) continue;
 
-            var bytes = _fileStorage.GetFileBytes(file.FileStorageUrl);
-            using var stream = new MemoryStream(bytes);
+            var binary = _fileStorage.GetFileBytes(file.FileStorageUrl);
+            using var stream = binary.ToStream();
             stream.Position = 0;
 
             var result = await audioCompletion.TranscriptTextAsync(stream, fileName);

@@ -25,16 +25,17 @@ public partial class TencentCosService
         }
     }
 
-    public byte[] GetFileBytes(string fileStorageUrl)
+    public BinaryData GetFileBytes(string fileStorageUrl)
     {
         try
         {
-            return _cosClient.BucketClient.DownloadFileBytes(fileStorageUrl);
+            var bytes = _cosClient.BucketClient.DownloadFileBytes(fileStorageUrl);
+            return BinaryData.FromBytes(bytes);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, $"Error when getting file bytes (url: {fileStorageUrl}).");
-            return Array.Empty<byte>();
+            return BinaryData.Empty;
         }
     }
 
@@ -53,13 +54,13 @@ public partial class TencentCosService
         }
     }
 
-    public bool SaveFileBytesToPath(string filePath, byte[] bytes)
+    public bool SaveFileBytesToPath(string filePath, BinaryData binary)
     {
         if (string.IsNullOrEmpty(filePath)) return false;
 
         try
         {
-            return _cosClient.BucketClient.UploadBytes(filePath, bytes);
+            return _cosClient.BucketClient.UploadBytes(filePath, binary.ToArray());
         }
         catch (Exception ex)
         {

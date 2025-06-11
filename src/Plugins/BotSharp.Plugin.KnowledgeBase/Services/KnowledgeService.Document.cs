@@ -48,12 +48,12 @@ public partial class KnowledgeService
             try
             {
                 // Get document info
-                var (contentType, bytes) = await GetFileInfo(file);
-                var contents = await GetFileContent(contentType, bytes, option ?? ChunkOption.Default());
+                var (contentType, binary) = await GetFileInfo(file);
+                var contents = await GetFileContent(contentType, binary, option ?? ChunkOption.Default());
                 
                 // Save document
                 var fileId = Guid.NewGuid();
-                var saved = SaveDocument(collectionName, vectorStoreProvider, fileId, file.FileName, bytes);
+                var saved = SaveDocument(collectionName, vectorStoreProvider, fileId, file.FileName, binary);
                 if (!saved)
                 {
                     failedFiles.Add(file.FileName);
@@ -342,11 +342,11 @@ public partial class KnowledgeService
     /// </summary>
     /// <param name="file"></param>
     /// <returns></returns>
-    private async Task<(string, byte[])> GetFileInfo(ExternalFileModel file)
+    private async Task<(string, BinaryData)> GetFileInfo(ExternalFileModel file)
     {
         if (file == null)
         {
-            return (string.Empty, new byte[0]);
+            return (string.Empty, BinaryData.Empty);
         }
 
         if (!string.IsNullOrWhiteSpace(file.FileUrl))
@@ -355,37 +355,38 @@ public partial class KnowledgeService
             var contentType = FileUtility.GetFileContentType(file.FileName);
             using var client = http.CreateClient();
             var bytes = await client.GetByteArrayAsync(file.FileUrl);
-            return (contentType, bytes);
+            return (contentType, BinaryData.FromBytes(bytes));
         }
         else if (!string.IsNullOrWhiteSpace(file.FileData))
         {
-            var (contentType, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
-            return (contentType, bytes);
+            var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
+            return (contentType, binary);
         }
 
-        return (string.Empty, new byte[0]);
+        return (string.Empty, BinaryData.Empty);
     }
 
     #region Read doc content
-    private async Task<IEnumerable<string>> GetFileContent(string contentType, byte[] bytes, ChunkOption option)
+    private async Task<IEnumerable<string>> GetFileContent(string contentType, BinaryData binary, ChunkOption option)
     {
         IEnumerable<string> results = new List<string>();
 
         if (contentType.IsEqualTo(MediaTypeNames.Text.Plain))
         {
-            results = await ReadTxt(bytes, option);
+            results = await ReadTxt(binary, option);
         }
         else if (contentType.IsEqualTo(MediaTypeNames.Application.Pdf))
         {
-            results = await ReadPdf(bytes);
+            results = await ReadPdf(binary);
         }
         
         return results;
     }
 
-    private async Task<IEnumerable<string>> ReadTxt(byte[] bytes, ChunkOption option)
+    private async Task<IEnumerable<string>> ReadTxt(BinaryData binary, ChunkOption option)
     {
-        using var stream = new MemoryStream(bytes);
+        using var stream = binary.ToStream();
+        stream.Position = 0;
         using var reader = new StreamReader(stream);
         var content = await reader.ReadToEndAsync();
         reader.Close();
@@ -395,18 +396,17 @@ public partial class KnowledgeService
         return lines;
     }
 
-    private async Task<IEnumerable<string>> ReadPdf(byte[] bytes)
+    private async Task<IEnumerable<string>> ReadPdf(BinaryData binary)
     {
         return Enumerable.Empty<string>();
     }
     #endregion
 
 
-    private bool SaveDocument(string collectionName, string vectorStoreProvider, Guid fileId, string fileName, byte[] bytes)
+    private bool SaveDocument(string collectionName, string vectorStoreProvider, Guid fileId, string fileName, BinaryData binary)
     {
         var fileStoreage = _services.GetRequiredService<IFileStorageService>();
-        var data = BinaryData.FromBytes(bytes);
-        var saved = fileStoreage.SaveKnowledgeBaseFile(collectionName, vectorStoreProvider, fileId, fileName, data);
+        var saved = fileStoreage.SaveKnowledgeBaseFile(collectionName, vectorStoreProvider, fileId, fileName, binary);
         return saved;
     }
 

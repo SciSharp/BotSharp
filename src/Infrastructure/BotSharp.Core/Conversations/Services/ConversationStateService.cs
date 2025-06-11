@@ -145,11 +145,7 @@ public class ConversationStateService : IConversationStateService
             newPair.Values = new List<StateValue> { newValue };
             _curStates[name] = newPair;
         }
-        else if (isNoChange)
-        {
-            // do nothing
-        }
-        else
+        else if (!isNoChange)
         {
             _curStates[name].Values.Add(newValue);
         }

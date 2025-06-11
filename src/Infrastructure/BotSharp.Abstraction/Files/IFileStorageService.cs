@@ -7,9 +7,9 @@ public interface IFileStorageService
     #region Common
     string GetDirectory(string conversationId);
     IEnumerable<string> GetFiles(string relativePath, string? searchQuery = null);
-    byte[] GetFileBytes(string fileStorageUrl);
+    BinaryData GetFileBytes(string fileStorageUrl);
     bool SaveFileStreamToPath(string filePath, Stream stream);
-    bool SaveFileBytesToPath(string filePath, byte[] bytes);
+    bool SaveFileBytesToPath(string filePath, BinaryData binary);
     string GetParentDir(string dir, int level = 1);
     bool ExistDirectory(string? dir);
     void CreateDirectory(string dir);

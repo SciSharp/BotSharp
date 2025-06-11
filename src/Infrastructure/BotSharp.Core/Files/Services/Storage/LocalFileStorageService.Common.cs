@@ -30,12 +30,12 @@ public partial class LocalFileStorageService
         return Directory.GetFiles(path);
     }
 
-    public byte[] GetFileBytes(string fileStorageUrl)
+    public BinaryData GetFileBytes(string fileStorageUrl)
     {
         using var stream = File.OpenRead(fileStorageUrl);
         var bytes = new byte[stream.Length];
         stream.Read(bytes, 0, (int)stream.Length);
-        return bytes;
+        return BinaryData.FromBytes(bytes);
     }
 
     public bool SaveFileStreamToPath(string filePath, Stream stream)
@@ -49,11 +49,11 @@ public partial class LocalFileStorageService
         return true;
     }
 
-    public bool SaveFileBytesToPath(string filePath, byte[] bytes)
+    public bool SaveFileBytesToPath(string filePath, BinaryData binary)
     {
         using (var fs = new FileStream(filePath, FileMode.Create))
         {
-            fs.Write(bytes, 0, bytes.Length);
+            fs.Write(binary.ToArray(), 0, binary.Length);
             fs.Flush();
             fs.Close();
         }

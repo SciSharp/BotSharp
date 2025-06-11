@@ -28,11 +28,11 @@ public partial class TencentCosService
 
             if (string.IsNullOrEmpty(dir)) return false;
 
-            var (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
+            var (_, binary) = FileUtility.GetFileInfoFromData(file.FileData);
             var extension = Path.GetExtension(file.FileName);
             var fileName = user?.Id == null ? file.FileName : $"{user?.Id}{extension}";
 
-            return _cosClient.BucketClient.UploadBytes($"{dir}/{fileName}", bytes);
+            return _cosClient.BucketClient.UploadBytes($"{dir}/{fileName}", binary.ToArray());
         }
         catch (Exception ex)
         {

@@ -307,26 +307,26 @@ public class GeminiChatCompletionProvider : IChatCompletion
                     {
                         if (!string.IsNullOrEmpty(file.FileData))
                         {
-                            var (contentType, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
+                            var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
                             contentParts.Add(new Part()
                             {
                                 InlineData = new()
                                 {
-                                    MimeType = contentType,
-                                    Data = Convert.ToBase64String(bytes)
+                                    MimeType = contentType.IfNullOrEmptyAs(file.ContentType),
+                                    Data = Convert.ToBase64String(binary.ToArray())
                                 }
                             });
                         }
                         else if (!string.IsNullOrEmpty(file.FileStorageUrl))
                         {
                             var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
-                            var bytes = fileStorage.GetFileBytes(file.FileStorageUrl);
+                            var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
                             contentParts.Add(new Part()
                             {
                                 InlineData = new()
                                 {
-                                    MimeType = contentType,
-                                    Data = Convert.ToBase64String(bytes)
+                                    MimeType = contentType.IfNullOrEmptyAs(file.ContentType),
+                                    Data = Convert.ToBase64String(binary.ToArray())
                                 }
                             });
                         }

@@ -136,7 +136,7 @@ public partial class LocalFileStorageService
 
             try
             {
-                var (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
+                var (_, binary) = FileUtility.GetFileInfoFromData(file.FileData);
                 var subDir = Path.Combine(dir, source, $"{i + 1}");
                 if (!ExistDirectory(subDir))
                 {
@@ -145,7 +145,7 @@ public partial class LocalFileStorageService
 
                 using (var fs = new FileStream(Path.Combine(subDir, file.FileName), FileMode.Create))
                 {
-                    fs.Write(bytes, 0, bytes.Length);
+                    fs.Write(binary.ToArray(), 0, binary.Length);
                     fs.Flush(true);
                     fs.Close();
                     Thread.Sleep(100);

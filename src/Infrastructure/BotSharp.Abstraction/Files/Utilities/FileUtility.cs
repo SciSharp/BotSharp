@@ -11,11 +11,16 @@ public static class FileUtility
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>
-    public static (string, byte[]) GetFileInfoFromData(string data)
+    public static (string?, BinaryData) GetFileInfoFromData(string data)
     {
         if (string.IsNullOrEmpty(data))
         {
-            return (string.Empty, new byte[0]);
+            return (null, BinaryData.Empty);
+        }
+
+        if (!data.StartsWith("data:"))
+        {
+            return (null, BinaryData.FromBytes(Convert.FromBase64String(data)));
         }
 
         var typeStartIdx = data.IndexOf(':');
@@ -25,13 +30,13 @@ public static class FileUtility
         var base64startIdx = data.IndexOf(',');
         var base64Str = data.Substring(base64startIdx + 1);
 
-        return (contentType, Convert.FromBase64String(base64Str));
+        return (contentType, BinaryData.FromBytes(Convert.FromBase64String(base64Str)));
     }
 
-    public static string BuildFileDataFromFile(string fileName, byte[] bytes)
+    public static string BuildFileDataFromFile(string fileName, BinaryData binary)
     {
         var contentType = GetFileContentType(fileName);
-        var base64 = Convert.ToBase64String(bytes);
+        var base64 = Convert.ToBase64String(binary.ToArray());
         return $"data:{contentType};base64,{base64}";
     }
 
