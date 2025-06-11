@@ -11,6 +11,10 @@
       "is_read_content": {
         "type": "boolean",
         "description": "read the content"
+      },
+      "ignore_if_not_found": {
+        "type": "boolean",
+        "description": "ignore error logging if element not exists"
       }
     },
     "required": [ "selector" ]
