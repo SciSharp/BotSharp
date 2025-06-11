@@ -25,9 +25,7 @@ public class SqlSelect : IFunctionCallback
             return false;
         }
 
-        // check if need to instantely
-        var dbHook = _services.GetRequiredService<ISqlDriverHook>();
-        var dbType = dbHook.GetDatabaseType(message);
+        var dbType = args.DBProvider.ToLowerInvariant();
 
         var result = dbType switch
         {

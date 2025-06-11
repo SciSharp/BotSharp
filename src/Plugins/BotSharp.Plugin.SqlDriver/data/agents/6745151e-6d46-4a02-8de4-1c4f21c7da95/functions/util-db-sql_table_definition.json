@@ -4,6 +4,24 @@
   "parameters": {
     "type": "object",
     "properties": {
+      "db_provider": {
+        "type": "string",
+        "enum": [
+          "mysql",
+          "postgresql",
+          "mssql",
+          "redshift"
+        ],
+        "description": "The database engine."
+      },
+      "schema": {
+        "type": "string",
+        "description": "schema name for tables. Typically, the part before the dot is the schema name, e.g.smsonebi.affiliate_profile, schema name is smsonebi.",
+        "items": {
+          "type": "string",
+          "description": "schema name"
+        }
+      },
       "tables": {
         "type": "array",
         "description": "table name in planning steps",
@@ -17,6 +35,6 @@
         "description": "the reason why you need to call sql_table_definition"
       }
     },
-    "required": [ "tables", "reason" ]
+    "required": [ "db_provider", "schema", "tables", "reason" ]
   }
 }

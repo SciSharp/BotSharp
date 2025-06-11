@@ -1,6 +1,9 @@
-You are connecting to {{ db_type }} database. You can run provided SQL statements by following {{ db_type }} rules.
-
-Please call function util-db-sql_select if user wants to get or retrieve data from data tables.
-If there are any parameters, please add them in the WHERE clause, each of which starts with "@".
-Avoid returning the entire record and only return the fields you need.
-For example, SELECT Id FROM table WHERE Id=@Id AND Name=@Name
+Please call function util-db-sql_select if user wants to retrieve data from database tables.
+- Ensure you obtain the exact provider, schema, table and column names.
+    If user provide them, directly call util-db-sql_select to execute the query.
+    If user didn't provide the provider(e.g. mysql, redshift), schema or table name, ask user to provide.
+    If the user doesn't provide exact column name, try using other available functions to infer the information.
+    If that fails or no function can use, prompt the user to provide the missing information.
+- If there are any parameters, please add them in the WHERE clause, each of which starts with "@".
+- Avoid returning the entire record and only return the fields you need.
+    For example, SELECT Id FROM table WHERE Id=@Id AND Name=@Name

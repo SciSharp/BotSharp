@@ -4,11 +4,17 @@ namespace BotSharp.Plugin.SqlDriver.Models;
 
 public class SqlStatement
 {
+    [JsonPropertyName("db_provider")]
+    public string DBProvider { get; set; } = null!;
+
     [JsonPropertyName("sql_statement")]
     public string Statement { get; set; } = null!;
 
     [JsonPropertyName("reason")]
     public string Reason { get; set; } = null!;
+
+    [JsonPropertyName("schema")]
+    public string Schema { get; set; } = null!;
 
     [JsonPropertyName("tables")]
     public string[] Tables { get; set; } = null!;
