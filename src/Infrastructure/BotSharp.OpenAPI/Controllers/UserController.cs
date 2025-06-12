@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Infrastructures.Attributes;
+using BotSharp.Abstraction.Roles;
 using BotSharp.Abstraction.Users.Settings;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -105,6 +106,13 @@ public class UserController : ControllerBase
                 Phone = identiy.Phone,
             });
         }
+
+        if (user != null)
+        {
+            var auth = await _userService.GetUserAuthorizations();
+            user.Permissions = auth?.Permissions ?? [];
+        }
+
         return UserViewModel.FromUser(user);
     }
 

@@ -137,7 +137,7 @@ public class InstructModeController : ControllerBase
         }
         catch (Exception ex)
         {
-            var error = $"Error in reading images. {ex.Message}";
+            var error = $"Error in reading multi-modal files. {ex.Message}";
             _logger.LogError(ex, error);
             return error;
         }
@@ -154,7 +154,8 @@ public class InstructModeController : ControllerBase
         {
             var fileModels = files.Select(x => new InstructFileModel
             {
-                FileData = FileUtility.BuildFileDataFromFile(x)
+                FileData = FileUtility.BuildFileDataFromFile(x),
+                ContentType = x.ContentType
             }).ToList();
 
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
@@ -170,7 +171,7 @@ public class InstructModeController : ControllerBase
         }
         catch (Exception ex)
         {
-            var error = $"Error in reading image upload. {ex.Message}";
+            var error = $"Error in reading multi-modal files. {ex.Message}";
             _logger.LogError(ex, error);
             viewModel.Message = error;
             return viewModel;
@@ -481,7 +482,8 @@ public class InstructModeController : ControllerBase
         {
             var fileModels = files.Select(x => new InstructFileModel
             {
-                FileData = FileUtility.BuildFileDataFromFile(x)
+                FileData = FileUtility.BuildFileDataFromFile(x),
+                ContentType = x.ContentType
             }).ToList();
 
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
@@ -497,7 +499,7 @@ public class InstructModeController : ControllerBase
         }
         catch (Exception ex)
         {
-            var error = $"Error in pdf completion upload. {ex.Message}";
+            var error = $"Error in pdf completion. {ex.Message}";
             _logger.LogError(ex, error);
             viewModel.Message = error;
             return viewModel;
@@ -571,7 +573,7 @@ public class InstructModeController : ControllerBase
         }
         catch (Exception ex)
         {
-            var error = $"Error in speech-to-text upload. {ex.Message}";
+            var error = $"Error in speech-to-text. {ex.Message}";
             _logger.LogError(ex, error);
             viewModel.Message = error;
             return viewModel;
