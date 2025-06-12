@@ -13,8 +13,6 @@ public class BasicAgentHook : AgentHookBase
 
     public override void OnAgentUtilityLoaded(Agent agent)
     {
-        if (agent.Type == AgentType.Routing) return;
-
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
         if (!isConvMode) return;
