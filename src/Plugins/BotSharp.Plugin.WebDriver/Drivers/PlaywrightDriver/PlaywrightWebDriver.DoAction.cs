@@ -129,7 +129,6 @@ public partial class PlaywrightWebDriver
         else if (action.Action == BroswerActionEnum.Typing)
         {
             await locator.PressSequentiallyAsync(action.Content);
-            await locator.PressSequentiallyAsync(action.Content);
             if (action.PressKey != null)
             {
                 if (action.DelayBeforePressingKey > 0)
