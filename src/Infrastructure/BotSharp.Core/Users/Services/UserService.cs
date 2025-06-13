@@ -254,7 +254,7 @@ public class UserService : IUserService
             foreach (var hook in hooks)
             {
                 user = await hook.Authenticate(id, password);
-                if (user == null || string.IsNullOrEmpty(user.Id))
+                if (user == null)
                 {
                     continue;
                 }
