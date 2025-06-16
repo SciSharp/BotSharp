@@ -24,7 +24,7 @@ public partial class PlaywrightWebDriver
         }
         else if (count > 1)
         {
-            if(!action.FirstIfMultipleFound)
+            if (!action.FirstIfMultipleFound)
             {
                 Serilog.Log.Error($"Multiple eElements were found: {result.Selector}");
                 return;
@@ -102,23 +102,29 @@ public partial class PlaywrightWebDriver
             });
             var guid = Guid.NewGuid().ToString();
             var directory = Path.Combine(Path.GetTempPath(), guid);
-            if (Directory.Exists(directory))
-            {
-                Directory.Delete(directory, true);
-            }
+            DeleteDirectory(directory);
             Directory.CreateDirectory(directory);
             var localPaths = new List<string>();
-            using var httpClient = new HttpClient();
+            var http = _services.GetRequiredService<IHttpClientFactory>();
+            using var httpClient = http.CreateClient();
             foreach (var fileUrl in files)
             {
-                var bytes = await httpClient.GetByteArrayAsync(fileUrl);
-                var fileName = new Uri(fileUrl).AbsolutePath;
-                var localPath = Path.Combine(directory, Path.GetFileName(fileName));
-                await File.WriteAllBytesAsync(localPath, bytes);
-                await Task.Delay(2000);
-                localPaths.Add(localPath);
+                try
+                {
+                    using var fileData = await httpClient.GetAsync(fileUrl);
+                    var fileName = new Uri(fileUrl).AbsolutePath;
+                    var localPath = Path.Combine(directory, Path.GetFileName(fileName));
+                    await using var fs = new FileStream(localPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await fileData.Content.CopyToAsync(fs);
+                    localPaths.Add(localPath);
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error($"FileUpload failed for {fileUrl}. Message: {ex.Message}");
+                }
             }
             await fileChooser.SetFilesAsync(localPaths);
+            await Task.Delay(1000 * action.WaitTime);
         }
         else if (action.Action == BroswerActionEnum.Typing)
         {
@@ -155,8 +161,8 @@ public partial class PlaywrightWebDriver
                     // Perform drag-and-move
                     // Move mouse to the start position
                     var mouse = page.Mouse;
-                    await mouse.MoveAsync(startX, startY); 
-                    await mouse.DownAsync();             
+                    await mouse.MoveAsync(startX, startY);
+                    await mouse.DownAsync();
 
                     // Move mouse smoothly in increments
                     var tracks = GetVelocityTrack(offsetX);
@@ -183,6 +189,13 @@ public partial class PlaywrightWebDriver
         if (action.WaitTime > 0)
         {
             await Task.Delay(1000 * action.WaitTime);
+        }
+    }
+    private void DeleteDirectory(string directory)
+    {
+        if (Directory.Exists(directory))
+        {
+            Directory.Delete(directory, true);
         }
     }
     public static List<int> GetVelocityTrack(float distance)
