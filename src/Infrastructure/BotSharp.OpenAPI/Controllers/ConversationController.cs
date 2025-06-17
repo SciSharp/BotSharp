@@ -377,6 +377,30 @@ public class ConversationController : ControllerBase
         return response;
     }
 
+
+    [HttpPost("/conversation/{agentId}/{conversationId}/stream")]
+    public async Task StreamMessage(
+        [FromRoute] string agentId,
+        [FromRoute] string conversationId,
+        [FromBody] NewMessageModel input)
+    {
+        var conv = _services.GetRequiredService<IConversationService>();
+        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
+        {
+            MessageId = !string.IsNullOrWhiteSpace(input.InputMessageId) ? input.InputMessageId : Guid.NewGuid().ToString(),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var routing = _services.GetRequiredService<IRoutingService>();
+        routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
+
+        conv.SetConversationId(conversationId, input.States);
+        SetStates(conv, input);
+
+        await conv.StreamMessage(agentId, inputMsg, replyMessage: input.Postback);
+    }
+
+
     [HttpPost("/conversation/{agentId}/{conversationId}/sse")]
     public async Task SendMessageSse([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] NewMessageModel input)
     {

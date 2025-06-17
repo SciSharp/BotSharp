@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Hooks;
+using BotSharp.Core.Observables.Queues;
+using ModelContextProtocol.Protocol.Types;
 using OpenAI.Chat;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
@@ -185,7 +187,20 @@ public class ChatCompletionProvider : IChatCompletion
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
+        var hub = _services.GetRequiredService<MessageHub>();
         var response = chatClient.CompleteChatStreamingAsync(messages, options);
+        var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
+
+        hub.Push(new()
+        {
+            ServiceProvider = _services,
+            EventName = "BeforeReceiveLlmStreamMessage",
+            Data = new RoleDialogModel(AgentRole.Assistant, string.Empty)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = messageId
+            }
+        });
 
         await foreach (var choice in response)
         {
@@ -194,22 +209,46 @@ public class ChatCompletionProvider : IChatCompletion
                 var update = choice.ToolCallUpdates?.FirstOrDefault()?.FunctionArgumentsUpdate?.ToString() ?? string.Empty;
                 _logger.LogInformation(update);
 
-                await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, update)
-                {
-                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
-                });
+                //await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, update)
+                //{
+                //    //RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                //});
                 continue;
             }
 
             if (choice.ContentUpdate.IsNullOrEmpty()) continue;
 
-            _logger.LogInformation(choice.ContentUpdate[0]?.Text);
+            var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
+            _logger.LogInformation(text);
 
-            await onMessageReceived(new RoleDialogModel(choice.Role?.ToString() ?? ChatMessageRole.Assistant.ToString(), choice.ContentUpdate[0]?.Text ?? string.Empty)
+            var content = new RoleDialogModel(AgentRole.Assistant, text)
             {
-                RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                CurrentAgentId = agent.Id,
+                MessageId = messageId
+            };
+            hub.Push(new()
+            {
+                ServiceProvider = _services,
+                EventName = "OnReceiveLlmStreamMessage",
+                Data = content
             });
+
+            //await onMessageReceived(new RoleDialogModel(choice.Role?.ToString() ?? ChatMessageRole.Assistant.ToString(), choice.ContentUpdate[0]?.Text ?? string.Empty)
+            //{
+            //    RenderedInstruction = string.Join("\r\n", renderedInstructions)
+            //});
         }
+
+        hub.Push(new()
+        {
+            ServiceProvider = _services,
+            EventName = "AfterReceiveLlmStreamMessage",
+            Data = new RoleDialogModel(AgentRole.Assistant, string.Empty)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = messageId
+            }
+        });
 
         return true;
     }

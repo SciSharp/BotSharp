@@ -20,7 +20,6 @@ public class MessageHub
     /// <param name="item"></param>
     public void Push(HubObserveData item)
     {
-        _logger.LogInformation($"Pushing item to observers: {item.Data.Content}");
         _observable.OnNext(item);
     }
 

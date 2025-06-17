@@ -36,9 +36,14 @@ public interface IConversationService
     /// <param name="onResponseReceived">Received the response from AI Agent</param>
     /// <returns></returns>
     Task<bool> SendMessage(string agentId,
-        RoleDialogModel lastDialog, 
+        RoleDialogModel message, 
         PostbackMessageModel? replyMessage,
         Func<RoleDialogModel, Task> onResponseReceived);
+
+
+    Task<bool> StreamMessage(string agentId,
+        RoleDialogModel lastDialog,
+        PostbackMessageModel? replyMessage);
 
     List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true, IEnumerable<string>? includeMessageTypes = null);
     Task CleanHistory(string agentId);
