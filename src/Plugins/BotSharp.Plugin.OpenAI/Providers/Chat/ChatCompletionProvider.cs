@@ -1,7 +1,10 @@
 using BotSharp.Abstraction.Hooks;
+using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.Observables.Queues;
+using EntityFrameworkCore.BootKit;
 using ModelContextProtocol.Protocol.Types;
 using OpenAI.Chat;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
@@ -188,9 +191,7 @@ public class ChatCompletionProvider : IChatCompletion
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
         var hub = _services.GetRequiredService<MessageHub>();
-        var response = chatClient.CompleteChatStreamingAsync(messages, options);
         var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
-        var allText = string.Empty;
 
         hub.Push(new()
         {
@@ -203,23 +204,30 @@ public class ChatCompletionProvider : IChatCompletion
             }
         });
 
-        await foreach (var choice in response)
+        using var textStream = new RealtimeTextStream();
+        var toolCalls = new List<StreamingChatToolCallUpdate>();
+
+        await foreach (var choice in chatClient.CompleteChatStreamingAsync(messages, options))
         {
+            if (choice.ToolCallUpdates != null)
+            {
+                toolCalls.AddRange(choice.ToolCallUpdates);
+            }
+
             if (choice.FinishReason == ChatFinishReason.FunctionCall || choice.FinishReason == ChatFinishReason.ToolCalls)
             {
-                var update = choice.ToolCallUpdates?.FirstOrDefault()?.FunctionArgumentsUpdate?.ToString() ?? string.Empty;
-                _logger.LogCritical($"Tool Call (reason: {choice.FinishReason}): {update}");
+                var functionName = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName))?.FunctionName;
+                var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
+                var functionArgument = string.Join(string.Empty, args);
 
-                //await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, update)
-                //{
-                //    //RenderedInstruction = string.Join("\r\n", renderedInstructions)
-                //});
+                _logger.LogCritical($"Tool Call: {functionName}({functionArgument})");
             }
             else if (!choice.ContentUpdate.IsNullOrEmpty())
             {
                 var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
-                allText += text;
-                _logger.LogCritical($"Content update (reason: {choice.FinishReason}) {text}");
+                textStream.Collect(text);
+
+                _logger.LogCritical($"Content update: {text}");
 
                 var content = new RoleDialogModel(AgentRole.Assistant, text)
                 {
@@ -232,11 +240,6 @@ public class ChatCompletionProvider : IChatCompletion
                     EventName = "OnReceiveLlmStreamMessage",
                     Data = content
                 });
-
-                //await onMessageReceived(new RoleDialogModel(choice.Role?.ToString() ?? ChatMessageRole.Assistant.ToString(), choice.ContentUpdate[0]?.Text ?? string.Empty)
-                //{
-                //    RenderedInstruction = string.Join("\r\n", renderedInstructions)
-                //});
             }
         }
 
@@ -244,7 +247,7 @@ public class ChatCompletionProvider : IChatCompletion
         {
             ServiceProvider = _services,
             EventName = "AfterReceiveLlmStreamMessage",
-            Data = new RoleDialogModel(AgentRole.Assistant, allText)
+            Data = new RoleDialogModel(AgentRole.Assistant, textStream.GetText())
             {
                 CurrentAgentId = agent.Id,
                 MessageId = messageId
@@ -452,4 +455,11 @@ public class ChatCompletionProvider : IChatCompletion
     {
         _model = model;
     }
+}
+
+
+class ToolCallData
+{
+    public ChatFinishReason? Reason { get; set; }
+    public List<StreamingChatToolCallUpdate> ToolCalls { get; set; } = [];
 }
