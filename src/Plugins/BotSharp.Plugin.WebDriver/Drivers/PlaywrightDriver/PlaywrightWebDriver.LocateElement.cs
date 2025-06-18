@@ -84,12 +84,12 @@ public partial class PlaywrightWebDriver
             if (location.IgnoreIfNotFound)
             {
                 result.Message = $"Can't locate element by keyword {keyword} and Ignored";
-                _logger.LogWarning(result.Message);
+                _logger.LogWarning($"{result.Message},message:{message.ConvertToString()}");
             }
             else
             {
                 result.Message = $"Can't locate element by keyword {keyword}";
-                _logger.LogError(result.Message);
+                _logger.LogError($"{result.Message},message:{message.ConvertToString()}");
             }
 
         }
