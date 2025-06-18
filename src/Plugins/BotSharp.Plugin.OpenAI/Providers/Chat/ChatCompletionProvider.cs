@@ -208,37 +208,36 @@ public class ChatCompletionProvider : IChatCompletion
             if (choice.FinishReason == ChatFinishReason.FunctionCall || choice.FinishReason == ChatFinishReason.ToolCalls)
             {
                 var update = choice.ToolCallUpdates?.FirstOrDefault()?.FunctionArgumentsUpdate?.ToString() ?? string.Empty;
-                _logger.LogInformation(update);
+                _logger.LogCritical($"Tool Call (reason: {choice.FinishReason}): {update}");
 
                 //await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, update)
                 //{
                 //    //RenderedInstruction = string.Join("\r\n", renderedInstructions)
                 //});
-                continue;
             }
-
-            if (choice.ContentUpdate.IsNullOrEmpty()) continue;
-
-            var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
-            allText += text;
-            _logger.LogInformation(text);
-
-            var content = new RoleDialogModel(AgentRole.Assistant, text)
+            else if (!choice.ContentUpdate.IsNullOrEmpty())
             {
-                CurrentAgentId = agent.Id,
-                MessageId = messageId
-            };
-            hub.Push(new()
-            {
-                ServiceProvider = _services,
-                EventName = "OnReceiveLlmStreamMessage",
-                Data = content
-            });
+                var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
+                allText += text;
+                _logger.LogCritical($"Content update (reason: {choice.FinishReason}) {text}");
 
-            //await onMessageReceived(new RoleDialogModel(choice.Role?.ToString() ?? ChatMessageRole.Assistant.ToString(), choice.ContentUpdate[0]?.Text ?? string.Empty)
-            //{
-            //    RenderedInstruction = string.Join("\r\n", renderedInstructions)
-            //});
+                var content = new RoleDialogModel(AgentRole.Assistant, text)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = messageId
+                };
+                hub.Push(new()
+                {
+                    ServiceProvider = _services,
+                    EventName = "OnReceiveLlmStreamMessage",
+                    Data = content
+                });
+
+                //await onMessageReceived(new RoleDialogModel(choice.Role?.ToString() ?? ChatMessageRole.Assistant.ToString(), choice.ContentUpdate[0]?.Text ?? string.Empty)
+                //{
+                //    RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                //});
+            }
         }
 
         hub.Push(new()
