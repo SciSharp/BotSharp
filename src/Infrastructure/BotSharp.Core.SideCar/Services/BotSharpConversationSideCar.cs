@@ -25,7 +25,8 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
     private Stack<ConversationContext> contextStack = new();
 
-    private bool enabled = false;
+    private bool _enabled = false;
+    private string _conversationId = string.Empty;
 
     public string Provider => "botsharp";
 
@@ -39,12 +40,15 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
     public bool IsEnabled()
     {
-        return enabled;
+        return _enabled;
     }
 
     public void AppendConversationDialogs(string conversationId, List<DialogElement> messages)
     {
-        if (contextStack.IsNullOrEmpty()) return;
+        if (contextStack.IsNullOrEmpty() || _conversationId != conversationId)
+        {
+            return;
+        }
 
         var top = contextStack.Peek();
         top.Dialogs.AddRange(messages);
@@ -52,7 +56,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
     public List<DialogElement> GetConversationDialogs(string conversationId)
     {
-        if (contextStack.IsNullOrEmpty())
+        if (contextStack.IsNullOrEmpty() || _conversationId != conversationId)
         {
             return new List<DialogElement>();
         }
@@ -62,7 +66,10 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
     public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
     {
-        if (contextStack.IsNullOrEmpty()) return;
+        if (contextStack.IsNullOrEmpty() || _conversationId != conversationId)
+        {
+            return;
+        }
 
         var top = contextStack.Peek().Breakpoints;
         top.Add(breakpoint);
@@ -70,7 +77,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
     public ConversationBreakpoint? GetConversationBreakpoint(string conversationId)
     {
-        if (contextStack.IsNullOrEmpty())
+        if (contextStack.IsNullOrEmpty() || _conversationId != conversationId)
         {
             return null;
         }
@@ -94,6 +101,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         var conv = _services.GetRequiredService<IConversationService>();
         var routing = _services.GetRequiredService<IRoutingService>();
         var state = _services.GetRequiredService<IConversationStateService>();
+        _conversationId = conv.ConversationId;
 
         var inputMsg = new RoleDialogModel(AgentRole.User, text);
         routing.Context.SetMessageId(conv.ConversationId, inputMsg.MessageId);
@@ -116,7 +124,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
     private void BeforeExecute(List<DialogElement>? dialogs)
     {
-        enabled = true;
+        _enabled = true;
         var state = _services.GetRequiredService<IConversationStateService>();
         var routing = _services.GetRequiredService<IRoutingService>();
 
@@ -152,6 +160,6 @@ public class BotSharpConversationSideCar : IConversationSideCar
         routing.Context.SetAgentStack(node.RoutingStack);
         routing.Context.SetDialogs(node.RoutingDialogs);
         Utilities.ClearCache();
-        enabled = false;
+        _enabled = false;
     }
 }
