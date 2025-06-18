@@ -86,6 +86,17 @@ public class BotSharpConversationSideCar : IConversationSideCar
         return top.LastOrDefault();
     }
 
+    public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
+    {
+        if (contextStack.IsNullOrEmpty() || _conversationId != conversationId)
+        {
+            return;
+        }
+
+        var top = contextStack.Peek();
+        top.State = new ConversationState(states);
+    }
+
     public async Task<RoleDialogModel> SendMessage(string agentId, string text,
         PostbackMessageModel? postback = null, List<MessageState>? states = null, List<DialogElement>? dialogs = null)
     {
