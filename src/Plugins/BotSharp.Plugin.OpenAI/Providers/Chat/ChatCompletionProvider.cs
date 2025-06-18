@@ -216,11 +216,13 @@ public class ChatCompletionProvider : IChatCompletion
 
             if (choice.FinishReason == ChatFinishReason.FunctionCall || choice.FinishReason == ChatFinishReason.ToolCalls)
             {
-                var functionName = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName))?.FunctionName;
+                var meta = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName));
+                var functionName = meta?.FunctionName;
+                var toolCallId = meta?.ToolCallId;
                 var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
                 var functionArgument = string.Join(string.Empty, args);
 
-                _logger.LogCritical($"Tool Call: {functionName}({functionArgument})");
+                _logger.LogCritical($"Tool Call (id: {toolCallId}) => {functionName}({functionArgument})");
             }
             else if (!choice.ContentUpdate.IsNullOrEmpty())
             {
