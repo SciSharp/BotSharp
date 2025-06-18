@@ -190,6 +190,7 @@ public class ChatCompletionProvider : IChatCompletion
         var hub = _services.GetRequiredService<MessageHub>();
         var response = chatClient.CompleteChatStreamingAsync(messages, options);
         var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
+        var allText = string.Empty;
 
         hub.Push(new()
         {
@@ -219,6 +220,7 @@ public class ChatCompletionProvider : IChatCompletion
             if (choice.ContentUpdate.IsNullOrEmpty()) continue;
 
             var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
+            allText += text;
             _logger.LogInformation(text);
 
             var content = new RoleDialogModel(AgentRole.Assistant, text)
@@ -243,7 +245,7 @@ public class ChatCompletionProvider : IChatCompletion
         {
             ServiceProvider = _services,
             EventName = "AfterReceiveLlmStreamMessage",
-            Data = new RoleDialogModel(AgentRole.Assistant, string.Empty)
+            Data = new RoleDialogModel(AgentRole.Assistant, allText)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = messageId

@@ -23,7 +23,7 @@ public class ChatHubObserver : IObserver<HubObserveData>
 
     public void OnCompleted()
     {
-        _logger.LogInformation($"{nameof(ChatHubObserver)} receives complete notification.");
+        _logger.LogWarning($"{nameof(ChatHubObserver)} receives complete notification.");
     }
 
     public void OnError(Exception error)
@@ -35,10 +35,11 @@ public class ChatHubObserver : IObserver<HubObserveData>
     {
         _services = value.ServiceProvider;
 
+        if (!AllowSendingMessage()) return;
+
         var message = value.Data;
         var model = new ChatResponseDto();
-        if (value.EventName == BEFORE_RECEIVE_LLM_STREAM_MESSAGE
-            || value.EventName == AFTER_RECEIVE_LLM_STREAM_MESSAGE)
+        if (value.EventName == BEFORE_RECEIVE_LLM_STREAM_MESSAGE)
         {
             var conv = _services.GetRequiredService<IConversationService>();
             model = new ChatResponseDto()
@@ -57,37 +58,37 @@ public class ChatHubObserver : IObserver<HubObserveData>
             var action = new ConversationSenderActionModel
             {
                 ConversationId = conv.ConversationId,
-                SenderAction = value.EventName == BEFORE_RECEIVE_LLM_STREAM_MESSAGE ? SenderActionEnum.TypingOn : SenderActionEnum.TypingOff
+                SenderAction = SenderActionEnum.TypingOn
             };
 
             GenerateSenderAction(conv.ConversationId, action).ConfigureAwait(false).GetAwaiter().GetResult();
         }
         else if (value.EventName == AFTER_RECEIVE_LLM_STREAM_MESSAGE)
         {
-            //var conv = _services.GetRequiredService<IConversationService>();
-            //model = new ChatResponseDto()
-            //{
-            //    ConversationId = conv.ConversationId,
-            //    MessageId = message.MessageId,
-            //    Text = string.Empty,
-            //    Sender = new()
-            //    {
-            //        FirstName = "AI",
-            //        LastName = "Assistant",
-            //        Role = AgentRole.Assistant
-            //    }
-            //};
+            var conv = _services.GetRequiredService<IConversationService>();
+            model = new ChatResponseDto()
+            {
+                ConversationId = conv.ConversationId,
+                MessageId = message.MessageId,
+                Text = message.Content,
+                Sender = new()
+                {
+                    FirstName = "AI",
+                    LastName = "Assistant",
+                    Role = AgentRole.Assistant
+                }
+            };
 
-            //var action = new ConversationSenderActionModel
-            //{
-            //    ConversationId = conv.ConversationId,
-            //    SenderAction = SenderActionEnum.TypingOff
-            //};
+            var action = new ConversationSenderActionModel
+            {
+                ConversationId = conv.ConversationId,
+                SenderAction = SenderActionEnum.TypingOff
+            };
 
-            //GenerateSenderAction(conv.ConversationId, action).ConfigureAwait(false).GetAwaiter().GetResult();
+            GenerateSenderAction(conv.ConversationId, action).ConfigureAwait(false).GetAwaiter().GetResult();
 
-            //var storage = _services.GetRequiredService<IConversationStorage>();
-            //storage.Append(conv.ConversationId, message);
+            var storage = _services.GetRequiredService<IConversationStorage>();
+            storage.Append(conv.ConversationId, message);
         }
         else if (value.EventName == ON_RECEIVE_LLM_STREAM_MESSAGE)
         {
@@ -110,27 +111,6 @@ public class ChatHubObserver : IObserver<HubObserveData>
         }
 
         OnReceiveAssistantMessage(value.EventName, model.ConversationId, model).ConfigureAwait(false).GetAwaiter().GetResult();
-    }
-
-    private async Task ReceiveLlmStreamResponse(RoleDialogModel message)
-    {
-        var conv = _services.GetRequiredService<IConversationService>();
-        var model = new ChatResponseDto()
-        {
-            ConversationId = conv.ConversationId,
-            MessageId = message.MessageId,
-            Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
-            Function = message.FunctionName,
-            RichContent = message.SecondaryRichContent ?? message.RichContent,
-            Data = message.Data,
-            Sender = new()
-            {
-                FirstName = "AI",
-                LastName = "Assistant",
-                Role = AgentRole.Assistant
-            }
-        };
-        await OnReceiveAssistantMessage(ON_RECEIVE_LLM_STREAM_MESSAGE, conv.ConversationId, model);
     }
 
     private async Task OnReceiveAssistantMessage(string @event, string conversationId, ChatResponseDto model)
