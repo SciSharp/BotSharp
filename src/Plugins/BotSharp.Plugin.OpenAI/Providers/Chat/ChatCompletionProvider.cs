@@ -2,9 +2,12 @@ using BotSharp.Abstraction.Hooks;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.Observables.Queues;
 using EntityFrameworkCore.BootKit;
+using Fluid;
 using ModelContextProtocol.Protocol.Types;
 using OpenAI.Chat;
+using System.Xml;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
@@ -206,25 +209,20 @@ public class ChatCompletionProvider : IChatCompletion
 
         using var textStream = new RealtimeTextStream();
         var toolCalls = new List<StreamingChatToolCallUpdate>();
+        var responseMessage = new RoleDialogModel(AgentRole.Assistant, string.Empty)
+        {
+            CurrentAgentId = agent.Id,
+            MessageId = messageId
+        };
 
         await foreach (var choice in chatClient.CompleteChatStreamingAsync(messages, options))
         {
-            if (choice.ToolCallUpdates != null)
+            if (!choice.ToolCallUpdates.IsNullOrEmpty())
             {
                 toolCalls.AddRange(choice.ToolCallUpdates);
             }
 
-            if (choice.FinishReason == ChatFinishReason.FunctionCall || choice.FinishReason == ChatFinishReason.ToolCalls)
-            {
-                var meta = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName));
-                var functionName = meta?.FunctionName;
-                var toolCallId = meta?.ToolCallId;
-                var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
-                var functionArgument = string.Join(string.Empty, args);
-
-                _logger.LogCritical($"Tool Call (id: {toolCallId}) => {functionName}({functionArgument})");
-            }
-            else if (!choice.ContentUpdate.IsNullOrEmpty())
+            if (!choice.ContentUpdate.IsNullOrEmpty())
             {
                 var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
                 textStream.Collect(text);
@@ -243,17 +241,45 @@ public class ChatCompletionProvider : IChatCompletion
                     Data = content
                 });
             }
+
+            if (choice.FinishReason == ChatFinishReason.FunctionCall || choice.FinishReason == ChatFinishReason.ToolCalls)
+            {
+                var meta = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName));
+                var functionName = meta?.FunctionName;
+                var toolCallId = meta?.ToolCallId;
+                var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
+                var functionArgument = string.Join(string.Empty, args);
+
+                _logger.LogCritical($"Tool Call (id: {toolCallId}) => {functionName}({functionArgument})");
+
+                responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = messageId,
+                    ToolCallId = toolCallId,
+                    FunctionName = functionName,
+                    FunctionArgs = functionArgument
+                };
+
+            }
+            else if (choice.FinishReason.HasValue)
+            {
+                var allText = textStream.GetText();
+                _logger.LogCritical($"Text Content: {allText}");
+
+                responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = messageId
+                };
+            }
         }
 
         hub.Push(new()
         {
             ServiceProvider = _services,
             EventName = "AfterReceiveLlmStreamMessage",
-            Data = new RoleDialogModel(AgentRole.Assistant, textStream.GetText())
-            {
-                CurrentAgentId = agent.Id,
-                MessageId = messageId
-            }
+            Data = responseMessage
         });
 
         return true;
