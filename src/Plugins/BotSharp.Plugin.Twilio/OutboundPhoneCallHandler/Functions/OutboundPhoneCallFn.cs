@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Options;
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
@@ -134,9 +136,10 @@ public class OutboundPhoneCallFn : IFunctionCallback
         }
     }
 
-    private async Task ForkConversation(LlmContextIn args, 
-        string entryAgentId, 
-        string originConversationId, 
+    private async Task ForkConversation(
+        LlmContextIn args,
+        string entryAgentId,
+        string originConversationId,
         string newConversationId,
         CallResource call)
     {
@@ -145,6 +148,8 @@ public class OutboundPhoneCallFn : IFunctionCallback
         var services = scope.ServiceProvider;
         var convService = services.GetRequiredService<IConversationService>();
         var convStorage = services.GetRequiredService<IConversationStorage>();
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
 
         var newConv = await convService.NewConversation(new Conversation
         {
@@ -170,15 +175,45 @@ public class OutboundPhoneCallFn : IFunctionCallback
             }
         });
 
-        convService.SetConversationId(newConversationId, 
-        [
-            new MessageState(StateConst.ORIGIN_CONVERSATION_ID, originConversationId),
-            new MessageState("channel", "phone"),
-            new MessageState("phone_from", call.From),
-            new MessageState("phone_direction", call.Direction),
-            new MessageState("phone_number", call.To),
-            new MessageState("twilio_call_sid", call.Sid)
-        ]);
-        convService.SaveStates();
+        var utcNow = DateTime.UtcNow;
+        var excludStates = new List<string>
+        {
+            "provider",
+            "model",
+            "prompt_total",
+            "completion_total",
+            "llm_total_cost"
+        };
+
+        var curStates = state.GetStates().Select(x => new MessageState(x.Key, x.Value)).ToList();
+        var subConvStates = new List<MessageState>
+        {
+            new(StateConst.ORIGIN_CONVERSATION_ID, originConversationId),
+            new("channel", "phone"),
+            new("phone_from", call.From),
+            new("phone_direction", call.Direction),
+            new("phone_number", call.To),
+            new("twilio_call_sid", call.Sid)
+        };
+        var subStateKeys = subConvStates.Select(x => x.Key).ToList();
+        var included = curStates.Where(x => !subStateKeys.Contains(x.Key) && !excludStates.Contains(x.Key));
+        var newStates = subConvStates.Concat(included).Select(x => new StateKeyValue
+        {
+            Key = x.Key,
+            Versioning = true,
+            Values = [
+                new StateValue
+                {
+                    Data = x.Value.ConvertToString(_options.JsonSerializerOptions),
+                    MessageId = messageId,
+                    Active = true,
+                    ActiveRounds = x.ActiveRounds,
+                    Source = StateSource.Application,
+                    UpdateTime = utcNow
+                }
+            ]
+        }).ToList();
+
+        db.UpdateConversationStates(newConversationId, newStates);
     }
 }

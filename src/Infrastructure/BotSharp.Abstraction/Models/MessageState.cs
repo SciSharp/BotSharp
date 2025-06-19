@@ -19,4 +19,9 @@ public class MessageState
         Value = value;
         ActiveRounds = activeRounds;
     }
+
+    public override string ToString()
+    {
+        return $"Key: {Key} => Value: {Value}, ActiveRounds: {ActiveRounds}";
+    }
 }

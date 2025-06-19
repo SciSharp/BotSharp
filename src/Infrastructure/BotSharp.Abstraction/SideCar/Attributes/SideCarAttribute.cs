@@ -54,16 +54,23 @@ public class SideCarAttribute : AsyncMoAttribute
 
     private (IConversationSideCar?, MethodInfo?) GetSideCarMethod(IServiceProvider serviceProvider, string methodName, Type retType, object[] args)
     {
-        var sidecar = serviceProvider.GetService<IConversationSideCar>();
-        var argTypes = args.Select(x => x.GetType()).ToArray();
-        var sidecarMethod = sidecar?.GetType()?.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                                               .FirstOrDefault(x => x.Name == methodName
-                                               && x.ReturnType == retType
-                                               && x.GetParameters().Length == argTypes.Length
-                                               && x.GetParameters().Select(p => p.ParameterType)
-                                                   .Zip(argTypes, (paramType, argType) => paramType.IsAssignableFrom(argType)).All(y => y));
+        try
+        {
+            var sidecar = serviceProvider.GetService<IConversationSideCar>();
+            var argTypes = args.Select(x => x.GetType()).ToArray();
+            var sidecarMethod = sidecar?.GetType()?.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                                                   .FirstOrDefault(x => x.Name == methodName
+                                                   && x.ReturnType == retType
+                                                   && x.GetParameters().Length == argTypes.Length
+                                                   && x.GetParameters().Select(p => p.ParameterType)
+                                                       .Zip(argTypes, (paramType, argType) => paramType.IsAssignableFrom(argType)).All(y => y));
 
-        return (sidecar, sidecarMethod);
+            return (sidecar, sidecarMethod);
+        }
+        catch
+        {
+            return (null, null);
+        }
     }
 
     private async Task<(bool, object?)> CallAsyncMethod(IConversationSideCar instance, MethodInfo method, Type retType, object[] args)

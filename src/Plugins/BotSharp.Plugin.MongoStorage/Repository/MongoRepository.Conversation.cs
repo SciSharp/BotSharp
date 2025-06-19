@@ -266,6 +266,7 @@ public partial class MongoRepository
         return new ConversationState(savedStates);
     }
 
+    [SideCar]
     public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
     {
         if (string.IsNullOrEmpty(conversationId) || states == null) return;
