@@ -242,7 +242,7 @@ public class ChatCompletionProvider : IChatCompletion
                 });
             }
 
-            if (choice.FinishReason == ChatFinishReason.FunctionCall || choice.FinishReason == ChatFinishReason.ToolCalls)
+            if (choice.FinishReason == ChatFinishReason.ToolCalls || choice.FinishReason == ChatFinishReason.FunctionCall)
             {
                 var meta = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName));
                 var functionName = meta?.FunctionName;

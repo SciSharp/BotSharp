@@ -379,7 +379,7 @@ public class ConversationController : ControllerBase
 
 
     [HttpPost("/conversation/{agentId}/{conversationId}/stream")]
-    public async Task StreamMessage(
+    public async Task SendMessageStream(
         [FromRoute] string agentId,
         [FromRoute] string conversationId,
         [FromBody] NewMessageModel input)
