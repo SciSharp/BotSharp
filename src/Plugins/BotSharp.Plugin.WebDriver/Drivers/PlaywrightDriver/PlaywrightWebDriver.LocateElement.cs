@@ -23,16 +23,19 @@ public partial class PlaywrightWebDriver
         }
         ILocator locator = page.Locator("body");
         int count = 0;
+        var keyword = string.Empty;
 
         // check if selector is specified
         if (location.Selector != null)
         {
+            keyword = location.Selector;
             locator = locator.Locator(location.Selector);
             count = await locator.CountAsync();
         }
 
         if (location.Tag != null)
         {
+            keyword = location.Tag;
             locator = page.Locator(location.Tag);
             count = await locator.CountAsync();
         }
@@ -40,13 +43,15 @@ public partial class PlaywrightWebDriver
         // try attribute
         if (!string.IsNullOrEmpty(location.AttributeName))
         {
-            locator = locator.Locator($"[{location.AttributeName}='{location.AttributeValue}']");
+            keyword = $"[{location.AttributeName}='{location.AttributeValue}']";
+            locator = locator.Locator(keyword);
             count = await locator.CountAsync();
         }
 
         // Retrieve the page raw html and infer the element path
         if (!string.IsNullOrEmpty(location.Text))
         {
+            keyword = location.Text;
             var text = location.Text.Replace("(", "\\(").Replace(")", "\\)");
             var regexExpression = location.MatchRule.ToLower() switch
             {
@@ -69,6 +74,7 @@ public partial class PlaywrightWebDriver
 
         if (location.Index >= 0)
         {
+            keyword = $"Index:{location.Index}";
             locator = locator.Nth(location.Index);
             count = await locator.CountAsync();
         }
@@ -77,13 +83,13 @@ public partial class PlaywrightWebDriver
         {
             if (location.IgnoreIfNotFound)
             {
-                result.Message = $"Can't locate element by keyword {location.Text} and Ignored";
-                _logger.LogWarning(result.Message);
+                result.Message = $"Can't locate element by keyword {keyword} and Ignored";
+                _logger.LogWarning($"{result.Message},message:{message.ConvertToString()}");
             }
             else
             {
-                result.Message = $"Can't locate element by keyword {location.Text}";
-                _logger.LogError(result.Message);
+                result.Message = $"Can't locate element by keyword {keyword}";
+                _logger.LogError($"{result.Message},message:{message.ConvertToString()}");
             }
 
         }
