@@ -76,7 +76,7 @@ public partial class RoutingService
         return true;
     }
 
-    private async Task<bool> InvokeFunction(RoleDialogModel message, List<RoleDialogModel> dialogs, bool useStream = false)
+    private async Task<bool> InvokeFunction(RoleDialogModel message, List<RoleDialogModel> dialogs, bool useStream)
     {
         // execute function
         // Save states
