@@ -51,7 +51,8 @@ public partial class RoutingService : IRoutingService
         }
         else
         {
-            var ret = await routing.InvokeAgent(agentId, dialogs);
+            var convSettings = _services.GetRequiredService<ConversationSetting>();
+            var ret = await routing.InvokeAgent(agentId, dialogs, convSettings.EnableStreaming);
         }
 
         var response = dialogs.Last();

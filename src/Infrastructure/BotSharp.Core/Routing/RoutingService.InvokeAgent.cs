@@ -4,7 +4,7 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs)
+    public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs, bool useStream = false)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
@@ -30,8 +30,16 @@ public partial class RoutingService
             provider: provider,
             model: model);
 
+        RoleDialogModel response;
         var message = dialogs.Last();
-        var response = await chatCompletion.GetChatCompletions(agent, dialogs);
+        if (useStream)
+        {
+            response = await chatCompletion.GetChatCompletionsStreamingAsync(agent, dialogs);
+        }
+        else
+        {
+            response = await chatCompletion.GetChatCompletions(agent, dialogs);
+        }
 
         if (response.Role == AgentRole.Function)
         {
@@ -45,8 +53,9 @@ public partial class RoutingService
             message.FunctionArgs = response.FunctionArgs;
             message.Indication = response.Indication;
             message.CurrentAgentId = agent.Id;
+            message.IsStreaming = response.IsStreaming;
 
-            await InvokeFunction(message, dialogs);
+            await InvokeFunction(message, dialogs, useStream);
         }
         else
         {
@@ -59,6 +68,7 @@ public partial class RoutingService
 
             message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: response.Content);
             message.CurrentAgentId = agent.Id;
+            message.IsStreaming = response.IsStreaming;
             dialogs.Add(message);
             Context.SetDialogs(dialogs);
         }
@@ -66,7 +76,7 @@ public partial class RoutingService
         return true;
     }
 
-    private async Task<bool> InvokeFunction(RoleDialogModel message, List<RoleDialogModel> dialogs)
+    private async Task<bool> InvokeFunction(RoleDialogModel message, List<RoleDialogModel> dialogs, bool useStream = false)
     {
         // execute function
         // Save states
@@ -102,7 +112,7 @@ public partial class RoutingService
 
                 // Send to Next LLM
                 var curAgentId = routing.Context.GetCurrentAgentId();
-                await InvokeAgent(curAgentId, dialogs);
+                await InvokeAgent(curAgentId, dialogs, useStream);
             }
         }
         else

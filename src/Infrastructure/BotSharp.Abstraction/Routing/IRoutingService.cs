@@ -30,7 +30,7 @@ public interface IRoutingService
     //int GetRecursiveCounter();
     //void SetRecursiveCounter(int counter);
 
-    Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs);
+    Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs, bool useStream = false);
     Task<bool> InvokeFunction(string name, RoleDialogModel messages);
     Task<RoleDialogModel> InstructLoop(Agent agent, RoleDialogModel message, List<RoleDialogModel> dialogs);
 
@@ -41,7 +41,6 @@ public interface IRoutingService
     /// <param name="message"></param>
     /// <returns></returns>
     Task<RoleDialogModel> InstructDirect(Agent agent, RoleDialogModel message, List<RoleDialogModel> dialogs);
-    Task<bool> InstructStream(Agent agent, RoleDialogModel message, List<RoleDialogModel> dialogs);
 
     Task<string> GetConversationContent(List<RoleDialogModel> dialogs, int maxDialogCount = 100);
 

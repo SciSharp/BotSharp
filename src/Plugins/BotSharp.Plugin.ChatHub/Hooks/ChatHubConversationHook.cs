@@ -105,7 +105,7 @@ public class ChatHubConversationHook : ConversationHookBase
 
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
-        if (!AllowSendingMessage()) return;
+        if (!AllowSendingMessage() || message.IsStreaming) return;
 
         var conv = _services.GetRequiredService<IConversationService>();
         var state = _services.GetRequiredService<IConversationStateService>();

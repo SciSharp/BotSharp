@@ -65,30 +65,30 @@ public class ChatHubObserver : IObserver<HubObserveData>
         }
         else if (value.EventName == AFTER_RECEIVE_LLM_STREAM_MESSAGE)
         {
-            var conv = _services.GetRequiredService<IConversationService>();
-            model = new ChatResponseDto()
+            if (message.IsStreaming)
             {
-                ConversationId = conv.ConversationId,
-                MessageId = message.MessageId,
-                Text = message.Content,
-                Sender = new()
+                var conv = _services.GetRequiredService<IConversationService>();
+                model = new ChatResponseDto()
                 {
-                    FirstName = "AI",
-                    LastName = "Assistant",
-                    Role = AgentRole.Assistant
-                }
-            };
+                    ConversationId = conv.ConversationId,
+                    MessageId = message.MessageId,
+                    Text = message.Content,
+                    Sender = new()
+                    {
+                        FirstName = "AI",
+                        LastName = "Assistant",
+                        Role = AgentRole.Assistant
+                    }
+                };
 
-            var action = new ConversationSenderActionModel
-            {
-                ConversationId = conv.ConversationId,
-                SenderAction = SenderActionEnum.TypingOff
-            };
+                var action = new ConversationSenderActionModel
+                {
+                    ConversationId = conv.ConversationId,
+                    SenderAction = SenderActionEnum.TypingOff
+                };
 
-            GenerateSenderAction(conv.ConversationId, action).ConfigureAwait(false).GetAwaiter().GetResult();
-
-            var storage = _services.GetRequiredService<IConversationStorage>();
-            storage.Append(conv.ConversationId, message);
+                GenerateSenderAction(conv.ConversationId, action).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
         }
         else if (value.EventName == ON_RECEIVE_LLM_STREAM_MESSAGE)
         {

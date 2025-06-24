@@ -1,13 +1,7 @@
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.Observables.Queues;
-using EntityFrameworkCore.BootKit;
-using Fluid;
-using ModelContextProtocol.Protocol.Types;
 using OpenAI.Chat;
-using System.Xml;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
@@ -187,7 +181,7 @@ public class ChatCompletionProvider : IChatCompletion
         return true;
     }
 
-    public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    public async Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var chatClient = client.GetChatClient(_model);
@@ -227,7 +221,9 @@ public class ChatCompletionProvider : IChatCompletion
                 var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
                 textStream.Collect(text);
 
+#if DEBUG
                 _logger.LogCritical($"Content update: {text}");
+#endif
 
                 var content = new RoleDialogModel(AgentRole.Assistant, text)
                 {
@@ -250,7 +246,9 @@ public class ChatCompletionProvider : IChatCompletion
                 var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
                 var functionArgument = string.Join(string.Empty, args);
 
+#if DEBUG
                 _logger.LogCritical($"Tool Call (id: {toolCallId}) => {functionName}({functionArgument})");
+#endif
 
                 responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
                 {
@@ -270,7 +268,8 @@ public class ChatCompletionProvider : IChatCompletion
                 responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
                 {
                     CurrentAgentId = agent.Id,
-                    MessageId = messageId
+                    MessageId = messageId,
+                    IsStreaming = true
                 };
             }
         }
@@ -282,7 +281,7 @@ public class ChatCompletionProvider : IChatCompletion
             Data = responseMessage
         });
 
-        return true;
+        return responseMessage;
     }
 
 
