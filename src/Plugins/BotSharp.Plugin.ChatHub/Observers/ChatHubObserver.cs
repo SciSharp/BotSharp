@@ -63,32 +63,29 @@ public class ChatHubObserver : IObserver<HubObserveData>
 
             GenerateSenderAction(conv.ConversationId, action).ConfigureAwait(false).GetAwaiter().GetResult();
         }
-        else if (value.EventName == AFTER_RECEIVE_LLM_STREAM_MESSAGE)
+        else if (value.EventName == AFTER_RECEIVE_LLM_STREAM_MESSAGE && message.IsStreaming)
         {
-            if (message.IsStreaming)
+            var conv = _services.GetRequiredService<IConversationService>();
+            model = new ChatResponseDto()
             {
-                var conv = _services.GetRequiredService<IConversationService>();
-                model = new ChatResponseDto()
+                ConversationId = conv.ConversationId,
+                MessageId = message.MessageId,
+                Text = message.Content,
+                Sender = new()
                 {
-                    ConversationId = conv.ConversationId,
-                    MessageId = message.MessageId,
-                    Text = message.Content,
-                    Sender = new()
-                    {
-                        FirstName = "AI",
-                        LastName = "Assistant",
-                        Role = AgentRole.Assistant
-                    }
-                };
+                    FirstName = "AI",
+                    LastName = "Assistant",
+                    Role = AgentRole.Assistant
+                }
+            };
 
-                var action = new ConversationSenderActionModel
-                {
-                    ConversationId = conv.ConversationId,
-                    SenderAction = SenderActionEnum.TypingOff
-                };
+            var action = new ConversationSenderActionModel
+            {
+                ConversationId = conv.ConversationId,
+                SenderAction = SenderActionEnum.TypingOff
+            };
 
-                GenerateSenderAction(conv.ConversationId, action).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
+            GenerateSenderAction(conv.ConversationId, action).ConfigureAwait(false).GetAwaiter().GetResult();
         }
         else if (value.EventName == ON_RECEIVE_LLM_STREAM_MESSAGE)
         {
