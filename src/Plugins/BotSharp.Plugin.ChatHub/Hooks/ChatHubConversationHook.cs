@@ -105,7 +105,7 @@ public class ChatHubConversationHook : ConversationHookBase
 
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
-        if (!AllowSendingMessage() || message.IsStreaming) return;
+        if (!AllowSendingMessage()) return;
 
         var conv = _services.GetRequiredService<IConversationService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -118,6 +118,7 @@ public class ChatHubConversationHook : ConversationHookBase
             RichContent = message.SecondaryRichContent ?? message.RichContent,
             Data = message.Data,
             States = state.GetStates(),
+            IsStreaming = message.IsStreaming,
             Sender = new()
             {
                 FirstName = "AI",
@@ -133,7 +134,11 @@ public class ChatHubConversationHook : ConversationHookBase
             SenderAction = SenderActionEnum.TypingOff
         };
 
-        await GenerateSenderAction(conv.ConversationId, action);
+        if (!message.IsStreaming)
+        {
+            await GenerateSenderAction(conv.ConversationId, action);
+        }
+        
         await ReceiveAssistantMessage(conv.ConversationId, json);
         await base.OnResponseGenerated(message);
     }

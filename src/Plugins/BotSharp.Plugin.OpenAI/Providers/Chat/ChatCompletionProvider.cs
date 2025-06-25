@@ -1,6 +1,9 @@
+using Azure;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.Observables.Queues;
+using BotSharp.Plugin.OpenAI.Models.Realtime;
+using Fluid;
 using OpenAI.Chat;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
@@ -190,6 +193,13 @@ public class ChatCompletionProvider : IChatCompletion
         var hub = _services.GetRequiredService<MessageHub>();
         var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
 
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
+        // Before chat completion hook
+        foreach (var hook in contentHooks)
+        {
+            await hook.BeforeGenerating(agent, conversations);
+        }
+
         hub.Push(new()
         {
             ServiceProvider = _services,
@@ -201,8 +211,11 @@ public class ChatCompletionProvider : IChatCompletion
             }
         });
 
+        
         using var textStream = new RealtimeTextStream();
         var toolCalls = new List<StreamingChatToolCallUpdate>();
+        ChatTokenUsage? tokenUsage = null;
+
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, string.Empty)
         {
             CurrentAgentId = agent.Id,
@@ -211,6 +224,8 @@ public class ChatCompletionProvider : IChatCompletion
 
         await foreach (var choice in chatClient.CompleteChatStreamingAsync(messages, options))
         {
+            tokenUsage = choice.Usage;
+
             if (!choice.ToolCallUpdates.IsNullOrEmpty())
             {
                 toolCalls.AddRange(choice.ToolCallUpdates);
@@ -280,6 +295,22 @@ public class ChatCompletionProvider : IChatCompletion
             EventName = "AfterReceiveLlmStreamMessage",
             Data = responseMessage
         });
+
+
+        var inputTokenDetails = tokenUsage?.InputTokenDetails;
+        // After chat completion hook
+        foreach (var hook in contentHooks)
+        {
+            await hook.AfterGenerated(responseMessage, new TokenStatsModel
+            {
+                Prompt = prompt,
+                Provider = Provider,
+                Model = _model,
+                TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
+                CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
+                TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
+            });
+        }
 
         return responseMessage;
     }

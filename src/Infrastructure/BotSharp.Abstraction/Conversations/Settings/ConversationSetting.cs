@@ -12,7 +12,6 @@ public class ConversationSetting
     public bool EnableContentLog { get; set; }
     public bool EnableStateLog { get; set; }
     public bool EnableTranslationMemory { get; set; }
-    public bool EnableStreaming { get; set; }
     public CleanConversationSetting CleanSetting { get; set; } = new();
     public RateLimitSetting RateLimit { get; set; } = new();
 }
