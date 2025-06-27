@@ -307,6 +307,7 @@ public partial class FileRepository
         return new ConversationState(states);
     }
 
+    [SideCar]
     public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
     {
         if (states.IsNullOrEmpty()) return;
