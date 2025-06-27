@@ -10,7 +10,9 @@ using BotSharp.Core.Messaging;
 using BotSharp.Core.Routing.Reasoning;
 using BotSharp.Core.Templating;
 using BotSharp.Core.Translation;
+using BotSharp.Core.Observables.Queues;
 using Microsoft.Extensions.Configuration;
+using BotSharp.Abstraction.Observables.Models;
 
 namespace BotSharp.Core.Conversations;
 
@@ -40,6 +42,8 @@ public class ConversationPlugin : IBotSharpPlugin
             var settingService = provider.GetRequiredService<ISettingService>();
             return settingService.Bind<GoogleApiSettings>("GoogleApi");
         });
+
+        services.AddSingleton<MessageHub<HubObserveData>>();
 
         services.AddScoped<IConversationStorage, ConversationStorage>();
         services.AddScoped<IConversationService, ConversationService>();

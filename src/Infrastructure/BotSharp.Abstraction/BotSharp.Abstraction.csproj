@@ -36,6 +36,7 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="System.Memory.Data" />
     <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="System.Reactive" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.File" />
     <PackageReference Include="Rougamo.Fody" />

@@ -76,9 +76,9 @@ public class ChatCompletionProvider : IChatCompletion
         return true;
     }
 
-    public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    public Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
-        return true;
+        throw new NotImplementedException();
     }
 
     public void SetModelName(string model)

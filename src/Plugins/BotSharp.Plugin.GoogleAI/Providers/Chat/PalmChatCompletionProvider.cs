@@ -145,7 +145,7 @@ public class PalmChatCompletionProvider : IChatCompletion
         throw new NotImplementedException();
     }
 
-    public Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    public Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
         throw new NotImplementedException();
     }

@@ -1,12 +1,12 @@
 using System.IO;
 
-namespace BotSharp.Plugin.GoogleAI.Models.Realtime;
+namespace BotSharp.Core.Infrastructures.Streams;
 
-internal class RealtimeTranscriptionResponse : IDisposable
+public class RealtimeTextStream : IDisposable
 {
-    public RealtimeTranscriptionResponse()
+    public RealtimeTextStream()
     {
-        
+
     }
 
     private bool _disposed = false;
@@ -18,6 +18,13 @@ internal class RealtimeTranscriptionResponse : IDisposable
         {
             return _contentStream != null ? _contentStream : new MemoryStream();
         }
+    }
+
+    public long Length => _contentStream.Length;
+
+    public bool IsNullOrEmpty()
+    {
+        return _contentStream == null || Length == 0;
     }
 
     public void Collect(string text)
