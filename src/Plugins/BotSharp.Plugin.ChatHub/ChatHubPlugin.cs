@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Crontab;
+using BotSharp.Abstraction.Observables.Models;
 using BotSharp.Core.Observables.Queues;
 using BotSharp.Plugin.ChatHub.Hooks;
 using BotSharp.Plugin.ChatHub.Observers;
@@ -35,8 +36,8 @@ public class ChatHubPlugin : IBotSharpPlugin, IBotSharpAppPlugin
     public void Configure(IApplicationBuilder app)
     {
         var services = app.ApplicationServices;
-        var queue = services.GetRequiredService<MessageHub>();
-        var logger = services.GetRequiredService<ILogger<MessageHub>>();
+        var queue = services.GetRequiredService<MessageHub<HubObserveData>>();
+        var logger = services.GetRequiredService<ILogger<MessageHub<HubObserveData>>>();
         queue.Events.Subscribe(new ChatHubObserver(logger));
     }
 }

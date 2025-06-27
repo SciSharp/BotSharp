@@ -1,5 +1,6 @@
 using Azure;
 using BotSharp.Abstraction.Hooks;
+using BotSharp.Abstraction.Observables.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.Observables.Queues;
 using BotSharp.Plugin.OpenAI.Models.Realtime;
@@ -190,7 +191,7 @@ public class ChatCompletionProvider : IChatCompletion
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
-        var hub = _services.GetRequiredService<MessageHub>();
+        var hub = _services.GetRequiredService<MessageHub<HubObserveData>>();
         var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
 
         var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
@@ -210,7 +211,6 @@ public class ChatCompletionProvider : IChatCompletion
                 MessageId = messageId
             }
         });
-
         
         using var textStream = new RealtimeTextStream();
         var toolCalls = new List<StreamingChatToolCallUpdate>();
@@ -273,7 +273,6 @@ public class ChatCompletionProvider : IChatCompletion
                     FunctionName = functionName,
                     FunctionArgs = functionArgument
                 };
-
             }
             else if (choice.FinishReason.HasValue)
             {

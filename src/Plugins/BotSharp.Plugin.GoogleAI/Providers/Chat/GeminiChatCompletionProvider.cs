@@ -159,40 +159,9 @@ public class GeminiChatCompletionProvider : IChatCompletion
         return true;
     }
 
-    public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    public Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
-        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
-        var chatClient = client.CreateGenerativeModel(_model.ToModelId());
-        var (prompt, messages) = PrepareOptions(chatClient,agent, conversations);
-
-        var asyncEnumerable = chatClient.StreamContentAsync(messages);
-
-        await foreach (var response in asyncEnumerable)
-        {
-            if (response.GetFunction() != null)
-            {
-                var func = response.GetFunction();
-                var update = func?.Args?.ToJsonString().ToString() ?? string.Empty;
-                _logger.LogInformation(update);
-
-                await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, update)
-                {
-                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
-                });
-                continue;
-            }
-
-            if (response.Text().IsNullOrEmpty()) continue;
-
-            _logger.LogInformation(response.Text());
-
-            await onMessageReceived(new RoleDialogModel(response.Candidates?.LastOrDefault()?.Content?.Role?.ToString() ?? AgentRole.Assistant.ToString(), response.Text() ?? string.Empty)
-            {
-                RenderedInstruction = string.Join("\r\n", renderedInstructions)
-            });
-        }
-
-        return true;
+        throw new NotImplementedException();
     }
 
     public void SetModelName(string model)

@@ -24,5 +24,5 @@ public interface IChatCompletion
         Func<RoleDialogModel, Task> onFunctionExecuting);
 
     Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, 
-        List<RoleDialogModel> conversations) => Task.FromResult(new RoleDialogModel(AgentRole.Assistant, string.Empty));
+        List<RoleDialogModel> conversations);
 }

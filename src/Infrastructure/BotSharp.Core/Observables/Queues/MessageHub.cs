@@ -1,15 +1,14 @@
-using BotSharp.Abstraction.Observables.Models;
 using System.Reactive.Subjects;
 
 namespace BotSharp.Core.Observables.Queues;
 
-public class MessageHub
+public class MessageHub<T> where T : class
 {
-    private readonly ILogger<MessageHub> _logger;
-    private readonly ISubject<HubObserveData> _observable = new Subject<HubObserveData>();
-    public IObservable<HubObserveData> Events => _observable;
+    private readonly ILogger<MessageHub<T>> _logger;
+    private readonly ISubject<T> _observable = new Subject<T>();
+    public IObservable<T> Events => _observable;
 
-    public MessageHub(ILogger<MessageHub> logger)
+    public MessageHub(ILogger<MessageHub<T>> logger)
     {
         _logger = logger;
     }
@@ -18,7 +17,7 @@ public class MessageHub
     /// Push an item to the observers.
     /// </summary>
     /// <param name="item"></param>
-    public void Push(HubObserveData item)
+    public void Push(T item)
     {
         _observable.OnNext(item);
     }
