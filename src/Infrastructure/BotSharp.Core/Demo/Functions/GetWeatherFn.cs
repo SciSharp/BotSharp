@@ -17,7 +17,7 @@ public class GetWeatherFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         message.Content = $"It is a sunny day!";
-        //message.StopCompletion = true;
+        message.StopCompletion = false;
         return true;
     }
 }

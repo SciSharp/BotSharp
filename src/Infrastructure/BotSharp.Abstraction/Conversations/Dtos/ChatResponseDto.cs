@@ -35,6 +35,9 @@ public class ChatResponseDto : InstructResult
     [JsonPropertyName("has_message_files")]
     public bool HasMessageFiles { get; set; }
 
+    [JsonPropertyName("is_streaming")]
+    public bool IsStreaming { get; set; }
+
     [JsonPropertyName("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
