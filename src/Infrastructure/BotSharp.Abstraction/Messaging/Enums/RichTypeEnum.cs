@@ -9,4 +9,6 @@ public static class RichTypeEnum
     public const string QuickReply = "quick_reply";
     public const string Text = "text";
     public const string Attachment = "attachment";
+
+    public const string JsCode = "js_code";
 }
