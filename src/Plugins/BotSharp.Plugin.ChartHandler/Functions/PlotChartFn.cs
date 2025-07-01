@@ -48,13 +48,14 @@ public class PlotChartFn : IFunctionCallback
             }
         ]);
 
-        message.Content = "Here is the chart you ask for:";
+        var obj = response.JsonContent<LlmContextOut>();
+        message.Content = obj?.GreetingMessage ?? "Here is the chart you ask for:";
         message.RichContent = new RichContent<IRichMessage>
         {
             Recipient = new Recipient { Id = convService.ConversationId },
             Message = new JsCodeTemplateMessage
             {
-                Text = response
+                Text = obj?.JsCode ?? string.Empty
             }
         };
         message.StopCompletion = true;
