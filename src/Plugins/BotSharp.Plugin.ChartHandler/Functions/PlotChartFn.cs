@@ -2,18 +2,18 @@ using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 
 namespace BotSharp.Plugin.ChartHandler.Functions;
 
-public class GenerateChartFn : IFunctionCallback
+public class PlotChartFn : IFunctionCallback
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<GenerateChartFn> _logger;
+    private readonly ILogger<PlotChartFn> _logger;
 
-    public string Name => "util-chart-generate_chart";
-    public string Indication => "Generating chart";
+    public string Name => "util-chart-plot_chart";
+    public string Indication => "Plotting chart";
 
 
-    public GenerateChartFn(
+    public PlotChartFn(
         IServiceProvider services,
-        ILogger<GenerateChartFn> logger)
+        ILogger<PlotChartFn> logger)
     {
         _services = services;
         _logger = logger;
@@ -27,7 +27,7 @@ public class GenerateChartFn : IFunctionCallback
 
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
         var agent = await agentService.GetAgent(message.CurrentAgentId);
-        var inst = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, "util-chart-plot-instruction");
+        var inst = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, "util-chart-plot_instruction");
         var innerAgent = new Agent
         {
             Id = agent.Id,
@@ -48,7 +48,7 @@ public class GenerateChartFn : IFunctionCallback
             }
         ]);
 
-        message.Content = response;
+        message.Content = "Here is the chart you ask for:";
         message.RichContent = new RichContent<IRichMessage>
         {
             Recipient = new Recipient { Id = convService.ConversationId },

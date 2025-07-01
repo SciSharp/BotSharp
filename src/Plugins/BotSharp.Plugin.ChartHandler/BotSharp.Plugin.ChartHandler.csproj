@@ -7,18 +7,19 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-chart-generate_chart.json" />
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-chart-generate_chart.fn.liquid" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-chart-plot_chart.json" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-chart-plot_chart.fn.liquid" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-chart-plot_instruction.liquid" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-chart-generate_chart.json">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-chart-plot_chart.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-chart-generate_chart.fn.liquid">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-chart-plot_chart.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-chart-plot-instruction.liquid">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-chart-plot_instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
