@@ -1,9 +1,12 @@
-Please take a look at "Requirement" and generate a javascript code that can be used to render a pie chart on a canvas element with id {{ chart_element_id }}.
+Please take a look at "Plotting Requirement" and generate a javascript code that can be used to render a chart on a div html element with id {{ chart_element_id }}.
 
-=== Requirement ===
+=== Plotting Requirement ===
 {{ plotting_requirement }}
 
 
 *** Important ***
+** You must not generate multiple script tags, which means only one <script>...</script> is allowed.
 ** You must not create any new html element.
-** You must output the js code only, and wrap it between the script tags.
+** You must output the javascript code only, and wrap it between the script tag.
+** You need to import Plotly.js in the same script tag. The script source should be "https://cdn.plot.ly/plotly-3.0.1.min.js".
+** You must not apply any styles on the div html element.
