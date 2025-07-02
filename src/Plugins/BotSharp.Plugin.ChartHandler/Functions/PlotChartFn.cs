@@ -49,7 +49,7 @@ public class PlotChartFn : IFunctionCallback
         ]);
 
         var obj = response.JsonContent<LlmContextOut>();
-        message.Content = obj?.GreetingMessage ?? "Here is the chart you ask for:";
+        message.Content = obj?.GreetingMessage.IfNullOrEmptyAs("Here is the chart you ask for:");
         message.RichContent = new RichContent<IRichMessage>
         {
             Recipient = new Recipient { Id = convService.ConversationId },
