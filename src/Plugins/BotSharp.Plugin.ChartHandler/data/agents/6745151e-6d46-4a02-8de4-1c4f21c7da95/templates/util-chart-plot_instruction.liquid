@@ -1,20 +1,20 @@
-Please take a look at "Plotting Requirement" and generate a javascript code that can be used to render a chart on a div html element with id {{ chart_element_id }}.
-
+Please take a look at "Plotting Requirement" and generate a javascript code that can be used to render the charts on an html element.
 === Plotting Requirement ===
 {{ plotting_requirement }}
 
 
-*** Important ***
-** You must not generate multiple script tag pairs, which means only one <script>...</script> is allowed.
-** You must not create any new html element.
-** You must output the javascript code only, and wrap it between one pair of script tags.
-** You need to import Plotly.js in the same script tag. The script source should be "https://cdn.plot.ly/plotly-3.0.1.min.js".
+***** Important *****
+** Your output must be a single <script>...</script> block with everything needed inside.
+** You need to import Plotly.js to plot the charts. The script source should be "https://cdn.plot.ly/plotly-3.0.1.min.js".
 ** You need to add the MODE bar for each chart you plot.
-** You must not apply any styles on the div html element.
+** You must render the charts on the div html element with id {{ chart_element_id }}.
+** You must not create any new html element.
+** You must not apply any styles on any html element.
+** You must generate as less token as possible.
 
 *** Response Format ***
 You must output the response in the following JSON format:
 {
     "greeting_message": "A short polite message that informs user that the charts have been generated.",
-    "js_code": "The javascript code wrapped in a pair of script tags"
+    "js_code": "The javascript code that can generate the charts as requested."
 }
