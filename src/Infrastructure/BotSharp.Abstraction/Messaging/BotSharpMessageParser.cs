@@ -38,6 +38,10 @@ public static class BotSharpMessageParser
             {
                 targetType = typeof(TextMessage);
             }
+            else if (richType == RichTypeEnum.JsCode)
+            {
+                targetType = typeof(JsCodeTemplateMessage);
+            }
             else if (richType == RichTypeEnum.GenericTemplate)
             {
                 if (root.TryGetProperty("element_type", out element))
