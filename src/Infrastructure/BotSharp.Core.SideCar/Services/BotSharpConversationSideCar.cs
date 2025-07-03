@@ -23,9 +23,10 @@ public class BotSharpConversationSideCar : IConversationSideCar
     private readonly IServiceProvider _services;
     private readonly ILogger<BotSharpConversationSideCar> _logger;
 
-    private Stack<ConversationContext> contextStack = new();
+    private Stack<ConversationContext> _contextStack = new();
 
-    private bool enabled = false;
+    private bool _enabled = false;
+    private string _conversationId = string.Empty;
 
     public string Provider => "botsharp";
 
@@ -39,44 +40,61 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
     public bool IsEnabled()
     {
-        return enabled;
+        return _enabled;
     }
 
     public void AppendConversationDialogs(string conversationId, List<DialogElement> messages)
     {
-        if (contextStack.IsNullOrEmpty()) return;
+        if (!IsValid(conversationId))
+        {
+            return;
+        }
 
-        var top = contextStack.Peek();
+        var top = _contextStack.Peek();
         top.Dialogs.AddRange(messages);
     }
 
     public List<DialogElement> GetConversationDialogs(string conversationId)
     {
-        if (contextStack.IsNullOrEmpty())
+        if (!IsValid(conversationId))
         {
             return new List<DialogElement>();
         }
 
-        return contextStack.Peek().Dialogs;
+        return _contextStack.Peek().Dialogs;
     }
 
     public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
     {
-        if (contextStack.IsNullOrEmpty()) return;
+        if (!IsValid(conversationId))
+        {
+            return;
+        }
 
-        var top = contextStack.Peek().Breakpoints;
+        var top = _contextStack.Peek().Breakpoints;
         top.Add(breakpoint);
     }
 
     public ConversationBreakpoint? GetConversationBreakpoint(string conversationId)
     {
-        if (contextStack.IsNullOrEmpty())
+        if (!IsValid(conversationId))
         {
             return null;
         }
 
-        var top = contextStack.Peek().Breakpoints;
+        var top = _contextStack.Peek().Breakpoints;
         return top.LastOrDefault();
+    }
+
+    public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
+    {
+        if (!IsValid(conversationId))
+        {
+            return;
+        }
+
+        var top = _contextStack.Peek();
+        top.State = new ConversationState(states);
     }
 
     public async Task<RoleDialogModel> SendMessage(string agentId, string text,
@@ -94,6 +112,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         var conv = _services.GetRequiredService<IConversationService>();
         var routing = _services.GetRequiredService<IRoutingService>();
         var state = _services.GetRequiredService<IConversationStateService>();
+        _conversationId = conv.ConversationId;
 
         var inputMsg = new RoleDialogModel(AgentRole.User, text);
         routing.Context.SetMessageId(conv.ConversationId, inputMsg.MessageId);
@@ -116,7 +135,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
     private void BeforeExecute(List<DialogElement>? dialogs)
     {
-        enabled = true;
+        _enabled = true;
         var state = _services.GetRequiredService<IConversationStateService>();
         var routing = _services.GetRequiredService<IRoutingService>();
 
@@ -129,7 +148,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
             RecursiveCounter = routing.Context.GetRecursiveCounter(),
             RoutingStack = routing.Context.GetAgentStack()
         };
-        contextStack.Push(node);
+        _contextStack.Push(node);
 
         // Reset
         state.ResetCurrentState();
@@ -144,7 +163,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         var state = _services.GetRequiredService<IConversationStateService>();
         var routing = _services.GetRequiredService<IRoutingService>();
 
-        var node = contextStack.Pop();
+        var node = _contextStack.Pop();
 
         // Recover
         state.SetCurrentState(node.State);
@@ -152,6 +171,14 @@ public class BotSharpConversationSideCar : IConversationSideCar
         routing.Context.SetAgentStack(node.RoutingStack);
         routing.Context.SetDialogs(node.RoutingDialogs);
         Utilities.ClearCache();
-        enabled = false;
+        _enabled = false;
+    }
+
+    private bool IsValid(string conversationId)
+    {
+        return !_contextStack.IsNullOrEmpty()
+            && _conversationId == conversationId
+            && !string.IsNullOrEmpty(conversationId)
+            && !string.IsNullOrEmpty(_conversationId);
     }
 }

@@ -7,6 +7,10 @@
       "content": {
         "type": "string",
         "description": "Response content"
+      },
+      "conversation_end": {
+        "type": "boolean",
+        "description": "User is ending the conversation."
       }
     },
     "required": [ "content" ]

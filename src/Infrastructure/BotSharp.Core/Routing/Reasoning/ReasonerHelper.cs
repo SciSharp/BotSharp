@@ -65,6 +65,12 @@ public static class ReasonerHelper
             }
         }
 
+        if (args.AgentName == "response_to_user")
+        {
+            args.AgentName = "";
+            malformed = true;
+        }
+
         if (malformed)
         {
             Console.WriteLine($"Captured LLM malformed response");
