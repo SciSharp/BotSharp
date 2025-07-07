@@ -167,13 +167,11 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
     private void AfterExecute()
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
         var routing = _services.GetRequiredService<IRoutingService>();
-
         var node = _contextStack.Pop();
 
         // Recover
-        state.SetCurrentState(node.State);
+        RestoreStates(node.State);
         routing.Context.SetRecursiveCounter(node.RecursiveCounter);
         routing.Context.SetAgentStack(node.RoutingStack);
         routing.Context.SetDialogs(node.RoutingDialogs);
