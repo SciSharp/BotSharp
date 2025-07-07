@@ -173,7 +173,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         var node = _contextStack.Pop();
 
         // Recover
-        RestoreStates(node.State);
+        state.SetCurrentState(node.State);
         routing.Context.SetRecursiveCounter(node.RecursiveCounter);
         routing.Context.SetAgentStack(node.RoutingStack);
         routing.Context.SetDialogs(node.RoutingDialogs);
