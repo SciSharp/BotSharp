@@ -443,7 +443,7 @@ public class ConversationStateService : IConversationStateService
 
     public void SetCurrentState(ConversationState state)
     {
-        var values = _curStates.Values.ToList();
+        var values = state.Values.ToList();
         var copy = JsonSerializer.Deserialize<List<StateKeyValue>>(JsonSerializer.Serialize(values));
         _curStates = new ConversationState(copy ?? []);
     }

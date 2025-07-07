@@ -14,6 +14,7 @@
   limitations under the License.
 ******************************************************************************/
 
+using BotSharp.Abstraction.SideCar.Models;
 using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Core.SideCar.Services;
@@ -24,6 +25,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
     private readonly ILogger<BotSharpConversationSideCar> _logger;
 
     private Stack<ConversationContext> _contextStack = new();
+    private SideCarOptions? _sideCarOptions;
 
     private bool _enabled = false;
     private string _conversationId = string.Empty;
@@ -98,8 +100,13 @@ public class BotSharpConversationSideCar : IConversationSideCar
     }
 
     public async Task<RoleDialogModel> SendMessage(string agentId, string text,
-        PostbackMessageModel? postback = null, List<MessageState>? states = null, List<DialogElement>? dialogs = null)
+        PostbackMessageModel? postback = null,
+        List<MessageState>? states = null,
+        List<DialogElement>? dialogs = null,
+        SideCarOptions? options = null)
     {
+        _sideCarOptions = options;
+
         BeforeExecute(dialogs);
         var response = await InnerExecute(agentId, text, postback, states);
         AfterExecute();
@@ -166,7 +173,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         var node = _contextStack.Pop();
 
         // Recover
-        state.SetCurrentState(node.State);
+        RestoreStates(node.State);
         routing.Context.SetRecursiveCounter(node.RecursiveCounter);
         routing.Context.SetAgentStack(node.RoutingStack);
         routing.Context.SetDialogs(node.RoutingDialogs);
@@ -180,5 +187,44 @@ public class BotSharpConversationSideCar : IConversationSideCar
             && _conversationId == conversationId
             && !string.IsNullOrEmpty(conversationId)
             && !string.IsNullOrEmpty(_conversationId);
+    }
+
+    private void RestoreStates(ConversationState prevStates)
+    {
+        var innerStates = prevStates;
+        var state = _services.GetRequiredService<IConversationStateService>();
+
+        if (_sideCarOptions?.IsInheritStates == true)
+        {
+            var curStates = state.GetCurrentState();
+            foreach (var pair in curStates)
+            {
+                var endNode = pair.Value.Values.LastOrDefault();
+                if (endNode == null) continue;
+
+                if (_sideCarOptions?.InheritStateKeys?.Any() == true
+                    && !_sideCarOptions.InheritStateKeys.Contains(pair.Key))
+                {
+                    continue;
+                }
+
+                if (innerStates.ContainsKey(pair.Key))
+                {
+                    innerStates[pair.Key].Values.Add(endNode);
+                }
+                else
+                {
+                    innerStates[pair.Key] = new StateKeyValue
+                    {
+                        Key = pair.Key,
+                        Versioning = pair.Value.Versioning,
+                        Readonly = pair.Value.Readonly,
+                        Values = [endNode]
+                    };
+                }
+            }
+        }
+
+        state.SetCurrentState(innerStates);
     }
 }
