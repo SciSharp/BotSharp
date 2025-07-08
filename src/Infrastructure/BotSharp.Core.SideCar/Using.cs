@@ -16,5 +16,6 @@ global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Models;
 global using BotSharp.Abstraction.Routing;
 global using BotSharp.Abstraction.SideCar;
+global using BotSharp.Abstraction.SideCar.Models;
 global using BotSharp.Abstraction.Utilities;
 global using BotSharp.Core.SideCar.Settings;
