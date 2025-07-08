@@ -326,15 +326,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var (prompt, messages, options) = PrepareOptions(agent, []);
 
         var instruction = messages.FirstOrDefault()?.Content.FirstOrDefault()?.Text ?? agent?.Description ?? string.Empty;
-        var functions = options.Tools.Select(x =>
+        var functions = options.Tools.Select(x => new FunctionDef
         {
-            var fn = new FunctionDef
-            {
-                Name = x.FunctionName,
-                Description = x.FunctionDescription
-            };
-            fn.Parameters = JsonSerializer.Deserialize<FunctionParametersDef>(x.FunctionParameters);
-            return fn;
+            Name = x.FunctionName,
+            Description = x.FunctionDescription,
+            Parameters = JsonSerializer.Deserialize<FunctionParametersDef>(x.FunctionParameters)
         }).ToArray();
 
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
