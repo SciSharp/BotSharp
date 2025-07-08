@@ -68,6 +68,9 @@ public class TwilioInboundController : TwilioController
             await hook.OnSessionCreated(request);
         }, request.AgentId);
 
+        var conv = _services.GetRequiredService<IConversationService>();
+        conv.SaveStates();
+
         if (twilio.MachineDetected(request))
         {
             response = new VoiceResponse();
@@ -204,7 +207,7 @@ public class TwilioInboundController : TwilioController
 
             storage.Append(conversation.Id, new RoleDialogModel(AgentRole.User, request.Intent)
             {
-                CurrentAgentId = conversation.Id,
+                CurrentAgentId = agent.Id,
                 CreatedAt = DateTime.UtcNow
             });
         }
