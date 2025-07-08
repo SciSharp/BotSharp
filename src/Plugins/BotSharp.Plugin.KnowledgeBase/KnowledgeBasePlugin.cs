@@ -35,7 +35,7 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
         var section = menu.First(x => x.Label == "Apps");
         menu.Add(new PluginMenuDef("Knowledge Base", icon: "bx bx-book-open", weight: section.Weight + 1)
         {
-            Roles = new List<string> { UserRole.Root, UserRole.Admin },
+            Roles = new List<string> { UserRole.Root, UserRole.Admin, UserRole.Engineer },
             SubMenu = new List<PluginMenuDef>
             {
                 new PluginMenuDef("Q & A", link: "page/knowledge-base/question-answer"),

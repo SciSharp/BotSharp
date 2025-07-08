@@ -63,6 +63,11 @@ public class TwilioInboundController : TwilioController
         instruction.AgentId = request.AgentId;
         instruction.ConversationId = request.ConversationId;
 
+        await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
+        {
+            await hook.OnSessionCreated(request);
+        }, request.AgentId);
+
         if (twilio.MachineDetected(request))
         {
             response = new VoiceResponse();
@@ -114,12 +119,7 @@ public class TwilioInboundController : TwilioController
                 await Task.Delay(1500);
                 await twilio.StartRecording(request.CallSid, request.AgentId, request.ConversationId);
             });
-        }
-
-        await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
-        {
-            await hook.OnSessionCreated(request);
-        }, request.AgentId);
+        }        
 
         return TwiML(response);
     }
