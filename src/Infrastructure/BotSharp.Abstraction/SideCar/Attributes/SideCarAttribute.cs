@@ -79,7 +79,7 @@ public class SideCarAttribute : AsyncMoAttribute
         object? res = null;
         var isHandled = false;
 
-        var enabled = instance != null && instance.IsEnabled() && method != null;
+        var enabled = instance != null && instance.IsEnabled && method != null;
         if (!enabled)
         {
             return (isHandled, value);
@@ -112,7 +112,7 @@ public class SideCarAttribute : AsyncMoAttribute
         object? value = null;
         var isHandled = false;
 
-        var enabled = instance != null && instance.IsEnabled() && method != null;
+        var enabled = instance != null && instance.IsEnabled && method != null;
         if (!enabled)
         {
             return (isHandled, value);

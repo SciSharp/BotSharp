@@ -179,7 +179,7 @@ public class ChatHubConversationHook : ConversationHookBase
     private bool AllowSendingMessage()
     {
         var sidecar = _services.GetService<IConversationSideCar>();
-        return sidecar == null || !sidecar.IsEnabled();
+        return sidecar == null || !sidecar.IsEnabled;
     }
 
     private async Task InitClientConversation(string conversationId, ConversationDto conversation)

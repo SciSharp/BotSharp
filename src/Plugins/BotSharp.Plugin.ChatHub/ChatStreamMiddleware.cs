@@ -62,6 +62,7 @@ public class ChatStreamMiddleware
         var hub = services.GetRequiredService<IRealtimeHub>();
         var conn = hub.SetHubConnection(conversationId);
         conn.CurrentAgentId = agentId;
+        InitEvents(conn);
 
         // load conversation and state
         var convService = services.GetRequiredService<IConversationService>();
@@ -128,6 +129,11 @@ public class ChatStreamMiddleware
                 break;
         }
 
+        return (response.Event, data);
+    }
+
+    private void InitEvents(RealtimeHubConnection conn)
+    {
         conn.OnModelMessageReceived = message =>
             JsonSerializer.Serialize(new
             {
@@ -147,7 +153,5 @@ public class ChatStreamMiddleware
             {
                 @event = "clear"
             });
-
-        return (response.Event, data);
     }
 }
