@@ -5,8 +5,8 @@ namespace BotSharp.Abstraction.SideCar;
 public interface IConversationSideCar
 {
     string Provider { get; }
+    bool IsEnabled { get; }
 
-    bool IsEnabled();
     void AppendConversationDialogs(string conversationId, List<DialogElement> messages);
     List<DialogElement> GetConversationDialogs(string conversationId);
     void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint);

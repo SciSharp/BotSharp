@@ -14,7 +14,6 @@
   limitations under the License.
 ******************************************************************************/
 
-using BotSharp.Abstraction.SideCar.Models;
 using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Core.SideCar.Services;
@@ -31,6 +30,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
     private string _conversationId = string.Empty;
 
     public string Provider => "botsharp";
+    public bool IsEnabled => _enabled;
 
     public BotSharpConversationSideCar(
         IServiceProvider services,
@@ -38,11 +38,6 @@ public class BotSharpConversationSideCar : IConversationSideCar
     {
         _services = services;
         _logger = logger;
-    }
-
-    public bool IsEnabled()
-    {
-        return _enabled;
     }
 
     public void AppendConversationDialogs(string conversationId, List<DialogElement> messages)
@@ -99,17 +94,22 @@ public class BotSharpConversationSideCar : IConversationSideCar
         top.State = new ConversationState(states);
     }
 
-    public async Task<RoleDialogModel> SendMessage(string agentId, string text,
+    public async Task<RoleDialogModel> SendMessage(
+        string agentId,
+        string text,
         PostbackMessageModel? postback = null,
         List<MessageState>? states = null,
         List<DialogElement>? dialogs = null,
         SideCarOptions? options = null)
     {
         _sideCarOptions = options;
+        _logger.LogInformation($"Entering side car conversation...");
 
         BeforeExecute(dialogs);
         var response = await InnerExecute(agentId, text, postback, states);
         AfterExecute();
+
+        _logger.LogInformation($"Existing side car conversation...");
         return response;
     }
 

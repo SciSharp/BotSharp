@@ -53,28 +53,29 @@ public class TwilioInboundController : TwilioController
             instruction.SpeechPaths.Add(request.InitAudioFile);
         }
 
+        // Before creating session
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
             await hook.OnSessionCreating(request, instruction);
         }, request.AgentId);
+
 
         var (agent, conversationId) = await InitConversation(request);
         request.ConversationId = conversationId.Id;
         instruction.AgentId = request.AgentId;
         instruction.ConversationId = request.ConversationId;
 
+
+        // After creating session
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
             await hook.OnSessionCreated(request);
         }, request.AgentId);
 
-        var conv = _services.GetRequiredService<IConversationService>();
-        conv.SaveStates();
 
         if (twilio.MachineDetected(request))
         {
             response = new VoiceResponse();
-            
             await HookEmitter.Emit<ITwilioCallStatusHook>(_services, 
                 async hook => await hook.OnVoicemailStarting(request), request.AgentId);
 
@@ -122,7 +123,7 @@ public class TwilioInboundController : TwilioController
                 await Task.Delay(1500);
                 await twilio.StartRecording(request.CallSid, request.AgentId, request.ConversationId);
             });
-        }        
+        }
 
         return TwiML(response);
     }
