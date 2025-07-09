@@ -25,7 +25,10 @@ public class RateLimitConversationHook : ConversationHookBase
     public override async Task OnMessageReceived(RoleDialogModel message)
     {
         var settings = _services.GetRequiredService<ConversationSetting>();
+        var states = _services.GetRequiredService<IConversationStateService>();
+        
         var rateLimit = settings.RateLimit;
+        var channel = states.GetState("channel");
 
         // Check max input length
         var charCount = message.Content.Length;
@@ -45,7 +48,7 @@ public class RateLimitConversationHook : ConversationHookBase
         var userSents = Dialogs.Where(x => x.Role == AgentRole.User)
             .TakeLast(2).ToList();
 
-        if (userSents.Count > 1)
+        if (channel != ConversationChannel.Phone && userSents.Count > 1)
         {
             var seconds = (DateTime.UtcNow - userSents.First().CreatedAt).TotalSeconds;
             if (seconds < rateLimit.MinTimeSecondsBetweenMessages)
@@ -55,9 +58,6 @@ public class RateLimitConversationHook : ConversationHookBase
                 return;
             }
         }
-
-        var states = _services.GetRequiredService<IConversationStateService>();
-        var channel = states.GetState("channel");
 
         // Check the number of conversations
         if (channel != ConversationChannel.Phone && channel != ConversationChannel.Email && channel != ConversationChannel.Database)
