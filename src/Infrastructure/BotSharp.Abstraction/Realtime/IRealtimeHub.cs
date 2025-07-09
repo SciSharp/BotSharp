@@ -13,5 +13,5 @@ public interface IRealtimeHub
 
     IRealTimeCompletion Completer { get; }
 
-    Task ConnectToModel(Func<string, Task>? responseToUser = null, Func<string, Task>? init = null);
+    Task ConnectToModel(Func<string, Task>? responseToUser = null, Func<string, Task>? init = null, List<MessageState>? initStates = null);
 }

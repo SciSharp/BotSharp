@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Realtime.Models.Session;
 using BotSharp.Core.Session;
 using Microsoft.AspNetCore.Http;
@@ -66,6 +67,7 @@ public class ChatStreamMiddleware
 
         // load conversation and state
         var convService = services.GetRequiredService<IConversationService>();
+        var state = services.GetRequiredService<IConversationStateService>();
         convService.SetConversationId(conversationId, []);
         await convService.GetConversationRecordOrCreateNew(agentId);
 
@@ -80,7 +82,8 @@ public class ChatStreamMiddleware
             var (eventType, data) = MapEvents(conn, receivedText);
             if (eventType == "start")
             {
-                await ConnectToModel(hub, webSocket);
+                var states = InitStates(data);
+                await ConnectToModel(hub, webSocket, states);
             }
             else if (eventType == "media")
             {
@@ -96,25 +99,26 @@ public class ChatStreamMiddleware
             }
         }
 
+        convService.SaveStates();
         await _session.DisconnectAsync();
         _session.Dispose();
     }
 
-    private async Task ConnectToModel(IRealtimeHub hub, WebSocket webSocket)
+    private async Task ConnectToModel(IRealtimeHub hub, WebSocket webSocket, List<MessageState>? states = null)
     {
-        await hub.ConnectToModel(async data =>
+        await hub.ConnectToModel(responseToUser: async data =>
         {
             if (_session != null)
             {
                 await _session.SendEventAsync(data);
             }
-        });
+        }, initStates: states);
     }
 
     private (string, string) MapEvents(RealtimeHubConnection conn, string receivedText)
     {
         var response = JsonSerializer.Deserialize<ChatStreamEventResponse>(receivedText);
-        string data = string.Empty;
+        var data = response?.Body?.Payload ?? string.Empty;
 
         switch (response.Event)
         {
@@ -122,8 +126,6 @@ public class ChatStreamMiddleware
                 conn.ResetStreamState();
                 break;
             case "media":
-                var mediaResponse = JsonSerializer.Deserialize<ChatStreamMediaEventResponse>(receivedText);
-                data = mediaResponse?.Body?.Payload ?? string.Empty;
                 break;
             case "disconnect":
                 break;
@@ -153,5 +155,18 @@ public class ChatStreamMiddleware
             {
                 @event = "clear"
             });
+    }
+
+    private List<MessageState> InitStates(string data)
+    {
+        try
+        {
+            var states = JsonSerializer.Deserialize<List<MessageState>>(data, BotSharpOptions.defaultJsonOptions);
+            return states ?? [];
+        }
+        catch
+        {
+            return [];
+        }
     }
 }
