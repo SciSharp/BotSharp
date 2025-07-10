@@ -159,7 +159,7 @@ public class ConversationStateService : IConversationStateService
         Reset();
 
         var endNodes = new Dictionary<string, string>();
-        if (_sidecar?.IsEnabled() == true)
+        if (_sidecar?.IsEnabled == true)
         {
             return endNodes;
         }
@@ -234,7 +234,7 @@ public class ConversationStateService : IConversationStateService
 
     public void Save()
     {
-        if (_conversationId == null || _sidecar?.IsEnabled() == true)
+        if (_conversationId == null || _sidecar?.IsEnabled == true)
         {
             return;
         }
