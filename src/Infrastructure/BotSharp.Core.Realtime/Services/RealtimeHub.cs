@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Hooks;
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Options;
 using BotSharp.Core.Infrastructures;
 
@@ -22,10 +23,10 @@ public class RealtimeHub : IRealtimeHub
         _logger = logger;
     }
 
-    public async Task ConnectToModel(Func<string, Task>? responseToUser = null, Func<string, Task>? init = null)
+    public async Task ConnectToModel(Func<string, Task>? responseToUser = null, Func<string, Task>? init = null, List<MessageState>? initStates = null)
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        convService.SetConversationId(_conn.ConversationId, []);
+        convService.SetConversationId(_conn.ConversationId, initStates ?? []);
         var conversation = await convService.GetConversation(_conn.ConversationId);
 
         var routing = _services.GetRequiredService<IRoutingService>();
