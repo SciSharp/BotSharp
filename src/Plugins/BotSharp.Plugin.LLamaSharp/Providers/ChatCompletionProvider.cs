@@ -1,5 +1,12 @@
 using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Loggers;
+using BotSharp.Abstraction.Observables.Models;
+using BotSharp.Core.Infrastructures.Streams;
+using BotSharp.Core.Observables.Queues;
+using Microsoft.AspNetCore.SignalR;
+using static LLama.Common.ChatHistory;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Plugin.LLamaSharp.Providers;
 
@@ -159,12 +166,8 @@ public class ChatCompletionProvider : IChatCompletion
         return true;
     }
 
-    public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    public async Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
-        string totalResponse = "";
-        var content = string.Join("\r\n", conversations.Select(x => $"{x.Role}: {x.Content}")).Trim();
-        content += $"\r\n{AgentRole.Assistant}: ";
-
         var state = _services.GetRequiredService<IConversationStateService>();
         var model = state.GetState("model", "llama-2-7b-chat.Q8_0");
 
@@ -180,13 +183,60 @@ public class ChatCompletionProvider : IChatCompletion
             _logger.LogInformation(agent.Instruction);
         }
 
+        var hub = _services.GetRequiredService<MessageHub<HubObserveData>>();
+        var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
+
+        hub.Push(new()
+        {
+            ServiceProvider = _services,
+            EventName = "BeforeReceiveLlmStreamMessage",
+            Data = new RoleDialogModel(AgentRole.Assistant, string.Empty)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = messageId
+            }
+        });
+
+        using var textStream = new RealtimeTextStream();
+        var responseMessage = new RoleDialogModel(AgentRole.Assistant, string.Empty)
+        {
+            CurrentAgentId = agent.Id,
+            MessageId = messageId
+        };
+
         await foreach (var response in executor.InferAsync(agent.Instruction, inferenceParams))
         {
             Console.Write(response);
-            totalResponse += response;
+            textStream.Collect(response);
+
+            var content = new RoleDialogModel(AgentRole.Assistant, response)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = messageId
+            };
+            hub.Push(new()
+            {
+                ServiceProvider = _services,
+                EventName = "OnReceiveLlmStreamMessage",
+                Data = content
+            });
         }
 
-        return true;
+        responseMessage = new RoleDialogModel(AgentRole.Assistant, textStream.GetText())
+        {
+            CurrentAgentId = agent.Id,
+            MessageId = messageId,
+            IsStreaming = true
+        };
+
+        hub.Push(new()
+        {
+            ServiceProvider = _services,
+            EventName = "AfterReceiveLlmStreamMessage",
+            Data = responseMessage
+        });
+
+        return responseMessage;
     }
 
     public void SetModelName(string model)
