@@ -28,7 +28,7 @@ public class UtilWebCloseBrowserFn : IFunctionCallback
             ContextId = webDriverService.GetMessageContext(message)
         };
 
-        await browser.CloseBrowser(message.CurrentAgentId);
+        await browser.CloseBrowser(msg.ContextId);
 
         message.Content = $"Browser closed.";
 
