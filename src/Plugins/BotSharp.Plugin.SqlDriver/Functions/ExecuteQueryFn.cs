@@ -33,7 +33,7 @@ public class ExecuteQueryFn : IFunctionCallback
             var results = dbType.ToLower() switch
             {
                 "mysql" => RunQueryInMySql(args.SqlStatements),
-                "sqlserver" => RunQueryInSqlServer(args.SqlStatements),
+                "sqlserver" or "mssql" => RunQueryInSqlServer(args.SqlStatements),
                 "redshift" => RunQueryInRedshift(args.SqlStatements),
                 _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
             };

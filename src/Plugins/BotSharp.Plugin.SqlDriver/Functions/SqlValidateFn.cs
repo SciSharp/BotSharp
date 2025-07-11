@@ -34,7 +34,7 @@ public class SqlValidateFn : IFunctionCallback
         var validateSql = dbType.ToLower() switch
         {
             "mysql" => $"EXPLAIN\r\n{sql.Replace("SET ", "-- SET ", StringComparison.InvariantCultureIgnoreCase).Replace(";", "; EXPLAIN ").TrimEnd("EXPLAIN ".ToCharArray())}",
-            "sqlserver" => $"SET PARSEONLY ON;\r\n{sql}\r\nSET PARSEONLY OFF;",
+            "sqlserver" or "mssql" => $"SET PARSEONLY ON;\r\n{sql}\r\nSET PARSEONLY OFF;",
             "redshift" => $"explain\r\n{sql}",
             _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
         };
