@@ -9,6 +9,7 @@ using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
 using Twilio.Rest.Api.V2010.Account;
+using Twilio.TwiML.Messaging;
 using Twilio.Types;
 using Conversation = BotSharp.Abstraction.Conversations.Models.Conversation;
 using Task = System.Threading.Tasks.Task;
@@ -176,7 +177,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
         });
 
         var utcNow = DateTime.UtcNow;
-        var excludStates = new List<string>
+        var excludeStates = new List<string>
         {
             "provider",
             "model",
@@ -185,22 +186,34 @@ public class OutboundPhoneCallFn : IFunctionCallback
             "llm_total_cost"
         };
 
-        var curStates = state.GetStates().Select(x => new MessageState(x.Key, x.Value)).ToList();
+        var curConvStates = state.GetStates().Select(x => new MessageState(x.Key, x.Value)).ToList();
         var subConvStates = new List<MessageState>
         {
-            new(StateConst.ORIGIN_CONVERSATION_ID, originConversationId),
-            new("channel", "phone"),
-            new("phone_from", call.From),
-            new("phone_direction", call.Direction),
-            new("phone_number", call.To),
-            new("twilio_call_sid", call.Sid)
+            new(StateConst.ORIGIN_CONVERSATION_ID, originConversationId, global: true),
+            new("channel", "phone", global: true),
+            new("phone_from", call.From, global: true),
+            new("phone_direction", call.Direction, global: true),
+            new("phone_number", call.To, global: true),
+            new("twilio_call_sid", call.Sid, global: true)
         };
         var subStateKeys = subConvStates.Select(x => x.Key).ToList();
-        var included = curStates.Where(x => !subStateKeys.Contains(x.Key) && !excludStates.Contains(x.Key));
-        var newStates = subConvStates.Concat(included).Select(x => new StateKeyValue
+        var included = curConvStates.Where(x => !subStateKeys.Contains(x.Key) && !excludeStates.Contains(x.Key));
+
+        var mappedCurConvStates = MapStates(included, messageId, utcNow);
+        var mappedSubConvStates = MapStates(subConvStates, messageId, utcNow);
+        var totalStates = mappedCurConvStates.Concat(mappedSubConvStates).ToList();
+
+        db.UpdateConversationStates(newConversationId, totalStates);
+    }
+
+    private IEnumerable<StateKeyValue> MapStates(IEnumerable<MessageState> states, string messageId, DateTime updateTime)
+    {
+        if (states.IsNullOrEmpty()) return [];
+
+        return states.Select(x => new StateKeyValue
         {
             Key = x.Key,
-            Versioning = true,
+            Versioning = !x.Global,
             Values = [
                 new StateValue
                 {
@@ -209,11 +222,9 @@ public class OutboundPhoneCallFn : IFunctionCallback
                     Active = true,
                     ActiveRounds = x.ActiveRounds,
                     Source = StateSource.Application,
-                    UpdateTime = utcNow
+                    UpdateTime = updateTime
                 }
             ]
         }).ToList();
-
-        db.UpdateConversationStates(newConversationId, newStates);
     }
 }

@@ -166,16 +166,16 @@ public class TwilioInboundController : TwilioController
 
         var states = new List<MessageState>
         {
-            new("channel", ConversationChannel.Phone),
-            new("calling_phone", request.From),
-            new("phone_direction", request.Direction),
-            new("twilio_call_sid", request.CallSid),
+            new("channel", ConversationChannel.Phone, global: true),
+            new("calling_phone", request.From, global: true),
+            new("phone_direction", request.Direction, global: true),
+            new("twilio_call_sid", request.CallSid, global: true),
         };
 
         if (request.Direction == "inbound")
         {
-            states.Add(new MessageState("calling_phone_from", request.From));
-            states.Add(new MessageState("calling_phone_to", request.To));
+            states.Add(new MessageState("calling_phone_from", request.From, global: true));
+            states.Add(new MessageState("calling_phone_to", request.To, global: true));
         }
 
         var requestStates = ParseStates(request.States);
