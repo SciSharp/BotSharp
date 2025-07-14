@@ -16,12 +16,12 @@ public class MessageState
         
     }
 
-    public MessageState(string key, object value, int activeRounds = -1, bool global = false)
+    public MessageState(string key, object value, int activeRounds = -1, bool isGlobal = false)
     {
         Key = key;
         Value = value;
         ActiveRounds = activeRounds;
-        Global = global;
+        Global = isGlobal;
     }
 
     public override string ToString()

@@ -189,12 +189,12 @@ public class OutboundPhoneCallFn : IFunctionCallback
         var curConvStates = state.GetStates().Select(x => new MessageState(x.Key, x.Value)).ToList();
         var subConvStates = new List<MessageState>
         {
-            new(StateConst.ORIGIN_CONVERSATION_ID, originConversationId, global: true),
-            new("channel", "phone", global: true),
-            new("phone_from", call.From, global: true),
-            new("phone_direction", call.Direction, global: true),
-            new("phone_number", call.To, global: true),
-            new("twilio_call_sid", call.Sid, global: true)
+            new(StateConst.ORIGIN_CONVERSATION_ID, originConversationId, isGlobal: true),
+            new("channel", "phone", isGlobal: true),
+            new("phone_from", call.From, isGlobal: true),
+            new("phone_direction", call.Direction, isGlobal: true),
+            new("phone_number", call.To, isGlobal: true),
+            new("twilio_call_sid", call.Sid, isGlobal: true)
         };
         var subStateKeys = subConvStates.Select(x => x.Key).ToList();
         var included = curConvStates.Where(x => !subStateKeys.Contains(x.Key) && !excludeStates.Contains(x.Key));
