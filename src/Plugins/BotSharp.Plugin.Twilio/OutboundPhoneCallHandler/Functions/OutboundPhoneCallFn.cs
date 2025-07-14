@@ -201,9 +201,9 @@ public class OutboundPhoneCallFn : IFunctionCallback
 
         var mappedCurConvStates = MapStates(included, messageId, utcNow);
         var mappedSubConvStates = MapStates(subConvStates, messageId, utcNow);
-        var totalStates = mappedCurConvStates.Concat(mappedSubConvStates).ToList();
+        var allStates = mappedCurConvStates.Concat(mappedSubConvStates).ToList();
 
-        db.UpdateConversationStates(newConversationId, totalStates);
+        db.UpdateConversationStates(newConversationId, allStates);
     }
 
     private IEnumerable<StateKeyValue> MapStates(IEnumerable<MessageState> states, string messageId, DateTime updateTime)
