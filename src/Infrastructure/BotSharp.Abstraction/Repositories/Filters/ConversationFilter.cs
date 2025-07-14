@@ -10,6 +10,7 @@ public class ConversationFilter
     public string? Title { get; set; }
     public string? TitleAlias { get; set; }
     public string? AgentId { get; set; }
+    public List<string>? AgentIds { get; set; }
     public string? Status { get; set; }
     public string? Channel { get; set; }
     public string? ChannelId { get; set; }
