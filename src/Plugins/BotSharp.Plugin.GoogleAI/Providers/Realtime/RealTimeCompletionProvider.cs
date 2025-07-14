@@ -1,11 +1,12 @@
-using System.Threading;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Realtime.Models.Session;
+using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.Session;
 using BotSharp.Plugin.GoogleAI.Models.Realtime;
 using GenerativeAI;
 using GenerativeAI.Types;
 using GenerativeAI.Types.Converters;
+using System.Threading;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Realtime;
 
@@ -33,8 +34,8 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement
     };
 
-    private RealtimeTranscriptionResponse _inputStream = new();
-    private RealtimeTranscriptionResponse _outputStream = new();
+    private RealtimeTextStream _inputStream = new();
+    private RealtimeTextStream _outputStream = new();
     private bool _isBlocking = false;
 
     private RealtimeHubConnection _conn;
