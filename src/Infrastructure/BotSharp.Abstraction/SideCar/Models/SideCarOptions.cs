@@ -7,6 +7,15 @@ public class SideCarOptions
 
     public static SideCarOptions Empty()
     {
-        return new SideCarOptions();
+        return new();
+    }
+
+    public static SideCarOptions InheritStates(IEnumerable<string>? targetStates = null)
+    {
+        return new()
+        {
+            IsInheritStates = true,
+            InheritStateKeys = targetStates
+        };
     }
 }
