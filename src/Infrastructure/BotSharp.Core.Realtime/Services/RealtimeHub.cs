@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Options;
+using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Core.Realtime.Services;
@@ -98,7 +99,7 @@ public class RealtimeHub : IRealtimeHub
                                 agent.Id);
                         }
 
-                        await routing.InvokeFunction(message.FunctionName, message);
+                        await routing.InvokeFunction(message.FunctionName, message, from: InvokeSource.Llm);
                     }
                     else
                     {

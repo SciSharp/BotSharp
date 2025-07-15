@@ -59,15 +59,17 @@ public interface IConversationHook : IHookBase
     /// Triggered before LLM calls function.
     /// </summary>
     /// <param name="message"></param>
+    /// <param name="from"></param>
     /// <returns></returns>
-    Task OnFunctionExecuting(RoleDialogModel message);
+    Task OnFunctionExecuting(RoleDialogModel message, string from = InvokeSource.Manual);
 
     /// <summary>
     /// Triggered when the function calling completed.
     /// </summary>
     /// <param name="message"></param>
+    /// <param name="from"></param>
     /// <returns></returns>
-    Task OnFunctionExecuted(RoleDialogModel message);
+    Task OnFunctionExecuted(RoleDialogModel message, string from = InvokeSource.Manual);
 
     Task OnResponseGenerated(RoleDialogModel message);
 

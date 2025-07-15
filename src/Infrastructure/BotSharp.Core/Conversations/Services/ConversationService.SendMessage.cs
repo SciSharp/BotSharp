@@ -2,7 +2,6 @@ using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
-using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Conversations.Services;

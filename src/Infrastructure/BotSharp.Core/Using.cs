@@ -22,6 +22,7 @@ global using BotSharp.Abstraction.Repositories;
 global using BotSharp.Abstraction.Repositories.Filters;
 global using BotSharp.Abstraction.Roles;
 global using BotSharp.Abstraction.Roles.Models;
+global using BotSharp.Abstraction.Routing.Enums;
 global using BotSharp.Abstraction.Routing;
 global using BotSharp.Abstraction.SideCar.Attributes;
 global using BotSharp.Abstraction.Statistics.Enums;
