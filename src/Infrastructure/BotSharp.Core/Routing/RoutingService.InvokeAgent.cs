@@ -4,7 +4,7 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs)
+    public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs, string from = InvokeSource.Manual)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
@@ -46,7 +46,7 @@ public partial class RoutingService
             message.Indication = response.Indication;
             message.CurrentAgentId = agent.Id;
 
-            await InvokeFunction(message, dialogs);
+            await InvokeFunction(message, dialogs, from: from);
         }
         else
         {
@@ -66,7 +66,7 @@ public partial class RoutingService
         return true;
     }
 
-    private async Task<bool> InvokeFunction(RoleDialogModel message, List<RoleDialogModel> dialogs)
+    private async Task<bool> InvokeFunction(RoleDialogModel message, List<RoleDialogModel> dialogs, string from)
     {
         // execute function
         // Save states
@@ -75,7 +75,7 @@ public partial class RoutingService
 
         var routing = _services.GetRequiredService<IRoutingService>();
         // Call functions
-        await routing.InvokeFunction(message.FunctionName, message);
+        await routing.InvokeFunction(message.FunctionName, message, from: from);
 
         // Pass execution result to LLM to get response
         if (!message.StopCompletion)
@@ -102,7 +102,7 @@ public partial class RoutingService
 
                 // Send to Next LLM
                 var curAgentId = routing.Context.GetCurrentAgentId();
-                await InvokeAgent(curAgentId, dialogs);
+                await InvokeAgent(curAgentId, dialogs, from);
             }
         }
         else

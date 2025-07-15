@@ -33,7 +33,7 @@ public class InstructExecutor : IExecutor
         if (message.FunctionName != null)
         {
             var msg = RoleDialogModel.From(message, role: AgentRole.Function);
-            await routing.InvokeFunction(message.FunctionName, msg);
+            await routing.InvokeFunction(message.FunctionName, msg, from: InvokeSource.Llm);
         }
 
         var agentId = routing.Context.GetCurrentAgentId();
@@ -57,7 +57,7 @@ public class InstructExecutor : IExecutor
         }
         else
         {
-            var ret = await routing.InvokeAgent(agentId, dialogs);
+            var ret = await routing.InvokeAgent(agentId, dialogs, from: InvokeSource.Routing);
         }
 
         var response = dialogs.Last();

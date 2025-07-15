@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Routing.Enums;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -25,7 +26,7 @@ public class RealtimeController : ControllerBase
             FunctionName = functionName,
             FunctionArgs = JsonSerializer.Serialize(args)
         };
-        await routing.InvokeFunction(functionName, message);
+        await routing.InvokeFunction(functionName, message, from: InvokeSource.Llm);
         return message.Content;
     }
 }
