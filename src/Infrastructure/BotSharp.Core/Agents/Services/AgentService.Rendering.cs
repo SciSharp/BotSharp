@@ -17,13 +17,14 @@ public partial class AgentService
         instructions.AddRange(secondaryInstructions);
 
         // update states
+        var renderDict = new Dictionary<string, object>(agent.TemplateDict);
         foreach (var t in conv.States.GetStates())
         {
-            agent.TemplateDict[t.Key] = t.Value;
+             renderDict[t.Key] = t.Value;
         }
 
-        agent.TemplateDict[TemplateRenderConstant.RENDER_AGENT] = agent;
-        var res = render.Render(string.Join("\r\n", instructions), agent.TemplateDict);
+        renderDict[TemplateRenderConstant.RENDER_AGENT] = agent;
+        var res = render.Render(string.Join("\r\n", instructions), renderDict);
         return res;
     }
 
