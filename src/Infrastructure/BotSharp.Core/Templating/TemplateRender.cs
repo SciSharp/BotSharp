@@ -4,6 +4,7 @@ using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Translation.Models;
 using Fluid;
 using Fluid.Ast;
+using Fluid.Values;
 using System.Collections;
 using System.IO;
 using System.Reflection;
@@ -36,6 +37,8 @@ public class TemplateRender : ITemplateRender
         _options.MemberAccessStrategy.Register<FunctionParametersDef>();
         _options.MemberAccessStrategy.Register<UserIdentity>();
         _options.MemberAccessStrategy.Register<TranslationInput>();
+
+        _options.Filters.AddFilter("from_agent", FromAgentFilter);
 
         _parser.RegisterExpressionTag("link", (Expression expression, TextWriter writer, TextEncoder encoder, TemplateContext context) =>
         {
@@ -99,7 +102,7 @@ public class TemplateRender : ITemplateRender
             value = await context.Model.GetValueAsync(TemplateRenderConstant.RENDER_AGENT, context);
             var agent = value?.ToObjectValue() as Agent;
 
-            var splited = Regex.Split(expStr, @"\s*from\s*", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
+            var splited = Regex.Split(expStr, @"\s*from_agent\s*", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
                                .Where(x => !string.IsNullOrWhiteSpace(x))
                                .Select(x => x.Trim())
                                .ToArray();
@@ -140,6 +143,16 @@ public class TemplateRender : ITemplateRender
         }
 
         return Completion.Normal;
+    }
+
+    private static ValueTask<FluidValue> FromAgentFilter(
+        FluidValue input,
+        FilterArguments arguments,
+        TemplateContext context)
+    {
+        var inputStr = input?.ToStringValue() ?? string.Empty;
+        var fromAgent = arguments.At(0).ToStringValue();
+        return new StringValue($"{inputStr} from_agent {fromAgent}");
     }
 
     private static bool IsStringType(Type type)
