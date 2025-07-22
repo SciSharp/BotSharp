@@ -91,7 +91,6 @@ public class TemplateRender : ITemplateRender
         TemplateContext context,
         IServiceProvider services)
     {
-
         try
         {
             var value = await expression.EvaluateAsync(context);
