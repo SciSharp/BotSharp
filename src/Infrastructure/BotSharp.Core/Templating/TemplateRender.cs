@@ -4,10 +4,12 @@ using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Translation.Models;
 using Fluid;
 using Fluid.Ast;
+using Fluid.Values;
 using System.Collections;
 using System.IO;
 using System.Reflection;
 using System.Text.Encodings.Web;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Templating;
 
@@ -36,9 +38,11 @@ public class TemplateRender : ITemplateRender
         _options.MemberAccessStrategy.Register<UserIdentity>();
         _options.MemberAccessStrategy.Register<TranslationInput>();
 
-        _parser.RegisterIdentifierTag("link", (string identifier, TextWriter writer, TextEncoder encoder, TemplateContext context) =>
+        _options.Filters.AddFilter("from_agent", FromAgentFilter);
+
+        _parser.RegisterExpressionTag("link", (Expression expression, TextWriter writer, TextEncoder encoder, TemplateContext context) =>
         {
-            return RenderIdentifierTag("link", identifier, writer, encoder, context);
+            return RenderTag("link", expression, writer, encoder, context, services);
         });
     }
 
@@ -82,20 +86,46 @@ public class TemplateRender : ITemplateRender
 
 
     #region Private methods
-    private static async ValueTask<Completion> RenderIdentifierTag(string tag, string identifier, TextWriter writer, TextEncoder encoder, TemplateContext context)
+    private static async ValueTask<Completion> RenderTag(
+        string tag,
+        Expression expression,
+        TextWriter writer,
+        TextEncoder encoder,
+        TemplateContext context,
+        IServiceProvider services)
     {
         try
         {
-            var value = await context.Model.GetValueAsync(TemplateRenderConstant.RENDER_AGENT, context);
-            var agent = value?.ToObjectValue() as Agent;
-            var found = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(identifier));
-            var key = $"{agent?.Id} | {tag} | {identifier}";
+            var value = await expression.EvaluateAsync(context);
+            var expStr = value?.ToStringValue() ?? string.Empty;
 
-            if (found == null || (context.AmbientValues.TryGetValue(key, out var visited) && (bool)visited))
+            value = await context.Model.GetValueAsync(TemplateRenderConstant.RENDER_AGENT, context);
+            var agent = value?.ToObjectValue() as Agent;
+
+            var splited = Regex.Split(expStr, @"\s*from_agent\s*", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
+                               .Where(x => !string.IsNullOrWhiteSpace(x))
+                               .Select(x => x.Trim())
+                               .ToArray();
+
+            var templateName = splited.ElementAtOrDefault(0);
+            var agentName = splited.ElementAtOrDefault(1);
+
+            if (splited.Length > 1 && !agentName.IsEqualTo(agent?.Name))
+            {
+                using var scope = services.CreateScope();
+                var agentService = scope.ServiceProvider.GetRequiredService<IAgentService>();
+                var result = await agentService.GetAgents(new() { SimilarName = agentName });
+                agent = result?.Items?.FirstOrDefault();
+            }
+
+            var template = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName));
+            var key = $"{tag} | {agent?.Id} | {templateName}";
+
+            if (template == null || (context.AmbientValues.TryGetValue(key, out var visited) && (bool)visited))
             {
                 writer.Write(string.Empty);
             }
-            else if (_parser.TryParse(found.Content, out var t, out _))
+            else if (_parser.TryParse(template.Content, out var t, out _))
             {
                 context.AmbientValues[key] = true;
                 var rendered = t.Render(context);
@@ -113,6 +143,16 @@ public class TemplateRender : ITemplateRender
         }
 
         return Completion.Normal;
+    }
+
+    private static ValueTask<FluidValue> FromAgentFilter(
+        FluidValue input,
+        FilterArguments arguments,
+        TemplateContext context)
+    {
+        var inputStr = input?.ToStringValue() ?? string.Empty;
+        var fromAgent = arguments.At(0).ToStringValue();
+        return new StringValue($"{inputStr} from_agent {fromAgent}");
     }
 
     private static bool IsStringType(Type type)
