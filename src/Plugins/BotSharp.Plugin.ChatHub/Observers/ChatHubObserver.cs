@@ -61,7 +61,7 @@ public class ChatHubObserver : IObserver<HubObserveData>
                 SenderAction = SenderActionEnum.TypingOn
             };
 
-            GenerateSenderAction(conv.ConversationId, action).ConfigureAwait(false).GetAwaiter().GetResult();
+            GenerateSenderAction(conv.ConversationId, action);
         }
         else if (value.EventName == AFTER_RECEIVE_LLM_STREAM_MESSAGE && message.IsStreaming)
         {
@@ -85,7 +85,7 @@ public class ChatHubObserver : IObserver<HubObserveData>
                 SenderAction = SenderActionEnum.TypingOff
             };
 
-            GenerateSenderAction(conv.ConversationId, action).ConfigureAwait(false).GetAwaiter().GetResult();
+            GenerateSenderAction(conv.ConversationId, action);
         }
         else if (value.EventName == ON_RECEIVE_LLM_STREAM_MESSAGE)
         {
@@ -107,30 +107,7 @@ public class ChatHubObserver : IObserver<HubObserveData>
             };
         }
 
-        OnReceiveAssistantMessage(value.EventName, model.ConversationId, model).ConfigureAwait(false).GetAwaiter().GetResult();
-    }
-
-    private async Task OnReceiveAssistantMessage(string @event, string conversationId, ChatResponseDto model)
-    {
-        try
-        {
-            var settings = _services.GetRequiredService<ChatHubSettings>();
-            var chatHub = _services.GetRequiredService<IHubContext<SignalRHub>>();
-
-            if (settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await chatHub.Clients.Group(conversationId).SendAsync(@event, model);
-            }
-            else
-            {
-                var user = _services.GetRequiredService<IUserIdentity>();
-                await chatHub.Clients.User(user.Id).SendAsync(@event, model);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to receive assistant message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
-        }
+        OnReceiveAssistantMessage(value.EventName, model.ConversationId, model);
     }
 
     private bool AllowSendingMessage()
@@ -139,7 +116,30 @@ public class ChatHubObserver : IObserver<HubObserveData>
         return sidecar == null || !sidecar.IsEnabled;
     }
 
-    private async Task GenerateSenderAction(string conversationId, ConversationSenderActionModel action)
+    private void OnReceiveAssistantMessage(string @event, string conversationId, ChatResponseDto model)
+    {
+        try
+        {
+            var settings = _services.GetRequiredService<ChatHubSettings>();
+            var chatHub = _services.GetRequiredService<IHubContext<SignalRHub>>();
+
+            if (settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                chatHub.Clients.Group(conversationId).SendAsync(@event, model).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+            else
+            {
+                var user = _services.GetRequiredService<IUserIdentity>();
+                chatHub.Clients.User(user.Id).SendAsync(@event, model).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Failed to receive assistant message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
+        }
+    }
+
+    private void GenerateSenderAction(string conversationId, ConversationSenderActionModel action)
     {
         try
         {
@@ -147,12 +147,12 @@ public class ChatHubObserver : IObserver<HubObserveData>
             var chatHub = _services.GetRequiredService<IHubContext<SignalRHub>>();
             if (settings.EventDispatchBy == EventDispatchType.Group)
             {
-                await chatHub.Clients.Group(conversationId).SendAsync(GENERATE_SENDER_ACTION, action);
+                chatHub.Clients.Group(conversationId).SendAsync(GENERATE_SENDER_ACTION, action).ConfigureAwait(false).GetAwaiter().GetResult();
             }
             else
             {
                 var user = _services.GetRequiredService<IUserIdentity>();
-                await chatHub.Clients.User(user.Id).SendAsync(GENERATE_SENDER_ACTION, action);
+                chatHub.Clients.User(user.Id).SendAsync(GENERATE_SENDER_ACTION, action).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
         catch (Exception ex)
