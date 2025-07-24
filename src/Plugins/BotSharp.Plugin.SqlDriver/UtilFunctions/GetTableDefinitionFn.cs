@@ -31,7 +31,7 @@ public class GetTableDefinitionFn : IFunctionCallback
         var tableDdls = dbType switch
         {
             "mysql" => GetDdlFromMySql(tables),
-            "sqlserver" => GetDdlFromSqlServer(tables),
+            "sqlserver" or "mssql" => GetDdlFromSqlServer(tables),
             "redshift" => GetDdlFromRedshift(tables,schema),
             _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
         };

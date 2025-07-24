@@ -346,6 +346,12 @@ public partial class MongoRepository
         var convBuilder = Builders<ConversationDocument>.Filter;
         var convFilters = new List<FilterDefinition<ConversationDocument>>() { convBuilder.Empty };
 
+        if (filter?.AgentId != null)
+        {
+            filter.AgentIds ??= [];
+            filter.AgentIds.Add(filter.AgentId);
+        }
+
         // Filter conversations
         if (!string.IsNullOrEmpty(filter?.Id))
         {
@@ -359,9 +365,9 @@ public partial class MongoRepository
         {
             convFilters.Add(convBuilder.Regex(x => x.Title, new BsonRegularExpression(filter.TitleAlias, "i")));
         }
-        if (!string.IsNullOrEmpty(filter?.AgentId))
+        if (filter?.AgentIds != null && filter.AgentIds.Any())
         {
-            convFilters.Add(convBuilder.Eq(x => x.AgentId, filter.AgentId));
+            convFilters.Add(convBuilder.In(x => x.AgentId, filter.AgentIds));
         }
         if (!string.IsNullOrEmpty(filter?.Status))
         {

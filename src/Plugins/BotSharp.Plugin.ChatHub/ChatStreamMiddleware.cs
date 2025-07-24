@@ -82,8 +82,8 @@ public class ChatStreamMiddleware
             var (eventType, data) = MapEvents(conn, receivedText);
             if (eventType == "start")
             {
-                var states = InitStates(data);
-                await ConnectToModel(hub, webSocket, states);
+                var request = InitRequest(data);
+                await ConnectToModel(hub, webSocket, request?.States);
             }
             else if (eventType == "media")
             {
@@ -157,16 +157,15 @@ public class ChatStreamMiddleware
             });
     }
 
-    private List<MessageState> InitStates(string data)
+    private ChatStreamRequest? InitRequest(string data)
     {
         try
         {
-            var states = JsonSerializer.Deserialize<List<MessageState>>(data, BotSharpOptions.defaultJsonOptions);
-            return states ?? [];
+            return JsonSerializer.Deserialize<ChatStreamRequest>(data, BotSharpOptions.defaultJsonOptions);
         }
         catch
         {
-            return [];
+            return null;
         }
     }
 }

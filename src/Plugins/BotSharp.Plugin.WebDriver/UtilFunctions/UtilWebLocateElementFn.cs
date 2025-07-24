@@ -30,6 +30,7 @@ public class UtilWebLocateElementFn : IFunctionCallback
             MessageId = message.MessageId,
             ContextId = webDriverService.GetMessageContext(message)
         };
+        browser.SetServiceProvider(_services);
         var result = await browser.LocateElement(msg, locatorArgs);
 
         message.Content = $"Locating element {(result.IsSuccess ? "success" : "failed")}. ";

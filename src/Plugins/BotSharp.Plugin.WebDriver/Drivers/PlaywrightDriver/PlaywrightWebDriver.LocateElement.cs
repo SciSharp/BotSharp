@@ -114,6 +114,11 @@ public partial class PlaywrightWebDriver
             // fix if html has &
             result.Body = HttpUtility.HtmlDecode(html);
             result.IsSuccess = true;
+            var hooks = _services.GetServices<IWebDriverHook>();
+            foreach (var hook in hooks)
+            {
+                await hook.OnLocateElement(message, result.Body);
+            }
         }
         else if (count > 1)
         {
