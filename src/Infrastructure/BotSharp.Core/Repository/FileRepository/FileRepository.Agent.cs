@@ -475,7 +475,7 @@ namespace BotSharp.Core.Repository
 
             if (!filter.AgentNames.IsNullOrEmpty())
             {
-                query = query.Where(x => filter.AgentNames.Contains(x.Name));
+                query = query.Where(x => filter.AgentNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase));
             }
 
             if (!string.IsNullOrEmpty(filter.SimilarName))
