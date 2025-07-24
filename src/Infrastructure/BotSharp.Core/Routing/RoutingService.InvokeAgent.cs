@@ -4,7 +4,11 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs, bool useStream = false)
+    public async Task<bool> InvokeAgent(
+        string agentId,
+        List<RoleDialogModel> dialogs,
+        string from = InvokeSource.Manual,
+        bool useStream = false)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
@@ -55,7 +59,7 @@ public partial class RoutingService
             message.CurrentAgentId = agent.Id;
             message.IsStreaming = response.IsStreaming;
 
-            await InvokeFunction(message, dialogs, useStream);
+            await InvokeFunction(message, dialogs, from: from, useStream: useStream);
         }
         else
         {
@@ -76,7 +80,11 @@ public partial class RoutingService
         return true;
     }
 
-    private async Task<bool> InvokeFunction(RoleDialogModel message, List<RoleDialogModel> dialogs, bool useStream)
+    private async Task<bool> InvokeFunction(
+        RoleDialogModel message,
+        List<RoleDialogModel> dialogs,
+        string from,
+        bool useStream)
     {
         // execute function
         // Save states
@@ -85,7 +93,7 @@ public partial class RoutingService
 
         var routing = _services.GetRequiredService<IRoutingService>();
         // Call functions
-        await routing.InvokeFunction(message.FunctionName, message);
+        await routing.InvokeFunction(message.FunctionName, message, from: from);
 
         // Pass execution result to LLM to get response
         if (!message.StopCompletion)
@@ -112,7 +120,7 @@ public partial class RoutingService
 
                 // Send to Next LLM
                 var curAgentId = routing.Context.GetCurrentAgentId();
-                await InvokeAgent(curAgentId, dialogs, useStream);
+                await InvokeAgent(curAgentId, dialogs, from, useStream);
             }
         }
         else

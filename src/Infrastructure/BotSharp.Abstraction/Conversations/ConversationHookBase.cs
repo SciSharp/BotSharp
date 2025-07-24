@@ -49,10 +49,10 @@ public abstract class ConversationHookBase : IConversationHook
     public virtual Task OnHumanInterventionNeeded(RoleDialogModel message)
         => Task.CompletedTask;
 
-    public virtual Task OnFunctionExecuting(RoleDialogModel message)
+    public virtual Task OnFunctionExecuting(RoleDialogModel message, string from = InvokeSource.Manual)
         => Task.CompletedTask;
 
-    public virtual Task OnFunctionExecuted(RoleDialogModel message)
+    public virtual Task OnFunctionExecuted(RoleDialogModel message, string from = InvokeSource.Manual)
         => Task.CompletedTask;
 
     public virtual Task OnMessageReceived(RoleDialogModel message)
