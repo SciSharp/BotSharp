@@ -259,10 +259,10 @@ public class ChatCompletionProvider : IChatCompletion
                 var functionName = meta?.FunctionName;
                 var toolCallId = meta?.ToolCallId;
                 var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
-                var functionArgument = string.Join(string.Empty, args);
+                var functionArguments = string.Join(string.Empty, args);
 
 #if DEBUG
-                _logger.LogCritical($"Tool Call (id: {toolCallId}) => {functionName}({functionArgument})");
+                _logger.LogCritical($"Tool Call (id: {toolCallId}) => {functionName}({functionArguments})");
 #endif
 
                 responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
@@ -271,7 +271,7 @@ public class ChatCompletionProvider : IChatCompletion
                     MessageId = messageId,
                     ToolCallId = toolCallId,
                     FunctionName = functionName,
-                    FunctionArgs = functionArgument
+                    FunctionArgs = functionArguments
                 };
             }
             else if (choice.FinishReason.HasValue)

@@ -136,7 +136,7 @@ public class ChatHubObserver : IObserver<HubObserveData>
     private bool AllowSendingMessage()
     {
         var sidecar = _services.GetService<IConversationSideCar>();
-        return sidecar == null || !sidecar.IsEnabled();
+        return sidecar == null || !sidecar.IsEnabled;
     }
 
     private async Task GenerateSenderAction(string conversationId, ConversationSenderActionModel action)
