@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Routing.Enums;
 using Microsoft.AspNetCore.SignalR;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
@@ -141,7 +142,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         if (!_convSettings.ShowVerboseLog) return;
     }
 
-    public override async Task OnFunctionExecuting(RoleDialogModel message)
+    public override async Task OnFunctionExecuting(RoleDialogModel message, string from = InvokeSource.Manual)
     {
         var conversationId = _state.GetConversationId();
         if (string.IsNullOrEmpty(conversationId)) return;
@@ -164,7 +165,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         await SendContentLog(conversationId, input);
     }
 
-    public override async Task OnFunctionExecuted(RoleDialogModel message)
+    public override async Task OnFunctionExecuted(RoleDialogModel message, string from = InvokeSource.Manual)
     {
         var conversationId = _state.GetConversationId();
         if (string.IsNullOrEmpty(conversationId)) return;
