@@ -237,7 +237,7 @@ public class ChatCompletionProvider : IChatCompletion
                 textStream.Collect(text);
 
 #if DEBUG
-                _logger.LogCritical($"Content update: {text}");
+                _logger.LogCritical($"Stream Content update: {text}");
 #endif
 
                 var content = new RoleDialogModel(AgentRole.Assistant, text)
@@ -277,7 +277,7 @@ public class ChatCompletionProvider : IChatCompletion
             else if (choice.FinishReason.HasValue)
             {
                 var allText = textStream.GetText();
-                _logger.LogCritical($"Text Content: {allText}");
+                _logger.LogInformation($"Stream text Content: {allText}");
 
                 responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
                 {
