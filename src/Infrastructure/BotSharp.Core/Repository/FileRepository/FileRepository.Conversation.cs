@@ -396,6 +396,12 @@ public partial class FileRepository
             Directory.CreateDirectory(dir);
         }
 
+        if (filter?.AgentId != null)
+        {
+            filter.AgentIds ??= [];
+            filter.AgentIds.Add(filter.AgentId);
+        }
+
         var totalDirs = Directory.GetDirectories(dir);
         foreach (var d in totalDirs)
         {
@@ -419,9 +425,9 @@ public partial class FileRepository
             {
                 matched = matched && record.TitleAlias.Contains(filter.TitleAlias);
             }
-            if (filter?.AgentId != null)
+            if (filter?.AgentIds != null && filter.AgentIds.Any())
             {
-                matched = matched && record.AgentId == filter.AgentId;
+                matched = matched && filter.AgentIds.Contains(record.AgentId);
             }
             if (filter?.Status != null)
             {

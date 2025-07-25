@@ -178,7 +178,7 @@ public partial class ConversationService : IConversationService
     {
         _conversationId = conversationId;
         _state.Load(_conversationId, isReadOnly);
-        states.ForEach(x => _state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        states.ForEach(x => _state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, isNeedVersion: !x.Global, source: StateSource.External));
     }
 
     public async Task<Conversation> GetConversationRecordOrCreateNew(string agentId)

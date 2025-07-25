@@ -1,6 +1,10 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Loggers;
+using BotSharp.Abstraction.Observables.Models;
+using BotSharp.Core.Infrastructures.Streams;
+using BotSharp.Core.Observables.Queues;
+using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.SparkDesk.Providers;
 
@@ -143,34 +147,77 @@ public class ChatCompletionProvider : IChatCompletion
         return true;
     }
 
-    public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    public async Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
         var client = new SparkDeskClient(appId: _settings.AppId, apiKey: _settings.ApiKey, apiSecret: _settings.ApiSecret);
         var (prompt, messages, funcall) = PrepareOptions(agent, conversations);
+        var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
+        var hub = _services.GetRequiredService<MessageHub<HubObserveData>>();
+
+        hub.Push(new()
+        {
+            ServiceProvider = _services,
+            EventName = "BeforeReceiveLlmStreamMessage",
+            Data = new RoleDialogModel(AgentRole.Assistant, string.Empty)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = messageId
+            }
+        });
+
+        var responseMessage = new RoleDialogModel(AgentRole.Assistant, string.Empty)
+        {
+            CurrentAgentId = agent.Id,
+            MessageId = messageId
+        };
+
+        using var textStream = new RealtimeTextStream();
 
         await foreach (StreamedChatResponse response in client.ChatAsStreamAsync(modelVersion: _settings.ModelVersion, messages, functions: funcall.Length == 0 ? null : funcall))
         {
-            if (response.FunctionCall !=null)
+            if (response.FunctionCall != null)
             {
-                await onMessageReceived(new RoleDialogModel(AgentRole.Function, response.Text) 
-                { 
+                responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
+                {
                     CurrentAgentId = agent.Id,
+                    MessageId = messageId,
+                    ToolCallId = response.FunctionCall.Name,
                     FunctionName = response.FunctionCall.Name,
-                    FunctionArgs = response.FunctionCall.Arguments,
-                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
-                });
-                continue;
+                    FunctionArgs = response.FunctionCall.Arguments
+                };
             }
-
-            await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, response.Text)
+            else
             {
-                CurrentAgentId = agent.Id,
-                RenderedInstruction = string.Join("\r\n", renderedInstructions)
-            });
- 
-        } 
+                textStream.Collect(response.Text);
+                responseMessage = new RoleDialogModel(AgentRole.Assistant, response.Text)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = messageId
+                };
 
-        return true;
+                hub.Push(new()
+                {
+                    ServiceProvider = _services,
+                    EventName = "OnReceiveLlmStreamMessage",
+                    Data = responseMessage
+                });
+            } 
+        }
+
+        if (responseMessage.Role == AgentRole.Assistant)
+        {
+            responseMessage.Content = textStream.GetText();
+            responseMessage.IsStreaming = true;
+        }
+
+        hub.Push(new()
+        {
+            ServiceProvider = _services,
+            EventName = "AfterReceiveLlmStreamMessage",
+            Data = responseMessage
+        });
+
+        return responseMessage;
     }
 
     public void SetModelName(string model)

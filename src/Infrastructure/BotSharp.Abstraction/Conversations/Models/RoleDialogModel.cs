@@ -117,6 +117,9 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public string RenderedInstruction { get; set; } = string.Empty;
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public bool IsStreaming { get; set; }
+
     private RoleDialogModel()
     {
     }
@@ -159,7 +162,8 @@ public class RoleDialogModel : ITrackableMessage
             Payload = source.Payload,
             StopCompletion = source.StopCompletion,
             Instruction = source.Instruction,
-            Data = source.Data
+            Data = source.Data,
+            IsStreaming = source.IsStreaming
         };
     }
 }

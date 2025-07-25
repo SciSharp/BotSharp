@@ -3,6 +3,7 @@ using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Realtime.Models;
 using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models.Stream;
 using Microsoft.AspNetCore.Http;
@@ -88,10 +89,15 @@ public class TwilioStreamMiddleware
                 continue;
             }
 
-            var (eventType, data) = MapEvents(conn, receivedText);
+            var (eventType, data) = MapEvents(conn, receivedText, conversationId);
 
             if (eventType == "user_connected")
             {
+#if DEBUG
+                _logger.LogCritical($"Start twilio stream connection for conversation ({conversationId})");
+#else
+                _logger.LogInformation($"Start twilio stream connection for conversation ({conversationId})");
+#endif
                 // Connect to model
                 await ConnectToModel(hub, webSocket);
             }
@@ -115,6 +121,11 @@ public class TwilioStreamMiddleware
             }
             else if (eventType == "user_disconnected")
             {
+#if DEBUG
+                _logger.LogCritical($"Disconnecting twilio stream connection for conversation ({conversationId})");
+#else
+                _logger.LogInformation($"Disconnecting twilio stream connection for conversation ({conversationId})");
+#endif
                 await hub.Completer.Disconnect();
                 await HandleUserDisconnected();
             }
@@ -131,9 +142,19 @@ public class TwilioStreamMiddleware
         });
     }
 
-    private (string, string) MapEvents(RealtimeHubConnection conn, string receivedText)
+    private (string, string) MapEvents(RealtimeHubConnection conn, string receivedText, string conversationId)
     {
-        var response = JsonSerializer.Deserialize<StreamEventResponse>(receivedText);
+        StreamEventResponse? response = new();
+
+        try
+        {
+            response = JsonSerializer.Deserialize<StreamEventResponse>(receivedText);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when deserializing twilio stream event response for conversation ({conversationId}) (response: {receivedText?.SubstringMax(30)})");
+        }
+
         conn.StreamId = response.StreamSid;
         string eventType = response.Event;
         string data = string.Empty;

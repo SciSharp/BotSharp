@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Conversations.Dtos;
+using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.SideCar;
 using BotSharp.Abstraction.Users.Dtos;
 using Microsoft.AspNetCore.SignalR;
@@ -84,7 +85,7 @@ public class ChatHubConversationHook : ConversationHookBase
         await base.OnMessageReceived(message);
     }
 
-    public override async Task OnFunctionExecuting(RoleDialogModel message)
+    public override async Task OnFunctionExecuting(RoleDialogModel message, string from = InvokeSource.Manual)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var action = new ConversationSenderActionModel
@@ -95,7 +96,7 @@ public class ChatHubConversationHook : ConversationHookBase
         };
 
         await GenerateSenderAction(conv.ConversationId, action);
-        await base.OnFunctionExecuting(message);
+        await base.OnFunctionExecuting(message, from: from);
     }
 
     public override async Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg)
@@ -118,6 +119,7 @@ public class ChatHubConversationHook : ConversationHookBase
             RichContent = message.SecondaryRichContent ?? message.RichContent,
             Data = message.Data,
             States = state.GetStates(),
+            IsStreaming = message.IsStreaming,
             Sender = new()
             {
                 FirstName = "AI",
@@ -133,7 +135,11 @@ public class ChatHubConversationHook : ConversationHookBase
             SenderAction = SenderActionEnum.TypingOff
         };
 
-        await GenerateSenderAction(conv.ConversationId, action);
+        if (!message.IsStreaming)
+        {
+            await GenerateSenderAction(conv.ConversationId, action);
+        }
+        
         await ReceiveAssistantMessage(conv.ConversationId, json);
         await base.OnResponseGenerated(message);
     }

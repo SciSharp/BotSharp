@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.Utilities;
 
 namespace BotSharp.Core.Realtime.Hooks;
@@ -10,7 +11,7 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
         _services = services;
     }
 
-    public async Task OnFunctionExecuting(RoleDialogModel message)
+    public async Task OnFunctionExecuting(RoleDialogModel message, string from = InvokeSource.Manual)
     {
         var hub = _services.GetRequiredService<IRealtimeHub>();
         if (hub.HubConn == null)
@@ -31,10 +32,10 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
         }
     }
 
-    public async Task OnFunctionExecuted(RoleDialogModel message)
+    public async Task OnFunctionExecuted(RoleDialogModel message, string from = InvokeSource.Manual)
     {
         var hub = _services.GetRequiredService<IRealtimeHub>();
-        if (hub.HubConn == null)
+        if (from != InvokeSource.Llm || hub.HubConn == null)
         {
             return;
         }

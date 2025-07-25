@@ -22,13 +22,13 @@ public class EvaluationConversationHook : ConversationHookBase
         return base.OnMessageReceived(message);
     }
 
-    public override Task OnFunctionExecuted(RoleDialogModel message)
+    public override Task OnFunctionExecuted(RoleDialogModel message, string from = InvokeSource.Manual)
     {
         if (Conversation != null && _convSettings.EnableExecutionLog)
         {
             _logger.Append(Conversation.Id, $"[{DateTime.Now}] {message.Role}: {message.FunctionName}({message.FunctionArgs}) => {message.Content}");
         } 
-        return base.OnFunctionExecuted(message);
+        return base.OnFunctionExecuted(message, from: from);
     }
 
     public override Task OnResponseGenerated(RoleDialogModel message)

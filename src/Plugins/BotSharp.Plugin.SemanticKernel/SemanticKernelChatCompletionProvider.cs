@@ -94,7 +94,7 @@ namespace BotSharp.Plugin.SemanticKernel
             throw new NotImplementedException();
         }
         /// <inheritdoc/>
-        public Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+        public Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
         {
             throw new NotImplementedException();
         }

@@ -38,10 +38,8 @@ public partial class ImageCompletionProvider
 
         var options = new ImageGenerationOptions
         {
-            Size = size,
-            Quality = quality,
-            Style = style,
-            ResponseFormat = format
+            Quality = new GeneratedImageQuality("medium"),
+            Size = GeneratedImageSize.W1024xH1024
         };
         return (prompt, count, options);
     }
