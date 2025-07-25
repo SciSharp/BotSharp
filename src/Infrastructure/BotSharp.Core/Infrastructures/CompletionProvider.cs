@@ -213,7 +213,7 @@ public class CompletionProvider
             model = agentConfig?.Model ?? agentSetting.LlmConfig?.Model;
             if (state.ContainsState("model"))
             {
-                model = state.GetState("model", model ?? "dall-e-3");
+                model = state.GetState("model", model ?? "gpt-image-1");
             }
             else if (state.ContainsState("model_id") || !string.IsNullOrEmpty(modelId))
             {
