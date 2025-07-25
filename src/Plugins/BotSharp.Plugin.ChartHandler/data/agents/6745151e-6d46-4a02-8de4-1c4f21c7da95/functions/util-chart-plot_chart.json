@@ -1,0 +1,14 @@
+{
+  "name": "util-chart-plot_chart",
+  "description": "If the user requests you plotting or generating charts, you can call this function to generate charts in any format that user requested.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "plotting_requirement": {
+        "type": "string",
+        "description": "The requirement that user posted for plotting or generating charts."
+      }
+    },
+    "required": [ "plotting_requirement" ]
+  }
+}

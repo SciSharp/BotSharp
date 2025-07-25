@@ -65,7 +65,7 @@ public partial class FileInstructService
             }).ToList();
 
             var agentId = !string.IsNullOrWhiteSpace(options.AgentId) ? options.AgentId : BuiltInAgentId.UtilityAssistant;
-            var template = !string.IsNullOrWhiteSpace(options.Template) ? options.Template : "select_file_prompt";
+            var template = !string.IsNullOrWhiteSpace(options.Template) ? options.Template : "util-file-select_file_instruction";
 
             var foundAgent = db.GetAgent(agentId);
             var prompt = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, template);

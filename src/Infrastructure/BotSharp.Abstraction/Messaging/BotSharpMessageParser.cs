@@ -1,7 +1,7 @@
-using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
-using BotSharp.Abstraction.Messaging.Models.RichContent;
 using System.Text.Json;
 using System.Reflection;
+using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
+using BotSharp.Abstraction.Messaging.Models.RichContent;
 
 namespace BotSharp.Abstraction.Messaging;
 
@@ -37,6 +37,10 @@ public static class BotSharpMessageParser
             else if (richType == RichTypeEnum.Text)
             {
                 targetType = typeof(TextMessage);
+            }
+            else if (richType == RichTypeEnum.ProgramCode)
+            {
+                targetType = typeof(ProgramCodeTemplateMessage);
             }
             else if (richType == RichTypeEnum.GenericTemplate)
             {
@@ -84,9 +88,9 @@ public static class BotSharpMessageParser
             {
                 targetType = typeof(CouponTemplateMessage);
             }
-            else if (templateType == TemplateTypeEnum.Product)
+            else if (templateType == TemplateTypeEnum.ProgramCode)
             {
-                targetType = typeof(ProductTemplateMessage);
+                targetType = typeof(ProgramCodeTemplateMessage);
             }
             else if (templateType == TemplateTypeEnum.Generic)
             {
