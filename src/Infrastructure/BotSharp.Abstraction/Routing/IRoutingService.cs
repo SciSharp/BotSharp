@@ -26,11 +26,7 @@ public interface IRoutingService
     /// <returns></returns>
     RoutingRule[] GetRulesByAgentId(string id);
 
-    //void ResetRecursiveCounter();
-    //int GetRecursiveCounter();
-    //void SetRecursiveCounter(int counter);
-
-    Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs, string from = InvokeSource.Manual);
+    Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs, string from = InvokeSource.Manual, bool useStream = false);
     Task<bool> InvokeFunction(string name, RoleDialogModel messages, string from = InvokeSource.Manual);
     Task<RoleDialogModel> InstructLoop(Agent agent, RoleDialogModel message, List<RoleDialogModel> dialogs);
 

@@ -106,6 +106,8 @@ public class TwilioStreamMiddleware
             {
 #if DEBUG
                 _logger.LogCritical($"Start twilio stream connection for conversation ({conversationId})");
+#else
+                _logger.LogInformation($"Start twilio stream connection for conversation ({conversationId})");
 #endif
                 // Connect to model
                 await ConnectToModel(hub, webSocket);
@@ -132,6 +134,8 @@ public class TwilioStreamMiddleware
             {
 #if DEBUG
                 _logger.LogCritical($"Disconnecting twilio stream connection for conversation ({conversationId})");
+#else
+                _logger.LogInformation($"Disconnecting twilio stream connection for conversation ({conversationId})");
 #endif
                 await hub.Completer.Disconnect();
                 await HandleUserDisconnected();
