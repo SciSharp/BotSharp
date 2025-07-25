@@ -1,4 +1,4 @@
-﻿using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
@@ -96,13 +96,15 @@ namespace BotSharp.Plugin.Google.Core
         public async Task GetChatCompletionsStreamingAsync_Test(IChatCompletion chatCompletion, Agent agent, string modelName)
         {
             chatCompletion.SetModelName(modelName);
-            var conversation = new List<RoleDialogModel>([new RoleDialogModel(AgentRole.User, "write a poem about stars")]);
+
             RoleDialogModel reply = null;
-            var result = await chatCompletion.GetChatCompletionsStreamingAsync(agent,conversation, async (received) =>
+            var messages = new List<RoleDialogModel>
             {
-                reply = received;
-            });
-            result.ShouldBeTrue();
+                new RoleDialogModel(AgentRole.User, "write a poem about stars")
+            };
+            var result = await chatCompletion.GetChatCompletionsStreamingAsync(agent, messages);
+
+            result.ShouldNotBeNull();
             reply.ShouldNotBeNull();
             reply.Content.ShouldNotBeNullOrEmpty();
         }

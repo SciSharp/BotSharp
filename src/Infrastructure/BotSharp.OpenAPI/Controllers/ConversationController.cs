@@ -377,6 +377,7 @@ public class ConversationController : ControllerBase
         return response;
     }
 
+
     [HttpPost("/conversation/{agentId}/{conversationId}/sse")]
     public async Task SendMessageSse([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] NewMessageModel input)
     {

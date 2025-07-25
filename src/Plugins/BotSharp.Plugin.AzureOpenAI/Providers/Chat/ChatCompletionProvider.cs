@@ -1,6 +1,9 @@
 using Azure;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Hooks;
+using BotSharp.Abstraction.Observables.Models;
+using BotSharp.Core.Infrastructures.Streams;
+using BotSharp.Core.Observables.Queues;
 using OpenAI.Chat;
 using System.ClientModel;
 
@@ -203,39 +206,133 @@ public class ChatCompletionProvider : IChatCompletion
         return true;
     }
 
-    public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    public async Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
-        var response = chatClient.CompleteChatStreamingAsync(messages, options);
+        var hub = _services.GetRequiredService<MessageHub<HubObserveData>>();
+        var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
 
-        await foreach (var choice in response)
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
+        // Before chat completion hook
+        foreach (var hook in contentHooks)
         {
-            if (choice.FinishReason == ChatFinishReason.FunctionCall || choice.FinishReason == ChatFinishReason.ToolCalls)
-            {
-                var update = choice.ToolCallUpdates?.FirstOrDefault()?.FunctionArgumentsUpdate?.ToString() ?? string.Empty;
-                Console.Write(update);
+            await hook.BeforeGenerating(agent, conversations);
+        }
 
-                await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, update)
-                {
-                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
-                });
-                continue;
+        hub.Push(new()
+        {
+            ServiceProvider = _services,
+            EventName = "BeforeReceiveLlmStreamMessage",
+            Data = new RoleDialogModel(AgentRole.Assistant, string.Empty)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = messageId
+            }
+        });
+
+        using var textStream = new RealtimeTextStream();
+        var toolCalls = new List<StreamingChatToolCallUpdate>();
+        ChatTokenUsage? tokenUsage = null;
+
+        var responseMessage = new RoleDialogModel(AgentRole.Assistant, string.Empty)
+        {
+            CurrentAgentId = agent.Id,
+            MessageId = messageId
+        };
+
+        await foreach (var choice in chatClient.CompleteChatStreamingAsync(messages, options))
+        {
+            tokenUsage = choice.Usage;
+
+            if (!choice.ToolCallUpdates.IsNullOrEmpty())
+            {
+                toolCalls.AddRange(choice.ToolCallUpdates);
             }
 
-            if (choice.ContentUpdate.IsNullOrEmpty()) continue;
-
-            _logger.LogInformation(choice.ContentUpdate[0]?.Text);
-
-            await onMessageReceived(new RoleDialogModel(choice.Role?.ToString() ?? ChatMessageRole.Assistant.ToString(), choice.ContentUpdate[0]?.Text ?? string.Empty)
+            if (!choice.ContentUpdate.IsNullOrEmpty())
             {
-                RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
+                textStream.Collect(text);
+
+#if DEBUG
+                _logger.LogCritical($"Content update: {text}");
+#endif
+
+                var content = new RoleDialogModel(AgentRole.Assistant, text)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = messageId
+                };
+                hub.Push(new()
+                {
+                    ServiceProvider = _services,
+                    EventName = "OnReceiveLlmStreamMessage",
+                    Data = content
+                });
+            }
+
+            if (choice.FinishReason == ChatFinishReason.ToolCalls || choice.FinishReason == ChatFinishReason.FunctionCall)
+            {
+                var meta = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName));
+                var functionName = meta?.FunctionName;
+                var toolCallId = meta?.ToolCallId;
+                var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
+                var functionArgument = string.Join(string.Empty, args);
+
+#if DEBUG
+                _logger.LogCritical($"Tool Call (id: {toolCallId}) => {functionName}({functionArgument})");
+#endif
+
+                responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = messageId,
+                    ToolCallId = toolCallId,
+                    FunctionName = functionName,
+                    FunctionArgs = functionArgument
+                };
+            }
+            else if (choice.FinishReason.HasValue)
+            {
+                var allText = textStream.GetText();
+                _logger.LogCritical($"Text Content: {allText}");
+
+                responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = messageId,
+                    IsStreaming = true
+                };
+            }
+        }
+
+        hub.Push(new()
+        {
+            ServiceProvider = _services,
+            EventName = "AfterReceiveLlmStreamMessage",
+            Data = responseMessage
+        });
+
+
+        var inputTokenDetails = tokenUsage?.InputTokenDetails;
+        // After chat completion hook
+        foreach (var hook in contentHooks)
+        {
+            await hook.AfterGenerated(responseMessage, new TokenStatsModel
+            {
+                Prompt = prompt,
+                Provider = Provider,
+                Model = _model,
+                TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
+                CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
+                TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
             });
         }
 
-        return true;
+        return responseMessage;
     }
 
     protected (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)

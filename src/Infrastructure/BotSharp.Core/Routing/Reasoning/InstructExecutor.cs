@@ -57,7 +57,13 @@ public class InstructExecutor : IExecutor
         }
         else
         {
-            var ret = await routing.InvokeAgent(agentId, dialogs, from: InvokeSource.Routing);
+            var state = _services.GetRequiredService<IConversationStateService>();
+            var useStreamMsg = state.GetState("use_stream_message");
+            var ret = await routing.InvokeAgent(
+                agentId,
+                dialogs,
+                from: InvokeSource.Routing,
+                useStream: bool.TryParse(useStreamMsg, out var useStream) && useStream);
         }
 
         var response = dialogs.Last();

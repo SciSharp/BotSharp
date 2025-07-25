@@ -119,6 +119,7 @@ public class ChatHubConversationHook : ConversationHookBase
             RichContent = message.SecondaryRichContent ?? message.RichContent,
             Data = message.Data,
             States = state.GetStates(),
+            IsStreaming = message.IsStreaming,
             Sender = new()
             {
                 FirstName = "AI",
@@ -134,7 +135,11 @@ public class ChatHubConversationHook : ConversationHookBase
             SenderAction = SenderActionEnum.TypingOff
         };
 
-        await GenerateSenderAction(conv.ConversationId, action);
+        if (!message.IsStreaming)
+        {
+            await GenerateSenderAction(conv.ConversationId, action);
+        }
+        
         await ReceiveAssistantMessage(conv.ConversationId, json);
         await base.OnResponseGenerated(message);
     }

@@ -75,7 +75,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         var log = $"{GetMessageContent(message)}";
         var replyContent = JsonSerializer.Serialize(replyMsg, _options.JsonSerializerOptions);
-        log += $"\r\n```json\r\n{replyContent}\r\n```";
+        log += $"\r\n\r\n```json\r\n{replyContent}\r\n```";
 
         var input = new ContentLogInputModel(conversationId, message)
         {
@@ -234,7 +234,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             if (message.RichContent != null || message.SecondaryRichContent != null)
             {
                 var richContent = JsonSerializer.Serialize(message.SecondaryRichContent ?? message.RichContent, _localJsonOptions);
-                log += $"\r\n```json\r\n{richContent}\r\n```";
+                log += $"\r\n\r\n```json\r\n{richContent}\r\n```";
             }
 
             var input = new ContentLogInputModel(conv.ConversationId, message)

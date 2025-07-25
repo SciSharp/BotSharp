@@ -36,7 +36,7 @@ public interface IConversationService
     /// <param name="onResponseReceived">Received the response from AI Agent</param>
     /// <returns></returns>
     Task<bool> SendMessage(string agentId,
-        RoleDialogModel lastDialog, 
+        RoleDialogModel message, 
         PostbackMessageModel? replyMessage,
         Func<RoleDialogModel, Task> onResponseReceived);
 
