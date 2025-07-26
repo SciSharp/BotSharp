@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Routing.Enums;
 using Microsoft.AspNetCore.SignalR;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
@@ -74,7 +75,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         var log = $"{GetMessageContent(message)}";
         var replyContent = JsonSerializer.Serialize(replyMsg, _options.JsonSerializerOptions);
-        log += $"\r\n```json\r\n{replyContent}\r\n```";
+        log += $"\r\n\r\n```json\r\n{replyContent}\r\n```";
 
         var input = new ContentLogInputModel(conversationId, message)
         {
@@ -141,7 +142,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         if (!_convSettings.ShowVerboseLog) return;
     }
 
-    public override async Task OnFunctionExecuting(RoleDialogModel message)
+    public override async Task OnFunctionExecuting(RoleDialogModel message, string from = InvokeSource.Manual)
     {
         var conversationId = _state.GetConversationId();
         if (string.IsNullOrEmpty(conversationId)) return;
@@ -164,7 +165,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         await SendContentLog(conversationId, input);
     }
 
-    public override async Task OnFunctionExecuted(RoleDialogModel message)
+    public override async Task OnFunctionExecuted(RoleDialogModel message, string from = InvokeSource.Manual)
     {
         var conversationId = _state.GetConversationId();
         if (string.IsNullOrEmpty(conversationId)) return;
@@ -233,7 +234,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             if (message.RichContent != null || message.SecondaryRichContent != null)
             {
                 var richContent = JsonSerializer.Serialize(message.SecondaryRichContent ?? message.RichContent, _localJsonOptions);
-                log += $"\r\n```json\r\n{richContent}\r\n```";
+                log += $"\r\n\r\n```json\r\n{richContent}\r\n```";
             }
 
             var input = new ContentLogInputModel(conv.ConversationId, message)

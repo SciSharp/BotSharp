@@ -1,9 +1,10 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Routing;
-using Task = System.Threading.Tasks.Task;
-using Twilio.Rest.Api.V2010.Account;
+using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
-using BotSharp.Abstraction.Hooks;
+using Twilio.Rest.Api.V2010.Account;
+using Task = System.Threading.Tasks.Task;
 
 namespace BotSharp.Plugin.Twilio.Hooks;
 
@@ -22,7 +23,7 @@ public class TwilioConversationHook : ConversationHookBase, IConversationHook
         _logger = logger;
     }
 
-    public override async Task OnFunctionExecuted(RoleDialogModel message)
+    public override async Task OnFunctionExecuted(RoleDialogModel message, string from = InvokeSource.Manual)
     {
         var hooks = _services.GetHooks<ITwilioSessionHook>(message.CurrentAgentId);
 

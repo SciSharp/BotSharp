@@ -16,14 +16,13 @@ public interface IChatCompletion
     void SetModelName(string model);
 
     Task<RoleDialogModel> GetChatCompletions(Agent agent,
-        List<RoleDialogModel> conversations);
+        List<RoleDialogModel> conversations) => throw new NotImplementedException();
 
     Task<bool> GetChatCompletionsAsync(Agent agent, 
         List<RoleDialogModel> conversations, 
         Func<RoleDialogModel, Task> onMessageReceived,
-        Func<RoleDialogModel, Task> onFunctionExecuting);
+        Func<RoleDialogModel, Task> onFunctionExecuting) => throw new NotImplementedException();
 
-    Task<bool> GetChatCompletionsStreamingAsync(Agent agent, 
-        List<RoleDialogModel> conversations, 
-        Func<RoleDialogModel, Task> onMessageReceived);
+    Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, 
+        List<RoleDialogModel> conversations) => throw new NotImplementedException();
 }
