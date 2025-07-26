@@ -329,17 +329,13 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         var words = new List<string>();
         HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)), agent.Id);
 
-        var functions = request.Tools?.SelectMany(s => s.FunctionDeclarations).Select(x =>
+        var functions = request.Tools?.SelectMany(s => s.FunctionDeclarations).Select(x => new FunctionDef
         {
-            var fn = new FunctionDef
-            {
-                Name = x.Name ?? string.Empty,
-                Description = x.Description ?? string.Empty,
-                Parameters = x.Parameters != null
+            Name = x.Name ?? string.Empty,
+            Description = x.Description ?? string.Empty,
+            Parameters = x.Parameters != null
                             ? JsonSerializer.Deserialize<FunctionParametersDef>(JsonSerializer.Serialize(x.Parameters))
                             : null
-            };
-            return fn;
         }).ToArray();
 
         await HookEmitter.Emit<IContentGeneratingHook>(_services,

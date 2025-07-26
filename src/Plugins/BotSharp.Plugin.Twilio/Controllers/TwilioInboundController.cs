@@ -53,20 +53,29 @@ public class TwilioInboundController : TwilioController
             instruction.SpeechPaths.Add(request.InitAudioFile);
         }
 
+        // Before creating session
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
             await hook.OnSessionCreating(request, instruction);
         }, request.AgentId);
+
 
         var (agent, conversationId) = await InitConversation(request);
         request.ConversationId = conversationId.Id;
         instruction.AgentId = request.AgentId;
         instruction.ConversationId = request.ConversationId;
 
+
+        // After creating session
+        await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
+        {
+            await hook.OnSessionCreated(request);
+        }, request.AgentId);
+
+
         if (twilio.MachineDetected(request))
         {
             response = new VoiceResponse();
-            
             await HookEmitter.Emit<ITwilioCallStatusHook>(_services, 
                 async hook => await hook.OnVoicemailStarting(request), request.AgentId);
 
@@ -116,11 +125,6 @@ public class TwilioInboundController : TwilioController
             });
         }
 
-        await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
-        {
-            await hook.OnSessionCreated(request);
-        }, request.AgentId);
-
         return TwiML(response);
     }
 
@@ -162,16 +166,16 @@ public class TwilioInboundController : TwilioController
 
         var states = new List<MessageState>
         {
-            new("channel", ConversationChannel.Phone),
-            new("calling_phone", request.From),
-            new("phone_direction", request.Direction),
-            new("twilio_call_sid", request.CallSid),
+            new("channel", ConversationChannel.Phone, isGlobal: true),
+            new("calling_phone", request.From, isGlobal: true),
+            new("phone_direction", request.Direction, isGlobal: true),
+            new("twilio_call_sid", request.CallSid, isGlobal: true),
         };
 
         if (request.Direction == "inbound")
         {
-            states.Add(new MessageState("calling_phone_from", request.From));
-            states.Add(new MessageState("calling_phone_to", request.To));
+            states.Add(new MessageState("calling_phone_from", request.From, isGlobal: true));
+            states.Add(new MessageState("calling_phone_to", request.To, isGlobal: true));
         }
 
         var requestStates = ParseStates(request.States);
@@ -204,7 +208,7 @@ public class TwilioInboundController : TwilioController
 
             storage.Append(conversation.Id, new RoleDialogModel(AgentRole.User, request.Intent)
             {
-                CurrentAgentId = conversation.Id,
+                CurrentAgentId = agent.Id,
                 CreatedAt = DateTime.UtcNow
             });
         }

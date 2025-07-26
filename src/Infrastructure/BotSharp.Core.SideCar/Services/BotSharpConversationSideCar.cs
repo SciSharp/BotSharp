@@ -24,11 +24,13 @@ public class BotSharpConversationSideCar : IConversationSideCar
     private readonly ILogger<BotSharpConversationSideCar> _logger;
 
     private Stack<ConversationContext> _contextStack = new();
+    private SideCarOptions? _sideCarOptions;
 
     private bool _enabled = false;
     private string _conversationId = string.Empty;
 
     public string Provider => "botsharp";
+    public bool IsEnabled => _enabled;
 
     public BotSharpConversationSideCar(
         IServiceProvider services,
@@ -36,11 +38,6 @@ public class BotSharpConversationSideCar : IConversationSideCar
     {
         _services = services;
         _logger = logger;
-    }
-
-    public bool IsEnabled()
-    {
-        return _enabled;
     }
 
     public void AppendConversationDialogs(string conversationId, List<DialogElement> messages)
@@ -97,12 +94,22 @@ public class BotSharpConversationSideCar : IConversationSideCar
         top.State = new ConversationState(states);
     }
 
-    public async Task<RoleDialogModel> SendMessage(string agentId, string text,
-        PostbackMessageModel? postback = null, List<MessageState>? states = null, List<DialogElement>? dialogs = null)
+    public async Task<RoleDialogModel> SendMessage(
+        string agentId,
+        string text,
+        PostbackMessageModel? postback = null,
+        List<MessageState>? states = null,
+        List<DialogElement>? dialogs = null,
+        SideCarOptions? options = null)
     {
+        _sideCarOptions = options;
+        _logger.LogInformation($"Entering side car conversation...");
+
         BeforeExecute(dialogs);
         var response = await InnerExecute(agentId, text, postback, states);
         AfterExecute();
+
+        _logger.LogInformation($"Existing side car conversation...");
         return response;
     }
 
@@ -160,13 +167,11 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
     private void AfterExecute()
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
         var routing = _services.GetRequiredService<IRoutingService>();
-
         var node = _contextStack.Pop();
 
         // Recover
-        state.SetCurrentState(node.State);
+        RestoreStates(node.State);
         routing.Context.SetRecursiveCounter(node.RecursiveCounter);
         routing.Context.SetAgentStack(node.RoutingStack);
         routing.Context.SetDialogs(node.RoutingDialogs);
@@ -180,5 +185,44 @@ public class BotSharpConversationSideCar : IConversationSideCar
             && _conversationId == conversationId
             && !string.IsNullOrEmpty(conversationId)
             && !string.IsNullOrEmpty(_conversationId);
+    }
+
+    private void RestoreStates(ConversationState prevStates)
+    {
+        var innerStates = prevStates;
+        var state = _services.GetRequiredService<IConversationStateService>();
+
+        if (_sideCarOptions?.IsInheritStates == true)
+        {
+            var curStates = state.GetCurrentState();
+            foreach (var pair in curStates)
+            {
+                var endNode = pair.Value.Values.LastOrDefault();
+                if (endNode == null) continue;
+
+                if (_sideCarOptions?.InheritStateKeys?.Any() == true
+                    && !_sideCarOptions.InheritStateKeys.Contains(pair.Key))
+                {
+                    continue;
+                }
+
+                if (innerStates.ContainsKey(pair.Key))
+                {
+                    innerStates[pair.Key].Values.Add(endNode);
+                }
+                else
+                {
+                    innerStates[pair.Key] = new StateKeyValue
+                    {
+                        Key = pair.Key,
+                        Versioning = pair.Value.Versioning,
+                        Readonly = pair.Value.Readonly,
+                        Values = [endNode]
+                    };
+                }
+            }
+        }
+
+        state.SetCurrentState(innerStates);
     }
 }

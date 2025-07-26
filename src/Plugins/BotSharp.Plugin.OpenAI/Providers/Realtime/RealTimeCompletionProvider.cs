@@ -326,15 +326,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var (prompt, messages, options) = PrepareOptions(agent, []);
 
         var instruction = messages.FirstOrDefault()?.Content.FirstOrDefault()?.Text ?? agent?.Description ?? string.Empty;
-        var functions = options.Tools.Select(x =>
+        var functions = options.Tools.Select(x => new FunctionDef
         {
-            var fn = new FunctionDef
-            {
-                Name = x.FunctionName,
-                Description = x.FunctionDescription
-            };
-            fn.Parameters = JsonSerializer.Deserialize<FunctionParametersDef>(x.FunctionParameters);
-            return fn;
+            Name = x.FunctionName,
+            Description = x.FunctionDescription,
+            Parameters = JsonSerializer.Deserialize<FunctionParametersDef>(x.FunctionParameters)
         }).ToArray();
 
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
@@ -615,10 +611,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 messages.Add(new AssistantChatMessage(new List<ChatToolCall>
                 {
-                    ChatToolCall.CreateFunctionToolCall(message.ToolCallId, message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? string.Empty))
+                    ChatToolCall.CreateFunctionToolCall(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? "{}"))
                 }));
 
-                messages.Add(new ToolChatMessage(message.ToolCallId, message.Content));
+                messages.Add(new ToolChatMessage(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.Content));
             }
             else if (message.Role == AgentRole.User)
             {

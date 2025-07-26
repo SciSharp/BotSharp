@@ -30,7 +30,7 @@ public class SqlSelect : IFunctionCallback
         var result = dbType switch
         {
             "mysql" => RunQueryInMySql(args),
-            "sqlserver" => RunQueryInSqlServer(args),
+            "sqlserver" or "mssql" => RunQueryInSqlServer(args),
             "redshift" => RunQueryInRedshift(args),
             _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
         };
