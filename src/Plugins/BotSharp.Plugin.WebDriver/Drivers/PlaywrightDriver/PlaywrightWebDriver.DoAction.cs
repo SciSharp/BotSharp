@@ -55,15 +55,23 @@ public partial class PlaywrightWebDriver
         }
         else if (action.Action == BroswerActionEnum.DropDown)
         {
-            await locator.ClickAsync();
-            var optionLocator = page.Locator($"//div[text()='{action.Content}']");
-            var optionCount = await optionLocator.CountAsync(); ;
-            if (optionCount == 0)
+            var tagName = await locator.EvaluateAsync<string>("el => el.tagName.toLowerCase()");
+            if (tagName == "select")
             {
-                Serilog.Log.Error($"Dropdown option not found: {action.Content}");
-                return;
+                await HandleSelectDropDownAsync(page, locator, action);
             }
-            await optionLocator.First.ClickAsync();
+            else
+            {
+                await locator.ClickAsync();
+                var optionLocator = page.Locator($"//div[text()='{action.Content}']");
+                var optionCount = await optionLocator.CountAsync();
+                if (optionCount == 0)
+                {
+                    Serilog.Log.Error($"Dropdown option not found: {action.Content}");
+                    return;
+                }
+                await optionLocator.First.ClickAsync();
+            }
         }
         else if (action.Action == BroswerActionEnum.InputText)
         {
@@ -246,5 +254,30 @@ public partial class PlaywrightWebDriver
         }
 
         return track;
+    }
+
+    private async Task HandleSelectDropDownAsync(IPage page, ILocator locator, ElementActionArgs action)
+    {
+        if (string.IsNullOrWhiteSpace(action.Content))
+        {
+            throw new InvalidOperationException("Dropdown target option (action.Content) cannot be null or empty when using a <select> element.");
+        }
+
+        var selectedText = await locator.Locator("option:checked").InnerTextAsync();
+
+        if (!string.Equals(selectedText?.Trim(), action.Content.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            await locator.SelectOptionAsync(new SelectOptionValue
+            {
+                Label = action.Content
+            });
+
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            _logger.LogInformation($"Dropdown changed to: {action.Content}");
+        }
+        else
+        {
+            _logger.LogInformation($"Dropdown already on correct option: {action.Content}");
+        }
     }
 }
