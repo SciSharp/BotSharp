@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Crontab;
-using BotSharp.Abstraction.Observables.Models;
-using BotSharp.Core.Observables.Queues;
+using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Core.MessageHub;
 using BotSharp.Plugin.ChatHub.Hooks;
 using BotSharp.Plugin.ChatHub.Observers;
 using Microsoft.AspNetCore.Builder;

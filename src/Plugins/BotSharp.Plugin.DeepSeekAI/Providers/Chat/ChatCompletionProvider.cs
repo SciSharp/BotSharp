@@ -1,8 +1,8 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Hooks;
-using BotSharp.Abstraction.Observables.Models;
+using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
-using BotSharp.Core.Observables.Queues;
+using BotSharp.Core.MessageHub;
 using BotSharp.Plugin.DeepSeek.Providers;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;

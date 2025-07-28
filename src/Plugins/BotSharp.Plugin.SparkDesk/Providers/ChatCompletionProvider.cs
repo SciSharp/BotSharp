@@ -1,9 +1,9 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Loggers;
-using BotSharp.Abstraction.Observables.Models;
+using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
-using BotSharp.Core.Observables.Queues;
+using BotSharp.Core.MessageHub;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.SparkDesk.Providers;

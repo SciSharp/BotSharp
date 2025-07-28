@@ -10,9 +10,9 @@ using BotSharp.Core.Messaging;
 using BotSharp.Core.Routing.Reasoning;
 using BotSharp.Core.Templating;
 using BotSharp.Core.Translation;
-using BotSharp.Core.Observables.Queues;
 using Microsoft.Extensions.Configuration;
-using BotSharp.Abstraction.Observables.Models;
+using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Core.MessageHub;
 
 namespace BotSharp.Core.Conversations;
 

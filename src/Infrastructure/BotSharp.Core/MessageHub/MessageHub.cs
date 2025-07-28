@@ -1,11 +1,11 @@
 using System.Reactive.Subjects;
 
-namespace BotSharp.Core.Observables.Queues;
+namespace BotSharp.Core.MessageHub;
 
 public class MessageHub<T> where T : class
 {
     private readonly ILogger<MessageHub<T>> _logger;
-    private readonly ISubject<T> _observable = new Subject<T>();
+    private readonly ISubject<T> _observable = Subject.Synchronize(new Subject<T>());
     public IObservable<T> Events => _observable;
 
     public MessageHub(ILogger<MessageHub<T>> logger)

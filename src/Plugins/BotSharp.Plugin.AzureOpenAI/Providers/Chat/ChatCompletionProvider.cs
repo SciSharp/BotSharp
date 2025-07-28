@@ -1,9 +1,9 @@
 using Azure;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Hooks;
-using BotSharp.Abstraction.Observables.Models;
+using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
-using BotSharp.Core.Observables.Queues;
+using BotSharp.Core.MessageHub;
 using OpenAI.Chat;
 using System.ClientModel;
 

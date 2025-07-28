@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.Observables.Models;
+namespace BotSharp.Abstraction.MessageHub.Models;
 
 public abstract class ObserveDataBase
 {

@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Hooks;
+using BotSharp.Core.MessageHub;
 using BotSharp.Core.Routing.Executor;
 
 namespace BotSharp.Core.Routing;
@@ -23,15 +23,22 @@ public partial class RoutingService
         // Clone message
         var clonedMessage = RoleDialogModel.From(message);
         clonedMessage.FunctionName = name;
-
-        var progressService = _services.GetService<IConversationProgressService>();
         clonedMessage.Indication = await funcExecutor.GetIndicatorAsync(message);
 
-        if (progressService?.OnFunctionExecuting != null)
+        //var progressService = _services.GetService<IConversationProgressService>();
+        //if (progressService?.OnFunctionExecuting != null)
+        //{
+        //    await progressService.OnFunctionExecuting(clonedMessage);
+        //}
+
+        var messageHub = _services.GetRequiredService<MessageHub<HubObserveData>>();
+        messageHub.Push(new()
         {
-            await progressService.OnFunctionExecuting(clonedMessage);
-        }
-        
+            EventName = ChatEvent.OnIndicationReceived,
+            Data = clonedMessage,
+            ServiceProvider = _services
+        });
+
         var hooks = _services.GetHooksOrderByPriority<IConversationHook>(clonedMessage.CurrentAgentId);
         foreach (var hook in hooks)
         {
