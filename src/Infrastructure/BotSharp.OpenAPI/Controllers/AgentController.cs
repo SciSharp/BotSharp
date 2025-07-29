@@ -111,9 +111,9 @@ public class AgentController : ControllerBase
 
     [BotSharpAuth]
     [HttpPost("/refresh-agents")]
-    public async Task<string> RefreshAgents()
+    public async Task<string> RefreshAgents([FromBody] AgentMigrationModel request)
     {
-        return await _agentService.RefreshAgents();
+        return await _agentService.RefreshAgents(request?.AgentIds);
     }
 
     [HttpPut("/agent/file/{agentId}")]
