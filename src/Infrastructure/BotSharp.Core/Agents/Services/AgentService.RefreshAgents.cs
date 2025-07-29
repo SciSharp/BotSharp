@@ -6,7 +6,7 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    public async Task<string> RefreshAgents()
+    public async Task<string> RefreshAgents(IEnumerable<string>? agentIds = null)
     {
         string refreshResult;
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
@@ -28,7 +28,13 @@ public partial class AgentService
         }
         
         var refreshedAgents = new List<string>();
-        foreach (var dir in Directory.GetDirectories(agentDir))
+        var dirs = Directory.GetDirectories(agentDir);
+        if (!agentIds.IsNullOrEmpty())
+        {
+            dirs = dirs.Where(x => agentIds.Contains(x.Split(Path.DirectorySeparatorChar).Last())).ToArray();
+        }
+
+        foreach (var dir in dirs)
         {
             try
             {
@@ -78,7 +84,7 @@ public partial class AgentService
         }
         else
         {
-            refreshResult = "No agent gets refreshed!";
+            refreshResult = "No agent gets migrated!";
         }
 
         _logger.LogInformation(refreshResult);
