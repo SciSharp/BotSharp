@@ -28,6 +28,9 @@ public class ConversationObserver : IObserver<HubObserveData<RoleDialogModel>>
         if (value.EventName == ChatEvent.OnIndicationReceived
             && progress.OnFunctionExecuting != null)
         {
+#if DEBUG
+            _logger.LogCritical($"Receiving {value.EventName} in {nameof(ConversationObserver)}");
+#endif
             progress.OnFunctionExecuting(value.Data).ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
