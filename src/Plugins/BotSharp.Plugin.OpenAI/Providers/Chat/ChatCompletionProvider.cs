@@ -1,10 +1,7 @@
-using Azure;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
-using BotSharp.Plugin.OpenAI.Models.Realtime;
-using Fluid;
 using OpenAI.Chat;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
@@ -204,7 +201,7 @@ public class ChatCompletionProvider : IChatCompletion
         hub.Push(new()
         {
             ServiceProvider = _services,
-            EventName = "BeforeReceiveLlmStreamMessage",
+            EventName = ChatEvent.BeforeReceiveLlmStreamMessage,
             Data = new RoleDialogModel(AgentRole.Assistant, string.Empty)
             {
                 CurrentAgentId = agent.Id,
@@ -248,7 +245,7 @@ public class ChatCompletionProvider : IChatCompletion
                 hub.Push(new()
                 {
                     ServiceProvider = _services,
-                    EventName = "OnReceiveLlmStreamMessage",
+                    EventName = ChatEvent.OnReceiveLlmStreamMessage,
                     Data = content
                 });
             }
@@ -291,7 +288,7 @@ public class ChatCompletionProvider : IChatCompletion
         hub.Push(new()
         {
             ServiceProvider = _services,
-            EventName = "AfterReceiveLlmStreamMessage",
+            EventName = ChatEvent.AfterReceiveLlmStreamMessage,
             Data = responseMessage
         });
 

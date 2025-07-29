@@ -2,8 +2,6 @@ using BotSharp.Abstraction.Conversations.Dtos;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Abstraction.SideCar;
-using BotSharp.Plugin.ChatHub.Hooks;
-using Microsoft.AspNetCore.SignalR;
 using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChatHub.Observers;
@@ -32,8 +30,6 @@ public class ChatHubObserver : IObserver<HubObserveData>
     {
         _services = value.ServiceProvider;
 
-        if (!AllowSendingMessage()) return;
-
         var message = value.Data;
         var model = new ChatResponseDto();
         var action = new ConversationSenderActionModel();
@@ -42,6 +38,8 @@ public class ChatHubObserver : IObserver<HubObserveData>
         switch (value.EventName)
         {
             case ChatEvent.BeforeReceiveLlmStreamMessage:
+                if (!AllowSendingMessage()) return;
+
                 model = new ChatResponseDto()
                 {
                     ConversationId = conv.ConversationId,
@@ -64,6 +62,8 @@ public class ChatHubObserver : IObserver<HubObserveData>
                 SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
                 break;
             case ChatEvent.OnReceiveLlmStreamMessage:
+                if (!AllowSendingMessage()) return;
+
                 model = new ChatResponseDto()
                 {
                     ConversationId = conv.ConversationId,
@@ -81,6 +81,8 @@ public class ChatHubObserver : IObserver<HubObserveData>
                 };
                 break;
             case ChatEvent.AfterReceiveLlmStreamMessage:
+                if (!AllowSendingMessage()) return;
+
                 model = new ChatResponseDto()
                 {
                     ConversationId = conv.ConversationId,
