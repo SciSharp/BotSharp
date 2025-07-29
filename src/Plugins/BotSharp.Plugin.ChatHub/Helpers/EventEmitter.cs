@@ -3,9 +3,9 @@ using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChatHub.Helpers;
 
-public class ChatHubHelper
+internal class EventEmitter
 {
-    public static async Task SendChatEvent<T>(
+    internal static async Task SendChatEvent<T>(
         IServiceProvider services,
         ILogger logger,
         string @event,
@@ -21,13 +21,14 @@ public class ChatHubHelper
             var settings = services.GetRequiredService<ChatHubSettings>();
             var chatHub = services.GetRequiredService<IHubContext<SignalRHub>>();
 
-            if (settings.EventDispatchBy == EventDispatchType.Group)
+            switch (settings.EventDispatchBy)
             {
-                await chatHub.Clients.Group(conversationId).SendAsync(@event, data);
-            }
-            else
-            {
-                await chatHub.Clients.User(userId).SendAsync(@event, data);
+                case EventDispatchType.Group when !string.IsNullOrEmpty(conversationId):
+                    await chatHub.Clients.Group(conversationId).SendAsync(@event, data);
+                    break;
+                case EventDispatchType.User when !string.IsNullOrEmpty(userId):
+                    await chatHub.Clients.User(userId).SendAsync(@event, data);
+                    break;
             }
         }
         catch (Exception ex)

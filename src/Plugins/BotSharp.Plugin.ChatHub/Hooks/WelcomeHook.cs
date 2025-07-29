@@ -89,6 +89,6 @@ public class WelcomeHook : ConversationHookBase
     private async Task SendEvent<T>(string @event, string conversationId, T data, [CallerMemberName] string callerName = "")
     {
         var user = _services.GetRequiredService<IUserIdentity>();
-        await ChatHubHelper.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, data, nameof(WelcomeHook), callerName);
+        await EventEmitter.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, data, nameof(WelcomeHook), callerName);
     }
 }

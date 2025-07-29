@@ -4,6 +4,7 @@ using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Abstraction.SideCar;
 using BotSharp.Plugin.ChatHub.Hooks;
 using Microsoft.AspNetCore.SignalR;
+using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChatHub.Observers;
 
@@ -60,7 +61,7 @@ public class ChatHubObserver : IObserver<HubObserveData>
                     SenderAction = SenderActionEnum.TypingOn
                 };
 
-                GenerateSenderAction(conv.ConversationId, action);
+                SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
                 break;
             case ChatEvent.OnReceiveLlmStreamMessage:
                 model = new ChatResponseDto()
@@ -99,7 +100,7 @@ public class ChatHubObserver : IObserver<HubObserveData>
                     SenderAction = SenderActionEnum.TypingOff
                 };
 
-                GenerateSenderAction(conv.ConversationId, action);
+                SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
                 break;
             case ChatEvent.OnIndicationReceived:
                 model = new ChatResponseDto
@@ -117,7 +118,7 @@ public class ChatHubObserver : IObserver<HubObserveData>
                 break;
         }
 
-        OnReceiveAssistantMessage(value.EventName, model.ConversationId, model);
+        SendEvent(value.EventName, model.ConversationId, model);
     }
 
     private bool AllowSendingMessage()
@@ -126,48 +127,12 @@ public class ChatHubObserver : IObserver<HubObserveData>
         return sidecar == null || !sidecar.IsEnabled;
     }
 
-    private void OnReceiveAssistantMessage(string @event, string conversationId, ChatResponseDto model)
+    #region Private methods
+    private void SendEvent<T>(string @event, string conversationId, T data, [CallerMemberName] string callerName = "")
     {
-        try
-        {
-            var settings = _services.GetRequiredService<ChatHubSettings>();
-            var chatHub = _services.GetRequiredService<IHubContext<SignalRHub>>();
-
-            if (settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                chatHub.Clients.Group(conversationId).SendAsync(@event, model).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-            else
-            {
-                var user = _services.GetRequiredService<IUserIdentity>();
-                chatHub.Clients.User(user.Id).SendAsync(@event, model).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to receive assistant message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
-        }
+        var user = _services.GetRequiredService<IUserIdentity>();
+        EventEmitter.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, data, nameof(ChatHubObserver), callerName)
+                     .ConfigureAwait(false).GetAwaiter().GetResult();
     }
-
-    private void GenerateSenderAction(string conversationId, ConversationSenderActionModel action)
-    {
-        try
-        {
-            var settings = _services.GetRequiredService<ChatHubSettings>();
-            var chatHub = _services.GetRequiredService<IHubContext<SignalRHub>>();
-            if (settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                chatHub.Clients.Group(conversationId).SendAsync(ChatEvent.OnSenderActionGenerated, action).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-            else
-            {
-                var user = _services.GetRequiredService<IUserIdentity>();
-                chatHub.Clients.User(user.Id).SendAsync(ChatEvent.OnSenderActionGenerated, action).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to generate sender action in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
-        }
-    }
+    #endregion
 }
