@@ -188,7 +188,7 @@ public class ChatCompletionProvider : IChatCompletion
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
-        var hub = _services.GetRequiredService<MessageHub<HubObserveData>>();
+        var hub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
         var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
 
         var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);

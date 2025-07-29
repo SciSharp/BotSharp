@@ -1,6 +1,6 @@
 namespace BotSharp.Core.MessageHub.Observers;
 
-public class ConversationObserver : IObserver<HubObserveData>
+public class ConversationObserver : IObserver<HubObserveData<RoleDialogModel>>
 {
     private readonly ILogger _logger;
     private IServiceProvider _services;
@@ -20,11 +20,11 @@ public class ConversationObserver : IObserver<HubObserveData>
         _logger.LogError(error, $"{nameof(ConversationObserver)} receives error notification: {error.Message}");
     }
 
-    public void OnNext(HubObserveData value)
+    public void OnNext(HubObserveData<RoleDialogModel> value)
     {
         _services = value.ServiceProvider;
-
         var progress = _services.GetRequiredService<IConversationProgressService>();
+
         if (value.EventName == ChatEvent.OnIndicationReceived
             && progress.OnFunctionExecuting != null)
         {

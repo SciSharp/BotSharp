@@ -183,7 +183,7 @@ public class ChatCompletionProvider : IChatCompletion
             _logger.LogInformation(agent.Instruction);
         }
 
-        var hub = _services.GetRequiredService<MessageHub<HubObserveData>>();
+        var hub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
         var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
 
         hub.Push(new()

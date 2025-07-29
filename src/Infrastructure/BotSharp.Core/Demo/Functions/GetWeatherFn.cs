@@ -18,7 +18,7 @@ public class GetWeatherFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        var messageHub = _services.GetRequiredService<MessageHub<HubObserveData>>();
+        var messageHub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
 
         await Task.Delay(1000);
 

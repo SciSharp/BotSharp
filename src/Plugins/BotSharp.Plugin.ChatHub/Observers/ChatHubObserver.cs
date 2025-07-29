@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChatHub.Observers;
 
-public class ChatHubObserver : IObserver<HubObserveData>
+public class ChatHubObserver : IObserver<HubObserveData<RoleDialogModel>>
 {
     private readonly ILogger _logger;
     private IServiceProvider _services;
@@ -26,7 +26,7 @@ public class ChatHubObserver : IObserver<HubObserveData>
         _logger.LogError(error, $"{nameof(ChatHubObserver)} receives error notification: {error.Message}");
     }
 
-    public void OnNext(HubObserveData value)
+    public void OnNext(HubObserveData<RoleDialogModel> value)
     {
         _services = value.ServiceProvider;
 

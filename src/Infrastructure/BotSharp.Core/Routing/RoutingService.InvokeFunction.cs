@@ -25,7 +25,7 @@ public partial class RoutingService
         clonedMessage.FunctionName = name;
         clonedMessage.Indication = await funcExecutor.GetIndicatorAsync(message);
 
-        var messageHub = _services.GetRequiredService<MessageHub<HubObserveData>>();
+        var messageHub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
         messageHub.Push(new()
         {
             EventName = ChatEvent.OnIndicationReceived,

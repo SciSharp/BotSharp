@@ -152,7 +152,7 @@ public class ChatCompletionProvider : IChatCompletion
         var client = new SparkDeskClient(appId: _settings.AppId, apiKey: _settings.ApiKey, apiSecret: _settings.ApiSecret);
         var (prompt, messages, funcall) = PrepareOptions(agent, conversations);
         var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
-        var hub = _services.GetRequiredService<MessageHub<HubObserveData>>();
+        var hub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
 
         hub.Push(new()
         {

@@ -44,7 +44,7 @@ public class ConversationPlugin : IBotSharpPlugin, IBotSharpAppPlugin
             return settingService.Bind<GoogleApiSettings>("GoogleApi");
         });
 
-        services.AddSingleton<MessageHub<HubObserveData>>();
+        services.AddSingleton<MessageHub<HubObserveData<RoleDialogModel>>>();
 
         services.AddScoped<IConversationStorage, ConversationStorage>();
         services.AddScoped<IConversationService, ConversationService>();
@@ -72,8 +72,8 @@ public class ConversationPlugin : IBotSharpPlugin, IBotSharpAppPlugin
     public void Configure(IApplicationBuilder app)
     {
         var services = app.ApplicationServices;
-        var queue = services.GetRequiredService<MessageHub<HubObserveData>>();
-        var logger = services.GetRequiredService<ILogger<MessageHub<HubObserveData>>>();
+        var queue = services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
+        var logger = services.GetRequiredService<ILogger<MessageHub<HubObserveData<RoleDialogModel>>>>();
         queue.Events.Subscribe(new ConversationObserver(logger));
     }
 }
