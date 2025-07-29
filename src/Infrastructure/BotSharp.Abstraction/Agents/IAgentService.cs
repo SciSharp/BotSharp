@@ -10,7 +10,7 @@ namespace BotSharp.Abstraction.Agents;
 public interface IAgentService
 {
     Task<Agent> CreateAgent(Agent agent);
-    Task<string> RefreshAgents();
+    Task<string> RefreshAgents(IEnumerable<string>? agentIds = null);
     Task<PagedItems<Agent>> GetAgents(AgentFilter filter);
     Task<List<IdName>> GetAgentOptions(List<string>? agentIds = null, bool byName = false);
     Task<IEnumerable<AgentUtility>> GetAgentUtilityOptions();
