@@ -2,7 +2,7 @@ using System.Reactive.Subjects;
 
 namespace BotSharp.Core.MessageHub;
 
-public class MessageHub<T> where T : class, new()
+public class MessageHub<T> where T : ObserveDataBase
 {
     private readonly ILogger<MessageHub<T>> _logger;
     private readonly ISubject<T> _observable = Subject.Synchronize(new Subject<T>());

@@ -1,10 +1,13 @@
 using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Files.Utilities;
+using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users.Dtos;
 using BotSharp.Core.Infrastructures;
+using System.ComponentModel;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -343,6 +346,9 @@ public class ConversationController : ControllerBase
         [FromRoute] string conversationId,
         [FromBody] NewMessageModel input)
     {
+        var observerService = _services.GetRequiredService<IObserverService>();
+        using var container = observerService.RegisterObservers<HubObserveData<RoleDialogModel>>(conversationId);
+
         var conv = _services.GetRequiredService<IConversationService>();
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
         {

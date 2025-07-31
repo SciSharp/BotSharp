@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Functions;
 using BotSharp.Core.MessageHub;
+using System.Text.Json.Serialization;
 
 namespace BotSharp.Core.Demo.Functions;
 
@@ -17,26 +18,29 @@ public class GetWeatherFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
+        var args = JsonSerializer.Deserialize<WeatherLocation>(message.FunctionArgs);
         var conv = _services.GetRequiredService<IConversationService>();
         var messageHub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
 
         await Task.Delay(1000);
 
-        message.Indication = "Start querying weather data";
+        message.Indication = $"Start querying weather data in {args?.City}";
         messageHub.Push(new()
         {
             EventName = ChatEvent.OnIndicationReceived,
             Data = message,
+            RefId = conv.ConversationId,
             ServiceProvider = _services
         });
 
         await Task.Delay(1500);
 
-        message.Indication = "Still working on it";
+        message.Indication = $"Still working on it, {args?.City}";
         messageHub.Push(new()
         {
             EventName = ChatEvent.OnIndicationReceived,
             Data = message,
+            RefId = conv.ConversationId,
             ServiceProvider = _services
         });
 
@@ -46,4 +50,10 @@ public class GetWeatherFn : IFunctionCallback
         message.StopCompletion = false;
         return true;
     }
+}
+
+class WeatherLocation
+{
+    [JsonPropertyName("city")]
+    public string City { get; set; }
 }

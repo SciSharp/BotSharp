@@ -25,11 +25,13 @@ public partial class RoutingService
         clonedMessage.FunctionName = name;
         clonedMessage.Indication = await funcExecutor.GetIndicatorAsync(message);
 
+        var conv = _services.GetRequiredService<IConversationService>();
         var messageHub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
         messageHub.Push(new()
         {
             EventName = ChatEvent.OnIndicationReceived,
             Data = clonedMessage,
+            RefId = conv.ConversationId,
             ServiceProvider = _services
         });
 

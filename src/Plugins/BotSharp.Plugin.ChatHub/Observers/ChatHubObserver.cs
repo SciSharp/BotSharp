@@ -1,19 +1,35 @@
 using BotSharp.Abstraction.Conversations.Dtos;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Abstraction.MessageHub.Observers;
 using BotSharp.Abstraction.SideCar;
+using BotSharp.Core.MessageHub.Observers;
 using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChatHub.Observers;
 
-public class ChatHubObserver : IObserver<HubObserveData<RoleDialogModel>>
+public class ChatHubObserver : IBotSharpObserver<HubObserveData<RoleDialogModel>>
 {
     private readonly ILogger _logger;
     private IServiceProvider _services;
+    private bool _isActive = false;
 
-    public ChatHubObserver(ILogger logger)
+    public ChatHubObserver(
+        ILogger<ChatHubObserver> logger)
     {
         _logger = logger;
+    }
+
+    public bool IsActive => _isActive;
+
+    public void Activate()
+    {
+        _isActive = true;
+    }
+
+    public void Deactivate()
+    {
+        _isActive = false;
     }
 
     public void OnCompleted()
@@ -117,6 +133,8 @@ public class ChatHubObserver : IObserver<HubObserveData<RoleDialogModel>>
                         Role = AgentRole.Assistant
                     }
                 };
+
+                _logger.LogCritical($"Receiving {value.EventName} ({value.Data.Indication}) in {nameof(ChatHubObserver)} - {conv.ConversationId}");
                 break;
         }
 

@@ -1,5 +1,8 @@
 using BotSharp.Abstraction.Google.Settings;
 using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.MessageHub;
+using BotSharp.Abstraction.MessageHub.Observers;
+using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Plugins.Models;
@@ -8,6 +11,7 @@ using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Instructs;
 using BotSharp.Core.MessageHub;
 using BotSharp.Core.MessageHub.Observers;
+using BotSharp.Core.MessageHub.Services;
 using BotSharp.Core.Messaging;
 using BotSharp.Core.Routing.Reasoning;
 using BotSharp.Core.Templating;
@@ -45,6 +49,8 @@ public class ConversationPlugin : IBotSharpPlugin, IBotSharpAppPlugin
         });
 
         services.AddSingleton<MessageHub<HubObserveData<RoleDialogModel>>>();
+        //services.AddScoped<IBotSharpObserver<HubObserveData<RoleDialogModel>>, ConversationObserver>();
+        services.AddScoped<IObserverService, ObserverService>();
 
         services.AddScoped<IConversationStorage, ConversationStorage>();
         services.AddScoped<IConversationService, ConversationService>();
@@ -71,9 +77,8 @@ public class ConversationPlugin : IBotSharpPlugin, IBotSharpAppPlugin
 
     public void Configure(IApplicationBuilder app)
     {
-        var services = app.ApplicationServices;
-        var queue = services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
-        var logger = services.GetRequiredService<ILogger<MessageHub<HubObserveData<RoleDialogModel>>>>();
-        queue.Events.Subscribe(new ConversationObserver(logger));
+        //var services = app.ApplicationServices;
+        //var queue = services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
+        //var logger = services.GetRequiredService<ILogger<MessageHub<HubObserveData<RoleDialogModel>>>>();
     }
 }

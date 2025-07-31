@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Crontab;
 using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Abstraction.MessageHub.Observers;
 using BotSharp.Core.MessageHub;
+using BotSharp.Core.MessageHub.Observers;
 using BotSharp.Plugin.ChatHub.Hooks;
 using BotSharp.Plugin.ChatHub.Observers;
 using Microsoft.AspNetCore.Builder;
@@ -24,6 +26,8 @@ public class ChatHubPlugin : IBotSharpPlugin, IBotSharpAppPlugin
         config.Bind("ChatHub", settings);
         services.AddSingleton(x => settings);
 
+        services.AddScoped<IBotSharpObserver<HubObserveData<RoleDialogModel>>, ChatHubObserver>();
+
         // Register hooks
         services.AddScoped<IConversationHook, ChatHubConversationHook>();
         services.AddScoped<IConversationHook, StreamingLogHook>();
@@ -35,9 +39,8 @@ public class ChatHubPlugin : IBotSharpPlugin, IBotSharpAppPlugin
 
     public void Configure(IApplicationBuilder app)
     {
-        var services = app.ApplicationServices;
-        var queue = services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
-        var logger = services.GetRequiredService<ILogger<MessageHub<HubObserveData<RoleDialogModel>>>>();
-        queue.Events.Subscribe(new ChatHubObserver(logger));
+        //var services = app.ApplicationServices;
+        //var queue = services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
+        //var logger = services.GetRequiredService<ILogger<MessageHub<HubObserveData<RoleDialogModel>>>>();
     }
 }

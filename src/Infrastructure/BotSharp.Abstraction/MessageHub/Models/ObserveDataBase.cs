@@ -1,6 +1,7 @@
 namespace BotSharp.Abstraction.MessageHub.Models;
 
-public abstract class ObserveDataBase
+public class ObserveDataBase
 {
     public IServiceProvider ServiceProvider { get; set; } = null!;
+    public string RefId { get; set; } = null!;
 }
