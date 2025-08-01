@@ -17,7 +17,10 @@ public class ObserverService : IObserverService
         _logger = logger;
     }
 
-    public IDisposable SubscribeObservers<T>(string refId, IEnumerable<string>? names = null) where T : ObserveDataBase
+    public IDisposable SubscribeObservers<T>(
+        string refId,
+        IEnumerable<string>? names = null,
+        Dictionary<string, Func<T, Task>>? listeners = null) where T : ObserveDataBase
     {
         var container = _services.GetRequiredService<ObserverSubscriptionContainer<T>>();
         var observers = _services.GetServices<IBotSharpObserver<T>>()
@@ -32,6 +35,14 @@ public class ObserverService : IObserverService
         if (observers.IsNullOrEmpty())
         {
             return container;
+        }
+
+        if (!listeners.IsNullOrEmpty())
+        {
+            foreach (var observer in observers)
+            {
+                observer.SetEventListeners(listeners ?? []);
+            }
         }
 
 #if DEBUG

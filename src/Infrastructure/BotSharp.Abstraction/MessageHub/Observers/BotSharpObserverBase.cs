@@ -3,7 +3,8 @@ namespace BotSharp.Abstraction.MessageHub.Observers;
 
 public abstract class BotSharpObserverBase<T> : IBotSharpObserver<T>
 {
-    protected bool _active = false;
+    private bool _active = false;
+    protected Dictionary<string, Func<T, Task>> _listeners = [];
 
     protected BotSharpObserverBase()
     {
@@ -22,6 +23,12 @@ public abstract class BotSharpObserverBase<T> : IBotSharpObserver<T>
     public virtual void Deactivate()
     {
         _active = false;
+        _listeners = [];
+    }
+
+    public virtual void SetEventListeners(Dictionary<string, Func<T, Task>> listeners)
+    {
+        _listeners = listeners;
     }
 
     public virtual void OnCompleted()

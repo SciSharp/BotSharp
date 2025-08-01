@@ -34,7 +34,7 @@ public class GetFunEventsFn : IFunctionCallback
 
         await Task.Delay(1500);
 
-        message.Indication = $"Still searching in {args?.City}";
+        message.Indication = $"Still searching events in {args?.City}";
         messageHub.Push(new()
         {
             EventName = ChatEvent.OnIndicationReceived,

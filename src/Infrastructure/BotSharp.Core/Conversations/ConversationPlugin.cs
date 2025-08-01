@@ -56,7 +56,6 @@ public class ConversationPlugin : IBotSharpPlugin
 
         services.AddScoped<IConversationStorage, ConversationStorage>();
         services.AddScoped<IConversationService, ConversationService>();
-        services.AddScoped<IConversationProgressService, ConversationProgressService>();
         services.AddScoped<IConversationStateService, ConversationStateService>();
         services.AddScoped<ITranslationService, TranslationService>();
 

@@ -36,7 +36,10 @@ public class ConversationObserver : BotSharpObserverBase<HubObserveData<RoleDial
 #if DEBUG
             _logger.LogCritical($"Receiving {value.EventName} ({value.Data.Indication}) in {nameof(ConversationObserver)} - {conv.ConversationId}");
 #endif
-            //progress.OnFunctionExecuting(value.Data).ConfigureAwait(false).GetAwaiter().GetResult();
+            if (_listeners.TryGetValue(value.EventName, out var func) && func != null)
+            {
+                func(value).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
         }
     }
 }
