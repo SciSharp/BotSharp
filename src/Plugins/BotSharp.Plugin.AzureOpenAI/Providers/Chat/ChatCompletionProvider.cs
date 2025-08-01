@@ -1,4 +1,4 @@
-using Azure;
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
@@ -213,6 +213,7 @@ public class ChatCompletionProvider : IChatCompletion
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
         var hub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
+        var conv = _services.GetRequiredService<IConversationService>();
         var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
 
         var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
@@ -224,8 +225,8 @@ public class ChatCompletionProvider : IChatCompletion
 
         hub.Push(new()
         {
-            ServiceProvider = _services,
-            EventName = "BeforeReceiveLlmStreamMessage",
+            EventName = ChatEvent.BeforeReceiveLlmStreamMessage,
+            RefId = conv.ConversationId,
             Data = new RoleDialogModel(AgentRole.Assistant, string.Empty)
             {
                 CurrentAgentId = agent.Id,
@@ -268,8 +269,8 @@ public class ChatCompletionProvider : IChatCompletion
                 };
                 hub.Push(new()
                 {
-                    ServiceProvider = _services,
-                    EventName = "OnReceiveLlmStreamMessage",
+                    EventName = ChatEvent.OnReceiveLlmStreamMessage,
+                    RefId = conv.ConversationId,
                     Data = content
                 });
             }
@@ -311,8 +312,8 @@ public class ChatCompletionProvider : IChatCompletion
 
         hub.Push(new()
         {
-            ServiceProvider = _services,
-            EventName = "AfterReceiveLlmStreamMessage",
+            EventName = ChatEvent.AfterReceiveLlmStreamMessage,
+            RefId = conv.ConversationId,
             Data = responseMessage
         });
 

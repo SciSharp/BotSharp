@@ -7,25 +7,38 @@ namespace BotSharp.Core.MessageHub.Services;
 public class ObserverService : IObserverService
 {
     private readonly IServiceProvider _services;
+    private readonly ILogger<ObserverService> _logger;
 
     public ObserverService(
-        IServiceProvider services)
+        IServiceProvider services,
+        ILogger<ObserverService> logger)
     {
         _services = services;
+        _logger = logger;
     }
 
-    public ObserverSubscriptionContainer<T> RegisterObservers<T>(string refId) where T : ObserveDataBase
+    public IDisposable SubscribeObservers<T>(string refId, IEnumerable<string>? names = null) where T : ObserveDataBase
     {
-        var subscriptions = new List<ObserverSubscription<T>>();
+        var container = _services.GetRequiredService<ObserverSubscriptionContainer<T>>();
         var observers = _services.GetServices<IBotSharpObserver<T>>()
-                                 .Where(x => !x.IsActive)
+                                 .Where(x => !x.Active)
                                  .ToList();
+
+        if (!names.IsNullOrEmpty())
+        {
+            observers = observers.Where(x => names.Contains(x.Name)).ToList();
+        }
 
         if (observers.IsNullOrEmpty())
         {
-            return new();
+            return container;
         }
 
+#if DEBUG
+        _logger.LogCritical($"Subscribe observers: {string.Join(",", observers.Select(x => x.Name))}");
+#endif
+
+        var subscriptions = new List<ObserverSubscription<T>>();
         var messageHub = _services.GetRequiredService<MessageHub<T>>();
         foreach (var observer in observers)
         {
@@ -38,6 +51,22 @@ public class ObserverService : IObserverService
             });
         }
 
-        return new(subscriptions);
+        container.Append(subscriptions);
+        return container;
+    }
+
+    public void UnSubscribeObservers<T>(IEnumerable<string>? names = null) where T : ObserveDataBase
+    {
+        var container = _services.GetRequiredService<ObserverSubscriptionContainer<T>>();
+        var subscriptions = container.GetSubscriptions(names);
+
+#if DEBUG
+        _logger.LogCritical($"UnSubscribe observers: {string.Join(",", subscriptions.Select(x => x.Observer.Name))}");
+#endif
+
+        foreach (var sub in subscriptions)
+        {
+            sub.UnSubscribe();
+        }
     }
 }

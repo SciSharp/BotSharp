@@ -19,4 +19,10 @@ public class ObserverSubscription<T>
         Observer = observer;
         Subscription = subscription;
     }
+
+    public void UnSubscribe()
+    {
+        Observer.Deactivate();
+        Subscription.Dispose();
+    }
 }

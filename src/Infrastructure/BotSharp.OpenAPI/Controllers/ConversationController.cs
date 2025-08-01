@@ -7,7 +7,7 @@ using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users.Dtos;
 using BotSharp.Core.Infrastructures;
-using System.ComponentModel;
+using BotSharp.Core.MessageHub.Observers;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -346,8 +346,8 @@ public class ConversationController : ControllerBase
         [FromRoute] string conversationId,
         [FromBody] NewMessageModel input)
     {
-        var observerService = _services.GetRequiredService<IObserverService>();
-        using var container = observerService.RegisterObservers<HubObserveData<RoleDialogModel>>(conversationId);
+        var observer = _services.GetRequiredService<IObserverService>();
+        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(conversationId);
 
         var conv = _services.GetRequiredService<IConversationService>();
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
@@ -363,7 +363,6 @@ public class ConversationController : ControllerBase
         SetStates(conv, input);
 
         var response = new ChatResponseModel();
-
         await conv.SendMessage(agentId, inputMsg,
             replyMessage: input.Postback,
             async msg =>

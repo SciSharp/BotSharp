@@ -4,5 +4,7 @@ namespace BotSharp.Abstraction.MessageHub.Services;
 
 public interface IObserverService
 {
-    ObserverSubscriptionContainer<T> RegisterObservers<T>(string refId) where T : ObserveDataBase;
+    IDisposable SubscribeObservers<T>(string refId, IEnumerable<string>? names = null) where T : ObserveDataBase;
+
+    void UnSubscribeObservers<T>(IEnumerable<string>? names = null) where T : ObserveDataBase;
 }

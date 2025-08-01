@@ -31,8 +31,7 @@ public partial class RoutingService
         {
             EventName = ChatEvent.OnIndicationReceived,
             Data = clonedMessage,
-            RefId = conv.ConversationId,
-            ServiceProvider = _services
+            RefId = conv.ConversationId
         });
 
         var hooks = _services.GetHooksOrderByPriority<IConversationHook>(clonedMessage.CurrentAgentId);
@@ -67,7 +66,7 @@ public partial class RoutingService
         }
         catch (JsonException ex)
         {
-            _logger.LogError($"The input does not contain any JSON tokens:\r\n{message.Content}\r\n{ex.Message}");
+            _logger.LogError(ex, $"The input does not contain any JSON tokens:\r\n{message.Content}\r\n{ex.Message}");
             message.StopCompletion = true;
             message.Content = ex.Message;
         }
@@ -75,7 +74,7 @@ public partial class RoutingService
         {
             message.StopCompletion = true;
             message.Content = ex.Message;
-            _logger.LogError(ex.ToString());
+            _logger.LogError(ex, ex.ToString());
         }
 
         // Make sure content has been populated

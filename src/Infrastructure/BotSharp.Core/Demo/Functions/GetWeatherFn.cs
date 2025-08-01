@@ -29,19 +29,17 @@ public class GetWeatherFn : IFunctionCallback
         {
             EventName = ChatEvent.OnIndicationReceived,
             Data = message,
-            RefId = conv.ConversationId,
-            ServiceProvider = _services
+            RefId = conv.ConversationId
         });
 
         await Task.Delay(1500);
 
-        message.Indication = $"Still working on it, {args?.City}";
+        message.Indication = $"Still working on it... Hold on, {args?.City}";
         messageHub.Push(new()
         {
             EventName = ChatEvent.OnIndicationReceived,
             Data = message,
-            RefId = conv.ConversationId,
-            ServiceProvider = _services
+            RefId = conv.ConversationId
         });
 
         await Task.Delay(1500);

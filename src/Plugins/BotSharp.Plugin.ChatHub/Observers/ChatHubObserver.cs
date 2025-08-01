@@ -3,49 +3,37 @@ using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Abstraction.MessageHub.Observers;
 using BotSharp.Abstraction.SideCar;
-using BotSharp.Core.MessageHub.Observers;
 using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChatHub.Observers;
 
-public class ChatHubObserver : IBotSharpObserver<HubObserveData<RoleDialogModel>>
+public class ChatHubObserver : BotSharpObserverBase<HubObserveData<RoleDialogModel>>
 {
     private readonly ILogger _logger;
-    private IServiceProvider _services;
-    private bool _isActive = false;
+    private readonly IServiceProvider _services;
 
     public ChatHubObserver(
-        ILogger<ChatHubObserver> logger)
+        IServiceProvider services,
+        ILogger<ChatHubObserver> logger) : base()
     {
+        _services = services;
         _logger = logger;
     }
 
-    public bool IsActive => _isActive;
+    public override string Name => nameof(ChatHubObserver);
 
-    public void Activate()
-    {
-        _isActive = true;
-    }
-
-    public void Deactivate()
-    {
-        _isActive = false;
-    }
-
-    public void OnCompleted()
+    public override void OnCompleted()
     {
         _logger.LogWarning($"{nameof(ChatHubObserver)} receives complete notification.");
     }
 
-    public void OnError(Exception error)
+    public override void OnError(Exception error)
     {
         _logger.LogError(error, $"{nameof(ChatHubObserver)} receives error notification: {error.Message}");
     }
 
-    public void OnNext(HubObserveData<RoleDialogModel> value)
+    public override void OnNext(HubObserveData<RoleDialogModel> value)
     {
-        _services = value.ServiceProvider;
-
         var message = value.Data;
         var model = new ChatResponseDto();
         var action = new ConversationSenderActionModel();

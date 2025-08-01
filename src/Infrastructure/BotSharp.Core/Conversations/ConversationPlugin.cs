@@ -49,7 +49,8 @@ public class ConversationPlugin : IBotSharpPlugin, IBotSharpAppPlugin
         });
 
         services.AddSingleton<MessageHub<HubObserveData<RoleDialogModel>>>();
-        //services.AddScoped<IBotSharpObserver<HubObserveData<RoleDialogModel>>, ConversationObserver>();
+        services.AddScoped<ObserverSubscriptionContainer<HubObserveData<RoleDialogModel>>>();
+        services.AddScoped<IBotSharpObserver<HubObserveData<RoleDialogModel>>, ConversationObserver>();
         services.AddScoped<IObserverService, ObserverService>();
 
         services.AddScoped<IConversationStorage, ConversationStorage>();
@@ -77,8 +78,6 @@ public class ConversationPlugin : IBotSharpPlugin, IBotSharpAppPlugin
 
     public void Configure(IApplicationBuilder app)
     {
-        //var services = app.ApplicationServices;
-        //var queue = services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
-        //var logger = services.GetRequiredService<ILogger<MessageHub<HubObserveData<RoleDialogModel>>>>();
+        
     }
 }

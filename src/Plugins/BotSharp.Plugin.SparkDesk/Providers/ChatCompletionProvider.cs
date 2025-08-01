@@ -1,10 +1,11 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
-using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.SparkDesk.Providers;
 
@@ -153,11 +154,12 @@ public class ChatCompletionProvider : IChatCompletion
         var (prompt, messages, funcall) = PrepareOptions(agent, conversations);
         var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
         var hub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
+        var conv = _services.GetRequiredService<IConversationService>();
 
         hub.Push(new()
         {
-            ServiceProvider = _services,
-            EventName = "BeforeReceiveLlmStreamMessage",
+            EventName = ChatEvent.BeforeReceiveLlmStreamMessage,
+            RefId = conv.ConversationId,
             Data = new RoleDialogModel(AgentRole.Assistant, string.Empty)
             {
                 CurrentAgentId = agent.Id,
@@ -197,8 +199,8 @@ public class ChatCompletionProvider : IChatCompletion
 
                 hub.Push(new()
                 {
-                    ServiceProvider = _services,
-                    EventName = "OnReceiveLlmStreamMessage",
+                    EventName = ChatEvent.OnReceiveLlmStreamMessage,
+                    RefId = conv.ConversationId,
                     Data = responseMessage
                 });
             } 
@@ -212,8 +214,8 @@ public class ChatCompletionProvider : IChatCompletion
 
         hub.Push(new()
         {
-            ServiceProvider = _services,
-            EventName = "AfterReceiveLlmStreamMessage",
+            EventName = ChatEvent.AfterReceiveLlmStreamMessage,
+            RefId = conv.ConversationId,
             Data = responseMessage
         });
 

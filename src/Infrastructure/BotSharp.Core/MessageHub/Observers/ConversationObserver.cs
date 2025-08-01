@@ -2,49 +2,39 @@ using BotSharp.Abstraction.MessageHub.Observers;
 
 namespace BotSharp.Core.MessageHub.Observers;
 
-public class ConversationObserver : IBotSharpObserver<HubObserveData<RoleDialogModel>>
+public class ConversationObserver : BotSharpObserverBase<HubObserveData<RoleDialogModel>>
 {
     private readonly ILogger<ConversationObserver> _logger;
-    private IServiceProvider _services;
-    private bool _isActive;
+    private readonly IServiceProvider _services;
 
     public ConversationObserver(
-        ILogger<ConversationObserver> logger)
+        IServiceProvider services,
+        ILogger<ConversationObserver> logger) : base()
     {
+        _services = services;
         _logger = logger;
     }
 
-    public bool IsActive => _isActive;
+    public override string Name => nameof(ConversationObserver);
 
-    public void Activate()
-    {
-        _isActive = true;
-    }
-
-    public void Deactivate()
-    {
-        _isActive = false;
-    }
-
-    public void OnCompleted()
+    public override void OnCompleted()
     {
         _logger.LogWarning($"{nameof(ConversationObserver)} receives complete notification.");
     }
 
-    public void OnError(Exception error)
+    public override void OnError(Exception error)
     {
         _logger.LogError(error, $"{nameof(ConversationObserver)} receives error notification: {error.Message}");
     }
 
-    public void OnNext(HubObserveData<RoleDialogModel> value)
+    public override void OnNext(HubObserveData<RoleDialogModel> value)
     {
-        _services = value.ServiceProvider;
-        //var progress = _services.GetRequiredService<IConversationProgressService>();
+        var conv = _services.GetRequiredService<IConversationService>();
 
         if (value.EventName == ChatEvent.OnIndicationReceived)
         {
-#if !DEBUG
-            _logger.LogCritical($"Receiving {value.EventName} ({value.Data.Indication}) in {nameof(ConversationObserver)}");
+#if DEBUG
+            _logger.LogCritical($"Receiving {value.EventName} ({value.Data.Indication}) in {nameof(ConversationObserver)} - {conv.ConversationId}");
 #endif
             //progress.OnFunctionExecuting(value.Data).ConfigureAwait(false).GetAwaiter().GetResult();
         }
