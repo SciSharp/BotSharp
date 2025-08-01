@@ -13,7 +13,7 @@ namespace BotSharp.Plugin.ChatHub;
 /// <summary>
 /// The dialogue channel connects users, AI assistants and customer service representatives.
 /// </summary>
-public class ChatHubPlugin : IBotSharpPlugin, IBotSharpAppPlugin
+public class ChatHubPlugin : IBotSharpPlugin
 {
     public string Id => "6e52d42d-1e23-406b-8599-36af36c83209";
     public string Name => "Chat Hub";
@@ -35,10 +35,5 @@ public class ChatHubPlugin : IBotSharpPlugin, IBotSharpAppPlugin
         services.AddScoped<IRoutingHook, StreamingLogHook>();
         services.AddScoped<IContentGeneratingHook, StreamingLogHook>();
         services.AddScoped<ICrontabHook, ChatHubCrontabHook>();
-    }
-
-    public void Configure(IApplicationBuilder app)
-    {
-        
     }
 }

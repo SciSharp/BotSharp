@@ -113,16 +113,13 @@ public class ChatHubConversationHook : ConversationHookBase
         };
 
         // Send typing-off to client
-        if (!message.IsStreaming)
+        var action = new ConversationSenderActionModel
         {
-            var action = new ConversationSenderActionModel
-            {
-                ConversationId = conv.ConversationId,
-                SenderAction = SenderActionEnum.TypingOff
-            };
-            await SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
-        }
-        
+            ConversationId = conv.ConversationId,
+            SenderAction = SenderActionEnum.TypingOff
+        };
+        await SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
+
         await SendEvent(ChatEvent.OnMessageReceivedFromAssistant, conv.ConversationId, data);
         await base.OnResponseGenerated(message);
     }

@@ -99,14 +99,6 @@ public class ChatHubObserver : BotSharpObserverBase<HubObserveData<RoleDialogMod
                         Role = AgentRole.Assistant
                     }
                 };
-
-                action = new ConversationSenderActionModel
-                {
-                    ConversationId = conv.ConversationId,
-                    SenderAction = SenderActionEnum.TypingOff
-                };
-
-                SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
                 break;
             case ChatEvent.OnIndicationReceived:
                 model = new ChatResponseDto
@@ -122,7 +114,9 @@ public class ChatHubObserver : BotSharpObserverBase<HubObserveData<RoleDialogMod
                     }
                 };
 
+#if DEBUG
                 _logger.LogCritical($"Receiving {value.EventName} ({value.Data.Indication}) in {nameof(ChatHubObserver)} - {conv.ConversationId}");
+#endif
                 break;
         }
 

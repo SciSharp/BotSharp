@@ -1,6 +1,7 @@
 {
   "name": "get_weather",
   "description": "Get weather information for user.",
+  "visibility_expression": "{% if states.channel != 'email' %}visible{% endif %}",
   "parameters": {
     "type": "object",
     "properties": {

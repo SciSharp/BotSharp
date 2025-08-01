@@ -66,7 +66,10 @@ public class ObserverService : IObserverService
 
         foreach (var sub in subscriptions)
         {
+            if (!sub.Observer.Active) continue;
+
             sub.UnSubscribe();
         }
+        container.Remove(names);
     }
 }

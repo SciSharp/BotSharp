@@ -21,7 +21,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Conversations;
 
-public class ConversationPlugin : IBotSharpPlugin, IBotSharpAppPlugin
+public class ConversationPlugin : IBotSharpPlugin
 {
     public string Id => "99e9b971-a9f1-4273-84da-876d2873d192";
     public string Name => "Conversation";
@@ -48,6 +48,7 @@ public class ConversationPlugin : IBotSharpPlugin, IBotSharpAppPlugin
             return settingService.Bind<GoogleApiSettings>("GoogleApi");
         });
 
+        // Observer and observable
         services.AddSingleton<MessageHub<HubObserveData<RoleDialogModel>>>();
         services.AddScoped<ObserverSubscriptionContainer<HubObserveData<RoleDialogModel>>>();
         services.AddScoped<IBotSharpObserver<HubObserveData<RoleDialogModel>>, ConversationObserver>();
@@ -74,10 +75,5 @@ public class ConversationPlugin : IBotSharpPlugin, IBotSharpAppPlugin
         var section = menu.First(x => x.Label == "Apps");
         menu.Add(new PluginMenuDef("Conversation", link: "page/conversation", icon: "bx bx-conversation", weight: section.Weight + 5));
         return true;
-    }
-
-    public void Configure(IApplicationBuilder app)
-    {
-        
     }
 }

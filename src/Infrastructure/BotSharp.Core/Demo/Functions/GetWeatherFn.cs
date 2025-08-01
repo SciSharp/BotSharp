@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.SideCar;
 using BotSharp.Core.MessageHub;
 using System.Text.Json.Serialization;
 
@@ -46,6 +48,22 @@ public class GetWeatherFn : IFunctionCallback
 
         message.Content = $"It is a sunny day!";
         message.StopCompletion = false;
+
+#if DEBUG
+        var sidecar = _services.GetService<IConversationSideCar>();
+        if (sidecar != null)
+        {
+            var text = $"I want to know fun events in {args?.City}";
+            var states = new List<MessageState>
+            {
+                new() { Key = "channel", Value = "email" }
+            };
+
+            var msg = await sidecar.SendMessage(message.CurrentAgentId, text, states: states);
+            message.Content = $"{message.Content} {msg.Content}";
+        }
+#endif
+
         return true;
     }
 }
