@@ -16,7 +16,7 @@ namespace BotSharp.Plugin.Google.Core
             return Task.FromResult(new Agent());
         }
 
-        public Task<string> RefreshAgents()
+        public Task<string> RefreshAgents(IEnumerable<string>? agentIds = null)
         {
             return Task.FromResult("Refreshed successfully");
         }

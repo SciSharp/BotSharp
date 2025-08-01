@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
@@ -82,8 +84,12 @@ public class TwilioMessageQueueService : BackgroundService
         var routing = sp.GetRequiredService<IRoutingService>();
         var config = sp.GetRequiredService<TwilioSetting>();
         var sessionManager = sp.GetRequiredService<ITwilioSessionManager>();
-        var progressService = sp.GetRequiredService<IConversationProgressService>();
-        InitProgressService(message, sessionManager, progressService);
+        var observer = sp.GetRequiredService<IObserverService>();
+
+        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(message.ConversationId, listeners: new()
+        {
+            { ChatEvent.OnIndicationReceived, async data => await OnReceiveToolCallIndication(data.Data, message, sessionManager) }
+        });
         InitConversation(message, inputMsg, conv, routing);
 
         // Need to consider Inbound and Outbound call
@@ -185,15 +191,11 @@ public class TwilioMessageQueueService : BackgroundService
         return string.Join(", ", hints.Select(x => x.ToLower()).Distinct().Reverse());
     }
 
-    private static void InitProgressService(CallerMessage message, ITwilioSessionManager sessionManager, IConversationProgressService progressService)
+    private static async Task OnReceiveToolCallIndication(RoleDialogModel msg, CallerMessage message, ITwilioSessionManager sessionManager)
     {
-        progressService.OnFunctionExecuting = async msg =>
+        if (!string.IsNullOrEmpty(msg.Indication))
         {
-            if (!string.IsNullOrEmpty(msg.Indication))
-            {
-                await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, msg.Indication);
-            }
-        };
-        progressService.OnFunctionExecuted = async msg => { };
+            await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, msg.Indication);
+        }
     }
 }

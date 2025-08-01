@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Conversations.Dtos;
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Crontab;
 using BotSharp.Abstraction.Crontab.Models;
 using Microsoft.AspNetCore.SignalR;
@@ -14,11 +15,8 @@ public class ChatHubCrontabHook : ICrontabHook
     private readonly BotSharpOptions _options;
     private readonly ChatHubSettings _settings;
 
-    #region Events
-    private const string GENERATE_NOTIFICATION = "OnNotificationGenerated";
-    #endregion
-
-    public ChatHubCrontabHook(IServiceProvider services,
+    public ChatHubCrontabHook(
+        IServiceProvider services,
         IHubContext<SignalRHub> chatHub,
         ILogger<ChatHubCrontabHook> logger,
         IUserIdentity user,
@@ -35,7 +33,7 @@ public class ChatHubCrontabHook : ICrontabHook
 
     public async Task OnCronTriggered(CrontabItem item)
     {
-        var json = JsonSerializer.Serialize(new ChatResponseDto()
+        var data = new ChatResponseDto()
         {
             ConversationId = item.ConversationId,
             MessageId = Guid.NewGuid().ToString(),
@@ -47,16 +45,16 @@ public class ChatHubCrontabHook : ICrontabHook
                 LastName = "AI",
                 Role = AgentRole.Assistant
             }
-        }, _options.JsonSerializerOptions);
+        };
 
-        await SendEvent(item, json);
+        await SendEvent(item, data);
     }
 
-    private async Task SendEvent(CrontabItem item, string json)
+    private async Task SendEvent(CrontabItem item, ChatResponseDto data)
     {
         try
         {
-            await _chatHub.Clients.User(item.UserId).SendAsync(GENERATE_NOTIFICATION, json);
+            await _chatHub.Clients.User(item.UserId).SendAsync(ChatEvent.OnNotificationGenerated, data);
         }
         catch { }
     }

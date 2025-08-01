@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Files.Utilities;
+using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users.Dtos;
@@ -343,6 +345,9 @@ public class ConversationController : ControllerBase
         [FromRoute] string conversationId,
         [FromBody] NewMessageModel input)
     {
+        var observer = _services.GetRequiredService<IObserverService>();
+        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(conversationId);
+
         var conv = _services.GetRequiredService<IConversationService>();
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
         {
@@ -357,7 +362,6 @@ public class ConversationController : ControllerBase
         SetStates(conv, input);
 
         var response = new ChatResponseModel();
-
         await conv.SendMessage(agentId, inputMsg,
             replyMessage: input.Postback,
             async msg =>
@@ -381,6 +385,12 @@ public class ConversationController : ControllerBase
     [HttpPost("/conversation/{agentId}/{conversationId}/sse")]
     public async Task SendMessageSse([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] NewMessageModel input)
     {
+        var observer = _services.GetRequiredService<IObserverService>();
+        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(conversationId, listeners: new()
+        {
+            { ChatEvent.OnIndicationReceived, async data => await OnReceiveToolCallIndication(conversationId, data.Data) }
+        });
+
         var conv = _services.GetRequiredService<IConversationService>();
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
         {
@@ -406,7 +416,6 @@ public class ConversationController : ControllerBase
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.ContentType, "text/event-stream");
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.CacheControl, "no-cache");
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.Connection, "keep-alive");
-        InitProgressService(conversationId);
 
         await conv.SendMessage(agentId, inputMsg,
             replyMessage: input.Postback,
@@ -430,23 +439,18 @@ public class ConversationController : ControllerBase
         // await OnEventCompleted(Response);
     }
 
-    private void InitProgressService(string conversationId)
+    private async Task OnReceiveToolCallIndication(string conversationId, RoleDialogModel msg)
     {
-        var progressService = _services.GetService<IConversationProgressService>();
-        progressService.OnFunctionExecuting = async msg =>
+        var indicator = new ChatResponseModel
         {
-            var indicator = new ChatResponseModel
-            {
-                ConversationId = conversationId,
-                MessageId = msg.MessageId,
-                Text = msg.Indication,
-                Function = "indicating",
-                Instruction = msg.Instruction,
-                States = new Dictionary<string, string>()
-            };
-            await OnChunkReceived(Response, indicator);
+            ConversationId = conversationId,
+            MessageId = msg.MessageId,
+            Text = msg.Indication,
+            Function = "indicating",
+            Instruction = msg.Instruction,
+            States = new Dictionary<string, string>()
         };
-        progressService.OnFunctionExecuted = async msg => { };
+        await OnChunkReceived(Response, indicator);
     }
     #endregion
 

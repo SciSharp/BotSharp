@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Hooks;
+using BotSharp.Core.MessageHub;
 using BotSharp.Core.Routing.Executor;
 
 namespace BotSharp.Core.Routing;
@@ -23,15 +23,17 @@ public partial class RoutingService
         // Clone message
         var clonedMessage = RoleDialogModel.From(message);
         clonedMessage.FunctionName = name;
-
-        var progressService = _services.GetService<IConversationProgressService>();
         clonedMessage.Indication = await funcExecutor.GetIndicatorAsync(message);
 
-        if (progressService?.OnFunctionExecuting != null)
+        var conv = _services.GetRequiredService<IConversationService>();
+        var messageHub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
+        messageHub.Push(new()
         {
-            await progressService.OnFunctionExecuting(clonedMessage);
-        }
-        
+            EventName = ChatEvent.OnIndicationReceived,
+            Data = clonedMessage,
+            RefId = conv.ConversationId
+        });
+
         var hooks = _services.GetHooksOrderByPriority<IConversationHook>(clonedMessage.CurrentAgentId);
         foreach (var hook in hooks)
         {
@@ -64,7 +66,7 @@ public partial class RoutingService
         }
         catch (JsonException ex)
         {
-            _logger.LogError($"The input does not contain any JSON tokens:\r\n{message.Content}\r\n{ex.Message}");
+            _logger.LogError(ex, $"The input does not contain any JSON tokens:\r\n{message.Content}\r\n{ex.Message}");
             message.StopCompletion = true;
             message.Content = ex.Message;
         }
@@ -72,7 +74,7 @@ public partial class RoutingService
         {
             message.StopCompletion = true;
             message.Content = ex.Message;
-            _logger.LogError(ex.ToString());
+            _logger.LogError(ex, ex.ToString());
         }
 
         // Make sure content has been populated
