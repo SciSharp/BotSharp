@@ -122,6 +122,11 @@ public static class StringExtensions
             return s;
         }
 
+        if (value is DateTime d)
+        { 
+            return d.ToString("o");
+        }
+
         if (value is JsonElement elem
             && elem.ValueKind == JsonValueKind.String)
         {
