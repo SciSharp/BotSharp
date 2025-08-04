@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Routing;
@@ -7,9 +8,9 @@ public partial class RoutingService
     public async Task<bool> InvokeAgent(
         string agentId,
         List<RoleDialogModel> dialogs,
-        string from = InvokeSource.Manual,
-        bool useStream = false)
+        InvokeAgentOptions? options = null)
     {
+        options ??= InvokeAgentOptions.Default();
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
 
@@ -36,7 +37,7 @@ public partial class RoutingService
 
         RoleDialogModel response;
         var message = dialogs.Last();
-        if (useStream)
+        if (options?.UseStream == true)
         {
             response = await chatCompletion.GetChatCompletionsStreamingAsync(agent, dialogs);
         }
@@ -59,7 +60,7 @@ public partial class RoutingService
             message.CurrentAgentId = agent.Id;
             message.IsStreaming = response.IsStreaming;
 
-            await InvokeFunction(message, dialogs, from: from, useStream: useStream);
+            await InvokeFunction(message, dialogs, options);
         }
         else
         {
@@ -83,8 +84,7 @@ public partial class RoutingService
     private async Task<bool> InvokeFunction(
         RoleDialogModel message,
         List<RoleDialogModel> dialogs,
-        string from,
-        bool useStream)
+        InvokeAgentOptions? options = null)
     {
         // execute function
         // Save states
@@ -93,7 +93,8 @@ public partial class RoutingService
 
         var routing = _services.GetRequiredService<IRoutingService>();
         // Call functions
-        await routing.InvokeFunction(message.FunctionName, message, from: from);
+        var funcOptions = options != null ? new InvokeFunctionOptions() { From = options.From } : null;
+        await routing.InvokeFunction(message.FunctionName, message, options: funcOptions);
 
         // Pass execution result to LLM to get response
         if (!message.StopCompletion)
@@ -120,7 +121,7 @@ public partial class RoutingService
 
                 // Send to Next LLM
                 var curAgentId = routing.Context.GetCurrentAgentId();
-                await InvokeAgent(curAgentId, dialogs, from, useStream);
+                await InvokeAgent(curAgentId, dialogs, options);
             }
         }
         else

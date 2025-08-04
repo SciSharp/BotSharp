@@ -99,7 +99,7 @@ public class RealtimeHub : IRealtimeHub
                                 agent.Id);
                         }
 
-                        await routing.InvokeFunction(message.FunctionName, message, from: InvokeSource.Llm);
+                        await routing.InvokeFunction(message.FunctionName, message, options: new() { From = InvokeSource.Llm });
                     }
                     else
                     {

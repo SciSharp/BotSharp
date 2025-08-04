@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Core.MessageHub;
 using BotSharp.Core.Routing.Executor;
 
@@ -5,8 +6,9 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    public async Task<bool> InvokeFunction(string name, RoleDialogModel message, string from = InvokeSource.Manual)
+    public async Task<bool> InvokeFunction(string name, RoleDialogModel message, InvokeFunctionOptions? options = null)
     {
+        options ??= InvokeFunctionOptions.Default();
         var currentAgentId = message.CurrentAgentId;
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(currentAgentId);
@@ -38,7 +40,7 @@ public partial class RoutingService
         foreach (var hook in hooks)
         {
             hook.SetAgent(agent);
-            await hook.OnFunctionExecuting(clonedMessage, from: from);
+            await hook.OnFunctionExecuting(clonedMessage, options);
         }
 
         bool result = false;
@@ -50,7 +52,7 @@ public partial class RoutingService
             // After functions have been executed
             foreach (var hook in hooks)
             {
-                await hook.OnFunctionExecuted(clonedMessage, from: from);
+                await hook.OnFunctionExecuted(clonedMessage, options);
             }
 
             // Set result to original message

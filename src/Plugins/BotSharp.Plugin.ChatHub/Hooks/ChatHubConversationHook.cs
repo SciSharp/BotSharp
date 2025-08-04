@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Conversations.Dtos;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Routing.Enums;
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.SideCar;
 using BotSharp.Abstraction.Users.Dtos;
 using Microsoft.AspNetCore.SignalR;
@@ -78,9 +79,9 @@ public class ChatHubConversationHook : ConversationHookBase
         await base.OnMessageReceived(message);
     }
 
-    public override async Task OnFunctionExecuting(RoleDialogModel message, string from = InvokeSource.Manual)
+    public override async Task OnFunctionExecuting(RoleDialogModel message, InvokeFunctionOptions? options = null)
     {
-        await base.OnFunctionExecuting(message, from: from);
+        await base.OnFunctionExecuting(message, options);
     }
 
     public override async Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg)

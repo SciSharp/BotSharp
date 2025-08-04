@@ -26,7 +26,7 @@ public class RealtimeController : ControllerBase
             FunctionName = functionName,
             FunctionArgs = JsonSerializer.Serialize(args)
         };
-        await routing.InvokeFunction(functionName, message, from: InvokeSource.Llm);
+        await routing.InvokeFunction(functionName, message, options: new() { From = InvokeSource.Llm });
         return message.Content;
     }
 }
