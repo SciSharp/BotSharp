@@ -64,7 +64,7 @@ public partial class RoutingService
         }
         catch (JsonException ex)
         {
-            _logger.LogError($"The input does not contain any JSON tokens:\r\n{message.Content}");
+            _logger.LogError($"The input does not contain any JSON tokens:\r\n{message.Content}\r\n{ex.Message}");
             message.StopCompletion = true;
             message.Content = ex.Message;
         }
