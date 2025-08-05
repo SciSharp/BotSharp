@@ -3,8 +3,8 @@ namespace BotSharp.Abstraction.SideCar.Models;
 public class SideCarOptions
 {
     public bool IsInheritStates { get; set; }
-    public IEnumerable<string>? InheritStateKeys { get; set; }
-    public IEnumerable<string>? ExcludedStateKeys { get; set; }
+    public HashSet<string>? InheritStateKeys { get; set; }
+    public HashSet<string>? ExcludedStateKeys { get; set; }
 
     public static SideCarOptions Empty()
     {
@@ -12,8 +12,8 @@ public class SideCarOptions
     }
 
     public static SideCarOptions InheritStates(
-        IEnumerable<string>? includedStates = null,
-        IEnumerable<string>? excludedStates = null)
+        HashSet<string>? includedStates = null,
+        HashSet<string>? excludedStates = null)
     {
         return new()
         {

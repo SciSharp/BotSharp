@@ -15,6 +15,9 @@
 ******************************************************************************/
 
 using BotSharp.Core.Infrastructures;
+using NetTopologySuite.Index.KdTree;
+using Newtonsoft.Json.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BotSharp.Core.SideCar.Services;
 
@@ -189,7 +192,9 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
     private void RestoreStates(ConversationState prevStates)
     {
-        var innerStates = prevStates;
+        var preValues = prevStates.Values.ToList();
+        var copy = JsonSerializer.Deserialize<List<StateKeyValue>>(JsonSerializer.Serialize(preValues));
+        var innerStates = new ConversationState(copy ?? []);
         var state = _services.GetRequiredService<IConversationStateService>();
 
         if (_sideCarOptions?.IsInheritStates == true)
@@ -209,7 +214,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
                     continue;
                 }
 
-                if (innerStates.ContainsKey(pair.Key))
+                if (innerStates.ContainsKey(pair.Key) && innerStates[pair.Key].Versioning)
                 {
                     innerStates[pair.Key].Values.Add(endNode);
                 }
@@ -226,6 +231,51 @@ public class BotSharpConversationSideCar : IConversationSideCar
             }
         }
 
+        AccumulateLlmStats(state, prevStates, innerStates);
         state.SetCurrentState(innerStates);
+    }
+
+    private void AccumulateLlmStats(IConversationStateService state, ConversationState prevState, ConversationState curState)
+    {
+        var dict = new Dictionary<string, Type>
+        {
+            { "prompt_total", typeof(int) },
+            { "completion_total", typeof(int) },
+            { "llm_total_cost", typeof(float) }
+        };
+
+        foreach (var pair in dict)
+        {
+            var preVal = prevState.GetValueOrDefault(pair.Key)?.Values?.LastOrDefault()?.Data;
+            var curVal = state.GetState(pair.Key);
+
+            object data = pair.Value switch
+            {
+                Type t when t == typeof(int) => ParseNumber<int>(preVal) + ParseNumber<int>(curVal),
+                Type t when t == typeof(float) => ParseNumber<float>(preVal) + ParseNumber<float>(curVal),
+                _ => default
+            };
+
+            var cur = curState.GetValueOrDefault(pair.Key);
+            if (cur?.Values?.LastOrDefault() != null)
+            {
+                cur.Values.Last().Data = $"{data}";
+            }
+        }
+    }
+
+    private T ParseNumber<T>(string? data) where T : struct
+    {
+        if (string.IsNullOrEmpty(data))
+        {
+            return default;
+        }
+
+        return typeof(T) switch
+        {
+            Type t when t == typeof(int) => (T)(object)(int.TryParse(data, out var i) ? i : 0),
+            Type t when t == typeof(float) => (T)(object)(float.TryParse(data, out var f) ? f : 0),
+            _ => default
+        };
     }
 }
