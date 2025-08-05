@@ -23,7 +23,12 @@ public class SideCarAttribute : AsyncMoAttribute
         var instance = context.Target;
         var retType = context.ReturnType;
 
-        var serviceProvider = ((IHaveServiceProvider)instance).ServiceProvider;
+        var serviceProvider = (instance as IHaveServiceProvider)?.ServiceProvider;
+        if (serviceProvider == null)
+        {
+            return;
+        }
+
         var (sidecar, sidecarMethod) = GetSideCarMethod(serviceProvider, methodName, retType, methodArgs);
         if (sidecar == null || sidecarMethod == null)
         {

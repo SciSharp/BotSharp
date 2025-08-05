@@ -15,15 +15,15 @@ public partial class FileRepository
         }
 
         var configFile = Path.Combine(vectorDir, COLLECTION_CONFIG_FILE);
+        if (!File.Exists(configFile))
+        {
+            File.WriteAllText(configFile, "[]");
+        }
+
         if (reset)
         {
             File.WriteAllText(configFile, JsonSerializer.Serialize(configs ?? new(), _options));
             return true;
-        }
-
-        if (!File.Exists(configFile))
-        {
-            File.Create(configFile);
         }
 
         var str = File.ReadAllText(configFile);

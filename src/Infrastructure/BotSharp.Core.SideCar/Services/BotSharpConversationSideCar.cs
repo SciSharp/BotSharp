@@ -194,14 +194,17 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
         if (_sideCarOptions?.IsInheritStates == true)
         {
+            var hasIncludedStates = _sideCarOptions?.InheritStateKeys?.Any() == true;
+            var hasExcludedStates = _sideCarOptions?.ExcludedStateKeys?.Any() == true;
             var curStates = state.GetCurrentState();
+
             foreach (var pair in curStates)
             {
                 var endNode = pair.Value.Values.LastOrDefault();
                 if (endNode == null) continue;
 
-                if (_sideCarOptions?.InheritStateKeys?.Any() == true
-                    && !_sideCarOptions.InheritStateKeys.Contains(pair.Key))
+                if ((hasIncludedStates && !_sideCarOptions.InheritStateKeys.Contains(pair.Key))
+                    || (hasExcludedStates && _sideCarOptions.ExcludedStateKeys.Contains(pair.Key)))
                 {
                     continue;
                 }
