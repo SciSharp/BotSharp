@@ -59,6 +59,7 @@ public class KnowledgeBaseController : ControllerBase
         var options = new VectorSearchOptions
         {
             Fields = request.Fields,
+            Filters = request.Filters,
             Limit = request.Limit ?? 5,
             Confidence = request.Confidence ?? 0.5f,
             WithVector = request.WithVector
@@ -122,6 +123,18 @@ public class KnowledgeBaseController : ControllerBase
     public async Task<bool> DeleteVectorCollectionAllData([FromRoute] string collection)
     {
         return await _knowledgeService.DeleteVectorCollectionAllData(collection);
+    }
+
+    [HttpPost("/knowledge/vector/{collection}/payload/index")]
+    public async Task<bool> CreateCollectionPayloadIndex()
+    {
+        return false;
+    }
+
+    [HttpDelete("/knowledge/vector/{collection}/payload/index")]
+    public async Task<bool> DeleteCollectionPayloadIndex()
+    {
+        return false;
     }
     #endregion
 

@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
+using System.Collections;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text.Json;
@@ -142,9 +143,9 @@ public class QdrantDb : IVectorDb
 
         // Build query filter
         Filter? queryFilter = null;
-        if (!filter.SearchPairs.IsNullOrEmpty())
+        if (!filter.Filters.IsNullOrEmpty())
         {
-            var conditions = filter.SearchPairs.Select(x => new Condition
+            var conditions = filter.Filters.Select(x => new Condition
             {
                 Field = new FieldCondition
                 {
@@ -308,8 +309,7 @@ public class QdrantDb : IVectorDb
         return result.Status == UpdateStatus.Completed;
     }
 
-    public async Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector,
-        IEnumerable<string>? fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
+    public async Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector, VectorSearchOptions? options = null)
     {
         var results = new List<VectorCollectionData>();
 
@@ -319,19 +319,42 @@ public class QdrantDb : IVectorDb
             return results;
         }
 
+        options ??= VectorSearchOptions.Default();
         var payloadSelector = new WithPayloadSelector { Enable = true };
-        if (fields != null)
+        if (!options.Fields.IsNullOrEmpty())
         {
-            payloadSelector.Include = new PayloadIncludeSelector { Fields = { fields.ToArray() } };
+            payloadSelector.Include = new PayloadIncludeSelector { Fields = { options.Fields.ToArray() } };
+        }
+
+        Filter? queryFilter = null;
+        if (!options.Filters.IsNullOrEmpty())
+        {
+            var conditions = options.Filters.Select(x => new Condition
+            {
+                Field = new FieldCondition
+                {
+                    Key = x.Key,
+                    Match = new Match { Text = x.Value },
+                }
+            });
+
+            queryFilter = new Filter
+            {
+                Should =
+                {
+                    conditions
+                }
+            };
         }
 
         var client = GetClient();
         var points = await client.SearchAsync(collectionName,
                                             vector,
-                                            limit: (ulong)limit,
-                                            scoreThreshold: confidence,
+                                            limit: (ulong)options.Limit.GetValueOrDefault(),
+                                            scoreThreshold: options.Confidence,
+                                            filter: queryFilter,
                                             payloadSelector: payloadSelector,
-                                            vectorsSelector: withVector);
+                                            vectorsSelector: options.WithVector);
 
         results = points.Select(x => new VectorCollectionData
         {
@@ -377,6 +400,19 @@ public class QdrantDb : IVectorDb
         var result = await client.DeleteAsync(collectionName, new Filter());
         return result.Status == UpdateStatus.Completed;
     }
+
+
+    //public async Task<bool> CreateCollectionPayloadIndex(string collectionName)
+    //{
+    //    var exist = await DoesCollectionExist(collectionName);
+    //    if (!exist)
+    //    {
+    //        return false;
+    //    }
+
+    //    var client = GetClient();
+    //    var result = await client.CreatePayloadIndexAsync(collectionName, "text", PayloadSchemaType.Keyword);
+    //}
     #endregion
 
     #region Snapshots

@@ -308,7 +308,7 @@ public partial class KnowledgeService
 
             // Vector search
             var db = GetVectorDb();
-            var found = await db.Search(collectionName, vector, options.Fields, limit: options.Limit ?? 5, confidence: options.Confidence ?? 0.5f, withVector: options.WithVector);
+            var found = await db.Search(collectionName, vector, options);
 
             var results = found.Select(x => VectorSearchResult.CopyFrom(x)).ToList();
             return results;

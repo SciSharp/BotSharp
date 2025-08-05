@@ -23,8 +23,7 @@ public interface IVectorDb
         => throw new NotImplementedException();
     Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, object>? payload = null)
         => throw new NotImplementedException();
-    Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector, IEnumerable<string>? fields,
-        int limit = 5, float confidence = 0.5f, bool withVector = false)
+    Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector, VectorSearchOptions? options = null)
         => throw new NotImplementedException();
     Task<bool> DeleteCollectionData(string collectionName, List<Guid> ids)
         => throw new NotImplementedException();

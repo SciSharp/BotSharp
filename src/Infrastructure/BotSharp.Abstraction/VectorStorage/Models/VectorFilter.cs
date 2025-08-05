@@ -8,8 +8,8 @@ public class VectorFilter : StringIdPagination
     /// <summary>
     /// For keyword search
     /// </summary>
-    [JsonPropertyName("search_pairs")]
-    public IEnumerable<KeyValue>? SearchPairs { get; set; }
+    [JsonPropertyName("filters")]
+    public IEnumerable<KeyValue>? Filters { get; set; }
 
 
     /// <summary>

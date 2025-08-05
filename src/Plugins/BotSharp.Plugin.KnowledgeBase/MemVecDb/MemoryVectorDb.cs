@@ -1,3 +1,4 @@
+using System.Linq;
 using Tensorflow.NumPy;
 
 namespace BotSharp.Plugin.KnowledgeBase.MemVecDb;
@@ -44,24 +45,24 @@ public class MemoryVectorDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public async Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector,
-        IEnumerable<string>? fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
+    public async Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector, VectorSearchOptions? options = null)
     {
         if (!_vectors.ContainsKey(collectionName))
         {
             return new List<VectorCollectionData>();
         }
 
+        options ??= VectorSearchOptions.Default();
         var similarities = VectorHelper.CalCosineSimilarity(vector, _vectors[collectionName]);
 
         var results = np.argsort(similarities).ToArray<int>()
                         .Reverse()
-                        .Take(limit)
+                        .Take(options.Limit.GetValueOrDefault())
                         .Select(i => new VectorCollectionData
                         {
                             Data = new Dictionary<string, object> { { "text", _vectors[collectionName][i].Text } },
                             Score = similarities[i],
-                            Vector = withVector ? _vectors[collectionName][i].Vector : null,
+                            Vector = options.WithVector ? _vectors[collectionName][i].Vector : null,
                         })
                         .ToList();
 
