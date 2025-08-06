@@ -39,4 +39,9 @@ public interface IVectorDb
         => throw new NotImplementedException();
     Task<bool> DeleteCollectionShapshot(string collectionName, string snapshotName)
         => throw new NotImplementedException();
+
+    Task<bool> CreateCollectionPayloadIndex(string collectionName, CreateVectorCollectionIndexOptions options)
+        => throw new NotImplementedException();
+    Task<bool> DeleteCollectionPayloadIndex(string collectionName, DeleteVectorCollectionIndexOptions options)
+        => throw new NotImplementedException();
 }

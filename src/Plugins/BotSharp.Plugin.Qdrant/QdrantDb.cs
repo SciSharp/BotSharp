@@ -402,17 +402,32 @@ public class QdrantDb : IVectorDb
     }
 
 
-    //public async Task<bool> CreateCollectionPayloadIndex(string collectionName)
-    //{
-    //    var exist = await DoesCollectionExist(collectionName);
-    //    if (!exist)
-    //    {
-    //        return false;
-    //    }
+    public async Task<bool> CreateCollectionPayloadIndex(string collectionName, CreateVectorCollectionIndexOptions options)
+    {
+        var exist = await DoesCollectionExist(collectionName);
+        if (!exist)
+        {
+            return false;
+        }
 
-    //    var client = GetClient();
-    //    var result = await client.CreatePayloadIndexAsync(collectionName, "text", PayloadSchemaType.Keyword);
-    //}
+        var client = GetClient();
+        var schemaType = ConvertPayloadSchemaType(options.FieldSchemaType);
+        var result = await client.CreatePayloadIndexAsync(collectionName, options.FieldName, schemaType);
+        return result.Status == UpdateStatus.Completed;
+    }
+
+    public async Task<bool> DeleteCollectionPayloadIndex(string collectionName, DeleteVectorCollectionIndexOptions options)
+    {
+        var exist = await DoesCollectionExist(collectionName);
+        if (!exist)
+        {
+            return false;
+        }
+
+        var client = GetClient();
+        var result = await client.DeletePayloadIndexAsync(collectionName, options.FieldName);
+        return result.Status == UpdateStatus.Completed;
+    }
     #endregion
 
     #region Snapshots
@@ -557,6 +572,46 @@ public class QdrantDb : IVectorDb
         {
             return false;
         }
+    }
+    #endregion
+
+
+    #region Private methods
+    private PayloadSchemaType ConvertPayloadSchemaType(string schemaType)
+    {
+        PayloadSchemaType res;
+        switch (schemaType.ToLower())
+        {
+            case "text":
+                res = PayloadSchemaType.Text;
+                break;
+            case "keyword":
+                res = PayloadSchemaType.Keyword;
+                break;
+            case "integer":
+                res = PayloadSchemaType.Integer;
+                break;
+            case "float":
+                res = PayloadSchemaType.Float;
+                break;
+            case "bool":
+                res = PayloadSchemaType.Bool;
+                break;
+            case "geo":
+                res = PayloadSchemaType.Geo;
+                break;
+            case "datetime":
+                res = PayloadSchemaType.Datetime;
+                break;
+            case "uuid":
+                res = PayloadSchemaType.Uuid;
+                break;
+            default:
+                res = PayloadSchemaType.UnknownType;
+                break;
+        }
+
+        return res;
     }
     #endregion
 }

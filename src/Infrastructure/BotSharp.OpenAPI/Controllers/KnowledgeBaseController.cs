@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
+using BotSharp.OpenAPI.ViewModels.Knowledges.Request;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -125,16 +126,16 @@ public class KnowledgeBaseController : ControllerBase
         return await _knowledgeService.DeleteVectorCollectionAllData(collection);
     }
 
-    [HttpPost("/knowledge/vector/{collection}/payload/index")]
-    public async Task<bool> CreateCollectionPayloadIndex()
+    [HttpPost("/knowledge/vector/{collection}/payload/indexes")]
+    public async Task<SuccessFailResponse<string>> CreateCollectionPayloadIndexes([FromRoute] string collection, [FromBody] CreateVectorCollectionIndexRequest request)
     {
-        return false;
+        return await _knowledgeService.CreateVectorCollectionPayloadIndexes(collection, request.Options);
     }
 
-    [HttpDelete("/knowledge/vector/{collection}/payload/index")]
-    public async Task<bool> DeleteCollectionPayloadIndex()
+    [HttpDelete("/knowledge/vector/{collection}/payload/indexes")]
+    public async Task<SuccessFailResponse<string>> DeleteCollectionPayloadIndexes([FromRoute] string collection, [FromBody] DeleteVectorCollectionIndexRequest request)
     {
-        return false;
+        return await _knowledgeService.DeleteVectorCollectionPayloadIndexes(collection, request.Options);
     }
     #endregion
 
