@@ -6,5 +6,5 @@ public static class TemplateTypeEnum
     public const string Coupon = "coupon";
     public const string Generic = "generic";
     public const string MultiSelect = "multi-select";
-    public const string Product = "product";
+    public const string ProgramCode = "program_code";
 }
