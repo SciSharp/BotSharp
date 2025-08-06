@@ -61,6 +61,7 @@ public class KnowledgeBaseController : ControllerBase
         {
             Fields = request.Fields,
             Filters = request.Filters,
+            FilterOperator = request.FilterOperator,
             Limit = request.Limit ?? 5,
             Confidence = request.Confidence ?? 0.5f,
             WithVector = request.WithVector
@@ -74,8 +75,7 @@ public class KnowledgeBaseController : ControllerBase
     public async Task<StringIdPagedItems<VectorKnowledgeViewModel>> GetPagedVectorCollectionData([FromRoute] string collection, [FromBody] VectorFilter filter)
     {
         var data = await _knowledgeService.GetPagedVectorCollectionData(collection, filter);
-        var items = data.Items?.Select(x => VectorKnowledgeViewModel.From(x))?
-                               .ToList() ?? new List<VectorKnowledgeViewModel>();
+        var items = data.Items?.Select(x => VectorKnowledgeViewModel.From(x))?.ToList() ?? [];
 
         return new StringIdPagedItems<VectorKnowledgeViewModel>
         {

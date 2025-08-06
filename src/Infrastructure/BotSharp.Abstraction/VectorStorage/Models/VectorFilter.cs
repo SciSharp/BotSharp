@@ -11,10 +11,15 @@ public class VectorFilter : StringIdPagination
     [JsonPropertyName("filters")]
     public IEnumerable<KeyValue>? Filters { get; set; }
 
+    /// <summary>
+    /// Filter operator
+    /// </summary>
+    [JsonPropertyName("filter_operator")]
+    public string FilterOperator { get; set; } = "or";
 
     /// <summary>
-    /// Included payload keys
+    /// Included payload fields
     /// </summary>
-    [JsonPropertyName("included_payloads")]
-    public IEnumerable<string>? IncludedPayloads { get; set; }
+    [JsonPropertyName("fields")]
+    public IEnumerable<string>? Fields { get; set; }
 }

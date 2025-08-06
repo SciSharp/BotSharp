@@ -142,16 +142,25 @@ public class QdrantDb : IVectorDb
             return new StringIdPagedItems<VectorCollectionData>();
         }
 
-        Filter? queryFilter = BuildQueryFilter(filter.Filters);
-        WithPayloadSelector? payloadSelector = BuildPayloadSelector(filter.IncludedPayloads);
+        Filter? queryFilter = BuildQueryFilter(filter.Filters, filter.FilterOperator);
+        WithPayloadSelector? payloadSelector = BuildPayloadSelector(filter.Fields);
 
         var client = GetClient();
-        var totalPointCount = await client.CountAsync(collectionName, filter: queryFilter);
-        var response = await client.ScrollAsync(collectionName, limit: (uint)filter.Size, 
+        var tasks = new List<Task>();
+
+        var totalCountTask = client.CountAsync(collectionName, filter: queryFilter);
+        var dataResponseTask = client.ScrollAsync(
+            collectionName,
+            limit: (uint)filter.Size,
             offset: !string.IsNullOrWhiteSpace(filter.StartId) ? new PointId { Uuid = filter.StartId } : null,
             filter: queryFilter,
             payloadSelector: payloadSelector,
             vectorsSelector: filter.WithVector);
+
+        await Task.WhenAll([totalCountTask, dataResponseTask]);
+
+        var totalPointCount = totalCountTask.Result;
+        var response = dataResponseTask.Result;
 
         var points = response?.Result?.Select(x => new VectorCollectionData
         {
@@ -161,6 +170,7 @@ public class QdrantDb : IVectorDb
                 Value.KindOneofCase.StringValue => p.Value.StringValue,
                 Value.KindOneofCase.BoolValue => p.Value.BoolValue,
                 Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
+                Value.KindOneofCase.DoubleValue => p.Value.DoubleValue,
                 _ => new object()
             }),
             Vector = filter.WithVector ? x.Vectors?.Vector?.Data?.ToArray() : null
@@ -289,8 +299,8 @@ public class QdrantDb : IVectorDb
         }
 
         options ??= VectorSearchOptions.Default();
-        Filter? queryFilter = BuildQueryFilter(options.Filters);
-        WithPayloadSelector? payloadSelector = BuildPayloadSelector(options.Fields, enable: true);
+        Filter? queryFilter = BuildQueryFilter(options.Filters, options.FilterOperator);
+        WithPayloadSelector? payloadSelector = BuildPayloadSelector(options.Fields);
 
         var client = GetClient();
         var points = await client.SearchAsync(collectionName,
@@ -524,7 +534,7 @@ public class QdrantDb : IVectorDb
 
 
     #region Private methods
-    private Filter? BuildQueryFilter(IEnumerable<KeyValue>? keyValues)
+    private Filter? BuildQueryFilter(IEnumerable<KeyValue>? keyValues, string op)
     {
         Filter? queryFilter = null;
         if (!keyValues.IsNullOrEmpty())
@@ -552,29 +562,28 @@ public class QdrantDb : IVectorDb
                 };
             });
 
-            queryFilter = new Filter
+            if (op.IsEqualTo("and"))
             {
-                Should =
+                queryFilter = new Filter
                 {
-                    conditions
-                }
-            };
+                    Must = { conditions }
+                };
+            }
+            else
+            {
+                queryFilter = new Filter
+                {
+                    Should = { conditions }
+                };
+            }
         }
 
         return queryFilter;
     }
 
-    private WithPayloadSelector? BuildPayloadSelector(IEnumerable<string>? payloads, bool enable = false)
+    private WithPayloadSelector? BuildPayloadSelector(IEnumerable<string>? payloads)
     {
         WithPayloadSelector? payloadSelector = null;
-        if (enable)
-        {
-            payloadSelector = new WithPayloadSelector
-            {
-                Enable = true
-            };
-        }
-
         if (!payloads.IsNullOrEmpty())
         {
             payloadSelector = new WithPayloadSelector
