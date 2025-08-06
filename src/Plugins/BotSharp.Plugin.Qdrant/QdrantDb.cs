@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage.Models;
@@ -141,41 +142,8 @@ public class QdrantDb : IVectorDb
             return new StringIdPagedItems<VectorCollectionData>();
         }
 
-        // Build query filter
-        Filter? queryFilter = null;
-        if (!filter.Filters.IsNullOrEmpty())
-        {
-            var conditions = filter.Filters.Select(x => new Condition
-            {
-                Field = new FieldCondition
-                {
-                    Key = x.Key,
-                    Match = new Match { Text = x.Value },
-                }
-            });
-
-            queryFilter = new Filter
-            {
-                Should =
-                {
-                    conditions
-                }
-            };
-        }
-
-        // Build payload selector
-        WithPayloadSelector? payloadSelector = null;
-        if (!filter.IncludedPayloads.IsNullOrEmpty())
-        {
-            payloadSelector = new WithPayloadSelector
-            { 
-                Enable = true,
-                Include = new PayloadIncludeSelector
-                {
-                    Fields = { filter.IncludedPayloads.ToArray() }
-                }
-            };
-        }
+        Filter? queryFilter = BuildQueryFilter(filter.Filters);
+        WithPayloadSelector? payloadSelector = BuildPayloadSelector(filter.IncludedPayloads);
 
         var client = GetClient();
         var totalPointCount = await client.CountAsync(collectionName, filter: queryFilter);
@@ -232,6 +200,7 @@ public class QdrantDb : IVectorDb
                 Value.KindOneofCase.StringValue => p.Value.StringValue,
                 Value.KindOneofCase.BoolValue => p.Value.BoolValue,
                 Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
+                Value.KindOneofCase.DoubleValue => p.Value.DoubleValue,
                 _ => new object()
             }) ?? new(),
             Vector = x.Vectors?.Vector?.Data?.ToArray()
@@ -320,32 +289,8 @@ public class QdrantDb : IVectorDb
         }
 
         options ??= VectorSearchOptions.Default();
-        var payloadSelector = new WithPayloadSelector { Enable = true };
-        if (!options.Fields.IsNullOrEmpty())
-        {
-            payloadSelector.Include = new PayloadIncludeSelector { Fields = { options.Fields.ToArray() } };
-        }
-
-        Filter? queryFilter = null;
-        if (!options.Filters.IsNullOrEmpty())
-        {
-            var conditions = options.Filters.Select(x => new Condition
-            {
-                Field = new FieldCondition
-                {
-                    Key = x.Key,
-                    Match = new Match { Text = x.Value },
-                }
-            });
-
-            queryFilter = new Filter
-            {
-                Should =
-                {
-                    conditions
-                }
-            };
-        }
+        Filter? queryFilter = BuildQueryFilter(options.Filters);
+        WithPayloadSelector? payloadSelector = BuildPayloadSelector(options.Fields, enable: true);
 
         var client = GetClient();
         var points = await client.SearchAsync(collectionName,
@@ -364,6 +309,7 @@ public class QdrantDb : IVectorDb
                 Value.KindOneofCase.StringValue => p.Value.StringValue,
                 Value.KindOneofCase.BoolValue => p.Value.BoolValue,
                 Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
+                Value.KindOneofCase.DoubleValue => p.Value.DoubleValue,
                 _ => new object()
             }),
             Score = x.Score,
@@ -400,8 +346,9 @@ public class QdrantDb : IVectorDb
         var result = await client.DeleteAsync(collectionName, new Filter());
         return result.Status == UpdateStatus.Completed;
     }
+    #endregion
 
-
+    #region Payload index
     public async Task<bool> CreateCollectionPayloadIndex(string collectionName, CreateVectorCollectionIndexOptions options)
     {
         var exist = await DoesCollectionExist(collectionName);
@@ -577,6 +524,72 @@ public class QdrantDb : IVectorDb
 
 
     #region Private methods
+    private Filter? BuildQueryFilter(IEnumerable<KeyValue>? keyValues)
+    {
+        Filter? queryFilter = null;
+        if (!keyValues.IsNullOrEmpty())
+        {
+            var conditions = keyValues.Select(x =>
+            {
+                var field = new FieldCondition
+                {
+                    Key = x.Key,
+                    Match = new Match { Text = x.Value },
+                };
+
+                if (bool.TryParse(x.Value, out var boolVal))
+                {
+                    field.Match = new Match { Boolean = boolVal };
+                }
+                else if (long.TryParse(x.Value, out var intVal))
+                {
+                    field.Match = new Match { Integer = intVal };
+                }
+
+                return new Condition
+                {
+                    Field = field
+                };
+            });
+
+            queryFilter = new Filter
+            {
+                Should =
+                {
+                    conditions
+                }
+            };
+        }
+
+        return queryFilter;
+    }
+
+    private WithPayloadSelector? BuildPayloadSelector(IEnumerable<string>? payloads, bool enable = false)
+    {
+        WithPayloadSelector? payloadSelector = null;
+        if (enable)
+        {
+            payloadSelector = new WithPayloadSelector
+            {
+                Enable = true
+            };
+        }
+
+        if (!payloads.IsNullOrEmpty())
+        {
+            payloadSelector = new WithPayloadSelector
+            {
+                Enable = true,
+                Include = new PayloadIncludeSelector
+                {
+                    Fields = { payloads.ToArray() }
+                }
+            };
+        }
+
+        return payloadSelector;
+    }
+
     private PayloadSchemaType ConvertPayloadSchemaType(string schemaType)
     {
         PayloadSchemaType res;
