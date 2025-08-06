@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
@@ -9,10 +9,6 @@
     <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
     <OutputPath>$(SolutionDir)packages</OutputPath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\select_edit_image_prompt.liquid" />
-  </ItemGroup>
   
   <ItemGroup>
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-file-generate_image.json" />

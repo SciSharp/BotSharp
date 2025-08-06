@@ -54,7 +54,8 @@ public class ChatHubCrontabHook : ICrontabHook
     {
         try
         {
-            await _chatHub.Clients.User(item.UserId).SendAsync(ChatEvent.OnNotificationGenerated, data);
+            var json = JsonSerializer.Serialize(data, _options.JsonSerializerOptions);
+            await _chatHub.Clients.User(item.UserId).SendAsync(ChatEvent.OnNotificationGenerated, json);
         }
         catch { }
     }

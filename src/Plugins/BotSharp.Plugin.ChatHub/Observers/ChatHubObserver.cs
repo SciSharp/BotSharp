@@ -9,14 +9,17 @@ namespace BotSharp.Plugin.ChatHub.Observers;
 
 public class ChatHubObserver : BotSharpObserverBase<HubObserveData<RoleDialogModel>>
 {
-    private readonly ILogger _logger;
     private readonly IServiceProvider _services;
+    private readonly BotSharpOptions _options;
+    private readonly ILogger _logger;
 
     public ChatHubObserver(
         IServiceProvider services,
+        BotSharpOptions options,
         ILogger<ChatHubObserver> logger) : base()
     {
         _services = services;
+        _options = options;
         _logger = logger;
     }
 
@@ -133,7 +136,8 @@ public class ChatHubObserver : BotSharpObserverBase<HubObserveData<RoleDialogMod
     private void SendEvent<T>(string @event, string conversationId, T data, [CallerMemberName] string callerName = "")
     {
         var user = _services.GetRequiredService<IUserIdentity>();
-        EventEmitter.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, data, nameof(ChatHubObserver), callerName)
+        var json = JsonSerializer.Serialize(data, _options.JsonSerializerOptions);
+        EventEmitter.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, json, nameof(ChatHubObserver), callerName)
                      .ConfigureAwait(false).GetAwaiter().GetResult();
     }
     #endregion
