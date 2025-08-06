@@ -14,8 +14,7 @@ public interface IVectorDb
         => throw new NotImplementedException();
     Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter)
         => throw new NotImplementedException();
-    Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
-        bool withPayload = false, bool withVector = false)
+    Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids, VectorQueryOptions? options = null)
         => throw new NotImplementedException();
     Task<bool> CreateCollection(string collectionName, int dimension)
         => throw new NotImplementedException();

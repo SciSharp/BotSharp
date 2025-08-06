@@ -39,8 +39,7 @@ public class MemoryVectorDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
-        bool withPayload = false, bool withVector = false)
+    public Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids, VectorQueryOptions? options = null)
     {
         throw new NotImplementedException();
     }

@@ -30,4 +30,14 @@ public class VectorKnowledgeViewModel
             Vector = result.Vector
         };
     }
+
+    public static VectorKnowledgeViewModel From(VectorCollectionData data)
+    {
+        return new VectorKnowledgeViewModel
+        {
+            Id = data.Id,
+            Data = data.Data,
+            Vector = data.Vector
+        };
+    }
 }

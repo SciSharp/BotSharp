@@ -170,7 +170,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when importing doc content to knowledgebase ({collectionName}-{fileName})");
+            _logger.LogError(ex, $"Error when importing doc content to knowledgebase ({collectionName}-{fileName})");
             return false;
         }
     }
@@ -212,7 +212,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when deleting knowledge document " +
+            _logger.LogError(ex, $"Error when deleting knowledge document " +
                 $"(Collection: {collectionName}, File id: {fileId})");
             return false;
         }

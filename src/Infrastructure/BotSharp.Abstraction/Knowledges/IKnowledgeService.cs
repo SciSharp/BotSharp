@@ -17,6 +17,7 @@ public interface IKnowledgeService
     Task<bool> DeleteVectorCollectionData(string collectionName, string id);
     Task<bool> DeleteVectorCollectionAllData(string collectionName);
     Task<bool> CreateVectorCollectionData(string collectionName, VectorCreateModel create);
+    Task<IEnumerable<VectorCollectionData>> GetVectorCollectionData(string collectionName, IEnumerable<string> ids, VectorQueryOptions? options = null);
     Task<bool> UpdateVectorCollectionData(string collectionName, VectorUpdateModel update);
     Task<bool> UpsertVectorCollectionData(string collectionName, VectorUpdateModel update);
     #endregion

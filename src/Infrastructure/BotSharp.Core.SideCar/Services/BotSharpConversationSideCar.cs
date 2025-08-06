@@ -112,7 +112,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         var response = await InnerExecute(agentId, text, postback, states);
         AfterExecute();
 
-        _logger.LogInformation($"Existing side car conversation...");
+        _logger.LogInformation($"Exiting side car conversation...");
         return response;
     }
 

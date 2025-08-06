@@ -185,8 +185,7 @@ public class QdrantDb : IVectorDb
     }
 
 
-    public async Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
-        bool withPayload = false, bool withVector = false)
+    public async Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids, VectorQueryOptions? options = null)
     {
         if (ids.IsNullOrEmpty())
         {
@@ -201,7 +200,7 @@ public class QdrantDb : IVectorDb
 
         var client = GetClient();
         var pointIds = ids.Select(x => new PointId { Uuid = x.ToString() }).Distinct().ToList();
-        var points = await client.RetrieveAsync(collectionName, pointIds, withPayload, withVector);
+        var points = await client.RetrieveAsync(collectionName, pointIds, options?.WithPayload ?? false, options?.WithVector ?? false);
         return points.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,

@@ -99,6 +99,19 @@ public class KnowledgeBaseController : ControllerBase
         return created;
     }
 
+    [HttpGet("/knowledge/vector/{collection}/points")]
+    public async Task<IEnumerable<VectorKnowledgeViewModel>> GetVectorCollectionData([FromRoute] string collection, [FromQuery] QueryVectorDataRequest request)
+    {
+        var options = new VectorQueryOptions
+        {
+            WithPayload = request.WithPayload,
+            WithVector = request.WithVector
+        };
+
+        var points = await _knowledgeService.GetVectorCollectionData(collection, request.Ids, options);
+        return points.Select(x => VectorKnowledgeViewModel.From(x));
+    }
+
     [HttpPut("/knowledge/vector/{collection}/update")]
     public async Task<bool> UpdateVectorKnowledge([FromRoute] string collection, [FromBody] VectorKnowledgeUpdateRequest request)
     {
@@ -125,7 +138,10 @@ public class KnowledgeBaseController : ControllerBase
     {
         return await _knowledgeService.DeleteVectorCollectionAllData(collection);
     }
+    #endregion
 
+
+    #region Index
     [HttpPost("/knowledge/vector/{collection}/payload/indexes")]
     public async Task<SuccessFailResponse<string>> CreateCollectionPayloadIndexes([FromRoute] string collection, [FromBody] CreateVectorCollectionIndexRequest request)
     {
@@ -276,6 +292,7 @@ public class KnowledgeBaseController : ControllerBase
         return saved ? "Success" : "Fail";
     }
     #endregion
+
 
     #region Private methods
     private FileStreamResult BuildFileResult(string fileName, BinaryData fileData)

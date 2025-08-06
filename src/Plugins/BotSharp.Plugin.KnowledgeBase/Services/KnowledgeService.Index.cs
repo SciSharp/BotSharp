@@ -18,14 +18,14 @@ public partial class KnowledgeService
             foreach (var option in options)
             {
                 var created = await vectorDb.CreateCollectionPayloadIndex(collectionName, option);
-                var field = $"{option.FieldName}-{option.FieldSchemaType}";
+                var field = $"{option.FieldName} ({option.FieldSchemaType})";
                 if (created)
                 {
                     response.Success.Add(field);
                 }
                 else
                 {
-                    _logger.LogError($"Failed to create vector collection payload index ({collectionName}-{field}).");
+                    _logger.LogError($"Failed to create vector collection payload index ({collectionName} => {field}).");
                     response.Fail.Add(field);
                 }
             }
