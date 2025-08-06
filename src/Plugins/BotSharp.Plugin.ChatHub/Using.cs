@@ -35,3 +35,4 @@ global using BotSharp.Abstraction.Realtime.Models;
 global using BotSharp.Plugin.ChatHub.Settings;
 global using BotSharp.Plugin.ChatHub.Enums;
 global using BotSharp.Plugin.ChatHub.Models.Stream;
+global using BotSharp.Plugin.ChatHub.Helpers;

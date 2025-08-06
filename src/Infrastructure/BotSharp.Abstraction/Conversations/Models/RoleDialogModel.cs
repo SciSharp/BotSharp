@@ -120,7 +120,7 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public bool IsStreaming { get; set; }
 
-    private RoleDialogModel()
+    public RoleDialogModel()
     {
     }
 
