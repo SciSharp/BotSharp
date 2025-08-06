@@ -61,7 +61,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.UserInput,
             Log = log
         };
-        //await SendContentLog(conversationId, input);
         await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
@@ -80,7 +79,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.UserInput,
             Log = log
         };
-        //await SendContentLog(conversationId, input);
         await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
@@ -110,7 +108,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.Prompt,
             Log = log
         };
-        //await SendContentLog(conversationId, input);
         await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
@@ -133,7 +130,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.HardRule,
             Log = log
         };
-        //await SendContentLog(conversationId, input);
         await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
@@ -162,7 +158,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.FunctionCall,
             Log = log
         };
-        //await SendContentLog(conversationId, input);
         await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
@@ -184,7 +179,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.FunctionCall,
             Log = log
         };
-        //await SendContentLog(conversationId, input);
         await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
@@ -212,7 +206,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.Prompt,
             Log = log
         };
-        //await SendContentLog(conversationId, input);
         await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
@@ -477,7 +470,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     private async Task SendEvent<T>(string @event, string conversationId, T data, [CallerMemberName] string callerName = "")
     {
         var user = _services.GetRequiredService<IUserIdentity>();
-        await EventEmitter.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, data, nameof(StreamingLogHook), callerName);
+        var json = JsonSerializer.Serialize(data, _options.JsonSerializerOptions);
+        await EventEmitter.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, json, nameof(StreamingLogHook), callerName);
     }
 
     private ContentLogOutputModel BuildContentLog(ContentLogInputModel input)
