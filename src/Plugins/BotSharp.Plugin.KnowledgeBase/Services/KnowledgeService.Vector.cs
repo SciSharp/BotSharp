@@ -33,31 +33,30 @@ public partial class KnowledgeService
                 return false;
             }
 
-            var vectorDb = GetVectorDb();
-            var created = await vectorDb.CreateCollection(collectionName, dimension);
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var created = db.AddKnowledgeCollectionConfigs(new List<VectorCollectionConfig>
+            {
+                new VectorCollectionConfig
+                {
+                    Name = collectionName,
+                    Type = collectionType,
+                    VectorStore = new VectorStoreConfig
+                    {
+                        Provider = _settings.VectorDb.Provider
+                    },
+                    TextEmbedding = new KnowledgeEmbeddingConfig
+                    {
+                        Provider = provider,
+                        Model = model,
+                        Dimension = dimension
+                    }
+                }
+            });
+
             if (created)
             {
-                var db = _services.GetRequiredService<IBotSharpRepository>();
-                var userId = await GetUserId();
-
-                db.AddKnowledgeCollectionConfigs(new List<VectorCollectionConfig>
-                {
-                    new VectorCollectionConfig
-                    {
-                        Name = collectionName,
-                        Type = collectionType,
-                        VectorStore = new VectorStoreConfig
-                        {
-                            Provider = _settings.VectorDb.Provider
-                        },
-                        TextEmbedding = new KnowledgeEmbeddingConfig
-                        {
-                            Provider = provider,
-                            Model = model,
-                            Dimension = dimension
-                        }
-                    }
-                });
+                var vectorDb = GetVectorDb();
+                created = await vectorDb.CreateCollection(collectionName, dimension);
             }
 
             return created;

@@ -1,18 +1,23 @@
 using BotSharp.Abstraction.Google.Settings;
 using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.MessageHub;
+using BotSharp.Abstraction.MessageHub.Observers;
+using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Instructs;
+using BotSharp.Core.MessageHub;
+using BotSharp.Core.MessageHub.Observers;
+using BotSharp.Core.MessageHub.Services;
 using BotSharp.Core.Messaging;
 using BotSharp.Core.Routing.Reasoning;
 using BotSharp.Core.Templating;
 using BotSharp.Core.Translation;
-using BotSharp.Core.Observables.Queues;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using BotSharp.Abstraction.Observables.Models;
 
 namespace BotSharp.Core.Conversations;
 
@@ -43,11 +48,14 @@ public class ConversationPlugin : IBotSharpPlugin
             return settingService.Bind<GoogleApiSettings>("GoogleApi");
         });
 
-        services.AddSingleton<MessageHub<HubObserveData>>();
+        // Observer and observable
+        services.AddSingleton<MessageHub<HubObserveData<RoleDialogModel>>>();
+        services.AddScoped<ObserverSubscriptionContainer<HubObserveData<RoleDialogModel>>>();
+        services.AddScoped<IBotSharpObserver<HubObserveData<RoleDialogModel>>, ConversationObserver>();
+        services.AddScoped<IObserverService, ObserverService>();
 
         services.AddScoped<IConversationStorage, ConversationStorage>();
         services.AddScoped<IConversationService, ConversationService>();
-        services.AddScoped<IConversationProgressService, ConversationProgressService>();
         services.AddScoped<IConversationStateService, ConversationStateService>();
         services.AddScoped<ITranslationService, TranslationService>();
 

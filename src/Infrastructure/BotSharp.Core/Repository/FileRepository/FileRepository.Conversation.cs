@@ -241,10 +241,9 @@ public partial class FileRepository
         if (!string.IsNullOrEmpty(convDir))
         {
             var breakpointFile = Path.Combine(convDir, BREAKPOINT_FILE);
-
             if (!File.Exists(breakpointFile))
             {
-                File.Create(breakpointFile);
+                File.WriteAllText(breakpointFile, "[]");
             }
 
             var content = File.ReadAllText(breakpointFile);
@@ -285,7 +284,7 @@ public partial class FileRepository
         var breakpointFile = Path.Combine(convDir, BREAKPOINT_FILE);
         if (!File.Exists(breakpointFile))
         {
-            File.Create(breakpointFile);
+            File.WriteAllText(breakpointFile, "[]");
         }
 
         var content = File.ReadAllText(breakpointFile);
@@ -920,7 +919,6 @@ public partial class FileRepository
     private bool SaveTruncatedDialogs(string dialogDir, List<DialogElement> dialogs)
     {
         if (string.IsNullOrEmpty(dialogDir) || dialogs == null) return false;
-        if (!File.Exists(dialogDir)) File.Create(dialogDir);
 
         var texts = ParseDialogElements(dialogs);
         File.WriteAllText(dialogDir, texts);
@@ -930,7 +928,6 @@ public partial class FileRepository
     private bool SaveTruncatedStates(string stateDir, List<StateKeyValue> states)
     {
         if (string.IsNullOrEmpty(stateDir) || states == null) return false;
-        if (!File.Exists(stateDir)) File.Create(stateDir);
 
         var stateStr = JsonSerializer.Serialize(states, _options);
         File.WriteAllText(stateDir, stateStr);
@@ -940,7 +937,6 @@ public partial class FileRepository
     private bool SaveTruncatedLatestStates(string latestStateDir, List<StateKeyValue> states)
     {
         if (string.IsNullOrEmpty(latestStateDir) || states == null) return false;
-        if (!File.Exists(latestStateDir)) File.Create(latestStateDir);
 
         var latestStates = BuildLatestStates(states);
         var stateStr = JsonSerializer.Serialize(latestStates, _options);
@@ -951,7 +947,6 @@ public partial class FileRepository
     private bool SaveTruncatedBreakpoints(string breakpointDir, List<ConversationBreakpoint> breakpoints)
     {
         if (string.IsNullOrEmpty(breakpointDir) || breakpoints == null) return false;
-        if (!File.Exists(breakpointDir)) File.Create(breakpointDir);
 
         var breakpointStr = JsonSerializer.Serialize(breakpoints, _options);
         File.WriteAllText(breakpointDir, breakpointStr);

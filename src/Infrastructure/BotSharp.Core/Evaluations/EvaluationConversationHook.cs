@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Evaluations;
+using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Core.Evaluations;
 
@@ -22,13 +23,13 @@ public class EvaluationConversationHook : ConversationHookBase
         return base.OnMessageReceived(message);
     }
 
-    public override Task OnFunctionExecuted(RoleDialogModel message, string from = InvokeSource.Manual)
+    public override Task OnFunctionExecuted(RoleDialogModel message, InvokeFunctionOptions? options = null)
     {
         if (Conversation != null && _convSettings.EnableExecutionLog)
         {
             _logger.Append(Conversation.Id, $"[{DateTime.Now}] {message.Role}: {message.FunctionName}({message.FunctionArgs}) => {message.Content}");
         } 
-        return base.OnFunctionExecuted(message, from: from);
+        return base.OnFunctionExecuted(message, options);
     }
 
     public override Task OnResponseGenerated(RoleDialogModel message)

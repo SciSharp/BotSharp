@@ -53,11 +53,12 @@ public partial class RoutingService : IRoutingService
         {
             var state = _services.GetRequiredService<IConversationStateService>();
             var useStreamMsg = state.GetState("use_stream_message");
-            var ret = await routing.InvokeAgent(
-                agentId,
-                dialogs,
-                from: InvokeSource.Routing,
-                useStream: bool.TryParse(useStreamMsg, out var useStream) && useStream);
+            var options = new InvokeAgentOptions()
+            {
+                From = InvokeSource.Routing,
+                UseStream = bool.TryParse(useStreamMsg, out var useStream) && useStream
+            };
+            var ret = await routing.InvokeAgent(agentId, dialogs, options);
         }
 
         var response = dialogs.Last();

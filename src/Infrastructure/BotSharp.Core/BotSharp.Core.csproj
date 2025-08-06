@@ -98,6 +98,7 @@
 
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-file-select_file_instruction.liquid" />
     <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_weather.json" />
+    <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_fun_events.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -211,6 +212,9 @@
     <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_weather.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_fun_events.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -242,5 +246,4 @@
       <Pack>true</Pack>
     </Content>
   </ItemGroup>
-
 </Project>

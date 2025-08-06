@@ -1,113 +1,126 @@
 using BotSharp.Abstraction.Conversations.Dtos;
-using BotSharp.Abstraction.Observables.Models;
+using BotSharp.Abstraction.Conversations.Enums;
+using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Abstraction.MessageHub.Observers;
 using BotSharp.Abstraction.SideCar;
-using BotSharp.Plugin.ChatHub.Hooks;
-using Microsoft.AspNetCore.SignalR;
+using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChatHub.Observers;
 
-public class ChatHubObserver : IObserver<HubObserveData>
+public class ChatHubObserver : BotSharpObserverBase<HubObserveData<RoleDialogModel>>
 {
     private readonly ILogger _logger;
-    private IServiceProvider _services;
+    private readonly IServiceProvider _services;
 
-    private const string BEFORE_RECEIVE_LLM_STREAM_MESSAGE = "BeforeReceiveLlmStreamMessage";
-    private const string ON_RECEIVE_LLM_STREAM_MESSAGE = "OnReceiveLlmStreamMessage";
-    private const string AFTER_RECEIVE_LLM_STREAM_MESSAGE = "AfterReceiveLlmStreamMessage";
-    private const string GENERATE_SENDER_ACTION = "OnSenderActionGenerated";
-
-    public ChatHubObserver(ILogger logger)
+    public ChatHubObserver(
+        IServiceProvider services,
+        ILogger<ChatHubObserver> logger) : base()
     {
+        _services = services;
         _logger = logger;
     }
 
-    public void OnCompleted()
+    public override string Name => nameof(ChatHubObserver);
+
+    public override void OnCompleted()
     {
         _logger.LogWarning($"{nameof(ChatHubObserver)} receives complete notification.");
     }
 
-    public void OnError(Exception error)
+    public override void OnError(Exception error)
     {
         _logger.LogError(error, $"{nameof(ChatHubObserver)} receives error notification: {error.Message}");
     }
 
-    public void OnNext(HubObserveData value)
+    public override void OnNext(HubObserveData<RoleDialogModel> value)
     {
-        _services = value.ServiceProvider;
-
-        if (!AllowSendingMessage()) return;
-
         var message = value.Data;
         var model = new ChatResponseDto();
-        if (value.EventName == BEFORE_RECEIVE_LLM_STREAM_MESSAGE)
+        var action = new ConversationSenderActionModel();
+        var conv = _services.GetRequiredService<IConversationService>();
+
+        switch (value.EventName)
         {
-            var conv = _services.GetRequiredService<IConversationService>();
-            model = new ChatResponseDto()
-            {
-                ConversationId = conv.ConversationId,
-                MessageId = message.MessageId,
-                Text = string.Empty,
-                Sender = new()
+            case ChatEvent.BeforeReceiveLlmStreamMessage:
+                if (!AllowSendingMessage()) return;
+
+                model = new ChatResponseDto()
                 {
-                    FirstName = "AI",
-                    LastName = "Assistant",
-                    Role = AgentRole.Assistant
-                }
-            };
+                    ConversationId = conv.ConversationId,
+                    MessageId = message.MessageId,
+                    Text = string.Empty,
+                    Sender = new()
+                    {
+                        FirstName = "AI",
+                        LastName = "Assistant",
+                        Role = AgentRole.Assistant
+                    }
+                };
 
-            var action = new ConversationSenderActionModel
-            {
-                ConversationId = conv.ConversationId,
-                SenderAction = SenderActionEnum.TypingOn
-            };
-
-            GenerateSenderAction(conv.ConversationId, action);
-        }
-        else if (value.EventName == AFTER_RECEIVE_LLM_STREAM_MESSAGE && message.IsStreaming)
-        {
-            var conv = _services.GetRequiredService<IConversationService>();
-            model = new ChatResponseDto()
-            {
-                ConversationId = conv.ConversationId,
-                MessageId = message.MessageId,
-                Text = message.Content,
-                Sender = new()
+                action = new ConversationSenderActionModel
                 {
-                    FirstName = "AI",
-                    LastName = "Assistant",
-                    Role = AgentRole.Assistant
-                }
-            };
+                    ConversationId = conv.ConversationId,
+                    SenderAction = SenderActionEnum.TypingOn
+                };
 
-            var action = new ConversationSenderActionModel
-            {
-                ConversationId = conv.ConversationId,
-                SenderAction = SenderActionEnum.TypingOff
-            };
+                SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
+                break;
+            case ChatEvent.OnReceiveLlmStreamMessage:
+                if (!AllowSendingMessage()) return;
 
-            GenerateSenderAction(conv.ConversationId, action);
-        }
-        else if (value.EventName == ON_RECEIVE_LLM_STREAM_MESSAGE)
-        {
-            var conv = _services.GetRequiredService<IConversationService>();
-            model = new ChatResponseDto()
-            {
-                ConversationId = conv.ConversationId,
-                MessageId = message.MessageId,
-                Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
-                Function = message.FunctionName,
-                RichContent = message.SecondaryRichContent ?? message.RichContent,
-                Data = message.Data,
-                Sender = new()
+                model = new ChatResponseDto()
                 {
-                    FirstName = "AI",
-                    LastName = "Assistant",
-                    Role = AgentRole.Assistant
-                }
-            };
+                    ConversationId = conv.ConversationId,
+                    MessageId = message.MessageId,
+                    Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
+                    Function = message.FunctionName,
+                    RichContent = message.SecondaryRichContent ?? message.RichContent,
+                    Data = message.Data,
+                    Sender = new()
+                    {
+                        FirstName = "AI",
+                        LastName = "Assistant",
+                        Role = AgentRole.Assistant
+                    }
+                };
+                break;
+            case ChatEvent.AfterReceiveLlmStreamMessage:
+                if (!AllowSendingMessage()) return;
+
+                model = new ChatResponseDto()
+                {
+                    ConversationId = conv.ConversationId,
+                    MessageId = message.MessageId,
+                    Text = message.Content,
+                    Sender = new()
+                    {
+                        FirstName = "AI",
+                        LastName = "Assistant",
+                        Role = AgentRole.Assistant
+                    }
+                };
+                break;
+            case ChatEvent.OnIndicationReceived:
+                model = new ChatResponseDto
+                {
+                    ConversationId = conv.ConversationId,
+                    MessageId = message.MessageId,
+                    Indication = message.Indication,
+                    Sender = new()
+                    {
+                        FirstName = "AI",
+                        LastName = "Assistant",
+                        Role = AgentRole.Assistant
+                    }
+                };
+
+#if DEBUG
+                _logger.LogCritical($"Receiving {value.EventName} ({value.Data.Indication}) in {nameof(ChatHubObserver)} - {conv.ConversationId}");
+#endif
+                break;
         }
 
-        OnReceiveAssistantMessage(value.EventName, model.ConversationId, model);
+        SendEvent(value.EventName, model.ConversationId, model);
     }
 
     private bool AllowSendingMessage()
@@ -116,48 +129,12 @@ public class ChatHubObserver : IObserver<HubObserveData>
         return sidecar == null || !sidecar.IsEnabled;
     }
 
-    private void OnReceiveAssistantMessage(string @event, string conversationId, ChatResponseDto model)
+    #region Private methods
+    private void SendEvent<T>(string @event, string conversationId, T data, [CallerMemberName] string callerName = "")
     {
-        try
-        {
-            var settings = _services.GetRequiredService<ChatHubSettings>();
-            var chatHub = _services.GetRequiredService<IHubContext<SignalRHub>>();
-
-            if (settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                chatHub.Clients.Group(conversationId).SendAsync(@event, model).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-            else
-            {
-                var user = _services.GetRequiredService<IUserIdentity>();
-                chatHub.Clients.User(user.Id).SendAsync(@event, model).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to receive assistant message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
-        }
+        var user = _services.GetRequiredService<IUserIdentity>();
+        EventEmitter.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, data, nameof(ChatHubObserver), callerName)
+                     .ConfigureAwait(false).GetAwaiter().GetResult();
     }
-
-    private void GenerateSenderAction(string conversationId, ConversationSenderActionModel action)
-    {
-        try
-        {
-            var settings = _services.GetRequiredService<ChatHubSettings>();
-            var chatHub = _services.GetRequiredService<IHubContext<SignalRHub>>();
-            if (settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                chatHub.Clients.Group(conversationId).SendAsync(GENERATE_SENDER_ACTION, action).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-            else
-            {
-                var user = _services.GetRequiredService<IUserIdentity>();
-                chatHub.Clients.User(user.Id).SendAsync(GENERATE_SENDER_ACTION, action).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to generate sender action in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
-        }
-    }
+    #endregion
 }

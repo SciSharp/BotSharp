@@ -1,5 +1,8 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Routing.Enums;
+using BotSharp.Abstraction.Routing.Models;
 using Microsoft.AspNetCore.SignalR;
+using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 
@@ -18,13 +21,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     private readonly IUserIdentity _user;
     private readonly IAgentService _agentService;
     private readonly IRoutingContext _routingCtx;
-
-    #region Events
-    private const string CONTENT_LOG_GENERATED = "OnConversationContentLogGenerated";
-    private const string STATE_LOG_GENERATED = "OnConversateStateLogGenerated";
-    private const string AGENT_QUEUE_CHANGED = "OnAgentQueueChanged";
-    private const string STATE_CHANGED = "OnStateChangeGenerated";
-    #endregion
 
     public StreamingLogHook(
         ConversationSetting convSettings,
@@ -65,7 +61,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.UserInput,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        //await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     public override async Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg)
@@ -83,7 +80,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.UserInput,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        //await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     public async Task OnSessionUpdated(Agent agent, string instruction, FunctionDef[] functions, bool isInit = false)
@@ -112,7 +110,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.Prompt,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        //await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     public async Task OnRenderingTemplate(Agent agent, string name, string content)
@@ -134,7 +133,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.HardRule,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        //await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     public async Task BeforeGenerating(Agent agent, List<RoleDialogModel> conversations)
@@ -142,7 +142,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         if (!_convSettings.ShowVerboseLog) return;
     }
 
-    public override async Task OnFunctionExecuting(RoleDialogModel message, string from = InvokeSource.Manual)
+    public override async Task OnFunctionExecuting(RoleDialogModel message, InvokeFunctionOptions? options = null)
     {
         var conversationId = _state.GetConversationId();
         if (string.IsNullOrEmpty(conversationId)) return;
@@ -162,10 +162,11 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.FunctionCall,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        //await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
-    public override async Task OnFunctionExecuted(RoleDialogModel message, string from = InvokeSource.Manual)
+    public override async Task OnFunctionExecuted(RoleDialogModel message, InvokeFunctionOptions? options = null)
     {
         var conversationId = _state.GetConversationId();
         if (string.IsNullOrEmpty(conversationId)) return;
@@ -183,7 +184,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.FunctionCall,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        //await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     /// <summary>
@@ -210,7 +212,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.Prompt,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        //await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     /// <summary>
@@ -225,7 +228,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         var conv = _services.GetRequiredService<IConversationService>();
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
-        await SendStateLog(conv.ConversationId, routingCtx.EntryAgentId, _state.GetStates(), message);
+        var stateLog = BuildStateLog(conv.ConversationId, routingCtx.EntryAgentId, _state.GetStates(), message);
+        await SendEvent(ChatEvent.OnConversateStateLogGenerated, conv.ConversationId, stateLog);
 
         if (message.Role == AgentRole.Assistant)
         {
@@ -244,7 +248,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
                 Source = ContentLogSource.AgentResponse,
                 Log = log
             };
-            await SendContentLog(conversationId, input);
+            await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
         }
     }
 
@@ -262,7 +266,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.FunctionCall,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     public override async Task OnConversationEnding(RoleDialogModel message)
@@ -279,7 +283,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.FunctionCall,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     public override async Task OnBreakpointUpdated(string conversationId, bool resetStates)
@@ -307,7 +311,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             },
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     public override async Task OnStateChanged(StateChangeModel stateChange)
@@ -317,7 +321,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         if (stateChange == null) return;
 
-        await SendStateChange(conversationId, stateChange);
+        await SendEvent(ChatEvent.OnStateChangeGenerated, conversationId, BuildStateChangeLog(stateChange));
     }
     #endregion
 
@@ -331,7 +335,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         // Agent queue log
         var log = $"{agent.Name} is enqueued";
-        await SendAgentQueueLog(conversationId, log);
+        await SendEvent(ChatEvent.OnAgentQueueChanged, conversationId, BuildAgentQueueChangedLog(conversationId, log));
 
         // Content log
         log = $"{agent.Name} is enqueued{(reason != null ? $" ({reason})" : "")}";
@@ -346,7 +350,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.HardRule,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     public async Task OnAgentDequeued(string agentId, string currentAgentId, string? reason = null)
@@ -359,7 +363,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         // Agent queue log
         var log = $"{agent.Name} is dequeued";
-        await SendAgentQueueLog(conversationId, log);
+        await SendEvent(ChatEvent.OnAgentQueueChanged, conversationId, BuildAgentQueueChangedLog(conversationId, log));
 
         // Content log
         log = $"{agent.Name} is dequeued{(reason != null ? $" ({reason})" : "")}, current agent is {currentAgent?.Name}";
@@ -374,7 +378,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.HardRule,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     public async Task OnAgentReplaced(string fromAgentId, string toAgentId, string? reason = null)
@@ -387,7 +391,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         // Agent queue log
         var log = $"Agent queue is replaced from {fromAgent.Name} to {toAgent.Name}";
-        await SendAgentQueueLog(conversationId, log);
+        await SendEvent(ChatEvent.OnAgentQueueChanged, conversationId, BuildAgentQueueChangedLog(conversationId, log));
 
         // Content log
         log = $"{fromAgent.Name} is replaced to {toAgent.Name}{(reason != null ? $" ({reason})" : "")}";
@@ -402,7 +406,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.HardRule,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     public async Task OnAgentQueueEmptied(string agentId, string? reason = null)
@@ -412,7 +416,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         // Agent queue log
         var log = $"Agent queue is empty";
-        await SendAgentQueueLog(conversationId, log);
+        await SendEvent(ChatEvent.OnAgentQueueChanged, conversationId, BuildAgentQueueChangedLog(conversationId, log));
 
         // Content log
         log = reason ?? "Agent queue is cleared";
@@ -427,7 +431,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.HardRule,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     public async Task OnRoutingInstructionReceived(FunctionCallFromLlm instruct, RoleDialogModel message)
@@ -446,7 +450,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.AgentResponse,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
 
     public async Task OnRoutingInstructionRevised(FunctionCallFromLlm instruct, RoleDialogModel message)
@@ -464,90 +468,19 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Source = ContentLogSource.HardRule,
             Log = log
         };
-        await SendContentLog(conversationId, input);
+        await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }
     #endregion
 
 
     #region Private methods
-    private async Task SendContentLog(string conversationId, ContentLogInputModel input)
+    private async Task SendEvent<T>(string @event, string conversationId, T data, [CallerMemberName] string callerName = "")
     {
-        try
-        {
-            if (_settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await _chatHub.Clients.Group(conversationId).SendAsync(CONTENT_LOG_GENERATED, BuildContentLog(input));
-            }
-            else
-            {
-                await _chatHub.Clients.User(_user.Id).SendAsync(CONTENT_LOG_GENERATED, BuildContentLog(input));
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to send content log in {nameof(StreamingLogHook)} (conversation id: {conversationId}).");
-        }
+        var user = _services.GetRequiredService<IUserIdentity>();
+        await EventEmitter.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, data, nameof(StreamingLogHook), callerName);
     }
 
-    private async Task SendStateLog(string conversationId, string agentId, Dictionary<string, string> states, RoleDialogModel message)
-    {
-        try
-        {
-            if (_settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await _chatHub.Clients.Group(conversationId).SendAsync(STATE_LOG_GENERATED, BuildStateLog(conversationId, agentId, states, message));
-            }
-            else
-            {
-                await _chatHub.Clients.User(_user.Id).SendAsync(STATE_LOG_GENERATED, BuildStateLog(conversationId, agentId, states, message));
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to send state log in {nameof(StreamingLogHook)} (conversation id: {conversationId}).");
-        }
-    }
-
-    private async Task SendAgentQueueLog(string conversationId, string log)
-    {
-        try
-        {
-            if (_settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await _chatHub.Clients.Group(conversationId).SendAsync(AGENT_QUEUE_CHANGED, BuildAgentQueueChangedLog(conversationId, log));
-            }
-            else
-            {
-                await _chatHub.Clients.User(_user.Id).SendAsync(AGENT_QUEUE_CHANGED, BuildAgentQueueChangedLog(conversationId, log));
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to send agent queue log in {nameof(StreamingLogHook)} (conversation id: {conversationId}).");
-        }
-    }
-
-    private async Task SendStateChange(string conversationId, StateChangeModel stateChange)
-    {
-        try
-        {
-            if (_settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await _chatHub.Clients.Group(conversationId).SendAsync(STATE_CHANGED, BuildStateChangeLog(stateChange));
-            }
-            else
-            {
-                await _chatHub.Clients.User(_user.Id).SendAsync(STATE_CHANGED, BuildStateChangeLog(stateChange));
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to send state change in {nameof(StreamingLogHook)} (conversation id: {conversationId}).");
-        }
-    }
-
-
-    private string BuildContentLog(ContentLogInputModel input)
+    private ContentLogOutputModel BuildContentLog(ContentLogInputModel input)
     {
         var output = new ContentLogOutputModel
         {
@@ -561,8 +494,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             CreatedTime = DateTime.UtcNow
         };
 
-        var json = JsonSerializer.Serialize(output, _options.JsonSerializerOptions);
-
         var convSettings = _services.GetRequiredService<ConversationSetting>();
         if (convSettings.EnableContentLog)
         {
@@ -570,10 +501,10 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             db.SaveConversationContentLog(output);
         }
 
-        return json;
+        return output;
     }
 
-    private string BuildStateLog(string conversationId, string agentId, Dictionary<string, string> states, RoleDialogModel message)
+    private ConversationStateLogModel BuildStateLog(string conversationId, string agentId, Dictionary<string, string> states, RoleDialogModel message)
     {
         var log = new ConversationStateLogModel
         {
@@ -591,10 +522,10 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             db.SaveConversationStateLog(log);
         }
 
-        return JsonSerializer.Serialize(log, _options.JsonSerializerOptions);
+        return log;
     }
 
-    private string BuildStateChangeLog(StateChangeModel stateChange)
+    private StateChangeOutputModel BuildStateChangeLog(StateChangeModel stateChange)
     {
         var log = new StateChangeOutputModel
         {
@@ -611,10 +542,10 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             CreateTime = DateTime.UtcNow
         };
 
-        return JsonSerializer.Serialize(log, _options.JsonSerializerOptions);
+        return log;
     }
 
-    private string BuildAgentQueueChangedLog(string conversationId, string log)
+    private AgentQueueChangedLogModel BuildAgentQueueChangedLog(string conversationId, string log)
     {
         var model = new AgentQueueChangedLogModel
         {
@@ -623,7 +554,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             CreatedTime = DateTime.UtcNow
         };
 
-        return JsonSerializer.Serialize(model, _options.JsonSerializerOptions);
+        return model;
     }
 
     private string GetMessageContent(RoleDialogModel message)

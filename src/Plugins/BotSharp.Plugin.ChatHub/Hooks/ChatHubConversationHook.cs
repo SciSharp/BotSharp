@@ -1,8 +1,11 @@
 using BotSharp.Abstraction.Conversations.Dtos;
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Routing.Enums;
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.SideCar;
 using BotSharp.Abstraction.Users.Dtos;
 using Microsoft.AspNetCore.SignalR;
+using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 
@@ -14,15 +17,6 @@ public class ChatHubConversationHook : ConversationHookBase
     private readonly IUserIdentity _user;
     private readonly BotSharpOptions _options;
     private readonly ChatHubSettings _settings;
-
-    #region Events
-    private const string INIT_CLIENT_CONVERSATION = "OnConversationInitFromClient";
-    private const string RECEIVE_CLIENT_MESSAGE = "OnMessageReceivedFromClient";
-    private const string RECEIVE_ASSISTANT_MESSAGE = "OnMessageReceivedFromAssistant";
-    private const string GENERATE_SENDER_ACTION = "OnSenderActionGenerated";
-    private const string DELETE_MESSAGE = "OnMessageDeleted";
-    private const string GENERATE_NOTIFICATION = "OnNotificationGenerated";
-    #endregion
 
     public ChatHubConversationHook(
         IServiceProvider services,
@@ -51,7 +45,8 @@ public class ChatHubConversationHook : ConversationHookBase
         var user = await userService.GetUser(conv.User.Id);
         conv.User = UserDto.FromUser(user);
 
-        await InitClientConversation(conv.Id, conv);
+        //await InitClientConversation(conv.Id, conv);
+        await SendEvent(ChatEvent.OnConversationInitFromClient, conv.Id, conv);
         await base.OnConversationInitialized(conversation);
     }
 
@@ -72,7 +67,7 @@ public class ChatHubConversationHook : ConversationHookBase
             Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
             Sender = UserDto.FromUser(sender)
         };
-        await ReceiveClientMessage(conv.ConversationId, model);
+        await SendEvent(ChatEvent.OnMessageReceivedFromClient, conv.ConversationId, model);
 
         // Send typing-on to client
         var action = new ConversationSenderActionModel
@@ -80,23 +75,13 @@ public class ChatHubConversationHook : ConversationHookBase
             ConversationId = conv.ConversationId,
             SenderAction = SenderActionEnum.TypingOn
         };
-
-        await GenerateSenderAction(conv.ConversationId, action);
+        await SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
         await base.OnMessageReceived(message);
     }
 
-    public override async Task OnFunctionExecuting(RoleDialogModel message, string from = InvokeSource.Manual)
+    public override async Task OnFunctionExecuting(RoleDialogModel message, InvokeFunctionOptions? options = null)
     {
-        var conv = _services.GetRequiredService<IConversationService>();
-        var action = new ConversationSenderActionModel
-        {
-            ConversationId = conv.ConversationId,
-            SenderAction = SenderActionEnum.TypingOn,
-            Indication = message.Indication
-        };
-
-        await GenerateSenderAction(conv.ConversationId, action);
-        await base.OnFunctionExecuting(message, from: from);
+        await base.OnFunctionExecuting(message, options);
     }
 
     public override async Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg)
@@ -110,7 +95,7 @@ public class ChatHubConversationHook : ConversationHookBase
 
         var conv = _services.GetRequiredService<IConversationService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        var json = JsonSerializer.Serialize(new ChatResponseDto()
+        var data = new ChatResponseDto()
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
@@ -126,7 +111,7 @@ public class ChatHubConversationHook : ConversationHookBase
                 LastName = "Assistant",
                 Role = AgentRole.Assistant
             }
-        }, _options.JsonSerializerOptions);
+        };
 
         // Send typing-off to client
         var action = new ConversationSenderActionModel
@@ -134,13 +119,9 @@ public class ChatHubConversationHook : ConversationHookBase
             ConversationId = conv.ConversationId,
             SenderAction = SenderActionEnum.TypingOff
         };
+        await SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
 
-        if (!message.IsStreaming)
-        {
-            await GenerateSenderAction(conv.ConversationId, action);
-        }
-        
-        await ReceiveAssistantMessage(conv.ConversationId, json);
+        await SendEvent(ChatEvent.OnMessageReceivedFromAssistant, conv.ConversationId, data);
         await base.OnResponseGenerated(message);
     }
 
@@ -148,7 +129,7 @@ public class ChatHubConversationHook : ConversationHookBase
     public override async Task OnNotificationGenerated(RoleDialogModel message)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        var json = JsonSerializer.Serialize(new ChatResponseDto()
+        var data = new ChatResponseDto()
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
@@ -162,9 +143,9 @@ public class ChatHubConversationHook : ConversationHookBase
                 LastName = "Assistant",
                 Role = AgentRole.Assistant
             }
-        }, _options.JsonSerializerOptions);
+        };
 
-        await GenerateNotification(conv.ConversationId, json);
+        await SendEvent(ChatEvent.OnNotificationGenerated, conv.ConversationId, data);
         await base.OnNotificationGenerated(message);
     }
 
@@ -177,7 +158,7 @@ public class ChatHubConversationHook : ConversationHookBase
             MessageId = messageId
         };
 
-        await DeleteMessage(conversationId, model);
+        await SendEvent(ChatEvent.OnMessageDeleted, conversationId, model);
         await base.OnMessageDeleted(conversationId, messageId);
     }
 
@@ -188,119 +169,10 @@ public class ChatHubConversationHook : ConversationHookBase
         return sidecar == null || !sidecar.IsEnabled;
     }
 
-    private async Task InitClientConversation(string conversationId, ConversationDto conversation)
+    private async Task SendEvent<T>(string @event, string conversationId, T data, [CallerMemberName] string callerName = "")
     {
-        try
-        {
-            if (_settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await _chatHub.Clients.Group(conversationId).SendAsync(INIT_CLIENT_CONVERSATION, conversation);
-            }
-            else
-            {
-                await _chatHub.Clients.User(_user.Id).SendAsync(INIT_CLIENT_CONVERSATION, conversation);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to init client conversation in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
-        }
-    }
-
-    private async Task ReceiveClientMessage(string conversationId, ChatResponseDto model)
-    {
-        try
-        {
-            if (_settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await _chatHub.Clients.Group(conversationId).SendAsync(RECEIVE_CLIENT_MESSAGE, model);
-            }
-            else
-            {
-                await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_CLIENT_MESSAGE, model);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to receive assistant message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
-        }
-    }
-
-    private async Task ReceiveAssistantMessage(string conversationId, string? json)
-    {
-        try
-        {
-            if (_settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await _chatHub.Clients.Group(conversationId).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
-            }
-            else
-            {
-                await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to receive assistant message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
-        }
-
-    }
-
-    private async Task GenerateSenderAction(string conversationId, ConversationSenderActionModel action)
-    {
-        try
-        {
-            if (_settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await _chatHub.Clients.Group(conversationId).SendAsync(GENERATE_SENDER_ACTION, action);
-            }
-            else
-            {
-                await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_SENDER_ACTION, action);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to generate sender action in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
-        }
-    }
-
-    private async Task DeleteMessage(string conversationId, ChatResponseDto model)
-    {
-        try
-        {
-            if (_settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await _chatHub.Clients.Group(conversationId).SendAsync(DELETE_MESSAGE, model);
-            }
-            else
-            {
-                await _chatHub.Clients.User(_user.Id).SendAsync(DELETE_MESSAGE, model);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to delete message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
-        }
-    }
-
-    private async Task GenerateNotification(string conversationId, string? json)
-    {
-        try
-        {
-            if (_settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await _chatHub.Clients.Group(conversationId).SendAsync(GENERATE_NOTIFICATION, json);
-            }
-            else
-            {
-                await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_NOTIFICATION, json);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to generate notification in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})");
-        }
+        var user = _services.GetRequiredService<IUserIdentity>();
+        await EventEmitter.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, data, nameof(ChatHubConversationHook), callerName);
     }
     #endregion
 }

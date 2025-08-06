@@ -61,7 +61,7 @@ public interface IConversationHook : IHookBase
     /// <param name="message"></param>
     /// <param name="from"></param>
     /// <returns></returns>
-    Task OnFunctionExecuting(RoleDialogModel message, string from = InvokeSource.Manual);
+    Task OnFunctionExecuting(RoleDialogModel message, InvokeFunctionOptions? options = null);
 
     /// <summary>
     /// Triggered when the function calling completed.
@@ -69,7 +69,7 @@ public interface IConversationHook : IHookBase
     /// <param name="message"></param>
     /// <param name="from"></param>
     /// <returns></returns>
-    Task OnFunctionExecuted(RoleDialogModel message, string from = InvokeSource.Manual);
+    Task OnFunctionExecuted(RoleDialogModel message, InvokeFunctionOptions? options = null);
 
     Task OnResponseGenerated(RoleDialogModel message);
 
