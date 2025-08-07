@@ -393,6 +393,10 @@ public partial class MongoRepository
         {
             convFilters.Add(convBuilder.Gte(x => x.CreatedTime, filter.StartTime.Value));
         }
+        if (filter?.EndTime != null)
+        {
+            convFilters.Add(convBuilder.Lte(x => x.CreatedTime, filter.EndTime.Value));
+        }
         if (filter?.Tags != null && filter.Tags.Any())
         {
             convFilters.Add(convBuilder.AnyIn(x => x.Tags, filter.Tags));
