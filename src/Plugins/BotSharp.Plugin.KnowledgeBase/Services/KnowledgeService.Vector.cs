@@ -85,7 +85,7 @@ public partial class KnowledgeService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error when getting vector db collections.");
-            return Enumerable.Empty<VectorCollectionConfig>();
+            return [];
         }
     }
 
@@ -173,35 +173,6 @@ public partial class KnowledgeService
         {
             _logger.LogError(ex, $"Error when creating vector collection data.");
             return false;
-        }
-    }
-
-    public async Task<IEnumerable<VectorCollectionData>> GetVectorCollectionData(string collectionName, IEnumerable<string> ids, VectorQueryOptions? options = null)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(collectionName) || ids.IsNullOrEmpty())
-            {
-                return [];
-            }
-
-            var pointIds = new List<Guid>();
-            foreach (var id in ids)
-            {
-                if (Guid.TryParse(id, out var guid))
-                {
-                    pointIds.Add(guid);
-                }
-            }
-
-            var db = GetVectorDb();
-            var points = await db.GetCollectionData(collectionName, pointIds, options);
-            return points;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error when querying vector collection {collectionName} points.");
-            return [];
         }
     }
 
@@ -328,6 +299,31 @@ public partial class KnowledgeService
         }
     }
 
+    public async Task<IEnumerable<VectorCollectionData>> GetVectorCollectionData(string collectionName, IEnumerable<string> ids, VectorQueryOptions? options = null)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(collectionName) || ids.IsNullOrEmpty())
+            {
+                return [];
+            }
+
+            var pointIds = ids.Select(x => new { Id = x, IsValid = Guid.TryParse(x, out var guid), ParseResult = guid })
+                              .Where(x => x.IsValid)
+                              .Select(x => x.ParseResult)
+                              .ToList();
+
+            var db = GetVectorDb();
+            var points = await db.GetCollectionData(collectionName, pointIds, options);
+            return points;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when querying vector collection {collectionName} points.");
+            return [];
+        }
+    }
+
     public async Task<IEnumerable<VectorSearchResult>> SearchVectorKnowledge(string query, string collectionName, VectorSearchOptions options)
     {
         try
@@ -345,7 +341,7 @@ public partial class KnowledgeService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error when searching vector knowledge ({collectionName}).");
-            return Enumerable.Empty<VectorSearchResult>();
+            return [];
         }
     }
     #endregion
