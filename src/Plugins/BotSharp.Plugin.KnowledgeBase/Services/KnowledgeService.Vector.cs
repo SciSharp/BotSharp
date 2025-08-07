@@ -185,8 +185,16 @@ public partial class KnowledgeService
                 return [];
             }
 
+            var pointIds = new List<Guid>();
+            foreach (var id in ids)
+            {
+                if (Guid.TryParse(id, out var guid))
+                {
+                    pointIds.Add(guid);
+                }
+            }
+
             var db = GetVectorDb();
-            var pointIds = ids.Where(x => Guid.TryParse(x, out _)).Select(x => Guid.Parse(x));
             var points = await db.GetCollectionData(collectionName, pointIds, options);
             return points;
         }
