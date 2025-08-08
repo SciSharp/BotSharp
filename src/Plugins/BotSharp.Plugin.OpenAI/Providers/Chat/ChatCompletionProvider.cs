@@ -17,7 +17,12 @@ public class ChatCompletionProvider : IChatCompletion
 
     private readonly Dictionary<string, float> _defaultTemperature = new()
     {
-        { "o4-mini", 1.0f }
+        { "o3", 1.0f },
+        { "o3-mini", 1.0f },
+        { "o4-mini", 1.0f },
+        { "gpt-5", 1.0f },
+        { "gpt-5-mini", 1.0f },
+        { "gpt-5-nano", 1.0f }
     };
 
     public virtual string Provider => "openai";
@@ -499,11 +504,40 @@ public class ChatCompletionProvider : IChatCompletion
                         ? tokens
                         : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
+        var level = state.GetState("reasoning_effort_level")
+                         .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel ?? string.Empty)
+                         .IfNullOrEmptyAs(LlmConstant.DEFAULT_REASONING_EFFORT_LEVEL);
+        var reasoningEffortLevel = ParseReasoningEffortLevel(level);
+
         return new ChatCompletionOptions()
         {
             Temperature = temperature,
-            MaxOutputTokenCount = maxTokens
+            MaxOutputTokenCount = maxTokens,
+            ReasoningEffortLevel = reasoningEffortLevel
         };
+    }
+
+    private ChatReasoningEffortLevel? ParseReasoningEffortLevel(string? level)
+    {
+        if (string.IsNullOrWhiteSpace(level) || !_defaultTemperature.ContainsKey(_model))
+        {
+            return null;
+        }
+
+        var effortLevel = ChatReasoningEffortLevel.Low;
+        switch (level.ToLower())
+        {
+            case "medium":
+                effortLevel = ChatReasoningEffortLevel.Medium;
+                break;
+            case "high":
+                effortLevel = ChatReasoningEffortLevel.High;
+                break;
+            default:
+                break;
+        }
+
+        return effortLevel;
     }
 
     public void SetModelName(string model)

@@ -14,8 +14,7 @@ public class AgentController : ControllerBase
     public AgentController(
         IAgentService agentService,
         IUserIdentity user,
-        IServiceProvider services  
-        )
+        IServiceProvider services)
     {
         _agentService = agentService;
         _user = user;
