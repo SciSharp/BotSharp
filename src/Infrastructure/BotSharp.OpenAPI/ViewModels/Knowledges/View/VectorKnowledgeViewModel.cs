@@ -15,9 +15,9 @@ public class VectorKnowledgeViewModel
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? Score { get; set; }
 
-    [JsonPropertyName("vector")]
+    [JsonPropertyName("vector_dimension")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public float[]? Vector { get; set; }
+    public int? VectorDimension { get; set; }
 
 
     public static VectorKnowledgeViewModel From(VectorSearchResult result)
@@ -27,7 +27,7 @@ public class VectorKnowledgeViewModel
             Id = result.Id,
             Data = result.Data,
             Score = result.Score,
-            Vector = result.Vector
+            VectorDimension = result.Vector?.Length
         };
     }
 
@@ -37,7 +37,7 @@ public class VectorKnowledgeViewModel
         {
             Id = data.Id,
             Data = data.Data,
-            Vector = data.Vector
+            VectorDimension = data.Vector?.Length
         };
     }
 }

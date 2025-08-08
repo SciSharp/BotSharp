@@ -14,7 +14,7 @@ public class SearchVectorKnowledgeRequest
     public IEnumerable<KeyValue>? Filters { get; set; }
 
     [JsonPropertyName("filter_operator")]
-    public string FilterOperator { get; set; } = "and";
+    public string FilterOperator { get; set; } = "or";
 
     [JsonPropertyName("limit")]
     public int? Limit { get; set; } = 5;
