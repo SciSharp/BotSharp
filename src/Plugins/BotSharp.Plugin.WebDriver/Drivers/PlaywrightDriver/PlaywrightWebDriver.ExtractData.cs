@@ -23,6 +23,5 @@ public partial class PlaywrightWebDriver
         if (page == null)
             return string.Empty;
         return page.Url;
-
     }
 }
