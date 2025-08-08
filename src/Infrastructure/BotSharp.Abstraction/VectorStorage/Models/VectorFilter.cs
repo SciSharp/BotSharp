@@ -6,15 +6,14 @@ public class VectorFilter : StringIdPagination
     public bool WithVector { get; set; }
 
     /// <summary>
-    /// For keyword search
+    /// Filter group: each item contains a logical operator and a list of key-value pairs
     /// </summary>
-    [JsonPropertyName("search_pairs")]
-    public IEnumerable<KeyValue>? SearchPairs { get; set; }
-
+    [JsonPropertyName("filter_groups")]
+    public IEnumerable<VectorFilterGroup>? FilterGroups { get; set; }
 
     /// <summary>
-    /// Included payload keys
+    /// Included payload fields
     /// </summary>
-    [JsonPropertyName("included_payloads")]
-    public IEnumerable<string>? IncludedPayloads { get; set; }
+    [JsonPropertyName("fields")]
+    public IEnumerable<string>? Fields { get; set; }
 }

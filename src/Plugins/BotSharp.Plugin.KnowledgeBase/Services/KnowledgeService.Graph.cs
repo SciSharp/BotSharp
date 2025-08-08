@@ -15,7 +15,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when searching graph knowledge (Query: {query}).");
+            _logger.LogError(ex, $"Error when searching graph knowledge (Query: {query}).");
             return new GraphSearchResult();
         }
     }

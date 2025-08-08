@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Graph.Models;
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Abstraction.Knowledges;
@@ -13,6 +14,7 @@ public interface IKnowledgeService
     Task<VectorCollectionDetails?> GetVectorCollectionDetails(string collectionName);
     Task<IEnumerable<VectorSearchResult>> SearchVectorKnowledge(string query, string collectionName, VectorSearchOptions options);
     Task<StringIdPagedItems<VectorSearchResult>> GetPagedVectorCollectionData(string collectionName, VectorFilter filter);
+    Task<IEnumerable<VectorCollectionData>> GetVectorCollectionData(string collectionName, IEnumerable<string> ids, VectorQueryOptions? options = null);
     Task<bool> DeleteVectorCollectionData(string collectionName, string id);
     Task<bool> DeleteVectorCollectionAllData(string collectionName);
     Task<bool> CreateVectorCollectionData(string collectionName, VectorCreateModel create);
@@ -67,6 +69,11 @@ public interface IKnowledgeService
     Task<BinaryData> DownloadVectorCollectionSnapshot(string collectionName, string snapshotFileName);
     Task<bool> RecoverVectorCollectionFromSnapshot(string collectionName, string snapshotFileName, BinaryData snapshotData);
     Task<bool> DeleteVectorCollectionSnapshot(string collectionName, string snapshotName);
+    #endregion
+
+    #region Index
+    Task<SuccessFailResponse<string>> CreateVectorCollectionPayloadIndexes(string collectionName, IEnumerable<CreateVectorCollectionIndexOptions> options);
+    Task<SuccessFailResponse<string>> DeleteVectorCollectionPayloadIndexes(string collectionName, IEnumerable<DeleteVectorCollectionIndexOptions> options);
     #endregion
 
     #region Common

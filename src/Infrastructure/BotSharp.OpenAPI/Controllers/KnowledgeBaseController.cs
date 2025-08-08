@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
+using BotSharp.OpenAPI.ViewModels.Knowledges.Request;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -59,6 +60,7 @@ public class KnowledgeBaseController : ControllerBase
         var options = new VectorSearchOptions
         {
             Fields = request.Fields,
+            FilterGroups = request.FilterGroups,
             Limit = request.Limit ?? 5,
             Confidence = request.Confidence ?? 0.5f,
             WithVector = request.WithVector
@@ -72,8 +74,7 @@ public class KnowledgeBaseController : ControllerBase
     public async Task<StringIdPagedItems<VectorKnowledgeViewModel>> GetPagedVectorCollectionData([FromRoute] string collection, [FromBody] VectorFilter filter)
     {
         var data = await _knowledgeService.GetPagedVectorCollectionData(collection, filter);
-        var items = data.Items?.Select(x => VectorKnowledgeViewModel.From(x))?
-                               .ToList() ?? new List<VectorKnowledgeViewModel>();
+        var items = data.Items?.Select(x => VectorKnowledgeViewModel.From(x))?.ToList() ?? [];
 
         return new StringIdPagedItems<VectorKnowledgeViewModel>
         {
@@ -95,6 +96,19 @@ public class KnowledgeBaseController : ControllerBase
 
         var created = await _knowledgeService.CreateVectorCollectionData(collection, create);
         return created;
+    }
+
+    [HttpGet("/knowledge/vector/{collection}/points")]
+    public async Task<IEnumerable<VectorKnowledgeViewModel>> GetVectorCollectionData([FromRoute] string collection, [FromQuery] QueryVectorDataRequest request)
+    {
+        var options = new VectorQueryOptions
+        {
+            WithPayload = request.WithPayload,
+            WithVector = request.WithVector
+        };
+
+        var points = await _knowledgeService.GetVectorCollectionData(collection, request.Ids, options);
+        return points.Select(x => VectorKnowledgeViewModel.From(x));
     }
 
     [HttpPut("/knowledge/vector/{collection}/update")]
@@ -122,6 +136,21 @@ public class KnowledgeBaseController : ControllerBase
     public async Task<bool> DeleteVectorCollectionAllData([FromRoute] string collection)
     {
         return await _knowledgeService.DeleteVectorCollectionAllData(collection);
+    }
+    #endregion
+
+
+    #region Index
+    [HttpPost("/knowledge/vector/{collection}/payload/indexes")]
+    public async Task<SuccessFailResponse<string>> CreateCollectionPayloadIndexes([FromRoute] string collection, [FromBody] CreateVectorCollectionIndexRequest request)
+    {
+        return await _knowledgeService.CreateVectorCollectionPayloadIndexes(collection, request.Options);
+    }
+
+    [HttpDelete("/knowledge/vector/{collection}/payload/indexes")]
+    public async Task<SuccessFailResponse<string>> DeleteCollectionPayloadIndexes([FromRoute] string collection, [FromBody] DeleteVectorCollectionIndexRequest request)
+    {
+        return await _knowledgeService.DeleteVectorCollectionPayloadIndexes(collection, request.Options);
     }
     #endregion
 
@@ -262,6 +291,7 @@ public class KnowledgeBaseController : ControllerBase
         return saved ? "Success" : "Fail";
     }
     #endregion
+
 
     #region Private methods
     private FileStreamResult BuildFileResult(string fileName, BinaryData fileData)
