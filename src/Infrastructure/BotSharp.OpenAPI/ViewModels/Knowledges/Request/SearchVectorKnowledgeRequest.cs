@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.VectorStorage.Models;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
@@ -10,11 +11,8 @@ public class SearchVectorKnowledgeRequest
     [JsonPropertyName("fields")]
     public IEnumerable<string>? Fields { get; set; }
 
-    [JsonPropertyName("filters")]
-    public IEnumerable<KeyValue>? Filters { get; set; }
-
-    [JsonPropertyName("filter_operator")]
-    public string FilterOperator { get; set; } = "or";
+    [JsonPropertyName("filter_groups")]
+    public IEnumerable<VectorFilterGroup>? FilterGroups { get; set; }
 
     [JsonPropertyName("limit")]
     public int? Limit { get; set; } = 5;

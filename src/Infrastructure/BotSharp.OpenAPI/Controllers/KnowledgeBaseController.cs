@@ -60,8 +60,7 @@ public class KnowledgeBaseController : ControllerBase
         var options = new VectorSearchOptions
         {
             Fields = request.Fields,
-            Filters = request.Filters,
-            FilterOperator = request.FilterOperator,
+            FilterGroups = request.FilterGroups,
             Limit = request.Limit ?? 5,
             Confidence = request.Confidence ?? 0.5f,
             WithVector = request.WithVector

@@ -142,7 +142,7 @@ public class QdrantDb : IVectorDb
             return new StringIdPagedItems<VectorCollectionData>();
         }
 
-        Filter? queryFilter = BuildQueryFilter(filter.Filters, filter.FilterOperator);
+        Filter? queryFilter = BuildQueryFilter(filter.FilterGroups);
         WithPayloadSelector? payloadSelector = BuildPayloadSelector(filter.Fields);
 
         var client = GetClient();
@@ -237,7 +237,10 @@ public class QdrantDb : IVectorDb
             foreach (var item in payload)
             {
                 var value = item.Value?.ToString();
-                if (value == null) continue;
+                if (value == null || item.Key.IsEqualTo(KnowledgePayloadName.Text))
+                {
+                    continue;
+                }
 
                 if (bool.TryParse(value, out var b))
                 {
@@ -298,7 +301,7 @@ public class QdrantDb : IVectorDb
         }
 
         options ??= VectorSearchOptions.Default();
-        Filter? queryFilter = BuildQueryFilter(options.Filters, options.FilterOperator);
+        Filter? queryFilter = BuildQueryFilter(options.FilterGroups);
         WithPayloadSelector? payloadSelector = BuildPayloadSelector(options.Fields);
 
         var client = GetClient();
@@ -533,49 +536,66 @@ public class QdrantDb : IVectorDb
 
 
     #region Private methods
-    private Filter? BuildQueryFilter(IEnumerable<KeyValue>? keyValues, string op)
+    private Filter? BuildQueryFilter(IEnumerable<VectorFilterGroup>? filterGroups)
     {
         Filter? queryFilter = null;
-        if (!keyValues.IsNullOrEmpty())
+
+        if (filterGroups.IsNullOrEmpty())
         {
-            var conditions = keyValues.Select(x =>
+            return queryFilter;
+        }
+
+        var conditions = filterGroups.Where(x => !x.Filters.IsNullOrEmpty()).Select(x =>
+        {
+            Filter filter;
+            var innerConditions = x.Filters.Select(f =>
             {
                 var field = new FieldCondition
                 {
-                    Key = x.Key,
-                    Match = new Match { Text = x.Value },
+                    Key = f.Key,
+                    Match = new Match { Text = f.Value },
                 };
 
-                if (bool.TryParse(x.Value, out var boolVal))
+                if (bool.TryParse(f.Value, out var boolVal))
                 {
                     field.Match = new Match { Boolean = boolVal };
                 }
-                else if (long.TryParse(x.Value, out var intVal))
+                else if (long.TryParse(f.Value, out var intVal))
                 {
                     field.Match = new Match { Integer = intVal };
                 }
 
-                return new Condition
-                {
-                    Field = field
-                };
+                return new Condition { Field = field };
             });
 
-            if (op.IsEqualTo("and"))
+            if (x.FilterOperator.IsEqualTo("and"))
             {
-                queryFilter = new Filter
+                filter = new Filter
                 {
-                    Must = { conditions }
+                    Must = { innerConditions }
                 };
             }
             else
             {
-                queryFilter = new Filter
+                filter = new Filter
                 {
-                    Should = { conditions }
+                    Should = { innerConditions }
                 };
             }
-        }
+
+            return new Condition
+            {
+                Filter = filter
+            };
+        });
+
+        queryFilter = new Filter
+        {
+            Must =
+            {
+                conditions
+            }
+        };
 
         return queryFilter;
     }

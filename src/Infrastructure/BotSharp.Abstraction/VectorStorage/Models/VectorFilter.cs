@@ -6,16 +6,10 @@ public class VectorFilter : StringIdPagination
     public bool WithVector { get; set; }
 
     /// <summary>
-    /// For keyword search
+    /// Filter group: each item contains a logical operator and a list of key-value pairs
     /// </summary>
-    [JsonPropertyName("filters")]
-    public IEnumerable<KeyValue>? Filters { get; set; }
-
-    /// <summary>
-    /// Filter operator
-    /// </summary>
-    [JsonPropertyName("filter_operator")]
-    public string FilterOperator { get; set; } = "or";
+    [JsonPropertyName("filter_groups")]
+    public IEnumerable<VectorFilterGroup>? FilterGroups { get; set; }
 
     /// <summary>
     /// Included payload fields

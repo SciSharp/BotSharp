@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.VectorStorage.Enums;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
@@ -165,7 +166,12 @@ public partial class KnowledgeService
             var db = GetVectorDb();
             var guid = Guid.NewGuid();
             var payload = create.Payload ?? new();
-            payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(create.DataSource) ? create.DataSource : VectorDataSource.Api;
+
+            if (!payload.TryGetValue(KnowledgePayloadName.DataSource, out _))
+            {
+                payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(create.DataSource) ?
+                                                            create.DataSource : VectorDataSource.Api;
+            }
 
             return await db.Upsert(collectionName, guid, vector, create.Text, payload);
         }
@@ -198,7 +204,12 @@ public partial class KnowledgeService
             var textEmbedding = GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(update.Text);
             var payload = update.Payload ?? new();
-            payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(update.DataSource) ? update.DataSource : VectorDataSource.Api;
+
+            if (!payload.TryGetValue(KnowledgePayloadName.DataSource, out _))
+            {
+                payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(update.DataSource) ?
+                                                            update.DataSource : VectorDataSource.Api;
+            }
 
             return await db.Upsert(collectionName, guid, vector, update.Text, payload);
         }
