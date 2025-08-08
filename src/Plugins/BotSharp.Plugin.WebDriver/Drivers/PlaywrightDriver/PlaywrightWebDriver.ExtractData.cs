@@ -17,7 +17,7 @@ public partial class PlaywrightWebDriver
 
         return answer;
     }
-    public async Task<string> GetCurrentUrl(MessageInfo message)
+    public string GetCurrentUrl(MessageInfo message)
     {
         var page = _instance.GetPage(message.ContextId);
         if (page == null)
