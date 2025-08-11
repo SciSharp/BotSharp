@@ -504,40 +504,11 @@ public class ChatCompletionProvider : IChatCompletion
                         ? tokens
                         : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
-        var level = state.GetState("reasoning_effort_level")
-                         .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel ?? string.Empty)
-                         .IfNullOrEmptyAs(LlmConstant.DEFAULT_REASONING_EFFORT_LEVEL);
-        var reasoningEffortLevel = ParseReasoningEffortLevel(level);
-
         return new ChatCompletionOptions()
         {
             Temperature = temperature,
-            MaxOutputTokenCount = maxTokens,
-            ReasoningEffortLevel = reasoningEffortLevel
+            MaxOutputTokenCount = maxTokens
         };
-    }
-
-    private ChatReasoningEffortLevel? ParseReasoningEffortLevel(string? level)
-    {
-        if (string.IsNullOrWhiteSpace(level) || !_defaultTemperature.ContainsKey(_model))
-        {
-            return null;
-        }
-
-        var effortLevel = ChatReasoningEffortLevel.Low;
-        switch (level.ToLower())
-        {
-            case "medium":
-                effortLevel = ChatReasoningEffortLevel.Medium;
-                break;
-            case "high":
-                effortLevel = ChatReasoningEffortLevel.High;
-                break;
-            default:
-                break;
-        }
-
-        return effortLevel;
     }
 
     public void SetModelName(string model)

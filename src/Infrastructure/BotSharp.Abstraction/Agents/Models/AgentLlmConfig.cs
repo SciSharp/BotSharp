@@ -34,11 +34,4 @@ public class AgentLlmConfig
     [JsonPropertyName("max_output_tokens")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? MaxOutputTokens { get; set; }
-
-    /// <summary>
-    /// Reasoning effort level
-    /// </summary>
-    [JsonPropertyName("reasoning_effort_level")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? ReasoningEffortLevel { get; set; }
 }
