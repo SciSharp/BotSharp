@@ -17,4 +17,11 @@ public partial class PlaywrightWebDriver
 
         return answer;
     }
+    public string GetCurrentUrl(MessageInfo message)
+    {
+        var page = _instance.GetPage(message.ContextId);
+        if (page == null)
+            return string.Empty;
+        return page.Url;
+    }
 }
