@@ -202,6 +202,14 @@ namespace BotSharp.Core.Repository
                 {
                     matched = matched && filter.UserIds.Contains(log.UserId);
                 }
+                if (filter.StartTime.HasValue)
+                {
+                    matched = matched && log.CreatedTime >= filter.StartTime.Value;
+                }
+                if (filter.EndTime.HasValue)
+                {
+                    matched = matched && log.CreatedTime <= filter.EndTime.Value;
+                }
 
                 // Check states
                 if (matched && filter != null && !filter.States.IsNullOrEmpty())

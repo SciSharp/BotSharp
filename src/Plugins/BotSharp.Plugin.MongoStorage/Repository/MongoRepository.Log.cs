@@ -196,6 +196,14 @@ public partial class MongoRepository
         {
             logFilters.Add(logBuilder.In(x => x.TemplateName, filter.TemplateNames));
         }
+        if (filter.StartTime.HasValue)
+        {
+            logFilters.Add(logBuilder.Gte(x => x.CreatedTime, filter.StartTime.Value));
+        }
+        if (filter.EndTime.HasValue)
+        {
+            logFilters.Add(logBuilder.Lte(x => x.CreatedTime, filter.EndTime.Value));
+        }
 
         // Filter states
         if (filter != null && !filter.States.IsNullOrEmpty())

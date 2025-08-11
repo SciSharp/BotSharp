@@ -452,6 +452,10 @@ public partial class FileRepository
             {
                 matched = matched && record.CreatedTime >= filter.StartTime.Value;
             }
+            if (filter?.EndTime != null)
+            {
+                matched = matched && record.CreatedTime <= filter.EndTime.Value;
+            }
             if (filter?.Tags != null && filter.Tags.Any())
             {
                 matched = matched && !record.Tags.IsNullOrEmpty() && record.Tags.Exists(t => filter.Tags.Contains(t));
