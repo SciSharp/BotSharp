@@ -191,7 +191,7 @@ public partial class KnowledgeService
             var vectorStoreProvider = _settings.VectorDb.Provider;
 
             // Get doc meta data
-            var pageData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
+            var pageData = await db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
             {
                 Size = 1,
                 FileIds = [ fileId ]
@@ -281,7 +281,7 @@ public partial class KnowledgeService
         var vectorStoreProvider = _settings.VectorDb.Provider;
 
         // Get doc meta data
-        var pagedData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, filter);
+        var pagedData = await db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, filter);
 
         var files = pagedData.Items?.Select(x => new KnowledgeFileModel
         {
@@ -308,7 +308,7 @@ public partial class KnowledgeService
         var vectorStoreProvider = _settings.VectorDb.Provider;
 
         // Get doc binary data
-        var pageData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
+        var pageData = await db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
         {
             Size = 1,
             FileIds = [ fileId ]

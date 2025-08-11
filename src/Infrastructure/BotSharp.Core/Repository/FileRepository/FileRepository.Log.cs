@@ -160,7 +160,7 @@ namespace BotSharp.Core.Repository
             return true;
         }
 
-        public PagedItems<InstructionLogModel> GetInstructionLogs(InstructLogFilter filter)
+        public async ValueTask<PagedItems<InstructionLogModel>> GetInstructionLogs(InstructLogFilter filter)
         {
             if (filter == null)
             {
@@ -316,7 +316,9 @@ namespace BotSharp.Core.Repository
                 if (log == null
                     || log.InnerStates.IsNullOrEmpty()
                     || (!filter.UserIds.IsNullOrEmpty() && !filter.UserIds.Contains(log.UserId))
-                    || (!filter.AgentIds.IsNullOrEmpty() && !filter.AgentIds.Contains(log.AgentId)))
+                    || (!filter.AgentIds.IsNullOrEmpty() && !filter.AgentIds.Contains(log.AgentId))
+                    || (filter.StartTime.HasValue && log.CreatedTime < filter.StartTime.Value)
+                    || (filter.EndTime.HasValue && log.CreatedTime > filter.EndTime.Value))
                 {
                     continue;
                 }

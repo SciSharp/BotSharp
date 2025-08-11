@@ -87,7 +87,7 @@ public partial class ConversationService : IConversationService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var conversations = db.GetConversations(filter);
+        var conversations = await db.GetConversations(filter);
         return conversations;
     }
 

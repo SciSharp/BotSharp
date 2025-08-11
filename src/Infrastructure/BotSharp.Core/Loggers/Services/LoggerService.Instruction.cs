@@ -18,22 +18,18 @@ public partial class LoggerService
 
         filter.UserIds = !isAdmin && user?.Id != null ? [user.Id] : null;
 
-        var agents = new List<Agent>();
         var users = new List<User>();
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var logs = db.GetInstructionLogs(filter);
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var logs = await db.GetInstructionLogs(filter);
         var agentIds = logs.Items.Where(x => !string.IsNullOrEmpty(x.AgentId)).Select(x => x.AgentId).ToList();
         var userIds = logs.Items.Where(x => !string.IsNullOrEmpty(x.UserId)).Select(x => x.UserId).ToList();
-        agents = db.GetAgents(new AgentFilter
-        {
-            AgentIds = agentIds,
-            Pager = new Pagination { Size = filter.Size }
-        });
+        var agents = await agentService.GetAgentOptions(agentIds);
 
         if (isAdmin)
         {
-            users = db.GetUserByIds(userIds);
+            users = await userService.GetUsers(userIds);
         }
 
         var items = logs.Items.Select(x =>

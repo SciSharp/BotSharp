@@ -56,7 +56,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     void UpdateUserPhone(string userId, string Iphone, string regionCode) => throw new NotImplementedException();
     void UpdateUserIsDisable(string userId, bool isDisable) => throw new NotImplementedException();
     void UpdateUsersIsDisable(List<string> userIds, bool isDisable) => throw new NotImplementedException();
-    PagedItems<User> GetUsers(UserFilter filter) => throw new NotImplementedException();
+    ValueTask<PagedItems<User>> GetUsers(UserFilter filter) => throw new NotImplementedException();
     List<User> SearchLoginUsers(User filter, string source = UserSource.Internal) =>throw new NotImplementedException();
     User? GetUserDetails(string userId, bool includeAgent = false) => throw new NotImplementedException();
     bool UpdateUser(User user, bool updateUserAgents = false) => throw new NotImplementedException();
@@ -93,7 +93,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #endregion
 
     #region Agent Task
-    PagedItems<AgentTask> GetAgentTasks(AgentTaskFilter filter)
+    ValueTask<PagedItems<AgentTask>> GetAgentTasks(AgentTaskFilter filter)
         => throw new NotImplementedException();
     AgentTask? GetAgentTask(string agentId, string taskId)
         => throw new NotImplementedException();
@@ -126,7 +126,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     Conversation GetConversation(string conversationId, bool isLoadStates = false)
         => throw new NotImplementedException();
-    PagedItems<Conversation> GetConversations(ConversationFilter filter)
+    ValueTask<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
         => throw new NotImplementedException();
     void UpdateConversationTitle(string conversationId, string title)
         => throw new NotImplementedException();
@@ -179,7 +179,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     bool SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
         => throw new NotImplementedException();
 
-    PagedItems<InstructionLogModel> GetInstructionLogs(InstructLogFilter filter)
+    ValueTask<PagedItems<InstructionLogModel>> GetInstructionLogs(InstructLogFilter filter)
         => throw new NotImplementedException();
 
     List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
@@ -227,7 +227,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     /// <returns></returns>
     bool DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null)
          => throw new NotImplementedException();
-    PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
+    ValueTask<PagedItems<KnowledgeDocMetaData>> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
          => throw new NotImplementedException();
     #endregion
 
@@ -236,7 +236,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     bool DeleteCrontabItem(string conversationId)
         => throw new NotImplementedException();
-    PagedItems<CrontabItem> GetCrontabItems(CrontabItemFilter filter)
+    ValueTask<PagedItems<CrontabItem>> GetCrontabItems(CrontabItemFilter filter)
         => throw new NotImplementedException();
     #endregion
 }

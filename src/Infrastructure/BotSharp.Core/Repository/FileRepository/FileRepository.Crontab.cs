@@ -63,7 +63,7 @@ public partial class FileRepository
     }
 
 
-    public PagedItems<CrontabItem> GetCrontabItems(CrontabItemFilter filter)
+    public async ValueTask<PagedItems<CrontabItem>> GetCrontabItems(CrontabItemFilter filter)
     {
         
         if (filter == null)
@@ -111,7 +111,7 @@ public partial class FileRepository
         return new PagedItems<CrontabItem>
         {
             Items = records.OrderByDescending(x => x.CreatedTime).Skip(filter.Offset).Take(filter.Size),
-            Count = records.Count(),
+            Count = records.Count()
         };
     }
 }

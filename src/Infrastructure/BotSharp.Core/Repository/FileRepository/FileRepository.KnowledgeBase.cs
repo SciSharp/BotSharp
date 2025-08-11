@@ -155,7 +155,7 @@ public partial class FileRepository
         return true;
     }
 
-    public PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
+    public async ValueTask<PagedItems<KnowledgeDocMetaData>> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(vectorStoreProvider))

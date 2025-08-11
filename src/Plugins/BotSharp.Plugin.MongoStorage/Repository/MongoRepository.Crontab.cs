@@ -45,7 +45,7 @@ public partial class MongoRepository
     }
 
 
-    public PagedItems<CrontabItem> GetCrontabItems(CrontabItemFilter filter)
+    public async ValueTask<PagedItems<CrontabItem>> GetCrontabItems(CrontabItemFilter filter)
     {
         if (filter == null)
         {
@@ -73,15 +73,24 @@ public partial class MongoRepository
         var filterDef = cronBuilder.And(cronFilters);
         var sortDef = Builders<CrontabItemDocument>.Sort.Descending(x => x.CreatedTime);
 
-        var cronDocs = _dc.CrontabItems.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
-        var count = _dc.CrontabItems.CountDocuments(filterDef);
+        var docsTask = _dc.CrontabItems.FindAsync(filterDef, options: new()
+        {
+            Sort = sortDef,
+            Skip = filter.Offset,
+            Limit = filter.Size
+        });
+        var countTask = _dc.CrontabItems.CountDocumentsAsync(filterDef);
+        await Task.WhenAll([docsTask, countTask]);
 
-        var crontabItems = cronDocs.Select(x => CrontabItemDocument.ToDomainModel(x)).ToList();
+        var docs = docsTask.Result.ToList();
+        var count = countTask.Result;
+
+        var crontabItems = docs.Select(x => CrontabItemDocument.ToDomainModel(x)).ToList();
 
         return new PagedItems<CrontabItem>
         {
             Items = crontabItems,
-            Count = (int)count
+            Count = count
         };
     }
 }

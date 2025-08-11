@@ -205,7 +205,7 @@ public partial class MongoRepository
         }
     }
 
-    public PagedItems<User> GetUsers(UserFilter filter)
+    public async ValueTask<PagedItems<User>> GetUsers(UserFilter filter)
     {
         if (filter == null)
         {
@@ -246,14 +246,23 @@ public partial class MongoRepository
         var sortDef = Builders<UserDocument>.Sort.Descending(x => x.CreatedTime);
 
         // Search
-        var userDocs = _dc.Users.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
-        var count = _dc.Users.CountDocuments(filterDef);
+        var docsTask = _dc.Users.FindAsync(filterDef, options: new()
+        {
+            Sort = sortDef,
+            Skip = filter.Offset,
+            Limit = filter.Size
+        });
+        var countTask = _dc.Users.CountDocumentsAsync(filterDef);
+        await Task.WhenAll([docsTask, countTask]);
 
-        var users = userDocs.Select(x => x.ToUser()).ToList();
+        var docs = docsTask.Result.ToList();
+        var count = countTask.Result;
+
+        var users = docs.Select(x => x.ToUser()).ToList();
         return new PagedItems<User>
         {
             Items = users,
-            Count = (int)count
+            Count = count
         };
     }
 
