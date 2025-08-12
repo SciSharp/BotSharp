@@ -629,7 +629,7 @@ public class QdrantDb : IVectorDb
         return new OrderBy
         {
             Key = sort.Field,
-            Direction = sort.Order == "asc" ? Direction.Asc : Direction.Desc
+            Direction = sort.Order.IsEqualTo("asc") ? Direction.Asc : Direction.Desc
         };
     }
 
