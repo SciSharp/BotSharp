@@ -1,3 +1,4 @@
+#pragma warning disable OPENAI001
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
@@ -14,16 +15,6 @@ public class ChatCompletionProvider : IChatCompletion
 
     protected string _model;
     private List<string> renderedInstructions = [];
-
-    private readonly Dictionary<string, float> _defaultTemperature = new()
-    {
-        { "o3", 1.0f },
-        { "o3-mini", 1.0f },
-        { "o4-mini", 1.0f },
-        { "gpt-5", 1.0f },
-        { "gpt-5-mini", 1.0f },
-        { "gpt-5-nano", 1.0f }
-    };
 
     public virtual string Provider => "openai";
     public string Model => _model;
@@ -493,21 +484,23 @@ public class ChatCompletionProvider : IChatCompletion
     private ChatCompletionOptions InitChatCompletionOption(Agent agent)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model);
 
+        ChatReasoningEffortLevel? reasoningEffortLevel = null;
         var temperature = float.Parse(state.GetState("temperature", "0.0"));
-        if (_defaultTemperature.ContainsKey(_model))
+        if (settings?.Reasoning != null)
         {
-            temperature = _defaultTemperature[_model];
+            temperature = settings.Reasoning.Temperature;
+            var level = state.GetState("reasoning_effort_level")
+                         .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel ?? string.Empty)
+                         .IfNullOrEmptyAs(settings?.Reasoning?.EffortLevel ?? string.Empty);
+            reasoningEffortLevel = ParseReasoningEffortLevel(level);
         }
 
         var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
                         ? tokens
                         : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
-
-        var level = state.GetState("reasoning_effort_level")
-                         .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel ?? string.Empty)
-                         .IfNullOrEmptyAs(LlmConstant.DEFAULT_REASONING_EFFORT_LEVEL);
-        var reasoningEffortLevel = ParseReasoningEffortLevel(level);
 
         return new ChatCompletionOptions()
         {
@@ -519,14 +512,17 @@ public class ChatCompletionProvider : IChatCompletion
 
     private ChatReasoningEffortLevel? ParseReasoningEffortLevel(string? level)
     {
-        if (string.IsNullOrWhiteSpace(level) || !_defaultTemperature.ContainsKey(_model))
+        if (string.IsNullOrWhiteSpace(level))
         {
             return null;
         }
 
-        var effortLevel = ChatReasoningEffortLevel.Low;
+        var effortLevel = new ChatReasoningEffortLevel("minimal");
         switch (level.ToLower())
         {
+            case "low":
+                effortLevel = ChatReasoningEffortLevel.Low;
+                break;
             case "medium":
                 effortLevel = ChatReasoningEffortLevel.Medium;
                 break;
