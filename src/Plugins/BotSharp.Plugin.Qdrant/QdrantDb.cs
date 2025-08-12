@@ -373,13 +373,7 @@ public class QdrantDb : IVectorDb
 
         var client = GetClient();
         var schemaType = ConvertPayloadSchemaType(options.FieldSchemaType);
-        var result = await client.CreatePayloadIndexAsync(collectionName, options.FieldName, schemaType, indexParams: new()
-        {
-            IntegerIndexParams = new()
-            {
-                Range = true
-            }
-        });
+        var result = await client.CreatePayloadIndexAsync(collectionName, options.FieldName, schemaType);
         return result.Status == UpdateStatus.Completed;
     }
 
@@ -561,7 +555,7 @@ public class QdrantDb : IVectorDb
                 var field = new FieldCondition
                 {
                     Key = f.Key,
-                    Match = new Match { Text = f.Value },
+                    Match = new Match { Text = f.Value }
                 };
 
                 if (bool.TryParse(f.Value, out var boolVal))
