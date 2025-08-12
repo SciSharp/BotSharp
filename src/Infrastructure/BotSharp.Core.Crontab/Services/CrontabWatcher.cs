@@ -87,6 +87,9 @@ public class CrontabWatcher : BackgroundService
                 {
                     _logger.LogInformation($"The current time matches the cron expression {item}");
 
+#if DEBUG
+                    await HandleCrontabEvent(item);
+#else
                     if (publisher != null)
                     {
                         await publisher.PublishAsync($"Crontab:{item.Title}", item.Cron);
@@ -95,6 +98,7 @@ public class CrontabWatcher : BackgroundService
                     {
                         await HandleCrontabEvent(item);
                     }
+#endif
                 }
             }
             catch (Exception ex)
