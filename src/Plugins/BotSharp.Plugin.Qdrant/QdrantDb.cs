@@ -147,7 +147,6 @@ public class QdrantDb : IVectorDb
         OrderBy? orderBy = BuildOrderBy(filter.OrderBy);
 
         var client = GetClient();
-        var tasks = new List<Task>();
 
         var totalCountTask = client.CountAsync(collectionName, filter: queryFilter);
         var dataResponseTask = client.ScrollAsync(
