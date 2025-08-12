@@ -14,8 +14,7 @@ public interface IVectorDb
         => throw new NotImplementedException();
     Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter)
         => throw new NotImplementedException();
-    Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
-        bool withPayload = false, bool withVector = false)
+    Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids, VectorQueryOptions? options = null)
         => throw new NotImplementedException();
     Task<bool> CreateCollection(string collectionName, int dimension)
         => throw new NotImplementedException();
@@ -23,8 +22,7 @@ public interface IVectorDb
         => throw new NotImplementedException();
     Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, object>? payload = null)
         => throw new NotImplementedException();
-    Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector, IEnumerable<string>? fields,
-        int limit = 5, float confidence = 0.5f, bool withVector = false)
+    Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector, VectorSearchOptions? options = null)
         => throw new NotImplementedException();
     Task<bool> DeleteCollectionData(string collectionName, List<Guid> ids)
         => throw new NotImplementedException();
@@ -39,5 +37,10 @@ public interface IVectorDb
     Task<bool> RecoverCollectionFromShapshot(string collectionName, string snapshotFileName, BinaryData snapshotData)
         => throw new NotImplementedException();
     Task<bool> DeleteCollectionShapshot(string collectionName, string snapshotName)
+        => throw new NotImplementedException();
+
+    Task<bool> CreateCollectionPayloadIndex(string collectionName, CreateVectorCollectionIndexOptions options)
+        => throw new NotImplementedException();
+    Task<bool> DeleteCollectionPayloadIndex(string collectionName, DeleteVectorCollectionIndexOptions options)
         => throw new NotImplementedException();
 }

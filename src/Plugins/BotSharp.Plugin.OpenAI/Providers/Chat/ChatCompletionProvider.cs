@@ -17,7 +17,12 @@ public class ChatCompletionProvider : IChatCompletion
 
     private readonly Dictionary<string, float> _defaultTemperature = new()
     {
-        { "o4-mini", 1.0f }
+        { "o3", 1.0f },
+        { "o3-mini", 1.0f },
+        { "o4-mini", 1.0f },
+        { "gpt-5", 1.0f },
+        { "gpt-5-mini", 1.0f },
+        { "gpt-5-nano", 1.0f }
     };
 
     public virtual string Provider => "openai";

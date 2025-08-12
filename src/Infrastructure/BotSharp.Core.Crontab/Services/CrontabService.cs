@@ -44,7 +44,7 @@ public class CrontabService : ICrontabService, ITaskFeeder
     public async Task<List<CrontabItem>> GetCrontable()
     {
         var repo = _services.GetRequiredService<IBotSharpRepository>();
-        var crontable = repo.GetCrontabItems(CrontabItemFilter.Empty());
+        var crontable = await repo.GetCrontabItems(CrontabItemFilter.Empty());
 
         // Add fixed crontab items from cronsources
         var fixedCrantabItems = crontable.Items.ToList();

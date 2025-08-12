@@ -66,11 +66,11 @@ public class ConversationController : ControllerBase
         var agents = await agentService.GetAgentOptions(agentIds);
 
         var userIds = list.Select(x => x.User.Id).ToList();
-        var users = await userService.GetUsers(new UserFilter { UserIds = userIds, Size = filter.Pager.Size });
+        var users = await userService.GetUsers(userIds);
 
         foreach (var item in list)
         {
-            user = users.Items.FirstOrDefault(x => x.Id == item.User.Id);
+            user = users.FirstOrDefault(x => x.Id == item.User.Id);
             item.User = UserViewModel.FromUser(user);
             var agent = agents.FirstOrDefault(x => x.Id == item.AgentId);
             item.AgentName = agent?.Name ?? "Unkown";

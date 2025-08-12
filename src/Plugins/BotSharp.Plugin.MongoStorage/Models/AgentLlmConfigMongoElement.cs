@@ -21,7 +21,7 @@ public class AgentLlmConfigMongoElement
             Model = config.Model,
             IsInherit = config.IsInherit,
             MaxRecursionDepth = config.MaxRecursionDepth,
-            MaxOutputTokens = config.MaxOutputTokens,
+            MaxOutputTokens = config.MaxOutputTokens
         };
     }
 
@@ -35,7 +35,7 @@ public class AgentLlmConfigMongoElement
             Model = config.Model,
             IsInherit = config.IsInherit,
             MaxRecursionDepth = config.MaxRecursionDepth,
-            MaxOutputTokens = config.MaxOutputTokens,
+            MaxOutputTokens = config.MaxOutputTokens
         };
     }
 }

@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.VectorStorage.Enums;
-using System;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
@@ -63,7 +63,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when creating a vector collection ({collectionName}).");
+            _logger.LogError(ex, $"Error when creating a vector collection ({collectionName}).");
             return false;
         }
     }
@@ -85,8 +85,8 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when getting vector db collections.");
-            return Enumerable.Empty<VectorCollectionConfig>();
+            _logger.LogError(ex, $"Error when getting vector db collections.");
+            return [];
         }
     }
 
@@ -112,7 +112,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when getting vector db collection details.");
+            _logger.LogError(ex, $"Error when getting vector db collection details.");
             return null;
         }
     }
@@ -144,7 +144,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when deleting collection ({collectionName}).");
+            _logger.LogError(ex, $"Error when deleting collection ({collectionName}).");
             return false;
         }
     }
@@ -166,16 +166,22 @@ public partial class KnowledgeService
             var db = GetVectorDb();
             var guid = Guid.NewGuid();
             var payload = create.Payload ?? new();
-            payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(create.DataSource) ? create.DataSource : VectorDataSource.Api;
+
+            if (!payload.TryGetValue(KnowledgePayloadName.DataSource, out _))
+            {
+                payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(create.DataSource) ?
+                                                            create.DataSource : VectorDataSource.Api;
+            }
 
             return await db.Upsert(collectionName, guid, vector, create.Text, payload);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when creating vector collection data.");
+            _logger.LogError(ex, $"Error when creating vector collection data.");
             return false;
         }
     }
+
 
     public async Task<bool> UpdateVectorCollectionData(string collectionName, VectorUpdateModel update)
     {
@@ -198,13 +204,18 @@ public partial class KnowledgeService
             var textEmbedding = GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(update.Text);
             var payload = update.Payload ?? new();
-            payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(update.DataSource) ? update.DataSource : VectorDataSource.Api;
+
+            if (!payload.TryGetValue(KnowledgePayloadName.DataSource, out _))
+            {
+                payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(update.DataSource) ?
+                                                            update.DataSource : VectorDataSource.Api;
+            }
 
             return await db.Upsert(collectionName, guid, vector, update.Text, payload);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when updating vector collection data.");
+            _logger.LogError(ex, $"Error when updating vector collection data.");
             return false;
         }
     }
@@ -221,7 +232,7 @@ public partial class KnowledgeService
             }
 
             var db = GetVectorDb();
-            var found = await db.GetCollectionData(collectionName, [guid], withVector: true, withPayload: true);
+            var found = await db.GetCollectionData(collectionName, [guid], options: new() { WithVector = true, WithPayload = true });
             if (!found.IsNullOrEmpty())
             {
                 if (found.First().Data[KnowledgePayloadName.Text].ToString() == update.Text)
@@ -240,7 +251,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when updating vector collection data.");
+            _logger.LogError(ex, $"Error when updating vector collection data.");
             return false;
         }
     }
@@ -259,7 +270,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when deleting vector collection data ({collectionName}-{id}).");
+            _logger.LogError(ex, $"Error when deleting vector collection data ({collectionName}-{id}).");
             return false;
         }
     }
@@ -274,7 +285,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when deleting vector collection data ({collectionName}).");
+            _logger.LogError(ex, $"Error when deleting vector collection data ({collectionName}).");
             return false;
         }
     }
@@ -294,8 +305,33 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when getting vector knowledge collection data ({collectionName}).");
+            _logger.LogError(ex, $"Error when getting vector knowledge collection data ({collectionName}).");
             return new StringIdPagedItems<VectorSearchResult>();
+        }
+    }
+
+    public async Task<IEnumerable<VectorCollectionData>> GetVectorCollectionData(string collectionName, IEnumerable<string> ids, VectorQueryOptions? options = null)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(collectionName) || ids.IsNullOrEmpty())
+            {
+                return [];
+            }
+
+            var pointIds = ids.Select(x => new { Id = x, IsValid = Guid.TryParse(x, out var guid), ParseResult = guid })
+                              .Where(x => x.IsValid)
+                              .Select(x => x.ParseResult)
+                              .ToList();
+
+            var db = GetVectorDb();
+            var points = await db.GetCollectionData(collectionName, pointIds, options);
+            return points;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when querying vector collection {collectionName} points.");
+            return [];
         }
     }
 
@@ -308,15 +344,15 @@ public partial class KnowledgeService
 
             // Vector search
             var db = GetVectorDb();
-            var found = await db.Search(collectionName, vector, options.Fields, limit: options.Limit ?? 5, confidence: options.Confidence ?? 0.5f, withVector: options.WithVector);
+            var found = await db.Search(collectionName, vector, options);
 
             var results = found.Select(x => VectorSearchResult.CopyFrom(x)).ToList();
             return results;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when searching vector knowledge ({collectionName}).");
-            return Enumerable.Empty<VectorSearchResult>();
+            _logger.LogError(ex, $"Error when searching vector knowledge ({collectionName}).");
+            return [];
         }
     }
     #endregion

@@ -336,7 +336,7 @@ public partial class MongoRepository
         };
     }
 
-    public PagedItems<Conversation> GetConversations(ConversationFilter filter)
+    public async ValueTask<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
     {
         if (filter == null)
         {
@@ -466,10 +466,19 @@ public partial class MongoRepository
             }
         }
 
-        var conversationDocs = _dc.Conversations.Find(filterDef).Sort(sortDef).Skip(pager.Offset).Limit(pager.Size).ToList();
-        var count = _dc.Conversations.CountDocuments(filterDef);
+        var docsTask = _dc.Conversations.FindAsync(filterDef, options: new()
+        {
+            Sort = sortDef,
+            Skip = pager.Offset,
+            Limit = pager.Size
+        });
+        var countTask = _dc.Conversations.CountDocumentsAsync(filterDef);
+        await Task.WhenAll([docsTask, countTask]);
 
-        var conversations = conversationDocs.Select(x =>
+        var docs = docsTask.Result.ToList();
+        var count = countTask.Result;
+
+        var conversations = docs.Select(x =>
         {
             var states = new Dictionary<string, string>();
             if (filter.IsLoadLatestStates)
@@ -502,7 +511,7 @@ public partial class MongoRepository
         return new PagedItems<Conversation>
         {
             Items = conversations,
-            Count = (int)count
+            Count = count
         };
     }
 
@@ -693,10 +702,17 @@ public partial class MongoRepository
         {
             filters.Add(builder.In(x => x.AgentId, filter.AgentIds));
         }
-
         if (!filter.UserIds.IsNullOrEmpty())
         {
             filters.Add(builder.In(x => x.UserId, filter.UserIds));
+        }
+        if (filter.StartTime.HasValue)
+        {
+            filters.Add(builder.Gte(x => x.CreatedTime, filter.StartTime.Value));
+        }
+        if (filter.EndTime.HasValue)
+        {
+            filters.Add(builder.Lte(x => x.CreatedTime, filter.EndTime.Value));
         }
 
         var convDocs = _dc.Conversations.Find(builder.And(filters))

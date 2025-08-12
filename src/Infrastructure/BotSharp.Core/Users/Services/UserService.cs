@@ -411,10 +411,18 @@ public class UserService : IUserService
         return user;
     }
 
+    [SharpCache(10)]
+    public async Task<List<User>> GetUsers(List<string> ids)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var users = db.GetUserByIds(ids);
+        return users;
+    }
+
     public async Task<PagedItems<User>> GetUsers(UserFilter filter)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var users = db.GetUsers(filter);
+        var users = await db.GetUsers(filter);
         return users;
     }
 

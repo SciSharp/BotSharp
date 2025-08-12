@@ -50,6 +50,6 @@ public class Pagination : ICacheKey
 
 public class PagedItems<T>
 {
-    public int Count { get; set; }
+    public long Count { get; set; }
     public IEnumerable<T> Items { get; set; } = new List<T>();
 }

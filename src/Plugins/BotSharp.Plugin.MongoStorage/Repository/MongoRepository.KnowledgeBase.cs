@@ -168,7 +168,7 @@ public partial class MongoRepository
         return res.DeletedCount > 0;
     }
 
-    public PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
+    public async ValueTask<PagedItems<KnowledgeDocMetaData>> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(vectorStoreProvider))
@@ -209,8 +209,18 @@ public partial class MongoRepository
 
         var filterDef = builder.And(docFilters);
         var sortDef = Builders<KnowledgeCollectionFileMetaDocument>.Sort.Descending(x => x.CreatedDate);
-        var docs = _dc.KnowledgeCollectionFileMeta.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
-        var count = _dc.KnowledgeCollectionFileMeta.CountDocuments(filterDef);
+
+        var docsTask = _dc.KnowledgeCollectionFileMeta.FindAsync(filterDef, options: new()
+        {
+            Sort = sortDef,
+            Skip = filter.Offset,
+            Limit = filter.Size
+        });
+        var countTask = _dc.KnowledgeCollectionFileMeta.CountDocumentsAsync(filterDef);
+        await Task.WhenAll([docsTask, countTask]);
+
+        var docs = docsTask.Result.ToList();
+        var count = countTask.Result;
 
         var files = docs?.Select(x => new KnowledgeDocMetaData
         {
@@ -229,7 +239,7 @@ public partial class MongoRepository
         return new PagedItems<KnowledgeDocMetaData>
         {
             Items = files,
-            Count = (int)count
+            Count = count
         };
     }
     #endregion
