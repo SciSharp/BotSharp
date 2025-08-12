@@ -47,7 +47,15 @@ public class LlmModelSetting
     /// </summary>
     public int Dimension { get; set; }
 
-    public LlmCost Cost { get; set; } = new();
+    /// <summary>
+    /// Settings for reasoning model
+    /// </summary>
+    public ReasoningSetting? Reasoning { get; set; }
+
+    /// <summary>
+    /// Settings for llm cost
+    /// </summary>
+    public LlmCostSetting Cost { get; set; } = new();
 
     public override string ToString()
     {
@@ -55,10 +63,16 @@ public class LlmModelSetting
     }
 }
 
+public class ReasoningSetting
+{
+    public float Temperature { get; set; } = 1.0f;
+    public string? EffortLevel { get; set; }
+}
+
 /// <summary>
 /// Cost per 1K tokens
 /// </summary>
-public class LlmCost
+public class LlmCostSetting
 {
     // Input
     public float TextInputCost { get; set; } = 0f;
