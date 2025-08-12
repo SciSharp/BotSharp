@@ -144,6 +144,7 @@ public class QdrantDb : IVectorDb
 
         Filter? queryFilter = BuildQueryFilter(filter.FilterGroups);
         WithPayloadSelector? payloadSelector = BuildPayloadSelector(filter.Fields);
+        OrderBy? orderBy = BuildOrderBy(filter.OrderBy);
 
         var client = GetClient();
         var tasks = new List<Task>();
@@ -154,6 +155,7 @@ public class QdrantDb : IVectorDb
             limit: (uint)filter.Size,
             offset: !string.IsNullOrWhiteSpace(filter.StartId) ? new PointId { Uuid = filter.StartId } : null,
             filter: queryFilter,
+            orderBy: orderBy,
             payloadSelector: payloadSelector,
             vectorsSelector: filter.WithVector);
 
@@ -371,7 +373,13 @@ public class QdrantDb : IVectorDb
 
         var client = GetClient();
         var schemaType = ConvertPayloadSchemaType(options.FieldSchemaType);
-        var result = await client.CreatePayloadIndexAsync(collectionName, options.FieldName, schemaType);
+        var result = await client.CreatePayloadIndexAsync(collectionName, options.FieldName, schemaType, indexParams: new()
+        {
+            IntegerIndexParams = new()
+            {
+                Range = true
+            }
+        });
         return result.Status == UpdateStatus.Completed;
     }
 
@@ -616,6 +624,20 @@ public class QdrantDb : IVectorDb
         }
 
         return payloadSelector;
+    }
+
+    private OrderBy? BuildOrderBy(VectorSort? sort)
+    {
+        if (string.IsNullOrWhiteSpace(sort?.Field))
+        {
+            return null;
+        }
+
+        return new OrderBy
+        {
+            Key = sort.Field,
+            Direction = sort.Order == "asc" ? Direction.Asc : Direction.Desc
+        };
     }
 
     private PayloadSchemaType ConvertPayloadSchemaType(string schemaType)
