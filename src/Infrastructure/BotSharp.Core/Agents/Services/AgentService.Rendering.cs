@@ -1,12 +1,13 @@
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Templating;
 using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    public string RenderedInstruction(Agent agent)
+    public string RenderInstruction(Agent agent)
     {
         var render = _services.GetRequiredService<ITemplateRender>();
         var conv = _services.GetRequiredService<IConversationService>();
@@ -106,7 +107,23 @@ public partial class AgentService
         return parameterDef;
     }
 
-    public string RenderedTemplate(Agent agent, string templateName)
+    public IEnumerable<FunctionDef> FilterFunctions(string instruction, Agent agent, StringComparer? comparer = null)
+    {
+        var functions = agent.Functions.AsEnumerable();
+
+        if (agent.FuncVisMode.IsEqualTo(AgentFuncVisMode.Auto) && !string.IsNullOrWhiteSpace(instruction))
+        {
+            comparer = comparer ?? StringComparer.OrdinalIgnoreCase;
+            var matches = Regex.Matches(instruction, @"\b[A-Za-z0-9_]+\b");
+            var words = new HashSet<string>(matches.Select(m => m.Value), comparer);
+            functions = functions.Where(x => words.Contains(x.Name, comparer));
+        }
+
+        functions = functions.Concat(agent.SecondaryFunctions ?? []);
+        return functions;
+    }
+
+    public string RenderTemplate(Agent agent, string templateName)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var render = _services.GetRequiredService<ITemplateRender>();

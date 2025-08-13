@@ -111,7 +111,7 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
-            var text = agentService.RenderedInstruction(agent);
+            var text = agentService.RenderInstruction(agent);
             instruction += text;
             renderedInstructions.Add(text);
         }
@@ -211,7 +211,7 @@ public class ChatCompletionProvider : IChatCompletion
             ReferenceHandler = ReferenceHandler.IgnoreCycles,
         };
 
-        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        var functions = agentService.FilterFunctions(instruction, agent);
         foreach (var fn in functions)
         {
             /*var inputschema = new InputSchema()

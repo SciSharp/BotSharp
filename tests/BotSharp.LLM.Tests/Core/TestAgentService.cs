@@ -41,12 +41,12 @@ namespace BotSharp.Plugin.Google.Core
             return Task.CompletedTask;
         }
 
-        public string RenderedInstruction(Agent agent)
+        public string RenderInstruction(Agent agent)
         {
             return "Fake Instruction";
         }
 
-        public string RenderedTemplate(Agent agent, string templateName)
+        public string RenderTemplate(Agent agent, string templateName)
         {
             return $"Rendered template for {templateName}";
         }
@@ -54,6 +54,11 @@ namespace BotSharp.Plugin.Google.Core
         public bool RenderFunction(Agent agent, FunctionDef def)
         {
             return true;
+        }
+
+        public IEnumerable<FunctionDef> FilterFunctions(string instruction, Agent agent, StringComparer? comparer = null)
+        {
+            return [];
         }
 
         public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def)

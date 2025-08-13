@@ -555,6 +555,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var settings = settingsService.GetSetting(Provider, _model);
         var allowMultiModal = settings != null && settings.MultiModal;
 
+        var instruction = string.Empty;
         var messages = new List<ChatMessage>();
 
         var temperature = float.Parse(state.GetState("temperature", "0.0"));
@@ -568,7 +569,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             MaxOutputTokenCount = maxTokens
         };
 
-        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
+        {
+            instruction = agentService.RenderInstruction(agent);
+            messages.Add(new SystemChatMessage(instruction));
+        }
+
+        var functions = agentService.FilterFunctions(instruction, agent);
         foreach (var function in functions)
         {
             if (!agentService.RenderFunction(agent, function)) continue;
@@ -579,12 +586,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 functionName: function.Name,
                 functionDescription: function.Description,
                 functionParameters: BinaryData.FromObjectAsJson(property)));
-        }
-
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
-        {
-            var text = agentService.RenderedInstruction(agent);
-            messages.Add(new SystemChatMessage(text));
         }
 
         if (!string.IsNullOrEmpty(agent.Knowledges))

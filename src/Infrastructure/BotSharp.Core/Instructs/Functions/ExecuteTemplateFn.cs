@@ -49,7 +49,7 @@ public class ExecuteTemplateFn : IFunctionCallback
         try
         {
             var agentService = _services.GetRequiredService<IAgentService>();
-            var text = agentService.RenderedTemplate(agent, templateName);
+            var text = agentService.RenderTemplate(agent, templateName);
 
             var completion = CompletionProvider.GetChatCompletion(_services, provider: agent.LlmConfig?.Provider, model: agent.LlmConfig?.Model);
             var response = await completion.GetChatCompletions(new Agent()

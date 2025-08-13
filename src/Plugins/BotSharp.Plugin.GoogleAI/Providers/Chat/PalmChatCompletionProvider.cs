@@ -102,7 +102,8 @@ public class PalmChatCompletionProvider : IChatCompletion
 
         if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
-            prompt += agentService.RenderedInstruction(agent);
+            prompt += agentService.RenderInstruction(agent);
+            renderedInstructions.Add(prompt);
         }
 
         var routing = _services.GetRequiredService<IRoutingService>();
@@ -111,7 +112,7 @@ public class PalmChatCompletionProvider : IChatCompletion
         var messages = conversations.Select(c => new PalmChatMessage(c.Content, c.Role == AgentRole.User ? "user" : "AI"))
             .ToList();
 
-        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        var functions = agentService.FilterFunctions(prompt, agent);
         if (!functions.IsNullOrEmpty())
         {
             prompt += "\r\n\r\n[Functions] defined in JSON Schema:\r\n";

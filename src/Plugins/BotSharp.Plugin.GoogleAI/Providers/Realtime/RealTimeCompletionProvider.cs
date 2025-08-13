@@ -492,13 +492,13 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         var systemPrompts = new List<string>();
         if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
-            var instruction = agentService.RenderedInstruction(agent);
+            var instruction = agentService.RenderInstruction(agent);
             renderedInstructions.Add(instruction);
             systemPrompts.Add(instruction);
         }
 
         var funcPrompts = new List<string>();
-        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        var functions = agentService.FilterFunctions(renderedInstructions.FirstOrDefault(), agent);
         foreach (var function in functions)
         {
             if (!agentService.RenderFunction(agent, function)) continue;

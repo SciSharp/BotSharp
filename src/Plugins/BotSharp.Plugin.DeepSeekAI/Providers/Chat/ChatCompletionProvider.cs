@@ -331,7 +331,14 @@ public class ChatCompletionProvider : IChatCompletion
             MaxOutputTokenCount = maxTokens
         };
 
-        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
+        {
+            var text = agentService.RenderInstruction(agent);
+            renderedInstructions.Add(text);
+            messages.Add(new SystemChatMessage(text));
+        }
+
+        var functions = agentService.FilterFunctions(renderedInstructions.FirstOrDefault(), agent);
         foreach (var function in functions)
         {
             if (!agentService.RenderFunction(agent, function)) continue;
@@ -342,13 +349,6 @@ public class ChatCompletionProvider : IChatCompletion
                 functionName: function.Name,
                 functionDescription: function.Description,
                 functionParameters: BinaryData.FromObjectAsJson(property)));
-        }
-
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
-        {
-            var text = agentService.RenderedInstruction(agent);
-            renderedInstructions.Add(text);
-            messages.Add(new SystemChatMessage(text));
         }
 
         if (!string.IsNullOrEmpty(agent.Knowledges))
