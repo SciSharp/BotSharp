@@ -30,6 +30,9 @@ namespace BotSharp.Core.Repository
                 case AgentField.RoutingMode:
                     UpdateAgentRoutingMode(agent.Id, agent.Mode);
                     break;
+                case AgentField.FuncVisMode:
+                    UpdateAgentFuncVisMode(agent.Id, agent.FuncVisMode);
+                    break;
                 case AgentField.InheritAgentId:
                     UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
                     break;
@@ -151,6 +154,17 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.Mode = mode;
+            agent.UpdatedDateTime = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(agent, _options);
+            File.WriteAllText(agentFile, json);
+        }
+
+        private void UpdateAgentFuncVisMode(string agentId, string? visMode)
+        {
+            var (agent, agentFile) = GetAgentFromFile(agentId);
+            if (agent == null) return;
+
+            agent.FuncVisMode = visMode;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
@@ -385,6 +399,7 @@ namespace BotSharp.Core.Repository
             agent.Name = inputAgent.Name;
             agent.Type = inputAgent.Type;
             agent.Mode = inputAgent.Mode;
+            agent.FuncVisMode = inputAgent.FuncVisMode;
             agent.IsPublic = inputAgent.IsPublic;
             agent.Disabled = inputAgent.Disabled;
             agent.Description = inputAgent.Description;

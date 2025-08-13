@@ -32,6 +32,7 @@ public partial class AgentService
         record.MaxMessageCount = agent.MaxMessageCount;
         record.Type = agent.Type;
         record.Mode = agent.Mode;
+        record.FuncVisMode = agent.FuncVisMode;
         record.Profiles = agent.Profiles ?? [];
         record.Labels = agent.Labels ?? [];
         record.RoutingRules = agent.RoutingRules ?? [];
@@ -96,6 +97,7 @@ public partial class AgentService
                        .SetName(foundAgent.Name)
                        .SetType(foundAgent.Type)
                        .SetRoutingMode(foundAgent.Mode)
+                       .SetFuncVisMode(foundAgent.FuncVisMode)
                        .SetIsPublic(foundAgent.IsPublic)
                        .SetDisabled(foundAgent.Disabled)
                        .SetDescription(foundAgent.Description)
