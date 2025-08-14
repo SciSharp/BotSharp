@@ -56,7 +56,17 @@ namespace BotSharp.Plugin.Google.Core
             return true;
         }
 
+        public (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, StringComparer? comparer = null)
+        {
+            return (string.Empty, []);
+        }
+
         public IEnumerable<FunctionDef> FilterFunctions(string instruction, Agent agent, StringComparer? comparer = null)
+        {
+            return [];
+        }
+
+        public IEnumerable<FunctionDef> FilterFunctions(string instruction, IEnumerable<FunctionDef> functions, StringComparer? comparer = null)
         {
             return [];
         }

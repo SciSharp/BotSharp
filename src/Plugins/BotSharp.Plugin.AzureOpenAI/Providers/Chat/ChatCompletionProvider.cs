@@ -359,14 +359,14 @@ public class ChatCompletionProvider : IChatCompletion
             MaxOutputTokenCount = maxTokens
         };
 
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
+        // Prepare instruction and functions
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(instruction))
         {
-            var instruction = agentService.RenderInstruction(agent);
             renderedInstructions.Add(instruction);
             messages.Add(new SystemChatMessage(instruction));
         }
 
-        var functions = agentService.FilterFunctions(renderedInstructions.FirstOrDefault(), agent);
         foreach (var function in functions)
         {
             if (!agentService.RenderFunction(agent, function)) continue;

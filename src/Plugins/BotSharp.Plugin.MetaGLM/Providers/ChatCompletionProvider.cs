@@ -93,9 +93,10 @@ public class ChatCompletionProvider : IChatCompletion
         List<FunctionTool> toolcalls = new List<FunctionTool>();
         renderedInstructions = [];
 
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
+        // Prepare instruction and functions
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(instruction))
         {
-            var instruction = agentService.RenderInstruction(agent);
             renderedInstructions.Add(instruction);
             messages.Add(new MessageItem("system", instruction));
         }
@@ -113,7 +114,6 @@ public class ChatCompletionProvider : IChatCompletion
                 new MessageItem("assistant", message.Content));
         }
 
-        var functions = agentService.FilterFunctions(renderedInstructions.FirstOrDefault(), agent);
         foreach (var function in functions)
         {
             var functionTool  = ConvertToFunctionTool(function);

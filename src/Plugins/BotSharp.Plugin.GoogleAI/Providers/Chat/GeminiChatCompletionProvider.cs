@@ -188,21 +188,21 @@ public class GeminiChatCompletionProvider : IChatCompletion
             AutoCallFunction = false
         };
 
-        // Assembly messages
+        // Assemble messages
         var contents = new List<Content>();
         var tools = new List<Tool>();
         var funcDeclarations = new List<FunctionDeclaration>();
-
         var systemPrompts = new List<string>();
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
+        var funcPrompts = new List<string>();
+
+        // Prepare instruction and functions
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(instruction))
         {
-            var instruction = agentService.RenderInstruction(agent);
             renderedInstructions.Add(instruction);
             systemPrompts.Add(instruction);
         }
 
-        var funcPrompts = new List<string>();
-        var functions = agentService.FilterFunctions(renderedInstructions.FirstOrDefault(), agent);
         foreach (var function in functions)
         {
             if (!agentService.RenderFunction(agent, function)) continue;

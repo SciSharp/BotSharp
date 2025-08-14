@@ -17,6 +17,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Plugin.MicrosoftExtensionsAI;
 
@@ -71,14 +72,14 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
         List<ChatMessage> messages = [];
         var agentService = _services.GetRequiredService<IAgentService>();
 
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
+        // Prepare instruction and functions
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(instruction))
         {
-            var text = agentService.RenderInstruction(agent);
-            renderedInstructions.Add(text);
-            messages.Add(new(ChatRole.System, text));
+            renderedInstructions.Add(instruction);
+            messages.Add(new(ChatRole.System, instruction));
         }
 
-        var functions = agentService.FilterFunctions(renderedInstructions.FirstOrDefault(), agent);
         foreach (var function in functions)
         {
             if (agentService.RenderFunction(agent, function))

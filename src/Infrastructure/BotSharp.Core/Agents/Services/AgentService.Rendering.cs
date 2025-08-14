@@ -13,7 +13,7 @@ public partial class AgentService
         var conv = _services.GetRequiredService<IConversationService>();
 
         // merge instructions
-        var instructions = new List<string> { agent.Instruction };
+        var instructions = new List<string> { agent.Instruction ?? string.Empty };
         var secondaryInstructions = agent.SecondaryInstructions?.Where(x => !string.IsNullOrWhiteSpace(x)).ToList() ?? [];
         instructions.AddRange(secondaryInstructions);
 
@@ -107,20 +107,34 @@ public partial class AgentService
         return parameterDef;
     }
 
-    public IEnumerable<FunctionDef> FilterFunctions(string instruction, Agent agent, StringComparer? comparer = null)
+    public (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, StringComparer? comparer = null)
     {
-        var functions = agent.Functions.AsEnumerable();
-
-        if (agent.FuncVisMode.IsEqualTo(AgentFuncVisMode.Auto) && !string.IsNullOrWhiteSpace(instruction))
+        var text = string.Empty;
+        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
-            comparer = comparer ?? StringComparer.OrdinalIgnoreCase;
-            var matches = Regex.Matches(instruction, @"\b[A-Za-z0-9_]+\b");
-            var words = new HashSet<string>(matches.Select(m => m.Value), comparer);
-            functions = functions.Where(x => words.Contains(x.Name, comparer));
+            text = RenderInstruction(agent);
         }
 
-        functions = functions.Concat(agent.SecondaryFunctions ?? []);
+        var functions = FilterFunctions(text, agent, comparer);
+        return (text, functions);
+    }
+
+    public IEnumerable<FunctionDef> FilterFunctions(string instruction, Agent agent, StringComparer? comparer = null)
+    {
+        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        if (agent.FuncVisMode.IsEqualTo(AgentFuncVisMode.Auto) && !string.IsNullOrWhiteSpace(instruction))
+        {
+            functions = FilterFunctions(instruction, functions, comparer);
+        }
         return functions;
+    }
+
+    public IEnumerable<FunctionDef> FilterFunctions(string instruction, IEnumerable<FunctionDef> functions, StringComparer? comparer = null)
+    {
+        comparer = comparer ?? StringComparer.OrdinalIgnoreCase;
+        var matches = Regex.Matches(instruction, @"\b[A-Za-z0-9_-]+\b");
+        var words = new HashSet<string>(matches.Select(m => m.Value), comparer);
+        return functions.Where(x => words.Contains(x.Name, comparer));
     }
 
     public string RenderTemplate(Agent agent, string templateName)

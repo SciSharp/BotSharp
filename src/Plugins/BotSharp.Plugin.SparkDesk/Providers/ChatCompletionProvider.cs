@@ -234,16 +234,19 @@ public class ChatCompletionProvider : IChatCompletion
         var messages = new List<ChatMessage>();
         renderedInstructions = [];
 
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
+        // Prepare instruction and functions
+        var (instruction, agentFunctions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(instruction))
         {
-            var instruction = agentService.RenderInstruction(agent);
             renderedInstructions.Add(instruction);
             messages.Add(ChatMessage.FromSystem(instruction));
         }
+
         if (!string.IsNullOrEmpty(agent.Knowledges))
         {
             messages.Add(ChatMessage.FromSystem(agent.Knowledges));
         }
+
         var samples = ProviderHelper.GetChatSamples(agent.Samples);
         foreach (var message in samples)
         {
@@ -252,8 +255,7 @@ public class ChatCompletionProvider : IChatCompletion
                 ChatMessage.FromAssistant(message.Content));
         }
 
-        var agentFuncs = agentService.FilterFunctions(renderedInstructions.FirstOrDefault(), agent);
-        foreach (var function in agentFuncs)
+        foreach (var function in agentFunctions)
         {
             functions.Add(ConvertToFunctionDef(function));
         }

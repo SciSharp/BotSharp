@@ -321,16 +321,13 @@ public class ChatCompletionProvider : IChatCompletion
         var messages = new List<ChatMessage>();
         var options = InitChatCompletionOption(agent);
 
-        // Render instructions
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
+        // Prepare instruction and functions
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(instruction))
         {
-            var text = agentService.RenderInstruction(agent);
-            renderedInstructions.Add(text);
-            messages.Add(new SystemChatMessage(text));
+            renderedInstructions.Add(instruction);
+            messages.Add(new SystemChatMessage(instruction));
         }
-
-        // Filter functions
-        var functions = agentService.FilterFunctions(renderedInstructions.FirstOrDefault(), agent);
 
         // Render functions
         foreach (var function in functions)

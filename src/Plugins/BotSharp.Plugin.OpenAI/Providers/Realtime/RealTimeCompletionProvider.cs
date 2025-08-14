@@ -555,7 +555,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var settings = settingsService.GetSetting(Provider, _model);
         var allowMultiModal = settings != null && settings.MultiModal;
 
-        var instruction = string.Empty;
         var messages = new List<ChatMessage>();
 
         var temperature = float.Parse(state.GetState("temperature", "0.0"));
@@ -569,13 +568,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             MaxOutputTokenCount = maxTokens
         };
 
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
+        // Prepare instruction and functions
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(instruction))
         {
-            instruction = agentService.RenderInstruction(agent);
             messages.Add(new SystemChatMessage(instruction));
         }
 
-        var functions = agentService.FilterFunctions(instruction, agent);
         foreach (var function in functions)
         {
             if (!agentService.RenderFunction(agent, function)) continue;
