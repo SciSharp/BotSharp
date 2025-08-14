@@ -110,6 +110,13 @@ public class QdrantDb : IVectorDb
 
         if (details == null) return null;
 
+        var payloadSchema = details.PayloadSchema?.Select(x => new PayloadSchemaDetail
+        {
+            FieldName = x.Key,
+            FieldDataType = x.Value.DataType.ToString().ToLowerInvariant(),
+            DataCount = x.Value.Points
+        })?.ToList() ?? [];
+
         return new VectorCollectionDetails
         {
             Status = details.Status.ToString(),
@@ -128,7 +135,8 @@ public class QdrantDb : IVectorDb
             },
             VectorsCount = details.VectorsCount,
             IndexedVectorsCount = details.IndexedVectorsCount,
-            PointsCount = details.PointsCount
+            PointsCount = details.PointsCount,
+            PayloadSchema = payloadSchema
         };
     }
     #endregion

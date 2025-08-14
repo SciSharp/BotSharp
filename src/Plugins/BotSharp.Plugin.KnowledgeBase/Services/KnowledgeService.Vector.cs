@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.VectorStorage.Enums;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 

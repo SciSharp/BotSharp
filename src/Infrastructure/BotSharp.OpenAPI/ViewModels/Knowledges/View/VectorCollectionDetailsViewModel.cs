@@ -17,7 +17,8 @@ public class VectorCollectionDetailsViewModel : VectorCollectionDetails
             IndexedVectorsCount = model.IndexedVectorsCount,
             PointsCount = model.PointsCount,
             InnerConfig = model.InnerConfig,
-            BasicInfo = model.BasicInfo
+            BasicInfo = model.BasicInfo,
+            PayloadSchema = model.PayloadSchema
         };
     }
 }
