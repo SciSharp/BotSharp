@@ -4,8 +4,8 @@ namespace BotSharp.Abstraction.VectorStorage.Models;
 
 public class VectorPayloadValue
 {
-    [JsonPropertyName("data")]
-    public object Data { get; set; } = null!;
+    [JsonPropertyName("data_value")]
+    public object DataValue { get; set; } = null!;
 
     [JsonPropertyName("data_type")]
     public VectorPayloadDataType DataType { get; set; } = VectorPayloadDataType.String;
@@ -17,13 +17,13 @@ public class VectorPayloadValue
 
     public VectorPayloadValue(object data, VectorPayloadDataType dataType)
     {
-        Data = data;
+        DataValue = data;
         DataType = dataType;
     }
 
     public override string ToString()
     {
-        return $"{Data} ({DataType})";
+        return $"{DataValue} ({DataType})";
     }
 
     public static VectorPayloadValue BuildStringValue(string data)
