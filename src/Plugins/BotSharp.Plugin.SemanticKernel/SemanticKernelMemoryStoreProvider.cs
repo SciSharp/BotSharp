@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage;
+using BotSharp.Abstraction.VectorStorage.Enums;
 using BotSharp.Abstraction.VectorStorage.Models;
 using Microsoft.SemanticKernel.Memory;
 using System;
@@ -73,7 +74,10 @@ namespace BotSharp.Plugin.SemanticKernel
             {
                 resultTexts.Add(new VectorCollectionData
                 {
-                    Data = new Dictionary<string, object> { { "text", record.Metadata.Text } },
+                    Data = new Dictionary<string, VectorPayloadValue>
+                    {
+                        { "text", new(record.Metadata.Text, VectorPayloadDataType.String) }
+                    },
                     Score = score,
                     Vector = options.WithVector ? record.Embedding.ToArray() : null
                 });
@@ -82,7 +86,7 @@ namespace BotSharp.Plugin.SemanticKernel
             return resultTexts;
         }
 
-        public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, object>? payload)
+        public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, VectorPayloadValue>? payload)
         {
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             await _memoryStore.UpsertAsync(collectionName, MemoryRecord.LocalRecord(id.ToString(), text, null, vector));

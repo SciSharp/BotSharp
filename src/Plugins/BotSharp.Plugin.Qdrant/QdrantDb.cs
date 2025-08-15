@@ -1,7 +1,5 @@
-using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Utilities;
-using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.Plugin.Qdrant.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -176,11 +174,11 @@ public class QdrantDb : IVectorDb
             Id = x.Id?.Uuid ?? string.Empty,
             Data = x.Payload.ToDictionary(p => p.Key, p => p.Value.KindCase switch
             {
-                Value.KindOneofCase.StringValue => p.Value.StringValue,
-                Value.KindOneofCase.BoolValue => p.Value.BoolValue,
-                Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
-                Value.KindOneofCase.DoubleValue => p.Value.DoubleValue,
-                _ => new object()
+                Value.KindOneofCase.StringValue => VectorPayloadValue.BuildStringValue(p.Value.StringValue),
+                Value.KindOneofCase.BoolValue => VectorPayloadValue.BuildBooleanValue(p.Value.BoolValue),
+                Value.KindOneofCase.IntegerValue => VectorPayloadValue.BuildIntegerValue(p.Value.IntegerValue),
+                Value.KindOneofCase.DoubleValue => VectorPayloadValue.BuildDoubleValue(p.Value.DoubleValue),
+                _ => VectorPayloadValue.BuildUnkownValue(string.Empty)
             }),
             Vector = filter.WithVector ? x.Vectors?.Vector?.Data?.ToArray() : null
         })?.ToList() ?? new List<VectorCollectionData>();
@@ -213,19 +211,19 @@ public class QdrantDb : IVectorDb
         return points.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
-            Data = x.Payload?.ToDictionary(p => p.Key, p => p.Value.KindCase switch 
-            { 
-                Value.KindOneofCase.StringValue => p.Value.StringValue,
-                Value.KindOneofCase.BoolValue => p.Value.BoolValue,
-                Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
-                Value.KindOneofCase.DoubleValue => p.Value.DoubleValue,
-                _ => new object()
+            Data = x.Payload?.ToDictionary(p => p.Key, p => p.Value.KindCase switch
+            {
+                Value.KindOneofCase.StringValue => VectorPayloadValue.BuildStringValue(p.Value.StringValue),
+                Value.KindOneofCase.BoolValue => VectorPayloadValue.BuildBooleanValue(p.Value.BoolValue),
+                Value.KindOneofCase.IntegerValue => VectorPayloadValue.BuildIntegerValue(p.Value.IntegerValue),
+                Value.KindOneofCase.DoubleValue => VectorPayloadValue.BuildDoubleValue(p.Value.DoubleValue),
+                _ => VectorPayloadValue.BuildUnkownValue(string.Empty)
             }) ?? new(),
             Vector = x.Vectors?.Vector?.Data?.ToArray()
         });
     }
 
-    public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, object>? payload = null)
+    public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, VectorPayloadValue>? payload = null)
     {
         // Insert vectors
         var point = new PointStruct()
@@ -245,41 +243,25 @@ public class QdrantDb : IVectorDb
         {
             foreach (var item in payload)
             {
-                var value = item.Value?.ToString();
+                var value = item.Value.Data?.ToString();
                 if (value == null || item.Key.IsEqualTo(KnowledgePayloadName.Text))
                 {
                     continue;
                 }
 
-                if (bool.TryParse(value, out var b))
+                if (item.Value.DataType == VectorPayloadDataType.Boolean && bool.TryParse(value, out var b))
                 {
                     point.Payload[item.Key] = b;
                 }
-                else if (byte.TryParse(value, out var int8))
+                else if (item.Value.DataType == VectorPayloadDataType.Integer && long.TryParse(value, out var longVal))
                 {
-                    point.Payload[item.Key] = int8;
+                    point.Payload[item.Key] = longVal;
                 }
-                else if (short.TryParse(value, out var int16))
+                else if (item.Value.DataType == VectorPayloadDataType.Double && double.TryParse(value, out var doubleVal))
                 {
-                    point.Payload[item.Key] = int16;
+                    point.Payload[item.Key] = doubleVal;
                 }
-                else if (int.TryParse(value, out var int32))
-                {
-                    point.Payload[item.Key] = int32;
-                }
-                else if (long.TryParse(value, out var int64))
-                {
-                    point.Payload[item.Key] = int64;
-                }
-                else if (float.TryParse(value, out var f32))
-                {
-                    point.Payload[item.Key] = f32;
-                }
-                else if (double.TryParse(value, out var f64))
-                {
-                    point.Payload[item.Key] = f64;
-                }
-                else if (DateTime.TryParse(value, out var dt))
+                else if (item.Value.DataType == VectorPayloadDataType.Datetime && DateTime.TryParse(value, out var dt))
                 {
                     point.Payload[item.Key] = dt.ToUniversalTime().ToString("o");
                 }
@@ -325,14 +307,14 @@ public class QdrantDb : IVectorDb
         results = points.Select(x => new VectorCollectionData
         {
             Id = x.Id.Uuid,
-            Data = x.Payload.ToDictionary(p => p.Key, p => p.Value.KindCase switch
+            Data = x.Payload?.ToDictionary(p => p.Key, p => p.Value.KindCase switch
             {
-                Value.KindOneofCase.StringValue => p.Value.StringValue,
-                Value.KindOneofCase.BoolValue => p.Value.BoolValue,
-                Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
-                Value.KindOneofCase.DoubleValue => p.Value.DoubleValue,
-                _ => new object()
-            }),
+                Value.KindOneofCase.StringValue => VectorPayloadValue.BuildStringValue(p.Value.StringValue),
+                Value.KindOneofCase.BoolValue => VectorPayloadValue.BuildBooleanValue(p.Value.BoolValue),
+                Value.KindOneofCase.IntegerValue => VectorPayloadValue.BuildIntegerValue(p.Value.IntegerValue),
+                Value.KindOneofCase.DoubleValue => VectorPayloadValue.BuildDoubleValue(p.Value.DoubleValue),
+                _ => VectorPayloadValue.BuildUnkownValue(string.Empty)
+            }) ?? new(),
             Score = x.Score,
             Vector = x.Vectors?.Vector?.Data?.ToArray()
         }).ToList();
@@ -659,6 +641,7 @@ public class QdrantDb : IVectorDb
                 res = PayloadSchemaType.Float;
                 break;
             case "bool":
+            case "boolean":
                 res = PayloadSchemaType.Bool;
                 break;
             case "geo":

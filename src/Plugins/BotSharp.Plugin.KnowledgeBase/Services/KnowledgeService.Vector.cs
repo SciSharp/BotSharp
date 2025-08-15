@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.VectorStorage.Enums;
-using BotSharp.Core.Infrastructures;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
@@ -169,8 +169,8 @@ public partial class KnowledgeService
 
             if (!payload.TryGetValue(KnowledgePayloadName.DataSource, out _))
             {
-                payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(create.DataSource) ?
-                                                            create.DataSource : VectorDataSource.Api;
+                var dataSource = !string.IsNullOrWhiteSpace(create.DataSource) ?  create.DataSource : VectorDataSource.Api;
+                payload[KnowledgePayloadName.DataSource] = VectorPayloadValue.BuildStringValue(dataSource);
             }
 
             return await db.Upsert(collectionName, guid, vector, create.Text, payload);
@@ -206,8 +206,8 @@ public partial class KnowledgeService
 
             if (!payload.TryGetValue(KnowledgePayloadName.DataSource, out _))
             {
-                payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(update.DataSource) ?
-                                                            update.DataSource : VectorDataSource.Api;
+                var dataSource = !string.IsNullOrWhiteSpace(update.DataSource) ? update.DataSource : VectorDataSource.Api;
+                payload[KnowledgePayloadName.DataSource] = VectorPayloadValue.BuildStringValue(dataSource);
             }
 
             return await db.Upsert(collectionName, guid, vector, update.Text, payload);
@@ -247,8 +247,8 @@ public partial class KnowledgeService
 
             if (!payload.TryGetValue(KnowledgePayloadName.DataSource, out _))
             {
-                payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(update.DataSource) ?
-                                                            update.DataSource : VectorDataSource.Api;
+                var dataSource = !string.IsNullOrWhiteSpace(update.DataSource) ? update.DataSource : VectorDataSource.Api;
+                payload[KnowledgePayloadName.DataSource] = VectorPayloadValue.BuildStringValue(dataSource);
             }
 
             return await db.Upsert(collectionName, guid, vector, update.Text, payload);

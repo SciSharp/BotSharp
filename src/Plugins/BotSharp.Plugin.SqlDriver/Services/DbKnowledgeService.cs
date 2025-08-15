@@ -71,9 +71,9 @@ public class DbKnowledgeService
                     await knowledgeService.CreateVectorCollectionData(collectionName, new VectorCreateModel
                     {
                         Text = item.Question,
-                        Payload = new Dictionary<string, object>
+                        Payload = new Dictionary<string, VectorPayloadValue>
                         {
-                            { KnowledgePayloadName.Answer, item.Answer }
+                            { KnowledgePayloadName.Answer, VectorPayloadValue.BuildStringValue(item.Answer) },
                         }
                     });
 
