@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Plugin.Qdrant.Models;
+using Google.Protobuf.Collections;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qdrant.Client;
@@ -172,14 +173,7 @@ public class QdrantDb : IVectorDb
         var points = response?.Result?.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
-            Data = x.Payload.ToDictionary(p => p.Key, p => p.Value.KindCase switch
-            {
-                Value.KindOneofCase.StringValue => VectorPayloadValue.BuildStringValue(p.Value.StringValue),
-                Value.KindOneofCase.BoolValue => VectorPayloadValue.BuildBooleanValue(p.Value.BoolValue),
-                Value.KindOneofCase.IntegerValue => VectorPayloadValue.BuildIntegerValue(p.Value.IntegerValue),
-                Value.KindOneofCase.DoubleValue => VectorPayloadValue.BuildDoubleValue(p.Value.DoubleValue),
-                _ => VectorPayloadValue.BuildUnkownValue(string.Empty)
-            }),
+            Data = MapPayload(x.Payload),
             Vector = filter.WithVector ? x.Vectors?.Vector?.Data?.ToArray() : null
         })?.ToList() ?? new List<VectorCollectionData>();
 
@@ -211,14 +205,7 @@ public class QdrantDb : IVectorDb
         return points.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
-            Data = x.Payload?.ToDictionary(p => p.Key, p => p.Value.KindCase switch
-            {
-                Value.KindOneofCase.StringValue => VectorPayloadValue.BuildStringValue(p.Value.StringValue),
-                Value.KindOneofCase.BoolValue => VectorPayloadValue.BuildBooleanValue(p.Value.BoolValue),
-                Value.KindOneofCase.IntegerValue => VectorPayloadValue.BuildIntegerValue(p.Value.IntegerValue),
-                Value.KindOneofCase.DoubleValue => VectorPayloadValue.BuildDoubleValue(p.Value.DoubleValue),
-                _ => VectorPayloadValue.BuildUnkownValue(string.Empty)
-            }) ?? new(),
+            Data = MapPayload(x.Payload),
             Vector = x.Vectors?.Vector?.Data?.ToArray()
         });
     }
@@ -249,25 +236,25 @@ public class QdrantDb : IVectorDb
                     continue;
                 }
 
-                if (item.Value.DataType == VectorPayloadDataType.Boolean && bool.TryParse(value, out var b))
+                switch (item.Value.DataType)
                 {
-                    point.Payload[item.Key] = b;
-                }
-                else if (item.Value.DataType == VectorPayloadDataType.Integer && long.TryParse(value, out var longVal))
-                {
-                    point.Payload[item.Key] = longVal;
-                }
-                else if (item.Value.DataType == VectorPayloadDataType.Double && double.TryParse(value, out var doubleVal))
-                {
-                    point.Payload[item.Key] = doubleVal;
-                }
-                else if (item.Value.DataType == VectorPayloadDataType.Datetime && DateTime.TryParse(value, out var dt))
-                {
-                    point.Payload[item.Key] = dt.ToUniversalTime().ToString("o");
-                }
-                else
-                {
-                    point.Payload[item.Key] = value;
+                    case VectorPayloadDataType.Boolean when bool.TryParse(value, out var boolVal):
+                        point.Payload[item.Key] = boolVal;
+                        break;
+                    case VectorPayloadDataType.Integer when long.TryParse(value, out var longVal):
+                        point.Payload[item.Key] = longVal;
+                        break;
+                    case VectorPayloadDataType.Double when double.TryParse(value, out var doubleVal):
+                        point.Payload[item.Key] = doubleVal;
+                        break;
+                    case VectorPayloadDataType.Datetime when DateTime.TryParse(value, out var dt):
+                        point.Payload[item.Key] = dt.ToUniversalTime().ToString("o");
+                        break;
+                    case VectorPayloadDataType.String:
+                        point.Payload[item.Key] = value;
+                        break;
+                    default:
+                        break;
                 }
             }
         }
@@ -307,14 +294,7 @@ public class QdrantDb : IVectorDb
         results = points.Select(x => new VectorCollectionData
         {
             Id = x.Id.Uuid,
-            Data = x.Payload?.ToDictionary(p => p.Key, p => p.Value.KindCase switch
-            {
-                Value.KindOneofCase.StringValue => VectorPayloadValue.BuildStringValue(p.Value.StringValue),
-                Value.KindOneofCase.BoolValue => VectorPayloadValue.BuildBooleanValue(p.Value.BoolValue),
-                Value.KindOneofCase.IntegerValue => VectorPayloadValue.BuildIntegerValue(p.Value.IntegerValue),
-                Value.KindOneofCase.DoubleValue => VectorPayloadValue.BuildDoubleValue(p.Value.DoubleValue),
-                _ => VectorPayloadValue.BuildUnkownValue(string.Empty)
-            }) ?? new(),
+            Data = MapPayload(x.Payload),
             Score = x.Score,
             Vector = x.Vectors?.Vector?.Data?.ToArray()
         }).ToList();
@@ -659,6 +639,18 @@ public class QdrantDb : IVectorDb
         }
 
         return res;
+    }
+
+    private Dictionary<string, VectorPayloadValue> MapPayload(MapField<string, Value>? payload)
+    {
+        return payload?.ToDictionary(p => p.Key, p => p.Value.KindCase switch
+        {
+            Value.KindOneofCase.StringValue => VectorPayloadValue.BuildStringValue(p.Value.StringValue),
+            Value.KindOneofCase.BoolValue => VectorPayloadValue.BuildBooleanValue(p.Value.BoolValue),
+            Value.KindOneofCase.IntegerValue => VectorPayloadValue.BuildIntegerValue(p.Value.IntegerValue),
+            Value.KindOneofCase.DoubleValue => VectorPayloadValue.BuildDoubleValue(p.Value.DoubleValue),
+            _ => VectorPayloadValue.BuildUnkownValue(string.Empty)
+        }) ?? [];
     }
     #endregion
 }
