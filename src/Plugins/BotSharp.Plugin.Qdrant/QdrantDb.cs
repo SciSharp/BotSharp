@@ -509,69 +509,279 @@ public class QdrantDb : IVectorDb
     #region Private methods
     private Filter? BuildQueryFilter(IEnumerable<VectorFilterGroup>? filterGroups)
     {
-        Filter? queryFilter = null;
-
         if (filterGroups.IsNullOrEmpty())
         {
-            return queryFilter;
+            return null;
         }
 
-        var conditions = filterGroups.Where(x => !x.Filters.IsNullOrEmpty()).Select(x =>
+        var groupConditions = filterGroups.Select(x => BuildFilterGroupCondition(x))
+                                          .Where(c => c != null)
+                                          .ToList();
+
+        if (groupConditions.IsNullOrEmpty())
         {
-            Filter filter;
-            var innerConditions = x.Filters.Select(f =>
-            {
-                var field = new FieldCondition
-                {
-                    Key = f.Key
-                };
+            return null;
+        }
 
-                if (bool.TryParse(f.Value, out var boolVal))
-                {
-                    field.Match = new Match { Boolean = boolVal };
-                }
-                else if (long.TryParse(f.Value, out var intVal))
-                {
-                    field.Match = new Match { Integer = intVal };
-                }
-                else
-                {
-                    field.Match = new Match { Text = f.Value };
-                }
-
-                return new Condition { Field = field };
-            });
-
-            if (x.FilterOperator.IsEqualTo("and"))
-            {
-                filter = new Filter
-                {
-                    Must = { innerConditions }
-                };
-            }
-            else
-            {
-                filter = new Filter
-                {
-                    Should = { innerConditions }
-                };
-            }
-
-            return new Condition
-            {
-                Filter = filter
-            };
-        });
-
-        queryFilter = new Filter
+        // If there's only one group, return it directly to avoid unnecessary nesting
+        if (groupConditions.Count == 1 && groupConditions[0].Filter != null)
         {
-            Must =
-            {
-                conditions
-            }
+            return groupConditions[0].Filter;
+        }
+
+        // Multiple groups are combined with AND by default
+        // This follows Qdrant's convention where multiple top-level conditions are ANDed
+        return new Filter
+        {
+            Must = { groupConditions }
         };
+    }
 
-        return queryFilter;
+    private Condition? BuildFilterGroupCondition(VectorFilterGroup group)
+    {
+        if (group.Filters.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        var subGroupConditions = group.Filters
+                                      .Select(x => BuildSubGroupCondition(x))
+                                      .Where(c => c != null)
+                                      .ToList();
+
+        if (subGroupConditions.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        // If there's only one subgroup, return it directly
+        if (subGroupConditions.Count == 1 && subGroupConditions[0].Filter != null)
+        {
+            return subGroupConditions[0];
+        }
+
+        // Apply the group operator to combine subgroups
+        var filter = new Filter();
+        if (group.LogicalOperator.IsEqualTo("and"))
+        {
+            filter = new Filter
+            {
+                Must = { subGroupConditions }
+            };
+        }
+        else // "or"
+        {
+            filter = new Filter
+            {
+                Should = { subGroupConditions }
+            };
+        }
+
+        return new Condition { Filter = filter };
+    }
+
+    private Condition? BuildSubGroupCondition(VectorFilterSubGroup subGroup)
+    {
+        if (subGroup.Operands.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        var operandConditions = subGroup.Operands
+                                        .Select(x => BuildOperandCondition(x))
+                                        .Where(c => c != null)
+                                        .ToList();
+
+        if (operandConditions.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        // If there's only one operand, return it directly
+        if (operandConditions.Count == 1 && operandConditions[0].Filter != null)
+        {
+            return operandConditions[0];
+        }
+
+        // Apply the subgroup operator to combine operands
+        var filter = new Filter();
+        if (subGroup.LogicalOperator.IsEqualTo("and"))
+        {
+            filter = new Filter
+            {
+                Must = { operandConditions }
+            };
+        }
+        else // "or"
+        {
+            filter = new Filter
+            {
+                Should = { operandConditions }
+            };
+        }
+
+        return new Condition { Filter = filter };
+    }
+
+    private Condition? BuildOperandCondition(VectorFilterOperand operand)
+    {
+        Condition? condition = null;
+
+        if (operand.Match != null)
+        {
+            condition = BuildMatchCondition(operand.Match);
+        }
+        else if (operand.Range != null)
+        {
+            condition = BuildRangeCondition(operand.Range);
+        }
+
+        return condition;
+    }
+
+    private Condition? BuildMatchCondition(VectorFilterMatch match)
+    {
+        var fieldCondition = BuildMatchFieldCondition(match);
+        if (fieldCondition == null)
+        {
+            return null;
+        }
+
+        Condition condition;
+        if (match.Operator.IsEqualTo("eq"))
+        {
+            var filter = new Filter()
+            {
+                Must = { new Condition { Field = fieldCondition } }
+            };
+            condition = new Condition { Filter = filter };
+        }
+        else
+        {
+            var filter = new Filter()
+            {
+                MustNot = { new Condition { Field = fieldCondition } }
+            };
+            condition = new Condition { Filter = filter };
+        }
+
+        return condition;
+    }
+
+    private FieldCondition? BuildMatchFieldCondition(VectorFilterMatch match)
+    {
+        if (string.IsNullOrEmpty(match.Key) || match.Value == null)
+        {
+            return null;
+        }
+
+        var fieldCondition = new FieldCondition { Key = match.Key };
+
+        if (match.DataType == VectorPayloadDataType.Boolean
+            && bool.TryParse(match.Value, out var boolVal))
+        {
+            fieldCondition.Match = new Match { Boolean = boolVal };
+        }
+        else if (match.DataType == VectorPayloadDataType.Integer
+            && long.TryParse(match.Value, out var longVal))
+        {
+            fieldCondition.Match = new Match { Integer = longVal };
+        }
+        else
+        {
+            fieldCondition.Match = new Match { Text = match.Value };
+        }
+
+        return fieldCondition;
+    }
+
+    private Condition? BuildRangeCondition(VectorFilterRange range)
+    {
+        var fieldCondition = BuildRangeFieldCondition(range);
+        if (fieldCondition == null)
+        {
+            return null;
+        }
+
+        return new Condition
+        {
+            Field = fieldCondition
+        };
+    }
+
+    private FieldCondition? BuildRangeFieldCondition(VectorFilterRange range)
+    {
+        if (string.IsNullOrEmpty(range.Key) || range.Conditions.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        FieldCondition? fieldCondition = null;
+
+        if (range.DataType == VectorPayloadDataType.Datetime)
+        {
+            fieldCondition = new FieldCondition { Key = range.Key, DatetimeRange = new() };
+
+            foreach (var condition in range.Conditions)
+            {
+                if (!DateTime.TryParse(condition.Value, out var dt))
+                {
+                    continue;
+                }
+
+                var utc = dt.ToUniversalTime();
+                var seconds = new DateTimeOffset(utc).ToUnixTimeSeconds();
+                var nanos = (int)((utc.Ticks % TimeSpan.TicksPerSecond) * 100);
+                var timestamp = new Google.Protobuf.WellKnownTypes.Timestamp { Seconds = seconds, Nanos = nanos };
+
+                switch (condition.Operator.ToLower())
+                {
+                    case "lt":
+                        fieldCondition.DatetimeRange.Lt = timestamp;
+                        break;
+                    case "lte":
+                        fieldCondition.DatetimeRange.Lte = timestamp;
+                        break;
+                    case "gt":
+                        fieldCondition.DatetimeRange.Gt = timestamp;
+                        break;
+                    case "gte":
+                        fieldCondition.DatetimeRange.Gte = timestamp;
+                        break;
+                }
+            }
+        }
+        else if (range.DataType == VectorPayloadDataType.Integer
+            || range.DataType == VectorPayloadDataType.Double)
+        {
+            fieldCondition = new FieldCondition { Key = range.Key, Range = new() };
+
+            foreach (var condition in range.Conditions)
+            {
+                if (!double.TryParse(condition.Value, out var doubleVal))
+                {
+                    continue;
+                }
+
+                switch (condition.Operator.ToLower())
+                {
+                    case "lt":
+                        fieldCondition.Range.Lt = doubleVal;
+                        break;
+                    case "lte":
+                        fieldCondition.Range.Lte = doubleVal;
+                        break;
+                    case "gt":
+                        fieldCondition.Range.Gt = doubleVal;
+                        break;
+                    case "gte":
+                        fieldCondition.Range.Gte = doubleVal;
+                        break;
+                }
+            }
+        }
+
+        return fieldCondition;
     }
 
     private WithPayloadSelector? BuildPayloadSelector(IEnumerable<string>? payloads)
