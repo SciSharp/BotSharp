@@ -523,8 +523,7 @@ public class QdrantDb : IVectorDb
             {
                 var field = new FieldCondition
                 {
-                    Key = f.Key,
-                    Match = new Match { Text = f.Value }
+                    Key = f.Key
                 };
 
                 if (bool.TryParse(f.Value, out var boolVal))
@@ -534,6 +533,10 @@ public class QdrantDb : IVectorDb
                 else if (long.TryParse(f.Value, out var intVal))
                 {
                     field.Match = new Match { Integer = intVal };
+                }
+                else
+                {
+                    field.Match = new Match { Text = f.Value };
                 }
 
                 return new Condition { Field = field };
