@@ -16,7 +16,7 @@ public interface IVectorDb
         => throw new NotImplementedException();
     Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids, VectorQueryOptions? options = null)
         => throw new NotImplementedException();
-    Task<bool> CreateCollection(string collectionName, int dimension)
+    Task<bool> CreateCollection(string collectionName, VectorCollectionCreateOptions options)
         => throw new NotImplementedException();
     Task<bool> DeleteCollection(string collectionName)
         => throw new NotImplementedException();

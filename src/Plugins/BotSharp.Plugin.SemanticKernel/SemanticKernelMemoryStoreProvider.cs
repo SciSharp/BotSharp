@@ -31,7 +31,7 @@ namespace BotSharp.Plugin.SemanticKernel
             return false;
         }
 
-        public async Task<bool> CreateCollection(string collectionName, int dimension)
+        public async Task<bool> CreateCollection(string collectionName, VectorCollectionCreateOptions options)
         {
             await _memoryStore.CreateCollectionAsync(collectionName);
             return true;

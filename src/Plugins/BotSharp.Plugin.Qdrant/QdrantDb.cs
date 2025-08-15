@@ -57,7 +57,7 @@ public class QdrantDb : IVectorDb
         return await client.CollectionExistsAsync(collectionName);
     }
 
-    public async Task<bool> CreateCollection(string collectionName, int dimension)
+    public async Task<bool> CreateCollection(string collectionName, VectorCollectionCreateOptions options)
     {
         var exist = await DoesCollectionExist(collectionName);
 
@@ -69,14 +69,14 @@ public class QdrantDb : IVectorDb
             var client = GetClient();
             await client.CreateCollectionAsync(collectionName, new VectorParams()
             {
-                Size = (ulong)dimension,
+                Size = (ulong)options.Dimension,
                 Distance = Distance.Cosine
             });
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when create collection (Name: {collectionName}, Dimension: {dimension}).");
+            _logger.LogWarning($"Error when create collection (Name: {collectionName}, Dimension: {options.Dimension}).");
             return false;
         }
     }

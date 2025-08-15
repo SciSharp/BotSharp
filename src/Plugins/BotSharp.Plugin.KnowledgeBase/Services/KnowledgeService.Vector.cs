@@ -24,7 +24,7 @@ public partial class KnowledgeService
         return !configs.IsNullOrEmpty();
     }
 
-    public async Task<bool> CreateVectorCollection(string collectionName, string collectionType, int dimension, string provider, string model)
+    public async Task<bool> CreateVectorCollection(string collectionName, string collectionType, VectorCollectionCreateOptions options)
     {
         try
         {
@@ -46,9 +46,9 @@ public partial class KnowledgeService
                     },
                     TextEmbedding = new KnowledgeEmbeddingConfig
                     {
-                        Provider = provider,
-                        Model = model,
-                        Dimension = dimension
+                        Provider = options.Provider,
+                        Model = options.Model,
+                        Dimension = options.Dimension
                     }
                 }
             });
@@ -56,7 +56,7 @@ public partial class KnowledgeService
             if (created)
             {
                 var vectorDb = GetVectorDb();
-                created = await vectorDb.CreateCollection(collectionName, dimension);
+                created = await vectorDb.CreateCollection(collectionName, options);
             }
 
             return created;
@@ -182,7 +182,6 @@ public partial class KnowledgeService
         }
     }
 
-
     public async Task<bool> UpdateVectorCollectionData(string collectionName, VectorUpdateModel update)
     {
         try
@@ -245,7 +244,12 @@ public partial class KnowledgeService
             var textEmbedding = GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(update.Text);
             var payload = update.Payload ?? new();
-            payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(update.DataSource) ? update.DataSource : VectorDataSource.Api;
+
+            if (!payload.TryGetValue(KnowledgePayloadName.DataSource, out _))
+            {
+                payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(update.DataSource) ?
+                                                            update.DataSource : VectorDataSource.Api;
+            }
 
             return await db.Upsert(collectionName, guid, vector, update.Text, payload);
         }
@@ -266,7 +270,7 @@ public partial class KnowledgeService
             }
 
             var db = GetVectorDb();
-            return await db.DeleteCollectionData(collectionName, new List<Guid> { guid });
+            return await db.DeleteCollectionData(collectionName, [guid]);
         }
         catch (Exception ex)
         {

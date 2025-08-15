@@ -17,9 +17,9 @@ public class MemoryVectorDb : IVectorDb
         return false;
     }
 
-    public async Task<bool> CreateCollection(string collectionName, int dimension)
+    public async Task<bool> CreateCollection(string collectionName, VectorCollectionCreateOptions options)
     {
-        _collections[collectionName] = dimension;
+        _collections[collectionName] = options.Dimension;
         _vectors[collectionName] = new List<VecRecord>();
         return true;
     }
