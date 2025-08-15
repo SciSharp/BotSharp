@@ -96,7 +96,6 @@ public class KnowledgeBaseController : ControllerBase
         var create = new VectorCreateModel
         {
             Text = request.Text,
-            DataSource = request.DataSource,
             Payload = request.Payload
         };
 
@@ -124,7 +123,6 @@ public class KnowledgeBaseController : ControllerBase
         {
             Id = request.Id,
             Text = request.Text,
-            DataSource = request.DataSource,
             Payload = request.Payload
         };
 

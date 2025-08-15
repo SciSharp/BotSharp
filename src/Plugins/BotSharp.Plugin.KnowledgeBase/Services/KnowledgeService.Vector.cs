@@ -169,8 +169,7 @@ public partial class KnowledgeService
 
             if (!payload.TryGetValue(KnowledgePayloadName.DataSource, out _))
             {
-                var dataSource = !string.IsNullOrWhiteSpace(create.DataSource) ?  create.DataSource : VectorDataSource.Api;
-                payload[KnowledgePayloadName.DataSource] = VectorPayloadValue.BuildStringValue(dataSource);
+                payload[KnowledgePayloadName.DataSource] = VectorPayloadValue.BuildStringValue(VectorDataSource.Api);
             }
 
             return await db.Upsert(collectionName, guid, vector, create.Text, payload);
@@ -206,8 +205,8 @@ public partial class KnowledgeService
 
             if (!payload.TryGetValue(KnowledgePayloadName.DataSource, out _))
             {
-                var dataSource = !string.IsNullOrWhiteSpace(update.DataSource) ? update.DataSource : VectorDataSource.Api;
-                payload[KnowledgePayloadName.DataSource] = VectorPayloadValue.BuildStringValue(dataSource);
+
+                payload[KnowledgePayloadName.DataSource] = VectorPayloadValue.BuildStringValue(VectorDataSource.Api);
             }
 
             return await db.Upsert(collectionName, guid, vector, update.Text, payload);
@@ -247,8 +246,7 @@ public partial class KnowledgeService
 
             if (!payload.TryGetValue(KnowledgePayloadName.DataSource, out _))
             {
-                var dataSource = !string.IsNullOrWhiteSpace(update.DataSource) ? update.DataSource : VectorDataSource.Api;
-                payload[KnowledgePayloadName.DataSource] = VectorPayloadValue.BuildStringValue(dataSource);
+                payload[KnowledgePayloadName.DataSource] = VectorPayloadValue.BuildStringValue(VectorDataSource.Api);
             }
 
             return await db.Upsert(collectionName, guid, vector, update.Text, payload);
