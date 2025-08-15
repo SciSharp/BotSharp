@@ -45,8 +45,8 @@ public partial class InstructService
 
         // Render prompt
         var prompt = string.IsNullOrEmpty(templateName) ?
-            agentService.RenderedInstruction(agent) :
-            agentService.RenderedTemplate(agent, templateName);
+            agentService.RenderInstruction(agent) :
+            agentService.RenderTemplate(agent, templateName);
 
         var completer = CompletionProvider.GetCompletion(_services,
             agentConfig: agent.LlmConfig);

@@ -31,6 +31,9 @@ public partial class MongoRepository
             case AgentField.RoutingMode:
                 UpdateAgentRoutingMode(agent.Id, agent.Mode);
                 break;
+            case AgentField.FuncVisMode:
+                UpdateAgentFuncVisMode(agent.Id, agent.FuncVisMode);
+                break;
             case AgentField.InheritAgentId:
                 UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
                 break;
@@ -144,6 +147,16 @@ public partial class MongoRepository
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
             .Set(x => x.Mode, mode)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentFuncVisMode(string agentId, string? visMode)
+    {
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var update = Builders<AgentDocument>.Update
+            .Set(x => x.FunctionVisibilityMode, visMode)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.Agents.UpdateOne(filter, update);
@@ -349,6 +362,7 @@ public partial class MongoRepository
             .Set(x => x.MergeUtility, agent.MergeUtility)
             .Set(x => x.Type, agent.Type)
             .Set(x => x.Mode, agent.Mode)
+            .Set(x => x.FunctionVisibilityMode, agent.FuncVisMode)
             .Set(x => x.MaxMessageCount, agent.MaxMessageCount)
             .Set(x => x.Profiles, agent.Profiles)
             .Set(x => x.Labels, agent.Labels)
@@ -529,6 +543,7 @@ public partial class MongoRepository
             IsPublic = x.IsPublic,
             Type = x.Type,
             Mode = x.Mode,
+            FunctionVisibilityMode = x.FuncVisMode,
             InheritAgentId = x.InheritAgentId,
             Disabled = x.Disabled,
             MergeUtility = x.MergeUtility,
@@ -627,6 +642,7 @@ public partial class MongoRepository
             MergeUtility = agentDoc.MergeUtility,
             Type = agentDoc.Type,
             Mode = agentDoc.Mode,
+            FuncVisMode = agentDoc.FunctionVisibilityMode,
             InheritAgentId = agentDoc.InheritAgentId,
             Profiles = agentDoc.Profiles ?? [],
             Labels = agentDoc.Labels ?? [],

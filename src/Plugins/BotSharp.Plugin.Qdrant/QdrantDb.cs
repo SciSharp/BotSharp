@@ -1,8 +1,7 @@
-using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Utilities;
-using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.Plugin.Qdrant.Models;
+using Google.Protobuf.Collections;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qdrant.Client;
@@ -57,7 +56,7 @@ public class QdrantDb : IVectorDb
         return await client.CollectionExistsAsync(collectionName);
     }
 
-    public async Task<bool> CreateCollection(string collectionName, int dimension)
+    public async Task<bool> CreateCollection(string collectionName, VectorCollectionCreateOptions options)
     {
         var exist = await DoesCollectionExist(collectionName);
 
@@ -69,14 +68,14 @@ public class QdrantDb : IVectorDb
             var client = GetClient();
             await client.CreateCollectionAsync(collectionName, new VectorParams()
             {
-                Size = (ulong)dimension,
+                Size = (ulong)options.Dimension,
                 Distance = Distance.Cosine
             });
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when create collection (Name: {collectionName}, Dimension: {dimension}).");
+            _logger.LogWarning($"Error when create collection (Name: {collectionName}, Dimension: {options.Dimension}).");
             return false;
         }
     }
@@ -110,6 +109,13 @@ public class QdrantDb : IVectorDb
 
         if (details == null) return null;
 
+        var payloadSchema = details.PayloadSchema?.Select(x => new PayloadSchemaDetail
+        {
+            FieldName = x.Key,
+            FieldDataType = x.Value.DataType.ToString().ToLowerInvariant(),
+            DataCount = x.Value.Points
+        })?.ToList() ?? [];
+
         return new VectorCollectionDetails
         {
             Status = details.Status.ToString(),
@@ -128,7 +134,8 @@ public class QdrantDb : IVectorDb
             },
             VectorsCount = details.VectorsCount,
             IndexedVectorsCount = details.IndexedVectorsCount,
-            PointsCount = details.PointsCount
+            PointsCount = details.PointsCount,
+            PayloadSchema = payloadSchema
         };
     }
     #endregion
@@ -166,14 +173,7 @@ public class QdrantDb : IVectorDb
         var points = response?.Result?.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
-            Data = x.Payload.ToDictionary(p => p.Key, p => p.Value.KindCase switch
-            {
-                Value.KindOneofCase.StringValue => p.Value.StringValue,
-                Value.KindOneofCase.BoolValue => p.Value.BoolValue,
-                Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
-                Value.KindOneofCase.DoubleValue => p.Value.DoubleValue,
-                _ => new object()
-            }),
+            Data = MapPayload(x.Payload),
             Vector = filter.WithVector ? x.Vectors?.Vector?.Data?.ToArray() : null
         })?.ToList() ?? new List<VectorCollectionData>();
 
@@ -205,19 +205,12 @@ public class QdrantDb : IVectorDb
         return points.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
-            Data = x.Payload?.ToDictionary(p => p.Key, p => p.Value.KindCase switch 
-            { 
-                Value.KindOneofCase.StringValue => p.Value.StringValue,
-                Value.KindOneofCase.BoolValue => p.Value.BoolValue,
-                Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
-                Value.KindOneofCase.DoubleValue => p.Value.DoubleValue,
-                _ => new object()
-            }) ?? new(),
+            Data = MapPayload(x.Payload),
             Vector = x.Vectors?.Vector?.Data?.ToArray()
         });
     }
 
-    public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, object>? payload = null)
+    public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, VectorPayloadValue>? payload = null)
     {
         // Insert vectors
         var point = new PointStruct()
@@ -237,47 +230,31 @@ public class QdrantDb : IVectorDb
         {
             foreach (var item in payload)
             {
-                var value = item.Value?.ToString();
+                var value = item.Value.DataValue?.ToString();
                 if (value == null || item.Key.IsEqualTo(KnowledgePayloadName.Text))
                 {
                     continue;
                 }
 
-                if (bool.TryParse(value, out var b))
+                switch (item.Value.DataType)
                 {
-                    point.Payload[item.Key] = b;
-                }
-                else if (byte.TryParse(value, out var int8))
-                {
-                    point.Payload[item.Key] = int8;
-                }
-                else if (short.TryParse(value, out var int16))
-                {
-                    point.Payload[item.Key] = int16;
-                }
-                else if (int.TryParse(value, out var int32))
-                {
-                    point.Payload[item.Key] = int32;
-                }
-                else if (long.TryParse(value, out var int64))
-                {
-                    point.Payload[item.Key] = int64;
-                }
-                else if (float.TryParse(value, out var f32))
-                {
-                    point.Payload[item.Key] = f32;
-                }
-                else if (double.TryParse(value, out var f64))
-                {
-                    point.Payload[item.Key] = f64;
-                }
-                else if (DateTime.TryParse(value, out var dt))
-                {
-                    point.Payload[item.Key] = dt.ToUniversalTime().ToString("o");
-                }
-                else
-                {
-                    point.Payload[item.Key] = value;
+                    case VectorPayloadDataType.Boolean when bool.TryParse(value, out var boolVal):
+                        point.Payload[item.Key] = boolVal;
+                        break;
+                    case VectorPayloadDataType.Integer when long.TryParse(value, out var longVal):
+                        point.Payload[item.Key] = longVal;
+                        break;
+                    case VectorPayloadDataType.Double when double.TryParse(value, out var doubleVal):
+                        point.Payload[item.Key] = doubleVal;
+                        break;
+                    case VectorPayloadDataType.Datetime when DateTime.TryParse(value, out var dt):
+                        point.Payload[item.Key] = dt.ToUniversalTime().ToString("o");
+                        break;
+                    case VectorPayloadDataType.String:
+                        point.Payload[item.Key] = value;
+                        break;
+                    default:
+                        break;
                 }
             }
         }
@@ -317,14 +294,7 @@ public class QdrantDb : IVectorDb
         results = points.Select(x => new VectorCollectionData
         {
             Id = x.Id.Uuid,
-            Data = x.Payload.ToDictionary(p => p.Key, p => p.Value.KindCase switch
-            {
-                Value.KindOneofCase.StringValue => p.Value.StringValue,
-                Value.KindOneofCase.BoolValue => p.Value.BoolValue,
-                Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
-                Value.KindOneofCase.DoubleValue => p.Value.DoubleValue,
-                _ => new object()
-            }),
+            Data = MapPayload(x.Payload),
             Score = x.Score,
             Vector = x.Vectors?.Vector?.Data?.ToArray()
         }).ToList();
@@ -539,66 +509,279 @@ public class QdrantDb : IVectorDb
     #region Private methods
     private Filter? BuildQueryFilter(IEnumerable<VectorFilterGroup>? filterGroups)
     {
-        Filter? queryFilter = null;
-
         if (filterGroups.IsNullOrEmpty())
         {
-            return queryFilter;
+            return null;
         }
 
-        var conditions = filterGroups.Where(x => !x.Filters.IsNullOrEmpty()).Select(x =>
+        var groupConditions = filterGroups.Select(x => BuildFilterGroupCondition(x))
+                                          .Where(c => c != null)
+                                          .ToList();
+
+        if (groupConditions.IsNullOrEmpty())
         {
-            Filter filter;
-            var innerConditions = x.Filters.Select(f =>
-            {
-                var field = new FieldCondition
-                {
-                    Key = f.Key,
-                    Match = new Match { Text = f.Value }
-                };
+            return null;
+        }
 
-                if (bool.TryParse(f.Value, out var boolVal))
-                {
-                    field.Match = new Match { Boolean = boolVal };
-                }
-                else if (long.TryParse(f.Value, out var intVal))
-                {
-                    field.Match = new Match { Integer = intVal };
-                }
-
-                return new Condition { Field = field };
-            });
-
-            if (x.FilterOperator.IsEqualTo("and"))
-            {
-                filter = new Filter
-                {
-                    Must = { innerConditions }
-                };
-            }
-            else
-            {
-                filter = new Filter
-                {
-                    Should = { innerConditions }
-                };
-            }
-
-            return new Condition
-            {
-                Filter = filter
-            };
-        });
-
-        queryFilter = new Filter
+        // If there's only one group, return it directly to avoid unnecessary nesting
+        if (groupConditions.Count == 1 && groupConditions[0].Filter != null)
         {
-            Must =
-            {
-                conditions
-            }
+            return groupConditions[0].Filter;
+        }
+
+        // Multiple groups are combined with AND by default
+        // This follows Qdrant's convention where multiple top-level conditions are ANDed
+        return new Filter
+        {
+            Must = { groupConditions }
         };
+    }
 
-        return queryFilter;
+    private Condition? BuildFilterGroupCondition(VectorFilterGroup group)
+    {
+        if (group.Filters.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        var subGroupConditions = group.Filters
+                                      .Select(x => BuildSubGroupCondition(x))
+                                      .Where(c => c != null)
+                                      .ToList();
+
+        if (subGroupConditions.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        // If there's only one subgroup, return it directly
+        if (subGroupConditions.Count == 1 && subGroupConditions[0].Filter != null)
+        {
+            return subGroupConditions[0];
+        }
+
+        // Apply the group operator to combine subgroups
+        var filter = new Filter();
+        if (group.LogicalOperator.IsEqualTo("and"))
+        {
+            filter = new Filter
+            {
+                Must = { subGroupConditions }
+            };
+        }
+        else // "or"
+        {
+            filter = new Filter
+            {
+                Should = { subGroupConditions }
+            };
+        }
+
+        return new Condition { Filter = filter };
+    }
+
+    private Condition? BuildSubGroupCondition(VectorFilterSubGroup subGroup)
+    {
+        if (subGroup.Operands.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        var operandConditions = subGroup.Operands
+                                        .Select(x => BuildOperandCondition(x))
+                                        .Where(c => c != null)
+                                        .ToList();
+
+        if (operandConditions.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        // If there's only one operand, return it directly
+        if (operandConditions.Count == 1 && operandConditions[0].Filter != null)
+        {
+            return operandConditions[0];
+        }
+
+        // Apply the subgroup operator to combine operands
+        var filter = new Filter();
+        if (subGroup.LogicalOperator.IsEqualTo("and"))
+        {
+            filter = new Filter
+            {
+                Must = { operandConditions }
+            };
+        }
+        else // "or"
+        {
+            filter = new Filter
+            {
+                Should = { operandConditions }
+            };
+        }
+
+        return new Condition { Filter = filter };
+    }
+
+    private Condition? BuildOperandCondition(VectorFilterOperand operand)
+    {
+        Condition? condition = null;
+
+        if (operand.Match != null)
+        {
+            condition = BuildMatchCondition(operand.Match);
+        }
+        else if (operand.Range != null)
+        {
+            condition = BuildRangeCondition(operand.Range);
+        }
+
+        return condition;
+    }
+
+    private Condition? BuildMatchCondition(VectorFilterMatch match)
+    {
+        var fieldCondition = BuildMatchFieldCondition(match);
+        if (fieldCondition == null)
+        {
+            return null;
+        }
+
+        Condition condition;
+        if (match.Operator.IsEqualTo("eq"))
+        {
+            var filter = new Filter()
+            {
+                Must = { new Condition { Field = fieldCondition } }
+            };
+            condition = new Condition { Filter = filter };
+        }
+        else
+        {
+            var filter = new Filter()
+            {
+                MustNot = { new Condition { Field = fieldCondition } }
+            };
+            condition = new Condition { Filter = filter };
+        }
+
+        return condition;
+    }
+
+    private FieldCondition? BuildMatchFieldCondition(VectorFilterMatch match)
+    {
+        if (string.IsNullOrEmpty(match.Key) || match.Value == null)
+        {
+            return null;
+        }
+
+        var fieldCondition = new FieldCondition { Key = match.Key };
+
+        if (match.DataType == VectorPayloadDataType.Boolean
+            && bool.TryParse(match.Value, out var boolVal))
+        {
+            fieldCondition.Match = new Match { Boolean = boolVal };
+        }
+        else if (match.DataType == VectorPayloadDataType.Integer
+            && long.TryParse(match.Value, out var longVal))
+        {
+            fieldCondition.Match = new Match { Integer = longVal };
+        }
+        else
+        {
+            fieldCondition.Match = new Match { Text = match.Value };
+        }
+
+        return fieldCondition;
+    }
+
+    private Condition? BuildRangeCondition(VectorFilterRange range)
+    {
+        var fieldCondition = BuildRangeFieldCondition(range);
+        if (fieldCondition == null)
+        {
+            return null;
+        }
+
+        return new Condition
+        {
+            Field = fieldCondition
+        };
+    }
+
+    private FieldCondition? BuildRangeFieldCondition(VectorFilterRange range)
+    {
+        if (string.IsNullOrEmpty(range.Key) || range.Conditions.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        FieldCondition? fieldCondition = null;
+
+        if (range.DataType == VectorPayloadDataType.Datetime)
+        {
+            fieldCondition = new FieldCondition { Key = range.Key, DatetimeRange = new() };
+
+            foreach (var condition in range.Conditions)
+            {
+                if (!DateTime.TryParse(condition.Value, out var dt))
+                {
+                    continue;
+                }
+
+                var utc = dt.ToUniversalTime();
+                var seconds = new DateTimeOffset(utc).ToUnixTimeSeconds();
+                var nanos = (int)((utc.Ticks % TimeSpan.TicksPerSecond) * 100);
+                var timestamp = new Google.Protobuf.WellKnownTypes.Timestamp { Seconds = seconds, Nanos = nanos };
+
+                switch (condition.Operator.ToLower())
+                {
+                    case "lt":
+                        fieldCondition.DatetimeRange.Lt = timestamp;
+                        break;
+                    case "lte":
+                        fieldCondition.DatetimeRange.Lte = timestamp;
+                        break;
+                    case "gt":
+                        fieldCondition.DatetimeRange.Gt = timestamp;
+                        break;
+                    case "gte":
+                        fieldCondition.DatetimeRange.Gte = timestamp;
+                        break;
+                }
+            }
+        }
+        else if (range.DataType == VectorPayloadDataType.Integer
+            || range.DataType == VectorPayloadDataType.Double)
+        {
+            fieldCondition = new FieldCondition { Key = range.Key, Range = new() };
+
+            foreach (var condition in range.Conditions)
+            {
+                if (!double.TryParse(condition.Value, out var doubleVal))
+                {
+                    continue;
+                }
+
+                switch (condition.Operator.ToLower())
+                {
+                    case "lt":
+                        fieldCondition.Range.Lt = doubleVal;
+                        break;
+                    case "lte":
+                        fieldCondition.Range.Lte = doubleVal;
+                        break;
+                    case "gt":
+                        fieldCondition.Range.Gt = doubleVal;
+                        break;
+                    case "gte":
+                        fieldCondition.Range.Gte = doubleVal;
+                        break;
+                }
+            }
+        }
+
+        return fieldCondition;
     }
 
     private WithPayloadSelector? BuildPayloadSelector(IEnumerable<string>? payloads)
@@ -651,6 +834,7 @@ public class QdrantDb : IVectorDb
                 res = PayloadSchemaType.Float;
                 break;
             case "bool":
+            case "boolean":
                 res = PayloadSchemaType.Bool;
                 break;
             case "geo":
@@ -668,6 +852,18 @@ public class QdrantDb : IVectorDb
         }
 
         return res;
+    }
+
+    private Dictionary<string, VectorPayloadValue> MapPayload(MapField<string, Value>? payload)
+    {
+        return payload?.ToDictionary(p => p.Key, p => p.Value.KindCase switch
+        {
+            Value.KindOneofCase.StringValue => VectorPayloadValue.BuildStringValue(p.Value.StringValue),
+            Value.KindOneofCase.BoolValue => VectorPayloadValue.BuildBooleanValue(p.Value.BoolValue),
+            Value.KindOneofCase.IntegerValue => VectorPayloadValue.BuildIntegerValue(p.Value.IntegerValue),
+            Value.KindOneofCase.DoubleValue => VectorPayloadValue.BuildDoubleValue(p.Value.DoubleValue),
+            _ => VectorPayloadValue.BuildUnkownValue(string.Empty)
+        }) ?? [];
     }
     #endregion
 }

@@ -21,6 +21,13 @@ public class Agent
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Mode { get; set; }
 
+    /// <summary>
+    /// Function Visibility Mode: Manual or Auto
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("functionVisibilityMode")]
+    public string? FuncVisMode { get; set; }
+
     public DateTime CreatedDateTime { get; set; }
     public DateTime UpdatedDateTime { get; set; }
 
@@ -293,6 +300,12 @@ public class Agent
     public Agent SetRoutingMode(string? mode)
     {
         Mode = mode;
+        return this;
+    }
+
+    public Agent SetFuncVisMode(string? visMode)
+    {
+        FuncVisMode = visMode;
         return this;
     }
 

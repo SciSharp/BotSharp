@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.VectorStorage.Enums;
 using System.Linq;
 using Tensorflow.NumPy;
 
@@ -17,9 +18,9 @@ public class MemoryVectorDb : IVectorDb
         return false;
     }
 
-    public async Task<bool> CreateCollection(string collectionName, int dimension)
+    public async Task<bool> CreateCollection(string collectionName, VectorCollectionCreateOptions options)
     {
-        _collections[collectionName] = dimension;
+        _collections[collectionName] = options.Dimension;
         _vectors[collectionName] = new List<VecRecord>();
         return true;
     }
@@ -59,7 +60,10 @@ public class MemoryVectorDb : IVectorDb
                         .Take(options.Limit.GetValueOrDefault())
                         .Select(i => new VectorCollectionData
                         {
-                            Data = new Dictionary<string, object> { { "text", _vectors[collectionName][i].Text } },
+                            Data = new Dictionary<string, VectorPayloadValue>
+                            {
+                                { "text", new(_vectors[collectionName][i].Text, VectorPayloadDataType.String) }
+                            },
                             Score = similarities[i],
                             Vector = options.WithVector ? _vectors[collectionName][i].Vector : null,
                         })
@@ -68,7 +72,7 @@ public class MemoryVectorDb : IVectorDb
         return await Task.FromResult(results);
     }
 
-    public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, object>? payload = null)
+    public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, VectorPayloadValue>? payload = null)
     {
         _vectors[collectionName].Add(new VecRecord
         {

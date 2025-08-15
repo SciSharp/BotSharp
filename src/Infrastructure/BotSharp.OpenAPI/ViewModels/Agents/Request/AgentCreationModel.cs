@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing.Enums;
+using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
 
@@ -14,6 +14,12 @@ public class AgentCreationModel
     /// Agent routing mode
     /// </summary>
     public string? Mode { get; set; }
+
+    /// <summary>
+    /// Agent function visibility mode
+    /// </summary>
+    [JsonPropertyName("function_visibility_mode")]
+    public string? FuncVisMode { get; set; }
 
     /// <summary>
     /// LLM default system instructions
@@ -74,6 +80,7 @@ public class AgentCreationModel
             Name = Name,
             Type = Type,
             Mode = Mode,
+            FuncVisMode = FuncVisMode,
             Disabled = Disabled,
             IsPublic = IsPublic,
             Description = Description,

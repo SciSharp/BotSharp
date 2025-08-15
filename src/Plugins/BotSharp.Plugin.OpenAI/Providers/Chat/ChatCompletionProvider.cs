@@ -321,7 +321,15 @@ public class ChatCompletionProvider : IChatCompletion
         var messages = new List<ChatMessage>();
         var options = InitChatCompletionOption(agent);
 
-        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        // Prepare instruction and functions
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(instruction))
+        {
+            renderedInstructions.Add(instruction);
+            messages.Add(new SystemChatMessage(instruction));
+        }
+
+        // Render functions
         foreach (var function in functions)
         {
             if (!agentService.RenderFunction(agent, function)) continue;
@@ -332,13 +340,6 @@ public class ChatCompletionProvider : IChatCompletion
                 functionName: function.Name,
                 functionDescription: function.Description,
                 functionParameters: BinaryData.FromObjectAsJson(property)));
-        }
-
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
-        {
-            var text = agentService.RenderedInstruction(agent);
-            renderedInstructions.Add(text);
-            messages.Add(new SystemChatMessage(text));
         }
 
         if (!string.IsNullOrEmpty(agent.Knowledges))

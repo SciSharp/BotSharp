@@ -15,6 +15,11 @@ public class AgentViewModel
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Mode { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("function_visibility_mode")]
+    public string? FuncVisMode { get; set; }
+
     public string Instruction { get; set; }
 
     [JsonPropertyName("channel_instructions")]
@@ -86,6 +91,7 @@ public class AgentViewModel
             Description = agent.Description,
             Type = agent.Type,
             Mode = agent.Mode,
+            FuncVisMode = agent.FuncVisMode,
             Instruction = agent.Instruction,
             ChannelInstructions = agent.ChannelInstructions ?? [],
             Templates = agent.Templates ?? [],

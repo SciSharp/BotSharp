@@ -54,7 +54,7 @@ namespace BotSharp.Plugin.SemanticKernel
             var completion = this._kernelChatCompletion;
 
             var agentService = _services.GetRequiredService<IAgentService>();
-            var instruction = agentService.RenderedInstruction(agent);
+            var instruction = agentService.RenderInstruction(agent);
 
             ChatHistory chatHistory = new ChatHistory(instruction);
 
@@ -70,8 +70,8 @@ namespace BotSharp.Plugin.SemanticKernel
                 }
             }
 
-            var ChatMessage = await completion.GetChatMessageContentsAsync(chatHistory);
-            var chatMessageContent =  ChatMessage?.FirstOrDefault();
+            var contents = await completion.GetChatMessageContentsAsync(chatHistory);
+            var chatMessageContent = contents?.FirstOrDefault();
             var response = chatMessageContent != null ? chatMessageContent.Content :string.Empty;
             var msg = new RoleDialogModel(AgentRole.Assistant, response)
             {

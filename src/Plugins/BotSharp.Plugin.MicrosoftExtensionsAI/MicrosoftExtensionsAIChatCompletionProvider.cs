@@ -1,21 +1,23 @@
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Agents;
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Utilities;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Plugin.MicrosoftExtensionsAI;
 
@@ -66,26 +68,25 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
             MaxOutputTokens = int.Parse(state.GetState("max_tokens", "1024"))
         };
 
-        if (_services.GetService<IAgentService>() is { } agentService)
-        {
-            foreach (var function in agent.Functions)
-            {
-                if (agentService.RenderFunction(agent, function))
-                {
-                    var property = agentService.RenderFunctionProperty(agent, function);
-                    (options.Tools ??= []).Add(new NopAIFunction(function.Name, function.Description, JsonSerializer.SerializeToElement(property)));
-                }
-            }
-        }
-
         // Configure messages
         List<ChatMessage> messages = [];
+        var agentService = _services.GetRequiredService<IAgentService>();
 
-        if (_services.GetRequiredService<IAgentService>().RenderedInstruction(agent) is string instruction &&
-            instruction.Length > 0)
+        // Prepare instruction and functions
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(instruction))
         {
             renderedInstructions.Add(instruction);
             messages.Add(new(ChatRole.System, instruction));
+        }
+
+        foreach (var function in functions)
+        {
+            if (agentService.RenderFunction(agent, function))
+            {
+                var property = agentService.RenderFunctionProperty(agent, function);
+                (options.Tools ??= []).Add(new NopAIFunction(function.Name, function.Description, JsonSerializer.SerializeToElement(property)));
+            }
         }
 
         if (!string.IsNullOrEmpty(agent.Knowledges))

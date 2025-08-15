@@ -45,7 +45,13 @@ public class KnowledgeBaseController : ControllerBase
     [HttpPost("knowledge/vector/create-collection")]
     public async Task<bool> CreateVectorCollection([FromBody] CreateVectorCollectionRequest request)
     {
-        return await _knowledgeService.CreateVectorCollection(request.CollectionName, request.CollectionType, request.Dimension, request.Provider, request.Model);
+        var options = new VectorCollectionCreateOptions
+        {
+            Provider = request.Provider,
+            Model = request.Model,
+            Dimension = request.Dimension
+        };
+        return await _knowledgeService.CreateVectorCollection(request.CollectionName, request.CollectionType, options);
     }
 
     [HttpDelete("knowledge/vector/{collection}/delete-collection")]
@@ -90,7 +96,6 @@ public class KnowledgeBaseController : ControllerBase
         var create = new VectorCreateModel
         {
             Text = request.Text,
-            DataSource = request.DataSource,
             Payload = request.Payload
         };
 
@@ -118,7 +123,6 @@ public class KnowledgeBaseController : ControllerBase
         {
             Id = request.Id,
             Text = request.Text,
-            DataSource = request.DataSource,
             Payload = request.Payload
         };
 

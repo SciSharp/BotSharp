@@ -100,7 +100,7 @@ public class ChatCompletionProvider : IChatCompletion
         content += $"\r\n{AgentRole.Assistant}: ";
 
         var agentService = _services.GetRequiredService<IAgentService>();
-        var instruction = agentService.RenderedInstruction(agent);
+        var instruction = agentService.RenderInstruction(agent);
         var prompt = instruction + "\r\n" + content;
 
         var api = _services.GetRequiredService<IInferenceApi>();

@@ -104,16 +104,14 @@ public class ChatCompletionProvider : IChatCompletion
     private (string, MessageParameters) PrepareOptions(Agent agent, List<RoleDialogModel> conversations,
         LlmModelSetting settings)
     {
-        var instruction = "";
+        var agentService = _services.GetRequiredService<IAgentService>();
         renderedInstructions = [];
 
-        var agentService = _services.GetRequiredService<IAgentService>();
-
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
+        // Prepare instruction and functions
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(instruction))
         {
-            var text = agentService.RenderedInstruction(agent);
-            instruction += text;
-            renderedInstructions.Add(text);
+            renderedInstructions.Add(instruction);
         }
 
         /*var routing = _services.GetRequiredService<IRoutingService>();
@@ -211,7 +209,6 @@ public class ChatCompletionProvider : IChatCompletion
             ReferenceHandler = ReferenceHandler.IgnoreCycles,
         };
 
-        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
         foreach (var fn in functions)
         {
             /*var inputschema = new InputSchema()

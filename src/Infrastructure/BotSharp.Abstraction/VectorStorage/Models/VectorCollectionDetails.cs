@@ -25,6 +25,9 @@ public class VectorCollectionDetails
 
     [JsonPropertyName("basic_info")]
     public VectorCollectionConfig? BasicInfo { get; set; }
+
+    [JsonPropertyName("payload_schema")]
+    public List<PayloadSchemaDetail> PayloadSchema { get; set; } = [];
 }
 
 public class VectorCollectionDetailConfig
@@ -48,4 +51,21 @@ public class VectorCollectionDetailConfigParam
 
     [JsonPropertyName("read_fan_out_factor")]
     public uint? ReadFanOutFactor { get; set; }
+}
+
+public class PayloadSchemaDetail
+{
+    [JsonPropertyName("field_name")]
+    public string FieldName { get; set; } = null!;
+
+    [JsonPropertyName("field_data_type")]
+    public string FieldDataType { get; set; } = null!;
+
+    [JsonPropertyName("data_count")]
+    public ulong DataCount { get; set; }
+
+    public override string ToString()
+    {
+        return $"{FieldName} ({FieldDataType})";
+    }
 }

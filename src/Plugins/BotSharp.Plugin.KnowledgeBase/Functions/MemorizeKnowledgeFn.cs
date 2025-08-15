@@ -26,9 +26,9 @@ public class MemorizeKnowledgeFn : IFunctionCallback
         var result = await knowledgeService.CreateVectorCollectionData(collectionName, new VectorCreateModel
         {
             Text = args.Question,
-            Payload = new Dictionary<string, object>
+            Payload = new Dictionary<string, VectorPayloadValue>
             {
-                { KnowledgePayloadName.Answer, args.Answer }
+                { KnowledgePayloadName.Answer, VectorPayloadValue.BuildStringValue(args.Answer) }
             }
         });
 

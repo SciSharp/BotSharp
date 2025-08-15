@@ -56,7 +56,7 @@ public class CrontabService : ICrontabService, ITaskFeeder
                 continue;
             }
             var item = source.GetCrontabItem();
-            fixedCrantabItems.Add(source.GetCrontabItem());
+            fixedCrantabItems.Add(item);
         }
 
         return fixedCrantabItems;

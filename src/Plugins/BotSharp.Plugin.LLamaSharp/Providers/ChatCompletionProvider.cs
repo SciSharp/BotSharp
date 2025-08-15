@@ -58,7 +58,7 @@ public class ChatCompletionProvider : IChatCompletion
         string totalResponse = "";
 
         var agentService = _services.GetRequiredService<IAgentService>();
-        var instruction = agentService.RenderedInstruction(agent);
+        var instruction = agentService.RenderInstruction(agent);
         var prompt = instruction + "\r\n" + content;
 
         await foreach(var text in Spinner(executor.InferAsync(prompt, inferenceParams)))

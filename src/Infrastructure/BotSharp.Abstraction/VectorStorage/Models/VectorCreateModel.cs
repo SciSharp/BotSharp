@@ -5,6 +5,5 @@ namespace BotSharp.Abstraction.VectorStorage.Models;
 public class VectorCreateModel
 {
     public string Text { get; set; }
-    public string DataSource { get; set; } = VectorDataSource.Api;
-    public Dictionary<string, object>? Payload { get; set; }
+    public Dictionary<string, VectorPayloadValue>? Payload { get; set; }
 }
