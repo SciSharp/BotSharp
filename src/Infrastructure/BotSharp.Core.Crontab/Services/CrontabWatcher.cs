@@ -45,6 +45,7 @@ public class CrontabWatcher : BackgroundService
     {
         var cron = services.GetRequiredService<ICrontabService>();
         var crons = await cron.GetCrontable();
+        var settings = services.GetRequiredService<CrontabSettings>();
         var publisher = services.GetService<IEventPublisher>();
 
         foreach (var item in crons)
@@ -87,7 +88,7 @@ public class CrontabWatcher : BackgroundService
                 {
                     _logger.LogInformation($"The current time matches the cron expression {item}");
 
-                    if (publisher != null)
+                    if (publisher != null && settings.EventSubscriber.Enabled)
                     {
                         await publisher.PublishAsync($"Crontab:{item.Title}", item.Cron);
                     }
