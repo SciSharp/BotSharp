@@ -125,7 +125,6 @@ public static class BotSharpCoreExtensions
     {
         var pluginSettings = new PluginSettings();
         config.Bind("PluginLoader", pluginSettings);
-        var excludedFunctions = pluginSettings.ExcludedFunctions ?? [];
 
         services.AddScoped(provider =>
         {
@@ -143,8 +142,7 @@ public static class BotSharpCoreExtensions
             // Register function callback
             var functions = assembly.GetTypes()
                 .Where(x => x.IsClass
-                        && x.GetInterface(nameof(IFunctionCallback)) != null
-                        && !excludedFunctions.Contains(x.Name))
+                        && x.GetInterface(nameof(IFunctionCallback)) != null)
                 .ToArray();
 
             foreach (var function in functions)

@@ -99,7 +99,18 @@ public class RealtimeHub : IRealtimeHub
                                 agent.Id);
                         }
 
-                        await routing.InvokeFunction(message.FunctionName, message, from: InvokeSource.Llm);
+                        await routing.InvokeFunction(message.FunctionName, message, options: new() { From = InvokeSource.Llm });
+
+                        var hooks = _services.GetHooks<IRealtimeHook>(_conn.CurrentAgentId);
+                        foreach (var hook in hooks)
+                        {
+                            if (await hook.ShouldReconnect(_conn, message))
+                            {
+                                await _completer.Reconnect(_conn);
+                                _logger.LogWarning("Reconnecting to model due to function call: {FunctionName}", message.FunctionName);
+                                break;
+                            }
+                        }
                     }
                     else
                     {
@@ -116,19 +127,6 @@ public class RealtimeHub : IRealtimeHub
                             await hook.OnResponseGenerated(message);
                         }
                     }
-                }
-
-                var isReconnect = false;
-                var realtimeHooks = _services.GetHooks<IRealtimeHook>(_conn.CurrentAgentId);
-                foreach (var hook in realtimeHooks)
-                {
-                    isReconnect = await hook.ShouldReconnect(_conn);
-                    if (isReconnect) break;
-                }
-
-                if (isReconnect)
-                {
-                    await _completer.Reconnect(_conn);
                 }
             },
             onConversationItemCreated: async response =>

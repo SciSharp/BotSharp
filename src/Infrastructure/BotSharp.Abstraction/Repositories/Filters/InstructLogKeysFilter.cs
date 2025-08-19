@@ -8,6 +8,8 @@ public class InstructLogKeysFilter
     public bool PreLoad { get; set; }
     public List<string>? AgentIds { get; set; }
     public List<string>? UserIds { get; set; }
+    public DateTime? StartTime { get; set; }
+    public DateTime? EndTime { get; set; }
 
     public InstructLogKeysFilter()
     {

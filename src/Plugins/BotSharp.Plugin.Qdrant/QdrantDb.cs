@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage.Models;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
+using System.Collections;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text.Json;
@@ -140,49 +142,26 @@ public class QdrantDb : IVectorDb
             return new StringIdPagedItems<VectorCollectionData>();
         }
 
-        // Build query filter
-        Filter? queryFilter = null;
-        if (!filter.SearchPairs.IsNullOrEmpty())
-        {
-            var conditions = filter.SearchPairs.Select(x => new Condition
-            {
-                Field = new FieldCondition
-                {
-                    Key = x.Key,
-                    Match = new Match { Text = x.Value },
-                }
-            });
-
-            queryFilter = new Filter
-            {
-                Should =
-                {
-                    conditions
-                }
-            };
-        }
-
-        // Build payload selector
-        WithPayloadSelector? payloadSelector = null;
-        if (!filter.IncludedPayloads.IsNullOrEmpty())
-        {
-            payloadSelector = new WithPayloadSelector
-            { 
-                Enable = true,
-                Include = new PayloadIncludeSelector
-                {
-                    Fields = { filter.IncludedPayloads.ToArray() }
-                }
-            };
-        }
+        Filter? queryFilter = BuildQueryFilter(filter.FilterGroups);
+        WithPayloadSelector? payloadSelector = BuildPayloadSelector(filter.Fields);
+        OrderBy? orderBy = BuildOrderBy(filter.OrderBy);
 
         var client = GetClient();
-        var totalPointCount = await client.CountAsync(collectionName, filter: queryFilter);
-        var response = await client.ScrollAsync(collectionName, limit: (uint)filter.Size, 
+
+        var totalCountTask = client.CountAsync(collectionName, filter: queryFilter);
+        var dataResponseTask = client.ScrollAsync(
+            collectionName,
+            limit: (uint)filter.Size,
             offset: !string.IsNullOrWhiteSpace(filter.StartId) ? new PointId { Uuid = filter.StartId } : null,
             filter: queryFilter,
+            orderBy: orderBy,
             payloadSelector: payloadSelector,
             vectorsSelector: filter.WithVector);
+
+        await Task.WhenAll([totalCountTask, dataResponseTask]);
+
+        var totalPointCount = totalCountTask.Result;
+        var response = dataResponseTask.Result;
 
         var points = response?.Result?.Select(x => new VectorCollectionData
         {
@@ -192,6 +171,7 @@ public class QdrantDb : IVectorDb
                 Value.KindOneofCase.StringValue => p.Value.StringValue,
                 Value.KindOneofCase.BoolValue => p.Value.BoolValue,
                 Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
+                Value.KindOneofCase.DoubleValue => p.Value.DoubleValue,
                 _ => new object()
             }),
             Vector = filter.WithVector ? x.Vectors?.Vector?.Data?.ToArray() : null
@@ -206,8 +186,7 @@ public class QdrantDb : IVectorDb
     }
 
 
-    public async Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
-        bool withPayload = false, bool withVector = false)
+    public async Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids, VectorQueryOptions? options = null)
     {
         if (ids.IsNullOrEmpty())
         {
@@ -222,7 +201,7 @@ public class QdrantDb : IVectorDb
 
         var client = GetClient();
         var pointIds = ids.Select(x => new PointId { Uuid = x.ToString() }).Distinct().ToList();
-        var points = await client.RetrieveAsync(collectionName, pointIds, withPayload, withVector);
+        var points = await client.RetrieveAsync(collectionName, pointIds, options?.WithPayload ?? false, options?.WithVector ?? false);
         return points.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
@@ -231,6 +210,7 @@ public class QdrantDb : IVectorDb
                 Value.KindOneofCase.StringValue => p.Value.StringValue,
                 Value.KindOneofCase.BoolValue => p.Value.BoolValue,
                 Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
+                Value.KindOneofCase.DoubleValue => p.Value.DoubleValue,
                 _ => new object()
             }) ?? new(),
             Vector = x.Vectors?.Vector?.Data?.ToArray()
@@ -258,7 +238,10 @@ public class QdrantDb : IVectorDb
             foreach (var item in payload)
             {
                 var value = item.Value?.ToString();
-                if (value == null) continue;
+                if (value == null || item.Key.IsEqualTo(KnowledgePayloadName.Text))
+                {
+                    continue;
+                }
 
                 if (bool.TryParse(value, out var b))
                 {
@@ -308,8 +291,7 @@ public class QdrantDb : IVectorDb
         return result.Status == UpdateStatus.Completed;
     }
 
-    public async Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector,
-        IEnumerable<string>? fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
+    public async Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector, VectorSearchOptions? options = null)
     {
         var results = new List<VectorCollectionData>();
 
@@ -319,19 +301,18 @@ public class QdrantDb : IVectorDb
             return results;
         }
 
-        var payloadSelector = new WithPayloadSelector { Enable = true };
-        if (fields != null)
-        {
-            payloadSelector.Include = new PayloadIncludeSelector { Fields = { fields.ToArray() } };
-        }
+        options ??= VectorSearchOptions.Default();
+        Filter? queryFilter = BuildQueryFilter(options.FilterGroups);
+        WithPayloadSelector? payloadSelector = BuildPayloadSelector(options.Fields);
 
         var client = GetClient();
         var points = await client.SearchAsync(collectionName,
                                             vector,
-                                            limit: (ulong)limit,
-                                            scoreThreshold: confidence,
+                                            limit: (ulong)options.Limit.GetValueOrDefault(),
+                                            scoreThreshold: options.Confidence,
+                                            filter: queryFilter,
                                             payloadSelector: payloadSelector,
-                                            vectorsSelector: withVector);
+                                            vectorsSelector: options.WithVector);
 
         results = points.Select(x => new VectorCollectionData
         {
@@ -341,6 +322,7 @@ public class QdrantDb : IVectorDb
                 Value.KindOneofCase.StringValue => p.Value.StringValue,
                 Value.KindOneofCase.BoolValue => p.Value.BoolValue,
                 Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
+                Value.KindOneofCase.DoubleValue => p.Value.DoubleValue,
                 _ => new object()
             }),
             Score = x.Score,
@@ -375,6 +357,35 @@ public class QdrantDb : IVectorDb
 
         var client = GetClient();
         var result = await client.DeleteAsync(collectionName, new Filter());
+        return result.Status == UpdateStatus.Completed;
+    }
+    #endregion
+
+    #region Payload index
+    public async Task<bool> CreateCollectionPayloadIndex(string collectionName, CreateVectorCollectionIndexOptions options)
+    {
+        var exist = await DoesCollectionExist(collectionName);
+        if (!exist)
+        {
+            return false;
+        }
+
+        var client = GetClient();
+        var schemaType = ConvertPayloadSchemaType(options.FieldSchemaType);
+        var result = await client.CreatePayloadIndexAsync(collectionName, options.FieldName, schemaType);
+        return result.Status == UpdateStatus.Completed;
+    }
+
+    public async Task<bool> DeleteCollectionPayloadIndex(string collectionName, DeleteVectorCollectionIndexOptions options)
+    {
+        var exist = await DoesCollectionExist(collectionName);
+        if (!exist)
+        {
+            return false;
+        }
+
+        var client = GetClient();
+        var result = await client.DeletePayloadIndexAsync(collectionName, options.FieldName);
         return result.Status == UpdateStatus.Completed;
     }
     #endregion
@@ -521,6 +532,142 @@ public class QdrantDb : IVectorDb
         {
             return false;
         }
+    }
+    #endregion
+
+
+    #region Private methods
+    private Filter? BuildQueryFilter(IEnumerable<VectorFilterGroup>? filterGroups)
+    {
+        Filter? queryFilter = null;
+
+        if (filterGroups.IsNullOrEmpty())
+        {
+            return queryFilter;
+        }
+
+        var conditions = filterGroups.Where(x => !x.Filters.IsNullOrEmpty()).Select(x =>
+        {
+            Filter filter;
+            var innerConditions = x.Filters.Select(f =>
+            {
+                var field = new FieldCondition
+                {
+                    Key = f.Key,
+                    Match = new Match { Text = f.Value }
+                };
+
+                if (bool.TryParse(f.Value, out var boolVal))
+                {
+                    field.Match = new Match { Boolean = boolVal };
+                }
+                else if (long.TryParse(f.Value, out var intVal))
+                {
+                    field.Match = new Match { Integer = intVal };
+                }
+
+                return new Condition { Field = field };
+            });
+
+            if (x.FilterOperator.IsEqualTo("and"))
+            {
+                filter = new Filter
+                {
+                    Must = { innerConditions }
+                };
+            }
+            else
+            {
+                filter = new Filter
+                {
+                    Should = { innerConditions }
+                };
+            }
+
+            return new Condition
+            {
+                Filter = filter
+            };
+        });
+
+        queryFilter = new Filter
+        {
+            Must =
+            {
+                conditions
+            }
+        };
+
+        return queryFilter;
+    }
+
+    private WithPayloadSelector? BuildPayloadSelector(IEnumerable<string>? payloads)
+    {
+        WithPayloadSelector? payloadSelector = null;
+        if (!payloads.IsNullOrEmpty())
+        {
+            payloadSelector = new WithPayloadSelector
+            {
+                Enable = true,
+                Include = new PayloadIncludeSelector
+                {
+                    Fields = { payloads.ToArray() }
+                }
+            };
+        }
+
+        return payloadSelector;
+    }
+
+    private OrderBy? BuildOrderBy(VectorSort? sort)
+    {
+        if (string.IsNullOrWhiteSpace(sort?.Field))
+        {
+            return null;
+        }
+
+        return new OrderBy
+        {
+            Key = sort.Field,
+            Direction = sort.Order.IsEqualTo("asc") ? Direction.Asc : Direction.Desc
+        };
+    }
+
+    private PayloadSchemaType ConvertPayloadSchemaType(string schemaType)
+    {
+        PayloadSchemaType res;
+        switch (schemaType.ToLower())
+        {
+            case "text":
+                res = PayloadSchemaType.Text;
+                break;
+            case "keyword":
+                res = PayloadSchemaType.Keyword;
+                break;
+            case "integer":
+                res = PayloadSchemaType.Integer;
+                break;
+            case "float":
+                res = PayloadSchemaType.Float;
+                break;
+            case "bool":
+                res = PayloadSchemaType.Bool;
+                break;
+            case "geo":
+                res = PayloadSchemaType.Geo;
+                break;
+            case "datetime":
+                res = PayloadSchemaType.Datetime;
+                break;
+            case "uuid":
+                res = PayloadSchemaType.Uuid;
+                break;
+            default:
+                res = PayloadSchemaType.UnknownType;
+                break;
+        }
+
+        return res;
     }
     #endregion
 }

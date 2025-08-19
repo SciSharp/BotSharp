@@ -8,6 +8,8 @@ public class InstructLogFilter : Pagination
     public List<string>? TemplateNames { get; set; }
     public List<string>? UserIds { get; set; }
     public List<KeyValue>? States { get; set; }
+    public DateTime? StartTime { get; set; }
+    public DateTime? EndTime { get; set; }
 
     public static InstructLogFilter Empty()
     {

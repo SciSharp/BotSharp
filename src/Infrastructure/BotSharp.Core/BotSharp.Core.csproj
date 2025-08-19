@@ -86,7 +86,6 @@
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\conversation.summary.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\response_with_function.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\translation_prompt.liquid" />
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\select_file_prompt.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-routing-fallback_to_router.fn.liquid" />
     <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\agent.json" />
     <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\instructions\instruction.liquid" />
@@ -97,7 +96,9 @@
     <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.simulator.liquid" />
     <None Remove="data\plugins\config.json" />
 
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-file-select_file_instruction.liquid" />
     <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_weather.json" />
+    <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_fun_events.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -188,7 +189,7 @@
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\instructions\instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\select_file_prompt.liquid">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-file-select_file_instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.simulator.liquid">
@@ -209,6 +210,9 @@
     
     
     <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_weather.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_fun_events.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -242,5 +246,4 @@
       <Pack>true</Pack>
     </Content>
   </ItemGroup>
-
 </Project>

@@ -241,10 +241,9 @@ public partial class FileRepository
         if (!string.IsNullOrEmpty(convDir))
         {
             var breakpointFile = Path.Combine(convDir, BREAKPOINT_FILE);
-
             if (!File.Exists(breakpointFile))
             {
-                File.Create(breakpointFile);
+                File.WriteAllText(breakpointFile, "[]");
             }
 
             var content = File.ReadAllText(breakpointFile);
@@ -285,7 +284,7 @@ public partial class FileRepository
         var breakpointFile = Path.Combine(convDir, BREAKPOINT_FILE);
         if (!File.Exists(breakpointFile))
         {
-            File.Create(breakpointFile);
+            File.WriteAllText(breakpointFile, "[]");
         }
 
         var content = File.ReadAllText(breakpointFile);
@@ -380,7 +379,7 @@ public partial class FileRepository
         return record;
     }
 
-    public PagedItems<Conversation> GetConversations(ConversationFilter filter)
+    public async ValueTask<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
     {
         if (filter == null)
         {
@@ -452,6 +451,10 @@ public partial class FileRepository
             if (filter?.StartTime != null)
             {
                 matched = matched && record.CreatedTime >= filter.StartTime.Value;
+            }
+            if (filter?.EndTime != null)
+            {
+                matched = matched && record.CreatedTime <= filter.EndTime.Value;
             }
             if (filter?.Tags != null && filter.Tags.Any())
             {
@@ -543,7 +546,7 @@ public partial class FileRepository
         return new PagedItems<Conversation>
         {
             Items = records.OrderByDescending(x => x.CreatedTime).Skip(pager.Offset).Take(pager.Size),
-            Count = records.Count(),
+            Count = records.Count()
         };
     }
 
@@ -705,7 +708,9 @@ public partial class FileRepository
             if (conv == null
                 || states.IsNullOrEmpty()
                 || (!filter.AgentIds.IsNullOrEmpty() && !filter.AgentIds.Contains(conv.AgentId))
-                || (!filter.UserIds.IsNullOrEmpty() && !filter.UserIds.Contains(conv.UserId)))
+                || (!filter.UserIds.IsNullOrEmpty() && !filter.UserIds.Contains(conv.UserId))
+                || (filter.StartTime.HasValue && conv.CreatedTime < filter.StartTime.Value)
+                || (filter.EndTime.HasValue && conv.CreatedTime > filter.EndTime.Value))
             {
                 continue;
             }
@@ -920,7 +925,6 @@ public partial class FileRepository
     private bool SaveTruncatedDialogs(string dialogDir, List<DialogElement> dialogs)
     {
         if (string.IsNullOrEmpty(dialogDir) || dialogs == null) return false;
-        if (!File.Exists(dialogDir)) File.Create(dialogDir);
 
         var texts = ParseDialogElements(dialogs);
         File.WriteAllText(dialogDir, texts);
@@ -930,7 +934,6 @@ public partial class FileRepository
     private bool SaveTruncatedStates(string stateDir, List<StateKeyValue> states)
     {
         if (string.IsNullOrEmpty(stateDir) || states == null) return false;
-        if (!File.Exists(stateDir)) File.Create(stateDir);
 
         var stateStr = JsonSerializer.Serialize(states, _options);
         File.WriteAllText(stateDir, stateStr);
@@ -940,7 +943,6 @@ public partial class FileRepository
     private bool SaveTruncatedLatestStates(string latestStateDir, List<StateKeyValue> states)
     {
         if (string.IsNullOrEmpty(latestStateDir) || states == null) return false;
-        if (!File.Exists(latestStateDir)) File.Create(latestStateDir);
 
         var latestStates = BuildLatestStates(states);
         var stateStr = JsonSerializer.Serialize(latestStates, _options);
@@ -951,7 +953,6 @@ public partial class FileRepository
     private bool SaveTruncatedBreakpoints(string breakpointDir, List<ConversationBreakpoint> breakpoints)
     {
         if (string.IsNullOrEmpty(breakpointDir) || breakpoints == null) return false;
-        if (!File.Exists(breakpointDir)) File.Create(breakpointDir);
 
         var breakpointStr = JsonSerializer.Serialize(breakpoints, _options);
         File.WriteAllText(breakpointDir, breakpointStr);

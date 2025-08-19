@@ -11,7 +11,7 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
         _services = services;
     }
 
-    public async Task OnFunctionExecuting(RoleDialogModel message, string from = InvokeSource.Manual)
+    public async Task OnFunctionExecuting(RoleDialogModel message, InvokeFunctionOptions? options = null)
     {
         var hub = _services.GetRequiredService<IRealtimeHub>();
         if (hub.HubConn == null)
@@ -32,10 +32,10 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
         }
     }
 
-    public async Task OnFunctionExecuted(RoleDialogModel message, string from = InvokeSource.Manual)
+    public async Task OnFunctionExecuted(RoleDialogModel message, InvokeFunctionOptions? options = null)
     {
         var hub = _services.GetRequiredService<IRealtimeHub>();
-        if (from != InvokeSource.Llm || hub.HubConn == null)
+        if (options?.From != InvokeSource.Llm || hub.HubConn == null)
         {
             return;
         }

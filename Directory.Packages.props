@@ -38,7 +38,7 @@
     <PackageVersion Include="Nanoid" Version="3.1.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="8.1.2" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
-    <PackageVersion Include="Anthropic.SDK" Version="5.1.1" />
+    <PackageVersion Include="Anthropic.SDK" Version="5.5.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageVersion Include="NAudio" Version="2.2.1" />
     <PackageVersion Include="NAudio.Core" Version="2.2.1" />
@@ -46,7 +46,7 @@
     <PackageVersion Include="Whisper.net.Runtime" Version="1.8.1" />
     <PackageVersion Include="NCrontab" Version="3.3.3" />
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.2.0-beta.5" />
-    <PackageVersion Include="OpenAI" Version="2.2.0" />
+    <PackageVersion Include="OpenAI" Version="2.3.0" />
     <PackageVersion Include="MailKit" Version="4.11.0" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.8" />
     <PackageVersion Include="MySql.Data" Version="9.0.0" />
@@ -74,7 +74,7 @@
     <PackageVersion Include="Sdcb.PaddleOCR.Models.LocalV3" Version="2.7.0.1" />
     <PackageVersion Include="System.Drawing.Common" Version="8.0.14" />
     <PackageVersion Include="pythonnet" Version="3.0.4" />
-    <PackageVersion Include="Qdrant.Client" Version="1.13.0" />
+    <PackageVersion Include="Qdrant.Client" Version="1.15.0" />
     <PackageVersion Include="Selenium.WebDriver" Version="4.27.0" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="1.16.0" />

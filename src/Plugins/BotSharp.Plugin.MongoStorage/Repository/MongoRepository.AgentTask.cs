@@ -6,7 +6,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 public partial class MongoRepository
 {
     #region Task
-    public PagedItems<AgentTask> GetAgentTasks(AgentTaskFilter filter)
+    public async ValueTask<PagedItems<AgentTask>> GetAgentTasks(AgentTaskFilter filter)
     {
         if (filter == null)
         {
@@ -34,13 +34,23 @@ public partial class MongoRepository
 
         var filterDef = builder.And(filters);
         var sortDef = Builders<AgentTaskDocument>.Sort.Descending(x => x.CreatedTime);
-        var totalTasks = _dc.AgentTasks.CountDocuments(filterDef);
-        var taskDocs = _dc.AgentTasks.Find(filterDef).Sort(sortDef).Skip(pager.Offset).Limit(pager.Size).ToList();
 
-        var agentIds = taskDocs.Select(x => x.AgentId).Distinct().ToList();
+        var docsTask = _dc.AgentTasks.FindAsync(filterDef, options: new()
+        {
+            Sort = sortDef,
+            Skip = pager.Offset,
+            Limit = pager.Size
+        });
+        var countTask = _dc.AgentTasks.CountDocumentsAsync(filterDef);
+        await Task.WhenAll([docsTask, countTask]);
+
+        var docs = docsTask.Result.ToList();
+        var count = countTask.Result;
+
+        var agentIds = docs.Select(x => x.AgentId).Distinct().ToList();
         var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
 
-        var tasks = taskDocs.Select(x =>
+        var tasks = docs.Select(x =>
         {
             var task = AgentTaskDocument.ToDomainModel(x);
             task.Agent = agents.FirstOrDefault(a => a.Id == x.AgentId);
@@ -50,7 +60,7 @@ public partial class MongoRepository
         return new PagedItems<AgentTask>
         {
             Items = tasks,
-            Count = (int)totalTasks
+            Count = count
         };
     }
 

@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.Conversations.Dtos;
+using BotSharp.Abstraction.Conversations.Enums;
 using Microsoft.AspNetCore.SignalR;
+using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 
@@ -13,11 +15,8 @@ public class WelcomeHook : ConversationHookBase
     private readonly BotSharpOptions _options;
     private readonly ChatHubSettings _settings;
 
-    #region Events
-    private const string RECEIVE_ASSISTANT_MESSAGE = "OnMessageReceivedFromAssistant";
-    #endregion
-
-    public WelcomeHook(IServiceProvider services,
+    public WelcomeHook(
+        IServiceProvider services,
         IHubContext<SignalRHub> chatHub,
         ILogger<WelcomeHook> logger,
         IUserIdentity user,
@@ -64,7 +63,7 @@ public class WelcomeHook : ConversationHookBase
                     RichContent = richContent
                 };
 
-                var json = JsonSerializer.Serialize(new ChatResponseDto()
+                var data = new ChatResponseDto()
                 {
                     ConversationId = conversation.Id,
                     MessageId = dialog.MessageId,
@@ -76,35 +75,21 @@ public class WelcomeHook : ConversationHookBase
                         LastName = "",
                         Role = AgentRole.Assistant
                     }
-                }, _options.JsonSerializerOptions);
+                };
 
                 await Task.Delay(300);
-
                 _storage.Append(conversation.Id, dialog);
-
-                await SendEvent(conversation.Id, json);
+                await SendEvent(ChatEvent.OnMessageReceivedFromAssistant, conversation.Id, data);
             }
         }
 
         await base.OnUserAgentConnectedInitially(conversation);
     }
 
-    private async Task SendEvent(string conversationId, string json)
+    private async Task SendEvent<T>(string @event, string conversationId, T data, [CallerMemberName] string callerName = "")
     {
-        try
-        {
-            if (_settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await _chatHub.Clients.Group(conversationId).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
-            }
-            else
-            {
-                await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, $"Failed to send event in {nameof(WelcomeHook)} (conversation id: {conversationId}).");
-        }
+        var user = _services.GetRequiredService<IUserIdentity>();
+        var json = JsonSerializer.Serialize(data, _options.JsonSerializerOptions);
+        await EventEmitter.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, json, nameof(WelcomeHook), callerName);
     }
 }

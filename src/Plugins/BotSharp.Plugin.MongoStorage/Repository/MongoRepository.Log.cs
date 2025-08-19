@@ -169,7 +169,7 @@ public partial class MongoRepository
         return true;
     }
 
-    public PagedItems<InstructionLogModel> GetInstructionLogs(InstructLogFilter filter)
+    public async ValueTask<PagedItems<InstructionLogModel>> GetInstructionLogs(InstructLogFilter filter)
     {
         if (filter == null)
         {
@@ -195,6 +195,14 @@ public partial class MongoRepository
         if (!filter.TemplateNames.IsNullOrEmpty())
         {
             logFilters.Add(logBuilder.In(x => x.TemplateName, filter.TemplateNames));
+        }
+        if (filter.StartTime.HasValue)
+        {
+            logFilters.Add(logBuilder.Gte(x => x.CreatedTime, filter.StartTime.Value));
+        }
+        if (filter.EndTime.HasValue)
+        {
+            logFilters.Add(logBuilder.Lte(x => x.CreatedTime, filter.EndTime.Value));
         }
 
         // Filter states
@@ -243,8 +251,18 @@ public partial class MongoRepository
 
         var filterDef = logBuilder.And(logFilters);
         var sortDef = Builders<InstructionLogDocument>.Sort.Descending(x => x.CreatedTime);
-        var docs = _dc.InstructionLogs.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
-        var count = _dc.InstructionLogs.CountDocuments(filterDef);
+
+        var docsTask = _dc.InstructionLogs.FindAsync(filterDef, options: new()
+        {
+            Sort = sortDef,
+            Skip = filter.Offset,
+            Limit = filter.Size
+        });
+        var countTask = _dc.InstructionLogs.CountDocumentsAsync(filterDef);
+        await Task.WhenAll([docsTask, countTask]);
+
+        var docs = docsTask.Result.ToList();
+        var count = countTask.Result;
 
         var logs = docs.Select(x =>
         {
@@ -262,7 +280,7 @@ public partial class MongoRepository
         return new PagedItems<InstructionLogModel>
         {
             Items = logs,
-            Count = (int)count
+            Count = count
         };
     }
 
@@ -280,10 +298,17 @@ public partial class MongoRepository
         {
             filters.Add(builder.In(x => x.AgentId, filter.AgentIds));
         }
-
         if (!filter.UserIds.IsNullOrEmpty())
         {
             filters.Add(builder.In(x => x.UserId, filter.UserIds));
+        }
+        if (filter.StartTime.HasValue)
+        {
+            filters.Add(builder.Gte(x => x.CreatedTime, filter.StartTime.Value));
+        }
+        if (filter.EndTime.HasValue)
+        {
+            filters.Add(builder.Lte(x => x.CreatedTime, filter.EndTime.Value));
         }
 
         var convDocs = _dc.InstructionLogs.Find(builder.And(filters))

@@ -48,8 +48,7 @@ namespace BotSharp.Plugin.SemanticKernel
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
-        bool withPayload = false, bool withVector = false)
+        public Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids, VectorQueryOptions? options = null)
         {
             throw new NotImplementedException();
         }
@@ -64,10 +63,10 @@ namespace BotSharp.Plugin.SemanticKernel
             return result;
         }
 
-        public async Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector,
-            IEnumerable<string>? fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
+        public async Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector, VectorSearchOptions? options = null)
         {
-            var results = _memoryStore.GetNearestMatchesAsync(collectionName, vector, limit);
+            options ??= VectorSearchOptions.Default();
+            var results = _memoryStore.GetNearestMatchesAsync(collectionName, vector, options.Limit.GetValueOrDefault());
 
             var resultTexts = new List<VectorCollectionData>();
             await foreach (var (record, score) in results)
@@ -76,7 +75,7 @@ namespace BotSharp.Plugin.SemanticKernel
                 {
                     Data = new Dictionary<string, object> { { "text", record.Metadata.Text } },
                     Score = score,
-                    Vector = withVector ? record.Embedding.ToArray() : null
+                    Vector = options.WithVector ? record.Embedding.ToArray() : null
                 });
             }
 

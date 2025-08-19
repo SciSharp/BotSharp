@@ -7,6 +7,7 @@ namespace BotSharp.Abstraction.Users;
 public interface IUserService
 {
     Task<User> GetUser(string id);
+    Task<List<User>> GetUsers(List<string> ids);
     Task<PagedItems<User>> GetUsers(UserFilter filter);
     Task<List<User>> SearchLoginUsers(User filter);
     Task<User?> GetUserDetails(string userId, bool includeAgent = false);

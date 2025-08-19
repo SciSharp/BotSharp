@@ -1,10 +1,8 @@
-using Azure;
+#pragma warning disable OPENAI001
 using BotSharp.Abstraction.Hooks;
-using BotSharp.Abstraction.Observables.Models;
+using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
-using BotSharp.Core.Observables.Queues;
-using BotSharp.Plugin.OpenAI.Models.Realtime;
-using Fluid;
+using BotSharp.Core.MessageHub;
 using OpenAI.Chat;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
@@ -17,11 +15,6 @@ public class ChatCompletionProvider : IChatCompletion
 
     protected string _model;
     private List<string> renderedInstructions = [];
-
-    private readonly Dictionary<string, float> _defaultTemperature = new()
-    {
-        { "o4-mini", 1.0f }
-    };
 
     public virtual string Provider => "openai";
     public string Model => _model;
@@ -191,7 +184,8 @@ public class ChatCompletionProvider : IChatCompletion
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
-        var hub = _services.GetRequiredService<MessageHub<HubObserveData>>();
+        var hub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
+        var conv = _services.GetRequiredService<IConversationService>();
         var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
 
         var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
@@ -203,8 +197,8 @@ public class ChatCompletionProvider : IChatCompletion
 
         hub.Push(new()
         {
-            ServiceProvider = _services,
-            EventName = "BeforeReceiveLlmStreamMessage",
+            EventName = ChatEvent.BeforeReceiveLlmStreamMessage,
+            RefId = conv.ConversationId,
             Data = new RoleDialogModel(AgentRole.Assistant, string.Empty)
             {
                 CurrentAgentId = agent.Id,
@@ -247,8 +241,8 @@ public class ChatCompletionProvider : IChatCompletion
                 };
                 hub.Push(new()
                 {
-                    ServiceProvider = _services,
-                    EventName = "OnReceiveLlmStreamMessage",
+                    EventName = ChatEvent.OnReceiveLlmStreamMessage,
+                    RefId = conv.ConversationId,
                     Data = content
                 });
             }
@@ -290,8 +284,8 @@ public class ChatCompletionProvider : IChatCompletion
 
         hub.Push(new()
         {
-            ServiceProvider = _services,
-            EventName = "AfterReceiveLlmStreamMessage",
+            EventName = ChatEvent.AfterReceiveLlmStreamMessage,
+            RefId = conv.ConversationId,
             Data = responseMessage
         });
 
@@ -490,11 +484,18 @@ public class ChatCompletionProvider : IChatCompletion
     private ChatCompletionOptions InitChatCompletionOption(Agent agent)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model);
 
+        ChatReasoningEffortLevel? reasoningEffortLevel = null;
         var temperature = float.Parse(state.GetState("temperature", "0.0"));
-        if (_defaultTemperature.ContainsKey(_model))
+        if (settings?.Reasoning != null)
         {
-            temperature = _defaultTemperature[_model];
+            temperature = settings.Reasoning.Temperature;
+            var level = state.GetState("reasoning_effort_level")
+                         .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel ?? string.Empty)
+                         .IfNullOrEmptyAs(settings?.Reasoning?.EffortLevel ?? string.Empty);
+            reasoningEffortLevel = ParseReasoningEffortLevel(level);
         }
 
         var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
@@ -504,8 +505,35 @@ public class ChatCompletionProvider : IChatCompletion
         return new ChatCompletionOptions()
         {
             Temperature = temperature,
-            MaxOutputTokenCount = maxTokens
+            MaxOutputTokenCount = maxTokens,
+            ReasoningEffortLevel = reasoningEffortLevel
         };
+    }
+
+    private ChatReasoningEffortLevel? ParseReasoningEffortLevel(string? level)
+    {
+        if (string.IsNullOrWhiteSpace(level))
+        {
+            return null;
+        }
+
+        var effortLevel = new ChatReasoningEffortLevel("minimal");
+        switch (level.ToLower())
+        {
+            case "low":
+                effortLevel = ChatReasoningEffortLevel.Low;
+                break;
+            case "medium":
+                effortLevel = ChatReasoningEffortLevel.Medium;
+                break;
+            case "high":
+                effortLevel = ChatReasoningEffortLevel.High;
+                break;
+            default:
+                break;
+        }
+
+        return effortLevel;
     }
 
     public void SetModelName(string model)

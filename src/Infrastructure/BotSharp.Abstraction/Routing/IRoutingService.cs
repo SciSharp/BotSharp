@@ -26,8 +26,8 @@ public interface IRoutingService
     /// <returns></returns>
     RoutingRule[] GetRulesByAgentId(string id);
 
-    Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs, string from = InvokeSource.Manual, bool useStream = false);
-    Task<bool> InvokeFunction(string name, RoleDialogModel messages, string from = InvokeSource.Manual);
+    Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs, InvokeAgentOptions? options = null);
+    Task<bool> InvokeFunction(string name, RoleDialogModel messages, InvokeFunctionOptions? options = null);
     Task<RoleDialogModel> InstructLoop(Agent agent, RoleDialogModel message, List<RoleDialogModel> dialogs);
 
     /// <summary>

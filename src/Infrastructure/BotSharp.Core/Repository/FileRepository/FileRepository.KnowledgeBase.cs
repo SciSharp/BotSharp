@@ -15,15 +15,15 @@ public partial class FileRepository
         }
 
         var configFile = Path.Combine(vectorDir, COLLECTION_CONFIG_FILE);
+        if (!File.Exists(configFile))
+        {
+            File.WriteAllText(configFile, "[]");
+        }
+
         if (reset)
         {
             File.WriteAllText(configFile, JsonSerializer.Serialize(configs ?? new(), _options));
             return true;
-        }
-
-        if (!File.Exists(configFile))
-        {
-            File.Create(configFile);
         }
 
         var str = File.ReadAllText(configFile);
@@ -155,7 +155,7 @@ public partial class FileRepository
         return true;
     }
 
-    public PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
+    public async ValueTask<PagedItems<KnowledgeDocMetaData>> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(vectorStoreProvider))
