@@ -39,6 +39,11 @@ public class VectorFilterMatch : KeyValue
 
     [JsonPropertyName("data_type")]
     public VectorPayloadDataType DataType { get; set; } = VectorPayloadDataType.String;
+
+    public override string ToString()
+    {
+        return $"{Key} => {Value} ({DataType}), Operator: {Operator}";
+    }
 }
 
 public class VectorFilterRange
@@ -51,6 +56,16 @@ public class VectorFilterRange
 
     [JsonPropertyName("data_type")]
     public VectorPayloadDataType DataType { get; set; } = VectorPayloadDataType.String;
+
+    public override string ToString()
+    {
+        var str = $"Data type: {DataType};";
+        Conditions?.ForEach(x =>
+        {
+            str += $"{Key} {x.Operator} {x.Value};";
+        });
+        return str;
+    }
 }
 
 public class VectorFilterRangeCondition
@@ -63,4 +78,9 @@ public class VectorFilterRangeCondition
     /// </summary>
     [JsonPropertyName("operator")]
     public string Operator { get; set; } = "lt";
+
+    public override string ToString()
+    {
+        return $"Value: {Value}, Operator: {Operator}";
+    }
 }
