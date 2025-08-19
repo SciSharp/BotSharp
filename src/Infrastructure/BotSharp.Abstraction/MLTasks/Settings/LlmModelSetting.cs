@@ -58,6 +58,11 @@ public class LlmModelSetting
     public WebSearchSetting? WebSearch { get; set; }
 
     /// <summary>
+    /// Settings for images
+    /// </summary>
+    public ImageSetting? Image { get; set; }
+
+    /// <summary>
     /// Settings for llm cost
     /// </summary>
     public LlmCostSetting Cost { get; set; } = new();
@@ -78,6 +83,41 @@ public class WebSearchSetting
 {
     public string? SearchContextSize { get; set; }
 }
+
+public class ImageSetting
+{
+    public ImageGenerationSetting? Generation { get; set; }
+    public ImageEditSetting? Edit { get; set; }
+    public ImageVariationSetting? Variation { get; set; }
+}
+
+public class ImageGenerationSetting
+{
+    public ModelSettingBase? Style { get; set; }
+    public ModelSettingBase? Size { get; set; }
+    public ModelSettingBase? Quality { get; set; }
+    public ModelSettingBase? ResponseFormat { get; set; }
+}
+
+public class ImageEditSetting
+{
+    public ModelSettingBase? Size { get; set; }
+    public ModelSettingBase? ResponseFormat { get; set; }
+}
+
+public class ImageVariationSetting
+{
+    public ModelSettingBase? Size { get; set; }
+    public ModelSettingBase? ResponseFormat { get; set; }
+}
+
+
+public class ModelSettingBase
+{
+    public string? Default { get; set; }
+    public IEnumerable<string>? Options { get; set; }
+}
+
 
 /// <summary>
 /// Cost per 1K tokens

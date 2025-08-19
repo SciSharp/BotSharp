@@ -27,16 +27,27 @@ public partial class ImageCompletionProvider
 
     private (int, ImageVariationOptions) PrepareVariationOptions()
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var size = GetImageSize(state.GetState("image_size"));
-        var format = GetImageFormat(state.GetState("image_response_format"));
-        var count = GetImageCount(state.GetState("image_count", "1"));
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model)?.Image?.Variation;
 
-        var options = new ImageVariationOptions
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var size = state.GetState("image_size");
+        var responseFormat = state.GetState("image_response_format");
+
+        size = settings?.Size != null ? VerifyImageParameter(size, settings.Size.Default, settings.Size.Options) : null;
+        responseFormat = settings?.ResponseFormat != null ? VerifyImageParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
+
+        var options = new ImageVariationOptions();
+        if (!string.IsNullOrEmpty(size))
         {
-            Size = size,
-            ResponseFormat = format
-        };
+            options.Size = GetImageSize(size);
+        }
+        if (!string.IsNullOrEmpty(responseFormat))
+        {
+            options.ResponseFormat = GetImageResponseFormat(responseFormat);
+        }
+
+        var count = GetImageCount(state.GetState("image_count", "1"));
         return (count, options);
     }
 }

@@ -29,18 +29,39 @@ public partial class ImageCompletionProvider
     {
         var prompt = message?.Payload ?? message?.Content ?? string.Empty;
 
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var size = GetImageSize(state.GetState("image_size"));
-        var quality = GetImageQuality(state.GetState("image_quality"));
-        var style = GetImageStyle(state.GetState("image_style"));
-        var format = GetImageFormat(state.GetState("image_response_format"));
-        var count = GetImageCount(state.GetState("image_count", "1"));
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model)?.Image?.Generation;
 
-        var options = new ImageGenerationOptions
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var size = state.GetState("image_size");
+        var quality = state.GetState("image_quality");
+        var style = state.GetState("image_style");
+        var responseFormat = state.GetState("image_response_format");
+
+        size = settings?.Size != null ? VerifyImageParameter(size, settings.Size.Default, settings.Size.Options) : null;
+        quality = settings?.Quality != null ? VerifyImageParameter(quality, settings.Quality.Default, settings.Quality.Options) : null;
+        style = settings?.Style != null ? VerifyImageParameter(style, settings.Style.Default, settings.Style.Options) : null;
+        responseFormat = settings?.ResponseFormat != null ? VerifyImageParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
+
+        var options = new ImageGenerationOptions();
+        if (!string.IsNullOrEmpty(size))
         {
-            Quality = new GeneratedImageQuality("medium"),
-            Size = GeneratedImageSize.W1024xH1024
-        };
+            options.Size = GetImageSize(size);
+        }
+        if (!string.IsNullOrEmpty(quality))
+        {
+            options.Quality = GetImageQuality(quality);
+        }
+        if (!string.IsNullOrEmpty(style))
+        {
+            options.Style = GetImageStyle(style);
+        }
+        if (!string.IsNullOrEmpty(responseFormat))
+        {
+            options.ResponseFormat = GetImageResponseFormat(responseFormat);
+        }
+
+        var count = GetImageCount(state.GetState("image_count", "1"));
         return (prompt, count, options);
     }
 }

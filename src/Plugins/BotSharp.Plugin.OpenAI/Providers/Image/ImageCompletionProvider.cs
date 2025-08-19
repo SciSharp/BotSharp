@@ -1,3 +1,4 @@
+#pragma warning disable OPENAI001
 using OpenAI.Images;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Image;
@@ -60,9 +61,9 @@ public partial class ImageCompletionProvider : IImageCompletion
         return generatedImages;
     }
 
-    private GeneratedImageSize GetImageSize(string size)
+    private GeneratedImageSize GetImageSize(string? size)
     {
-        var value = !string.IsNullOrEmpty(size) ? size : "1024x1024";
+        var value = !string.IsNullOrEmpty(size) ? size : "auto";
 
         GeneratedImageSize retSize;
         switch (value)
@@ -79,33 +80,54 @@ public partial class ImageCompletionProvider : IImageCompletion
             case "1792x1024":
                 retSize = GeneratedImageSize.W1792xH1024;
                 break;
-            default:
+            case "1024x1024":
                 retSize = GeneratedImageSize.W1024xH1024;
+                break;
+            case "1024x1536":
+                retSize = GeneratedImageSize.W1024xH1536;
+                break;
+            case "1536x1024":
+                retSize = GeneratedImageSize.W1536xH1024;
+                break;
+            default:
+                retSize = GeneratedImageSize.Auto;
                 break;
         }
 
         return retSize;
     }
 
-    private GeneratedImageQuality GetImageQuality(string quality)
+    private GeneratedImageQuality GetImageQuality(string? quality)
     {
-        var value = !string.IsNullOrEmpty(quality) ? quality : "standard";
+        var value = !string.IsNullOrEmpty(quality) ? quality : "auto";
 
         GeneratedImageQuality retQuality;
         switch (value)
         {
-            case "hd":
+            case "low":
+                retQuality = GeneratedImageQuality.Low;
+                break;
+            case "medium":
+                retQuality = GeneratedImageQuality.Medium;
+                break;
+            case "high":
                 retQuality = GeneratedImageQuality.High;
                 break;
-            default:
+            case "standard":
                 retQuality = GeneratedImageQuality.Standard;
+                break;
+            case "hd":
+                retQuality = new GeneratedImageQuality("hd");
+                break;
+            default:
+                retQuality = GeneratedImageQuality.Auto;
                 break;
         }
 
         return retQuality;
     }
 
-    private GeneratedImageStyle GetImageStyle(string style)
+    private GeneratedImageStyle GetImageStyle(string? style)
     {
         var value = !string.IsNullOrEmpty(style) ? style : "natural";
 
@@ -123,7 +145,7 @@ public partial class ImageCompletionProvider : IImageCompletion
         return retStyle;
     }
 
-    private GeneratedImageFormat GetImageFormat(string format)
+    private GeneratedImageFormat GetImageResponseFormat(string? format)
     {
         var value = !string.IsNullOrEmpty(format) ? format : "bytes";
 
@@ -157,6 +179,16 @@ public partial class ImageCompletionProvider : IImageCompletion
             retCount = IMAGE_COUNT_LIMIT;
         }
         return retCount;
+    }
+
+    private string? VerifyImageParameter(string? curVal, string? defaultVal, IEnumerable<string>? options = null)
+    {
+        if (options.IsNullOrEmpty())
+        {
+            return curVal.IfNullOrEmptyAs(defaultVal);
+        }
+
+        return options.Contains(curVal) ? curVal : defaultVal;
     }
     #endregion
 }
