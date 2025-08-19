@@ -53,6 +53,11 @@ public class LlmModelSetting
     public ReasoningSetting? Reasoning { get; set; }
 
     /// <summary>
+    /// Settings for web search
+    /// </summary>
+    public WebSearchSetting? WebSearch { get; set; }
+
+    /// <summary>
     /// Settings for llm cost
     /// </summary>
     public LlmCostSetting Cost { get; set; } = new();
@@ -67,6 +72,11 @@ public class ReasoningSetting
 {
     public float Temperature { get; set; } = 1.0f;
     public string? EffortLevel { get; set; }
+}
+
+public class WebSearchSetting
+{
+    public string? SearchContextSize { get; set; }
 }
 
 /// <summary>
