@@ -29,6 +29,10 @@ public class WinOSDriver : IComputerUse
             case "right_click":
                 WindowsMouseController.RightClick();
                 break;
+            case "cursor_position":
+                var (x, y) = WindowsMouseController.GetCurrentCursorPosition();
+                Console.WriteLine($"Current cursor position: ({x}, {y})");
+                break;
             default:
                 throw new ToolError($"Action {action} is not supported");
         }

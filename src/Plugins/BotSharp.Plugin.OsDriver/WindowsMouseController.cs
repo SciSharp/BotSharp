@@ -13,6 +13,13 @@ public class WindowsMouseController
         public int Left, Top, Right, Bottom;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT
+    {
+        public int X;
+        public int Y;
+    }
+
     // Define MONITORINFO structure
     [StructLayout(LayoutKind.Sequential)]
     public struct MONITORINFO
@@ -34,11 +41,22 @@ public class WindowsMouseController
     [DllImport("user32.dll", CharSet = CharSet.Auto)]
     private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
 
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out POINT lpPoint);
+
+
     // Class to hold monitor information
     public class MonitorInfo
     {
         public IntPtr MonitorHandle;
         public RECT MonitorArea;
+    }
+
+    // Method to get current cursor position
+    public static (int x, int y) GetCurrentCursorPosition()
+    {
+        GetCursorPos(out POINT cursorPos);
+        return (cursorPos.X, cursorPos.Y);
     }
 
     // Method to get all connected monitors
