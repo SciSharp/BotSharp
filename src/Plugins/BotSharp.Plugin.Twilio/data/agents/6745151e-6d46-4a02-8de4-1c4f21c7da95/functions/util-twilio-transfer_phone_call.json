@@ -12,8 +12,15 @@
       "phone_number": {
         "type": "string",
         "description": "Phone number transfer to."
+      },
+      "transfer_required_by_user": {
+        "type": "boolean",
+        "description": "Only set to true if the user initially and directly asks for a representative, otherwise false."
       }
     },
-    "required": [ "transition_message", "phone_number" ]
+    "required": [
+      "transition_message",
+      "phone_number"
+    ]
   }
 }
