@@ -56,8 +56,9 @@ public class ChatStreamMiddleware
         _session = new BotSharpRealtimeSession(services, webSocket, new ChatSessionOptions
         {
             Provider = "BotSharp Chat Stream",
-            BufferSize = 1024 * 16,
-            JsonOptions = BotSharpOptions.defaultJsonOptions
+            BufferSize = 1024 * 32,
+            JsonOptions = BotSharpOptions.defaultJsonOptions,
+            Logger = _logger
         });
 
         var hub = services.GetRequiredService<IRealtimeHub>();
@@ -79,10 +80,13 @@ public class ChatStreamMiddleware
                 continue;
             }
 
-            var (eventType, data) = MapEvents(conn, receivedText);
+            var (eventType, data) = MapEvents(conn, receivedText, conversationId);
             if (eventType == "start")
             {
-                var request = InitRequest(data);
+#if DEBUG
+                _logger.LogCritical($"Start chat stream connection for conversation ({conversationId})");
+#endif
+                var request = InitRequest(data, conversationId);
                 await ConnectToModel(hub, webSocket, request?.States);
             }
             else if (eventType == "media")
@@ -94,6 +98,9 @@ public class ChatStreamMiddleware
             }
             else if (eventType == "disconnect")
             {
+#if DEBUG
+                _logger.LogCritical($"Disconnecting chat stream connection for conversation ({conversationId})");
+#endif
                 await hub.Completer.Disconnect();
                 break;
             }
@@ -115,11 +122,20 @@ public class ChatStreamMiddleware
         }, initStates: states);
     }
 
-    private (string, string) MapEvents(RealtimeHubConnection conn, string receivedText)
+    private (string, string) MapEvents(RealtimeHubConnection conn, string receivedText, string conversationId)
     {
-        var response = JsonSerializer.Deserialize<ChatStreamEventResponse>(receivedText);
-        var data = response?.Body?.Payload ?? string.Empty;
+        ChatStreamEventResponse? response = new();
 
+        try
+        {
+            response = JsonSerializer.Deserialize<ChatStreamEventResponse>(receivedText);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when deserializing chat stream event response for conversation ({conversationId}) (response: {receivedText?.SubstringMax(30)})");
+        }
+        
+        var data = response?.Body?.Payload ?? string.Empty;
         switch (response.Event)
         {
             case "start":
@@ -157,14 +173,15 @@ public class ChatStreamMiddleware
             });
     }
 
-    private ChatStreamRequest? InitRequest(string data)
+    private ChatStreamRequest? InitRequest(string data, string conversationId)
     {
         try
         {
             return JsonSerializer.Deserialize<ChatStreamRequest>(data, BotSharpOptions.defaultJsonOptions);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, $"Error when deserializing initial request data for conversation ({conversationId}).");
             return null;
         }
     }
