@@ -568,7 +568,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             MaxOutputTokenCount = maxTokens
         };
 
-        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        // Prepare instruction and functions
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(instruction))
+        {
+            messages.Add(new SystemChatMessage(instruction));
+        }
+
         foreach (var function in functions)
         {
             if (!agentService.RenderFunction(agent, function)) continue;
@@ -579,12 +585,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 functionName: function.Name,
                 functionDescription: function.Description,
                 functionParameters: BinaryData.FromObjectAsJson(property)));
-        }
-
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
-        {
-            var text = agentService.RenderedInstruction(agent);
-            messages.Add(new SystemChatMessage(text));
         }
 
         if (!string.IsNullOrEmpty(agent.Knowledges))

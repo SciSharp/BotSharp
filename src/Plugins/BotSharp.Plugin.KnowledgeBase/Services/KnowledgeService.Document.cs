@@ -61,17 +61,17 @@ public partial class KnowledgeService
                 }
 
                 // Save to vector db
-                var payload = new Dictionary<string, object>()
+                var payload = new Dictionary<string, VectorPayloadValue>()
                 {
-                    { KnowledgePayloadName.DataSource, VectorDataSource.File },
-                    { KnowledgePayloadName.FileId, fileId.ToString() },
-                    { KnowledgePayloadName.FileName, file.FileName },
-                    { KnowledgePayloadName.FileSource, file.FileSource }
+                    { KnowledgePayloadName.DataSource, VectorPayloadValue.BuildStringValue(VectorDataSource.File) },
+                    { KnowledgePayloadName.FileId, VectorPayloadValue.BuildStringValue(fileId.ToString()) },
+                    { KnowledgePayloadName.FileName, VectorPayloadValue.BuildStringValue(file.FileName) },
+                    { KnowledgePayloadName.FileSource, VectorPayloadValue.BuildStringValue(file.FileSource) }
                 };
 
                 if (!string.IsNullOrWhiteSpace(file.FileUrl))
                 {
-                    payload[KnowledgePayloadName.FileUrl] = file.FileUrl;
+                    payload[KnowledgePayloadName.FileUrl] = VectorPayloadValue.BuildStringValue(file.FileUrl);
                 }
 
                 var dataIds = await SaveToVectorDb(collectionName, contents, payload);
@@ -113,7 +113,7 @@ public partial class KnowledgeService
 
 
     public async Task<bool> ImportDocumentContentToKnowledge(string collectionName, string fileName, string fileSource,
-        IEnumerable<string> contents, DocMetaRefData? refData = null, Dictionary<string, object>? payload = null)
+        IEnumerable<string> contents, DocMetaRefData? refData = null, Dictionary<string, VectorPayloadValue>? payload = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(fileName)
@@ -133,7 +133,7 @@ public partial class KnowledgeService
             var fileId = Guid.NewGuid();
             var contentType = FileUtility.GetFileContentType(fileName);
 
-            var innerPayload = new Dictionary<string, object>();
+            var innerPayload = new Dictionary<string, VectorPayloadValue>();
             if (payload != null)
             {
                 foreach (var item in payload)
@@ -142,14 +142,14 @@ public partial class KnowledgeService
                 }
             }
 
-            innerPayload[KnowledgePayloadName.DataSource] = VectorDataSource.File;
-            innerPayload[KnowledgePayloadName.FileId] = fileId.ToString();
-            innerPayload[KnowledgePayloadName.FileName] = fileName;
-            innerPayload[KnowledgePayloadName.FileSource] = fileSource;
+            innerPayload[KnowledgePayloadName.DataSource] = VectorPayloadValue.BuildStringValue(VectorDataSource.File);
+            innerPayload[KnowledgePayloadName.FileId] = VectorPayloadValue.BuildStringValue(fileId.ToString());
+            innerPayload[KnowledgePayloadName.FileName] = VectorPayloadValue.BuildStringValue(fileName);
+            innerPayload[KnowledgePayloadName.FileSource] = VectorPayloadValue.BuildStringValue(fileSource);
 
             if (!string.IsNullOrWhiteSpace(refData?.Url))
             {
-                innerPayload[KnowledgePayloadName.FileUrl] = refData.Url;
+                innerPayload[KnowledgePayloadName.FileUrl] = VectorPayloadValue.BuildStringValue(refData.Url);
             }
 
             var dataIds = await SaveToVectorDb(collectionName, contents, innerPayload);
@@ -410,7 +410,7 @@ public partial class KnowledgeService
         return saved;
     }
 
-    private async Task<IEnumerable<string>> SaveToVectorDb(string collectionName, IEnumerable<string> contents, Dictionary<string, object>? payload = null)
+    private async Task<IEnumerable<string>> SaveToVectorDb(string collectionName, IEnumerable<string> contents, Dictionary<string, VectorPayloadValue>? payload = null)
     {
         if (contents.IsNullOrEmpty())
         {
@@ -426,7 +426,7 @@ public partial class KnowledgeService
             var content = contents.ElementAt(i);
             var vector = await textEmbedding.GetVectorAsync(content);
             var dataId = Guid.NewGuid();
-            var saved = await vectorDb.Upsert(collectionName, dataId, vector, content, payload ?? new Dictionary<string, object>());
+            var saved = await vectorDb.Upsert(collectionName, dataId, vector, content, payload ?? []);
 
             if (!saved) continue;
 

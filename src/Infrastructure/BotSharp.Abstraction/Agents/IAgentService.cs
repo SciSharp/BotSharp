@@ -29,15 +29,20 @@ public interface IAgentService
     /// <returns></returns>
     Task InheritAgent(Agent agent);
 
-    string RenderedInstruction(Agent agent);
+    string RenderInstruction(Agent agent);
 
-    string RenderedTemplate(Agent agent, string templateName);
+    string RenderTemplate(Agent agent, string templateName);
 
     bool RenderFunction(Agent agent, FunctionDef def);
 
     FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def);
 
+    (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, StringComparer? comparer = null);
+    IEnumerable<FunctionDef> FilterFunctions(string instruction, Agent agent, StringComparer? comparer = null);
+    IEnumerable<FunctionDef> FilterFunctions(string instruction, IEnumerable<FunctionDef> functions, StringComparer? comparer = null);
+
     bool RenderVisibility(string? visibilityExpression, Dictionary<string, object> dict);
+
 
     /// <summary>
     /// Get agent detail without trigger any hook.

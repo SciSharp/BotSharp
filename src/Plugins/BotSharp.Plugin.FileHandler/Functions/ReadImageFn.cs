@@ -28,7 +28,7 @@ public class ReadImageFn : IFunctionCallback
         Agent? fromAgent = null;
         if (!string.IsNullOrEmpty(message.CurrentAgentId))
         {
-            fromAgent = await agentService.LoadAgent(message.CurrentAgentId);
+            fromAgent = await agentService.GetAgent(message.CurrentAgentId);
         }
 
         var agent = new Agent

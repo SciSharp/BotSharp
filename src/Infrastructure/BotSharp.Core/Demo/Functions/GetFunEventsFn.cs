@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Functions;
 using BotSharp.Core.MessageHub;
-using System.Text.Json.Serialization;
 
 namespace BotSharp.Core.Demo.Functions;
 

@@ -75,7 +75,7 @@ public partial class FileInstructService : IFileInstructService
             return null;
         }
 
-        var instruction = agentService.RenderedTemplate(agent, templateName);
+        var instruction = agentService.RenderTemplate(agent, templateName);
         return instruction;
     }
 

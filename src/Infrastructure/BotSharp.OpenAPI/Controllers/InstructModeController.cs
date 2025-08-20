@@ -199,7 +199,7 @@ public class InstructModeController : ControllerBase
                 TemplateName = input.TemplateName
             });
             imageViewModel.Content = message.Content;
-            imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+            imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
         }
         catch (Exception ex)
@@ -235,7 +235,7 @@ public class InstructModeController : ControllerBase
                 AgentId = input.AgentId
             });
             imageViewModel.Content = message.Content;
-            imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+            imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
 
             return imageViewModel;
         }
@@ -273,7 +273,7 @@ public class InstructModeController : ControllerBase
             });
 
             imageViewModel.Content = message.Content;
-            imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+            imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
         }
         catch (Exception ex)
@@ -307,7 +307,7 @@ public class InstructModeController : ControllerBase
                 TemplateName = input.TemplateName
             });
             imageViewModel.Content = message.Content;
-            imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+            imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
         }
         catch (Exception ex)
@@ -345,7 +345,7 @@ public class InstructModeController : ControllerBase
             });
 
             imageViewModel.Content = message.Content;
-            imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+            imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
 
             return imageViewModel;
         }
@@ -382,7 +382,7 @@ public class InstructModeController : ControllerBase
                 TemplateName = input.TemplateName
             });
             imageViewModel.Content = message.Content;
-            imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+            imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
         }
         catch (Exception ex)
@@ -428,7 +428,7 @@ public class InstructModeController : ControllerBase
                 });
 
             imageViewModel.Content = message.Content;
-            imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+            imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
 
             return imageViewModel;
         }

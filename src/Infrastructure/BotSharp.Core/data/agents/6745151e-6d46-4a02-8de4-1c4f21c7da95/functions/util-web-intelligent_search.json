@@ -1,0 +1,9 @@
+{
+  "name": "util-web-intelligent_search",
+  "description": "Search websites to handle user's request",
+  "parameters": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  }
+}

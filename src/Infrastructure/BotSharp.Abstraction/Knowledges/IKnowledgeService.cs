@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Graph.Models;
-using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Abstraction.Knowledges;
@@ -8,7 +7,7 @@ public interface IKnowledgeService
 {
     #region Vector
     Task<bool> ExistVectorCollection(string collectionName);
-    Task<bool> CreateVectorCollection(string collectionName, string collectionType, int dimension, string provider, string model);
+    Task<bool> CreateVectorCollection(string collectionName, string collectionType, VectorCollectionCreateOptions options);
     Task<bool> DeleteVectorCollection(string collectionName);
     Task<IEnumerable<VectorCollectionConfig>> GetVectorCollections(string? type = null);
     Task<VectorCollectionDetails?> GetVectorCollectionDetails(string collectionName);
@@ -44,7 +43,7 @@ public interface IKnowledgeService
     /// <param name="refData"></param>
     /// <returns></returns>
     Task<bool> ImportDocumentContentToKnowledge(string collectionName, string fileName, string fileSource, IEnumerable<string> contents,
-        DocMetaRefData? refData = null, Dictionary<string, object>? payload = null);
+        DocMetaRefData? refData = null, Dictionary<string, VectorPayloadValue>? payload = null);
     /// <summary>
     /// Delete one document and its related knowledge in the collection
     /// </summary>

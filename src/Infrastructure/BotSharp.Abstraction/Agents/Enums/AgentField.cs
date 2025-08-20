@@ -9,6 +9,7 @@ public enum AgentField
     Disabled,
     Type,
     RoutingMode,
+    FuncVisMode,
     InheritAgentId,
     Profile,
     Label,

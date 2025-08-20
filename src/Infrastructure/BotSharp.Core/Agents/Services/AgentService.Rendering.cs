@@ -1,18 +1,19 @@
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Templating;
 using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    public string RenderedInstruction(Agent agent)
+    public string RenderInstruction(Agent agent)
     {
         var render = _services.GetRequiredService<ITemplateRender>();
         var conv = _services.GetRequiredService<IConversationService>();
 
         // merge instructions
-        var instructions = new List<string> { agent.Instruction };
+        var instructions = new List<string> { agent.Instruction ?? string.Empty };
         var secondaryInstructions = agent.SecondaryInstructions?.Where(x => !string.IsNullOrWhiteSpace(x)).ToList() ?? [];
         instructions.AddRange(secondaryInstructions);
 
@@ -106,7 +107,37 @@ public partial class AgentService
         return parameterDef;
     }
 
-    public string RenderedTemplate(Agent agent, string templateName)
+    public (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, StringComparer? comparer = null)
+    {
+        var text = string.Empty;
+        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
+        {
+            text = RenderInstruction(agent);
+        }
+
+        var functions = FilterFunctions(text, agent, comparer);
+        return (text, functions);
+    }
+
+    public IEnumerable<FunctionDef> FilterFunctions(string instruction, Agent agent, StringComparer? comparer = null)
+    {
+        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        if (agent.FuncVisMode.IsEqualTo(AgentFuncVisMode.Auto) && !string.IsNullOrWhiteSpace(instruction))
+        {
+            functions = FilterFunctions(instruction, functions, comparer);
+        }
+        return functions;
+    }
+
+    public IEnumerable<FunctionDef> FilterFunctions(string instruction, IEnumerable<FunctionDef> functions, StringComparer? comparer = null)
+    {
+        comparer = comparer ?? StringComparer.OrdinalIgnoreCase;
+        var matches = Regex.Matches(instruction, @"\b[A-Za-z0-9_-]+\b");
+        var words = new HashSet<string>(matches.Select(m => m.Value), comparer);
+        return functions.Where(x => words.Contains(x.Name, comparer));
+    }
+
+    public string RenderTemplate(Agent agent, string templateName)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var render = _services.GetRequiredService<ITemplateRender>();

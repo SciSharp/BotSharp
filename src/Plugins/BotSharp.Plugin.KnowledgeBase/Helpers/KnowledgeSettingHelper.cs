@@ -43,6 +43,6 @@ public static class KnowledgeSettingHelper
     {
         var settings = services.GetRequiredService<ILlmProviderService>();
         var found = settings.GetSetting(provider, model);
-        return found?.Dimension ?? 0;
+        return found?.Embedding?.Dimension ?? 0;
     }
 }

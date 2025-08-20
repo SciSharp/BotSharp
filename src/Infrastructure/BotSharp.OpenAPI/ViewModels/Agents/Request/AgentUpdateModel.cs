@@ -16,6 +16,12 @@ public class AgentUpdateModel
     public string? Mode { get; set; }
 
     /// <summary>
+    /// Agent function visibility mode
+    /// </summary>
+    [JsonPropertyName("function_visibility_mode")]
+    public string? FuncVisMode { get; set; }
+
+    /// <summary>
     /// Instruction
     /// </summary>
     public string Instruction { get; set; } = string.Empty;
@@ -101,6 +107,7 @@ public class AgentUpdateModel
             Name = Name ?? string.Empty,
             Type = Type,
             Mode = Mode,
+            FuncVisMode = FuncVisMode,
             IsPublic = IsPublic,
             Disabled = Disabled,
             Description = Description ?? string.Empty,

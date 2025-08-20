@@ -126,7 +126,7 @@ public class CompletionProvider
         var found = llmProviderService.GetSetting(provider, model);
 
         completer.SetModelName(model);
-        completer.SetDimension(found.Dimension);
+        completer.SetDimension(found.Embedding?.Dimension ?? 0);
         return completer;
     }
 

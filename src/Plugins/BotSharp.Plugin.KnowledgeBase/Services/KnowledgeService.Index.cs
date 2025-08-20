@@ -14,8 +14,9 @@ public partial class KnowledgeService
             }
 
             var response = new SuccessFailResponse<string>();
+            var innerOptions = options.DistinctBy(x => x.FieldName).ToList();
             var vectorDb = GetVectorDb();
-            foreach (var option in options)
+            foreach (var option in innerOptions)
             {
                 var created = await vectorDb.CreateCollectionPayloadIndex(collectionName, option);
                 var field = $"{option.FieldName} ({option.FieldSchemaType})";
@@ -48,8 +49,9 @@ public partial class KnowledgeService
             }
 
             var response = new SuccessFailResponse<string>();
+            var innerOptions = options.DistinctBy(x => x.FieldName).ToList();
             var vectorDb = GetVectorDb();
-            foreach (var option in options)
+            foreach (var option in innerOptions)
             {
                 var deleted = await vectorDb.DeleteCollectionPayloadIndex(collectionName, option);
                 var field = $"{option.FieldName}";

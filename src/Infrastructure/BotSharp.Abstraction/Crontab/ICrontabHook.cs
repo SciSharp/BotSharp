@@ -7,9 +7,7 @@ public interface ICrontabHook : IHookBase
     string[]? Triggers
         => null;
 
-    void OnAuthenticate(CrontabItem item)
-    {
-    }
+    void OnAuthenticate(CrontabItem item) { }
 
     Task OnCronTriggered(CrontabItem item)
         => Task.CompletedTask;

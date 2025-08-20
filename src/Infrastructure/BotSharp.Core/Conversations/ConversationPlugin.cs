@@ -16,6 +16,7 @@ using BotSharp.Core.Messaging;
 using BotSharp.Core.Routing.Reasoning;
 using BotSharp.Core.Templating;
 using BotSharp.Core.Translation;
+using BotSharp.Core.WebSearch.Hooks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 
@@ -67,6 +68,8 @@ public class ConversationPlugin : IBotSharpPlugin
         services.AddScoped<IExecutor, InstructExecutor>();
         services.AddScoped<IInstructService, InstructService>();
         services.AddScoped<ITokenStatistics, TokenStatistics>();
+
+        services.AddScoped<IAgentUtilityHook, WebSearchUtilityHook>();
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)

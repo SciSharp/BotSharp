@@ -4,6 +4,7 @@ using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
 using OpenAI.Chat;
+using Pipelines.Sockets.Unofficial.Arenas;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
@@ -75,7 +76,14 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                RenderedInstruction = string.Join("\r\n", renderedInstructions),
+                Annotations = value.Annotations?.Select(x => new ChatAnnotation
+                {
+                    Title = x.WebResourceTitle,
+                    Url = x.WebResourceUri.AbsoluteUri,
+                    StartIndex = x.StartIndex,
+                    EndIndex = x.EndIndex
+                })?.ToList()
             };
         }
 
@@ -321,24 +329,28 @@ public class ChatCompletionProvider : IChatCompletion
         var messages = new List<ChatMessage>();
         var options = InitChatCompletionOption(agent);
 
-        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
-        foreach (var function in functions)
+        // Prepare instruction and functions
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(instruction))
         {
-            if (!agentService.RenderFunction(agent, function)) continue;
-
-            var property = agentService.RenderFunctionProperty(agent, function);
-
-            options.Tools.Add(ChatTool.CreateFunctionTool(
-                functionName: function.Name,
-                functionDescription: function.Description,
-                functionParameters: BinaryData.FromObjectAsJson(property)));
+            renderedInstructions.Add(instruction);
+            messages.Add(new SystemChatMessage(instruction));
         }
 
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
+        // Render functions
+        if (options.WebSearchOptions == null)
         {
-            var text = agentService.RenderedInstruction(agent);
-            renderedInstructions.Add(text);
-            messages.Add(new SystemChatMessage(text));
+            foreach (var function in functions)
+            {
+                if (!agentService.RenderFunction(agent, function)) continue;
+
+                var property = agentService.RenderFunctionProperty(agent, function);
+
+                options.Tools.Add(ChatTool.CreateFunctionTool(
+                    functionName: function.Name,
+                    functionDescription: function.Description,
+                    functionParameters: BinaryData.FromObjectAsJson(property)));
+            }
         }
 
         if (!string.IsNullOrEmpty(agent.Knowledges))
@@ -487,8 +499,9 @@ public class ChatCompletionProvider : IChatCompletion
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
 
+        // Reasoning effort
         ChatReasoningEffortLevel? reasoningEffortLevel = null;
-        var temperature = float.Parse(state.GetState("temperature", "0.0"));
+        float? temperature = float.Parse(state.GetState("temperature", "0.0"));
         if (settings?.Reasoning != null)
         {
             temperature = settings.Reasoning.Temperature;
@@ -496,6 +509,15 @@ public class ChatCompletionProvider : IChatCompletion
                          .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel ?? string.Empty)
                          .IfNullOrEmptyAs(settings?.Reasoning?.EffortLevel ?? string.Empty);
             reasoningEffortLevel = ParseReasoningEffortLevel(level);
+        }
+
+        // Web search
+        ChatWebSearchOptions? webSearchOptions = null;
+        if (settings?.WebSearch != null)
+        {
+            temperature = null;
+            reasoningEffortLevel = null;
+            webSearchOptions = new();
         }
 
         var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
@@ -506,7 +528,8 @@ public class ChatCompletionProvider : IChatCompletion
         {
             Temperature = temperature,
             MaxOutputTokenCount = maxTokens,
-            ReasoningEffortLevel = reasoningEffortLevel
+            ReasoningEffortLevel = reasoningEffortLevel,
+            WebSearchOptions = webSearchOptions
         };
     }
 
@@ -540,11 +563,4 @@ public class ChatCompletionProvider : IChatCompletion
     {
         _model = model;
     }
-}
-
-
-class ToolCallData
-{
-    public ChatFinishReason? Reason { get; set; }
-    public List<StreamingChatToolCallUpdate> ToolCalls { get; set; } = [];
 }

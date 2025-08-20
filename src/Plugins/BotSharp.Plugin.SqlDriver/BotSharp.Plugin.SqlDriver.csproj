@@ -11,8 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Helpers\**" />
     <Compile Remove="packages\**" />
+    <EmbeddedResource Remove="Helpers\**" />
     <EmbeddedResource Remove="packages\**" />
+    <None Remove="Helpers\**" />
     <None Remove="packages\**" />
   </ItemGroup>
 
@@ -106,10 +109,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Helpers\" />
   </ItemGroup>
 
 </Project>

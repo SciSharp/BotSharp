@@ -96,22 +96,20 @@ public class PalmChatCompletionProvider : IChatCompletion
 
     private (string, List<PalmChatMessage>, bool) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
-        var prompt = "";
-
         var agentService = _services.GetRequiredService<IAgentService>();
-
-        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
-        {
-            prompt += agentService.RenderedInstruction(agent);
-        }
-
         var routing = _services.GetRequiredService<IRoutingService>();
         var router = routing.Router;
+
+        // Prepare instruction and functions
+        var (prompt, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        if (!string.IsNullOrWhiteSpace(prompt))
+        {
+            renderedInstructions.Add(prompt);
+        }
 
         var messages = conversations.Select(c => new PalmChatMessage(c.Content, c.Role == AgentRole.User ? "user" : "AI"))
             .ToList();
 
-        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
         if (!functions.IsNullOrEmpty())
         {
             prompt += "\r\n\r\n[Functions] defined in JSON Schema:\r\n";
