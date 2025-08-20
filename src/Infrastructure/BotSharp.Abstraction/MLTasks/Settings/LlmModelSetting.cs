@@ -43,9 +43,9 @@ public class LlmModelSetting
     public bool ImageGeneration { get; set; }
 
     /// <summary>
-    /// Embedding dimension
+    /// Settings for embedding
     /// </summary>
-    public int Dimension { get; set; }
+    public EmbeddingSetting? Embedding { get; set; }
 
     /// <summary>
     /// Settings for reasoning model
@@ -71,6 +71,11 @@ public class LlmModelSetting
     {
         return $"[{Type}] {Name} {Endpoint}";
     }
+}
+
+public class EmbeddingSetting
+{
+    public int Dimension { get; set; }
 }
 
 public class ReasoningSetting
