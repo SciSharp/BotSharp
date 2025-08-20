@@ -63,14 +63,22 @@ public partial class PlaywrightWebDriver
             else
             {
                 await locator.ClickAsync();
-                var optionLocator = page.Locator($"//div[text()='{action.Content}']");
-                var optionCount = await optionLocator.CountAsync();
-                if (optionCount == 0)
+                if (!string.IsNullOrWhiteSpace(action.PressKey))
                 {
-                    Serilog.Log.Error($"Dropdown option not found: {action.Content}");
-                    return;
+                    await page.Keyboard.PressAsync(action.PressKey);
+                    await page.Keyboard.PressAsync("Enter");
                 }
-                await optionLocator.First.ClickAsync();
+                else
+                {
+                    var optionLocator = page.Locator($"//div[text()='{action.Content}']");
+                    var optionCount = await optionLocator.CountAsync();
+                    if (optionCount == 0)
+                    {
+                        Serilog.Log.Error($"Dropdown option not found: {action.Content}");
+                        return;
+                    }
+                    await optionLocator.First.ClickAsync();
+                }
             }
         }
         else if (action.Action == BroswerActionEnum.InputText)
