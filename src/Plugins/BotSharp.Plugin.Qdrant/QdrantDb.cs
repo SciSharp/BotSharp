@@ -507,6 +507,7 @@ public class QdrantDb : IVectorDb
 
 
     #region Private methods
+    #region Query filter
     private Filter? BuildQueryFilter(IEnumerable<VectorFilterGroup>? filterGroups)
     {
         if (filterGroups.IsNullOrEmpty())
@@ -783,6 +784,7 @@ public class QdrantDb : IVectorDb
 
         return fieldCondition;
     }
+    #endregion
 
     private WithPayloadSelector? BuildPayloadSelector(IEnumerable<string>? payloads)
     {

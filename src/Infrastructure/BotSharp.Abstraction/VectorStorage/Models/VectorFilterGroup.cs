@@ -5,7 +5,7 @@ namespace BotSharp.Abstraction.VectorStorage.Models;
 public class VectorFilterGroup
 {
     [JsonPropertyName("filters")]
-    public List<VectorFilterSubGroup>? Filters { get; set; }
+    public IEnumerable<VectorFilterSubGroup>? Filters { get; set; }
 
     [JsonPropertyName("logical_operator")]
     public string LogicalOperator { get; set; } = "or";
@@ -14,7 +14,7 @@ public class VectorFilterGroup
 public class VectorFilterSubGroup
 {
     [JsonPropertyName("operands")]
-    public List<VectorFilterOperand> Operands { get; set; } = [];
+    public IEnumerable<VectorFilterOperand> Operands { get; set; } = [];
 
     [JsonPropertyName("logical_operator")]
     public string LogicalOperator { get; set; } = "or";
@@ -52,7 +52,7 @@ public class VectorFilterRange
     public string Key { get; set; } = null!;
 
     [JsonPropertyName("conditions")]
-    public List<VectorFilterRangeCondition> Conditions { get; set; } = [];
+    public IEnumerable<VectorFilterRangeCondition> Conditions { get; set; } = [];
 
     [JsonPropertyName("data_type")]
     public VectorPayloadDataType DataType { get; set; } = VectorPayloadDataType.String;
@@ -60,10 +60,11 @@ public class VectorFilterRange
     public override string ToString()
     {
         var str = $"Data type: {DataType};";
-        Conditions?.ForEach(x =>
+
+        foreach (var condition in Conditions)
         {
-            str += $"{Key} {x.Operator} {x.Value};";
-        });
+            str += $"{Key} {condition.Operator} {condition.Value};";
+        }
         return str;
     }
 }
