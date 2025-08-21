@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.VectorStorage.Enums;
-using Newtonsoft.Json.Linq;
 
 namespace BotSharp.Abstraction.VectorStorage.Models;
 

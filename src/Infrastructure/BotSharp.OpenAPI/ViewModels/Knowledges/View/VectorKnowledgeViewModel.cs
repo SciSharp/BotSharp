@@ -11,6 +11,9 @@ public class VectorKnowledgeViewModel
     [JsonPropertyName("data")]
     public IDictionary<string, VectorPayloadValue> Data { get; set; }
 
+    [JsonPropertyName("payload")]
+    public IDictionary<string, object> Payload { get; set; }
+
     [JsonPropertyName("score")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? Score { get; set; }
@@ -26,6 +29,7 @@ public class VectorKnowledgeViewModel
         {
             Id = result.Id,
             Data = result.Data,
+            Payload = result.Payload,
             Score = result.Score,
             VectorDimension = result.Vector?.Length
         };
@@ -37,6 +41,7 @@ public class VectorKnowledgeViewModel
         {
             Id = data.Id,
             Data = data.Data,
+            Payload = data.Payload,
             VectorDimension = data.Vector?.Length
         };
     }
