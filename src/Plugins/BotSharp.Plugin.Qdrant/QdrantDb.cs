@@ -173,7 +173,7 @@ public class QdrantDb : IVectorDb
         var points = response?.Result?.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
-            Data = MapPayload(x.Payload),
+            Payload = MapPayload(x.Payload),
             Vector = filter.WithVector ? x.Vectors?.Vector?.Data?.ToArray() : null
         })?.ToList() ?? new List<VectorCollectionData>();
 
@@ -205,7 +205,7 @@ public class QdrantDb : IVectorDb
         return points.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
-            Data = MapPayload(x.Payload),
+            Payload = MapPayload(x.Payload),
             Vector = x.Vectors?.Vector?.Data?.ToArray()
         });
     }
@@ -294,7 +294,7 @@ public class QdrantDb : IVectorDb
         results = points.Select(x => new VectorCollectionData
         {
             Id = x.Id.Uuid,
-            Data = MapPayload(x.Payload),
+            Payload = MapPayload(x.Payload),
             Score = x.Score,
             Vector = x.Vectors?.Vector?.Data?.ToArray()
         }).ToList();

@@ -12,7 +12,7 @@ public class VectorSearchResult : VectorCollectionData
         return new VectorSearchResult
         {
             Id = data.Id,
-            Data = data.Data,
+            Payload = data.Payload,
             Score = data.Score,
             Vector = data.Vector
         };

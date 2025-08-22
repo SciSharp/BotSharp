@@ -8,11 +8,11 @@ public class VectorKnowledgeViewModel
     [JsonPropertyName("id")]
     public string Id { get; set; }
 
-    [JsonPropertyName("data")]
-    public IDictionary<string, VectorPayloadValue> Data { get; set; }
-
     [JsonPropertyName("payload")]
-    public IDictionary<string, object> Payload { get; set; }
+    public IDictionary<string, VectorPayloadValue> Payload { get; set; }
+
+    [JsonPropertyName("data")]
+    public IDictionary<string, object> Data { get; set; }
 
     [JsonPropertyName("score")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
