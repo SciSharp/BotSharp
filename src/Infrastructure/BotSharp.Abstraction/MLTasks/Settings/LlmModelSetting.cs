@@ -86,6 +86,7 @@ public class ReasoningSetting
 
 public class WebSearchSetting
 {
+    public bool IsDefault { get; set; }
     public string? SearchContextSize { get; set; }
 }
 

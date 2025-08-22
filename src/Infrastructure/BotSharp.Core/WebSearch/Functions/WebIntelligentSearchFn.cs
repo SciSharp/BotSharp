@@ -53,8 +53,16 @@ public class WebIntelligentSearchFn : IFunctionCallback
     {
         try
         {
+            var provider = "openai";
+            var defaultModel = "gpt-4o-mini-search-preview";
+
             var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: "openai", model: "gpt-4o-search-preview");
+            var models = llmProviderService.GetProviderModels(provider);
+            var webSearchModel = models.FirstOrDefault(x => x.WebSearch?.IsDefault == true)?.Name
+                                ?? models.FirstOrDefault(x => x.WebSearch != null)?.Name
+                                ?? defaultModel;
+
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: webSearchModel);
             var response = await completion.GetChatCompletions(agent, dialogs);
             return response.Content;
         }
