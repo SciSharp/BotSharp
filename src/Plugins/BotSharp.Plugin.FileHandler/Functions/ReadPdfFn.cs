@@ -33,13 +33,13 @@ public class ReadPdfFn : IFunctionCallback
         Agent? fromAgent = null;
         if (!string.IsNullOrEmpty(message.CurrentAgentId))
         {
-            fromAgent = await agentService.LoadAgent(message.CurrentAgentId);
+            fromAgent = await agentService.GetAgent(message.CurrentAgentId);
         }
 
         var agent = new Agent
         {
-            Id = BuiltInAgentId.UtilityAssistant,
-            Name = "Utility Agent",
+            Id = fromAgent?.Id ?? BuiltInAgentId.UtilityAssistant,
+            Name = fromAgent?.Name ?? "Utility Assistant",
             Instruction = fromAgent?.Instruction ?? args?.UserRequest ?? "Please describe the pdf file(s).",
             TemplateDict = new Dictionary<string, object>()
         };

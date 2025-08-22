@@ -25,16 +25,22 @@ public class GenerateImageFn : IFunctionCallback
         SetImageOptions();
         
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(BuiltInAgentId.UtilityAssistant);
-        var imageAgent = new Agent
+
+        Agent? fromAgent = null;
+        if (!string.IsNullOrEmpty(message.CurrentAgentId))
         {
-            Id = agent?.Id ?? Guid.Empty.ToString(),
-            Name = agent?.Name ?? "Unkown",
+            fromAgent = await agentService.GetAgent(message.CurrentAgentId);
+        }
+
+        var agent = new Agent
+        {
+            Id = fromAgent?.Id ?? BuiltInAgentId.UtilityAssistant,
+            Name = fromAgent?.Name ?? "Utility Assistant",
             Instruction = args?.ImageDescription,
             TemplateDict = new Dictionary<string, object>()
         };
 
-        var response = await GetImageGeneration(imageAgent, message, args?.ImageDescription);
+        var response = await GetImageGeneration(agent, message, args?.ImageDescription);
         message.Content = response;
         message.StopCompletion = true;
         return true;
@@ -58,7 +64,8 @@ public class GenerateImageFn : IFunctionCallback
     {
         try
         {
-            var completion = CompletionProvider.GetImageCompletion(_services, provider: "openai", model: "dall-e-3");
+            var (provider, model) = GetLlmProviderModel();
+            var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
             var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
             var result = await completion.GetImageGeneration(agent, dialog);
@@ -71,6 +78,20 @@ public class GenerateImageFn : IFunctionCallback
             _logger.LogWarning(ex, $"{error}");
             return error;
         }
+    }
+
+    private (string, string) GetLlmProviderModel()
+    {
+        var provider = "openai";
+        var model = "gpt-image-1";
+
+        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+        var models = llmProviderService.GetProviderModels(provider);
+        var foundModel = models.FirstOrDefault(x => x.Image?.Generation?.IsDefault == true)
+                            ?? models.FirstOrDefault(x => x.Image?.Generation != null);
+
+        model = foundModel?.Name ?? model;
+        return (provider, model);
     }
 
     private void SaveGeneratedImages(List<ImageGeneration>? images)

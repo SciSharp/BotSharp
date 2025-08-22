@@ -93,7 +93,7 @@ public partial class FileInstructService
             }
 
             var providerName = options.Provider ?? "openai";
-            var model = options?.Model ?? "gpt-4o-mini";
+            var model = options?.Model ?? "gpt-4.1-mini";
             var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == providerName);
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
 

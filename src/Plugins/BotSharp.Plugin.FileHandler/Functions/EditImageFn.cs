@@ -1,5 +1,3 @@
-using System.IO;
-
 namespace BotSharp.Plugin.FileHandler.Functions;
 
 public class EditImageFn : IFunctionCallback
@@ -30,6 +28,7 @@ public class EditImageFn : IFunctionCallback
         var image = await SelectImage(descrpition);
         var response = await GetImageEditGeneration(message, descrpition, image);
         message.Content = response;
+        message.StopCompletion = true;
         return true;
     }
 
@@ -43,8 +42,8 @@ public class EditImageFn : IFunctionCallback
     private void SetImageOptions()
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        state.SetState("image_response_format", "bytes");
         state.SetState("image_count", "1");
+        state.SetState("image_response_format", "bytes");
     }
 
     private async Task<MessageFileModel?> SelectImage(string? description)
@@ -53,7 +52,8 @@ public class EditImageFn : IFunctionCallback
         var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, new SelectFileOptions
         {
             Description = description,
-            ContentTypes = new List<string> { MediaTypeNames.Image.Png }
+            IncludeBotFile = true,
+            ContentTypes = [MediaTypeNames.Image.Png]
         });
         return selecteds?.FirstOrDefault();
     }
@@ -67,7 +67,8 @@ public class EditImageFn : IFunctionCallback
 
         try
         {
-            var completion = CompletionProvider.GetImageCompletion(_services, provider: "openai", model: "dall-e-2");
+            var (provider, model) = GetLlmProviderModel();
+            var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
             var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
             var agent = new Agent
@@ -78,13 +79,15 @@ public class EditImageFn : IFunctionCallback
 
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
             var fileBinary = fileStorage.GetFileBytes(image.FileStorageUrl);
+
+            // To do: convert rgb to rgba image
             using var stream = fileBinary.ToStream();
             stream.Position = 0;
-            var result = await completion.GetImageEdits(agent, dialog, stream, image.FileName ?? string.Empty);
+            var result = await completion.GetImageEdits(agent, dialog, stream, image.FileFullName);
             stream.Close();
             SaveGeneratedImage(result?.GeneratedImages?.FirstOrDefault());
 
-            return $"Image \"{image.FileName}.{image.FileExtension}\" is successfylly editted.";
+            return $"Your image is successfylly editted.";
         }
         catch (Exception ex)
         {
@@ -92,6 +95,20 @@ public class EditImageFn : IFunctionCallback
             _logger.LogWarning(ex, $"{error}");
             return error;
         }
+    }
+
+    private (string, string) GetLlmProviderModel()
+    {
+        var provider = "openai";
+        var model = "gpt-image-1";
+
+        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+        var models = llmProviderService.GetProviderModels(provider);
+        var foundModel = models.FirstOrDefault(x => x.Image?.Edit?.IsDefault == true)
+                            ?? models.FirstOrDefault(x => x.Image?.Edit != null);
+
+        model = foundModel?.Name ?? model;
+        return (provider, model);
     }
 
     private void SaveGeneratedImage(ImageGeneration? image)

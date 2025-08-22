@@ -52,9 +52,10 @@ public partial class ImageCompletionProvider
         var prompt = message?.Payload ?? message?.Content ?? string.Empty;
 
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting(Provider, _model)?.Image?.Edit;
-
         var state = _services.GetRequiredService<IConversationStateService>();
+
+        var settings = settingsService.GetSetting(Provider, _model)?.Image?.Edit;
+        
         var size = state.GetState("image_size");
         var responseFormat = state.GetState("image_response_format");
 
@@ -71,7 +72,7 @@ public partial class ImageCompletionProvider
             options.ResponseFormat = GetImageResponseFormat(responseFormat);
         }
 
-        var count = GetImageCount(state.GetState("image_count", "1"));
+        var count = GetImageCount(state.GetState("image_count"));
         return (prompt, count, options);
     }
 }
