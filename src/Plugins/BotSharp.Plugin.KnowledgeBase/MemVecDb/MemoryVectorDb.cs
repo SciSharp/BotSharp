@@ -60,7 +60,7 @@ public class MemoryVectorDb : IVectorDb
                         .Take(options.Limit.GetValueOrDefault())
                         .Select(i => new VectorCollectionData
                         {
-                            Data = new Dictionary<string, VectorPayloadValue>
+                            Payload = new Dictionary<string, VectorPayloadValue>
                             {
                                 { "text", new(_vectors[collectionName][i].Text, VectorPayloadDataType.String) }
                             },

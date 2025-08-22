@@ -74,7 +74,7 @@ namespace BotSharp.Plugin.SemanticKernel
             {
                 resultTexts.Add(new VectorCollectionData
                 {
-                    Data = new Dictionary<string, VectorPayloadValue>
+                    Payload = new Dictionary<string, VectorPayloadValue>
                     {
                         { "text", new(record.Metadata.Text, VectorPayloadDataType.String) }
                     },
