@@ -230,7 +230,7 @@ public class QdrantDb : IVectorDb
         {
             foreach (var item in payload)
             {
-                var value = item.Value.DataValue?.ToString();
+                var value = item.Value.DataValue?.ConvertToString();
                 if (value == null || item.Key.IsEqualTo(KnowledgePayloadName.Text))
                 {
                     continue;
@@ -248,7 +248,7 @@ public class QdrantDb : IVectorDb
                         point.Payload[item.Key] = doubleVal;
                         break;
                     case VectorPayloadDataType.Datetime when DateTime.TryParse(value, out var dt):
-                        point.Payload[item.Key] = dt.ToUniversalTime().ToString("o");
+                        point.Payload[item.Key] = dt.ToString("o");
                         break;
                     case VectorPayloadDataType.String:
                         point.Payload[item.Key] = value;
