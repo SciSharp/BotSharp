@@ -67,8 +67,8 @@ public class PlotChartFn : IFunctionCallback
     {
         try
         {
-            var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: "openai", model: "gpt-4.1");
+            var (provider, model) = GetLlmProviderModel();
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
             var response = await completion.GetChatCompletions(agent, dialogs);
             return response.Content;
         }
@@ -78,5 +78,22 @@ public class PlotChartFn : IFunctionCallback
             _logger.LogWarning(ex, error);
             return error;
         }
+    }
+
+    private (string, string) GetLlmProviderModel()
+    {
+        var provider = "openai";
+        var model = "gpt-5";
+
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var settings = _services.GetRequiredService<ChartHandlerSettings>();
+        provider = state.GetState("chart_plot_llm_provider")
+                        .IfNullOrEmptyAs(settings.ChartPlot?.LlmProvider)
+                        .IfNullOrEmptyAs(provider);
+        model = state.GetState("chart_plot_llm_model")
+                     .IfNullOrEmptyAs(settings.ChartPlot?.LlmModel)
+                     .IfNullOrEmptyAs(model);
+
+        return (provider, model);
     }
 }

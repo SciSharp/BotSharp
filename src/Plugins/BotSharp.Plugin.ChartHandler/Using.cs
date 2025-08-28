@@ -30,3 +30,4 @@ global using BotSharp.Core.Infrastructures;
 global using BotSharp.Plugin.ChartHandler.Enums;
 global using BotSharp.Plugin.ChartHandler.LlmContext;
 global using BotSharp.Plugin.ChartHandler.Hooks;
+global using BotSharp.Plugin.ChartHandler.Settings;
