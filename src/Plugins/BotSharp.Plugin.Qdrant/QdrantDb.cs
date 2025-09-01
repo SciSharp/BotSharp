@@ -230,8 +230,13 @@ public class QdrantDb : IVectorDb
         {
             foreach (var item in payload)
             {
+                if (item.Value == null)
+                {
+                    continue;
+                }
+
                 var value = item.Value.DataValue?.ConvertToString();
-                if (value == null || item.Key.IsEqualTo(KnowledgePayloadName.Text))
+                if (string.IsNullOrEmpty(value) || item.Key.IsEqualTo(KnowledgePayloadName.Text))
                 {
                     continue;
                 }
