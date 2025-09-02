@@ -21,13 +21,13 @@ public class PlotChartFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
         var agentService = _services.GetRequiredService<IAgentService>();
         var convService = _services.GetRequiredService<IConversationService>();
 
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
+
         var agent = await agentService.GetAgent(message.CurrentAgentId);
-        var inst = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, "util-chart-plot_instruction");
+        var inst = GetChartPlotInstruction(message.CurrentAgentId);
         var innerAgent = new Agent
         {
             Id = agent.Id,
@@ -78,6 +78,27 @@ public class PlotChartFn : IFunctionCallback
             _logger.LogWarning(ex, error);
             return error;
         }
+    }
+
+    private string GetChartPlotInstruction(string agentId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var state = _services.GetRequiredService<IConversationStateService>();
+
+        var templateContent = string.Empty;
+        var templateName = state.GetState("chart_plot_template");
+
+        if (!string.IsNullOrEmpty(templateName))
+        {
+            templateContent = db.GetAgentTemplate(agentId, templateName);
+        }
+        else
+        {
+            templateName = "util-chart-plot_instruction";
+            templateContent = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, templateName);
+        }
+
+        return templateContent;
     }
 
     private (string, string) GetLlmProviderModel()
