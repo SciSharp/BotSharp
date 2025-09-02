@@ -33,6 +33,10 @@ public class PlotChartFn : IFunctionCallback
             Id = agent.Id,
             Name = agent.Name,
             Instruction = inst,
+            LlmConfig = new AgentLlmConfig
+            {
+                MaxOutputTokens = 8192
+            },
             TemplateDict = new Dictionary<string, object>
             {
                 { "plotting_requirement", args?.PlottingRequirement ?? string.Empty },
@@ -48,7 +52,7 @@ public class PlotChartFn : IFunctionCallback
             }
         ]);
 
-        var obj = response.JsonContent<LlmContextOut>();
+         var obj = response.JsonContent<LlmContextOut>();
         message.Content = obj?.GreetingMessage ?? "Here is the chart you ask for:";
         message.RichContent = new RichContent<IRichMessage>
         {
