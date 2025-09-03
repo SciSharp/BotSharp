@@ -33,6 +33,10 @@ public class PlotChartFn : IFunctionCallback
             Id = agent.Id,
             Name = agent.Name,
             Instruction = inst,
+            LlmConfig = new AgentLlmConfig
+            {
+                MaxOutputTokens = 8192
+            },
             TemplateDict = new Dictionary<string, object>
             {
                 { "plotting_requirement", args?.PlottingRequirement ?? string.Empty },
