@@ -98,10 +98,9 @@ public class ReadImageFn : IFunctionCallback
     {
         try
         {
-            var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-            var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == "openai");
-            var model = llmProviderService.GetProviderModel(provider: provider, id: "gpt-4o", multiModal: true);
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model.Name);
+            var provider = "openai";
+            var model = "gpt-5-mini";
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
             var response = await completion.GetChatCompletions(agent, dialogs);
             return response.Content;
         }
