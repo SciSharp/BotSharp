@@ -21,18 +21,22 @@ public class PlotChartFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
         var agentService = _services.GetRequiredService<IAgentService>();
         var convService = _services.GetRequiredService<IConversationService>();
 
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
+
         var agent = await agentService.GetAgent(message.CurrentAgentId);
-        var inst = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, "util-chart-plot_instruction");
+        var inst = GetChartPlotInstruction(message.CurrentAgentId);
         var innerAgent = new Agent
         {
             Id = agent.Id,
             Name = agent.Name,
             Instruction = inst,
+            LlmConfig = new AgentLlmConfig
+            {
+                MaxOutputTokens = 8192
+            },
             TemplateDict = new Dictionary<string, object>
             {
                 { "plotting_requirement", args?.PlottingRequirement ?? string.Empty },
@@ -67,8 +71,8 @@ public class PlotChartFn : IFunctionCallback
     {
         try
         {
-            var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: "openai", model: "gpt-4.1");
+            var (provider, model) = GetLlmProviderModel();
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
             var response = await completion.GetChatCompletions(agent, dialogs);
             return response.Content;
         }
@@ -78,5 +82,43 @@ public class PlotChartFn : IFunctionCallback
             _logger.LogWarning(ex, error);
             return error;
         }
+    }
+
+    private string GetChartPlotInstruction(string agentId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var state = _services.GetRequiredService<IConversationStateService>();
+
+        var templateContent = string.Empty;
+        var templateName = state.GetState("chart_plot_template");
+
+        if (!string.IsNullOrEmpty(templateName))
+        {
+            templateContent = db.GetAgentTemplate(agentId, templateName);
+        }
+        else
+        {
+            templateName = "util-chart-plot_instruction";
+            templateContent = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, templateName);
+        }
+
+        return templateContent;
+    }
+
+    private (string, string) GetLlmProviderModel()
+    {
+        var provider = "openai";
+        var model = "gpt-5";
+
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var settings = _services.GetRequiredService<ChartHandlerSettings>();
+        provider = state.GetState("chart_plot_llm_provider")
+                        .IfNullOrEmptyAs(settings.ChartPlot?.LlmProvider)
+                        .IfNullOrEmptyAs(provider);
+        model = state.GetState("chart_plot_llm_model")
+                     .IfNullOrEmptyAs(settings.ChartPlot?.LlmModel)
+                     .IfNullOrEmptyAs(model);
+
+        return (provider, model);
     }
 }

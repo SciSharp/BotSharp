@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.MLTasks;
@@ -12,6 +11,15 @@ public partial class InstructService
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         Agent agent = await agentService.LoadAgent(agentId);
+
+        if (agent == null)
+        {
+            return new InstructResult
+            {
+                MessageId = message.MessageId,
+                Text = $"Agent (id: {agentId}) does not exist!"
+            };
+        }
 
         if (agent.Disabled)
         {
@@ -55,6 +63,7 @@ public partial class InstructService
         {
             MessageId = message.MessageId
         };
+
         if (completer is ITextCompletion textCompleter)
         {
             instruction = null;
@@ -86,7 +95,7 @@ public partial class InstructService
                 {
                     CurrentAgentId = agentId,
                     MessageId = message.MessageId,
-                    Files = files?.Select(x => new BotSharpFile { FileUrl = x.FileUrl, FileData = x.FileData }).ToList() ?? []
+                    Files = files?.Select(x => new BotSharpFile { FileUrl = x.FileUrl, FileData = x.FileData, ContentType = x.ContentType }).ToList() ?? []
                 }
             });
             response.Text = result.Content;

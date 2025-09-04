@@ -12,7 +12,12 @@ public class ChartHandlerPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        services.AddScoped(provider =>
+        {
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<ChartHandlerSettings>("ChartHandler");
+        });
+
         services.AddScoped<IAgentUtilityHook, ChartHandlerUtilityHook>();
     }
-
 }
