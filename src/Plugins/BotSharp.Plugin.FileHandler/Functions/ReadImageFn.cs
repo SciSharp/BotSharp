@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.MLTasks.Settings;
 using BotSharp.Abstraction.Routing;
 
 namespace BotSharp.Plugin.FileHandler.Functions;
@@ -100,6 +99,7 @@ public class ReadImageFn : IFunctionCallback
         try
         {
             var (provider, model) = GetLlmProviderModel();
+            SetImageDetailLevel();
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
             var response = await completion.GetChatCompletions(agent, dialogs);
             return response.Content;
@@ -116,6 +116,7 @@ public class ReadImageFn : IFunctionCallback
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+        var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
 
         var provider = state.GetState("image_read_llm_provider");
         var model = state.GetState("image_read_llm_model");
@@ -125,14 +126,31 @@ public class ReadImageFn : IFunctionCallback
             return (provider, model);
         }
 
+        provider = fileSettings?.Image?.Reading?.LlmProvider;
+        model = fileSettings?.Image?.Reading?.LlmModel;
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
         provider = "openai";
         model = "gpt-5-mini";
 
-        var models = llmProviderService.GetProviderModels(provider);
-        var foundModel = models.FirstOrDefault(x => x.Image?.Reading?.IsDefault == true)
-                            ?? models.FirstOrDefault(x => x.Image?.Reading != null);
-
-        model = foundModel?.Name ?? model;
         return (provider, model);
+    }
+
+    private void SetImageDetailLevel()
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
+
+        var key = "chat_image_detail_level";
+        var level = state.GetState(key);
+
+        if (string.IsNullOrWhiteSpace(level) && !string.IsNullOrWhiteSpace(fileSettings.Image?.Reading?.ImageDetailLevel))
+        {
+            state.SetState(key, fileSettings.Image.Reading.ImageDetailLevel);
+        }
     }
 }

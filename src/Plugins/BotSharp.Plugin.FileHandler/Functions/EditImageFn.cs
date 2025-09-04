@@ -101,9 +101,18 @@ public class EditImageFn : IFunctionCallback
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+        var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
 
         var provider = state.GetState("image_edit_llm_provider");
-        var model = state.GetState("image_edit_llm_model");
+        var model = state.GetState("image_edit_llm_provider");
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = fileSettings?.Image?.Edit?.LlmProvider;
+        model = fileSettings?.Image?.Edit?.LlmModel;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
@@ -113,11 +122,6 @@ public class EditImageFn : IFunctionCallback
         provider = "openai";
         model = "gpt-image-1";
 
-        var models = llmProviderService.GetProviderModels(provider);
-        var foundModel = models.FirstOrDefault(x => x.Image?.Edit?.IsDefault == true)
-                            ?? models.FirstOrDefault(x => x.Image?.Edit != null);
-
-        model = foundModel?.Name ?? model;
         return (provider, model);
     }
 

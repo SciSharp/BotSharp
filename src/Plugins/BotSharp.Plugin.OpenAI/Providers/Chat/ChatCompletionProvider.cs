@@ -372,7 +372,7 @@ public class ChatCompletionProvider : IChatCompletion
             filteredMessages = filteredMessages.Where((_, idx) => idx >= firstUserMsgIdx).ToList();
         }
 
-        var imageDetailLevel = GetChatImageDetailLevel(state.GetState("chat_image_detail_level"));
+        var imageDetailLevel = ParseChatImageDetailLevel(state.GetState("chat_image_detail_level"));
         foreach (var message in filteredMessages)
         {
             if (message.Role == AgentRole.Function)
@@ -508,8 +508,8 @@ public class ChatCompletionProvider : IChatCompletion
         {
             temperature = settings.Reasoning.Temperature;
             var level = state.GetState("reasoning_effort_level")
-                         .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel ?? string.Empty)
-                         .IfNullOrEmptyAs(settings?.Reasoning?.EffortLevel ?? string.Empty);
+                         .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel)
+                         .IfNullOrEmptyAs(settings?.Reasoning?.EffortLevel);
             reasoningEffortLevel = ParseReasoningEffortLevel(level);
         }
 
@@ -561,13 +561,7 @@ public class ChatCompletionProvider : IChatCompletion
         return effortLevel;
     }
 
-
-    private ChatImageDetailLevel GetChatImageDetailLevel(string level)
-    {
-        return ParseChatImageDetailLevel(level);
-    }
-
-    private ChatImageDetailLevel ParseChatImageDetailLevel(string level)
+    private ChatImageDetailLevel ParseChatImageDetailLevel(string? level)
     {
         if (string.IsNullOrWhiteSpace(level))
         {
