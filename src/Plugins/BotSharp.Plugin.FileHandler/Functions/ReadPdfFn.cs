@@ -41,7 +41,7 @@ public class ReadPdfFn : IFunctionCallback
             Id = fromAgent?.Id ?? BuiltInAgentId.UtilityAssistant,
             Name = fromAgent?.Name ?? "Utility Assistant",
             Instruction = fromAgent?.Instruction ?? args?.UserRequest ?? "Please describe the pdf file(s).",
-            TemplateDict = new Dictionary<string, object>()
+            LlmConfig = fromAgent?.LlmConfig ?? new()
         };
 
         var wholeDialogs = routingCtx.GetDialogs();
@@ -89,8 +89,7 @@ public class ReadPdfFn : IFunctionCallback
     {
         try
         {
-            var provider = "openai";
-            var model = "gpt-5-mini";
+            var (provider, model) = GetLlmProviderModel();
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
             var response = await completion.GetChatCompletions(agent, dialogs);
             return response.Content;
@@ -101,5 +100,29 @@ public class ReadPdfFn : IFunctionCallback
             _logger.LogWarning(ex, $"{error}");
             return error;
         }
+    }
+
+    private (string, string) GetLlmProviderModel()
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+
+        var provider = state.GetState("image_read_llm_provider");
+        var model = state.GetState("image_read_llm_model");
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = "openai";
+        model = "gpt-5-mini";
+
+        var models = llmProviderService.GetProviderModels(provider);
+        var foundModel = models.FirstOrDefault(x => x.Image?.Reading?.IsDefault == true)
+                            ?? models.FirstOrDefault(x => x.Image?.Reading != null);
+
+        model = foundModel?.Name ?? model;
+        return (provider, model);
     }
 }

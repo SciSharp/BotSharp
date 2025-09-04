@@ -68,10 +68,20 @@ public class WebIntelligentSearchFn : IFunctionCallback
 
     private (string, string) GetLlmProviderModel()
     {
-        var provider = "openai";
-        var model = "gpt-4o-mini-search-preview";
-
+        var state = _services.GetRequiredService<IConversationStateService>();
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+
+        var provider = state.GetState("web_search_llm_provider");
+        var model = state.GetState("web_search_llm_model");
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = "openai";
+        model = "gpt-4o-mini-search-preview";
+
         var models = llmProviderService.GetProviderModels(provider);
         var foundModel = models.FirstOrDefault(x => x.WebSearch?.IsDefault == true)
                             ?? models.FirstOrDefault(x => x.WebSearch != null);

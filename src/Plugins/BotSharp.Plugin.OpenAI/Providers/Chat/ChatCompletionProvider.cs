@@ -320,6 +320,7 @@ public class ChatCompletionProvider : IChatCompletion
     protected (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
@@ -371,6 +372,7 @@ public class ChatCompletionProvider : IChatCompletion
             filteredMessages = filteredMessages.Where((_, idx) => idx >= firstUserMsgIdx).ToList();
         }
 
+        var imageDetailLevel = GetChatImageDetailLevel(state.GetState("chat_image_detail_level"));
         foreach (var message in filteredMessages)
         {
             if (message.Role == AgentRole.Function)
@@ -395,20 +397,20 @@ public class ChatCompletionProvider : IChatCompletion
                         if (!string.IsNullOrEmpty(file.FileData))
                         {
                             var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), ChatImageDetailLevel.Auto);
+                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), imageDetailLevel);
                             contentParts.Add(contentPart);
                         }
                         else if (!string.IsNullOrEmpty(file.FileStorageUrl))
                         {
                             var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
                             var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), ChatImageDetailLevel.Auto);
+                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), imageDetailLevel);
                             contentParts.Add(contentPart);
                         }
                         else if (!string.IsNullOrEmpty(file.FileUrl))
                         {
                             var uri = new Uri(file.FileUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(uri, ChatImageDetailLevel.Auto);
+                            var contentPart = ChatMessageContentPart.CreateImagePart(uri, imageDetailLevel);
                             contentParts.Add(contentPart);
                         }
                     }
@@ -557,6 +559,35 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         return effortLevel;
+    }
+
+
+    private ChatImageDetailLevel GetChatImageDetailLevel(string level)
+    {
+        return ParseChatImageDetailLevel(level);
+    }
+
+    private ChatImageDetailLevel ParseChatImageDetailLevel(string level)
+    {
+        if (string.IsNullOrWhiteSpace(level))
+        {
+            return ChatImageDetailLevel.Auto;
+        }
+
+        var imageLevel = ChatImageDetailLevel.Auto;
+        switch (level.ToLower())
+        {
+            case "low":
+                imageLevel = ChatImageDetailLevel.Low;
+                break;
+            case "high":
+                imageLevel = ChatImageDetailLevel.High;
+                break;
+            default:
+                break;
+        }
+
+        return imageLevel;
     }
 
     public void SetModelName(string model)

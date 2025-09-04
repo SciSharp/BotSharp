@@ -36,8 +36,7 @@ public class GenerateImageFn : IFunctionCallback
         {
             Id = fromAgent?.Id ?? BuiltInAgentId.UtilityAssistant,
             Name = fromAgent?.Name ?? "Utility Assistant",
-            Instruction = args?.ImageDescription,
-            TemplateDict = new Dictionary<string, object>()
+            Instruction = args?.ImageDescription
         };
 
         var response = await GetImageGeneration(agent, message, args?.ImageDescription);
@@ -82,10 +81,20 @@ public class GenerateImageFn : IFunctionCallback
 
     private (string, string) GetLlmProviderModel()
     {
-        var provider = "openai";
-        var model = "gpt-image-1";
-
+        var state = _services.GetRequiredService<IConversationStateService>();
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+
+        var provider = state.GetState("image_generate_llm_provider");
+        var model = state.GetState("image_generate_llm_model");
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = "openai";
+        model = "gpt-image-1";
+
         var models = llmProviderService.GetProviderModels(provider);
         var foundModel = models.FirstOrDefault(x => x.Image?.Generation?.IsDefault == true)
                             ?? models.FirstOrDefault(x => x.Image?.Generation != null);

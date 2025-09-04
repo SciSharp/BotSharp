@@ -99,13 +99,19 @@ public class WebSearchSetting
 }
 #endregion
 
-
 #region Image model settings
 public class ImageSetting
 {
+    public ImageReadSetting? Reading { get; set; }
     public ImageGenerationSetting? Generation { get; set; }
     public ImageEditSetting? Edit { get; set; }
     public ImageVariationSetting? Variation { get; set; }
+}
+
+public class ImageReadSetting
+{
+    public bool IsDefault { get; set; }
+    public string? ImageDetailLevel { get; set; }
 }
 
 public class ImageGenerationSetting

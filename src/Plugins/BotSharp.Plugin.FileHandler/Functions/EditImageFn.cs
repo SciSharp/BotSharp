@@ -99,10 +99,20 @@ public class EditImageFn : IFunctionCallback
 
     private (string, string) GetLlmProviderModel()
     {
-        var provider = "openai";
-        var model = "gpt-image-1";
-
+        var state = _services.GetRequiredService<IConversationStateService>();
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+
+        var provider = state.GetState("image_edit_llm_provider");
+        var model = state.GetState("image_edit_llm_model");
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = "openai";
+        model = "gpt-image-1";
+
         var models = llmProviderService.GetProviderModels(provider);
         var foundModel = models.FirstOrDefault(x => x.Image?.Edit?.IsDefault == true)
                             ?? models.FirstOrDefault(x => x.Image?.Edit != null);
