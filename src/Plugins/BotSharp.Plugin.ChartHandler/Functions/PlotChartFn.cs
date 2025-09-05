@@ -7,7 +7,6 @@ public class PlotChartFn : IFunctionCallback
     private readonly IServiceProvider _services;
     private readonly ILogger<PlotChartFn> _logger;
     private readonly ChartHandlerSettings _settings;
-    private readonly BotSharpOptions _options;
 
     public string Name => "util-chart-plot_chart";
     public string Indication => "Plotting chart";
@@ -16,13 +15,11 @@ public class PlotChartFn : IFunctionCallback
     public PlotChartFn(
         IServiceProvider services,
         ILogger<PlotChartFn> logger,
-        ChartHandlerSettings settings,
-        BotSharpOptions options)
+        ChartHandlerSettings settings)
     {
         _services = services;
         _logger = logger;
         _settings = settings;
-        _options = options;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
