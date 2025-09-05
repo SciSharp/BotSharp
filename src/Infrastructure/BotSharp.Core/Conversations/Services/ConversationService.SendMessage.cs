@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
