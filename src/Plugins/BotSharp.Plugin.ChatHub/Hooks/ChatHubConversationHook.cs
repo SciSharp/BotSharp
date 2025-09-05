@@ -5,6 +5,7 @@ using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.SideCar;
 using BotSharp.Abstraction.Users.Dtos;
 using Microsoft.AspNetCore.SignalR;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
@@ -112,15 +113,49 @@ public class ChatHubConversationHook : ConversationHookBase
             }
         };
 
-        // Send typing-off to client
+        // Send type-off to client
         var action = new ConversationSenderActionModel
         {
             ConversationId = conv.ConversationId,
             SenderAction = SenderActionEnum.TypingOff
         };
         await SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
-
         await SendEvent(ChatEvent.OnMessageReceivedFromAssistant, conv.ConversationId, data);
+
+        var wrapper = message.AdditionalMessageWrapper;
+        if (wrapper?.SendingInterval > 0 && wrapper?.Messages?.Count > 0)
+        {
+            action.SenderAction = SenderActionEnum.TypingOn;
+            await SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
+
+            foreach (var item in wrapper.Messages)
+            {
+                await Task.Delay(wrapper.SendingInterval);
+
+                data = new ChatResponseDto
+                {
+                    ConversationId = conv.ConversationId,
+                    MessageId = item.MessageId,
+                    Text = !string.IsNullOrEmpty(item.SecondaryContent) ? item.SecondaryContent : item.Content,
+                    Function = item.FunctionName,
+                    RichContent = item.SecondaryRichContent ?? item.RichContent,
+                    Data = item.Data,
+                    States = state.GetStates(),
+                    IsAppend = true,
+                    Sender = new()
+                    {
+                        FirstName = "AI",
+                        LastName = "Assistant",
+                        Role = AgentRole.Assistant
+                    }
+                };
+                await SendEvent(ChatEvent.OnMessageReceivedFromAssistant, conv.ConversationId, data);
+            }
+
+            action.SenderAction = SenderActionEnum.TypingOff;
+            await SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
+        }
+
         await base.OnResponseGenerated(message);
     }
 

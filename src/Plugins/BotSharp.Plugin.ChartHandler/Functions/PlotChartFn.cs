@@ -6,6 +6,7 @@ public class PlotChartFn : IFunctionCallback
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<PlotChartFn> _logger;
+    private readonly ChartHandlerSettings _settings;
 
     public string Name => "util-chart-plot_chart";
     public string Indication => "Plotting chart";
@@ -13,10 +14,12 @@ public class PlotChartFn : IFunctionCallback
 
     public PlotChartFn(
         IServiceProvider services,
-        ILogger<PlotChartFn> logger)
+        ILogger<PlotChartFn> logger,
+        ChartHandlerSettings settings)
     {
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -35,7 +38,7 @@ public class PlotChartFn : IFunctionCallback
             Instruction = inst,
             LlmConfig = new AgentLlmConfig
             {
-                MaxOutputTokens = 8192
+                MaxOutputTokens = _settings?.ChartPlot?.MaxOutputTokens ?? 8192
             },
             TemplateDict = new Dictionary<string, object>
             {
@@ -44,7 +47,8 @@ public class PlotChartFn : IFunctionCallback
             }
         };
 
-        var response = await GetChatCompletion(innerAgent, [
+        var response = await GetChatCompletion(innerAgent,
+        [
             new RoleDialogModel(AgentRole.User, "Please follow the instruction to generate the javascript code.")
             {
                 CurrentAgentId = message.CurrentAgentId,
@@ -63,6 +67,29 @@ public class PlotChartFn : IFunctionCallback
                 Language = "javascript"
             }
         };
+
+        if (!string.IsNullOrEmpty(obj?.ReportSummary))
+        {
+            message.AdditionalMessageWrapper = new()
+            {
+                SendingInterval = 1500,
+                SaveToDb = true,
+                Messages = new List<RoleDialogModel>
+                {
+                    new()
+                    {
+                        Role = AgentRole.Assistant,
+                        MessageId = message.MessageId,
+                        CurrentAgentId = message.CurrentAgentId,
+                        Content = obj.ReportSummary,
+                        FunctionName = message.FunctionName,
+                        FunctionArgs = message.FunctionArgs,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                }
+            };
+        }
+
         message.StopCompletion = true;
         return true;
     }
@@ -111,12 +138,11 @@ public class PlotChartFn : IFunctionCallback
         var model = "gpt-5";
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        var settings = _services.GetRequiredService<ChartHandlerSettings>();
         provider = state.GetState("chart_plot_llm_provider")
-                        .IfNullOrEmptyAs(settings.ChartPlot?.LlmProvider)
+                        .IfNullOrEmptyAs(_settings.ChartPlot?.LlmProvider)
                         .IfNullOrEmptyAs(provider);
         model = state.GetState("chart_plot_llm_model")
-                     .IfNullOrEmptyAs(settings.ChartPlot?.LlmModel)
+                     .IfNullOrEmptyAs(_settings.ChartPlot?.LlmModel)
                      .IfNullOrEmptyAs(model);
 
         return (provider, model);
