@@ -372,7 +372,12 @@ public class ChatCompletionProvider : IChatCompletion
             filteredMessages = filteredMessages.Where((_, idx) => idx >= firstUserMsgIdx).ToList();
         }
 
-        var imageDetailLevel = ParseChatImageDetailLevel(state.GetState("chat_image_detail_level"));
+        var imageDetailLevel = ChatImageDetailLevel.Auto;
+        if (allowMultiModal)
+        {
+            imageDetailLevel = ParseChatImageDetailLevel(state.GetState("chat_image_detail_level"));
+        }
+
         foreach (var message in filteredMessages)
         {
             if (message.Role == AgentRole.Function)
