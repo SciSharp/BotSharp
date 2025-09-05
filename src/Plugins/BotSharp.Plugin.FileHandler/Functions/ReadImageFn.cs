@@ -33,10 +33,10 @@ public class ReadImageFn : IFunctionCallback
 
         var agent = new Agent
         {
-            Id = BuiltInAgentId.UtilityAssistant,
-            Name = "Utility Agent",
+            Id = fromAgent?.Id ?? BuiltInAgentId.UtilityAssistant,
+            Name = fromAgent?.Name ?? "Utility Assistant",
             Instruction = fromAgent?.Instruction ?? args?.UserRequest ?? "Please describe the image(s).",
-            TemplateDict = new Dictionary<string, object>()
+            LlmConfig = fromAgent?.LlmConfig ?? new()
         };
 
         var wholeDialogs = routingCtx.GetDialogs();
@@ -98,8 +98,8 @@ public class ReadImageFn : IFunctionCallback
     {
         try
         {
-            var provider = "openai";
-            var model = "gpt-5-mini";
+            var (provider, model) = GetLlmProviderModel();
+            SetImageDetailLevel();
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
             var response = await completion.GetChatCompletions(agent, dialogs);
             return response.Content;
@@ -109,6 +109,48 @@ public class ReadImageFn : IFunctionCallback
             var error = $"Error when analyzing images.";
             _logger.LogWarning(ex, $"{error}");
             return error;
+        }
+    }
+
+    private (string, string) GetLlmProviderModel()
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+        var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
+
+        var provider = state.GetState("image_read_llm_provider");
+        var model = state.GetState("image_read_llm_model");
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = fileSettings?.Image?.Reading?.LlmProvider;
+        model = fileSettings?.Image?.Reading?.LlmModel;
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = "openai";
+        model = "gpt-5-mini";
+
+        return (provider, model);
+    }
+
+    private void SetImageDetailLevel()
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
+
+        var key = "chat_image_detail_level";
+        var level = state.GetState(key);
+
+        if (string.IsNullOrWhiteSpace(level) && !string.IsNullOrWhiteSpace(fileSettings.Image?.Reading?.ImageDetailLevel))
+        {
+            state.SetState(key, fileSettings.Image.Reading.ImageDetailLevel);
         }
     }
 }

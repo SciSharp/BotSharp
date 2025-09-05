@@ -42,4 +42,7 @@ public class FileInformation
     [JsonPropertyName("file_download_url")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? FileDownloadUrl { get; set; } = string.Empty;
+
+
+    public string FileFullName => $"{FileName}.{FileExtension}";
 }
