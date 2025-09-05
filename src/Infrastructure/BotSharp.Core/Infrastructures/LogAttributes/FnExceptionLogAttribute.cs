@@ -8,8 +8,7 @@ using System.Reflection;
 namespace BotSharp.Core.Infrastructures.Log;
 
 /// <summary>
-/// Shared Rougamo-based logging attribute for IFunctionCallback implementations that captures
-/// method execution details, parameters, and BotSharp-specific context.
+/// Use Rougamo-based logging attribute to captures method exception details, parameters, and BotSharp-specific context
 /// This attribute can be used across all BotSharp plugins for consistent function logging.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
