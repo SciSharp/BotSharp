@@ -72,7 +72,7 @@ public class PlotChartFn : IFunctionCallback
         {
             message.AdditionalMessageWrapper = new()
             {
-                IntervalMilliSeconds = 1500,
+                SendingInterval = 1500,
                 SaveToDb = true,
                 Messages = new List<RoleDialogModel>
                 {

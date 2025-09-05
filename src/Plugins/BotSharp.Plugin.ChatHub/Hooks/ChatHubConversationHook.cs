@@ -122,14 +122,15 @@ public class ChatHubConversationHook : ConversationHookBase
         await SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
         await SendEvent(ChatEvent.OnMessageReceivedFromAssistant, conv.ConversationId, data);
 
-        if (message.AdditionalMessageWrapper?.Messages?.Count > 0)
+        var wrapper = message.AdditionalMessageWrapper;
+        if (wrapper?.SendingInterval > 0 && wrapper?.Messages?.Count > 0)
         {
             action.SenderAction = SenderActionEnum.TypingOn;
             await SendEvent(ChatEvent.OnSenderActionGenerated, conv.ConversationId, action);
 
-            foreach (var item in message.AdditionalMessageWrapper.Messages)
+            foreach (var item in wrapper.Messages)
             {
-                await Task.Delay(message.AdditionalMessageWrapper.IntervalMilliSeconds);
+                await Task.Delay(wrapper.SendingInterval);
 
                 data = new ChatResponseDto
                 {
