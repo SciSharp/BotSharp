@@ -127,6 +127,13 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public bool IsStreaming { get; set; }
 
+    /// <summary>
+    /// Additional messages that can be sent sequentially and save to db
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public ChatMessageWrapper? AdditionalMessageWrapper { get; set; }
+
+
     public RoleDialogModel()
     {
     }
@@ -171,7 +178,15 @@ public class RoleDialogModel : ITrackableMessage
             Instruction = source.Instruction,
             Data = source.Data,
             IsStreaming = source.IsStreaming,
-            Annotations = source.Annotations
+            Annotations = source.Annotations,
+            AdditionalMessageWrapper = source.AdditionalMessageWrapper
         };
     }
+}
+
+public class ChatMessageWrapper
+{
+    public int IntervalMilliSeconds { get; set; } = 1000;
+    public bool SaveToDb { get; set; }
+    public List<RoleDialogModel>? Messages { get; set; }
 }

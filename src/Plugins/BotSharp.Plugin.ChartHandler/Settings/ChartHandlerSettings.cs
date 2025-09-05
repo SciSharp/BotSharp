@@ -7,6 +7,7 @@ public class ChartHandlerSettings
 
 public class ChartPlotSetting
 {
-    public string LlmProvider { get; set; }
-    public string LlmModel { get; set; }
+    public string? LlmProvider { get; set; }
+    public string? LlmModel { get; set; }
+    public int? MaxOutputTokens { get; set; }
 }

@@ -1,9 +1,4 @@
-using BotSharp.Abstraction.Conversations.Dtos;
-using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
-using BotSharp.Abstraction.Users;
-using BotSharp.Plugin.ChatHub.Helpers;
-using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChartHandler.Functions;
 
@@ -11,6 +6,7 @@ public class PlotChartFn : IFunctionCallback
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<PlotChartFn> _logger;
+    private readonly ChartHandlerSettings _settings;
     private readonly BotSharpOptions _options;
 
     public string Name => "util-chart-plot_chart";
@@ -20,10 +16,12 @@ public class PlotChartFn : IFunctionCallback
     public PlotChartFn(
         IServiceProvider services,
         ILogger<PlotChartFn> logger,
+        ChartHandlerSettings settings,
         BotSharpOptions options)
     {
         _services = services;
         _logger = logger;
+        _settings = settings;
         _options = options;
     }
 
@@ -43,7 +41,7 @@ public class PlotChartFn : IFunctionCallback
             Instruction = inst,
             LlmConfig = new AgentLlmConfig
             {
-                MaxOutputTokens = 8192
+                MaxOutputTokens = _settings?.ChartPlot?.MaxOutputTokens ?? 8192
             },
             TemplateDict = new Dictionary<string, object>
             {
@@ -52,7 +50,8 @@ public class PlotChartFn : IFunctionCallback
             }
         };
 
-        var response = await GetChatCompletion(innerAgent, [
+        var response = await GetChatCompletion(innerAgent,
+        [
             new RoleDialogModel(AgentRole.User, "Please follow the instruction to generate the javascript code.")
             {
                 CurrentAgentId = message.CurrentAgentId,
@@ -72,57 +71,30 @@ public class PlotChartFn : IFunctionCallback
             }
         };
 
-        // Send report summary after 1.5 seconds if exists
         if (!string.IsNullOrEmpty(obj?.ReportSummary))
         {
-            _ = Task.Run(async () =>
+            message.AdditionalMessageWrapper = new()
             {
-                var services = _services.CreateScope().ServiceProvider;
-                await Task.Delay(1500);
-                await SendDelayedMessage(services, obj.ReportSummary, convService.ConversationId, agent.Id, agent.Name);
-            });
+                IntervalMilliSeconds = 1500,
+                SaveToDb = true,
+                Messages = new List<RoleDialogModel>
+                {
+                    new()
+                    {
+                        Role = AgentRole.Assistant,
+                        MessageId = message.MessageId,
+                        CurrentAgentId = message.CurrentAgentId,
+                        Content = obj.ReportSummary,
+                        FunctionName = message.FunctionName,
+                        FunctionArgs = message.FunctionArgs,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                }
+            };
         }
 
         message.StopCompletion = true;
         return true;
-    }
-
-    private async Task SendDelayedMessage(IServiceProvider services, string text, string conversationId, string agentId, string agentName)
-    {
-        try
-        {
-            var messageId = Guid.NewGuid().ToString();
-            var messageData = new ChatResponseDto
-            {
-                ConversationId = conversationId,
-                MessageId = messageId,
-                Text = text,
-                Sender = new() { FirstName = agentName, LastName = "", Role = AgentRole.Assistant }
-            };
-            
-            var dialogModel = new RoleDialogModel(AgentRole.Assistant, text)
-            {
-                MessageId = messageId,
-                CurrentAgentId = agentId,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var storage = services.GetService<IConversationStorage>();
-            storage?.Append(conversationId, dialogModel);
-            await SendEvent(services, ChatEvent.OnMessageReceivedFromAssistant, conversationId, messageData);
-
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send delayed message");
-        }
-    }
-
-    private async Task SendEvent<T>(IServiceProvider services, string @event, string conversationId, T data, [CallerMemberName] string callerName = "")
-    {
-        var user = services.GetService<IUserIdentity>();
-        var json = JsonSerializer.Serialize(data, _options.JsonSerializerOptions);
-        await EventEmitter.SendChatEvent(services, _logger, @event, conversationId, user?.Id, json, nameof(PlotChartFn), callerName);
     }
 
     private async Task<string> GetChatCompletion(Agent agent, List<RoleDialogModel> dialogs)
@@ -169,12 +141,11 @@ public class PlotChartFn : IFunctionCallback
         var model = "gpt-5";
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        var settings = _services.GetRequiredService<ChartHandlerSettings>();
         provider = state.GetState("chart_plot_llm_provider")
-                        .IfNullOrEmptyAs(settings.ChartPlot?.LlmProvider)
+                        .IfNullOrEmptyAs(_settings.ChartPlot?.LlmProvider)
                         .IfNullOrEmptyAs(provider);
         model = state.GetState("chart_plot_llm_model")
-                     .IfNullOrEmptyAs(settings.ChartPlot?.LlmModel)
+                     .IfNullOrEmptyAs(_settings.ChartPlot?.LlmModel)
                      .IfNullOrEmptyAs(model);
 
         return (provider, model);
