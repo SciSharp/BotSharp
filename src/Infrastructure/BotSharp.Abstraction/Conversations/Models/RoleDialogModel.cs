@@ -186,7 +186,18 @@ public class RoleDialogModel : ITrackableMessage
 
 public class ChatMessageWrapper
 {
-    public int IntervalMilliSeconds { get; set; } = 1000;
+    /// <summary>
+    /// Messages sending interval in milliseconds
+    /// </summary>
+    public int SendingInterval { get; set; }
+
+    /// <summary>
+    /// Whether the Messages are saved to db
+    /// </summary>
     public bool SaveToDb { get; set; }
+
+    /// <summary>
+    /// Messages to send or save
+    /// </summary>
     public List<RoleDialogModel>? Messages { get; set; }
 }
