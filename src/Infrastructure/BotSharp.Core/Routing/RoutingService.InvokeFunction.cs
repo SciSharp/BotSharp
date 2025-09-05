@@ -65,6 +65,7 @@ public partial class RoutingService
             message.StopCompletion = clonedMessage.StopCompletion;
             message.RichContent = clonedMessage.RichContent;
             message.Data = clonedMessage.Data;
+            message.AdditionalMessageWrapper = clonedMessage.AdditionalMessageWrapper;
         }
         catch (JsonException ex)
         {

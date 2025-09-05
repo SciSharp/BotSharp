@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Chart;
 using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Files.Utilities;
@@ -527,6 +528,35 @@ public class ConversationController : ControllerBase
         stream.Position = 0;
 
         return new FileStreamResult(stream, contentType) { FileDownloadName = fName };
+    }
+    #endregion
+
+    #region Chart
+    [AllowAnonymous]
+    [HttpGet("/conversation/{conversationId}/message/{messageId}/user/chart/data")]
+    public async Task<ConversationChartDataResponse?> GetConversationChartData(
+        [FromRoute] string conversationId,
+        [FromRoute] string messageId,
+        [FromQuery] ConversationChartDataRequest request)
+    {
+        var chart = _services.GetServices<IBotSharpChartService>().FirstOrDefault(x => x.Provider == request?.ChartProvider);
+        if (chart == null) return null;
+
+        var result = await chart.GetConversationChartData(conversationId, messageId, request);
+        return ConversationChartDataResponse.From(result);
+    }
+
+    [HttpPost("/conversation/{conversationId}/message/{messageId}/user/chart/code")]
+    public async Task<ConversationChartCodeResponse?> GetConversationChartCode(
+        [FromRoute] string conversationId,
+        [FromRoute] string messageId,
+        [FromBody] ConversationChartCodeRequest request)
+    {
+        var chart = _services.GetServices<IBotSharpChartService>().FirstOrDefault(x => x.Provider == request?.ChartProvider);
+        if (chart == null) return null;
+
+        var result = await chart.GetConversationChartCode(conversationId, messageId, request);
+        return ConversationChartCodeResponse.From(result);
     }
     #endregion
 

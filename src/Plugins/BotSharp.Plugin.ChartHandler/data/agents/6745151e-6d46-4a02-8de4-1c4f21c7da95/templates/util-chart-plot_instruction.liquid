@@ -1,31 +1,43 @@
 Please take a look at "Plotting Requirement" and generate a javascript code that can be used to render the charts on an html element.
+You must strictly follow the "Hard Requirements", "Render Requirements", "Code Requirements" and "Response Format" below.
 
 === Plotting Requirement ===
 {{ plotting_requirement }}
 
+
 ***** Hard Requirements *****
 ** Your output javascript code must be wrapped in one or multiple <script>...</script> blocks with everything needed inside.
-** You need to import ECharts.js to plot the charts. The script source is "https://cdnjs.cloudflare.com/ajax/libs/echarts/6.0.0/echarts.min.js".
-** You need to add the MODE bar for each chart you plot.
-** You must render the charts under the div html element with id {{ chart_element_id }}.
-** Add a custom mode bar button named "Fullscreen" that toggles the chart container in and out of fullscreen using the Fullscreen API. Requirements for this button:
-    * Always call the Fullscreen API on the chart container div itself (document.getElementById("{{ chart_element_id }}")), not on the document or on Plotly’s SVG.
+** You need to import ECharts.js exactly once to plot the charts. The script source is "https://cdnjs.cloudflare.com/ajax/libs/echarts/6.0.0/echarts.min.js".
+** You must add an ECharts Toolbox bar at the top left corner of the chart.
+** ALWAYS add a "Full screen" button right next to the Toolbox bar.
+** The "Full screen" button can toggle the chart container in and out of fullscreen using the Fullscreen API. Requirements for this button:
+    * Always call the Fullscreen API on the chart container div itself (document.getElementById("{{ chart_element_id }}")), not on the document.
+    * When entering fullscreen, the chart container must have widhth: 100vw and height: 100vh.
     * Use el.requestFullscreen() with fallbacks to el.webkitRequestFullscreen || el.msRequestFullscreen.
     * Exit fullscreen with document.exitFullscreen() and vendor fallbacks.
     * Listen for fullscreenchange, webkitfullscreenchange, and msfullscreenchange to keep the button working across repeated clicks and ESC exits.
     * Ensure the chart fully expands and scales to the entire screen when fullscreen is active.
-    * Provide a simple inline SVG path icon for the button (no external assets).
-    * Use Plotly.newPlot(container, data, layout, {displayModeBar:true, modeBarButtonsToAdd:[fullscreenBtn]});
-    * fullscreenBtn must be a fully-formed object {name, title, icon, click}.
+    * fullscreenBtn must be a fully-formed object {show: true, name, title, icon: 'path://M3 3 H9 V5 H5 V9 H3 Z M15 3 H21 V9 H19 V5 H15 Z M3 15 H5 V19 H9 V21 H3 Z M19 15 H21 V21 H15 V19 H19 Z', onclick}.
+    * When using "chart.setOption" to define the fullscreen button, DO NOT use "graphic". Include the fullscreenBtn object in toolbox.feature with name 'myFullscreen'.
+** Initialize the chart with explicit non-zero width (at least 800px) and non-zero height (at least 500px).
+
+
+***** Render Requirements *****
+** You must render the charts under the div html element with id {{ chart_element_id }}.
 ** You must not create any new html element.
 ** You must not apply any styles on any html element.
-** Keep code compact (few tokens), but fix all errors before returning.
-** Do not generate charts with zero height and zero width.
+
+
+***** Code Requirements *****
+** You must strictly follow the valid javascript and ECharts.js syntax.
+** You must ensure no syntax/runtime error before returning the response.
 ** Please ensure the code can be executed and the charts are rendered correctly.
 
-*** Response Format ***
+
+***** Response Format *****
 You must output the response in the following JSON format:
 {
     "greeting_message": "A short polite message that informs user that the charts have been generated.",
-    "js_code": "The javascript code that can generate the charts as requested."
+    "js_code": "The javascript code that can generate the charts as requested.",
+    "report_summary": "An insight summary report based on the data, highlighting the key information in markdown format."
 }
