@@ -3,9 +3,9 @@ using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChatHub.Helpers;
 
-internal class EventEmitter
+public class EventEmitter
 {
-    internal static async Task SendChatEvent<T>(
+    public static async Task SendChatEvent<T>(
         IServiceProvider services,
         ILogger logger,
         string @event,

@@ -30,5 +30,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
+    <ProjectReference Include="..\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
   </ItemGroup>
 </Project>
