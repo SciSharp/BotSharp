@@ -76,12 +76,10 @@ public class PlotChartFn : IFunctionCallback
                 SaveToDb = true,
                 Messages = new List<RoleDialogModel>
                 {
-                    new()
+                    new(AgentRole.Assistant, obj.ReportSummary)
                     {
-                        Role = AgentRole.Assistant,
                         MessageId = message.MessageId,
                         CurrentAgentId = message.CurrentAgentId,
-                        Content = obj.ReportSummary,
                         Indication = "Summarizing",
                         FunctionName = message.FunctionName,
                         FunctionArgs = message.FunctionArgs,
