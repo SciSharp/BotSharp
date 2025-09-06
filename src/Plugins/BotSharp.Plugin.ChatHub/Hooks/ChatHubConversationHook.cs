@@ -95,6 +95,14 @@ public class ChatHubConversationHook : ConversationHookBase
 
         var conv = _services.GetRequiredService<IConversationService>();
         var state = _services.GetRequiredService<IConversationStateService>();
+
+        var sender = new UserDto
+        {
+            FirstName = "AI",
+            LastName = "Assistant",
+            Role = AgentRole.Assistant
+        };
+
         var data = new ChatResponseDto()
         {
             ConversationId = conv.ConversationId,
@@ -105,12 +113,7 @@ public class ChatHubConversationHook : ConversationHookBase
             Data = message.Data,
             States = state.GetStates(),
             IsStreaming = message.IsStreaming,
-            Sender = new()
-            {
-                FirstName = "AI",
-                LastName = "Assistant",
-                Role = AgentRole.Assistant
-            }
+            Sender = sender
         };
 
         // Send type-off to client
@@ -130,6 +133,18 @@ public class ChatHubConversationHook : ConversationHookBase
 
             foreach (var item in wrapper.Messages)
             {
+                if (!string.IsNullOrWhiteSpace(item.Indication))
+                {
+                    data = new ChatResponseDto
+                    {
+                        ConversationId = conv.ConversationId,
+                        MessageId = item.MessageId,
+                        Indication = item.Indication,
+                        Sender = sender
+                    };
+                    await SendEvent(ChatEvent.OnIndicationReceived, conv.ConversationId, data);
+                }
+
                 await Task.Delay(wrapper.SendingInterval);
 
                 data = new ChatResponseDto
@@ -142,12 +157,7 @@ public class ChatHubConversationHook : ConversationHookBase
                     Data = item.Data,
                     States = state.GetStates(),
                     IsAppend = true,
-                    Sender = new()
-                    {
-                        FirstName = "AI",
-                        LastName = "Assistant",
-                        Role = AgentRole.Assistant
-                    }
+                    Sender = sender
                 };
                 await SendEvent(ChatEvent.OnMessageReceivedFromAssistant, conv.ConversationId, data);
             }
