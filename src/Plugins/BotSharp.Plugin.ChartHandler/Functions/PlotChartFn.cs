@@ -82,6 +82,7 @@ public class PlotChartFn : IFunctionCallback
                         MessageId = message.MessageId,
                         CurrentAgentId = message.CurrentAgentId,
                         Content = obj.ReportSummary,
+                        Indication = "Summarizing",
                         FunctionName = message.FunctionName,
                         FunctionArgs = message.FunctionArgs,
                         CreatedAt = DateTime.UtcNow
