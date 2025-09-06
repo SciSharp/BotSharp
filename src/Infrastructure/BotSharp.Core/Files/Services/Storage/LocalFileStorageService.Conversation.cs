@@ -159,20 +159,19 @@ public partial class LocalFileStorageService
 
     public bool SaveMessageFiles(string conversationId, string messageId, string source, List<FileDataModel> files)
     {
-        if (files.IsNullOrEmpty())
-        {
-            return false;
-        }
-
         if (string.IsNullOrWhiteSpace(conversationId)
             || string.IsNullOrWhiteSpace(messageId)
-            || string.IsNullOrWhiteSpace(source))
+            || string.IsNullOrWhiteSpace(source)
+            || files.IsNullOrEmpty())
         {
             return false;
         }
 
         var dir = GetConversationFileDirectory(conversationId, messageId, createNewDir: true);
-        if (!ExistDirectory(dir)) return false;
+        if (!ExistDirectory(dir))
+        {
+            return false;
+        }
 
         for (int i = 0; i < files.Count; i++)
         {
