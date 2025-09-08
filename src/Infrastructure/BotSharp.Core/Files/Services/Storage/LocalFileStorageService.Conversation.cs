@@ -19,16 +19,30 @@ public partial class LocalFileStorageService
 
         foreach (var messageId in messageIds)
         {
+            if (string.IsNullOrWhiteSpace(messageId))
+            {
+                continue;
+            }
+
             var dir = Path.Combine(pathPrefix, messageId, FileSourceType.User);
-            if (!ExistDirectory(dir)) continue;
+            if (!ExistDirectory(dir))
+            {
+                continue;
+            }
 
             foreach (var subDir in Directory.GetDirectories(dir))
             {
                 var file = Directory.GetFiles(subDir).FirstOrDefault();
-                if (file == null) continue;
+                if (file == null)
+                {
+                    continue;
+                }
 
                 var screenshots = await GetScreenshots(file, subDir, messageId, source);
-                if (screenshots.IsNullOrEmpty()) continue;
+                if (screenshots.IsNullOrEmpty())
+                {
+                    continue;
+                }
 
                 files.AddRange(screenshots);
             }
@@ -41,10 +55,18 @@ public partial class LocalFileStorageService
         string source, IEnumerable<string>? contentTypes = null)
     {
         var files = new List<MessageFileModel>();
-        if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty()) return files;
+        if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty())
+        {
+            return files;
+        }
 
         foreach (var messageId in messageIds)
         {
+            if (string.IsNullOrWhiteSpace(messageId))
+            {
+                continue;
+            }
+
             var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId, source);
             if (!ExistDirectory(dir))
             {
@@ -85,6 +107,14 @@ public partial class LocalFileStorageService
 
     public string GetMessageFile(string conversationId, string messageId, string source, string index, string fileName)
     {
+        if (string.IsNullOrWhiteSpace(conversationId)
+            || string.IsNullOrWhiteSpace(messageId)
+            || string.IsNullOrWhiteSpace(source)
+            || string.IsNullOrWhiteSpace(index))
+        {
+            return string.Empty;
+        }
+
         var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId, source, index);
         if (!ExistDirectory(dir))
         {
@@ -98,10 +128,18 @@ public partial class LocalFileStorageService
     public IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds)
     {
         var foundMsgs = new List<MessageFileModel>();
-        if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty()) return foundMsgs;
+        if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty())
+        {
+            return foundMsgs;
+        }
 
         foreach (var messageId in messageIds)
         {
+            if (string.IsNullOrWhiteSpace(messageId))
+            {
+                continue;
+            }
+
             var prefix = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId);
             var userDir = Path.Combine(prefix, FileSourceType.User);
             if (ExistDirectory(userDir))
@@ -121,10 +159,19 @@ public partial class LocalFileStorageService
 
     public bool SaveMessageFiles(string conversationId, string messageId, string source, List<FileDataModel> files)
     {
-        if (files.IsNullOrEmpty()) return false;
+        if (string.IsNullOrWhiteSpace(conversationId)
+            || string.IsNullOrWhiteSpace(messageId)
+            || string.IsNullOrWhiteSpace(source)
+            || files.IsNullOrEmpty())
+        {
+            return false;
+        }
 
         var dir = GetConversationFileDirectory(conversationId, messageId, createNewDir: true);
-        if (!ExistDirectory(dir)) return false;
+        if (!ExistDirectory(dir))
+        {
+            return false;
+        }
 
         for (int i = 0; i < files.Count; i++)
         {
@@ -164,7 +211,10 @@ public partial class LocalFileStorageService
 
     public bool DeleteMessageFiles(string conversationId, IEnumerable<string> messageIds, string targetMessageId, string? newMessageId = null)
     {
-        if (string.IsNullOrEmpty(conversationId) || messageIds == null) return false;
+        if (string.IsNullOrEmpty(conversationId) || messageIds == null)
+        {
+            return false;
+        }
 
         if (!string.IsNullOrEmpty(targetMessageId) && !string.IsNullOrEmpty(newMessageId))
         {
@@ -192,7 +242,10 @@ public partial class LocalFileStorageService
         foreach (var messageId in messageIds)
         {
             var dir = GetConversationFileDirectory(conversationId, messageId);
-            if (!ExistDirectory(dir)) continue;
+            if (!ExistDirectory(dir))
+            {
+                continue;
+            }
 
             DeleteDirectory(dir);
             Thread.Sleep(100);
@@ -203,12 +256,18 @@ public partial class LocalFileStorageService
 
     public bool DeleteConversationFiles(IEnumerable<string> conversationIds)
     {
-        if (conversationIds.IsNullOrEmpty()) return false;
+        if (conversationIds.IsNullOrEmpty())
+        {
+            return false;
+        }
 
         foreach (var conversationId in conversationIds)
         {
             var convDir = GetConversationDirectory(conversationId);
-            if (!ExistDirectory(convDir)) continue;
+            if (!ExistDirectory(convDir))
+            {
+                continue;
+            }
 
             DeleteDirectory(convDir);
         }
@@ -241,7 +300,10 @@ public partial class LocalFileStorageService
 
     private IEnumerable<string> GetMessageIds(IEnumerable<RoleDialogModel> dialogs, int? offset = null)
     {
-        if (dialogs.IsNullOrEmpty()) return Enumerable.Empty<string>();
+        if (dialogs.IsNullOrEmpty())
+        {
+            return Enumerable.Empty<string>();
+        }
 
         if (offset.HasValue && offset < 1)
         {
@@ -264,13 +326,17 @@ public partial class LocalFileStorageService
     private async Task<IEnumerable<string>> ConvertPdfToImages(string pdfLoc, string imageLoc)
     {
         var converters = _services.GetServices<IPdf2ImageConverter>();
-        if (converters.IsNullOrEmpty()) return Enumerable.Empty<string>();
+        if (converters.IsNullOrEmpty())
+        {
+            return Enumerable.Empty<string>();
+        }
 
         var converter = GetPdf2ImageConverter();
         if (converter == null)
         {
             return Enumerable.Empty<string>();
         }
+
         return await converter.ConvertPdfToImages(pdfLoc, imageLoc);
     }
 
