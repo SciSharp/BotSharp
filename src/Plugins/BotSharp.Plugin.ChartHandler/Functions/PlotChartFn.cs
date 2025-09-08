@@ -79,8 +79,9 @@ public class PlotChartFn : IFunctionCallback
                     new(AgentRole.Assistant, obj.ReportSummary)
                     {
                         MessageId = message.MessageId,
-                        CurrentAgentId = message.CurrentAgentId,
+                        MessageLabel = "chart_report_summary",
                         Indication = "Summarizing",
+                        CurrentAgentId = message.CurrentAgentId,
                         FunctionName = message.FunctionName,
                         FunctionArgs = message.FunctionArgs,
                         CreatedAt = DateTime.UtcNow
