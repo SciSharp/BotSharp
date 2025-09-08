@@ -20,6 +20,11 @@ public class RoleDialogModel : ITrackableMessage
     public string MessageType { get; set; } = MessageTypeName.Plain;
 
     /// <summary>
+    /// The message label
+    /// </summary>
+    public string? MessageLabel { get; set; }
+
+    /// <summary>
     /// user, system, assistant, function
     /// </summary>
     public string Role { get; set; }
@@ -167,6 +172,7 @@ public class RoleDialogModel : ITrackableMessage
             CurrentAgentId = source.CurrentAgentId,
             MessageId = source.MessageId,
             MessageType = source.MessageType,
+            MessageLabel = source.MessageLabel,
             FunctionArgs = source.FunctionArgs,
             FunctionName = source.FunctionName,
             ToolCallId = source.ToolCallId,

@@ -107,6 +107,7 @@ public class ChatHubConversationHook : ConversationHookBase
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
+            MessageLabel = message.MessageLabel,
             Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
             Function = message.FunctionName,
             RichContent = message.SecondaryRichContent ?? message.RichContent,
@@ -139,6 +140,7 @@ public class ChatHubConversationHook : ConversationHookBase
                     {
                         ConversationId = conv.ConversationId,
                         MessageId = item.MessageId,
+                        MessageLabel = item.MessageLabel,
                         Indication = item.Indication,
                         Sender = sender
                     };
