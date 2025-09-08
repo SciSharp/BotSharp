@@ -46,6 +46,7 @@ public class DialogMetaDataMongoElement
     public string AgentId { get; set; } = default!;
     public string MessageId { get; set; } = default!;
     public string MessageType { get; set; } = default!;
+    public string? MessageLabel { get; set; }
     public string? FunctionName { get; set; }
     public string? FunctionArgs { get; set; }
     public string? ToolCallId { get; set; }
@@ -60,6 +61,7 @@ public class DialogMetaDataMongoElement
             AgentId = meta.AgentId,
             MessageId = meta.MessageId,
             MessageType = meta.MessageType,
+            MessageLabel = meta.MessageLabel,
             FunctionName = meta.FunctionName,
             FunctionArgs = meta.FunctionArgs,
             ToolCallId = meta.ToolCallId,
@@ -76,6 +78,7 @@ public class DialogMetaDataMongoElement
             AgentId = meta.AgentId,
             MessageId = meta.MessageId,
             MessageType = meta.MessageType,
+            MessageLabel = meta.MessageLabel,
             FunctionName = meta.FunctionName,
             FunctionArgs = meta.FunctionArgs,
             ToolCallId = meta.ToolCallId,

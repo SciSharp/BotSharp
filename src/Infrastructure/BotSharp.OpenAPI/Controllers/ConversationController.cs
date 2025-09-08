@@ -109,6 +109,7 @@ public class ConversationController : ControllerBase
                 {
                     ConversationId = conversationId,
                     MessageId = message.MessageId,
+                    MessageLabel = message.MessageLabel,
                     CreatedAt = message.CreatedAt,
                     Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Data = message.Data,
@@ -124,6 +125,7 @@ public class ConversationController : ControllerBase
                 {
                     ConversationId = conversationId,
                     MessageId = message.MessageId,
+                    MessageLabel = message.MessageLabel,
                     CreatedAt = message.CreatedAt,
                     Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Function = message.FunctionName,

@@ -36,6 +36,10 @@ public class ChatResponseDto : InstructResult
     [JsonPropertyName("indication")]
     public string? Indication { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("message_label")]
+    public string? MessageLabel { get; set; }
+
     [JsonPropertyName("has_message_files")]
     public bool HasMessageFiles { get; set; }
 
