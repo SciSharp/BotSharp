@@ -4,6 +4,7 @@ public class CrontabSettings
 {
     public CrontabBaseSetting EventSubscriber { get; set; } = new();
     public CrontabBaseSetting Watcher { get; set; } = new();
+    public string LockName { get; set; }
 }
 
 public class CrontabBaseSetting
