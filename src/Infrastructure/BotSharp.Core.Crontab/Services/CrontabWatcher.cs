@@ -18,7 +18,7 @@ public class CrontabWatcher : BackgroundService
         _logger = logger;
         _services = services;
         _cronSettings = cronSettings;
-        DIST_KEY = $"CrontabWatcher:locker-{_cronSettings.LockName ?? "default"}";
+        DIST_KEY = $"CrontabWatcher:locker-{_cronSettings.LockName}";
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
