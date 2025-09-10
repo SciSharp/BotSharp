@@ -89,7 +89,10 @@ public class CrontabWatcher : BackgroundService
                     _logger.LogInformation($"The current time matches the cron expression {item}");
 
 #if DEBUG
-                    await HandleCrontabEvent(item);
+                    if (item.Title == settings.Debug.AllowRuleTrigger)
+                    {
+                        await HandleCrontabEvent(item);
+                    }                    
 #else
                     if (publisher != null)
                     {
