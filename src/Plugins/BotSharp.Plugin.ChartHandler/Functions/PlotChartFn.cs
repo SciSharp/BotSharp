@@ -36,10 +36,7 @@ public class PlotChartFn : IFunctionCallback
             Id = agent.Id,
             Name = agent.Name,
             Instruction = inst,
-            LlmConfig = new AgentLlmConfig
-            {
-                MaxOutputTokens = _settings?.ChartPlot?.MaxOutputTokens ?? 8192
-            },
+            LlmConfig = GetLlmConfig(),
             TemplateDict = new Dictionary<string, object>
             {
                 { "plotting_requirement", args?.PlottingRequirement ?? string.Empty },
@@ -146,5 +143,21 @@ public class PlotChartFn : IFunctionCallback
                      .IfNullOrEmptyAs(model);
 
         return (provider, model);
+    }
+
+    private AgentLlmConfig GetLlmConfig()
+    {
+        var maxOutputTokens = _settings?.ChartPlot?.MaxOutputTokens ?? 8192;
+        var reasoningEffortLevel = _settings?.ChartPlot?.ReasoningEffortLevel ?? "minimal";
+
+        var state = _services.GetRequiredService<IConversationStateService>();
+        maxOutputTokens = int.TryParse(state.GetState("chart_plot_max_output_tokens"), out var tokens) ? tokens : maxOutputTokens;
+        reasoningEffortLevel = state.GetState("chart_plot_reasoning_effort_level").IfNullOrEmptyAs(reasoningEffortLevel);
+
+        return new AgentLlmConfig
+        {
+            MaxOutputTokens = maxOutputTokens,
+            ReasoningEffortLevel = reasoningEffortLevel
+        };
     }
 }
