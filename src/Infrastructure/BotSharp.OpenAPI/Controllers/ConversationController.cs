@@ -371,9 +371,11 @@ public class ConversationController : ControllerBase
             {
                 response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
                 response.Function = msg.FunctionName;
+                response.MessageLabel = msg.MessageLabel;
                 response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
+                response.AdditionalMessageWrapper = ChatResponseWrapper.From(msg.AdditionalMessageWrapper, conversationId, inputMsg.MessageId);
             });
 
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -426,11 +428,13 @@ public class ConversationController : ControllerBase
             async msg =>
             {
                 response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
+                response.MessageLabel = msg.MessageLabel;
                 response.Function = msg.FunctionName;
                 response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
                 response.States = state.GetStates();
+                response.AdditionalMessageWrapper = ChatResponseWrapper.From(msg.AdditionalMessageWrapper, conversationId, inputMsg.MessageId);
 
                 await OnChunkReceived(Response, response);
             });

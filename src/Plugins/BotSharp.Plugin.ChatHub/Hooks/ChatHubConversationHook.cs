@@ -153,6 +153,7 @@ public class ChatHubConversationHook : ConversationHookBase
                 {
                     ConversationId = conv.ConversationId,
                     MessageId = item.MessageId,
+                    MessageLabel = item.MessageLabel,
                     Text = !string.IsNullOrEmpty(item.SecondaryContent) ? item.SecondaryContent : item.Content,
                     Function = item.FunctionName,
                     RichContent = item.SecondaryRichContent ?? item.RichContent,
