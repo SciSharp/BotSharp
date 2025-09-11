@@ -20,7 +20,8 @@ You must strictly follow the "Hard Requirements", "Render Requirements", "Code R
     * fullscreenBtn must be a fully-formed object {show: true, name, title, icon: 'path://M3 3 H9 V5 H5 V9 H3 Z M15 3 H21 V9 H19 V5 H15 Z M3 15 H5 V19 H9 V21 H3 Z M19 15 H21 V21 H15 V19 H19 Z', onclick}.
     * When using "chart.setOption" to define the fullscreen button, DO NOT use "graphic". Include the fullscreenBtn object in toolbox.feature with name 'myFullscreen'.
 ** Initialize the chart with explicit non-zero width (at least 800px) and non-zero height (at least 500px).
-
+** When generating code for multiple charts, arrange them in a clear layout and make sure they do not overlap.
+** Only using the dataset provided in the context, NEVER generate or assume any additional dataset on your own. 
 
 ***** Render Requirements *****
 ** You must render the charts under the div html element with id {{ chart_element_id }}.
@@ -39,5 +40,5 @@ You must output the response in the following JSON format:
 {
     "greeting_message": "A short polite message that informs user that the charts have been generated.",
     "js_code": "The javascript code that can generate the charts as requested.",
-    "report_summary": "An insight summary report based on the data, highlighting the key information in markdown format."
+    "report_summary": "Generate an insightful summary report in markdown format based on the data. Bold all key findings and use level-4 headings or smaller (####, #####, etc.) to structure the content with clear titles."
 }
