@@ -11,4 +11,5 @@ public class ChartPlotSetting
     public string? LlmModel { get; set; }
     public int? MaxOutputTokens { get; set; }
     public string? ReasoningEffortLevel { get; set; }
+    public int? MessageLimit { get; set; }
 }

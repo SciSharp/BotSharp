@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
+using BotSharp.Abstraction.Routing;
+using System.Linq;
 
 namespace BotSharp.Plugin.ChartHandler.Functions;
 
@@ -26,6 +28,7 @@ public class PlotChartFn : IFunctionCallback
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var convService = _services.GetRequiredService<IConversationService>();
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
 
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
 
@@ -44,15 +47,21 @@ public class PlotChartFn : IFunctionCallback
             }
         };
 
-        var response = await GetChatCompletion(innerAgent,
-        [
-            new RoleDialogModel(AgentRole.User, "Please follow the instruction to generate the javascript code.")
-            {
-                CurrentAgentId = message.CurrentAgentId,
-                MessageId = message.MessageId
-            }
-        ]);
+        var dialogs = routingCtx.GetDialogs();
+        if (dialogs.IsNullOrEmpty())
+        {
+            dialogs = convService.GetDialogHistory();
+        }
 
+        var messageLimit = _settings.ChartPlot?.MessageLimit > 0 ? _settings.ChartPlot.MessageLimit.Value : 50;
+        dialogs = dialogs.TakeLast(messageLimit).ToList();
+        dialogs.Add(new RoleDialogModel(AgentRole.User, "Please follow the instruction and chat context to generate valid javascript code.")
+        {
+            CurrentAgentId = message.CurrentAgentId,
+            MessageId = message.MessageId
+        });
+
+        var response = await GetChatCompletion(innerAgent, dialogs);
         var obj = response.JsonContent<LlmContextOut>();
         message.Content = obj?.GreetingMessage ?? "Here is the chart you ask for:";
         message.RichContent = new RichContent<IRichMessage>
