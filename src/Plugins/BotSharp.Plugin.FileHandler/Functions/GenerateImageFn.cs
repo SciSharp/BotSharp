@@ -57,6 +57,7 @@ public class GenerateImageFn : IFunctionCallback
         var state = _services.GetRequiredService<IConversationStateService>();
         state.SetState("image_count", "1");
         state.SetState("image_quality", "medium");
+        state.SetState("image_response_format", "bytes");
     }
 
     private async Task<string> GetImageGeneration(Agent agent, RoleDialogModel message, string? description)
@@ -69,7 +70,7 @@ public class GenerateImageFn : IFunctionCallback
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
             var result = await completion.GetImageGeneration(agent, dialog);
             SaveGeneratedImages(result?.GeneratedImages);
-            return result?.Content ?? string.Empty;
+            return !string.IsNullOrWhiteSpace(result?.Content) ? result.Content : "Here is the image you asked for";
         }
         catch (Exception ex)
         {

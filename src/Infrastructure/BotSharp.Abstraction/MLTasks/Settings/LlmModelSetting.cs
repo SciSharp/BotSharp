@@ -111,12 +111,14 @@ public class ImageGenerationSetting
     public ModelSettingBase? Size { get; set; }
     public ModelSettingBase? Quality { get; set; }
     public ModelSettingBase? ResponseFormat { get; set; }
+    public ModelSettingBase? Background { get; set; }
 }
 
 public class ImageEditSetting
 {
     public ModelSettingBase? Size { get; set; }
     public ModelSettingBase? ResponseFormat { get; set; }
+    public ModelSettingBase? Background { get; set; }
 }
 
 public class ImageVariationSetting

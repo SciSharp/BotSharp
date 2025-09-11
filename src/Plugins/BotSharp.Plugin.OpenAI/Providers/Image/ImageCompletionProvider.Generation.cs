@@ -1,3 +1,4 @@
+#pragma warning disable OPENAI001
 using OpenAI.Images;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Image;
@@ -38,11 +39,13 @@ public partial class ImageCompletionProvider
         var quality = state.GetState("image_quality");
         var style = state.GetState("image_style");
         var responseFormat = state.GetState("image_response_format");
+        var background = state.GetState("image_background");
 
         size = settings?.Size != null ? VerifyImageParameter(size, settings.Size.Default, settings.Size.Options) : null;
         quality = settings?.Quality != null ? VerifyImageParameter(quality, settings.Quality.Default, settings.Quality.Options) : null;
         style = settings?.Style != null ? VerifyImageParameter(style, settings.Style.Default, settings.Style.Options) : null;
         responseFormat = settings?.ResponseFormat != null ? VerifyImageParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
+        background = settings?.Background != null ? VerifyImageParameter(background, settings.Background.Default, settings.Background.Options) : null;
 
         var options = new ImageGenerationOptions();
         if (!string.IsNullOrEmpty(size))
@@ -60,6 +63,10 @@ public partial class ImageCompletionProvider
         if (!string.IsNullOrEmpty(responseFormat))
         {
             options.ResponseFormat = GetImageResponseFormat(responseFormat);
+        }
+        if (!string.IsNullOrEmpty(background))
+        {
+            options.Background = GetImageBackground(background);
         }
 
         var count = GetImageCount(state.GetState("image_count"));
