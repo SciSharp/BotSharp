@@ -286,7 +286,7 @@ public class InstructModeController : ControllerBase
     }
 
     [HttpPost("/instruct/image-edit")]
-    public async Task<ImageGenerationViewModel> ImageEdit([FromBody] ImageEditRequest request)
+    public async Task<ImageGenerationViewModel> ImageEdit([FromBody] ImageEditFileRequest request)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
