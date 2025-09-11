@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 using BotSharp.Abstraction.Routing;
-using System.Linq;
 
 namespace BotSharp.Plugin.ChartHandler.Functions;
 
