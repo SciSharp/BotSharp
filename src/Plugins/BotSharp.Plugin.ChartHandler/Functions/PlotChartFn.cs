@@ -88,28 +88,6 @@ public class PlotChartFn : IFunctionCallback
             }
         };
 
-        if (!string.IsNullOrEmpty(ret?.ReportSummary))
-        {
-            message.AdditionalMessageWrapper = new()
-            {
-                SendingInterval = 1500,
-                SaveToDb = true,
-                Messages = new List<RoleDialogModel>
-                {
-                    new(AgentRole.Assistant, ret.ReportSummary)
-                    {
-                        MessageId = message.MessageId,
-                        MessageLabel = "chart_report_summary",
-                        Indication = "Summarizing",
-                        CurrentAgentId = message.CurrentAgentId,
-                        FunctionName = message.FunctionName,
-                        FunctionArgs = message.FunctionArgs,
-                        CreatedAt = DateTime.UtcNow
-                    }
-                }
-            };
-        }
-
         message.StopCompletion = true;
         return true;
     }
