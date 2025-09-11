@@ -27,7 +27,7 @@ public partial class FileInstructService
             var targetFiles = pdfFiles;
             if (provider != "google-ai")
             {
-                targetFiles = await ConvertPdfToImages(pdfFiles);
+                targetFiles = await ConvertPdfToImages(pdfFiles, options);
             }
 
             if (targetFiles.IsNullOrEmpty())
@@ -116,11 +116,13 @@ public partial class FileInstructService
         return locs;
     }
 
-    private async Task<IEnumerable<string>> ConvertPdfToImages(IEnumerable<string> files)
+    private async Task<IEnumerable<string>> ConvertPdfToImages(IEnumerable<string> files, InstructOptions? options = null)
     {
         var images = new List<string>();
         var settings = _services.GetRequiredService<FileCoreSettings>();
-        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Provider == settings.Pdf2ImageConverter.Provider);
+        var imageConverterProvider = options?.ImageConverterProvider;
+
+        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == imageConverterProvider);
         if (converter == null || files.IsNullOrEmpty())
         {
             return images;

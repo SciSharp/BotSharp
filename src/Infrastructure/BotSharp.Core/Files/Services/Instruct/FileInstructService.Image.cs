@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.Files.Converters;
 
 namespace BotSharp.Core.Files.Services;
 
@@ -114,8 +115,16 @@ public partial class FileInstructService
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
         var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
 
-        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "dall-e-2");
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1");
         var binary = await DownloadFile(image);
+
+        // Convert image
+        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == options?.ImageConverterProvider);
+        if (converter != null)
+        {
+            binary = await converter.ConvertImageToRgbaPng(binary);
+        }
+
         using var stream = binary.ToStream();
         stream.Position = 0;
 

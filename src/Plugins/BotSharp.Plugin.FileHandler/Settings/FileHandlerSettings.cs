@@ -4,6 +4,7 @@ public class FileHandlerSettings
 {
     public ImageSettings? Image { get; set; }
     public PdfSettings? Pdf { get; set; }
+    public SettingBase? ImageConverter { get; set; }
 }
 
 #region Image

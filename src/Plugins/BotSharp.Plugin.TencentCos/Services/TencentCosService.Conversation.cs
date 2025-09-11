@@ -241,7 +241,7 @@ public partial class TencentCosService
 
     private async Task<IEnumerable<string>> ConvertPdfToImages(string pdfLoc, string imageLoc)
     {
-        var converters = _services.GetServices<IPdf2ImageConverter>();
+        var converters = _services.GetServices<IImageConverter>();
         if (converters.IsNullOrEmpty()) return Enumerable.Empty<string>();
 
         var converter = GetPdf2ImageConverter();
@@ -252,10 +252,10 @@ public partial class TencentCosService
         return await converter.ConvertPdfToImages(pdfLoc, imageLoc);
     }
 
-    private IPdf2ImageConverter? GetPdf2ImageConverter()
+    private IImageConverter? GetPdf2ImageConverter()
     {
         var settings = _services.GetRequiredService<FileCoreSettings>();
-        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Provider == settings.Pdf2ImageConverter.Provider);
+        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == settings.Pdf2ImageConverter.Provider);
         return converter;
     }
 

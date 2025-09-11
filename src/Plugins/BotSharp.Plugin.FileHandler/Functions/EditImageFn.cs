@@ -7,15 +7,19 @@ public class EditImageFn : IFunctionCallback
 
     private readonly IServiceProvider _services;
     private readonly ILogger<EditImageFn> _logger;
+    private readonly FileHandlerSettings _settings;
+
     private string _conversationId;
     private string _messageId;
 
     public EditImageFn(
         IServiceProvider services,
-        ILogger<EditImageFn> logger)
+        ILogger<EditImageFn> logger,
+        FileHandlerSettings settings)
     {
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -79,13 +83,13 @@ public class EditImageFn : IFunctionCallback
 
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
             var fileBinary = fileStorage.GetFileBytes(image.FileStorageUrl);
+            var rgbaBinary = await ConvertImageToRgbaWithPng(fileBinary);
 
-            // To do: convert rgb to rgba image
-            using var stream = fileBinary.ToStream();
+            using var stream = rgbaBinary.ToStream();
             stream.Position = 0;
-            var result = await completion.GetImageEdits(agent, dialog, stream, image.FileFullName);
+            var response = await completion.GetImageEdits(agent, dialog, stream, image.FileFullName);
             stream.Close();
-            SaveGeneratedImage(result?.GeneratedImages?.FirstOrDefault());
+            SaveGeneratedImage(response?.GeneratedImages?.FirstOrDefault());
 
             return $"Your image is successfylly editted.";
         }
@@ -140,5 +144,17 @@ public class EditImageFn : IFunctionCallback
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         fileStorage.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
+    }
+
+    private async Task<BinaryData> ConvertImageToRgbaWithPng(BinaryData binaryFile)
+    {
+        var provider = _settings?.ImageConverter?.Provider ?? "file-handler";
+        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == provider);
+        if (converter == null)
+        {
+            return binaryFile;
+        }
+
+        return await converter.ConvertImageToRgbaPng(binaryFile);
     }
 }

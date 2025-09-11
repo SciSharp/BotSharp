@@ -16,6 +16,7 @@ global using BotSharp.Abstraction.Agents.Models;
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Files.Enums;
 global using BotSharp.Abstraction.Files.Models;
+global using BotSharp.Abstraction.Files.Converters;
 global using BotSharp.Abstraction.Files;
 global using BotSharp.Abstraction.MLTasks;
 global using BotSharp.Abstraction.Utilities;
