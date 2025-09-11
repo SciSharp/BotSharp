@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Chart;
 using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Files.Utilities;
@@ -108,6 +109,7 @@ public class ConversationController : ControllerBase
                 {
                     ConversationId = conversationId,
                     MessageId = message.MessageId,
+                    MessageLabel = message.MessageLabel,
                     CreatedAt = message.CreatedAt,
                     Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Data = message.Data,
@@ -123,6 +125,7 @@ public class ConversationController : ControllerBase
                 {
                     ConversationId = conversationId,
                     MessageId = message.MessageId,
+                    MessageLabel = message.MessageLabel,
                     CreatedAt = message.CreatedAt,
                     Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Function = message.FunctionName,
@@ -368,9 +371,11 @@ public class ConversationController : ControllerBase
             {
                 response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
                 response.Function = msg.FunctionName;
+                response.MessageLabel = msg.MessageLabel;
                 response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
+                response.AdditionalMessageWrapper = ChatResponseWrapper.From(msg.AdditionalMessageWrapper, conversationId, inputMsg.MessageId);
             });
 
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -423,11 +428,13 @@ public class ConversationController : ControllerBase
             async msg =>
             {
                 response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
+                response.MessageLabel = msg.MessageLabel;
                 response.Function = msg.FunctionName;
                 response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
                 response.States = state.GetStates();
+                response.AdditionalMessageWrapper = ChatResponseWrapper.From(msg.AdditionalMessageWrapper, conversationId, inputMsg.MessageId);
 
                 await OnChunkReceived(Response, response);
             });
@@ -527,6 +534,35 @@ public class ConversationController : ControllerBase
         stream.Position = 0;
 
         return new FileStreamResult(stream, contentType) { FileDownloadName = fName };
+    }
+    #endregion
+
+    #region Chart
+    [AllowAnonymous]
+    [HttpGet("/conversation/{conversationId}/message/{messageId}/user/chart/data")]
+    public async Task<ConversationChartDataResponse?> GetConversationChartData(
+        [FromRoute] string conversationId,
+        [FromRoute] string messageId,
+        [FromQuery] ConversationChartDataRequest request)
+    {
+        var chart = _services.GetServices<IBotSharpChartService>().FirstOrDefault(x => x.Provider == request?.ChartProvider);
+        if (chart == null) return null;
+
+        var result = await chart.GetConversationChartData(conversationId, messageId, request);
+        return ConversationChartDataResponse.From(result);
+    }
+
+    [HttpPost("/conversation/{conversationId}/message/{messageId}/user/chart/code")]
+    public async Task<ConversationChartCodeResponse?> GetConversationChartCode(
+        [FromRoute] string conversationId,
+        [FromRoute] string messageId,
+        [FromBody] ConversationChartCodeRequest request)
+    {
+        var chart = _services.GetServices<IBotSharpChartService>().FirstOrDefault(x => x.Provider == request?.ChartProvider);
+        if (chart == null) return null;
+
+        var result = await chart.GetConversationChartCode(conversationId, messageId, request);
+        return ConversationChartCodeResponse.From(result);
     }
     #endregion
 

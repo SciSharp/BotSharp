@@ -20,6 +20,11 @@ public class RoleDialogModel : ITrackableMessage
     public string MessageType { get; set; } = MessageTypeName.Plain;
 
     /// <summary>
+    /// The message label
+    /// </summary>
+    public string? MessageLabel { get; set; }
+
+    /// <summary>
     /// user, system, assistant, function
     /// </summary>
     public string Role { get; set; }
@@ -127,6 +132,13 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public bool IsStreaming { get; set; }
 
+    /// <summary>
+    /// Additional messages that can be sent sequentially and save to db
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public ChatMessageWrapper? AdditionalMessageWrapper { get; set; }
+
+
     public RoleDialogModel()
     {
     }
@@ -160,6 +172,7 @@ public class RoleDialogModel : ITrackableMessage
             CurrentAgentId = source.CurrentAgentId,
             MessageId = source.MessageId,
             MessageType = source.MessageType,
+            MessageLabel = source.MessageLabel,
             FunctionArgs = source.FunctionArgs,
             FunctionName = source.FunctionName,
             ToolCallId = source.ToolCallId,
@@ -171,7 +184,26 @@ public class RoleDialogModel : ITrackableMessage
             Instruction = source.Instruction,
             Data = source.Data,
             IsStreaming = source.IsStreaming,
-            Annotations = source.Annotations
+            Annotations = source.Annotations,
+            AdditionalMessageWrapper = source.AdditionalMessageWrapper
         };
     }
+}
+
+public class ChatMessageWrapper
+{
+    /// <summary>
+    /// Messages sending interval in milliseconds
+    /// </summary>
+    public int SendingInterval { get; set; }
+
+    /// <summary>
+    /// Whether the Messages are saved to db
+    /// </summary>
+    public bool SaveToDb { get; set; }
+
+    /// <summary>
+    /// Messages to send or save
+    /// </summary>
+    public List<RoleDialogModel>? Messages { get; set; }
 }

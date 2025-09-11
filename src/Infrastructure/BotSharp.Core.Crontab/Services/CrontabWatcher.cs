@@ -10,11 +10,15 @@ public class CrontabWatcher : BackgroundService
 {
     private readonly ILogger _logger;
     private readonly IServiceProvider _services;
+    private readonly CrontabSettings _cronSettings;
+    private string DIST_KEY;
 
-    public CrontabWatcher(IServiceProvider services, ILogger<CrontabWatcher> logger)
+    public CrontabWatcher(IServiceProvider services, ILogger<CrontabWatcher> logger, CrontabSettings cronSettings)
     {
         _logger = logger;
         _services = services;
+        _cronSettings = cronSettings;
+        DIST_KEY = _cronSettings.LockName;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -29,7 +33,7 @@ public class CrontabWatcher : BackgroundService
             {
                 var delay = Task.Delay(1000, stoppingToken);
 
-                await locker.LockAsync("CrontabWatcher:locker", async () =>
+                await locker.LockAsync(DIST_KEY, async () =>
                 {
                     await RunCronChecker(scope.ServiceProvider);
                 });
@@ -89,7 +93,10 @@ public class CrontabWatcher : BackgroundService
                     _logger.LogInformation($"The current time matches the cron expression {item}");
 
 #if DEBUG
-                    await HandleCrontabEvent(item);
+                    if (item.Title == settings.Debug.AllowRuleTrigger)
+                    {
+                        await HandleCrontabEvent(item);
+                    }                    
 #else
                     if (publisher != null)
                     {

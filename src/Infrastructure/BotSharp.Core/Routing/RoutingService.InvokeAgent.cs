@@ -59,6 +59,8 @@ public partial class RoutingService
             message.Indication = response.Indication;
             message.CurrentAgentId = agent.Id;
             message.IsStreaming = response.IsStreaming;
+            message.MessageLabel = response.MessageLabel;
+            message.AdditionalMessageWrapper = null;
 
             await InvokeFunction(message, dialogs, options);
         }
@@ -74,6 +76,8 @@ public partial class RoutingService
             message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: response.Content);
             message.CurrentAgentId = agent.Id;
             message.IsStreaming = response.IsStreaming;
+            message.MessageLabel = response.MessageLabel;
+            message.AdditionalMessageWrapper = null;
             dialogs.Add(message);
             Context.SetDialogs(dialogs);
         }

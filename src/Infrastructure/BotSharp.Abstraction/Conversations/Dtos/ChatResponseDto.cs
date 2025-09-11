@@ -36,11 +36,18 @@ public class ChatResponseDto : InstructResult
     [JsonPropertyName("indication")]
     public string? Indication { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("message_label")]
+    public string? MessageLabel { get; set; }
+
     [JsonPropertyName("has_message_files")]
     public bool HasMessageFiles { get; set; }
 
     [JsonPropertyName("is_streaming")]
     public bool IsStreaming { get; set; }
+
+    [JsonPropertyName("is_append")]
+    public bool IsAppend { get; set; }
 
     [JsonPropertyName("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

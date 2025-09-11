@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace BotSharp.Plugin.ChartHandler.LlmContext;
+namespace BotSharp.Plugin.SqlDriver.LlmContext;
 
-public class LlmContextOut
+internal class ChartLlmContextOut
 {
     [JsonPropertyName("greeting_message")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -25,6 +25,8 @@ global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Instructs;
 global using BotSharp.Abstraction.Instructs.Models;
 global using BotSharp.Abstraction.Routing;
+global using BotSharp.Abstraction.Chart;
+global using BotSharp.Abstraction.Chart.Models;
 
 global using BotSharp.Plugin.SqlDriver.Models;
 global using BotSharp.Plugin.SqlDriver.Hooks;

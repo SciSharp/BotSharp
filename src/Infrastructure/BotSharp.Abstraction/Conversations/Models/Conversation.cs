@@ -98,6 +98,10 @@ public class DialogMetaData
     [JsonPropertyName("message_type")]
     public string MessageType { get; set; } = default!;
 
+    [JsonPropertyName("message_label")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? MessageLabel { get; set; }
+
     [JsonPropertyName("function_name")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? FunctionName { get; set; }

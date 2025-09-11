@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
+using BotSharp.Abstraction.Routing;
 
 namespace BotSharp.Plugin.ChartHandler.Functions;
 
@@ -6,6 +7,7 @@ public class PlotChartFn : IFunctionCallback
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<PlotChartFn> _logger;
+    private readonly ChartHandlerSettings _settings;
 
     public string Name => "util-chart-plot_chart";
     public string Indication => "Plotting chart";
@@ -13,16 +15,19 @@ public class PlotChartFn : IFunctionCallback
 
     public PlotChartFn(
         IServiceProvider services,
-        ILogger<PlotChartFn> logger)
+        ILogger<PlotChartFn> logger,
+        ChartHandlerSettings settings)
     {
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var convService = _services.GetRequiredService<IConversationService>();
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
 
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
 
@@ -33,10 +38,7 @@ public class PlotChartFn : IFunctionCallback
             Id = agent.Id,
             Name = agent.Name,
             Instruction = inst,
-            LlmConfig = new AgentLlmConfig
-            {
-                MaxOutputTokens = 8192
-            },
+            LlmConfig = GetLlmConfig(),
             TemplateDict = new Dictionary<string, object>
             {
                 { "plotting_requirement", args?.PlottingRequirement ?? string.Empty },
@@ -44,14 +46,21 @@ public class PlotChartFn : IFunctionCallback
             }
         };
 
-        var response = await GetChatCompletion(innerAgent, [
-            new RoleDialogModel(AgentRole.User, "Please follow the instruction to generate the javascript code.")
-            {
-                CurrentAgentId = message.CurrentAgentId,
-                MessageId = message.MessageId
-            }
-        ]);
+        var dialogs = routingCtx.GetDialogs();
+        if (dialogs.IsNullOrEmpty())
+        {
+            dialogs = convService.GetDialogHistory();
+        }
 
+        var messageLimit = _settings.ChartPlot?.MessageLimit > 0 ? _settings.ChartPlot.MessageLimit.Value : 50;
+        dialogs = dialogs.TakeLast(messageLimit).ToList();
+        dialogs.Add(new RoleDialogModel(AgentRole.User, "Please follow the instruction and chat context to generate valid javascript code.")
+        {
+            CurrentAgentId = message.CurrentAgentId,
+            MessageId = message.MessageId
+        });
+
+        var response = await GetChatCompletion(innerAgent, dialogs);
         var obj = response.JsonContent<LlmContextOut>();
         message.Content = obj?.GreetingMessage ?? "Here is the chart you ask for:";
         message.RichContent = new RichContent<IRichMessage>
@@ -63,6 +72,29 @@ public class PlotChartFn : IFunctionCallback
                 Language = "javascript"
             }
         };
+
+        if (!string.IsNullOrEmpty(obj?.ReportSummary))
+        {
+            message.AdditionalMessageWrapper = new()
+            {
+                SendingInterval = 1500,
+                SaveToDb = true,
+                Messages = new List<RoleDialogModel>
+                {
+                    new(AgentRole.Assistant, obj.ReportSummary)
+                    {
+                        MessageId = message.MessageId,
+                        MessageLabel = "chart_report_summary",
+                        Indication = "Summarizing",
+                        CurrentAgentId = message.CurrentAgentId,
+                        FunctionName = message.FunctionName,
+                        FunctionArgs = message.FunctionArgs,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                }
+            };
+        }
+
         message.StopCompletion = true;
         return true;
     }
@@ -111,14 +143,29 @@ public class PlotChartFn : IFunctionCallback
         var model = "gpt-5";
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        var settings = _services.GetRequiredService<ChartHandlerSettings>();
         provider = state.GetState("chart_plot_llm_provider")
-                        .IfNullOrEmptyAs(settings.ChartPlot?.LlmProvider)
+                        .IfNullOrEmptyAs(_settings.ChartPlot?.LlmProvider)
                         .IfNullOrEmptyAs(provider);
         model = state.GetState("chart_plot_llm_model")
-                     .IfNullOrEmptyAs(settings.ChartPlot?.LlmModel)
+                     .IfNullOrEmptyAs(_settings.ChartPlot?.LlmModel)
                      .IfNullOrEmptyAs(model);
 
         return (provider, model);
+    }
+
+    private AgentLlmConfig GetLlmConfig()
+    {
+        var maxOutputTokens = _settings?.ChartPlot?.MaxOutputTokens ?? 8192;
+        var reasoningEffortLevel = _settings?.ChartPlot?.ReasoningEffortLevel ?? "minimal";
+
+        var state = _services.GetRequiredService<IConversationStateService>();
+        maxOutputTokens = int.TryParse(state.GetState("chart_plot_max_output_tokens"), out var tokens) ? tokens : maxOutputTokens;
+        reasoningEffortLevel = state.GetState("chart_plot_reasoning_effort_level").IfNullOrEmptyAs(reasoningEffortLevel);
+
+        return new AgentLlmConfig
+        {
+            MaxOutputTokens = maxOutputTokens,
+            ReasoningEffortLevel = reasoningEffortLevel
+        };
     }
 }

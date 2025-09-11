@@ -31,63 +31,21 @@ public class ConversationStorage : IConversationStorage
 
         foreach ( var dialog in dialogs)
         {
-            if (dialog.Role == AgentRole.Function)
+            var innerList = new List<RoleDialogModel> { dialog };
+            if (dialog.AdditionalMessageWrapper != null
+                && dialog.AdditionalMessageWrapper.SaveToDb
+                && dialog.AdditionalMessageWrapper.Messages?.Count > 0)
             {
-                var meta = new DialogMetaData
-                {
-                    Role = dialog.Role,
-                    AgentId = dialog.CurrentAgentId,
-                    MessageId = dialog.MessageId,
-                    MessageType = dialog.MessageType,
-                    FunctionName = dialog.FunctionName,
-                    FunctionArgs = dialog.FunctionArgs,
-                    ToolCallId = dialog.ToolCallId,
-                    CreatedTime = dialog.CreatedAt
-                };
-
-                var content = dialog.Content.RemoveNewLine();
-                if (string.IsNullOrEmpty(content))
-                {
-                    continue;
-                }
-                dialogElements.Add(new DialogElement
-                {
-                    MetaData = meta,
-                    Content = dialog.Content,
-                    SecondaryContent = dialog.SecondaryContent,
-                    Payload = dialog.Payload
-                });
+                innerList.AddRange(dialog.AdditionalMessageWrapper.Messages);
             }
-            else
+
+            foreach (var item in innerList)
             {
-                var meta = new DialogMetaData
+                var element = BuildDialogElement(item);
+                if (element != null)
                 {
-                    Role = dialog.Role,
-                    AgentId = dialog.CurrentAgentId,
-                    MessageId = dialog.MessageId,
-                    MessageType = dialog.MessageType,
-                    SenderId = dialog.SenderId,
-                    FunctionName = dialog.FunctionName,
-                    CreatedTime = dialog.CreatedAt
-                };
-
-                var content = dialog.Content.RemoveNewLine();
-                if (string.IsNullOrEmpty(content))
-                {
-                    continue;
+                    dialogElements.Add(element);
                 }
-
-                var richContent = dialog.RichContent != null ? JsonSerializer.Serialize(dialog.RichContent, _options.JsonSerializerOptions) : null;
-                var secondaryRichContent = dialog.SecondaryRichContent != null ? JsonSerializer.Serialize(dialog.SecondaryRichContent, _options.JsonSerializerOptions) : null;
-                dialogElements.Add(new DialogElement
-                {
-                    MetaData = meta,
-                    Content = dialog.Content,
-                    SecondaryContent = dialog.SecondaryContent,
-                    RichContent = richContent,
-                    SecondaryRichContent = secondaryRichContent,
-                    Payload = dialog.Payload
-                });
             }
         }
 
@@ -108,11 +66,7 @@ public class ConversationStorage : IConversationStorage
             var secondaryContent = dialog.SecondaryContent;
             var payload = string.IsNullOrEmpty(dialog.Payload) ? null : dialog.Payload;
             var role = meta.Role;
-            var currentAgentId = meta.AgentId;
-            var messageId = meta.MessageId;
-            var messageType = meta.MessageType;
-            var senderId = role == AgentRole.Function ? currentAgentId : meta.SenderId;
-            var createdAt = meta.CreatedTime;
+            var senderId = role == AgentRole.Function ? meta?.AgentId : meta?.SenderId;
             var richContent = !string.IsNullOrEmpty(dialog.RichContent) ? 
                                 JsonSerializer.Deserialize<RichContent<IRichMessage>>(dialog.RichContent, _options.JsonSerializerOptions) : null;
             var secondaryRichContent = !string.IsNullOrEmpty(dialog.SecondaryRichContent) ?
@@ -120,14 +74,15 @@ public class ConversationStorage : IConversationStorage
 
             var record = new RoleDialogModel(role, content)
             {
-                CurrentAgentId = currentAgentId,
-                MessageId = messageId,
-                MessageType = messageType,
-                CreatedAt = createdAt,
+                CurrentAgentId = meta?.AgentId ?? string.Empty,
+                MessageId = meta?.MessageId ?? string.Empty,
+                MessageType = meta?.MessageType ?? string.Empty,
+                MessageLabel = meta?.MessageLabel,
+                CreatedAt = meta?.CreatedTime ?? default,
                 SenderId = senderId,
-                FunctionName = meta.FunctionName,
-                FunctionArgs = meta.FunctionArgs,
-                ToolCallId = meta.ToolCallId,
+                FunctionName = meta?.FunctionName,
+                FunctionArgs = meta?.FunctionArgs,
+                ToolCallId = meta?.ToolCallId,
                 RichContent = richContent,
                 SecondaryContent = secondaryContent,
                 SecondaryRichContent = secondaryRichContent,
@@ -147,5 +102,70 @@ public class ConversationStorage : IConversationStorage
         }
 
         return results;
+    }
+
+    private DialogElement? BuildDialogElement(RoleDialogModel dialog)
+    {
+        DialogElement? element = null;
+
+        if (dialog.Role == AgentRole.Function)
+        {
+            var meta = new DialogMetaData
+            {
+                Role = dialog.Role,
+                AgentId = dialog.CurrentAgentId,
+                MessageId = dialog.MessageId,
+                MessageType = dialog.MessageType,
+                MessageLabel = dialog.MessageLabel,
+                FunctionName = dialog.FunctionName,
+                FunctionArgs = dialog.FunctionArgs,
+                ToolCallId = dialog.ToolCallId,
+                CreatedTime = dialog.CreatedAt
+            };
+
+            var content = dialog.Content.RemoveNewLine();
+            if (!string.IsNullOrEmpty(content))
+            {
+                element = new DialogElement
+                {
+                    MetaData = meta,
+                    Content = dialog.Content,
+                    SecondaryContent = dialog.SecondaryContent,
+                    Payload = dialog.Payload
+                };
+            }
+        }
+        else
+        {
+            var meta = new DialogMetaData
+            {
+                Role = dialog.Role,
+                AgentId = dialog.CurrentAgentId,
+                MessageId = dialog.MessageId,
+                MessageType = dialog.MessageType,
+                MessageLabel = dialog.MessageLabel,
+                SenderId = dialog.SenderId,
+                FunctionName = dialog.FunctionName,
+                CreatedTime = dialog.CreatedAt
+            };
+
+            var content = dialog.Content.RemoveNewLine();
+            if (!string.IsNullOrEmpty(content))
+            {
+                var richContent = dialog.RichContent != null ? JsonSerializer.Serialize(dialog.RichContent, _options.JsonSerializerOptions) : null;
+                var secondaryRichContent = dialog.SecondaryRichContent != null ? JsonSerializer.Serialize(dialog.SecondaryRichContent, _options.JsonSerializerOptions) : null;
+                element = new DialogElement
+                {
+                    MetaData = meta,
+                    Content = dialog.Content,
+                    SecondaryContent = dialog.SecondaryContent,
+                    RichContent = richContent,
+                    SecondaryRichContent = secondaryRichContent,
+                    Payload = dialog.Payload
+                };
+            }
+        }
+
+        return element;
     }
 }
