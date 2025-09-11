@@ -7,8 +7,9 @@ namespace BotSharp.Plugin.SqlDriver.UtilFunctions;
 
 public class SqlSelect : IFunctionCallback
 {
-    public string Name => "util-db-sql_select";
     private readonly IServiceProvider _services;
+    public string Name => "util-db-sql_select";
+    public string Indication => "Extracting data";
 
     public SqlSelect(IServiceProvider services)
     {
