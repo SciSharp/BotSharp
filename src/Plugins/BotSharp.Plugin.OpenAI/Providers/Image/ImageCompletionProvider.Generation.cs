@@ -32,14 +32,14 @@ public partial class ImageCompletionProvider
 
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-
-        var settings = settingsService.GetSetting(Provider, _model)?.Image?.Generation;
         
         var size = state.GetState("image_size");
         var quality = state.GetState("image_quality");
         var style = state.GetState("image_style");
         var responseFormat = state.GetState("image_response_format");
         var background = state.GetState("image_background");
+
+        var settings = settingsService.GetSetting(Provider, _model)?.Image?.Generation;
 
         size = settings?.Size != null ? VerifyImageParameter(size, settings.Size.Default, settings.Size.Options) : null;
         quality = settings?.Quality != null ? VerifyImageParameter(quality, settings.Quality.Default, settings.Quality.Options) : null;
