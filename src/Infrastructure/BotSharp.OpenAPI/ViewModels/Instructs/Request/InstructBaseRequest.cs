@@ -51,7 +51,7 @@ public class ImageEditRequest : InstructBaseRequest
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("image_converter_provider")]
-    public string? ImageConverterProvider { get; set; } = "file-handler";
+    public string? ImageConverterProvider { get; set; }
 }
 
 public class ImageEditFileRequest : ImageEditRequest

@@ -49,12 +49,13 @@ public partial class FileInstructService
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
         var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
 
-        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "dall-e-3");
+        var textContent = text.IfNullOrEmptyAs(instruction).IfNullOrEmptyAs(string.Empty);
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1");
         var message = await completion.GetImageGeneration(new Agent()
         {
             Id = innerAgentId,
             Instruction = instruction
-        }, new RoleDialogModel(AgentRole.User, instruction ?? text));
+        }, new RoleDialogModel(AgentRole.User, textContent));
 
         await HookEmitter.Emit<IInstructHook>(_services, async hook =>
             await hook.OnResponseGenerated(new InstructResponseModel
@@ -123,16 +124,18 @@ public partial class FileInstructService
         if (converter != null)
         {
             binary = await converter.ConvertImageToRgbaPng(binary);
+            image.FileExtension = "png";
         }
 
         using var stream = binary.ToStream();
         stream.Position = 0;
 
-        var fileName = BuildFileName(image.FileName, image.FileExtension, "image", "png");
+        var fileName = BuildFileName(image.FileName,image.FileExtension, "image", "png");
+        var textContent = text.IfNullOrEmptyAs(instruction).IfNullOrEmptyAs(string.Empty);
         var message = await completion.GetImageEdits(new Agent()
         {
             Id = innerAgentId
-        }, new RoleDialogModel(AgentRole.User, instruction ?? text), stream, fileName);
+        }, new RoleDialogModel(AgentRole.User, textContent), stream, fileName);
 
         stream.Close();
 
@@ -174,10 +177,11 @@ public partial class FileInstructService
 
         var imageName = BuildFileName(image.FileName, image.FileExtension, "image", "png");
         var maskName = BuildFileName(image.FileName, image.FileExtension, "mask", "png");
+        var textContent = text.IfNullOrEmptyAs(instruction).IfNullOrEmptyAs(string.Empty);
         var message = await completion.GetImageEdits(new Agent()
         {
             Id = innerAgentId
-        }, new RoleDialogModel(AgentRole.User, instruction ?? text), imageStream, imageName, maskStream, maskName);
+        }, new RoleDialogModel(AgentRole.User, textContent), imageStream, imageName, maskStream, maskName);
 
         imageStream.Close();
         maskStream.Close();

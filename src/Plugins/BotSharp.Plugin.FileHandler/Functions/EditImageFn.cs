@@ -84,6 +84,7 @@ public class EditImageFn : IFunctionCallback
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
             var fileBinary = fileStorage.GetFileBytes(image.FileStorageUrl);
             var rgbaBinary = await ConvertImageToRgbaWithPng(fileBinary);
+            image.FileExtension = "png";
 
             using var stream = rgbaBinary.ToStream();
             stream.Position = 0;
@@ -148,7 +149,7 @@ public class EditImageFn : IFunctionCallback
 
     private async Task<BinaryData> ConvertImageToRgbaWithPng(BinaryData binaryFile)
     {
-        var provider = _settings?.ImageConverter?.Provider ?? "file-handler";
+        var provider = _settings?.ImageConverter?.Provider;
         var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == provider);
         if (converter == null)
         {

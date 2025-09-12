@@ -1,5 +1,6 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Formats.Png;
 using System.IO;
 
 namespace BotSharp.Plugin.FileHandler.Converters;
@@ -25,7 +26,11 @@ public class FileHandlerImageConverter : IImageConverter
         {
             using var image = Image.Load<Rgba32>(binary.ToArray());
             using var memoryStream = new MemoryStream();
-            image.SaveAsPng(memoryStream);
+
+            image.SaveAsPng(memoryStream, new PngEncoder
+            {
+                ColorType = PngColorType.RgbWithAlpha
+            });
             var convertedBinary = BinaryData.FromBytes(memoryStream.ToArray());
             return await Task.FromResult(convertedBinary);
         }
