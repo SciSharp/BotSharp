@@ -58,13 +58,17 @@ public class ReadImageFn : IFunctionCallback
             return new List<RoleDialogModel>();
         }
 
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        var images = fileStorage.GetMessageFiles(conversationId, messageIds, FileSourceType.User, new List<string>
+        var contentTypes = new List<string>
         {
             MediaTypeNames.Image.Png,
             MediaTypeNames.Image.Jpeg
-        });
+        };
+
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
+        var userImages = fileStorage.GetMessageFiles(conversationId, messageIds, FileSourceType.User, contentTypes);
+        var botImages = fileStorage.GetMessageFiles(conversationId, messageIds, FileSourceType.Bot, contentTypes);
+        var images = userImages.Concat(botImages);
 
         foreach (var dialog in dialogs)
         {
@@ -82,13 +86,12 @@ public class ReadImageFn : IFunctionCallback
         if (!imageUrls.IsNullOrEmpty())
         {
             var lastDialog = dialogs.LastOrDefault(x => x.Role == AgentRole.User) ?? dialogs.Last();
-            var files = lastDialog.Files ?? [];
+            lastDialog.Files ??= [];
+
             var addnFiles = imageUrls.Select(x => x?.Trim())
                                      .Where(x => !string.IsNullOrWhiteSpace(x))
-                                     .Select(x => new BotSharpFile { FileUrl = x }).ToList();
-            
-            files.AddRange(addnFiles);
-            lastDialog.Files = files;
+                                     .Select(x => new BotSharpFile { FileUrl = x }).ToList();            
+            lastDialog.Files.AddRange(addnFiles);
         }
 
         return dialogs;

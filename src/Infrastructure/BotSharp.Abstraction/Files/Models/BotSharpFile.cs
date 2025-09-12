@@ -1,4 +1,3 @@
-
 namespace BotSharp.Abstraction.Files.Models;
 
 public class BotSharpFile : FileInformation
@@ -9,4 +8,8 @@ public class BotSharpFile : FileInformation
     [JsonPropertyName("file_data")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? FileData { get; set; } = string.Empty;
+
+    [JsonPropertyName("file_index")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FileIndex { get; set; } = string.Empty;
 }

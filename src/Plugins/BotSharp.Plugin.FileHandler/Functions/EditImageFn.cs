@@ -9,6 +9,7 @@ public class EditImageFn : IFunctionCallback
     private readonly ILogger<EditImageFn> _logger;
     private readonly FileHandlerSettings _settings;
 
+    private string _agentId;
     private string _conversationId;
     private string _messageId;
 
@@ -39,6 +40,7 @@ public class EditImageFn : IFunctionCallback
     private void Init(RoleDialogModel message)
     {
         var convService = _services.GetRequiredService<IConversationService>();
+        _agentId = message.CurrentAgentId;
         _conversationId = convService.ConversationId;
         _messageId = message.MessageId;
     }
@@ -56,8 +58,14 @@ public class EditImageFn : IFunctionCallback
         var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, new SelectFileOptions
         {
             Description = description,
-            IncludeBotFile = true,
-            ContentTypes = [MediaTypeNames.Image.Png]
+            IsIncludeBotFiles = true,
+            IsAttachFiles = true,
+            ContentTypes = [MediaTypeNames.Image.Png, MediaTypeNames.Image.Jpeg],
+            MessageLimit = 50,
+            Provider = "openai",
+            Model = "gpt-5-mini",
+            MaxOutputTokens = 8192,
+            ReasoningEffortLevel = "low"
         });
         return selecteds?.FirstOrDefault();
     }
@@ -92,7 +100,12 @@ public class EditImageFn : IFunctionCallback
             stream.Close();
             SaveGeneratedImage(response?.GeneratedImages?.FirstOrDefault());
 
-            return $"Your image is successfylly editted.";
+            if (!string.IsNullOrWhiteSpace(response?.Content))
+            {
+                return response.Content;
+            }
+
+            return await GetImageEditGreetingResponse(description);
         }
         catch (Exception ex)
         {
@@ -100,6 +113,21 @@ public class EditImageFn : IFunctionCallback
             _logger.LogWarning(ex, $"{error}");
             return error;
         }
+    }
+
+    private async Task<string> GetImageEditGreetingResponse(string description)
+    {
+        var agent = new Agent
+        {
+            Id = BuiltInAgentId.UtilityAssistant,
+            Name = "Utility Assistant"
+        };
+
+        var text = $"Please generate a user-friendly response from the following description to inform user that you have completed the required image: {description}";
+
+        var completion = CompletionProvider.GetChatCompletion(_services, provider: "openai", model: "gpt-4o-mini");
+        var response = await completion.GetChatCompletions(agent, [new RoleDialogModel(AgentRole.User, text)]);
+        return response?.Content ?? "Your image is successfully edited.";
     }
 
     private (string, string) GetLlmProviderModel()

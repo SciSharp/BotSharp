@@ -96,7 +96,8 @@ public partial class LocalFileStorageService
                         FileName = fileName,
                         FileExtension = fileExtension,
                         ContentType = contentType,
-                        FileSource = source
+                        FileSource = source,
+                        FileIndex = index
                     };
                     files.Add(model);
                 }
@@ -195,7 +196,7 @@ public partial class LocalFileStorageService
                     fs.Write(binary.ToArray(), 0, binary.Length);
                     fs.Flush(true);
                     fs.Close();
-                    Thread.Sleep(100);
+                    Thread.Sleep(50);
                 }
             }
             catch (Exception ex)

@@ -10,6 +10,7 @@ public interface IImageConverter
     /// <param name="pdfLocation">Pdf file location</param>
     /// <param name="imageFolderLocation">Image folder location</param>
     /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
     Task<IEnumerable<string>> ConvertPdfToImages(string pdfLocation, string imageFolderLocation) => throw new NotImplementedException();
 
     /// <summary>

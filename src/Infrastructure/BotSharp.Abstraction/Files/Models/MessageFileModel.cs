@@ -8,6 +8,9 @@ public class MessageFileModel : FileInformation
     [JsonPropertyName("file_source")]
     public string FileSource { get; set; } = FileSourceType.User;
 
+    [JsonPropertyName("file_index")]
+    public string FileIndex { get; set; } = string.Empty;
+
     public MessageFileModel()
     {
         

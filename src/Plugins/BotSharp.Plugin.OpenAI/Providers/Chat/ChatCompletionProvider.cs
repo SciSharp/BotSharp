@@ -321,7 +321,6 @@ public class ChatCompletionProvider : IChatCompletion
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
         var allowMultiModal = settings != null && settings.MultiModal;
@@ -397,34 +396,21 @@ public class ChatCompletionProvider : IChatCompletion
 
                 if (allowMultiModal && !message.Files.IsNullOrEmpty())
                 {
-                    foreach (var file in message.Files)
-                    {
-                        if (!string.IsNullOrEmpty(file.FileData))
-                        {
-                            var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), imageDetailLevel);
-                            contentParts.Add(contentPart);
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileStorageUrl))
-                        {
-                            var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
-                            var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), imageDetailLevel);
-                            contentParts.Add(contentPart);
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileUrl))
-                        {
-                            var uri = new Uri(file.FileUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(uri, imageDetailLevel);
-                            contentParts.Add(contentPart);
-                        }
-                    }
+                    CollectMessageContentParts(contentParts, message.Files, imageDetailLevel);
                 }
                 messages.Add(new UserChatMessage(contentParts) { ParticipantName = message.FunctionName });
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                messages.Add(new AssistantChatMessage(message.Content));
+                var text = message.Content;
+                var textPart = ChatMessageContentPart.CreateTextPart(text);
+                var contentParts = new List<ChatMessageContentPart> { textPart };
+
+                if (allowMultiModal && !message.Files.IsNullOrEmpty())
+                {
+                    CollectMessageContentParts(contentParts, message.Files, imageDetailLevel);
+                }
+                messages.Add(new AssistantChatMessage(contentParts));
             }
         }
 
@@ -432,6 +418,33 @@ public class ChatCompletionProvider : IChatCompletion
         return (prompt, messages, options);
     }
 
+    private void CollectMessageContentParts(List<ChatMessageContentPart> contentParts, List<BotSharpFile> files, ChatImageDetailLevel imageDetailLevel)
+    {
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+
+        foreach (var file in files)
+        {
+            if (!string.IsNullOrEmpty(file.FileData))
+            {
+                var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
+                var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), imageDetailLevel);
+                contentParts.Add(contentPart);
+            }
+            else if (!string.IsNullOrEmpty(file.FileStorageUrl))
+            {
+                var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
+                var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
+                var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), imageDetailLevel);
+                contentParts.Add(contentPart);
+            }
+            else if (!string.IsNullOrEmpty(file.FileUrl))
+            {
+                var uri = new Uri(file.FileUrl);
+                var contentPart = ChatMessageContentPart.CreateImagePart(uri, imageDetailLevel);
+                contentParts.Add(contentPart);
+            }
+        }
+    }
 
     private string GetPrompt(IEnumerable<ChatMessage> messages, ChatCompletionOptions options)
     {

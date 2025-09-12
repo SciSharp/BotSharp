@@ -1,9 +1,11 @@
 using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Hooks;
 using GenerativeAI;
 using GenerativeAI.Core;
 using GenerativeAI.Types;
+using Google.Ai.Generativelanguage.V1Beta2;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Chat;
 
@@ -272,51 +274,22 @@ public class GeminiChatCompletionProvider : IChatCompletion
 
                 if (allowMultiModal && !message.Files.IsNullOrEmpty())
                 {
-                    foreach (var file in message.Files)
-                    {
-                        if (!string.IsNullOrEmpty(file.FileData))
-                        {
-                            var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
-                            contentParts.Add(new Part()
-                            {
-                                InlineData = new()
-                                {
-                                    MimeType = contentType.IfNullOrEmptyAs(file.ContentType),
-                                    Data = Convert.ToBase64String(binary.ToArray())
-                                }
-                            });
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileStorageUrl))
-                        {
-                            var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
-                            var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
-                            contentParts.Add(new Part()
-                            {
-                                InlineData = new()
-                                {
-                                    MimeType = contentType.IfNullOrEmptyAs(file.ContentType),
-                                    Data = Convert.ToBase64String(binary.ToArray())
-                                }
-                            });
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileUrl))
-                        {
-                            contentParts.Add(new Part()
-                            {
-                                FileData = new()
-                                {
-                                    FileUri = file.FileUrl
-                                }
-                            });
-                        }
-                    }
+                    CollectMessageContentParts(contentParts, message.Files);
                 }
                 contents.Add(new Content(contentParts, AgentRole.User));
                 convPrompts.Add($"{AgentRole.User}: {text}");
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                contents.Add(new Content(message.Content, AgentRole.Model));
+                var text = message.Content;
+                var contentParts = new List<Part> { new() { Text = text } };
+
+                if (allowMultiModal && !message.Files.IsNullOrEmpty())
+                {
+                    CollectMessageContentParts(contentParts, message.Files);
+                }
+
+                contents.Add(new Content(contentParts, AgentRole.Model));
                 convPrompts.Add($"{AgentRole.Assistant}: {message.Content}");
             }
         }
@@ -340,6 +313,50 @@ public class GeminiChatCompletionProvider : IChatCompletion
 
         var prompt = GetPrompt(systemPrompts, funcPrompts, convPrompts);
         return (prompt, request);
+    }
+
+    private void CollectMessageContentParts(List<Part> contentParts, List<BotSharpFile> files)
+    {
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+
+        foreach (var file in files)
+        {
+            if (!string.IsNullOrEmpty(file.FileData))
+            {
+                var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
+                contentParts.Add(new Part()
+                {
+                    InlineData = new()
+                    {
+                        MimeType = contentType.IfNullOrEmptyAs(file.ContentType),
+                        Data = Convert.ToBase64String(binary.ToArray())
+                    }
+                });
+            }
+            else if (!string.IsNullOrEmpty(file.FileStorageUrl))
+            {
+                var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
+                var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
+                contentParts.Add(new Part()
+                {
+                    InlineData = new()
+                    {
+                        MimeType = contentType.IfNullOrEmptyAs(file.ContentType),
+                        Data = Convert.ToBase64String(binary.ToArray())
+                    }
+                });
+            }
+            else if (!string.IsNullOrEmpty(file.FileUrl))
+            {
+                contentParts.Add(new Part()
+                {
+                    FileData = new()
+                    {
+                        FileUri = file.FileUrl
+                    }
+                });
+            }
+        }
     }
 
     private string GetPrompt(IEnumerable<string> systemPrompts, IEnumerable<string> funcPrompts, IEnumerable<string> convPrompts)
