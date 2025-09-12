@@ -31,21 +31,10 @@ public class ConversationStorage : IConversationStorage
 
         foreach ( var dialog in dialogs)
         {
-            var innerList = new List<RoleDialogModel> { dialog };
-            if (dialog.AdditionalMessageWrapper != null
-                && dialog.AdditionalMessageWrapper.SaveToDb
-                && dialog.AdditionalMessageWrapper.Messages?.Count > 0)
+            var element = BuildDialogElement(dialog);
+            if (element != null)
             {
-                innerList.AddRange(dialog.AdditionalMessageWrapper.Messages);
-            }
-
-            foreach (var item in innerList)
-            {
-                var element = BuildDialogElement(item);
-                if (element != null)
-                {
-                    dialogElements.Add(element);
-                }
+                dialogElements.Add(element);
             }
         }
 

@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Files.Converters;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs;
 
@@ -39,7 +38,7 @@ public partial class FileInstructService
             var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
 
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider,
-                model: options?.Model ?? "gpt-4o", multiModal: true);
+                model: options?.Model ?? "gpt-5-mini", multiModal: true);
             var message = await completion.GetChatCompletions(new Agent()
             {
                 Id = innerAgentId,
@@ -120,9 +119,8 @@ public partial class FileInstructService
     {
         var images = new List<string>();
         var settings = _services.GetRequiredService<FileCoreSettings>();
-        var imageConverterProvider = options?.ImageConverterProvider;
 
-        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == imageConverterProvider);
+        var converter = GetImageConverter(options?.ImageConvertProvider);
         if (converter == null || files.IsNullOrEmpty())
         {
             return images;

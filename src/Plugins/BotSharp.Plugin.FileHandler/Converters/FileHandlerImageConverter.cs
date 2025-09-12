@@ -20,17 +20,45 @@ public class FileHandlerImageConverter : IImageConverter
 
     public string Provider => "file-handler";
 
-    public async Task<BinaryData> ConvertImageToRgbaPng(BinaryData binary)
+    public async Task<BinaryData> ConvertImage(BinaryData binary, ImageConvertOptions? options = null)
     {
         try
         {
             using var image = Image.Load<Rgba32>(binary.ToArray());
             using var memoryStream = new MemoryStream();
 
-            image.SaveAsPng(memoryStream, new PngEncoder
+            if (options?.ImageType == "png")
             {
-                ColorType = PngColorType.RgbWithAlpha
-            });
+                var colorType = PngColorType.RgbWithAlpha;
+                switch (options?.ColorType)
+                {
+                    case "grayscale":
+                        colorType = PngColorType.Grayscale;
+                        break;
+                    case "grayscaleWithAlpha":
+                        colorType = PngColorType.GrayscaleWithAlpha;
+                        break;
+                    case "rgb":
+                        colorType = PngColorType.Rgb;
+                        break;
+                    case "palette":
+                        colorType = PngColorType.Palette;
+                        break;
+                }
+
+                image.SaveAsPng(memoryStream, new PngEncoder
+                {
+                    ColorType = colorType
+                });
+            }
+            else
+            {
+                image.SaveAsPng(memoryStream, new PngEncoder
+                {
+                    ColorType = PngColorType.RgbWithAlpha
+                });
+            }
+            
             var convertedBinary = BinaryData.FromBytes(memoryStream.ToArray());
             return await Task.FromResult(convertedBinary);
         }

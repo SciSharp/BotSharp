@@ -40,7 +40,7 @@ public class AudioSynthesisProvider : IAudioSynthesis
         var options = new SpeechGenerationOptions
         {
             ResponseFormat = responseFormat,
-            SpeedRatio = speed,
+            SpeedRatio = speed
         };
 
         return (voice, options);

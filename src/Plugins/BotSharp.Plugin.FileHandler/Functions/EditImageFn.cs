@@ -83,7 +83,7 @@ public class EditImageFn : IFunctionCallback
 
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
             var fileBinary = fileStorage.GetFileBytes(image.FileStorageUrl);
-            var rgbaBinary = await ConvertImageToRgbaWithPng(fileBinary);
+            var rgbaBinary = await ConvertImageToPngWithRgba(fileBinary);
             image.FileExtension = "png";
 
             using var stream = rgbaBinary.ToStream();
@@ -147,7 +147,7 @@ public class EditImageFn : IFunctionCallback
         fileStorage.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
     }
 
-    private async Task<BinaryData> ConvertImageToRgbaWithPng(BinaryData binaryFile)
+    private async Task<BinaryData> ConvertImageToPngWithRgba(BinaryData binaryFile)
     {
         var provider = _settings?.ImageConverter?.Provider;
         var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == provider);
@@ -156,6 +156,6 @@ public class EditImageFn : IFunctionCallback
             return binaryFile;
         }
 
-        return await converter.ConvertImageToRgbaPng(binaryFile);
+        return await converter.ConvertImage(binaryFile);
     }
 }

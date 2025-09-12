@@ -33,7 +33,7 @@ public class InstructOptions
     public Dictionary<string, object> Data { get; set; } = new();
 
     /// <summary>
-    /// Image converter provider
+    /// Image convert provider
     /// </summary>
-    public string? ImageConverterProvider { get; set; }
+    public string? ImageConvertProvider { get; set; }
 }

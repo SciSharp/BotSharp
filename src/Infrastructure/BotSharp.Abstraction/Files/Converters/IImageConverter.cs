@@ -16,6 +16,8 @@ public interface IImageConverter
     /// Convert an image to PNG with RGBA
     /// </summary>
     /// <param name="binary"></param>
+    /// <param name="options"></param>
     /// <returns></returns>
-    Task<BinaryData> ConvertImageToRgbaPng(BinaryData binary) => throw new NotImplementedException();
+    /// <exception cref="NotImplementedException"></exception>
+    Task<BinaryData> ConvertImage(BinaryData binary, ImageConvertOptions? options = null) => throw new NotImplementedException();
 }

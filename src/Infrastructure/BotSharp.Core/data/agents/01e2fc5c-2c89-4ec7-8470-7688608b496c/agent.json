@@ -4,14 +4,46 @@
   "description": "Chatbot is used to test the performance of different large models and does not interact with external APIs.",
   "type": "task",
   "createdDateTime": "2024-01-15T10:39:32Z",
-  "updatedDateTime": "2024-01-15T14:39:32Z",
-  "iconUrl": "/images/logo.png",
-  "disabled": false,
-  "isPublic": true,
+  "updatedDateTime": "2025-09-11T20:25:59.292826Z",
   "llmConfig": {
     "is_inherit": false,
     "provider": "openai",
-    "model": "gpt-4o-mini",
+    "model": "gpt-5",
     "max_recursion_depth": 3
-  }
+  },
+  "isPublic": true,
+  "disabled": false,
+  "iconUrl": "/images/logo.png",
+  "profiles": [],
+  "labels": [],
+  "mergeUtility": false,
+  "utilities": [
+    {
+      "category": "file",
+      "name": "image-generator",
+      "disabled": false,
+      "items": [
+        {
+          "function_name": "util-file-generate_image",
+          "template_name": "util-file-generate_image.fn"
+        }
+      ]
+    },
+    {
+      "category": "file",
+      "name": "image-editor",
+      "disabled": false,
+      "items": [
+        {
+          "function_name": "util-file-edit_image",
+          "template_name": "util-file-edit_image.fn"
+        }
+      ]
+    }
+  ],
+  "mcpTools": [],
+  "rules": [],
+  "knowledgeBases": [],
+  "inheritAgentId": null,
+  "routingRules": []
 }
