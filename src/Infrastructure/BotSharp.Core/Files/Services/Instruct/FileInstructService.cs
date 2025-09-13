@@ -1,4 +1,6 @@
 
+using BotSharp.Abstraction.Files.Converters;
+using Microsoft.Extensions.Options;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Core.Files.Services;
@@ -85,6 +87,14 @@ public partial class FileInstructService : IFileInstructService
         var fextension = extension.IfNullOrEmptyAs(defaultExtension);
         fextension = fextension.StartsWith(".") ? fextension.Substring(1) : fextension;
         return $"{name}.{fextension}";
+    }
+
+    private IImageConverter? GetImageConverter(string? provider)
+    {
+        var settings = _services.GetRequiredService<FileCoreSettings>();
+        var convertProvider = provider ?? settings?.ImageConverter?.Provider;
+        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == convertProvider);
+        return converter;
     }
     #endregion
 }

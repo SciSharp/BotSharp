@@ -320,7 +320,7 @@ public class ChatCompletionProvider : IChatCompletion
     protected (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
         var allowMultiModal = settings != null && settings.MultiModal;
@@ -371,6 +371,12 @@ public class ChatCompletionProvider : IChatCompletion
             filteredMessages = filteredMessages.Where((_, idx) => idx >= firstUserMsgIdx).ToList();
         }
 
+        var imageDetailLevel = ChatImageDetailLevel.Auto;
+        if (allowMultiModal)
+        {
+            imageDetailLevel = ParseChatImageDetailLevel(state.GetState("chat_image_detail_level"));
+        }
+
         foreach (var message in filteredMessages)
         {
             if (message.Role == AgentRole.Function)
@@ -390,34 +396,21 @@ public class ChatCompletionProvider : IChatCompletion
 
                 if (allowMultiModal && !message.Files.IsNullOrEmpty())
                 {
-                    foreach (var file in message.Files)
-                    {
-                        if (!string.IsNullOrEmpty(file.FileData))
-                        {
-                            var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), ChatImageDetailLevel.Auto);
-                            contentParts.Add(contentPart);
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileStorageUrl))
-                        {
-                            var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
-                            var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), ChatImageDetailLevel.Auto);
-                            contentParts.Add(contentPart);
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileUrl))
-                        {
-                            var uri = new Uri(file.FileUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(uri, ChatImageDetailLevel.Auto);
-                            contentParts.Add(contentPart);
-                        }
-                    }
+                    CollectMessageContentParts(contentParts, message.Files, imageDetailLevel);
                 }
                 messages.Add(new UserChatMessage(contentParts) { ParticipantName = message.FunctionName });
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                messages.Add(new AssistantChatMessage(message.Content));
+                var text = message.Content;
+                var textPart = ChatMessageContentPart.CreateTextPart(text);
+                var contentParts = new List<ChatMessageContentPart> { textPart };
+
+                if (allowMultiModal && !message.Files.IsNullOrEmpty())
+                {
+                    CollectMessageContentParts(contentParts, message.Files, imageDetailLevel);
+                }
+                messages.Add(new AssistantChatMessage(contentParts));
             }
         }
 
@@ -425,6 +418,33 @@ public class ChatCompletionProvider : IChatCompletion
         return (prompt, messages, options);
     }
 
+    private void CollectMessageContentParts(List<ChatMessageContentPart> contentParts, List<BotSharpFile> files, ChatImageDetailLevel imageDetailLevel)
+    {
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+
+        foreach (var file in files)
+        {
+            if (!string.IsNullOrEmpty(file.FileData))
+            {
+                var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
+                var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), imageDetailLevel);
+                contentParts.Add(contentPart);
+            }
+            else if (!string.IsNullOrEmpty(file.FileStorageUrl))
+            {
+                var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
+                var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
+                var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), imageDetailLevel);
+                contentParts.Add(contentPart);
+            }
+            else if (!string.IsNullOrEmpty(file.FileUrl))
+            {
+                var uri = new Uri(file.FileUrl);
+                var contentPart = ChatMessageContentPart.CreateImagePart(uri, imageDetailLevel);
+                contentParts.Add(contentPart);
+            }
+        }
+    }
 
     private string GetPrompt(IEnumerable<ChatMessage> messages, ChatCompletionOptions options)
     {
@@ -506,8 +526,8 @@ public class ChatCompletionProvider : IChatCompletion
         {
             temperature = settings.Reasoning.Temperature;
             var level = state.GetState("reasoning_effort_level")
-                         .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel ?? string.Empty)
-                         .IfNullOrEmptyAs(settings?.Reasoning?.EffortLevel ?? string.Empty);
+                         .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel)
+                         .IfNullOrEmptyAs(settings?.Reasoning?.EffortLevel);
             reasoningEffortLevel = ParseReasoningEffortLevel(level);
         }
 
@@ -557,6 +577,29 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         return effortLevel;
+    }
+
+    private ChatImageDetailLevel ParseChatImageDetailLevel(string? level)
+    {
+        if (string.IsNullOrWhiteSpace(level))
+        {
+            return ChatImageDetailLevel.Auto;
+        }
+
+        var imageLevel = ChatImageDetailLevel.Auto;
+        switch (level.ToLower())
+        {
+            case "low":
+                imageLevel = ChatImageDetailLevel.Low;
+                break;
+            case "high":
+                imageLevel = ChatImageDetailLevel.High;
+                break;
+            default:
+                break;
+        }
+
+        return imageLevel;
     }
 
     public void SetModelName(string model)

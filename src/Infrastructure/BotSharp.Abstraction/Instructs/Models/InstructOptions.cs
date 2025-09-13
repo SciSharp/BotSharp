@@ -31,4 +31,9 @@ public class InstructOptions
     /// Data to fill in prompt
     /// </summary>
     public Dictionary<string, object> Data { get; set; } = new();
+
+    /// <summary>
+    /// Image convert provider
+    /// </summary>
+    public string? ImageConvertProvider { get; set; }
 }

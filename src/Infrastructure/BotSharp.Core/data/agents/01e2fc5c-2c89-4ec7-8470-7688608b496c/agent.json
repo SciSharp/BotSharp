@@ -11,7 +11,7 @@
   "llmConfig": {
     "is_inherit": false,
     "provider": "openai",
-    "model": "gpt-4o-mini",
+    "model": "gpt-5-mini",
     "max_recursion_depth": 3
   }
 }

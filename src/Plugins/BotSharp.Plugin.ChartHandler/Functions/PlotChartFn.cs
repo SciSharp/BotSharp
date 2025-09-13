@@ -61,39 +61,32 @@ public class PlotChartFn : IFunctionCallback
         });
 
         var response = await GetChatCompletion(innerAgent, dialogs);
-        var obj = response.JsonContent<LlmContextOut>();
-        message.Content = obj?.GreetingMessage ?? "Here is the chart you ask for:";
+
+        LlmContextOut? ret = null;
+        var errorMsg = "Error when deserializing ai chart response";
+        try
+        {
+            ret = response.JsonContent<LlmContextOut>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, errorMsg);
+            ret = new LlmContextOut
+            {
+                GreetingMessage = errorMsg
+            };
+        }
+        
+        message.Content = ret?.GreetingMessage ?? "Here is the chart you ask for:";
         message.RichContent = new RichContent<IRichMessage>
         {
             Recipient = new Recipient { Id = convService.ConversationId },
             Message = new ProgramCodeTemplateMessage
             {
-                Text = obj?.JsCode ?? string.Empty,
+                Text = ret?.JsCode ?? string.Empty,
                 Language = "javascript"
             }
         };
-
-        if (!string.IsNullOrEmpty(obj?.ReportSummary))
-        {
-            message.AdditionalMessageWrapper = new()
-            {
-                SendingInterval = 1500,
-                SaveToDb = true,
-                Messages = new List<RoleDialogModel>
-                {
-                    new(AgentRole.Assistant, obj.ReportSummary)
-                    {
-                        MessageId = message.MessageId,
-                        MessageLabel = "chart_report_summary",
-                        Indication = "Summarizing",
-                        CurrentAgentId = message.CurrentAgentId,
-                        FunctionName = message.FunctionName,
-                        FunctionArgs = message.FunctionArgs,
-                        CreatedAt = DateTime.UtcNow
-                    }
-                }
-            };
-        }
 
         message.StopCompletion = true;
         return true;

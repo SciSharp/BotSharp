@@ -25,16 +25,21 @@ public class GenerateImageFn : IFunctionCallback
         SetImageOptions();
         
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(BuiltInAgentId.UtilityAssistant);
-        var imageAgent = new Agent
+
+        Agent? fromAgent = null;
+        if (!string.IsNullOrEmpty(message.CurrentAgentId))
         {
-            Id = agent?.Id ?? Guid.Empty.ToString(),
-            Name = agent?.Name ?? "Unkown",
-            Instruction = args?.ImageDescription,
-            TemplateDict = new Dictionary<string, object>()
+            fromAgent = await agentService.GetAgent(message.CurrentAgentId);
+        }
+
+        var agent = new Agent
+        {
+            Id = fromAgent?.Id ?? BuiltInAgentId.UtilityAssistant,
+            Name = fromAgent?.Name ?? "Utility Assistant",
+            Instruction = args?.ImageDescription
         };
 
-        var response = await GetImageGeneration(imageAgent, message, args?.ImageDescription);
+        var response = await GetImageGeneration(agent, message, args?.ImageDescription);
         message.Content = response;
         message.StopCompletion = true;
         return true;
@@ -52,18 +57,20 @@ public class GenerateImageFn : IFunctionCallback
         var state = _services.GetRequiredService<IConversationStateService>();
         state.SetState("image_count", "1");
         state.SetState("image_quality", "medium");
+        state.SetState("image_response_format", "bytes");
     }
 
     private async Task<string> GetImageGeneration(Agent agent, RoleDialogModel message, string? description)
     {
         try
         {
-            var completion = CompletionProvider.GetImageCompletion(_services, provider: "openai", model: "dall-e-3");
+            var (provider, model) = GetLlmProviderModel();
+            var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
             var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
             var result = await completion.GetImageGeneration(agent, dialog);
             SaveGeneratedImages(result?.GeneratedImages);
-            return result?.Content ?? string.Empty;
+            return !string.IsNullOrWhiteSpace(result?.Content) ? result.Content : "Here is the image you asked for";
         }
         catch (Exception ex)
         {
@@ -71,6 +78,34 @@ public class GenerateImageFn : IFunctionCallback
             _logger.LogWarning(ex, $"{error}");
             return error;
         }
+    }
+
+    private (string, string) GetLlmProviderModel()
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+        var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
+
+        var provider = state.GetState("image_generate_llm_provider");
+        var model = state.GetState("image_generate_llm_model");
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = fileSettings?.Image?.Generation?.LlmProvider;
+        model = fileSettings?.Image?.Generation?.LlmModel;
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = "openai";
+        model = "gpt-image-1";
+
+        return (provider, model);
     }
 
     private void SaveGeneratedImages(List<ImageGeneration>? images)

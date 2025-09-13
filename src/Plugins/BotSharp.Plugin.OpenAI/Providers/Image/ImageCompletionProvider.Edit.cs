@@ -1,3 +1,4 @@
+#pragma warning disable OPENAI001
 using OpenAI.Images;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Image;
@@ -52,14 +53,17 @@ public partial class ImageCompletionProvider
         var prompt = message?.Payload ?? message?.Content ?? string.Empty;
 
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting(Provider, _model)?.Image?.Edit;
-
         var state = _services.GetRequiredService<IConversationStateService>();
+
         var size = state.GetState("image_size");
         var responseFormat = state.GetState("image_response_format");
+        var background = state.GetState("image_background");
+
+        var settings = settingsService.GetSetting(Provider, _model)?.Image?.Edit;
 
         size = settings?.Size != null ? VerifyImageParameter(size, settings.Size.Default, settings.Size.Options) : null;
         responseFormat = settings?.ResponseFormat != null ? VerifyImageParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
+        background = settings?.Background != null ? VerifyImageParameter(background, settings.Background.Default, settings.Background.Options) : null;
 
         var options = new ImageEditOptions();
         if (!string.IsNullOrEmpty(size))
@@ -70,8 +74,12 @@ public partial class ImageCompletionProvider
         {
             options.ResponseFormat = GetImageResponseFormat(responseFormat);
         }
+        if (!string.IsNullOrEmpty(background))
+        {
+            options.Background = GetImageBackground(background);
+        }
 
-        var count = GetImageCount(state.GetState("image_count", "1"));
+        var count = GetImageCount(state.GetState("image_count"));
         return (prompt, count, options);
     }
 }

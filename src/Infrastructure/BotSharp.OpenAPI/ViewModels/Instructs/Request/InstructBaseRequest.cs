@@ -21,6 +21,7 @@ public class InstructBaseRequest
     public List<InstructState> States { get; set; } = [];
 }
 
+
 public class MultiModalRequest : InstructBaseRequest
 {
     [JsonPropertyName("text")]
@@ -33,32 +34,54 @@ public class MultiModalFileRequest : MultiModalRequest
     public List<InstructFileModel> Files { get; set; } = [];
 }
 
+
 public class ImageGenerationRequest : InstructBaseRequest
 {
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 }
 
+
 public class ImageVariationRequest : InstructBaseRequest
+{
+    [JsonPropertyName("image_convert_provider")]
+    public string? ImageConvertProvider { get; set; }
+}
+
+public class ImageVariationFileRequest : ImageVariationRequest
 {
     [JsonPropertyName("file")]
     public InstructFileModel File { get; set; }
 }
+
 
 public class ImageEditRequest : InstructBaseRequest
 {
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
+    [JsonPropertyName("image_convert_provider")]
+    public string? ImageConvertProvider { get; set; }
+}
+
+public class ImageEditFileRequest : ImageEditRequest
+{
     [JsonPropertyName("file")]
     public InstructFileModel File { get; set; }
 }
+
 
 public class ImageMaskEditRequest : InstructBaseRequest
 {
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
+    [JsonPropertyName("image_convert_provider")]
+    public string? ImageConvertProvider { get; set; }
+}
+
+public class ImageMaskEditFileRequest : ImageMaskEditRequest
+{
     [JsonPropertyName("file")]
     public InstructFileModel File { get; set; }
 
@@ -66,11 +89,31 @@ public class ImageMaskEditRequest : InstructBaseRequest
     public InstructFileModel Mask { get; set; }
 }
 
+
+public class PdfReadRequest : InstructBaseRequest
+{
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = string.Empty;
+
+    [JsonPropertyName("image_convert_provider")]
+    public string? ImageConvertProvider { get; set; }
+}
+
+public class PdfReadFileRequest : PdfReadRequest
+{
+    [JsonPropertyName("files")]
+    public List<InstructFileModel> Files { get; set; } = [];
+}
+
+
 public class SpeechToTextRequest : InstructBaseRequest
 {
     [JsonPropertyName("text")]
     public string? Text { get; set; }
+}
 
+public class SpeechToTextFileRequest : SpeechToTextRequest
+{
     [JsonPropertyName("file")]
     public InstructFileModel File { get; set; }
 }

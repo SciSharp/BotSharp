@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Files.Converters;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs;
 
@@ -27,7 +26,7 @@ public partial class FileInstructService
             var targetFiles = pdfFiles;
             if (provider != "google-ai")
             {
-                targetFiles = await ConvertPdfToImages(pdfFiles);
+                targetFiles = await ConvertPdfToImages(pdfFiles, options);
             }
 
             if (targetFiles.IsNullOrEmpty())
@@ -39,7 +38,7 @@ public partial class FileInstructService
             var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
 
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider,
-                model: options?.Model ?? "gpt-4o", multiModal: true);
+                model: options?.Model ?? "gpt-5-mini", multiModal: true);
             var message = await completion.GetChatCompletions(new Agent()
             {
                 Id = innerAgentId,
@@ -116,11 +115,12 @@ public partial class FileInstructService
         return locs;
     }
 
-    private async Task<IEnumerable<string>> ConvertPdfToImages(IEnumerable<string> files)
+    private async Task<IEnumerable<string>> ConvertPdfToImages(IEnumerable<string> files, InstructOptions? options = null)
     {
         var images = new List<string>();
         var settings = _services.GetRequiredService<FileCoreSettings>();
-        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Provider == settings.Pdf2ImageConverter.Provider);
+
+        var converter = GetImageConverter(options?.ImageConvertProvider);
         if (converter == null || files.IsNullOrEmpty())
         {
             return images;

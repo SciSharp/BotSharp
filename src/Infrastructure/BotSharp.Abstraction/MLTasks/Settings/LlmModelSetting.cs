@@ -73,23 +73,31 @@ public class LlmModelSetting
     }
 }
 
+#region Embedding model settings
 public class EmbeddingSetting
 {
     public int Dimension { get; set; }
 }
+#endregion
 
+
+#region Reasoning model settings
 public class ReasoningSetting
 {
     public float Temperature { get; set; } = 1.0f;
     public string? EffortLevel { get; set; }
 }
+#endregion
 
+#region Web search model settings
 public class WebSearchSetting
 {
     public bool IsDefault { get; set; }
     public string? SearchContextSize { get; set; }
 }
+#endregion
 
+#region Image model settings
 public class ImageSetting
 {
     public ImageGenerationSetting? Generation { get; set; }
@@ -103,12 +111,14 @@ public class ImageGenerationSetting
     public ModelSettingBase? Size { get; set; }
     public ModelSettingBase? Quality { get; set; }
     public ModelSettingBase? ResponseFormat { get; set; }
+    public ModelSettingBase? Background { get; set; }
 }
 
 public class ImageEditSetting
 {
     public ModelSettingBase? Size { get; set; }
     public ModelSettingBase? ResponseFormat { get; set; }
+    public ModelSettingBase? Background { get; set; }
 }
 
 public class ImageVariationSetting
@@ -116,7 +126,7 @@ public class ImageVariationSetting
     public ModelSettingBase? Size { get; set; }
     public ModelSettingBase? ResponseFormat { get; set; }
 }
-
+#endregion
 
 public class ModelSettingBase
 {

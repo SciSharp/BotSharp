@@ -57,6 +57,12 @@ public class AudioTranscriptionProvider : IAudioTranscription
         switch (value)
         {
             case "json":
+                format = new AudioTranscriptionFormat("json");
+                break;
+            case "text":
+                format = new AudioTranscriptionFormat("text");
+                break;
+            case "simple":
                 format = AudioTranscriptionFormat.Simple;
                 break;
             case "srt":

@@ -144,7 +144,7 @@ public class InstructModeController : ControllerBase
         }
     }
 
-    [HttpPost("/instruct/multi-modal/upload")]
+    [HttpPost("/instruct/multi-modal/form")]
     public async Task<MultiModalViewModel> MultiModalCompletion([FromForm] IEnumerable<IFormFile> files, [FromForm] MultiModalRequest request)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -182,21 +182,21 @@ public class InstructModeController : ControllerBase
 
     #region Generate image
     [HttpPost("/instruct/image-generation")]
-    public async Task<ImageGenerationViewModel> ImageGeneration([FromBody] ImageGenerationRequest input)
+    public async Task<ImageGenerationViewModel> ImageGeneration([FromBody] ImageGenerationRequest request)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+        request.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
         var imageViewModel = new ImageGenerationViewModel();
 
         try
         {
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var message = await fileInstruct.GenerateImage(input.Text, new InstructOptions
+            var message = await fileInstruct.GenerateImage(request.Text, new InstructOptions
             {
-                Provider = input.Provider,
-                Model = input.Model,
-                AgentId = input.AgentId,
-                TemplateName = input.TemplateName
+                Provider = request.Provider,
+                Model = request.Model,
+                AgentId = request.AgentId,
+                TemplateName = request.TemplateName
             });
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
@@ -214,29 +214,30 @@ public class InstructModeController : ControllerBase
 
     #region Edit image
     [HttpPost("/instruct/image-variation")]
-    public async Task<ImageGenerationViewModel> ImageVariation([FromBody] ImageVariationRequest input)
+    public async Task<ImageGenerationViewModel> ImageVariation([FromBody] ImageVariationFileRequest request)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+        request.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
         var imageViewModel = new ImageGenerationViewModel();
 
         try
         {
-            if (input.File == null)
+            if (request.File == null)
             {
                 return new ImageGenerationViewModel { Message = "Error! Cannot find an image!" };
             }
 
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var message = await fileInstruct.VaryImage(input.File, new InstructOptions
+            var message = await fileInstruct.VaryImage(request.File, new InstructOptions
             {
-                Provider = input.Provider,
-                Model = input.Model,
-                AgentId = input.AgentId
+                Provider = request.Provider,
+                Model = request.Model,
+                AgentId = request.AgentId,
+                ImageConvertProvider = request.ImageConvertProvider
             });
+
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
-
             return imageViewModel;
         }
         catch (Exception ex)
@@ -248,8 +249,8 @@ public class InstructModeController : ControllerBase
         }
     }
 
-    [HttpPost("/instruct/image-variation/upload")]
-    public async Task<ImageGenerationViewModel> ImageVariation(IFormFile file, [FromForm] MultiModalRequest request)
+    [HttpPost("/instruct/image-variation/form")]
+    public async Task<ImageGenerationViewModel> ImageVariation(IFormFile file, [FromForm] ImageVariationRequest request)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         request?.States?.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
@@ -269,7 +270,8 @@ public class InstructModeController : ControllerBase
             {
                 Provider = request?.Provider,
                 Model = request?.Model,
-                AgentId = request?.AgentId
+                AgentId = request?.AgentId,
+                ImageConvertProvider = request?.ImageConvertProvider
             });
 
             imageViewModel.Content = message.Content;
@@ -286,25 +288,26 @@ public class InstructModeController : ControllerBase
     }
 
     [HttpPost("/instruct/image-edit")]
-    public async Task<ImageGenerationViewModel> ImageEdit([FromBody] ImageEditRequest input)
+    public async Task<ImageGenerationViewModel> ImageEdit([FromBody] ImageEditFileRequest request)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+        request.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
         var imageViewModel = new ImageGenerationViewModel();
 
         try
         {
-            if (input.File == null)
+            if (request.File == null)
             {
                 return new ImageGenerationViewModel { Message = "Error! Cannot find a valid image file!" };
             }
-            var message = await fileInstruct.EditImage(input.Text, input.File, new InstructOptions
+            var message = await fileInstruct.EditImage(request.Text, request.File, new InstructOptions
             {
-                Provider = input.Provider,
-                Model = input.Model,
-                AgentId = input.AgentId,
-                TemplateName = input.TemplateName
+                Provider = request.Provider,
+                Model = request.Model,
+                AgentId = request.AgentId,
+                TemplateName = request.TemplateName,
+                ImageConvertProvider = request.ImageConvertProvider
             });
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
@@ -319,8 +322,8 @@ public class InstructModeController : ControllerBase
         }
     }
 
-    [HttpPost("/instruct/image-edit/upload")]
-    public async Task<ImageGenerationViewModel> ImageEdit(IFormFile file, [FromForm] MultiModalRequest request)
+    [HttpPost("/instruct/image-edit/form")]
+    public async Task<ImageGenerationViewModel> ImageEdit(IFormFile file, [FromForm] ImageEditRequest request)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -341,12 +344,12 @@ public class InstructModeController : ControllerBase
                 Provider = request?.Provider,
                 Model = request?.Model,
                 AgentId = request?.AgentId,
-                TemplateName = request?.TemplateName
+                TemplateName = request?.TemplateName,
+                ImageConvertProvider = request?.ImageConvertProvider
             });
 
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
-
             return imageViewModel;
         }
         catch (Exception ex)
@@ -359,27 +362,28 @@ public class InstructModeController : ControllerBase
     }
 
     [HttpPost("/instruct/image-mask-edit")]
-    public async Task<ImageGenerationViewModel> ImageMaskEdit([FromBody] ImageMaskEditRequest input)
+    public async Task<ImageGenerationViewModel> ImageMaskEdit([FromBody] ImageMaskEditFileRequest request)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+        request.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
         var imageViewModel = new ImageGenerationViewModel();
 
         try
         {
-            var image = input.File;
-            var mask = input.Mask;
+            var image = request.File;
+            var mask = request.Mask;
             if (image == null || mask == null)
             {
                 return new ImageGenerationViewModel { Message = "Error! Cannot find a valid image or mask!" };
             }
-            var message = await fileInstruct.EditImage(input.Text, image, mask, new InstructOptions
+            var message = await fileInstruct.EditImage(request.Text, image, mask, new InstructOptions
             {
-                Provider = input.Provider,
-                Model = input.Model,
-                AgentId = input.AgentId,
-                TemplateName = input.TemplateName
+                Provider = request.Provider,
+                Model = request.Model,
+                AgentId = request.AgentId,
+                TemplateName = request.TemplateName,
+                ImageConvertProvider = request.ImageConvertProvider
             });
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
@@ -394,8 +398,8 @@ public class InstructModeController : ControllerBase
         }
     }
 
-    [HttpPost("/instruct/image-mask-edit/upload")]
-    public async Task<ImageGenerationViewModel> ImageMaskEdit(IFormFile image, IFormFile mask, [FromForm] MultiModalRequest request)
+    [HttpPost("/instruct/image-mask-edit/form")]
+    public async Task<ImageGenerationViewModel> ImageMaskEdit(IFormFile image, IFormFile mask, [FromForm] ImageMaskEditRequest request)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -424,12 +428,12 @@ public class InstructModeController : ControllerBase
                     Provider = request?.Provider,
                     Model = request?.Model,
                     AgentId = request?.AgentId,
-                    TemplateName = request?.TemplateName
+                    TemplateName = request?.TemplateName,
+                    ImageConvertProvider = request?.ImageConvertProvider
                 });
 
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
-
             return imageViewModel;
         }
         catch (Exception ex)
@@ -444,21 +448,22 @@ public class InstructModeController : ControllerBase
 
     #region Pdf
     [HttpPost("/instruct/pdf-completion")]
-    public async Task<PdfCompletionViewModel> PdfCompletion([FromBody] MultiModalFileRequest input)
+    public async Task<PdfCompletionViewModel> PdfCompletion([FromBody] PdfReadFileRequest request)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+        request.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
         var viewModel = new PdfCompletionViewModel();
 
         try
         {
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var content = await fileInstruct.ReadPdf(input.Text, input.Files, new InstructOptions
+            var content = await fileInstruct.ReadPdf(request.Text, request.Files, new InstructOptions
             {
-                Provider = input.Provider,
-                Model = input.Model,
-                AgentId = input.AgentId,
-                TemplateName = input.TemplateName
+                Provider = request.Provider,
+                Model = request.Model,
+                AgentId = request.AgentId,
+                TemplateName = request.TemplateName,
+                ImageConvertProvider = request.ImageConvertProvider
             });
             viewModel.Content = content;
             return viewModel;
@@ -472,8 +477,8 @@ public class InstructModeController : ControllerBase
         }
     }
 
-    [HttpPost("/instruct/pdf-completion/upload")]
-    public async Task<PdfCompletionViewModel> PdfCompletion([FromForm] IEnumerable<IFormFile> files, [FromForm] MultiModalRequest request)
+    [HttpPost("/instruct/pdf-completion/form")]
+    public async Task<PdfCompletionViewModel> PdfCompletion([FromForm] IEnumerable<IFormFile> files, [FromForm] PdfReadRequest request)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         request?.States?.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
@@ -493,7 +498,8 @@ public class InstructModeController : ControllerBase
                 Provider = request?.Provider,
                 Model = request?.Model,
                 AgentId = request?.AgentId,
-                TemplateName = request?.TemplateName
+                TemplateName = request?.TemplateName,
+                ImageConvertProvider = request?.ImageConvertProvider
             });
             viewModel.Content = content;
             return viewModel;
@@ -510,26 +516,26 @@ public class InstructModeController : ControllerBase
 
     #region Audio
     [HttpPost("/instruct/speech-to-text")]
-    public async Task<SpeechToTextViewModel> SpeechToText([FromBody] SpeechToTextRequest input)
+    public async Task<SpeechToTextViewModel> SpeechToText([FromBody] SpeechToTextFileRequest request)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+        request.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
         var viewModel = new SpeechToTextViewModel();
 
         try
         {
-            var audio = input.File;
+            var audio = request.File;
             if (audio == null)
             {
                 return new SpeechToTextViewModel { Message = "Error! Cannot find a valid audio file!" };
             }
-            var content = await fileInstruct.SpeechToText(audio, input.Text, new InstructOptions
+            var content = await fileInstruct.SpeechToText(audio, request.Text, new InstructOptions
             {
-                Provider = input.Provider,
-                Model = input.Model,
-                AgentId = input.AgentId,
-                TemplateName = input.TemplateName
+                Provider = request.Provider,
+                Model = request.Model,
+                AgentId = request.AgentId,
+                TemplateName = request.TemplateName
             });
             viewModel.Content = content;
             return viewModel;
@@ -543,8 +549,8 @@ public class InstructModeController : ControllerBase
         }
     }
 
-    [HttpPost("/instruct/speech-to-text/upload")]
-    public async Task<SpeechToTextViewModel> SpeechToText(IFormFile file, [FromForm] MultiModalRequest request)
+    [HttpPost("/instruct/speech-to-text/form")]
+    public async Task<SpeechToTextViewModel> SpeechToText(IFormFile file, [FromForm] SpeechToTextRequest request)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -582,13 +588,13 @@ public class InstructModeController : ControllerBase
     }
 
     [HttpPost("/instruct/text-to-speech")]
-    public async Task<IActionResult> TextToSpeech([FromBody] TextToSpeechRequest input)
+    public async Task<IActionResult> TextToSpeech([FromBody] TextToSpeechRequest request)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+        request.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
 
-        var completion = CompletionProvider.GetAudioSynthesizer(_services, provider: input.Provider, model: input.Model);
-        var binaryData = await completion.GenerateAudioAsync(input.Text);
+        var completion = CompletionProvider.GetAudioSynthesizer(_services, provider: request.Provider, model: request.Model);
+        var binaryData = await completion.GenerateAudioAsync(request.Text);
         var stream = binaryData.ToStream();
         stream.Position = 0;
 
