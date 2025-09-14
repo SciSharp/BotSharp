@@ -36,115 +36,85 @@ public class LangfuseContentGeneratingHook : IContentGeneratingHook
         }
     }
 
-    public async Task BeforeGenerating(Agent agent, List<RoleDialogModel> conversations)
+    public Task BeforeGenerating(Agent agent, List<RoleDialogModel> conversations)
     {
-        if (!IsEnabled() || !_settings.LogConversations) return;
+        if (!IsEnabled() || !_settings.LogConversations) 
+        {
+            return Task.CompletedTask;
+        }
 
         try
         {
-            var trace = _services.GetService<LangfuseTrace>();
-            if (trace != null)
-            {
-                var conversationId = GetConversationId();
-                var sessionId = GetSessionId();
-                
-                trace.SetTraceName($"BotSharp Conversation - {agent.Name}");
-                trace.SetInput(GetConversationInput(conversations));
-                trace.SetUserId(GetUserId());
-                trace.SetSessionId(sessionId);
-                
-                // Add metadata
-                trace.AddMetadata("agent_id", agent.Id);
-                trace.AddMetadata("agent_name", agent.Name);
-                trace.AddMetadata("conversation_id", conversationId);
-                trace.AddMetadata("message_count", conversations.Count.ToString());
-                trace.AddMetadata("model", agent.LlmConfig?.Model ?? "unknown");
-                trace.AddMetadata("provider", agent.LlmConfig?.Provider ?? "unknown");
-
-                _logger.LogDebug("Started Langfuse trace for conversation {ConversationId}", conversationId);
-            }
+            // TODO: Implement when Langfuse API issues are resolved
+            // Currently there are compilation issues with LangfuseTrace type resolution
+            _logger.LogDebug("Langfuse trace logging would start here for agent {AgentName}", agent.Name);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in Langfuse BeforeGenerating hook");
         }
+        
+        return Task.CompletedTask;
     }
 
-    public async Task AfterGenerated(RoleDialogModel message, TokenStatsModel tokenStats)
+    public Task AfterGenerated(RoleDialogModel message, TokenStatsModel tokenStats)
     {
-        if (!IsEnabled() || !_settings.LogConversations) return;
+        if (!IsEnabled() || !_settings.LogConversations) 
+        {
+            return Task.CompletedTask;
+        }
 
         try
         {
-            var trace = _services.GetService<LangfuseTrace>();
-            if (trace != null)
-            {
-                var conversationId = GetConversationId();
-
-                // Set the output and token usage
-                trace.SetOutput(message.Content);
-                
-                if (_settings.LogTokenStats)
-                {
-                    trace.AddMetadata("prompt_tokens", tokenStats.PromptCount.ToString());
-                    trace.AddMetadata("completion_tokens", tokenStats.CompletionCount.ToString());
-                    trace.AddMetadata("total_tokens", tokenStats.TotalCount.ToString());
-                }
-                
-                trace.AddMetadata("message_id", message.MessageId);
-                trace.AddMetadata("role", message.Role);
-                trace.AddMetadata("agent_id", message.CurrentAgentId ?? "unknown");
-
-                _logger.LogDebug("Updated Langfuse trace for conversation {ConversationId}", conversationId);
-            }
+            // TODO: Implement when Langfuse API issues are resolved
+            _logger.LogDebug("Langfuse trace logging would record completion here for message {MessageId}", message.MessageId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in Langfuse AfterGenerated hook");
         }
+        
+        return Task.CompletedTask;
     }
 
-    public async Task BeforeFunctionInvoked(RoleDialogModel message, TokenStatsModel tokenStats)
+    public Task BeforeFunctionInvoked(RoleDialogModel message, TokenStatsModel tokenStats)
     {
-        if (!IsEnabled() || !_settings.LogFunctions) return;
+        if (!IsEnabled() || !_settings.LogFunctions) 
+        {
+            return Task.CompletedTask;
+        }
 
         try
         {
-            var trace = _services.GetService<LangfuseTrace>();
-            if (trace != null)
-            {
-                trace.AddMetadata($"function_{message.FunctionName}_start", DateTime.UtcNow.ToString("o"));
-                trace.AddMetadata($"function_{message.FunctionName}_input", message.Content);
-                
-                _logger.LogDebug("Started Langfuse function tracking for {FunctionName}", message.FunctionName);
-            }
+            // TODO: Implement when Langfuse API issues are resolved
+            _logger.LogDebug("Langfuse trace logging would record function start here for {FunctionName}", message.FunctionName);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in Langfuse BeforeFunctionInvoked hook");
         }
+        
+        return Task.CompletedTask;
     }
 
-    public async Task AfterFunctionInvoked(RoleDialogModel message, TokenStatsModel tokenStats)
+    public Task AfterFunctionInvoked(RoleDialogModel message, TokenStatsModel tokenStats)
     {
-        if (!IsEnabled() || !_settings.LogFunctions) return;
+        if (!IsEnabled() || !_settings.LogFunctions) 
+        {
+            return Task.CompletedTask;
+        }
 
         try
         {
-            var trace = _services.GetService<LangfuseTrace>();
-            if (trace != null)
-            {
-                trace.AddMetadata($"function_{message.FunctionName}_end", DateTime.UtcNow.ToString("o"));
-                trace.AddMetadata($"function_{message.FunctionName}_output", message.ExecutionResult?.ToString() ?? "");
-                trace.AddMetadata($"function_{message.FunctionName}_success", (message.ExecutionResult != null).ToString());
-
-                _logger.LogDebug("Completed Langfuse function tracking for {FunctionName}", message.FunctionName);
-            }
+            // TODO: Implement when Langfuse API issues are resolved
+            _logger.LogDebug("Langfuse trace logging would record function completion here for {FunctionName}", message.FunctionName);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in Langfuse AfterFunctionInvoked hook");
         }
+        
+        return Task.CompletedTask;
     }
 
     private bool IsEnabled()

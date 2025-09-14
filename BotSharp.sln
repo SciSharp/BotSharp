@@ -145,6 +145,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Test.RealtimeVoice
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.ChartHandler", "src\Plugins\BotSharp.Plugin.ChartHandler\BotSharp.Plugin.ChartHandler.csproj", "{0428DEAA-E4FE-4259-A6D8-6EDD1A9D0702}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{42006A42-7EF8-445C-86BB-EF7FAA0170DA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{D36E3F27-E7D0-4735-B361-EDF46E52C85F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.Langfuse", "src\Plugins\BotSharp.Plugin.Langfuse\BotSharp.Plugin.Langfuse.csproj", "{857BBF4C-F3C9-492A-8AB0-79641E817C92}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -609,6 +615,14 @@ Global
 		{0428DEAA-E4FE-4259-A6D8-6EDD1A9D0702}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0428DEAA-E4FE-4259-A6D8-6EDD1A9D0702}.Release|x64.ActiveCfg = Release|Any CPU
 		{0428DEAA-E4FE-4259-A6D8-6EDD1A9D0702}.Release|x64.Build.0 = Release|Any CPU
+		{857BBF4C-F3C9-492A-8AB0-79641E817C92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{857BBF4C-F3C9-492A-8AB0-79641E817C92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{857BBF4C-F3C9-492A-8AB0-79641E817C92}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{857BBF4C-F3C9-492A-8AB0-79641E817C92}.Debug|x64.Build.0 = Debug|Any CPU
+		{857BBF4C-F3C9-492A-8AB0-79641E817C92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{857BBF4C-F3C9-492A-8AB0-79641E817C92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{857BBF4C-F3C9-492A-8AB0-79641E817C92}.Release|x64.ActiveCfg = Release|Any CPU
+		{857BBF4C-F3C9-492A-8AB0-79641E817C92}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -679,6 +693,8 @@ Global
 		{7C0C7D13-D161-4AB0-9C29-83A0F1FF990E} = {32FAFFFE-A4CB-4FEE-BF7C-84518BBC6DCC}
 		{B067B126-88CD-4282-BEEF-7369B64423EF} = {32FAFFFE-A4CB-4FEE-BF7C-84518BBC6DCC}
 		{0428DEAA-E4FE-4259-A6D8-6EDD1A9D0702} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
+		{D36E3F27-E7D0-4735-B361-EDF46E52C85F} = {42006A42-7EF8-445C-86BB-EF7FAA0170DA}
+		{857BBF4C-F3C9-492A-8AB0-79641E817C92} = {D36E3F27-E7D0-4735-B361-EDF46E52C85F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9969D89-C98B-40A5-A12B-FC87E55B3A19}
