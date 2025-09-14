@@ -117,6 +117,7 @@
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="ModelContextProtocol" Version="0.1.0-preview.11" />
     <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.1.0-preview.11" />
+    <PackageVersion Include="zborek.LangfuseDotnet" Version="0.3.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="BotSharp.Core" Version="$(BotSharpVersion)" />
