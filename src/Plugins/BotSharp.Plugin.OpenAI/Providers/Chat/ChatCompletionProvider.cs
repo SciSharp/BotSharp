@@ -179,6 +179,19 @@ public class ChatCompletionProvider : IChatCompletion
         else
         {
             // Text response received
+            msg = new RoleDialogModel(AgentRole.Assistant, text)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                RenderedInstruction = string.Join("\r\n", renderedInstructions),
+                Annotations = value.Annotations?.Select(x => new ChatAnnotation
+                {
+                    Title = x.WebResourceTitle,
+                    Url = x.WebResourceUri.AbsoluteUri,
+                    StartIndex = x.StartIndex,
+                    EndIndex = x.EndIndex
+                })?.ToList()
+            };
             await onMessageReceived(msg);
         }
 

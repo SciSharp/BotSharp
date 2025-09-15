@@ -66,6 +66,7 @@ public class ChatCompletionProvider : IChatCompletion
                 {
                     CurrentAgentId = agent.Id,
                     MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                    ToolCallId = toolCall?.Id,
                     FunctionName = toolCall?.FunctionName,
                     FunctionArgs = toolCall?.FunctionArguments?.ToString(),
                     RenderedInstruction = string.Join("\r\n", renderedInstructions)
@@ -83,7 +84,14 @@ public class ChatCompletionProvider : IChatCompletion
                 {
                     CurrentAgentId = agent.Id,
                     MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                    RenderedInstruction = string.Join("\r\n", renderedInstructions),
+                    Annotations = value.Annotations?.Select(x => new ChatAnnotation
+                    {
+                        Title = x.WebResourceTitle,
+                        Url = x.WebResourceUri.AbsoluteUri,
+                        StartIndex = x.StartIndex,
+                        EndIndex = x.EndIndex
+                    })?.ToList()
                 };
             }
         }
@@ -201,6 +209,19 @@ public class ChatCompletionProvider : IChatCompletion
         else
         {
             // Text response received
+            msg = new RoleDialogModel(AgentRole.Assistant, text)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                RenderedInstruction = string.Join("\r\n", renderedInstructions),
+                Annotations = value.Annotations?.Select(x => new ChatAnnotation
+                {
+                    Title = x.WebResourceTitle,
+                    Url = x.WebResourceUri.AbsoluteUri,
+                    StartIndex = x.StartIndex,
+                    EndIndex = x.EndIndex
+                })?.ToList()
+            };
             await onMessageReceived(msg);
         }
 
