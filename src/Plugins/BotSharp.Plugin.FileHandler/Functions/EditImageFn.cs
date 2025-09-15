@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Conversations.Settings;
+
 namespace BotSharp.Plugin.FileHandler.Functions;
 
 public class EditImageFn : IFunctionCallback
@@ -9,7 +11,7 @@ public class EditImageFn : IFunctionCallback
     private readonly ILogger<EditImageFn> _logger;
     private readonly FileHandlerSettings _settings;
 
-    private string _agentId;
+    private Agent _agent;
     private string _conversationId;
     private string _messageId;
 
@@ -27,7 +29,7 @@ public class EditImageFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
         var descrpition = args?.UserRequest ?? string.Empty;
-        Init(message);
+        await Init(message);
         SetImageOptions();
 
         var image = await SelectImage(descrpition);
@@ -37,10 +39,12 @@ public class EditImageFn : IFunctionCallback
         return true;
     }
 
-    private void Init(RoleDialogModel message)
+    private async Task Init(RoleDialogModel message)
     {
+        var agentService = _services.GetRequiredService<IAgentService>();
         var convService = _services.GetRequiredService<IConversationService>();
-        _agentId = message.CurrentAgentId;
+
+        _agent = await agentService.GetAgent(message.CurrentAgentId);
         _conversationId = convService.ConversationId;
         _messageId = message.MessageId;
     }
@@ -55,17 +59,19 @@ public class EditImageFn : IFunctionCallback
     private async Task<MessageFileModel?> SelectImage(string? description)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
+        var convSettings = _services.GetRequiredService<ConversationSetting>();
+
         var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, new SelectFileOptions
         {
             Description = description,
             IsIncludeBotFiles = true,
             IsAttachFiles = true,
             ContentTypes = [MediaTypeNames.Image.Png, MediaTypeNames.Image.Jpeg],
-            MessageLimit = 50,
-            Provider = "openai",
-            Model = "gpt-5-mini",
-            MaxOutputTokens = 8192,
-            ReasoningEffortLevel = "low"
+            MessageLimit = convSettings?.FileSelect?.MessageLimit,
+            LlmProvider = convSettings?.FileSelect?.LlmProvider,
+            LlmModel = convSettings?.FileSelect?.LlmModel,
+            MaxOutputTokens = convSettings?.FileSelect?.MaxOutputTokens,
+            ReasoningEffortLevel = convSettings?.FileSelect?.ReasoningEffortLevel
         });
         return selecteds?.FirstOrDefault();
     }
@@ -85,8 +91,8 @@ public class EditImageFn : IFunctionCallback
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
             var agent = new Agent
             {
-                Id = BuiltInAgentId.UtilityAssistant,
-                Name = "Utility Assistant"
+                Id = _agent?.Id ?? BuiltInAgentId.UtilityAssistant,
+                Name = _agent?.Name ?? "Utility Assistant"
             };
 
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
@@ -98,14 +104,15 @@ public class EditImageFn : IFunctionCallback
             stream.Position = 0;
             var response = await completion.GetImageEdits(agent, dialog, stream, image.FileFullName);
             stream.Close();
-            SaveGeneratedImage(response?.GeneratedImages?.FirstOrDefault());
+
+            var savedFiles = SaveGeneratedImage(response?.GeneratedImages?.FirstOrDefault());
 
             if (!string.IsNullOrWhiteSpace(response?.Content))
             {
                 return response.Content;
             }
 
-            return await GetImageEditGreetingResponse(description);
+            return await GetImageEditResponse(description, defaultContent: null);
         }
         catch (Exception ex)
         {
@@ -115,19 +122,28 @@ public class EditImageFn : IFunctionCallback
         }
     }
 
-    private async Task<string> GetImageEditGreetingResponse(string description)
+    private async Task<string> GetImageEditResponse(string description, string? defaultContent)
     {
+        if (defaultContent != null)
+        {
+            return defaultContent;
+        }
+
+        var llmConfig = _agent.LlmConfig;
         var agent = new Agent
         {
-            Id = BuiltInAgentId.UtilityAssistant,
-            Name = "Utility Assistant"
+            Id = _agent?.Id ?? BuiltInAgentId.UtilityAssistant,
+            Name = _agent?.Name ?? "Utility Assistant",
+            LlmConfig = new AgentLlmConfig
+            {
+                Provider = llmConfig?.Provider ?? "openai",
+                Model = llmConfig?.Model ?? "gpt-4o-mini",
+                MaxOutputTokens = llmConfig?.MaxOutputTokens,
+                ReasoningEffortLevel = llmConfig?.ReasoningEffortLevel
+            }
         };
 
-        var text = $"Please generate a user-friendly response from the following description to inform user that you have completed the required image: {description}";
-
-        var completion = CompletionProvider.GetChatCompletion(_services, provider: "openai", model: "gpt-4o-mini");
-        var response = await completion.GetChatCompletions(agent, [new RoleDialogModel(AgentRole.User, text)]);
-        return response?.Content ?? "Your image is successfully edited.";
+        return await AiResponseHelper.GetImageGenerationResponse(_services, agent, description);
     }
 
     private (string, string) GetLlmProviderModel()
@@ -158,9 +174,12 @@ public class EditImageFn : IFunctionCallback
         return (provider, model);
     }
 
-    private void SaveGeneratedImage(ImageGeneration? image)
+    private IEnumerable<string> SaveGeneratedImage(ImageGeneration? image)
     {
-        if (image == null) return;
+        if (image == null)
+        {
+            return [];
+        }
 
         var files = new List<FileDataModel>()
         {
@@ -173,6 +192,7 @@ public class EditImageFn : IFunctionCallback
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         fileStorage.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
+        return files.Select(x => x.FileName);
     }
 
     private async Task<BinaryData> ConvertImageToPngWithRgba(BinaryData binaryFile)

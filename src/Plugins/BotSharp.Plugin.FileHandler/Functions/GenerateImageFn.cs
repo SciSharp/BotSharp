@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Models;
+
 namespace BotSharp.Plugin.FileHandler.Functions;
 
 public class GenerateImageFn : IFunctionCallback
@@ -7,6 +9,8 @@ public class GenerateImageFn : IFunctionCallback
 
     private readonly IServiceProvider _services;
     private readonly ILogger<GenerateImageFn> _logger;
+
+    private Agent _agent;
     private string _conversationId;
     private string _messageId;
 
@@ -25,21 +29,9 @@ public class GenerateImageFn : IFunctionCallback
         SetImageOptions();
         
         var agentService = _services.GetRequiredService<IAgentService>();
+        _agent = await agentService.GetAgent(message.CurrentAgentId);
 
-        Agent? fromAgent = null;
-        if (!string.IsNullOrEmpty(message.CurrentAgentId))
-        {
-            fromAgent = await agentService.GetAgent(message.CurrentAgentId);
-        }
-
-        var agent = new Agent
-        {
-            Id = fromAgent?.Id ?? BuiltInAgentId.UtilityAssistant,
-            Name = fromAgent?.Name ?? "Utility Assistant",
-            Instruction = args?.ImageDescription
-        };
-
-        var response = await GetImageGeneration(agent, message, args?.ImageDescription);
+        var response = await GetImageGeneration(message, args?.ImageDescription);
         message.Content = response;
         message.StopCompletion = true;
         return true;
@@ -60,17 +52,30 @@ public class GenerateImageFn : IFunctionCallback
         state.SetState("image_response_format", "bytes");
     }
 
-    private async Task<string> GetImageGeneration(Agent agent, RoleDialogModel message, string? description)
+    private async Task<string> GetImageGeneration(RoleDialogModel message, string? description)
     {
         try
         {
+            var agent = new Agent
+            {
+                Id = _agent?.Id ?? BuiltInAgentId.UtilityAssistant,
+                Name = _agent?.Name ?? "Utility Assistant",
+                Instruction = description
+            };
+
             var (provider, model) = GetLlmProviderModel();
             var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
             var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
             var result = await completion.GetImageGeneration(agent, dialog);
-            SaveGeneratedImages(result?.GeneratedImages);
-            return !string.IsNullOrWhiteSpace(result?.Content) ? result.Content : "Here is the image you asked for";
+            var savedFiles = SaveGeneratedImages(result?.GeneratedImages);
+
+            if (!string.IsNullOrWhiteSpace(result?.Content))
+            {
+                return result.Content;
+            }
+
+            return await GetImageGenerationResponse(description, defaultContent: null);
         }
         catch (Exception ex)
         {
@@ -78,6 +83,30 @@ public class GenerateImageFn : IFunctionCallback
             _logger.LogWarning(ex, $"{error}");
             return error;
         }
+    }
+
+    private async Task<string> GetImageGenerationResponse(string description, string? defaultContent)
+    {
+        if (defaultContent != null)
+        {
+            return defaultContent;
+        }
+
+        var llmConfig = _agent.LlmConfig;
+        var agent = new Agent
+        {
+            Id = _agent?.Id ?? BuiltInAgentId.UtilityAssistant,
+            Name = _agent?.Name ?? "Utility Assistant",
+            LlmConfig = new AgentLlmConfig
+            {
+                Provider = llmConfig?.Provider ?? "openai",
+                Model = llmConfig?.Model ?? "gpt-4o-mini",
+                MaxOutputTokens = llmConfig?.MaxOutputTokens,
+                ReasoningEffortLevel = llmConfig?.ReasoningEffortLevel
+            }
+        };
+
+        return await AiResponseHelper.GetImageGenerationResponse(_services, agent, description);
     }
 
     private (string, string) GetLlmProviderModel()
@@ -108,9 +137,12 @@ public class GenerateImageFn : IFunctionCallback
         return (provider, model);
     }
 
-    private void SaveGeneratedImages(List<ImageGeneration>? images)
+    private IEnumerable<string> SaveGeneratedImages(List<ImageGeneration>? images)
     {
-        if (images.IsNullOrEmpty()) return;
+        if (images.IsNullOrEmpty())
+        {
+            return [];
+        }
 
         var files = images.Where(x => !string.IsNullOrEmpty(x?.ImageData)).Select(x => new FileDataModel
         {
@@ -120,5 +152,6 @@ public class GenerateImageFn : IFunctionCallback
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         fileStorage.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
+        return files.Select(x => x.FileName);
     }
 }

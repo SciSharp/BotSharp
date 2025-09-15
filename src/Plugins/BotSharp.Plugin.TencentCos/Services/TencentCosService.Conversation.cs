@@ -62,6 +62,7 @@ public partial class TencentCosService
 
                     var fileName = Path.GetFileNameWithoutExtension(file);
                     var fileExtension = Path.GetExtension(file).Substring(1);
+                    var fileIndex = subDir.Split("/", StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? string.Empty;
                     var model = new MessageFileModel()
                     {
                         MessageId = messageId,
@@ -71,7 +72,8 @@ public partial class TencentCosService
                         FileName = fileName,
                         FileExtension = fileExtension,
                         ContentType = contentType,
-                        FileSource = source
+                        FileSource = source,
+                        FileIndex = fileIndex
                     };
                     files.Add(model);
                 }

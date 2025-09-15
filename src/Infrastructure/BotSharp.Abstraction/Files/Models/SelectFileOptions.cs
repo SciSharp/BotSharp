@@ -1,27 +1,7 @@
 namespace BotSharp.Abstraction.Files.Models;
 
-public class SelectFileOptions
+public class SelectFileOptions : LlmConfigBase
 {
-    /// <summary>
-    /// Llm provider
-    /// </summary>
-    public string? Provider { get; set; }
-
-    /// <summary>
-    /// Llm model
-    /// </summary>
-    public string? Model { get; set; }
-
-    /// <summary>
-    /// Llm maximum output tokens
-    /// </summary>
-    public int? MaxOutputTokens { get; set; }
-
-    /// <summary>
-    /// Llm reasoning effort level
-    /// </summary>
-    public string? ReasoningEffortLevel { get; set; }
-
     /// <summary>
     /// Agent id
     /// </summary>

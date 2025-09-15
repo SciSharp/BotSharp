@@ -14,6 +14,7 @@ public class ConversationSetting
     public bool EnableTranslationMemory { get; set; }
     public CleanConversationSetting CleanSetting { get; set; } = new();
     public RateLimitSetting RateLimit { get; set; } = new();
+    public FileSelectSetting? FileSelect { get; set; }
 }
 
 public class CleanConversationSetting
@@ -23,4 +24,9 @@ public class CleanConversationSetting
     public int MessageLimit { get; set; }
     public int BufferHours { get; set; }
     public IEnumerable<string> ExcludeAgentIds { get; set; } = new List<string>();
+}
+
+public class FileSelectSetting : LlmConfigBase
+{
+    public int? MessageLimit { get; set; }
 }

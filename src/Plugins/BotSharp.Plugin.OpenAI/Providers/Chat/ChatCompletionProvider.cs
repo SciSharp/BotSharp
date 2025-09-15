@@ -4,7 +4,6 @@ using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
 using OpenAI.Chat;
-using Pipelines.Sockets.Unofficial.Arenas;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
@@ -420,8 +419,6 @@ public class ChatCompletionProvider : IChatCompletion
 
     private void CollectMessageContentParts(List<ChatMessageContentPart> contentParts, List<BotSharpFile> files, ChatImageDetailLevel imageDetailLevel)
     {
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
-
         foreach (var file in files)
         {
             if (!string.IsNullOrEmpty(file.FileData))
@@ -432,8 +429,9 @@ public class ChatCompletionProvider : IChatCompletion
             }
             else if (!string.IsNullOrEmpty(file.FileStorageUrl))
             {
-                var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
+                var fileStorage = _services.GetRequiredService<IFileStorageService>();
                 var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
+                var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
                 var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), imageDetailLevel);
                 contentParts.Add(contentPart);
             }

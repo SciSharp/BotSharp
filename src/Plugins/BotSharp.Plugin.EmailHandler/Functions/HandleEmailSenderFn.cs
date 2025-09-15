@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Settings;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
@@ -67,18 +68,18 @@ public class HandleEmailSenderFn : IFunctionCallback
     private async Task<IEnumerable<MessageFileModel>> GetConversationFiles()
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        var conversationId = convService.ConversationId;
-
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-        var selecteds = await fileInstruct.SelectMessageFiles(conversationId, new SelectFileOptions
+        var convSettings = _services.GetRequiredService<ConversationSetting>();
+
+        var selecteds = await fileInstruct.SelectMessageFiles(convService.ConversationId, new SelectFileOptions
         {
             IsIncludeBotFiles = true,
             IsAttachFiles = true,
-            MessageLimit = 50,
-            Provider = "openai",
-            Model = "gpt-5-mini",
-            MaxOutputTokens = 8192,
-            ReasoningEffortLevel = "low"
+            MessageLimit = convSettings?.FileSelect?.MessageLimit,
+            LlmProvider = convSettings?.FileSelect?.LlmProvider,
+            LlmModel = convSettings?.FileSelect?.LlmModel,
+            MaxOutputTokens = convSettings?.FileSelect?.MaxOutputTokens,
+            ReasoningEffortLevel = convSettings?.FileSelect?.ReasoningEffortLevel
         });
         return selecteds;
     }

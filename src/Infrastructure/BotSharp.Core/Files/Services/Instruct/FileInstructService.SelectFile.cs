@@ -91,8 +91,8 @@ public partial class FileInstructService
             var promptMessages = innerDialogs.Select(x =>
             {
                 var text = $"[Role] '{x.Role}': {x.RichContent?.Message?.Text ?? x.Payload ?? x.Content}";
-                var fileDescs = x.Files?.Select((f, fidx) => $"message_id: '{x.MessageId}', file_index: '{f.FileIndex}', " +
-                              $"file_name: '{f.FileFullName}', content_type: '{f.ContentType}', author: '{(x.Role == AgentRole.User ? FileSourceType.User : FileSourceType.Bot)}'");
+                var fileDescs = x.Files?.Select((f, fidx) => $"- message_id: '{x.MessageId}', file_index: '{f.FileIndex}', " +
+                              $"content_type: '{f.ContentType}', author: '{(x.Role == AgentRole.User ? FileSourceType.User : FileSourceType.Bot)}'");
 
                 var desc = string.Empty;
                 if (!fileDescs.IsNullOrEmpty())
@@ -138,8 +138,8 @@ public partial class FileInstructService
 
 
             // Get ai response
-            var provider = options.Provider ?? "openai";
-            var model = options?.Model ?? "gpt-5-mini";
+            var provider = options.LlmProvider ?? "openai";
+            var model = options?.LlmModel ?? "gpt-5-mini";
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
 
             var response = await completion.GetChatCompletions(agent, innerDialogs);

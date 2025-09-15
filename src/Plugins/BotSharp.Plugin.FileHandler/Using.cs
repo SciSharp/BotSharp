@@ -31,3 +31,4 @@ global using BotSharp.Core.Infrastructures;
 global using BotSharp.Plugin.FileHandler.Enums;
 global using BotSharp.Plugin.FileHandler.Settings;
 global using BotSharp.Plugin.FileHandler.LlmContexts;
+global using BotSharp.Plugin.FileHandler.Helpers;
