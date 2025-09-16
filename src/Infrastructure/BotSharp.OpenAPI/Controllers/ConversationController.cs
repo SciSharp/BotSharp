@@ -96,7 +96,7 @@ public class ConversationController : ControllerBase
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
 
         var messageIds = history.Select(x => x.MessageId).Distinct().ToList();
-        var fileMessages = fileStorage.GetMessagesWithFile(conversationId, messageIds);
+        var files = fileStorage.GetMessageFiles(conversationId, messageIds, options: new() { Sources = [FileSource.User, FileSource.Bot] });
 
         var dialogs = new List<ChatResponseModel>();
         foreach (var message in history)
@@ -115,7 +115,7 @@ public class ConversationController : ControllerBase
                     Data = message.Data,
                     Sender = UserDto.FromUser(user),
                     Payload = message.Payload,
-                    HasMessageFiles = fileMessages.Any(x => x.MessageId.IsEqualTo(message.MessageId) && x.FileSource == FileSourceType.User)
+                    HasMessageFiles = files.Any(x => x.MessageId.IsEqualTo(message.MessageId) && x.FileSource == FileSource.User)
                 });
             }
             else if (message.Role == AgentRole.Assistant)
@@ -136,7 +136,7 @@ public class ConversationController : ControllerBase
                         Role = message.Role,
                     },
                     RichContent = message.SecondaryRichContent ?? message.RichContent,
-                    HasMessageFiles = fileMessages.Any(x => x.MessageId.IsEqualTo(message.MessageId) && x.FileSource == FileSourceType.Bot)
+                    HasMessageFiles = files.Any(x => x.MessageId.IsEqualTo(message.MessageId) && x.FileSource == FileSource.Bot)
                 });
             }
         }
@@ -490,7 +490,7 @@ public class ConversationController : ControllerBase
         var conv = await convService.GetConversationRecordOrCreateNew(agentId);
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var messageId = Guid.NewGuid().ToString();
-        var isSaved = fileStorage.SaveMessageFiles(conv.Id, messageId, FileSourceType.User, input.Files);
+        var isSaved = fileStorage.SaveMessageFiles(conv.Id, messageId, FileSource.User, input.Files);
         return isSaved ? messageId : string.Empty;
     }
 
@@ -498,8 +498,8 @@ public class ConversationController : ControllerBase
     public IEnumerable<MessageFileViewModel> GetConversationMessageFiles([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source)
     {
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var files = fileStorage.GetMessageFiles(conversationId, new List<string> { messageId }, source);
-        return files?.Select(x => MessageFileViewModel.Transform(x))?.ToList() ?? new List<MessageFileViewModel>();
+        var files = fileStorage.GetMessageFiles(conversationId, [messageId], options: new() { Sources = [source] });
+        return files?.Select(x => MessageFileViewModel.Transform(x))?.ToList() ?? [];
     }
 
     [HttpGet("/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}")]

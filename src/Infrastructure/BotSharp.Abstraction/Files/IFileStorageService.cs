@@ -31,12 +31,10 @@ public interface IFileStorageService
     /// </summary>
     /// <param name="conversationId"></param>
     /// <param name="messageIds"></param>
-    /// <param name="source"></param>
-    /// <param name="imageOnly"></param>
+    /// <param name="options"></param>
     /// <returns></returns>
-    IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, string source, IEnumerable<string>? contentTypes = null);
+    IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, MessageFileOptions? options = null);
     string GetMessageFile(string conversationId, string messageId, string source, string index, string fileName);
-    IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds);
     bool SaveMessageFiles(string conversationId, string messageId, string source, List<FileDataModel> files);
 
     /// <summary>

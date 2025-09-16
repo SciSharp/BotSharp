@@ -151,7 +151,7 @@ public class GenerateImageFn : IFunctionCallback
         }).ToList();
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        fileStorage.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
+        fileStorage.SaveMessageFiles(_conversationId, _messageId, FileSource.Bot, files);
         return files.Select(x => x.FileName);
     }
 }

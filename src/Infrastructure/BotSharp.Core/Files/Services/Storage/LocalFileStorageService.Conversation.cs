@@ -14,7 +14,7 @@ public partial class LocalFileStorageService
             return files;
         }
 
-        var source = FileSourceType.User;
+        var source = FileSource.User;
         var pathPrefix = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
 
         foreach (var messageId in messageIds)
@@ -24,7 +24,7 @@ public partial class LocalFileStorageService
                 continue;
             }
 
-            var dir = Path.Combine(pathPrefix, messageId, FileSourceType.User);
+            var dir = Path.Combine(pathPrefix, messageId, FileSource.User);
             if (!ExistDirectory(dir))
             {
                 continue;
@@ -51,8 +51,7 @@ public partial class LocalFileStorageService
     }
 
 
-    public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds,
-        string source, IEnumerable<string>? contentTypes = null)
+    public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, MessageFileOptions? options = null)
     {
         var files = new List<MessageFileModel>();
         if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty())
@@ -67,39 +66,56 @@ public partial class LocalFileStorageService
                 continue;
             }
 
-            var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId, source);
-            if (!ExistDirectory(dir))
+            var baseDir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId);
+            if (!ExistDirectory(baseDir))
             {
                 continue;
             }
 
-            foreach (var subDir in Directory.GetDirectories(dir))
+            var sources = options?.Sources != null
+                            ? options.Sources
+                            : Directory.GetDirectories(baseDir).Select(x => x.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries).Last());
+            if (sources.IsNullOrEmpty())
             {
-                var index = subDir.Split(Path.DirectorySeparatorChar).Last();
+                continue;
+            }
 
-                foreach (var file in Directory.GetFiles(subDir))
+            foreach (var source in sources)
+            {
+                var dir = Path.Combine(baseDir, source);
+                if (!ExistDirectory(dir))
                 {
-                    var contentType = FileUtility.GetFileContentType(file);
-                    if (!contentTypes.IsNullOrEmpty() && !contentTypes.Contains(contentType))
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    var fileName = Path.GetFileNameWithoutExtension(file);
-                    var fileExtension = Path.GetExtension(file).Substring(1);
-                    var model = new MessageFileModel()
+                foreach (var subDir in Directory.GetDirectories(dir))
+                {
+                    var fileIndex = subDir.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries).Last();
+
+                    foreach (var file in Directory.GetFiles(subDir))
                     {
-                        MessageId = messageId,
-                        FileUrl = $"/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}",
-                        FileDownloadUrl = $"/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}/download",
-                        FileStorageUrl = file,
-                        FileName = fileName,
-                        FileExtension = fileExtension,
-                        ContentType = contentType,
-                        FileSource = source,
-                        FileIndex = index
-                    };
-                    files.Add(model);
+                        var contentType = FileUtility.GetFileContentType(file);
+                        if (options?.ContentTypes != null && !options.ContentTypes.Contains(contentType))
+                        {
+                            continue;
+                        }
+
+                        var fileName = Path.GetFileNameWithoutExtension(file);
+                        var fileExtension = Path.GetExtension(file).Substring(1);
+                        var model = new MessageFileModel
+                        {
+                            MessageId = messageId,
+                            FileUrl = $"/conversation/{conversationId}/message/{messageId}/{source}/file/{fileIndex}/{fileName}",
+                            FileDownloadUrl = $"/conversation/{conversationId}/message/{messageId}/{source}/file/{fileIndex}/{fileName}/download",
+                            FileStorageUrl = file,
+                            FileName = fileName,
+                            FileExtension = fileExtension,
+                            ContentType = contentType,
+                            FileSource = source,
+                            FileIndex = fileIndex
+                        };
+                        files.Add(model);
+                    }
                 }
             }
         }
@@ -124,38 +140,6 @@ public partial class LocalFileStorageService
 
         var found = Directory.GetFiles(dir).FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).IsEqualTo(fileName));
         return found;
-    }
-
-    public IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds)
-    {
-        var foundMsgs = new List<MessageFileModel>();
-        if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty())
-        {
-            return foundMsgs;
-        }
-
-        foreach (var messageId in messageIds)
-        {
-            if (string.IsNullOrWhiteSpace(messageId))
-            {
-                continue;
-            }
-
-            var prefix = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId);
-            var userDir = Path.Combine(prefix, FileSourceType.User);
-            if (ExistDirectory(userDir))
-            {
-                foundMsgs.Add(new MessageFileModel { MessageId = messageId, FileSource = FileSourceType.User });
-            }
-
-            var botDir = Path.Combine(prefix, FileSourceType.Bot);
-            if (ExistDirectory(botDir))
-            {
-                foundMsgs.Add(new MessageFileModel { MessageId = messageId, FileSource = FileSourceType.Bot });
-            }
-        }
-
-        return foundMsgs;
     }
 
     public bool SaveMessageFiles(string conversationId, string messageId, string source, List<FileDataModel> files)

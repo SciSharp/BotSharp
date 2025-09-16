@@ -16,7 +16,7 @@ public partial class TencentCosService
             return files;
         }
 
-        var source = FileSourceType.User;
+        var source = FileSource.User;
         var pathPrefix = $"{CONVERSATION_FOLDER}/{conversationId}/{FILE_FOLDER}";
         foreach (var messageId in messageIds)
         {
@@ -36,46 +36,66 @@ public partial class TencentCosService
         return files;
     }
 
-    public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds,
-        string source, IEnumerable<string>? contentTypes = null)
+    public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, MessageFileOptions? options = null)
     {
         var files = new List<MessageFileModel>();
-        if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty()) return files;
+        if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty())
+        {
+            return files;
+        }
 
         foreach (var messageId in messageIds)
         {
-            var dir = $"{CONVERSATION_FOLDER}/{conversationId}/{FILE_FOLDER}/{messageId}/{source}";
-            if (!ExistDirectory(dir))
+            var baseDir = $"{CONVERSATION_FOLDER}/{conversationId}/{FILE_FOLDER}/{messageId}";
+            if (!ExistDirectory(baseDir))
             {
                 continue;
             }
 
-            foreach (var subDir in _cosClient.BucketClient.GetDirectories(dir))
+            var sources = options?.Sources != null
+                              ? options.Sources
+                              : _cosClient.BucketClient.GetDirectories(baseDir).Select(x => x.Split("/", StringSplitOptions.RemoveEmptyEntries).Last());
+            if (sources.IsNullOrEmpty())
             {
-                foreach (var file in _cosClient.BucketClient.GetDirFiles(subDir))
-                {
-                    var contentType = FileUtility.GetFileContentType(file);
-                    if (!contentTypes.IsNullOrEmpty() && !contentTypes.Contains(contentType))
-                    {
-                        continue;
-                    }
+                continue;
+            }
 
-                    var fileName = Path.GetFileNameWithoutExtension(file);
-                    var fileExtension = Path.GetExtension(file).Substring(1);
+            foreach (var source in sources)
+            {
+                var dir = Path.Combine(baseDir, source);
+                if (!ExistDirectory(dir))
+                {
+                    continue;
+                }
+
+                foreach (var subDir in _cosClient.BucketClient.GetDirectories(dir))
+                {
                     var fileIndex = subDir.Split("/", StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? string.Empty;
-                    var model = new MessageFileModel()
+
+                    foreach (var file in _cosClient.BucketClient.GetDirFiles(subDir))
                     {
-                        MessageId = messageId,
-                        FileUrl = BuilFileUrl(file),
-                        FileDownloadUrl = BuilFileUrl(file),
-                        FileStorageUrl = file,
-                        FileName = fileName,
-                        FileExtension = fileExtension,
-                        ContentType = contentType,
-                        FileSource = source,
-                        FileIndex = fileIndex
-                    };
-                    files.Add(model);
+                        var contentType = FileUtility.GetFileContentType(file);
+                        if (options?.ContentTypes != null && !options.ContentTypes.Contains(contentType))
+                        {
+                            continue;
+                        }
+
+                        var fileName = Path.GetFileNameWithoutExtension(file);
+                        var fileExtension = Path.GetExtension(file).Substring(1);
+                        var model = new MessageFileModel()
+                        {
+                            MessageId = messageId,
+                            FileUrl = BuilFileUrl(file),
+                            FileDownloadUrl = BuilFileUrl(file),
+                            FileStorageUrl = file,
+                            FileName = fileName,
+                            FileExtension = fileExtension,
+                            ContentType = contentType,
+                            FileSource = source,
+                            FileIndex = fileIndex
+                        };
+                        files.Add(model);
+                    }
                 }
             }
         }
@@ -87,35 +107,11 @@ public partial class TencentCosService
 
     public string GetMessageFile(string conversationId, string messageId, string source, string index, string fileName)
     {
-        var dir = $"{CONVERSATION_FOLDER}/{conversationId}/{FILE_FOLDER}/{source}/{index}/";
+        var dir = $"{CONVERSATION_FOLDER}/{conversationId}/{FILE_FOLDER}/{source}/{index}";
 
         var fileList = _cosClient.BucketClient.GetDirFiles(dir);
         var found = fileList.FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).IsEqualTo(fileName));
         return found;
-    }
-
-    public IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds)
-    {
-        var foundMsgs = new List<MessageFileModel>();
-        if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty()) return foundMsgs;
-
-        foreach (var messageId in messageIds)
-        {
-            var prefix = $"{CONVERSATION_FOLDER}/{conversationId}/{FILE_FOLDER}/{messageId}";
-            var userDir = $"{prefix}/{FileSourceType.User}/";
-            if (ExistDirectory(userDir))
-            {
-                foundMsgs.Add(new MessageFileModel { MessageId = messageId, FileSource = FileSourceType.User });
-            }
-
-            var botDir = $"{prefix}/{FileSourceType.Bot}";
-            if (ExistDirectory(botDir))
-            {
-                foundMsgs.Add(new MessageFileModel { MessageId = messageId, FileSource = FileSourceType.Bot });
-            }
-        }
-
-        return foundMsgs;
     }
 
     public bool SaveMessageFiles(string conversationId, string messageId, string source, List<FileDataModel> files)

@@ -13,7 +13,7 @@ public class HandleAudioRequestFn : IFunctionCallback
     private readonly ILogger<HandleAudioRequestFn> _logger;
     private readonly BotSharpOptions _options;
 
-    private readonly IEnumerable<string> _audioContentType = new List<string>
+    private readonly IEnumerable<string> _audioContentTypes = new List<string>
     {
         AudioType.mp3.ToFileType(),
         AudioType.wav.ToFileType(),
@@ -52,7 +52,11 @@ public class HandleAudioRequestFn : IFunctionCallback
         }
 
         var messageId = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        var audioMessageFiles = _fileStorage.GetMessageFiles(convId, messageId, FileSourceType.User, _audioContentType);
+        var audioMessageFiles = _fileStorage.GetMessageFiles(convId, messageId, options: new()
+        {
+            Sources = [FileSource.User],
+            ContentTypes = _audioContentTypes
+        });
 
         audioMessageFiles = audioMessageFiles.Where(x => x.ContentType.Contains("audio")).ToList();
 
