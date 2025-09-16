@@ -375,7 +375,6 @@ public class ConversationController : ControllerBase
                 response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
-                response.AdditionalMessageWrapper = ChatResponseWrapper.From(msg.AdditionalMessageWrapper, conversationId, inputMsg.MessageId);
             });
 
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -434,8 +433,7 @@ public class ConversationController : ControllerBase
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
                 response.States = state.GetStates();
-                response.AdditionalMessageWrapper = ChatResponseWrapper.From(msg.AdditionalMessageWrapper, conversationId, inputMsg.MessageId);
-
+                
                 await OnChunkReceived(Response, response);
             });
 

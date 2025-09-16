@@ -60,7 +60,6 @@ public partial class RoutingService
             message.CurrentAgentId = agent.Id;
             message.IsStreaming = response.IsStreaming;
             message.MessageLabel = response.MessageLabel;
-            message.AdditionalMessageWrapper = null;
 
             await InvokeFunction(message, dialogs, options);
         }
@@ -77,7 +76,6 @@ public partial class RoutingService
             message.CurrentAgentId = agent.Id;
             message.IsStreaming = response.IsStreaming;
             message.MessageLabel = response.MessageLabel;
-            message.AdditionalMessageWrapper = null;
             dialogs.Add(message);
             Context.SetDialogs(dialogs);
         }

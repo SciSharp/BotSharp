@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Settings;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
@@ -11,23 +12,17 @@ public class HandleEmailSenderFn : IFunctionCallback
 
     private readonly IServiceProvider _services;
     private readonly ILogger<HandleEmailSenderFn> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IHttpContextAccessor _context;
     private readonly BotSharpOptions _options;
     private readonly EmailSenderSettings _emailSettings;
 
     public HandleEmailSenderFn(
         IServiceProvider services,
         ILogger<HandleEmailSenderFn> logger,
-        IHttpClientFactory httpClientFactory,
-        IHttpContextAccessor context,
         BotSharpOptions options,
         EmailSenderSettings emailPluginSettings)
     {
         _services = services;
         _logger = logger;
-        _httpClientFactory = httpClientFactory;
-        _context = context;
         _options = options;
         _emailSettings = emailPluginSettings;
     }
@@ -73,10 +68,19 @@ public class HandleEmailSenderFn : IFunctionCallback
     private async Task<IEnumerable<MessageFileModel>> GetConversationFiles()
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        var conversationId = convService.ConversationId;
-
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-        var selecteds = await fileInstruct.SelectMessageFiles(conversationId, new SelectFileOptions { IncludeBotFile = true });
+        var convSettings = _services.GetRequiredService<ConversationSetting>();
+
+        var selecteds = await fileInstruct.SelectMessageFiles(convService.ConversationId, new SelectFileOptions
+        {
+            IsIncludeBotFiles = true,
+            IsAttachFiles = true,
+            MessageLimit = convSettings?.FileSelect?.MessageLimit,
+            LlmProvider = convSettings?.FileSelect?.LlmProvider,
+            LlmModel = convSettings?.FileSelect?.LlmModel,
+            MaxOutputTokens = convSettings?.FileSelect?.MaxOutputTokens,
+            ReasoningEffortLevel = convSettings?.FileSelect?.ReasoningEffortLevel
+        });
         return selecteds;
     }
 

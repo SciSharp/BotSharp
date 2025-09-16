@@ -1,3 +1,4 @@
+#pragma warning disable OPENAI001
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Hooks;
@@ -65,6 +66,7 @@ public class ChatCompletionProvider : IChatCompletion
                 {
                     CurrentAgentId = agent.Id,
                     MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                    ToolCallId = toolCall?.Id,
                     FunctionName = toolCall?.FunctionName,
                     FunctionArgs = toolCall?.FunctionArguments?.ToString(),
                     RenderedInstruction = string.Join("\r\n", renderedInstructions)
@@ -82,7 +84,14 @@ public class ChatCompletionProvider : IChatCompletion
                 {
                     CurrentAgentId = agent.Id,
                     MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                    RenderedInstruction = string.Join("\r\n", renderedInstructions),
+                    Annotations = value.Annotations?.Select(x => new ChatAnnotation
+                    {
+                        Title = x.WebResourceTitle,
+                        Url = x.WebResourceUri.AbsoluteUri,
+                        StartIndex = x.StartIndex,
+                        EndIndex = x.EndIndex
+                    })?.ToList()
                 };
             }
         }
@@ -200,6 +209,19 @@ public class ChatCompletionProvider : IChatCompletion
         else
         {
             // Text response received
+            msg = new RoleDialogModel(AgentRole.Assistant, text)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                RenderedInstruction = string.Join("\r\n", renderedInstructions),
+                Annotations = value.Annotations?.Select(x => new ChatAnnotation
+                {
+                    Title = x.WebResourceTitle,
+                    Url = x.WebResourceUri.AbsoluteUri,
+                    StartIndex = x.StartIndex,
+                    EndIndex = x.EndIndex
+                })?.ToList()
+            };
             await onMessageReceived(msg);
         }
 
@@ -347,17 +369,7 @@ public class ChatCompletionProvider : IChatCompletion
         renderedInstructions = [];
 
         var messages = new List<ChatMessage>();
-
-        var temperature = float.Parse(state.GetState("temperature", "0.0"));
-        var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
-                            ? tokens
-                            : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
-
-        var options = new ChatCompletionOptions()
-        {
-            Temperature = temperature,
-            MaxOutputTokenCount = maxTokens
-        };
+        var options = InitChatCompletionOption(agent);
 
         // Prepare instruction and functions
         var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
@@ -365,6 +377,22 @@ public class ChatCompletionProvider : IChatCompletion
         {
             renderedInstructions.Add(instruction);
             messages.Add(new SystemChatMessage(instruction));
+        }
+
+        // Render functions
+        if (options.WebSearchOptions == null)
+        {
+            foreach (var function in functions)
+            {
+                if (!agentService.RenderFunction(agent, function)) continue;
+
+                var property = agentService.RenderFunctionProperty(agent, function);
+
+                options.Tools.Add(ChatTool.CreateFunctionTool(
+                    functionName: function.Name,
+                    functionDescription: function.Description,
+                    functionParameters: BinaryData.FromObjectAsJson(property)));
+            }
         }
 
         foreach (var function in functions)
@@ -397,6 +425,12 @@ public class ChatCompletionProvider : IChatCompletion
             filteredMessages = filteredMessages.Where((_, idx) => idx >= firstUserMsgIdx).ToList();
         }
 
+        var imageDetailLevel = ChatImageDetailLevel.Auto;
+        if (allowMultiModal)
+        {
+            imageDetailLevel = ParseChatImageDetailLevel(state.GetState("chat_image_detail_level"));
+        }
+
         foreach (var message in filteredMessages)
         {
             if (message.Role == AgentRole.Function)
@@ -416,39 +450,54 @@ public class ChatCompletionProvider : IChatCompletion
 
                 if (allowMultiModal && !message.Files.IsNullOrEmpty())
                 {
-                    foreach (var file in message.Files)
-                    {
-                        if (!string.IsNullOrEmpty(file.FileData))
-                        {
-                            var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), ChatImageDetailLevel.Auto);
-                            contentParts.Add(contentPart);
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileStorageUrl))
-                        {
-                            var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
-                            var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), ChatImageDetailLevel.Auto);
-                            contentParts.Add(contentPart);
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileUrl))
-                        {
-                            var uri = new Uri(file.FileUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(uri, ChatImageDetailLevel.Auto);
-                            contentParts.Add(contentPart);
-                        }
-                    }
+                    CollectMessageContentParts(contentParts, message.Files, imageDetailLevel);
                 }
                 messages.Add(new UserChatMessage(contentParts) { ParticipantName = message.FunctionName });
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                messages.Add(new AssistantChatMessage(message.Content));
+                var text = message.Content;
+                var textPart = ChatMessageContentPart.CreateTextPart(text);
+                var contentParts = new List<ChatMessageContentPart> { textPart };
+
+                if (allowMultiModal && !message.Files.IsNullOrEmpty())
+                {
+                    CollectMessageContentParts(contentParts, message.Files, imageDetailLevel);
+                }
+                messages.Add(new AssistantChatMessage(contentParts));
             }
         }
 
         var prompt = GetPrompt(messages, options);
         return (prompt, messages, options);
+    }
+
+
+    private void CollectMessageContentParts(List<ChatMessageContentPart> contentParts, List<BotSharpFile> files, ChatImageDetailLevel imageDetailLevel)
+    {
+        foreach (var file in files)
+        {
+            if (!string.IsNullOrEmpty(file.FileData))
+            {
+                var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
+                var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), imageDetailLevel);
+                contentParts.Add(contentPart);
+            }
+            else if (!string.IsNullOrEmpty(file.FileStorageUrl))
+            {
+                var fileStorage = _services.GetRequiredService<IFileStorageService>();
+                var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
+                var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
+                var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType.IfNullOrEmptyAs(file.ContentType), imageDetailLevel);
+                contentParts.Add(contentPart);
+            }
+            else if (!string.IsNullOrEmpty(file.FileUrl))
+            {
+                var uri = new Uri(file.FileUrl);
+                var contentPart = ChatMessageContentPart.CreateImagePart(uri, imageDetailLevel);
+                contentParts.Add(contentPart);
+            }
+        }
     }
 
     private string GetPrompt(IEnumerable<ChatMessage> messages, ChatCompletionOptions options)
@@ -516,6 +565,95 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         return prompt;
+    }
+
+    private ChatCompletionOptions InitChatCompletionOption(Agent agent)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model);
+
+        // Reasoning effort
+        ChatReasoningEffortLevel? reasoningEffortLevel = null;
+        float? temperature = float.Parse(state.GetState("temperature", "0.0"));
+        if (settings?.Reasoning != null)
+        {
+            temperature = settings.Reasoning.Temperature;
+            var level = state.GetState("reasoning_effort_level")
+                         .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel)
+                         .IfNullOrEmptyAs(settings?.Reasoning?.EffortLevel);
+            reasoningEffortLevel = ParseReasoningEffortLevel(level);
+        }
+
+        // Web search
+        ChatWebSearchOptions? webSearchOptions = null;
+        if (settings?.WebSearch != null)
+        {
+            temperature = null;
+            reasoningEffortLevel = null;
+            webSearchOptions = new();
+        }
+
+        var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
+                        ? tokens
+                        : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
+
+        return new ChatCompletionOptions()
+        {
+            Temperature = temperature,
+            MaxOutputTokenCount = maxTokens,
+            ReasoningEffortLevel = reasoningEffortLevel,
+            WebSearchOptions = webSearchOptions
+        };
+    }
+
+    private ChatReasoningEffortLevel? ParseReasoningEffortLevel(string? level)
+    {
+        if (string.IsNullOrWhiteSpace(level))
+        {
+            return null;
+        }
+
+        var effortLevel = new ChatReasoningEffortLevel("minimal");
+        switch (level.ToLower())
+        {
+            case "low":
+                effortLevel = ChatReasoningEffortLevel.Low;
+                break;
+            case "medium":
+                effortLevel = ChatReasoningEffortLevel.Medium;
+                break;
+            case "high":
+                effortLevel = ChatReasoningEffortLevel.High;
+                break;
+            default:
+                break;
+        }
+
+        return effortLevel;
+    }
+
+    private ChatImageDetailLevel ParseChatImageDetailLevel(string? level)
+    {
+        if (string.IsNullOrWhiteSpace(level))
+        {
+            return ChatImageDetailLevel.Auto;
+        }
+
+        var imageLevel = ChatImageDetailLevel.Auto;
+        switch (level.ToLower())
+        {
+            case "low":
+                imageLevel = ChatImageDetailLevel.Low;
+                break;
+            case "high":
+                imageLevel = ChatImageDetailLevel.High;
+                break;
+            default:
+                break;
+        }
+
+        return imageLevel;
     }
 
     public void SetModelName(string model)

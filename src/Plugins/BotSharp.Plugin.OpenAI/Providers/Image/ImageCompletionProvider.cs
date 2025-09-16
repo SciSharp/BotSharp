@@ -163,6 +163,27 @@ public partial class ImageCompletionProvider : IImageCompletion
         return retFormat;
     }
 
+    private GeneratedImageBackground GetImageBackground(string? background)
+    {
+        var value = !string.IsNullOrEmpty(background) ? background : "auto";
+
+        GeneratedImageBackground retBackground;
+        switch (value)
+        {
+            case "transparent":
+                retBackground = GeneratedImageBackground.Transparent;
+                break;
+            case "opaque":
+                retBackground = GeneratedImageBackground.Opaque;
+                break;
+            default:
+                retBackground = GeneratedImageBackground.Auto;
+                break;
+        }
+
+        return retBackground;
+    }
+
     private int GetImageCount(string count)
     {
         if (!int.TryParse(count, out var retCount))

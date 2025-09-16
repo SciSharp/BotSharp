@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Models;
+
 namespace BotSharp.Plugin.FileHandler.Functions;
 
 public class GenerateImageFn : IFunctionCallback
@@ -7,6 +9,8 @@ public class GenerateImageFn : IFunctionCallback
 
     private readonly IServiceProvider _services;
     private readonly ILogger<GenerateImageFn> _logger;
+
+    private Agent _agent;
     private string _conversationId;
     private string _messageId;
 
@@ -25,16 +29,9 @@ public class GenerateImageFn : IFunctionCallback
         SetImageOptions();
         
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(BuiltInAgentId.UtilityAssistant);
-        var imageAgent = new Agent
-        {
-            Id = agent?.Id ?? Guid.Empty.ToString(),
-            Name = agent?.Name ?? "Unkown",
-            Instruction = args?.ImageDescription,
-            TemplateDict = new Dictionary<string, object>()
-        };
+        _agent = await agentService.GetAgent(message.CurrentAgentId);
 
-        var response = await GetImageGeneration(imageAgent, message, args?.ImageDescription);
+        var response = await GetImageGeneration(message, args?.ImageDescription);
         message.Content = response;
         message.StopCompletion = true;
         return true;
@@ -52,18 +49,33 @@ public class GenerateImageFn : IFunctionCallback
         var state = _services.GetRequiredService<IConversationStateService>();
         state.SetState("image_count", "1");
         state.SetState("image_quality", "medium");
+        state.SetState("image_response_format", "bytes");
     }
 
-    private async Task<string> GetImageGeneration(Agent agent, RoleDialogModel message, string? description)
+    private async Task<string> GetImageGeneration(RoleDialogModel message, string? description)
     {
         try
         {
-            var completion = CompletionProvider.GetImageCompletion(_services, provider: "openai", model: "dall-e-3");
+            var agent = new Agent
+            {
+                Id = _agent?.Id ?? BuiltInAgentId.UtilityAssistant,
+                Name = _agent?.Name ?? "Utility Assistant",
+                Instruction = description
+            };
+
+            var (provider, model) = GetLlmProviderModel();
+            var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
             var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
             var result = await completion.GetImageGeneration(agent, dialog);
-            SaveGeneratedImages(result?.GeneratedImages);
-            return result?.Content ?? string.Empty;
+            var savedFiles = SaveGeneratedImages(result?.GeneratedImages);
+
+            if (!string.IsNullOrWhiteSpace(result?.Content))
+            {
+                return result.Content;
+            }
+
+            return await GetImageGenerationResponse(description, defaultContent: null);
         }
         catch (Exception ex)
         {
@@ -73,9 +85,64 @@ public class GenerateImageFn : IFunctionCallback
         }
     }
 
-    private void SaveGeneratedImages(List<ImageGeneration>? images)
+    private async Task<string> GetImageGenerationResponse(string description, string? defaultContent)
     {
-        if (images.IsNullOrEmpty()) return;
+        if (defaultContent != null)
+        {
+            return defaultContent;
+        }
+
+        var llmConfig = _agent.LlmConfig;
+        var agent = new Agent
+        {
+            Id = _agent?.Id ?? BuiltInAgentId.UtilityAssistant,
+            Name = _agent?.Name ?? "Utility Assistant",
+            LlmConfig = new AgentLlmConfig
+            {
+                Provider = llmConfig?.Provider ?? "openai",
+                Model = llmConfig?.Model ?? "gpt-4o-mini",
+                MaxOutputTokens = llmConfig?.MaxOutputTokens,
+                ReasoningEffortLevel = llmConfig?.ReasoningEffortLevel
+            }
+        };
+
+        return await AiResponseHelper.GetImageGenerationResponse(_services, agent, description);
+    }
+
+    private (string, string) GetLlmProviderModel()
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+        var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
+
+        var provider = state.GetState("image_generate_llm_provider");
+        var model = state.GetState("image_generate_llm_model");
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = fileSettings?.Image?.Generation?.LlmProvider;
+        model = fileSettings?.Image?.Generation?.LlmModel;
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = "openai";
+        model = "gpt-image-1";
+
+        return (provider, model);
+    }
+
+    private IEnumerable<string> SaveGeneratedImages(List<ImageGeneration>? images)
+    {
+        if (images.IsNullOrEmpty())
+        {
+            return [];
+        }
 
         var files = images.Where(x => !string.IsNullOrEmpty(x?.ImageData)).Select(x => new FileDataModel
         {
@@ -85,5 +152,6 @@ public class GenerateImageFn : IFunctionCallback
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         fileStorage.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
+        return files.Select(x => x.FileName);
     }
 }

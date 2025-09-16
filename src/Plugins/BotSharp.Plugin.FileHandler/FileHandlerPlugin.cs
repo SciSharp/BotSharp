@@ -1,3 +1,4 @@
+using BotSharp.Plugin.FileHandler.Converters;
 using BotSharp.Plugin.FileHandler.Hooks;
 using Microsoft.Extensions.Configuration;
 
@@ -20,6 +21,7 @@ public class FileHandlerPlugin : IBotSharpPlugin
         });
 
         services.AddScoped<IAgentUtilityHook, FileHandlerUtilityHook>();
+        services.AddScoped<IImageConverter, FileHandlerImageConverter>();
     }
 
 }

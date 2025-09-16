@@ -1,17 +1,7 @@
 namespace BotSharp.Abstraction.Files.Models;
 
-public class SelectFileOptions
+public class SelectFileOptions : LlmConfigBase
 {
-    /// <summary>
-    /// Llm provider
-    /// </summary>
-    public string? Provider { get; set; }
-
-    /// <summary>
-    /// Llm model
-    /// </summary>
-    public string? Model { get; set; }
-
     /// <summary>
     /// Agent id
     /// </summary>
@@ -30,7 +20,7 @@ public class SelectFileOptions
     /// <summary>
     /// Whether include bot generated files
     /// </summary>
-    public bool IncludeBotFile { get; set; }
+    public bool IsIncludeBotFiles { get; set; }
 
     /// <summary>
     /// Conversation breakpoint
@@ -38,12 +28,22 @@ public class SelectFileOptions
     public bool FromBreakpoint { get; set; }
 
     /// <summary>
-    /// Message offset from last
+    /// The maximum number of messages
     /// </summary>
-    public int? Offset { get; set; }
+    public int? MessageLimit { get; set; }
+
+    /// <summary>
+    /// Whehter attach files to messages
+    /// </summary>
+    public bool IsAttachFiles { get; set; }
 
     /// <summary>
     /// File content types. If null, all types of files will be retrived
     /// </summary>
     public IEnumerable<string>? ContentTypes { get; set; }
+
+    /// <summary>
+    /// Data that can be used to fill in the prompt
+    /// </summary>
+    public Dictionary<string, object>? Data { get; set; }
 }

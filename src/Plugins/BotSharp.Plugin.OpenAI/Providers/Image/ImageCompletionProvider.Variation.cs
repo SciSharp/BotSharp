@@ -28,11 +28,12 @@ public partial class ImageCompletionProvider
     private (int, ImageVariationOptions) PrepareVariationOptions()
     {
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting(Provider, _model)?.Image?.Variation;
-
         var state = _services.GetRequiredService<IConversationStateService>();
+
         var size = state.GetState("image_size");
         var responseFormat = state.GetState("image_response_format");
+
+        var settings = settingsService.GetSetting(Provider, _model)?.Image?.Variation;
 
         size = settings?.Size != null ? VerifyImageParameter(size, settings.Size.Default, settings.Size.Options) : null;
         responseFormat = settings?.ResponseFormat != null ? VerifyImageParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
