@@ -6,7 +6,7 @@ public class MessageFileModel : FileInformation
     public string MessageId { get; set; }
 
     [JsonPropertyName("file_source")]
-    public string FileSource { get; set; } = FileSourceType.User;
+    public string FileSource { get; set; } = Enums.FileSource.User;
 
     [JsonPropertyName("file_index")]
     public string FileIndex { get; set; } = string.Empty;

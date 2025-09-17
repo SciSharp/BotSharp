@@ -9,6 +9,7 @@ public class ReadPdfFn : IFunctionCallback
 
     private readonly IServiceProvider _services;
     private readonly ILogger<ReadPdfFn> _logger;
+    private readonly FileHandlerSettings _settings;
 
     private readonly IEnumerable<string> _pdfContentTypes = new List<string>
     {
@@ -17,10 +18,12 @@ public class ReadPdfFn : IFunctionCallback
 
     public ReadPdfFn(
         IServiceProvider services,
-        ILogger<ReadPdfFn> logger)
+        ILogger<ReadPdfFn> logger,
+        FileHandlerSettings settings)
     {
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -52,6 +55,7 @@ public class ReadPdfFn : IFunctionCallback
 
         var dialogs = await AssembleFiles(conv.ConversationId, wholeDialogs);
         var response = await GetChatCompletion(agent, dialogs);
+        dialogs.ForEach(x => x.Files = null);
         message.Content = response;
         return true;
     }
@@ -65,16 +69,47 @@ public class ReadPdfFn : IFunctionCallback
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        var screenshots = await fileStorage.GetMessageFileScreenshotsAsync(conversationId, messageIds);
 
-        if (screenshots.IsNullOrEmpty()) return dialogs;
+        IEnumerable<MessageFileModel> files;
+        if (_settings.Pdf?.Reading?.ConvertToImage == true)
+        {
+            files = await fileStorage.GetMessageFileScreenshotsAsync(conversationId, messageIds, options: new()
+            {
+                Sources = [FileSource.User],
+                ImageConvertProvider = _settings.Pdf?.Reading?.ImageConverter?.Provider
+            });
+        }
+        else
+        {
+            files = fileStorage.GetMessageFiles(conversationId, messageIds, options: new()
+            {
+                Sources = [FileSource.User],
+                ContentTypes = _pdfContentTypes
+            });
+        }
+
+
+        if (files.IsNullOrEmpty())
+        {
+            return dialogs;
+        }
 
         foreach (var dialog in dialogs)
         {
-            var found = screenshots.Where(x => x.MessageId == dialog.MessageId).ToList();
+            var found = files.Where(x => x.MessageId == dialog.MessageId).ToList();
             if (found.IsNullOrEmpty()) continue;
 
-            dialog.Files = found.Select(x => new BotSharpFile
+            var targets = found;
+            if (dialog.IsFromUser)
+            {
+                targets = found.Where(x => x.FileSource.IsEqualTo(FileSource.User)).ToList();
+            }
+            else if (dialog.IsFromAssistant)
+            {
+                targets = found.Where(x => x.FileSource.IsEqualTo(FileSource.Bot)).ToList();
+            }
+
+            dialog.Files = targets.Select(x => new BotSharpFile
             {
                 ContentType = x.ContentType,
                 FileUrl = x.FileUrl,
@@ -107,7 +142,6 @@ public class ReadPdfFn : IFunctionCallback
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
 
         var provider = state.GetState("pdf_read_llm_provider");
         var model = state.GetState("pdf_read_llm_model");
@@ -117,8 +151,8 @@ public class ReadPdfFn : IFunctionCallback
             return (provider, model);
         }
 
-        provider = fileSettings?.Image?.Reading?.LlmProvider;
-        model = fileSettings?.Image?.Reading?.LlmModel;
+        provider = _settings?.Pdf?.Reading?.LlmProvider;
+        model = _settings?.Pdf?.Reading?.LlmModel;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
@@ -133,6 +167,11 @@ public class ReadPdfFn : IFunctionCallback
 
     private void SetImageDetailLevel()
     {
+        if (_settings.Pdf?.Reading?.ConvertToImage != true)
+        {
+            return;
+        }
+
         var state = _services.GetRequiredService<IConversationStateService>();
         var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
 

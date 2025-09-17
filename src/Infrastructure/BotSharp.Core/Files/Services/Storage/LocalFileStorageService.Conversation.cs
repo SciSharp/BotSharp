@@ -6,16 +6,17 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class LocalFileStorageService
 {
-    public async Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds)
+    public async Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds, MessageFileScreenshotOptions options)
     {
         var files = new List<MessageFileModel>();
-        if (string.IsNullOrEmpty(conversationId) || messageIds.IsNullOrEmpty())
+        if (string.IsNullOrEmpty(conversationId)
+            || messageIds.IsNullOrEmpty()
+            || options.Sources.IsNullOrEmpty())
         {
             return files;
         }
 
-        var source = FileSourceType.User;
-        var pathPrefix = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
+        var baseUrl = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
 
         foreach (var messageId in messageIds)
         {
@@ -24,35 +25,37 @@ public partial class LocalFileStorageService
                 continue;
             }
 
-            var dir = Path.Combine(pathPrefix, messageId, FileSourceType.User);
-            if (!ExistDirectory(dir))
+            foreach (var source in options.Sources)
             {
-                continue;
-            }
-
-            foreach (var subDir in Directory.GetDirectories(dir))
-            {
-                var file = Directory.GetFiles(subDir).FirstOrDefault();
-                if (file == null)
+                var dir = Path.Combine(baseUrl, messageId, source);
+                if (!ExistDirectory(dir))
                 {
                     continue;
                 }
 
-                var screenshots = await GetScreenshots(file, subDir, messageId, source);
-                if (screenshots.IsNullOrEmpty())
+                foreach (var subDir in Directory.GetDirectories(dir))
                 {
-                    continue;
-                }
+                    var file = Directory.GetFiles(subDir).FirstOrDefault();
+                    if (file == null)
+                    {
+                        continue;
+                    }
 
-                files.AddRange(screenshots);
+                    var screenshots = await GetScreenshotsAsync(file, subDir, messageId, source, options);
+                    if (screenshots.IsNullOrEmpty())
+                    {
+                        continue;
+                    }
+
+                    files.AddRange(screenshots);
+                }
             }
         }
         return files;
     }
 
 
-    public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds,
-        string source, IEnumerable<string>? contentTypes = null)
+    public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, MessageFileOptions? options = null)
     {
         var files = new List<MessageFileModel>();
         if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty())
@@ -67,39 +70,56 @@ public partial class LocalFileStorageService
                 continue;
             }
 
-            var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId, source);
-            if (!ExistDirectory(dir))
+            var baseDir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId);
+            if (!ExistDirectory(baseDir))
             {
                 continue;
             }
 
-            foreach (var subDir in Directory.GetDirectories(dir))
+            var sources = options?.Sources != null
+                            ? options.Sources
+                            : Directory.GetDirectories(baseDir).Select(x => x.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries).Last());
+            if (sources.IsNullOrEmpty())
             {
-                var index = subDir.Split(Path.DirectorySeparatorChar).Last();
+                continue;
+            }
 
-                foreach (var file in Directory.GetFiles(subDir))
+            foreach (var source in sources)
+            {
+                var dir = Path.Combine(baseDir, source);
+                if (!ExistDirectory(dir))
                 {
-                    var contentType = FileUtility.GetFileContentType(file);
-                    if (!contentTypes.IsNullOrEmpty() && !contentTypes.Contains(contentType))
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    var fileName = Path.GetFileNameWithoutExtension(file);
-                    var fileExtension = Path.GetExtension(file).Substring(1);
-                    var model = new MessageFileModel()
+                foreach (var subDir in Directory.GetDirectories(dir))
+                {
+                    var fileIndex = subDir.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries).Last();
+
+                    foreach (var file in Directory.GetFiles(subDir))
                     {
-                        MessageId = messageId,
-                        FileUrl = $"/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}",
-                        FileDownloadUrl = $"/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}/download",
-                        FileStorageUrl = file,
-                        FileName = fileName,
-                        FileExtension = fileExtension,
-                        ContentType = contentType,
-                        FileSource = source,
-                        FileIndex = index
-                    };
-                    files.Add(model);
+                        var contentType = FileUtility.GetFileContentType(file);
+                        if (options?.ContentTypes != null && !options.ContentTypes.Contains(contentType))
+                        {
+                            continue;
+                        }
+
+                        var fileName = Path.GetFileNameWithoutExtension(file);
+                        var fileExtension = Path.GetExtension(file).Substring(1);
+                        var model = new MessageFileModel
+                        {
+                            MessageId = messageId,
+                            FileUrl = $"/conversation/{conversationId}/message/{messageId}/{source}/file/{fileIndex}/{fileName}",
+                            FileDownloadUrl = $"/conversation/{conversationId}/message/{messageId}/{source}/file/{fileIndex}/{fileName}/download",
+                            FileStorageUrl = file,
+                            FileName = fileName,
+                            FileExtension = fileExtension,
+                            ContentType = contentType,
+                            FileSource = source,
+                            FileIndex = fileIndex
+                        };
+                        files.Add(model);
+                    }
                 }
             }
         }
@@ -124,38 +144,6 @@ public partial class LocalFileStorageService
 
         var found = Directory.GetFiles(dir).FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).IsEqualTo(fileName));
         return found;
-    }
-
-    public IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds)
-    {
-        var foundMsgs = new List<MessageFileModel>();
-        if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty())
-        {
-            return foundMsgs;
-        }
-
-        foreach (var messageId in messageIds)
-        {
-            if (string.IsNullOrWhiteSpace(messageId))
-            {
-                continue;
-            }
-
-            var prefix = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId);
-            var userDir = Path.Combine(prefix, FileSourceType.User);
-            if (ExistDirectory(userDir))
-            {
-                foundMsgs.Add(new MessageFileModel { MessageId = messageId, FileSource = FileSourceType.User });
-            }
-
-            var botDir = Path.Combine(prefix, FileSourceType.Bot);
-            if (ExistDirectory(botDir))
-            {
-                foundMsgs.Add(new MessageFileModel { MessageId = messageId, FileSource = FileSourceType.Bot });
-            }
-        }
-
-        return foundMsgs;
     }
 
     public bool SaveMessageFiles(string conversationId, string messageId, string source, List<FileDataModel> files)
@@ -299,40 +287,9 @@ public partial class LocalFileStorageService
         return dir;
     }
 
-    private IEnumerable<string> GetMessageIds(IEnumerable<RoleDialogModel> dialogs, int? offset = null)
+    private async Task<IEnumerable<string>> ConvertPdfToImagesAsync(string pdfLoc, string imageLoc, MessageFileScreenshotOptions options)
     {
-        if (dialogs.IsNullOrEmpty())
-        {
-            return Enumerable.Empty<string>();
-        }
-
-        if (offset.HasValue && offset < 1)
-        {
-            offset = 1;
-        }
-
-        var messageIds = new List<string>();
-        if (offset.HasValue)
-        {
-            messageIds = dialogs.Select(x => x.MessageId).Distinct().TakeLast(offset.Value).ToList();
-        }
-        else
-        {
-            messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        }
-
-        return messageIds;
-    }
-
-    private async Task<IEnumerable<string>> ConvertPdfToImages(string pdfLoc, string imageLoc)
-    {
-        var converters = _services.GetServices<IImageConverter>();
-        if (converters.IsNullOrEmpty())
-        {
-            return Enumerable.Empty<string>();
-        }
-
-        var converter = GetPdf2ImageConverter();
+        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == options.ImageConvertProvider);
         if (converter == null)
         {
             return Enumerable.Empty<string>();
@@ -341,14 +298,7 @@ public partial class LocalFileStorageService
         return await converter.ConvertPdfToImages(pdfLoc, imageLoc);
     }
 
-    private IImageConverter? GetPdf2ImageConverter()
-    {
-        var settings = _services.GetRequiredService<FileCoreSettings>();
-        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == settings.Pdf2ImageConverter.Provider);
-        return converter;
-    }
-
-    private async Task<IEnumerable<MessageFileModel>> GetScreenshots(string file, string parentDir, string messageId, string source)
+    private async Task<IEnumerable<MessageFileModel>> GetScreenshotsAsync(string file, string parentDir, string messageId, string source, MessageFileScreenshotOptions options)
     {
         var files = new List<MessageFileModel>();
 
@@ -378,7 +328,7 @@ public partial class LocalFileStorageService
             }
             else if (contentType == MediaTypeNames.Application.Pdf)
             {
-                var images = await ConvertPdfToImages(file, screenshotDir);
+                var images = await ConvertPdfToImagesAsync(file, screenshotDir, options);
                 foreach (var image in images)
                 {
                     var fileName = Path.GetFileNameWithoutExtension(image);

@@ -21,3 +21,4 @@ global using BotSharp.Abstraction.Files.Enums;
 global using BotSharp.Abstraction.Knowledges.Models;
 global using BotSharp.Abstraction.Crontab.Models;
 global using BotSharp.Abstraction.MCP.Models;
+global using BotSharp.Abstraction.Settings;

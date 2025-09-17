@@ -1,4 +1,5 @@
 #pragma warning disable OPENAI001
+using BotSharp.Abstraction.Hooks;
 using OpenAI.Images;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Image;

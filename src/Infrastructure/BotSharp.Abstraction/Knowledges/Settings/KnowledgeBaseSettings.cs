@@ -21,8 +21,3 @@ public class KnowledgeTextEmbeddingSetting : SettingBase
     public string Model { get; set; }
     public int Dimension { get; set; }
 }
-
-public class SettingBase
-{
-    public string Provider { get; set; }
-}

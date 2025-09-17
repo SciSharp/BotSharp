@@ -1,10 +1,11 @@
+using BotSharp.Abstraction.Models;
+
 namespace BotSharp.Plugin.FileHandler.Settings;
 
 public class FileHandlerSettings
 {
     public ImageSettings? Image { get; set; }
     public PdfSettings? Pdf { get; set; }
-    public SettingBase? ImageConverter { get; set; }
 }
 
 #region Image
@@ -16,22 +17,22 @@ public class ImageSettings
     public ImageVariationSettings? Variation { get; set; }
 }
 
-public class ImageReadSettings : FileLlmSettingBase
+public class ImageReadSettings : LlmBase
 {
     public string? ImageDetailLevel { get; set; }
 }
 
-public class ImageGenerationSettings : FileLlmSettingBase
+public class ImageGenerationSettings : LlmBase
 {
 
 }
 
-public class ImageEditSettings : FileLlmSettingBase
+public class ImageEditSettings : LlmBase
 {
-
+    public SettingBase? ImageConverter { get; set; }
 }
 
-public class ImageVariationSettings : FileLlmSettingBase
+public class ImageVariationSettings : LlmBase
 {
 
 }
@@ -43,15 +44,10 @@ public class PdfSettings
     public PdfReadSettings? Reading { get; set; }
 }
 
-public class PdfReadSettings : FileLlmSettingBase
+public class PdfReadSettings : LlmBase
 {
     public bool ConvertToImage { get; set; }
     public string? ImageDetailLevel { get; set; }
+    public SettingBase? ImageConverter { get; set; }
 }
 #endregion
-
-public class FileLlmSettingBase
-{
-    public string? LlmProvider { get; set; }
-    public string? LlmModel { get; set; }
-}

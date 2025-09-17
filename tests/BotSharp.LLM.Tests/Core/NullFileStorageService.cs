@@ -54,7 +54,7 @@ namespace BotSharp.Plugin.Google.Core
             return string.Join("/", segments);
         }
 
-        public Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds)
+        public Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds, MessageFileScreenshotOptions options)
         {
             return Task.FromResult<IEnumerable<MessageFileModel>>(new List<MessageFileModel>
             {
@@ -63,8 +63,7 @@ namespace BotSharp.Plugin.Google.Core
             });
         }
 
-        public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, string source,
-            IEnumerable<string>? contentTypes = null)
+        public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, MessageFileOptions? options = null)
         {
             return new List<MessageFileModel>
             {
@@ -76,15 +75,6 @@ namespace BotSharp.Plugin.Google.Core
         public string GetMessageFile(string conversationId, string messageId, string source, string index, string fileName)
         {
             return $"FakePath/{fileName}";
-        }
-
-        public IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds)
-        {
-            return new List<MessageFileModel>
-            {
-                new MessageFileModel { FileName = "MessageFile1.jpg" },
-                new MessageFileModel { FileName = "MessageFile2.png" }
-            };
         }
 
         public bool SaveMessageFiles(string conversationId, string messageId, string source, List<FileDataModel> files)

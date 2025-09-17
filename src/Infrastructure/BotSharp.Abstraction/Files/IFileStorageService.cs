@@ -19,24 +19,22 @@ public interface IFileStorageService
 
     #region Conversation
     /// <summary>
-    /// Get the message file screenshots for specific content types, e.g., pdf
+    /// Get the message file screenshots for pdf
     /// </summary>
     /// <param name="conversationId"></param>
     /// <param name="messageIds"></param>
     /// <returns></returns>
-    Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds);
+    Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds, MessageFileScreenshotOptions options);
 
     /// <summary>
     /// Get the files that have been uploaded in the chat. No screenshot images are included.
     /// </summary>
     /// <param name="conversationId"></param>
     /// <param name="messageIds"></param>
-    /// <param name="source"></param>
-    /// <param name="imageOnly"></param>
+    /// <param name="options"></param>
     /// <returns></returns>
-    IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, string source, IEnumerable<string>? contentTypes = null);
+    IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, MessageFileOptions? options = null);
     string GetMessageFile(string conversationId, string messageId, string source, string index, string fileName);
-    IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds);
     bool SaveMessageFiles(string conversationId, string messageId, string source, List<FileDataModel> files);
 
     /// <summary>
