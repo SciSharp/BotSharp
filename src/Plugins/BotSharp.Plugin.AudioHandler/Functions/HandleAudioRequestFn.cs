@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
 using Microsoft.AspNetCore.StaticFiles;
 
@@ -35,10 +36,15 @@ public class HandleAudioRequestFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs, _options.JsonSerializerOptions);
         var conv = _serviceProvider.GetRequiredService<IConversationService>();
+        var routingCtx = _serviceProvider.GetRequiredService<IRoutingContext>();
 
-        var wholeDialogs = conv.GetDialogHistory();
+        var wholeDialogs = routingCtx.GetDialogs();
+        if (wholeDialogs.IsNullOrEmpty())
+        {
+            wholeDialogs = conv.GetDialogHistory();
+        }
+
         var dialogs = AssembleFiles(conv.ConversationId, wholeDialogs);
-
         var response = await GetResponeFromDialogs(dialogs);
         message.Content = response;
         return true;
@@ -52,18 +58,23 @@ public class HandleAudioRequestFn : IFunctionCallback
         }
 
         var messageId = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        var audioMessageFiles = _fileStorage.GetMessageFiles(convId, messageId, options: new()
+        var audioFiles = _fileStorage.GetMessageFiles(convId, messageId, options: new()
         {
             Sources = [FileSource.User],
             ContentTypes = _audioContentTypes
         });
 
-        audioMessageFiles = audioMessageFiles.Where(x => x.ContentType.Contains("audio")).ToList();
+        audioFiles = audioFiles.Where(x => x.ContentType.Contains("audio")).ToList();
 
         foreach (var dialog in dialogs)
         {
-            var found = audioMessageFiles.Where(x => x.MessageId == dialog.MessageId).ToList();
-            if (found.IsNullOrEmpty()) continue;
+            var found = audioFiles.Where(x => x.MessageId == dialog.MessageId
+                                           && x.FileSource.IsEqualTo(FileSource.User)).ToList();
+
+            if (found.IsNullOrEmpty() || !dialog.IsFromUser)
+            {
+                continue;
+            }
 
             dialog.Files = found.Select(x => new BotSharpFile
             {

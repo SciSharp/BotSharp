@@ -1,11 +1,12 @@
-using System.Linq.Dynamic.Core;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
+using BotSharp.Abstraction.Routing;
 using BotSharp.Plugin.ExcelHandler.Models;
 using BotSharp.Plugin.ExcelHandler.Services;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using System.Linq.Dynamic.Core;
 
 namespace BotSharp.Plugin.ExcelHandler.Functions;
 
@@ -49,14 +50,20 @@ public class HandleExcelRequestFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs, _options.JsonSerializerOptions);
         var conv = _serviceProvider.GetRequiredService<IConversationService>();
-
+        var states = _serviceProvider.GetRequiredService<IConversationStateService>();
+        var routingCtx = _serviceProvider.GetRequiredService<IRoutingContext>();
 
         if (_excelMimeTypes.IsNullOrEmpty())
         {
             _excelMimeTypes = FileUtility.GetMimeFileTypes(new List<string> { "excel", "spreadsheet" }).ToHashSet<string>();
         }
 
-        var dialogs = conv.GetDialogHistory();
+        var dialogs = routingCtx.GetDialogs();
+        if (dialogs.IsNullOrEmpty())
+        {
+            dialogs = conv.GetDialogHistory();
+        }
+
         var isExcelExist = AssembleFiles(conv.ConversationId, dialogs);
         if (!isExcelExist)
         {
@@ -65,30 +72,43 @@ public class HandleExcelRequestFn : IFunctionCallback
         }
 
         var resultList = GetResponeFromDialogs(dialogs);
-        var states = _serviceProvider.GetRequiredService<IConversationStateService>();
-
         message.Content = GenerateSqlExecutionSummary(resultList);
         states.SetState("excel_import_result",message.Content);
-        
+        dialogs.ForEach(x => x.Files = null);
         return true;
     }
 
 
     #region Private Methods
-    private bool AssembleFiles(string convId, List<RoleDialogModel> dialogs)
+    private bool AssembleFiles(string conversationId, List<RoleDialogModel> dialogs)
     {
-        if (dialogs.IsNullOrEmpty()) return false;
-
-        var messageId = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        var contentType = FileUtility.GetContentFileTypes(mimeTypes: _excelMimeTypes);
-        var excelMessageFiles = _fileStorage.GetMessageFiles(convId, messageId, FileSourceType.User, contentType);
-
-        if (excelMessageFiles.IsNullOrEmpty()) return false;
-
-        dialogs.ForEach(dialog =>
+        if (dialogs.IsNullOrEmpty())
         {
-            var found = excelMessageFiles.Where(y => y.MessageId == dialog.MessageId).ToList();
-            if (found.IsNullOrEmpty()) return;
+            return false;
+        }
+
+        var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
+        var contentTypes = FileUtility.GetContentFileTypes(mimeTypes: _excelMimeTypes);
+        var excelFiles = _fileStorage.GetMessageFiles(conversationId, messageIds, options: new()
+        {
+            Sources = [FileSource.User],
+            ContentTypes = contentTypes
+        });
+
+        if (excelFiles.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        foreach (var dialog in dialogs)
+        {
+            var found = excelFiles.Where(x => x.MessageId == dialog.MessageId
+                                           && x.FileSource.IsEqualTo(FileSource.User)).ToList();
+            
+            if (found.IsNullOrEmpty() || !dialog.IsFromUser)
+            {
+                continue;
+            }
 
             dialog.Files = found.Select(x => new BotSharpFile
             {
@@ -96,7 +116,8 @@ public class HandleExcelRequestFn : IFunctionCallback
                 FileUrl = x.FileUrl,
                 FileStorageUrl = x.FileStorageUrl
             }).ToList();
-        });
+        }
+
         return true;
     }
 
