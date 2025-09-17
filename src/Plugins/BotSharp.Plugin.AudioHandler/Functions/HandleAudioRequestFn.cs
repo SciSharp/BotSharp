@@ -47,6 +47,7 @@ public class HandleAudioRequestFn : IFunctionCallback
         var dialogs = AssembleFiles(conv.ConversationId, wholeDialogs);
         var response = await GetResponeFromDialogs(dialogs);
         message.Content = response;
+        dialogs.ForEach(x => x.Files = null);
         return true;
     }
 
