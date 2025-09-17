@@ -9,7 +9,7 @@ public class SqlSelect : IFunctionCallback
 {
     private readonly IServiceProvider _services;
     public string Name => "util-db-sql_select";
-    public string Indication => "Extracting data";
+    public string Indication => "Generated query statement. I'm pulling the data from database, please wait";
 
     public SqlSelect(IServiceProvider services)
     {
