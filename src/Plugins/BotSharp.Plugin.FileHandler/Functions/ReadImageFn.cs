@@ -82,11 +82,11 @@ public class ReadImageFn : IFunctionCallback
             if (found.IsNullOrEmpty()) continue;
 
             var targets = found;
-            if (dialog.Role == AgentRole.User)
+            if (dialog.IsFromUser)
             {
                 targets = found.Where(x => x.FileSource.IsEqualTo(FileSource.User)).ToList();
             }
-            else if (dialog.Role == AgentRole.Assistant || dialog.Role == AgentRole.Model)
+            else if (dialog.IsFromAssistant)
             {
                 targets = found.Where(x => x.FileSource.IsEqualTo(FileSource.Bot)).ToList();
             }
