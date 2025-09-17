@@ -9,6 +9,7 @@ public class ReadImageFn : IFunctionCallback
 
     private readonly IServiceProvider _services;
     private readonly ILogger<ReadImageFn> _logger;
+    private readonly FileHandlerSettings _settings;
 
     private readonly IEnumerable<string> _imageContentTypes = new List<string>
     {
@@ -18,10 +19,12 @@ public class ReadImageFn : IFunctionCallback
 
     public ReadImageFn(
         IServiceProvider services,
-        ILogger<ReadImageFn> logger)
+        ILogger<ReadImageFn> logger,
+        FileHandlerSettings settings)
     {
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -53,6 +56,7 @@ public class ReadImageFn : IFunctionCallback
 
         var dialogs = AssembleFiles(conv.ConversationId, args?.ImageUrls, wholeDialogs);
         var response = await GetChatCompletion(agent, dialogs);
+        dialogs.ForEach(x => x.Files = null);
         message.Content = response;
         return true;
     }
@@ -77,7 +81,17 @@ public class ReadImageFn : IFunctionCallback
             var found = images.Where(x => x.MessageId == dialog.MessageId).ToList();
             if (found.IsNullOrEmpty()) continue;
 
-            dialog.Files = found.Select(x => new BotSharpFile
+            var targets = found;
+            if (dialog.Role == AgentRole.User)
+            {
+                targets = found.Where(x => x.FileSource.IsEqualTo(FileSource.User)).ToList();
+            }
+            else if (dialog.Role == AgentRole.Assistant || dialog.Role == AgentRole.Model)
+            {
+                targets = found.Where(x => x.FileSource.IsEqualTo(FileSource.Bot)).ToList();
+            }
+
+            dialog.Files = targets.Select(x => new BotSharpFile
             {
                 ContentType = x.ContentType,
                 FileUrl = x.FileUrl,
@@ -121,7 +135,6 @@ public class ReadImageFn : IFunctionCallback
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
 
         var provider = state.GetState("image_read_llm_provider");
         var model = state.GetState("image_read_llm_model");
@@ -131,8 +144,8 @@ public class ReadImageFn : IFunctionCallback
             return (provider, model);
         }
 
-        provider = fileSettings?.Image?.Reading?.LlmProvider;
-        model = fileSettings?.Image?.Reading?.LlmModel;
+        provider = _settings?.Image?.Reading?.LlmProvider;
+        model = _settings?.Image?.Reading?.LlmModel;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {

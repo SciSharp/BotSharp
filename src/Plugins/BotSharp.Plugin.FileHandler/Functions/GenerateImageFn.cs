@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
-
 namespace BotSharp.Plugin.FileHandler.Functions;
 
 public class GenerateImageFn : IFunctionCallback
@@ -9,6 +7,7 @@ public class GenerateImageFn : IFunctionCallback
 
     private readonly IServiceProvider _services;
     private readonly ILogger<GenerateImageFn> _logger;
+    private readonly FileHandlerSettings _settings;
 
     private Agent _agent;
     private string _conversationId;
@@ -16,10 +15,12 @@ public class GenerateImageFn : IFunctionCallback
 
     public GenerateImageFn(
         IServiceProvider services,
-        ILogger<GenerateImageFn> logger)
+        ILogger<GenerateImageFn> logger,
+        FileHandlerSettings settings)
     {
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -113,7 +114,6 @@ public class GenerateImageFn : IFunctionCallback
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
 
         var provider = state.GetState("image_generate_llm_provider");
         var model = state.GetState("image_generate_llm_model");
@@ -123,8 +123,8 @@ public class GenerateImageFn : IFunctionCallback
             return (provider, model);
         }
 
-        provider = fileSettings?.Image?.Generation?.LlmProvider;
-        model = fileSettings?.Image?.Generation?.LlmModel;
+        provider = _settings?.Image?.Generation?.LlmProvider;
+        model = _settings?.Image?.Generation?.LlmModel;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {

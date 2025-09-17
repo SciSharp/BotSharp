@@ -86,19 +86,18 @@ public partial class FileInstructService
         var render = _services.GetRequiredService<ITemplateRender>();
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
+        // Handle dialogs and files
+        var innerDialogs = (dialogs ?? []).ToList();
+        var text = !string.IsNullOrWhiteSpace(options.Description) ? options.Description : "Please follow the instruction and select file(s).";
+        innerDialogs = innerDialogs.Concat([new RoleDialogModel(AgentRole.User, text)]).ToList();
+
+        if (options.IsAttachFiles)
+        {
+            AssembleMessageFiles(innerDialogs, files, options);
+        }
+
         try
         {
-            // Handle dialogs and files
-            var innerDialogs = (dialogs ?? []).ToList();
-            var text = !string.IsNullOrWhiteSpace(options.Description) ? options.Description : "Please follow the instruction and select file(s).";
-            innerDialogs = innerDialogs.Concat([new RoleDialogModel(AgentRole.User, text)]).ToList();
-
-            if (options.IsAttachFiles)
-            {
-                AssembleMessageFiles(innerDialogs, files, options);
-            }
-
-
             // Handle instruction
             var promptMessages = innerDialogs.Select(x =>
             {
@@ -176,6 +175,10 @@ public partial class FileInstructService
             _logger.LogWarning(ex, $"Error when selecting files.");
             return [];
         }
+        finally
+        {
+            innerDialogs.ForEach(x => x.Files = null);
+        }
     }
 
     private void AssembleMessageFiles(IEnumerable<RoleDialogModel> dialogs, IEnumerable<MessageFileModel> files, SelectFileOptions options)
@@ -196,7 +199,7 @@ public partial class FileInstructService
                 continue;
             }
 
-            var userMsg = group.FirstOrDefault(x => x.Role == AgentRole.User);
+            var userMsg = group.FirstOrDefault(x => x.IsFromUser);
             if (userMsg != null)
             {
                 var userFiles = found.Where(x => x.FileSource == FileSource.User);
@@ -211,7 +214,7 @@ public partial class FileInstructService
                 }).ToList();
             }
 
-            var botMsg = group.LastOrDefault(x => x.Role == AgentRole.Assistant);
+            var botMsg = group.LastOrDefault(x => x.IsFromAssistant);
             if (botMsg != null)
             {
                 var botFiles = found.Where(x => x.FileSource == FileSource.Bot);

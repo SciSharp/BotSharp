@@ -110,6 +110,7 @@ public class RoleDialogModel : ITrackableMessage
     /// <summary>
     /// Files to be used in conversation
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<BotSharpFile>? Files { get; set; }
 
     /// <summary>
@@ -132,6 +133,12 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public bool IsStreaming { get; set; }
 
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public bool IsFromUser => Role == AgentRole.User;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public bool IsFromAssistant => Role == AgentRole.Assistant || Role == AgentRole.Model;
 
     public RoleDialogModel()
     {

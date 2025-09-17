@@ -150,7 +150,6 @@ public class EditImageFn : IFunctionCallback
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
 
         var provider = state.GetState("image_edit_llm_provider");
         var model = state.GetState("image_edit_llm_provider");
@@ -160,8 +159,8 @@ public class EditImageFn : IFunctionCallback
             return (provider, model);
         }
 
-        provider = fileSettings?.Image?.Edit?.LlmProvider;
-        model = fileSettings?.Image?.Edit?.LlmModel;
+        provider = _settings?.Image?.Edit?.LlmProvider;
+        model = _settings?.Image?.Edit?.LlmModel;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
@@ -197,7 +196,7 @@ public class EditImageFn : IFunctionCallback
 
     private async Task<BinaryData> ConvertImageToPngWithRgba(BinaryData binaryFile)
     {
-        var provider = _settings?.ImageConverter?.Provider;
+        var provider = _settings?.Image?.Edit?.ImageConverter?.Provider;
         var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == provider);
         if (converter == null)
         {

@@ -8,17 +8,9 @@ public partial class ImageCompletionProvider
 {
     public async Task<RoleDialogModel> GetImageGeneration(Agent agent, RoleDialogModel message)
     {
-        var hooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
-
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var (prompt, imageCount, options) = PrepareGenerationOptions(message);
         var imageClient = client.GetImageClient(_model);
-
-        // Before generation
-        foreach (var hook in hooks)
-        {
-            await hook.BeforeGenerating(agent, [new RoleDialogModel(AgentRole.User, prompt)]);
-        }
 
         var response = imageClient.GenerateImages(prompt, imageCount, options);
         var images = response.Value;
@@ -31,16 +23,6 @@ public partial class ImageCompletionProvider
             MessageId = message?.MessageId ?? string.Empty,
             GeneratedImages = generatedImages
         };
-
-        // After generation
-        var usage = response.Value.Usage;
-        foreach (var hook in hooks)
-        {
-            await hook.AfterGenerated(responseMessage, new TokenStatsModel
-            {
-
-            });
-        }
 
         return await Task.FromResult(responseMessage);
     }

@@ -12,3 +12,9 @@ public class MessageFileOptions
     /// </summary>
     public IEnumerable<string>? ContentTypes { get; set; }
 }
+
+
+public class MessageFileScreenshotOptions : MessageFileOptions
+{
+    public string ImageConvertProvider { get; set; }
+}

@@ -19,12 +19,12 @@ public interface IFileStorageService
 
     #region Conversation
     /// <summary>
-    /// Get the message file screenshots for specific content types, e.g., pdf
+    /// Get the message file screenshots for pdf
     /// </summary>
     /// <param name="conversationId"></param>
     /// <param name="messageIds"></param>
     /// <returns></returns>
-    Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds);
+    Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds, MessageFileScreenshotOptions options);
 
     /// <summary>
     /// Get the files that have been uploaded in the chat. No screenshot images are included.

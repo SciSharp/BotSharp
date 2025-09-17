@@ -54,7 +54,7 @@ namespace BotSharp.Plugin.Google.Core
             return string.Join("/", segments);
         }
 
-        public Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds)
+        public Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds, MessageFileScreenshotOptions options)
         {
             return Task.FromResult<IEnumerable<MessageFileModel>>(new List<MessageFileModel>
             {
