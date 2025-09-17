@@ -1,62 +1,48 @@
-using BotSharp.Abstraction.Files.Enums;
-using BotSharp.Abstraction.Files.Models;
-using BotSharp.Abstraction.Files.Utilities;
-using BotSharp.Abstraction.Routing;
-using BotSharp.Plugin.ExcelHandler.Models;
-using BotSharp.Plugin.ExcelHandler.Services;
+using BotSharp.Plugin.ExcelHandler.Settings;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System.Linq.Dynamic.Core;
 
 namespace BotSharp.Plugin.ExcelHandler.Functions;
 
-public class HandleExcelRequestFn : IFunctionCallback
+public class ReadExcelFn : IFunctionCallback
 {
     public string Name => "util-excel-handle_excel_request";
-    public string Indication => "Handling excel request";
+    public string Indication => "Reading excel";
 
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IServiceProvider _services;
     private readonly IFileStorageService _fileStorage;
-    private readonly ILogger<HandleExcelRequestFn> _logger;
+    private readonly ILogger<ReadExcelFn> _logger;
     private readonly BotSharpOptions _options;
-    private readonly IMySqlService _mySqlService;
+    private readonly IDbService _dbService;
+    private readonly ExcelHandlerSettings _settings;
 
+    private HashSet<string> _excelFileTypes;
 
-    private HashSet<string> _excelMimeTypes;
-    private double _excelRowSize = 0;
-    private double _excelColumnSize = 0;
-    private string _tableName = "tempTable";
-    private string _currentFileName = string.Empty;
-    private List<string> _headerColumns = new List<string>();
-    private List<string> _columnTypes = new List<string>();
-
-    public HandleExcelRequestFn(
-        IServiceProvider serviceProvider,
-        IFileStorageService fileStorage,
-        ILogger<HandleExcelRequestFn> logger,
+    public ReadExcelFn(
+        IServiceProvider services,
+        ILogger<ReadExcelFn> logger,
         BotSharpOptions options,
-        IMySqlService mySqlService
-        )
+        ExcelHandlerSettings settings,
+        IFileStorageService fileStorage,
+        IEnumerable<IDbService> dbServices)
     {
-        _serviceProvider = serviceProvider;
-        _fileStorage = fileStorage;
+        _services = services;
         _logger = logger;
         _options = options;
-        _mySqlService = mySqlService;
+        _settings = settings;
+        _fileStorage = fileStorage;
+        _dbService = dbServices.FirstOrDefault(x => x.Provider == _settings.DbProvider);
     }
-
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs, _options.JsonSerializerOptions);
-        var conv = _serviceProvider.GetRequiredService<IConversationService>();
-        var states = _serviceProvider.GetRequiredService<IConversationStateService>();
-        var routingCtx = _serviceProvider.GetRequiredService<IRoutingContext>();
+        var conv = _services.GetRequiredService<IConversationService>();
+        var states = _services.GetRequiredService<IConversationStateService>();
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
 
-        if (_excelMimeTypes.IsNullOrEmpty())
-        {
-            _excelMimeTypes = FileUtility.GetMimeFileTypes(new List<string> { "excel", "spreadsheet" }).ToHashSet<string>();
-        }
+        Init();
 
         var dialogs = routingCtx.GetDialogs();
         if (dialogs.IsNullOrEmpty())
@@ -71,8 +57,8 @@ public class HandleExcelRequestFn : IFunctionCallback
             return true;
         }
 
-        var resultList = GetResponeFromDialogs(dialogs);
-        message.Content = GenerateSqlExecutionSummary(resultList);
+        var results = GetResponeFromDialogs(dialogs);
+        message.Content = GenerateSqlExecutionSummary(results);
         states.SetState("excel_import_result",message.Content);
         dialogs.ForEach(x => x.Files = null);
         return true;
@@ -80,6 +66,14 @@ public class HandleExcelRequestFn : IFunctionCallback
 
 
     #region Private Methods
+    private void Init()
+    {
+        if (_excelFileTypes.IsNullOrEmpty())
+        {
+            _excelFileTypes = FileUtility.GetMimeFileTypes(["excel", "spreadsheet"]).ToHashSet();
+        }
+    }
+
     private bool AssembleFiles(string conversationId, List<RoleDialogModel> dialogs)
     {
         if (dialogs.IsNullOrEmpty())
@@ -88,7 +82,7 @@ public class HandleExcelRequestFn : IFunctionCallback
         }
 
         var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        var contentTypes = FileUtility.GetContentFileTypes(mimeTypes: _excelMimeTypes);
+        var contentTypes = FileUtility.GetContentFileTypes(mimeTypes: _excelFileTypes);
         var excelFiles = _fileStorage.GetMessageFiles(conversationId, messageIds, options: new()
         {
             Sources = [FileSource.User],
@@ -123,59 +117,61 @@ public class HandleExcelRequestFn : IFunctionCallback
 
     private List<SqlContextOut> GetResponeFromDialogs(List<RoleDialogModel> dialogs)
     {
+        var sqlCommands = new List<SqlContextOut>();
         var dialog = dialogs.Last(x => !x.Files.IsNullOrEmpty());
-        var sqlCommandList = new List<SqlContextOut>();
+        
         foreach (var file in dialog.Files)
         {
-            if (file == null || string.IsNullOrWhiteSpace(file.FileStorageUrl)) continue;
+            if (string.IsNullOrWhiteSpace(file?.FileStorageUrl))
+            {
+                continue;
+            }
 
             string extension = Path.GetExtension(file.FileStorageUrl);
-            if (!_excelMimeTypes.Contains(extension)) continue;
-
-            _currentFileName = Path.GetFileName(file.FileStorageUrl);
+            if (!_excelFileTypes.Contains(extension))
+            {
+                continue;
+            }
 
             var binary = _fileStorage.GetFileBytes(file.FileStorageUrl);
-            var workbook = ConvertToWorkBook(binary.ToArray());
+            var workbook = ConvertToWorkBook(binary);
 
-            var currentCommandList = _mySqlService.WriteExcelDataToDB(workbook);
-            sqlCommandList.AddRange(currentCommandList);
+            var currentCommands = _dbService.WriteExcelDataToDB(workbook);
+            sqlCommands.AddRange(currentCommands);
         }
-        return sqlCommandList;
+        return sqlCommands;
     }
 
-    private string GenerateSqlExecutionSummary(List<SqlContextOut> messageList)
+    private string GenerateSqlExecutionSummary(List<SqlContextOut> results)
     {
         var stringBuilder = new StringBuilder();
-        if (messageList.Any(x => x.isSuccessful))
+        if (results.Any(x => x.isSuccessful))
         {
             stringBuilder.Append("---Success---");
             stringBuilder.Append("\r\n");
-            foreach (var message in messageList.Where(x => x.isSuccessful))
+            foreach (var result in results.Where(x => x.isSuccessful))
             {
-                stringBuilder.Append(message.Message);
+                stringBuilder.Append(result.Message);
                 stringBuilder.Append("\r\n\r\n");
             }
         }
-        if (messageList.Any(x => !x.isSuccessful))
+        if (results.Any(x => !x.isSuccessful))
         {
             stringBuilder.Append("---Failed---");
             stringBuilder.Append("\r\n");
-            foreach (var message in messageList.Where(x => !x.isSuccessful))
+            foreach (var result in results.Where(x => !x.isSuccessful))
             {
-                stringBuilder.Append(message.Message);
+                stringBuilder.Append(result.Message);
                 stringBuilder.Append("\r\n");
             }
         }
         return stringBuilder.ToString();
     }
 
-    private IWorkbook ConvertToWorkBook(byte[] bytes)
+    private IWorkbook ConvertToWorkBook(BinaryData binary)
     {
-        IWorkbook workbook;
-        using (var fileStream = new MemoryStream(bytes))
-        {
-            workbook = new XSSFWorkbook(fileStream);
-        }
+        using var fileStream = new MemoryStream(binary.ToArray());
+        IWorkbook workbook = new XSSFWorkbook(fileStream);
         return workbook;
     }
     #endregion

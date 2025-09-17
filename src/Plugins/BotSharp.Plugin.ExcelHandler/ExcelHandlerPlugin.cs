@@ -1,7 +1,5 @@
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Settings;
-using BotSharp.Plugin.ExcelHandler.Helpers.MySql;
-using BotSharp.Plugin.ExcelHandler.Helpers.Sqlite;
 using BotSharp.Plugin.ExcelHandler.Hooks;
 using BotSharp.Plugin.ExcelHandler.Services;
 using BotSharp.Plugin.ExcelHandler.Settings;
@@ -25,9 +23,7 @@ public class ExcelHandlerPlugin : IBotSharpPlugin
         });
 
         services.AddScoped<IAgentUtilityHook, ExcelHandlerUtilityHook>();
-        services.AddScoped<ISqliteDbHelpers, SqliteDbHelpers>();
-        services.AddScoped<IMySqlDbHelper, MySqlDbHelpers>();
-        services.AddScoped<ISqliteService, SqliteService>();
-        services.AddScoped<IMySqlService, MySqlService>();
+        services.AddScoped<IDbService, SqliteService>();
+        services.AddScoped<IDbService, MySqlService>();
     }
 }
