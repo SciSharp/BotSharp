@@ -33,25 +33,47 @@ public class AudioTranscriptionProvider : IAudioTranscription
 
     private AudioTranscriptionOptions PrepareTranscriptionOptions(string? text)
     {
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        var format = GetTranscriptionResponseFormat(state.GetState("audio_response_format"));
-        var granularity = GetGranularity(state.GetState("audio_granularity"));
-        var temperature = GetTemperature(state.GetState("audio_temperature"));
+
+        var settings = settingsService.GetSetting(Provider, _model)?.Audio?.Transcription;
+
+        var temperature = state.GetState("audio_temperature");
+        var responseFormat = state.GetState("audio_response_format");
+        var granularity = state.GetState("audio_granularity");
+
+        if (string.IsNullOrEmpty(temperature) && settings?.Temperature != null)
+        {
+            temperature = $"{settings.Temperature}";
+        }
+        
+        responseFormat = settings?.ResponseFormat != null ? VerifyTranscriptionParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
+        granularity = settings?.Granularity != null ? VerifyTranscriptionParameter(granularity, settings.Granularity.Default, settings.Granularity.Options) : null;
 
         var options = new AudioTranscriptionOptions
         {
-            ResponseFormat = format,
-            TimestampGranularities = granularity,
-            Temperature = temperature,
             Prompt = text
         };
+
+        if (!string.IsNullOrEmpty(temperature))
+        {
+            options.Temperature = GetTemperature(temperature);
+        }
+        if (!string.IsNullOrEmpty(responseFormat))
+        {
+            options.ResponseFormat = GetTranscriptionResponseFormat(responseFormat);
+        }
+        if (!string.IsNullOrEmpty(granularity))
+        {
+            options.TimestampGranularities = GetGranularity(granularity);
+        }
 
         return options;
     }
 
     private AudioTranscriptionFormat GetTranscriptionResponseFormat(string input)
     {
-        var value = !string.IsNullOrEmpty(input) ? input : "verbose";
+        var value = !string.IsNullOrEmpty(input) ? input : "json";
 
         AudioTranscriptionFormat format;
         switch (value)
@@ -108,5 +130,15 @@ public class AudioTranscriptionProvider : IAudioTranscription
         }
 
         return temperature;
+    }
+
+    private string? VerifyTranscriptionParameter(string? curVal, string? defaultVal, IEnumerable<string>? options = null)
+    {
+        if (options.IsNullOrEmpty())
+        {
+            return curVal.IfNullOrEmptyAs(defaultVal);
+        }
+
+        return options.Contains(curVal) ? curVal : defaultVal;
     }
 }

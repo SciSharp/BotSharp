@@ -63,6 +63,11 @@ public class LlmModelSetting
     public ImageSetting? Image { get; set; }
 
     /// <summary>
+    /// Settings for audio
+    /// </summary>
+    public AudioSetting? Audio { get; set; }
+
+    /// <summary>
     /// Settings for llm cost
     /// </summary>
     public LlmCostSetting Cost { get; set; } = new();
@@ -125,6 +130,20 @@ public class ImageVariationSetting
 {
     public ModelSettingBase? Size { get; set; }
     public ModelSettingBase? ResponseFormat { get; set; }
+}
+#endregion
+
+#region Audio model settings
+public class AudioSetting
+{
+    public AudioTranscriptionSetting? Transcription { get; set; }
+}
+
+public class AudioTranscriptionSetting
+{
+    public float? Temperature { get; set; }
+    public ModelSettingBase? ResponseFormat { get; set; }
+    public ModelSettingBase? Granularity { get; set; }
 }
 #endregion
 

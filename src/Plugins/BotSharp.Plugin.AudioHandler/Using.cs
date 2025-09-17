@@ -14,11 +14,14 @@ global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Files;
 global using BotSharp.Abstraction.Files.Models;
 global using BotSharp.Abstraction.Files.Enums;
+global using BotSharp.Abstraction.Files.Utilities;
 global using BotSharp.Abstraction.Functions;
 global using BotSharp.Abstraction.MLTasks;
 global using BotSharp.Abstraction.Options;
 global using BotSharp.Abstraction.Plugins;
 global using BotSharp.Abstraction.Utilities;
+global using BotSharp.Abstraction.Routing;
+global using BotSharp.Core.Infrastructures;
 
 global using BotSharp.Plugin.AudioHandler.Enums;
 global using BotSharp.Plugin.AudioHandler.Helpers;
@@ -26,6 +29,7 @@ global using BotSharp.Plugin.AudioHandler.Hooks;
 global using BotSharp.Plugin.AudioHandler.Models;
 global using BotSharp.Plugin.AudioHandler.LlmContexts;
 global using BotSharp.Plugin.AudioHandler.Provider;
+global using BotSharp.Plugin.AudioHandler.Settings;
 
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;

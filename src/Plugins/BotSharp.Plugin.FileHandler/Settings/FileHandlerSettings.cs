@@ -14,7 +14,6 @@ public class ImageSettings
     public ImageReadSettings? Reading { get; set; }
     public ImageGenerationSettings? Generation { get; set; }
     public ImageEditSettings? Edit { get; set; }
-    public ImageVariationSettings? Variation { get; set; }
 }
 
 public class ImageReadSettings : LlmBase
@@ -30,11 +29,6 @@ public class ImageGenerationSettings : LlmBase
 public class ImageEditSettings : LlmBase
 {
     public SettingBase? ImageConverter { get; set; }
-}
-
-public class ImageVariationSettings : LlmBase
-{
-
 }
 #endregion
 
