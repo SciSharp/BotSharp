@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.Files.Converters;
 
 namespace BotSharp.Core.Files.Services;
 
@@ -22,13 +23,16 @@ public partial class FileInstructService
         {
             var provider = options?.Provider ?? "openai";
             var pdfFiles = await DownloadAndSaveFiles(sessionDir, files);
-
             var targetFiles = pdfFiles;
-            if (provider != "google-ai")
+
+            var converter = GetImageConverter(options?.ImageConvertProvider);
+            if (converter == null && provider == "openai")
             {
-                targetFiles = await ConvertPdfToImages(pdfFiles, options);
+                var fileCoreSettings = _services.GetRequiredService<FileCoreSettings>();
+                converter = GetImageConverter(fileCoreSettings?.ImageConverter?.Provider);
             }
 
+            targetFiles = await ConvertPdfToImages(converter, pdfFiles);
             if (targetFiles.IsNullOrEmpty())
             {
                 return content;
@@ -115,15 +119,12 @@ public partial class FileInstructService
         return locs;
     }
 
-    private async Task<IEnumerable<string>> ConvertPdfToImages(IEnumerable<string> files, InstructOptions? options = null)
+    private async Task<IEnumerable<string>> ConvertPdfToImages(IImageConverter converter, IEnumerable<string> files)
     {
         var images = new List<string>();
-        var settings = _services.GetRequiredService<FileCoreSettings>();
-
-        var converter = GetImageConverter(options?.ImageConvertProvider);
         if (converter == null || files.IsNullOrEmpty())
         {
-            return images;
+            return files;
         }
 
         foreach (var file in files)

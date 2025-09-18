@@ -26,6 +26,7 @@ global using BotSharp.Plugin.ExcelHandler.Enums;
 global using BotSharp.Plugin.ExcelHandler.LlmContexts;
 global using BotSharp.Plugin.ExcelHandler.Models;
 global using BotSharp.Plugin.ExcelHandler.Services;
+global using BotSharp.Plugin.ExcelHandler.Settings;
 
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.DependencyInjection;

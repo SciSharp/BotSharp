@@ -1,4 +1,3 @@
-using BotSharp.Plugin.SqlDriver.Settings;
 using Microsoft.Data.Sqlite;
 using NPOI.SS.UserModel;
 
@@ -8,6 +7,7 @@ public class SqliteService : IDbService
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<SqliteService> _logger;
+    private readonly ExcelHandlerSettings _settings;
 
     private string _dbFilePath = string.Empty;
     private SqliteConnection _inMemoryDbConnection = null;
@@ -20,10 +20,12 @@ public class SqliteService : IDbService
 
     public SqliteService(
         IServiceProvider services,
-        ILogger<SqliteService> logger)
+        ILogger<SqliteService> logger,
+        ExcelHandlerSettings settings)
     {
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
     public string Provider => "sqlite";
@@ -251,8 +253,7 @@ public class SqliteService : IDbService
     {
         if (string.IsNullOrEmpty(_dbFilePath))
         {
-            var sqlSettings = _services.GetRequiredService<SqlDriverSetting>();
-            _dbFilePath = sqlSettings.SqlLiteConnectionString;
+            _dbFilePath = _settings.Database.ConnectionString;
         }
 
         var dbConnection = new SqliteConnection($"Data Source={_dbFilePath};Mode=ReadWrite");

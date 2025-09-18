@@ -16,7 +16,4 @@ public class FileSelectItem
 
     [JsonPropertyName("file_source")]
     public string FileSource { get; set; }
-
-    [JsonPropertyName("file_name")]
-    public string? FileName { get; set; }
 }

@@ -91,9 +91,7 @@ public partial class FileInstructService : IFileInstructService
 
     private IImageConverter? GetImageConverter(string? provider)
     {
-        var settings = _services.GetRequiredService<FileCoreSettings>();
-        var convertProvider = provider ?? settings?.ImageConverter?.Provider;
-        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == convertProvider);
+        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == provider);
         return converter;
     }
     #endregion

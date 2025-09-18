@@ -121,6 +121,32 @@ public class ChatHubObserver : BotSharpObserverBase<HubObserveData<RoleDialogMod
                 _logger.LogCritical($"Receiving {value.EventName} ({value.Data.Indication}) in {nameof(ChatHubObserver)} - {conv.ConversationId}");
 #endif
                 break;
+            case ChatEvent.OnIntermediateMessageReceivedFromAssistant:
+                if (!AllowSendingMessage()) return;
+
+                model = new ChatResponseDto
+                {
+                    ConversationId = conv.ConversationId,
+                    MessageId = message.MessageId,
+                    MessageLabel = message.MessageLabel,
+                    Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
+                    Function = message.FunctionName,
+                    RichContent = message.SecondaryRichContent ?? message.RichContent,
+                    Data = message.Data,
+                    Sender = new()
+                    {
+                        FirstName = "AI",
+                        LastName = "Assistant",
+                        Role = AgentRole.Assistant
+                    }
+                };
+
+                if (value.SaveDataToDb)
+                {
+                    var storage = _services.GetRequiredService<IConversationStorage>();
+                    storage.Append(conv.ConversationId, message);
+                }
+                break;
         }
 
         SendEvent(value.EventName, model.ConversationId, model);

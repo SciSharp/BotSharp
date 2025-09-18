@@ -1,4 +1,3 @@
-using BotSharp.Plugin.ExcelHandler.Settings;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System.Linq.Dynamic.Core;
@@ -32,7 +31,7 @@ public class ReadExcelFn : IFunctionCallback
         _options = options;
         _settings = settings;
         _fileStorage = fileStorage;
-        _dbService = dbServices.FirstOrDefault(x => x.Provider == _settings.DbProvider);
+        _dbService = dbServices.FirstOrDefault(x => x.Provider == _settings.Database?.Provider);
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
