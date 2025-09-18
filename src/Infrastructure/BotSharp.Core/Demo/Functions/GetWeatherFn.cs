@@ -36,6 +36,17 @@ public class GetWeatherFn : IFunctionCallback
 
         await Task.Delay(1500);
 
+#if DEBUG
+        var temp = RoleDialogModel.From(message, AgentRole.Assistant, $"Here is your weather in {args?.City}");
+        messageHub.Push(new()
+        {
+            EventName = ChatEvent.OnIntermediateMessageReceivedFromAssistant,
+            Data = temp,
+            RefId = conv.ConversationId,
+            SaveDataToDb = true
+        });
+#endif
+
         message.Indication = $"Still working on it... Hold on, {args?.City}";
         messageHub.Push(new()
         {

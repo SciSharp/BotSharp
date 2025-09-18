@@ -5,6 +5,7 @@ public static class ChatEvent
     public const string OnConversationInitFromClient = nameof(OnConversationInitFromClient);
     public const string OnMessageReceivedFromClient = nameof(OnMessageReceivedFromClient);
     public const string OnMessageReceivedFromAssistant = nameof(OnMessageReceivedFromAssistant);
+    public const string OnIntermediateMessageReceivedFromAssistant = nameof(OnIntermediateMessageReceivedFromAssistant);
 
     public const string OnMessageDeleted = nameof(OnMessageDeleted);
     public const string OnNotificationGenerated = nameof(OnNotificationGenerated);

@@ -1,9 +1,8 @@
-using System.Data;
-using System.Text.RegularExpressions;
-using BotSharp.Plugin.SqlDriver.Settings;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using NPOI.SS.UserModel;
+using System.Data;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Plugin.ExcelHandler.Services;
 
@@ -11,6 +10,7 @@ public class MySqlService : IDbService
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<MySqlService> _logger;
+    private readonly ExcelHandlerSettings _settings;
 
     private string _mysqlConnection = "";
     private double _excelRowSize = 0;
@@ -23,10 +23,12 @@ public class MySqlService : IDbService
 
     public MySqlService(
         IServiceProvider services,
-        ILogger<MySqlService> logger)
+        ILogger<MySqlService> logger,
+        ExcelHandlerSettings settings)
     {
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
     public string Provider => "mysql";
@@ -250,8 +252,7 @@ public class MySqlService : IDbService
 
     private void InitializeDatabase()
     {
-        var sqlSettings = _services.GetRequiredService<SqlDriverSetting>();
-        _mysqlConnection = sqlSettings.MySqlTempConnectionString;
+        _mysqlConnection = _settings.Database.ConnectionString;
         var databaseName = GetDatabaseName(_mysqlConnection);
         _logger.LogInformation($"Connected to MySQL database {databaseName}");
     }
