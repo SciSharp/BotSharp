@@ -14,8 +14,6 @@
   limitations under the License.
 ******************************************************************************/
 
-using BotSharp.Abstraction.Conversations.Enums;
-using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.SideCar;
 
