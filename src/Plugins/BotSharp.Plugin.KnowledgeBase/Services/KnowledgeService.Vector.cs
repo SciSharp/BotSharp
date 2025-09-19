@@ -80,6 +80,7 @@ public partial class KnowledgeService
             }).ToList();
 
             var vectorDb = GetVectorDb();
+            if (vectorDb == null) return [];
             var dbCollections = await vectorDb.GetCollections();
             return configs.Where(x => dbCollections.Contains(x.Name));
         }

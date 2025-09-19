@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Conversations.Models;
@@ -68,8 +68,8 @@ namespace BotSharp.Plugin.Google.Core
 
         public ConversationState GetCurrentState()
         {
-           
-            return new ConversationState { { "StateKey", new StateKeyValue { Key = "Key", Values = new List<StateValue>()} } };
+
+            return new ConversationState();
         }
 
         public void SetCurrentState(ConversationState state)
