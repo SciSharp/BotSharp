@@ -13,10 +13,10 @@ public partial class FileInstructService
             return Enumerable.Empty<MessageFileModel>();
         }
 
-        var routeContext = _services.GetRequiredService<IRoutingContext>();
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
         var convService = _services.GetRequiredService<IConversationService>();
 
-        var dialogs = routeContext.GetDialogs();
+        var dialogs = routingCtx.GetDialogs();
         if (dialogs.IsNullOrEmpty())
         {
             dialogs = convService.GetDialogHistory(fromBreakpoint: options.FromBreakpoint);

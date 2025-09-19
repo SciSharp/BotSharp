@@ -31,6 +31,7 @@ public interface IRoutingContext
     void ResetAgentStack();
 
     void SetDialogs(List<RoleDialogModel> dialogs);
+    void AddDialogs(List<RoleDialogModel> dialogs);
     List<RoleDialogModel> GetDialogs();
     void ResetDialogs();
 }

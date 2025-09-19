@@ -31,12 +31,12 @@ public class ConversationObserver : BotSharpObserverBase<HubObserveData<RoleDial
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var storage = _services.GetRequiredService<IConversationStorage>();
-        var routeCtx = _services.GetRequiredService<IRoutingContext>();
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
 
         if (value.EventName == ChatEvent.OnIndicationReceived)
         {
 #if DEBUG
-            _logger.LogCritical($"Receiving {value.EventName} ({value.Data.Indication}) in {nameof(ConversationObserver)} - {conv.ConversationId}");
+            _logger.LogCritical($"[{nameof(ConversationObserver)}]: Receive {value.EventName} => {value.Data.Indication} ({conv.ConversationId})");
 #endif
             if (_listeners.TryGetValue(value.EventName, out var func) && func != null)
             {
@@ -45,10 +45,10 @@ public class ConversationObserver : BotSharpObserverBase<HubObserveData<RoleDial
         }
         else if (value.EventName == ChatEvent.OnIntermediateMessageReceivedFromAssistant)
         {
-            var dialogs = routeCtx.GetDialogs();
-            dialogs.Add(value.Data);
-            routeCtx.SetDialogs(dialogs);
-
+#if DEBUG
+            _logger.LogCritical($"[{nameof(ConversationObserver)}]: Receive {value.EventName} => {value.Data.Content} ({conv.ConversationId})");
+#endif
+            routingCtx.AddDialogs([value.Data]);
             if (value.SaveDataToDb)
             {
                 storage.Append(conv.ConversationId, value.Data);
