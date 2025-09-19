@@ -1,6 +1,8 @@
+using System.Collections.Concurrent;
+
 namespace BotSharp.Abstraction.Conversations.Models;
 
-public class ConversationState : Dictionary<string, StateKeyValue>
+public class ConversationState : ConcurrentDictionary<string, StateKeyValue>
 {
     public ConversationState()
     {
