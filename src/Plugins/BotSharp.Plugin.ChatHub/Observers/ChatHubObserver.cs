@@ -140,12 +140,6 @@ public class ChatHubObserver : BotSharpObserverBase<HubObserveData<RoleDialogMod
                         Role = AgentRole.Assistant
                     }
                 };
-
-                if (value.SaveDataToDb)
-                {
-                    var storage = _services.GetRequiredService<IConversationStorage>();
-                    storage.Append(conv.ConversationId, message);
-                }
                 break;
         }
 

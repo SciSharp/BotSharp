@@ -30,6 +30,8 @@ public class ConversationObserver : BotSharpObserverBase<HubObserveData<RoleDial
     public override void OnNext(HubObserveData<RoleDialogModel> value)
     {
         var conv = _services.GetRequiredService<IConversationService>();
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        var routeCtx = _services.GetRequiredService<IRoutingContext>();
 
         if (value.EventName == ChatEvent.OnIndicationReceived)
         {
@@ -39,6 +41,17 @@ public class ConversationObserver : BotSharpObserverBase<HubObserveData<RoleDial
             if (_listeners.TryGetValue(value.EventName, out var func) && func != null)
             {
                 func(value).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+        }
+        else if (value.EventName == ChatEvent.OnIntermediateMessageReceivedFromAssistant)
+        {
+            var dialogs = routeCtx.GetDialogs();
+            dialogs.Add(value.Data);
+            routeCtx.SetDialogs(dialogs);
+
+            if (value.SaveDataToDb)
+            {
+                storage.Append(conv.ConversationId, value.Data);
             }
         }
     }
