@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Abstraction.MessageHub.Observers;
 using BotSharp.Abstraction.SideCar;
+using BotSharp.Core.MessageHub.Observers;
 using System.Runtime.CompilerServices;
 
 namespace BotSharp.Plugin.ChatHub.Observers;
@@ -118,7 +119,7 @@ public class ChatHubObserver : BotSharpObserverBase<HubObserveData<RoleDialogMod
                 };
 
 #if DEBUG
-                _logger.LogCritical($"Receiving {value.EventName} ({value.Data.Indication}) in {nameof(ChatHubObserver)} - {conv.ConversationId}");
+                _logger.LogCritical($"[{nameof(ChatHubObserver)}]: Receive {value.EventName} => {value.Data.Indication} ({conv.ConversationId})");
 #endif
                 break;
             case ChatEvent.OnIntermediateMessageReceivedFromAssistant:

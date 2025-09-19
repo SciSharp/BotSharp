@@ -77,7 +77,7 @@ public partial class RoutingService
             message.IsStreaming = response.IsStreaming;
             message.MessageLabel = response.MessageLabel;
             dialogs.Add(message);
-            Context.SetDialogs(dialogs);
+            Context.AddDialogs([message]);
         }
 
         return true;
@@ -106,10 +106,11 @@ public partial class RoutingService
             var responseTemplate = await templateService.RenderFunctionResponse(message.CurrentAgentId, message);
             if (!string.IsNullOrEmpty(responseTemplate))
             {
-                dialogs.Add(RoleDialogModel.From(message,
+                var msg = RoleDialogModel.From(message,
                     role: AgentRole.Assistant,
-                    content: responseTemplate));
-                Context.SetDialogs(dialogs);
+                    content: responseTemplate);
+                dialogs.Add(msg);
+                Context.AddDialogs([msg]);
             }
             else
             {
@@ -119,7 +120,7 @@ public partial class RoutingService
                     content: message.Content);
 
                 dialogs.Add(msg);
-                Context.SetDialogs(dialogs);
+                Context.AddDialogs([msg]);
 
                 // Send to Next LLM
                 var curAgentId = routing.Context.GetCurrentAgentId();
@@ -128,10 +129,11 @@ public partial class RoutingService
         }
         else
         {
-            dialogs.Add(RoleDialogModel.From(message,
+            var msg = RoleDialogModel.From(message,
                 role: AgentRole.Assistant,
-                content: message.Content));
-            Context.SetDialogs(dialogs);
+                content: message.Content);
+            dialogs.Add(msg);
+            Context.AddDialogs([msg]);
         }
 
         return true;

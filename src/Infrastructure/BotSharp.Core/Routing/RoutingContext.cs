@@ -269,12 +269,20 @@ public class RoutingContext : IRoutingContext
 
     public void SetDialogs(List<RoleDialogModel> dialogs)
     {
-        _dialogs = dialogs ?? [];
+        _dialogs = new List<RoleDialogModel>(dialogs ?? []);
+    }
+
+    public void AddDialogs(List<RoleDialogModel> dialogs)
+    {
+        var items = new List<RoleDialogModel>(dialogs ?? []);
+        _dialogs ??= [];
+        _dialogs.AddRange(items);
     }
 
     public List<RoleDialogModel> GetDialogs()
     {
-        return _dialogs ?? [];
+        _dialogs ??= [];
+        return new List<RoleDialogModel>(_dialogs);
     }
 
     public void ResetDialogs()
