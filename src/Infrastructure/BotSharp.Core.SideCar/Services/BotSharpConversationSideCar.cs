@@ -15,9 +15,6 @@
 ******************************************************************************/
 
 using BotSharp.Core.Infrastructures;
-using NetTopologySuite.Index.KdTree;
-using Newtonsoft.Json.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BotSharp.Core.SideCar.Services;
 
