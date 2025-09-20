@@ -483,7 +483,7 @@ public class ConversationController : ControllerBase
     }
 
     [HttpPost("/agent/{agentId}/conversation/{conversationId}/upload")]
-    public async Task<string> UploadConversationMessageFiles([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] InputMessageFiles input)
+    public async Task<IActionResult> UploadConversationMessageFiles([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] InputMessageFiles input)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         convService.SetConversationId(conversationId, input.States);
@@ -491,7 +491,7 @@ public class ConversationController : ControllerBase
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var messageId = Guid.NewGuid().ToString();
         var isSaved = fileStorage.SaveMessageFiles(conv.Id, messageId, FileSource.User, input.Files);
-        return isSaved ? messageId : string.Empty;
+        return Ok(new { messageId = isSaved ? messageId : string.Empty });
     }
 
     [HttpGet("/conversation/{conversationId}/files/{messageId}/{source}")]
