@@ -42,11 +42,11 @@ public partial class ImageCompletionProvider
 
         var settings = settingsService.GetSetting(Provider, _model)?.Image?.Generation;
 
-        size = settings?.Size != null ? VerifyImageParameter(size, settings.Size.Default, settings.Size.Options) : null;
-        quality = settings?.Quality != null ? VerifyImageParameter(quality, settings.Quality.Default, settings.Quality.Options) : null;
-        style = settings?.Style != null ? VerifyImageParameter(style, settings.Style.Default, settings.Style.Options) : null;
-        responseFormat = settings?.ResponseFormat != null ? VerifyImageParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
-        background = settings?.Background != null ? VerifyImageParameter(background, settings.Background.Default, settings.Background.Options) : null;
+        size = settings?.Size != null ? LlmUtility.VerifyModelParameter(size, settings.Size.Default, settings.Size.Options) : null;
+        quality = settings?.Quality != null ? LlmUtility.VerifyModelParameter(quality, settings.Quality.Default, settings.Quality.Options) : null;
+        style = settings?.Style != null ? LlmUtility.VerifyModelParameter(style, settings.Style.Default, settings.Style.Options) : null;
+        responseFormat = settings?.ResponseFormat != null ? LlmUtility.VerifyModelParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
+        background = settings?.Background != null ? LlmUtility.VerifyModelParameter(background, settings.Background.Default, settings.Background.Options) : null;
 
         var options = new ImageGenerationOptions();
         if (!string.IsNullOrEmpty(size))

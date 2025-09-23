@@ -10,7 +10,6 @@ public class ChatStreamMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ChatStreamMiddleware> _logger;
-    private BotSharpRealtimeSession _session;
 
     public ChatStreamMiddleware(
         RequestDelegate next,
@@ -40,7 +39,6 @@ public class ChatStreamMiddleware
                 }
                 catch (Exception ex)
                 {
-                    _session?.Dispose();
                     _logger.LogError(ex, $"Error when connecting Chat stream. ({ex.Message})");
                 }
                 return;
@@ -52,8 +50,7 @@ public class ChatStreamMiddleware
 
     private async Task HandleWebSocket(IServiceProvider services, string agentId, string conversationId, WebSocket webSocket)
     {
-        _session?.Dispose();
-        _session = new BotSharpRealtimeSession(services, webSocket, new ChatSessionOptions
+        using var session = new BotSharpRealtimeSession(services, webSocket, new ChatSessionOptions
         {
             Provider = "BotSharp Chat Stream",
             BufferSize = 1024 * 32,
@@ -72,7 +69,7 @@ public class ChatStreamMiddleware
         convService.SetConversationId(conversationId, []);
         await convService.GetConversationRecordOrCreateNew(agentId);
 
-        await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
+        await foreach (ChatSessionUpdate update in session.ReceiveUpdatesAsync(CancellationToken.None))
         {
             var receivedText = update?.RawResponse;
             if (string.IsNullOrEmpty(receivedText))
@@ -87,7 +84,7 @@ public class ChatStreamMiddleware
                 _logger.LogCritical($"Start chat stream connection for conversation ({conversationId})");
 #endif
                 var request = InitRequest(data, conversationId);
-                await ConnectToModel(hub, webSocket, request?.States);
+                await ConnectToModel(hub, session, request?.States);
             }
             else if (eventType == "media")
             {
@@ -107,17 +104,16 @@ public class ChatStreamMiddleware
         }
 
         convService.SaveStates();
-        await _session.DisconnectAsync();
-        _session.Dispose();
+        await session.DisconnectAsync();
     }
 
-    private async Task ConnectToModel(IRealtimeHub hub, WebSocket webSocket, List<MessageState>? states = null)
+    private async Task ConnectToModel(IRealtimeHub hub, BotSharpRealtimeSession session, List<MessageState>? states = null)
     {
         await hub.ConnectToModel(responseToUser: async data =>
         {
-            if (_session != null)
+            if (session != null)
             {
-                await _session.SendEventAsync(data);
+                await session.SendEventAsync(data);
             }
         }, initStates: states);
     }

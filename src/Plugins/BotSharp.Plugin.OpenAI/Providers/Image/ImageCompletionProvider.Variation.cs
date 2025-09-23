@@ -35,8 +35,8 @@ public partial class ImageCompletionProvider
 
         var settings = settingsService.GetSetting(Provider, _model)?.Image?.Variation;
 
-        size = settings?.Size != null ? VerifyImageParameter(size, settings.Size.Default, settings.Size.Options) : null;
-        responseFormat = settings?.ResponseFormat != null ? VerifyImageParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
+        size = settings?.Size != null ? LlmUtility.VerifyModelParameter(size, settings.Size.Default, settings.Size.Options) : null;
+        responseFormat = settings?.ResponseFormat != null ? LlmUtility.VerifyModelParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
 
         var options = new ImageVariationOptions();
         if (!string.IsNullOrEmpty(size))

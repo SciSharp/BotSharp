@@ -111,7 +111,7 @@ public class LlmRealtimeSession : IDisposable
 
         if (_webSocket.State == WebSocketState.Open)
         {
-            await _webSocket.CloseAsync(WebSocketCloseStatus.Empty, null, CancellationToken.None);
+            await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, $"Normal Closure from {nameof(LlmRealtimeSession)}-{_sessionOptions?.Provider}", CancellationToken.None);
         }
     }
 
