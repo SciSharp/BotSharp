@@ -26,7 +26,6 @@ public class LlmRealtimeSession : IDisposable
     public async Task ConnectAsync(Uri uri, Dictionary<string, string>? headers = null, CancellationToken cancellationToken = default)
     {
         _disposed = false;
-        _webSocket?.Dispose();
         _webSocket = new ClientWebSocket();
 
         if (!headers.IsNullOrEmpty())

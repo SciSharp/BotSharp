@@ -31,7 +31,6 @@ internal class AsyncWebsocketDataResultEnumerator : IAsyncEnumerator<ClientResul
     public ValueTask DisposeAsync()
     {
         ArrayPool<byte>.Shared.Return(_buffer, clearArray: true);
-        _webSocket?.Dispose();
         return new ValueTask(Task.CompletedTask);
     }
 
