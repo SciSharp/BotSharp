@@ -26,6 +26,7 @@ global using BotSharp.Abstraction.Conversations.Enums;
 global using BotSharp.Abstraction.Files.Utilities;
 global using BotSharp.Abstraction.Functions.Models;
 global using BotSharp.Abstraction.MLTasks.Settings;
+global using BotSharp.Abstraction.MLTasks.Utilities;
 global using BotSharp.Abstraction.Options;
 global using BotSharp.Abstraction.Realtime;
 global using BotSharp.Abstraction.Realtime.Models;

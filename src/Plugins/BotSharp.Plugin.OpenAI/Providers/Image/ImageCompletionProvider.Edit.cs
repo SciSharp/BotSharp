@@ -61,9 +61,9 @@ public partial class ImageCompletionProvider
 
         var settings = settingsService.GetSetting(Provider, _model)?.Image?.Edit;
 
-        size = settings?.Size != null ? VerifyImageParameter(size, settings.Size.Default, settings.Size.Options) : null;
-        responseFormat = settings?.ResponseFormat != null ? VerifyImageParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
-        background = settings?.Background != null ? VerifyImageParameter(background, settings.Background.Default, settings.Background.Options) : null;
+        size = settings?.Size != null ? AiModelUtility.VerifyModelParameter(size, settings.Size.Default, settings.Size.Options) : null;
+        responseFormat = settings?.ResponseFormat != null ? AiModelUtility.VerifyModelParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
+        background = settings?.Background != null ? AiModelUtility.VerifyModelParameter(background, settings.Background.Default, settings.Background.Options) : null;
 
         var options = new ImageEditOptions();
         if (!string.IsNullOrEmpty(size))

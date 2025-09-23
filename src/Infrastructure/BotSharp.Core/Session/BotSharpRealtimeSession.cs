@@ -74,7 +74,7 @@ public class BotSharpRealtimeSession : IDisposable
             return;
         }
 
-        await _websocket.CloseAsync(WebSocketCloseStatus.Empty, null, CancellationToken.None);
+        await _websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Normal Closure", CancellationToken.None);
     }
 
     public void Dispose()

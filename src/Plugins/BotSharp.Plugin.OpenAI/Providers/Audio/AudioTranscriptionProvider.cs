@@ -47,8 +47,8 @@ public class AudioTranscriptionProvider : IAudioTranscription
             temperature = $"{settings.Temperature}";
         }
         
-        responseFormat = settings?.ResponseFormat != null ? VerifyTranscriptionParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
-        granularity = settings?.Granularity != null ? VerifyTranscriptionParameter(granularity, settings.Granularity.Default, settings.Granularity.Options) : null;
+        responseFormat = settings?.ResponseFormat != null ? AiModelUtility.VerifyModelParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
+        granularity = settings?.Granularity != null ? AiModelUtility.VerifyModelParameter(granularity, settings.Granularity.Default, settings.Granularity.Options) : null;
 
         var options = new AudioTranscriptionOptions
         {
@@ -130,15 +130,5 @@ public class AudioTranscriptionProvider : IAudioTranscription
         }
 
         return temperature;
-    }
-
-    private string? VerifyTranscriptionParameter(string? curVal, string? defaultVal, IEnumerable<string>? options = null)
-    {
-        if (options.IsNullOrEmpty())
-        {
-            return curVal.IfNullOrEmptyAs(defaultVal);
-        }
-
-        return options.Contains(curVal) ? curVal : defaultVal;
     }
 }
