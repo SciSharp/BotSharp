@@ -23,7 +23,6 @@ public class TwilioStreamMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<TwilioStreamMiddleware> _logger;
-    private BotSharpRealtimeSession _session;
 
     public TwilioStreamMiddleware(
         RequestDelegate next,
@@ -52,7 +51,6 @@ public class TwilioStreamMiddleware
                 }
                 catch (Exception ex)
                 {
-                    _session?.Dispose();
                     _logger.LogError(ex, $"Error in WebSocket communication: {ex.Message} for conversation {conversationId}");
                 }
                 return;
@@ -64,8 +62,7 @@ public class TwilioStreamMiddleware
 
     private async Task HandleWebSocket(IServiceProvider services, string agentId, string conversationId, WebSocket webSocket)
     {
-        _session?.Dispose();
-        _session = new BotSharpRealtimeSession(services, webSocket, new ChatSessionOptions
+        using var session = new BotSharpRealtimeSession(services, webSocket, new ChatSessionOptions
         {
             Provider = "BotSharp Twilio Stream",
             BufferSize = 1024 * 32,
@@ -92,7 +89,7 @@ public class TwilioStreamMiddleware
         var routing = services.GetRequiredService<IRoutingService>();
         routing.Context.Push(agentId);
 
-        await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
+        await foreach (ChatSessionUpdate update in session.ReceiveUpdatesAsync(CancellationToken.None))
         {
             var receivedText = update?.RawResponse;
             if (string.IsNullOrEmpty(receivedText))
@@ -144,8 +141,7 @@ public class TwilioStreamMiddleware
         }
 
         convService.SaveStates();
-        await _session.DisconnectAsync();
-        _session.Dispose();
+        await session.DisconnectAsync();
     }
 
     private async Task ConnectToModel(IRealtimeHub hub, WebSocket webSocket)
