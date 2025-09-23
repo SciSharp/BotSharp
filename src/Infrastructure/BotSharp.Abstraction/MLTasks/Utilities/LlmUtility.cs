@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.MLTasks.Utilities;
 
-public static class AiModelUtility
+public static class LlmUtility
 {
     public static string? VerifyModelParameter(string? curVal, string? defaultVal, IEnumerable<string>? options = null)
     {

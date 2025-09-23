@@ -47,8 +47,8 @@ public class AudioTranscriptionProvider : IAudioTranscription
             temperature = $"{settings.Temperature}";
         }
         
-        responseFormat = settings?.ResponseFormat != null ? AiModelUtility.VerifyModelParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
-        granularity = settings?.Granularity != null ? AiModelUtility.VerifyModelParameter(granularity, settings.Granularity.Default, settings.Granularity.Options) : null;
+        responseFormat = settings?.ResponseFormat != null ? LlmUtility.VerifyModelParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
+        granularity = settings?.Granularity != null ? LlmUtility.VerifyModelParameter(granularity, settings.Granularity.Default, settings.Granularity.Options) : null;
 
         var options = new AudioTranscriptionOptions
         {
