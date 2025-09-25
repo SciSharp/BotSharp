@@ -94,7 +94,8 @@ public class ChatCompletionProvider : IChatCompletion
         renderedInstructions = [];
 
         // Prepare instruction and functions
-        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        var renderData = agentService.CollectRenderData(agent);
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent, renderData);
         if (!string.IsNullOrWhiteSpace(instruction))
         {
             renderedInstructions.Add(instruction);

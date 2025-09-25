@@ -73,7 +73,8 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
         var agentService = _services.GetRequiredService<IAgentService>();
 
         // Prepare instruction and functions
-        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        var renderData = agentService.CollectRenderData(agent);
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent, renderData);
         if (!string.IsNullOrWhiteSpace(instruction))
         {
             renderedInstructions.Add(instruction);
@@ -82,9 +83,9 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
 
         foreach (var function in functions)
         {
-            if (agentService.RenderFunction(agent, function))
+            if (agentService.RenderFunction(agent, function, renderData))
             {
-                var property = agentService.RenderFunctionProperty(agent, function);
+                var property = agentService.RenderFunctionProperty(agent, function, renderData);
                 (options.Tools ??= []).Add(new NopAIFunction(function.Name, function.Description, JsonSerializer.SerializeToElement(property)));
             }
         }

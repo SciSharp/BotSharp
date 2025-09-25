@@ -7,7 +7,7 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    public string RenderInstruction(Agent agent)
+    public string RenderInstruction(Agent agent, Dictionary<string, object>? renderData = null)
     {
         var render = _services.GetRequiredService<ITemplateRender>();
         var conv = _services.GetRequiredService<IConversationService>();
@@ -18,19 +18,16 @@ public partial class AgentService
         instructions.AddRange(secondaryInstructions);
 
         // update states
-        var renderDict = new Dictionary<string, object>(agent.TemplateDict);
-        foreach (var t in conv.States.GetStates())
-        {
-             renderDict[t.Key] = t.Value;
-        }
-
+        var renderDict = renderData != null ? new Dictionary<string, object>(renderData ?? []) : CollectRenderData(agent);
         renderDict[TemplateRenderConstant.RENDER_AGENT] = agent;
+
         var res = render.Render(string.Join("\r\n", instructions), renderDict);
         return res;
     }
 
-    public bool RenderFunction(Agent agent, FunctionDef def)
+    public bool RenderFunction(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null)
     {
+        var renderDict = renderData ?? agent.TemplateDict;
         var isRender = true;
 
         var channels = def.Channels;
@@ -48,18 +45,19 @@ public partial class AgentService
 
         if (!string.IsNullOrWhiteSpace(def.VisibilityExpression))
         {
-            isRender = RenderVisibility(def.VisibilityExpression, agent.TemplateDict);
+            isRender = RenderVisibility(def.VisibilityExpression, renderDict);
         }
 
         return isRender;
     }
 
-    public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def)
+    public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null)
     {
         var parameterDef = def?.Parameters;
         var propertyDef = parameterDef?.Properties;
         if (propertyDef == null) return null;
 
+        var renderDict = renderData ?? agent.TemplateDict;
         var visibleExpress = "visibility_expression";
         var root = propertyDef.RootElement;
         var iterator = root.EnumerateObject();
@@ -73,7 +71,7 @@ public partial class AgentService
             if (node.TryGetProperty(visibleExpress, out var element))
             {
                 var expression = element.GetString();
-                matched = RenderVisibility(expression, agent.TemplateDict);
+                matched = RenderVisibility(expression, renderDict);
             }
 
             if (matched)
@@ -107,37 +105,19 @@ public partial class AgentService
         return parameterDef;
     }
 
-    public (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, StringComparer? comparer = null)
+    public (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, Dictionary<string, object>? renderData = null, StringComparer ? comparer = null)
     {
         var text = string.Empty;
         if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
-            text = RenderInstruction(agent);
+            text = RenderInstruction(agent, renderData);
         }
 
         var functions = FilterFunctions(text, agent, comparer);
         return (text, functions);
     }
 
-    public IEnumerable<FunctionDef> FilterFunctions(string instruction, Agent agent, StringComparer? comparer = null)
-    {
-        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
-        if (agent.FuncVisMode.IsEqualTo(AgentFuncVisMode.Auto) && !string.IsNullOrWhiteSpace(instruction))
-        {
-            functions = FilterFunctions(instruction, functions, comparer);
-        }
-        return functions;
-    }
-
-    public IEnumerable<FunctionDef> FilterFunctions(string instruction, IEnumerable<FunctionDef> functions, StringComparer? comparer = null)
-    {
-        comparer = comparer ?? StringComparer.OrdinalIgnoreCase;
-        var matches = Regex.Matches(instruction, @"\b[A-Za-z0-9_-]+\b");
-        var words = new HashSet<string>(matches.Select(m => m.Value), comparer);
-        return functions.Where(x => words.Contains(x.Name, comparer));
-    }
-
-    public string RenderTemplate(Agent agent, string templateName)
+    public string RenderTemplate(Agent agent, string templateName, Dictionary<string, object>? renderData = null)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -145,14 +125,11 @@ public partial class AgentService
         var template = agent.Templates.FirstOrDefault(x => x.Name == templateName)?.Content ?? string.Empty;
 
         // update states
-        foreach (var t in conv.States.GetStates())
-        {
-            agent.TemplateDict[t.Key] = t.Value;
-        }
+        var renderDict = renderData != null ? new Dictionary<string, object>(renderData ?? []) : CollectRenderData(agent);
+        renderDict[TemplateRenderConstant.RENDER_AGENT] = agent;
 
         // render liquid template
-        agent.TemplateDict[TemplateRenderConstant.RENDER_AGENT] = agent;
-        var content = render.Render(template, agent.TemplateDict);
+        var content = render.Render(template, renderDict);
 
         HookEmitter.Emit<IContentGeneratingHook>(_services, async hook => await hook.OnRenderingTemplate(agent, templateName, content),
             agent.Id).Wait();
@@ -175,4 +152,37 @@ public partial class AgentService
 
         return result.IsEqualTo("visible");
     }
+
+    public Dictionary<string, object> CollectRenderData(Agent agent)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+
+        var renderDict = new Dictionary<string, object>(agent?.TemplateDict ?? []);
+        foreach (var t in state.GetStates())
+        {
+            renderDict[t.Key] = t.Value;
+        }
+
+        return renderDict;
+    }
+
+    #region Private methods
+    private IEnumerable<FunctionDef> FilterFunctions(string instruction, Agent agent, StringComparer? comparer = null)
+    {
+        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        if (agent.FuncVisMode.IsEqualTo(AgentFuncVisMode.Auto) && !string.IsNullOrWhiteSpace(instruction))
+        {
+            functions = FilterFunctions(instruction, functions, comparer);
+        }
+        return functions;
+    }
+
+    private IEnumerable<FunctionDef> FilterFunctions(string instruction, IEnumerable<FunctionDef> functions, StringComparer? comparer = null)
+    {
+        comparer = comparer ?? StringComparer.OrdinalIgnoreCase;
+        var matches = Regex.Matches(instruction, @"\b[A-Za-z0-9_-]+\b");
+        var words = new HashSet<string>(matches.Select(m => m.Value), comparer);
+        return functions.Where(x => words.Contains(x.Name, comparer));
+    }
+    #endregion
 }
