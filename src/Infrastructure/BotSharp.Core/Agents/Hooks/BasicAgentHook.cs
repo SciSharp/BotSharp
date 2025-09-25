@@ -63,17 +63,18 @@ public class BasicAgentHook : AgentHookBase
         var agentService = _services.GetRequiredService<IAgentService>();
         var innerUtilities = utilities!.Where(x => !string.IsNullOrEmpty(x.Name) && !x.Disabled).ToList();
 
+        var renderDict = agentService.CollectRenderData(agent);
         var functionNames = new List<string>();
         var templateNames = new List<string>();
 
         foreach (var utility in innerUtilities)
         {
-            var isVisible = agentService.RenderVisibility(utility.VisibilityExpression, agent.TemplateDict);
+            var isVisible = agentService.RenderVisibility(utility.VisibilityExpression, renderDict);
             if (!isVisible || utility.Items.IsNullOrEmpty()) continue;
 
             foreach (var item in utility.Items)
             {
-                isVisible = agentService.RenderVisibility(item.VisibilityExpression, agent.TemplateDict);
+                isVisible = agentService.RenderVisibility(item.VisibilityExpression, renderDict);
                 if (!isVisible) continue;
 
                 if (item.FunctionName?.StartsWith(UTIL_PREFIX) == true)

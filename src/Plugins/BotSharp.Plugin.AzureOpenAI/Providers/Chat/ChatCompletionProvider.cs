@@ -372,7 +372,8 @@ public class ChatCompletionProvider : IChatCompletion
         var options = InitChatCompletionOption(agent);
 
         // Prepare instruction and functions
-        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        var renderData = agentService.CollectRenderData(agent);
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent, renderData);
         if (!string.IsNullOrWhiteSpace(instruction))
         {
             renderedInstructions.Add(instruction);
@@ -384,27 +385,18 @@ public class ChatCompletionProvider : IChatCompletion
         {
             foreach (var function in functions)
             {
-                if (!agentService.RenderFunction(agent, function)) continue;
+                if (!agentService.RenderFunction(agent, function, renderData))
+                {
+                    continue;
+                }
 
-                var property = agentService.RenderFunctionProperty(agent, function);
+                var property = agentService.RenderFunctionProperty(agent, function, renderData);
 
                 options.Tools.Add(ChatTool.CreateFunctionTool(
                     functionName: function.Name,
                     functionDescription: function.Description,
                     functionParameters: BinaryData.FromObjectAsJson(property)));
             }
-        }
-
-        foreach (var function in functions)
-        {
-            if (!agentService.RenderFunction(agent, function)) continue;
-
-            var property = agentService.RenderFunctionProperty(agent, function);
-
-            options.Tools.Add(ChatTool.CreateFunctionTool(
-                functionName: function.Name,
-                functionDescription: function.Description,
-                functionParameters: BinaryData.FromObjectAsJson(property)));
         }
 
         if (!string.IsNullOrEmpty(agent.Knowledges))

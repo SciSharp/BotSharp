@@ -29,19 +29,18 @@ public interface IAgentService
     /// <returns></returns>
     Task InheritAgent(Agent agent);
 
-    string RenderInstruction(Agent agent);
+    string RenderInstruction(Agent agent, Dictionary<string, object>? renderData = null);
 
-    string RenderTemplate(Agent agent, string templateName);
+    string RenderTemplate(Agent agent, string templateName, Dictionary<string, object>? renderData = null);
 
-    bool RenderFunction(Agent agent, FunctionDef def);
+    bool RenderFunction(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null);
 
-    FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def);
+    FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null);
 
-    (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, StringComparer? comparer = null);
-    IEnumerable<FunctionDef> FilterFunctions(string instruction, Agent agent, StringComparer? comparer = null);
-    IEnumerable<FunctionDef> FilterFunctions(string instruction, IEnumerable<FunctionDef> functions, StringComparer? comparer = null);
+    (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, Dictionary<string, object>? renderData = null, StringComparer? comparer = null);
 
     bool RenderVisibility(string? visibilityExpression, Dictionary<string, object> dict);
+    Dictionary<string, object> CollectRenderData(Agent agent);
 
 
     /// <summary>

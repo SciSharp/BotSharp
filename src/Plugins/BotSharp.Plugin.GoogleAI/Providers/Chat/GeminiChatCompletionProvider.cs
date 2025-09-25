@@ -198,7 +198,8 @@ public class GeminiChatCompletionProvider : IChatCompletion
         var funcPrompts = new List<string>();
 
         // Prepare instruction and functions
-        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        var renderData = agentService.CollectRenderData(agent);
+        var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent, renderData);
         if (!string.IsNullOrWhiteSpace(instruction))
         {
             renderedInstructions.Add(instruction);
@@ -207,9 +208,12 @@ public class GeminiChatCompletionProvider : IChatCompletion
 
         foreach (var function in functions)
         {
-            if (!agentService.RenderFunction(agent, function)) continue;
+            if (!agentService.RenderFunction(agent, function, renderData))
+            {
+                continue;
+            }
 
-            var def = agentService.RenderFunctionProperty(agent, function);
+            var def = agentService.RenderFunctionProperty(agent, function, renderData);
             var props = JsonSerializer.Serialize(def?.Properties);
             var parameters = !string.IsNullOrWhiteSpace(props) && props != "{}" ? new Schema()
             {

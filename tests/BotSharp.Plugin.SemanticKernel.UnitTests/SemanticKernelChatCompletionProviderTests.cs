@@ -38,7 +38,7 @@ namespace BotSharp.Plugin.SemanticKernel.Tests
             _servicesMock.Setup(x => x.GetService(typeof(IEnumerable<IContentGeneratingHook>)))
                         .Returns(new List<IContentGeneratingHook>());
             var agentService = new Mock<IAgentService>();
-            agentService.Setup(x => x.RenderInstruction(agent)).Returns("How can I help you?");
+            agentService.Setup(x => x.RenderInstruction(agent, null)).Returns("How can I help you?");
             _servicesMock.Setup(x => x.GetService(typeof(IAgentService)))
                 .Returns(agentService.Object);
 

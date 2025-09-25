@@ -101,7 +101,8 @@ public class PalmChatCompletionProvider : IChatCompletion
         var router = routing.Router;
 
         // Prepare instruction and functions
-        var (prompt, functions) = agentService.PrepareInstructionAndFunctions(agent);
+        var renderData = agentService.CollectRenderData(agent);
+        var (prompt, functions) = agentService.PrepareInstructionAndFunctions(agent, renderData);
         if (!string.IsNullOrWhiteSpace(prompt))
         {
             renderedInstructions.Add(prompt);

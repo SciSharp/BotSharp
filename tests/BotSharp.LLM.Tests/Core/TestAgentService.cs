@@ -41,37 +41,27 @@ namespace BotSharp.Plugin.Google.Core
             return Task.CompletedTask;
         }
 
-        public string RenderInstruction(Agent agent)
+        public string RenderInstruction(Agent agent, Dictionary<string, object>? renderData = null)
         {
             return "Fake Instruction";
         }
 
-        public string RenderTemplate(Agent agent, string templateName)
+        public string RenderTemplate(Agent agent, string templateName, Dictionary<string, object>? renderData = null)
         {
             return $"Rendered template for {templateName}";
         }
 
-        public bool RenderFunction(Agent agent, FunctionDef def)
+        public bool RenderFunction(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null)
         {
             return true;
         }
 
-        public (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, StringComparer? comparer = null)
+        public (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, Dictionary<string, object>? renderData = null, StringComparer? comparer = null)
         {
             return (string.Empty, []);
         }
 
-        public IEnumerable<FunctionDef> FilterFunctions(string instruction, Agent agent, StringComparer? comparer = null)
-        {
-            return [];
-        }
-
-        public IEnumerable<FunctionDef> FilterFunctions(string instruction, IEnumerable<FunctionDef> functions, StringComparer? comparer = null)
-        {
-            return [];
-        }
-
-        public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def)
+        public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null)
         {
             return def.Parameters;
         }
@@ -129,6 +119,11 @@ namespace BotSharp.Plugin.Google.Core
         public Task<IEnumerable<AgentUtility>> GetAgentUtilityOptions()
         {
             return Task.FromResult(Enumerable.Empty<AgentUtility>());
+        }
+
+        public Dictionary<string, object> CollectRenderData(Agent agent)
+        {
+            return [];
         }
     }
 }
