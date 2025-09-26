@@ -18,6 +18,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     private string _model = "gpt-4o-mini-realtime-preview";
     private LlmRealtimeSession _session;
+    private RealtimeOptions? _realtimeOptions;
     private bool _isBlocking = false;
 
     private RealtimeHubConnection _conn;
@@ -338,8 +339,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             type = "session.update",
             session = new RealtimeSessionUpdateRequest
             {
-                InputAudioFormat = realtimeModelSettings.InputAudioFormat,
-                OutputAudioFormat = realtimeModelSettings.OutputAudioFormat,
+                InputAudioFormat = _realtimeOptions?.InputAudioFormat ?? realtimeModelSettings.InputAudioFormat,
+                OutputAudioFormat = _realtimeOptions?.OutputAudioFormat ?? realtimeModelSettings.OutputAudioFormat,
                 Voice = realtimeModelSettings.Voice,
                 Instructions = instruction,
                 ToolChoice = "auto",
@@ -455,6 +456,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     public void SetModelName(string model)
     {
         _model = model;
+    }
+
+    public void SetOptions(RealtimeOptions? options)
+    {
+        _realtimeOptions = options;
     }
 
     #region Private methods

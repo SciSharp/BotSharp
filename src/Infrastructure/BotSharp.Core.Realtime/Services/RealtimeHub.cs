@@ -24,7 +24,11 @@ public class RealtimeHub : IRealtimeHub
         _logger = logger;
     }
 
-    public async Task ConnectToModel(Func<string, Task>? responseToUser = null, Func<string, Task>? init = null, List<MessageState>? initStates = null)
+    public async Task ConnectToModel(
+        Func<string, Task>? responseToUser = null,
+        Func<string, Task>? init = null,
+        List<MessageState>? initStates = null,
+        RealtimeOptions? options = null)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         convService.SetConversationId(_conn.ConversationId, initStates ?? []);
@@ -43,6 +47,7 @@ public class RealtimeHub : IRealtimeHub
         var settings = _services.GetRequiredService<RealtimeModelSettings>();
 
         _completer = _services.GetServices<IRealTimeCompletion>().First(x => x.Provider == settings.Provider);
+        _completer.SetOptions(options);
 
         await _completer.Connect(
             conn: _conn, 

@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Realtime.Models.Session;
 using BotSharp.Core.Session;
 using Microsoft.AspNetCore.Http;
@@ -84,7 +83,7 @@ public class ChatStreamMiddleware
                 _logger.LogCritical($"Start chat stream connection for conversation ({conversationId})");
 #endif
                 var request = InitRequest(data, conversationId);
-                await ConnectToModel(hub, session, request?.States);
+                await ConnectToModel(hub, session, request);
             }
             else if (eventType == "media")
             {
@@ -107,7 +106,7 @@ public class ChatStreamMiddleware
         await session.DisconnectAsync();
     }
 
-    private async Task ConnectToModel(IRealtimeHub hub, BotSharpRealtimeSession session, List<MessageState>? states = null)
+    private async Task ConnectToModel(IRealtimeHub hub, BotSharpRealtimeSession session, ChatStreamRequest? request)
     {
         await hub.ConnectToModel(responseToUser: async data =>
         {
@@ -115,7 +114,7 @@ public class ChatStreamMiddleware
             {
                 await session.SendEventAsync(data);
             }
-        }, initStates: states);
+        }, initStates: request?.States, options: request?.Options);
     }
 
     private (string, string) MapEvents(RealtimeHubConnection conn, string receivedText, string conversationId)
