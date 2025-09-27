@@ -8,13 +8,21 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.PythonInterpreter.Functions;
 
-public class InterpretationFn : IFunctionCallback
+public class PyInterpretationFn : IFunctionCallback
 {
-    public string Name => "python_interpreter";
-    public string Indication => "Interpreting python code";
+    public string Name => "util-code-python_interpreter";
+    public string Indication => "Executing python code";
 
     private readonly IServiceProvider _services;
-    private readonly ILogger _logger;
+    private readonly ILogger<PyInterpretationFn> _logger;
+
+    public PyInterpretationFn(
+        IServiceProvider services,
+        ILogger<PyInterpretationFn> logger)
+    {
+        _services = services;
+        _logger = logger;
+    }
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
