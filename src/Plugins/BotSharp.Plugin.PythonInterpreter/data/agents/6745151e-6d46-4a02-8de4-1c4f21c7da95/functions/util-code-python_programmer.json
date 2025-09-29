@@ -1,5 +1,5 @@
 {
-  "name": "util-code-python_interpreter",
+  "name": "util-code-python_programmer",
   "description": "If user's requirement can be fulfilled by python code, you can call this function to generate python code to execute.",
   "parameters": {
     "type": "object",

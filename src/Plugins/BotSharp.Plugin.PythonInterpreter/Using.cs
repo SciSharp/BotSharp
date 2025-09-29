@@ -26,3 +26,5 @@ global using BotSharp.Core.Infrastructures;
 global using BotSharp.Plugin.PythonInterpreter.Enums;
 global using BotSharp.Plugin.PythonInterpreter.LlmContext;
 global using BotSharp.Plugin.PythonInterpreter.Settings;
+global using BotSharp.Plugin.PythonInterpreter.Functions;
+global using BotSharp.Plugin.PythonInterpreter.Hooks;

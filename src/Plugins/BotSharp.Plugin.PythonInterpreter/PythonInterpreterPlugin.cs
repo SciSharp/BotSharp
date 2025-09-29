@@ -1,6 +1,6 @@
-using BotSharp.Plugin.PythonInterpreter.Hooks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Python.Runtime;
 using System.IO;
 
@@ -26,24 +26,33 @@ public class PythonInterpreterPlugin : IBotSharpAppPlugin
 
     public void Configure(IApplicationBuilder app)
     {
-        var settings = app.ApplicationServices.GetRequiredService<PythonInterpreterSettings>();
+        var sp = app.ApplicationServices;
+        var settings = sp.GetRequiredService<PythonInterpreterSettings>();
+        var logger = sp.GetRequiredService<ILogger<PyProgrammerFn>>();
+        var pyLoc = settings.InstallLocation;
 
-        // For Python interpreter plugin
-        if (File.Exists(settings.DllLocation))
+        try
         {
-            Runtime.PythonDLL = settings.DllLocation;
-            PythonEngine.Initialize();
-            _pyState = PythonEngine.BeginAllowThreads();
+            if (File.Exists(pyLoc))
+            {
+                Runtime.PythonDLL = pyLoc;
+                PythonEngine.Initialize();
+                _pyState = PythonEngine.BeginAllowThreads();
 
-            var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
-            lifetime.ApplicationStopping.Register(() => {
-                PythonEngine.EndAllowThreads(_pyState);
-                PythonEngine.Shutdown();
-            });
+                var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
+                lifetime.ApplicationStopping.Register(() => {
+                    PythonEngine.EndAllowThreads(_pyState);
+                    PythonEngine.Shutdown();
+                });
+            }
+            else
+            {
+                logger.LogError($"Python dll not found at {pyLoc}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Serilog.Log.Error($"Python DLL found at {settings.DllLocation}");
+            logger.LogError(ex, $"Error when loading python dll {pyLoc}");
         }
     }
 }
