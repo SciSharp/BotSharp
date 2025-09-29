@@ -16,6 +16,10 @@ global using BotSharp.Abstraction.Functions.Models;
 global using BotSharp.Abstraction.Repositories;
 global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Functions;
+global using BotSharp.Abstraction.Messaging;
+global using BotSharp.Abstraction.Messaging.Models.RichContent;
+global using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
+global using BotSharp.Abstraction.Routing;
 
 global using BotSharp.Core.Infrastructures;
 

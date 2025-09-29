@@ -1,24 +1,22 @@
-using BotSharp.Abstraction.Routing;
 using Microsoft.Extensions.Logging;
 using Python.Runtime;
-using System.Runtime;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.PythonInterpreter.Functions;
 
-public class PyInterpretationFn : IFunctionCallback
+public class PyProgrammerFn : IFunctionCallback
 {
-    public string Name => "util-code-python_interpreter";
-    public string Indication => "Executing python code";
+    public string Name => "util-code-python_programmer";
+    public string Indication => "Programming and executing code";
 
     private readonly IServiceProvider _services;
-    private readonly ILogger<PyInterpretationFn> _logger;
+    private readonly ILogger<PyProgrammerFn> _logger;
     private readonly PythonInterpreterSettings _settings;
 
-    public PyInterpretationFn(
+    public PyProgrammerFn(
         IServiceProvider services,
-        ILogger<PyInterpretationFn> logger,
+        ILogger<PyProgrammerFn> logger,
         PythonInterpreterSettings settings)
     {
         _services = services;
@@ -44,6 +42,7 @@ public class PyInterpretationFn : IFunctionCallback
             LlmConfig = GetLlmConfig(),
             TemplateDict = new Dictionary<string, object>
             {
+                { "python_version", _settings.PythonVersion ?? "3.11" },
                 { "user_requirement", args?.UserRquirement ?? string.Empty }
             }
         };
@@ -54,6 +53,8 @@ public class PyInterpretationFn : IFunctionCallback
             dialogs = convService.GetDialogHistory();
         }
 
+        var messageLimit = _settings.CodeGeneration?.MessageLimit > 0 ? _settings.CodeGeneration.MessageLimit.Value : 50;
+        dialogs = dialogs.TakeLast(messageLimit).ToList();
         dialogs.Add(new RoleDialogModel(AgentRole.User, "Please follow the instruction and chat context to generate valid python code.")
         {
             CurrentAgentId = message.CurrentAgentId,
@@ -63,25 +64,51 @@ public class PyInterpretationFn : IFunctionCallback
         var response = await GetChatCompletion(innerAgent, dialogs);
         var ret = response.JsonContent<LlmContextOut>();
 
-        using (Py.GIL())
+        try
         {
-            // Import necessary Python modules
-            dynamic sys = Py.Import("sys");
-            dynamic io = Py.Import("io");
+            using (Py.GIL())
+            {
+                // Import necessary Python modules
+                dynamic sys = Py.Import("sys");
+                dynamic io = Py.Import("io");
 
-            // Redirect standard output to capture it
-            dynamic stringIO = io.StringIO();
-            sys.stdout = stringIO;
+                // Redirect standard output/error to capture it
+                dynamic stringIO = io.StringIO();
+                sys.stdout = stringIO;
+                sys.stderr = stringIO;
 
-            // Execute a simple Python script
-            using var locals = new PyDict();
-            PythonEngine.Exec(ret.PythonCode, null, locals);
+                // Set global items
+                using var globals = new PyDict();
+                if (ret.PythonCode?.Contains("__main__") == true)
+                {
+                    globals.SetItem("__name__", new PyString("__main__"));
+                }
 
-            // Console.WriteLine($"Result from Python: {result}");
-            message.Content = stringIO.getvalue();
+                // Execute Python script
+                PythonEngine.Exec(ret.PythonCode, globals);
 
-            // Restore the original stdout
-            sys.stdout = sys.__stdout__;
+                // Get result
+                var result = stringIO.getvalue().ToString();
+                message.Content = result;
+                message.RichContent = new RichContent<IRichMessage>
+                {
+                    Recipient = new Recipient { Id = convService.ConversationId },
+                    Message = new ProgramCodeTemplateMessage
+                    {
+                        Text = ret.PythonCode ?? string.Empty,
+                        Language = "python"
+                    }
+                };
+                message.StopCompletion = true;
+
+                // Restore the original stdout/stderr
+                sys.stdout = sys.__stdout__;
+                sys.stderr = sys.__stderr__;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when executing python code.");
         }
 
         return true;
@@ -132,10 +159,10 @@ public class PyInterpretationFn : IFunctionCallback
 
         var state = _services.GetRequiredService<IConversationStateService>();
         provider = state.GetState("py_intepreter_llm_provider")
-                        //.IfNullOrEmptyAs(_settings.ChartPlot?.LlmProvider)
+                        .IfNullOrEmptyAs(_settings.CodeGeneration?.LlmProvider)
                         .IfNullOrEmptyAs(provider);
         model = state.GetState("py_intepreter_llm_model")
-                     //.IfNullOrEmptyAs(_settings.ChartPlot?.LlmModel)
+                     .IfNullOrEmptyAs(_settings.CodeGeneration?.LlmModel)
                      .IfNullOrEmptyAs(model);
 
         return (provider, model);
@@ -143,8 +170,8 @@ public class PyInterpretationFn : IFunctionCallback
 
     private AgentLlmConfig GetLlmConfig()
     {
-        var maxOutputTokens = 8192;
-        var reasoningEffortLevel = "minimal";
+        var maxOutputTokens = _settings?.CodeGeneration?.MaxOutputTokens ?? 8192;
+        var reasoningEffortLevel = _settings?.CodeGeneration?.ReasoningEffortLevel ?? "minimal";
 
         var state = _services.GetRequiredService<IConversationStateService>();
         maxOutputTokens = int.TryParse(state.GetState("py_intepreter_max_output_tokens"), out var tokens) ? tokens : maxOutputTokens;

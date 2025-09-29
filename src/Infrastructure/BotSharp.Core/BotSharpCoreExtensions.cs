@@ -6,7 +6,6 @@ using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Users.Settings;
-using BotSharp.Abstraction.Interpreters.Settings;
 using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Core.Processors;
 using StackExchange.Redis;

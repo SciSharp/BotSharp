@@ -1,6 +1,6 @@
-using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.PythonInterpreter.Hooks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
 using Python.Runtime;
 using System.IO;
 
@@ -13,15 +13,15 @@ public class PythonInterpreterPlugin : IBotSharpAppPlugin
     public string Description => "Python Interpreter enables AI to write and execute Python code within a secure, sandboxed environment.";
     public string? IconUrl => "https://static.vecteezy.com/system/resources/previews/012/697/295/non_2x/3d-python-programming-language-logo-free-png.png";
 
+    private nint _pyState;
+
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        services.AddSingleton(provider =>
-        {
-            var settingService = provider.GetRequiredService<ISettingService>();
-            return settingService.Bind<PythonInterpreterSettings>("PythonInterpreter");
-        });
+        var settings = new PythonInterpreterSettings();
+        config.Bind("PythonInterpreter", settings);
+        services.AddSingleton(x => settings);
 
-        services.AddScoped<IAgentUtilityHook, PythonInterpreterUtilityHook>();
+        services.AddScoped<IAgentUtilityHook, PyProgrammerUtilityHook>();
     }
 
     public void Configure(IApplicationBuilder app)
@@ -33,14 +33,17 @@ public class PythonInterpreterPlugin : IBotSharpAppPlugin
         {
             Runtime.PythonDLL = settings.DllLocation;
             PythonEngine.Initialize();
-            PythonEngine.BeginAllowThreads();
+            _pyState = PythonEngine.BeginAllowThreads();
+
+            var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
+            lifetime.ApplicationStopping.Register(() => {
+                PythonEngine.EndAllowThreads(_pyState);
+                PythonEngine.Shutdown();
+            });
         }
         else
         {
-            Serilog.Log.Error("Python DLL found at {PythonDLL}", settings.DllLocation);
+            Serilog.Log.Error($"Python DLL found at {settings.DllLocation}");
         }
-
-        // Shut down the Python engine
-        // PythonEngine.Shutdown();
     }
 }

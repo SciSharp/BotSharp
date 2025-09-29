@@ -11,16 +11,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-code-python_interpreter.json" />
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-code-python_interpreter.fn.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-code-python_generate_instruction.liquid" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-code-python_interpreter.json">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-code-python_programmer.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-code-python_interpreter.fn.liquid">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-code-python_programmer.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-code-python_generate_instruction.liquid">

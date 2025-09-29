@@ -1,6 +1,6 @@
 {
   "name": "util-code-python_interpreter",
-  "description": "If the user requests you generating python code to complete tasks, you can call this function to generate python code to execute.",
+  "description": "If user's requirement can be fulfilled by python code, you can call this function to generate python code to execute.",
   "parameters": {
     "type": "object",
     "properties": {
