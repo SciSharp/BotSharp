@@ -24,10 +24,6 @@ public static class BotSharpCoreExtensions
 {
     public static IServiceCollection AddBotSharpCore(this IServiceCollection services, IConfiguration config, Action<BotSharpOptions>? configOptions = null)
     {
-        var interpreterSettings = new InterpreterSettings();
-        config.Bind("Interpreter", interpreterSettings);
-        services.AddSingleton(x => interpreterSettings);
-
         services.AddSingleton<IDistributedLocker, DistributedLocker>();
         // Register template render
         services.AddSingleton<ITemplateRender, TemplateRender>();

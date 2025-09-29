@@ -14,13 +14,16 @@ public class PyInterpretationFn : IFunctionCallback
 
     private readonly IServiceProvider _services;
     private readonly ILogger<PyInterpretationFn> _logger;
+    private readonly PythonInterpreterSettings _settings;
 
     public PyInterpretationFn(
         IServiceProvider services,
-        ILogger<PyInterpretationFn> logger)
+        ILogger<PyInterpretationFn> logger,
+        PythonInterpreterSettings settings)
     {
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -32,7 +35,7 @@ public class PyInterpretationFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
 
         var agent = await agentService.GetAgent(message.CurrentAgentId);
-        var inst = GetPyCodeGenerationInstruction(message.CurrentAgentId);
+        var inst = GetPyCodeInterpreterInstruction(message.CurrentAgentId);
         var innerAgent = new Agent
         {
             Id = agent.Id,
@@ -95,13 +98,13 @@ public class PyInterpretationFn : IFunctionCallback
         }
         catch (Exception ex)
         {
-            var error = $"Error when plotting chart. {ex.Message}";
+            var error = $"Error when generating python code. {ex.Message}";
             _logger.LogWarning(ex, error);
             return error;
         }
     }
 
-    private string GetPyCodeGenerationInstruction(string agentId)
+    private string GetPyCodeInterpreterInstruction(string agentId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -128,10 +131,10 @@ public class PyInterpretationFn : IFunctionCallback
         var model = "gpt-5";
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        provider = state.GetState("py_generator_llm_provider")
+        provider = state.GetState("py_intepreter_llm_provider")
                         //.IfNullOrEmptyAs(_settings.ChartPlot?.LlmProvider)
                         .IfNullOrEmptyAs(provider);
-        model = state.GetState("py_generator_llm_model")
+        model = state.GetState("py_intepreter_llm_model")
                      //.IfNullOrEmptyAs(_settings.ChartPlot?.LlmModel)
                      .IfNullOrEmptyAs(model);
 
@@ -144,8 +147,8 @@ public class PyInterpretationFn : IFunctionCallback
         var reasoningEffortLevel = "minimal";
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        maxOutputTokens = int.TryParse(state.GetState("py_generator_max_output_tokens"), out var tokens) ? tokens : maxOutputTokens;
-        reasoningEffortLevel = state.GetState("py_generator_reasoning_effort_level").IfNullOrEmptyAs(reasoningEffortLevel);
+        maxOutputTokens = int.TryParse(state.GetState("py_intepreter_max_output_tokens"), out var tokens) ? tokens : maxOutputTokens;
+        reasoningEffortLevel = state.GetState("py_intepreter_reasoning_effort_level").IfNullOrEmptyAs(reasoningEffortLevel);
 
         return new AgentLlmConfig
         {

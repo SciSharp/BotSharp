@@ -1,6 +1,6 @@
 namespace BotSharp.Plugin.PythonInterpreter.Hooks;
 
-public class InterpreterUtilityHook : IAgentUtilityHook
+public class PythonInterpreterUtilityHook : IAgentUtilityHook
 {
     private const string PY_INTERPRETER_FN = "util-code-python_interpreter";
 

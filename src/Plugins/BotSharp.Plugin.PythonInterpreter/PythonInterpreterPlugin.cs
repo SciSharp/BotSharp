@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Interpreters.Settings;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.PythonInterpreter.Hooks;
 using Microsoft.AspNetCore.Builder;
@@ -7,7 +6,7 @@ using System.IO;
 
 namespace BotSharp.Plugin.PythonInterpreter;
 
-public class InterpreterPlugin : IBotSharpAppPlugin
+public class PythonInterpreterPlugin : IBotSharpAppPlugin
 {
     public string Id => "23174e08-e866-4173-824a-cf1d97afa8d0";
     public string Name => "Python Interpreter";
@@ -19,26 +18,26 @@ public class InterpreterPlugin : IBotSharpAppPlugin
         services.AddSingleton(provider =>
         {
             var settingService = provider.GetRequiredService<ISettingService>();
-            return settingService.Bind<InterpreterSettings>("Interpreter");
+            return settingService.Bind<PythonInterpreterSettings>("PythonInterpreter");
         });
 
-        services.AddScoped<IAgentUtilityHook, InterpreterUtilityHook>();
+        services.AddScoped<IAgentUtilityHook, PythonInterpreterUtilityHook>();
     }
 
     public void Configure(IApplicationBuilder app)
     {
-        var settings = app.ApplicationServices.GetRequiredService<InterpreterSettings>();
+        var settings = app.ApplicationServices.GetRequiredService<PythonInterpreterSettings>();
 
         // For Python interpreter plugin
-        if (File.Exists(settings.Python.PythonDLL))
+        if (File.Exists(settings.DllLocation))
         {
-            Runtime.PythonDLL = settings.Python.PythonDLL;
+            Runtime.PythonDLL = settings.DllLocation;
             PythonEngine.Initialize();
             PythonEngine.BeginAllowThreads();
         }
         else
         {
-            Serilog.Log.Error("Python DLL found at {PythonDLL}", settings.Python.PythonDLL);
+            Serilog.Log.Error("Python DLL found at {PythonDLL}", settings.DllLocation);
         }
 
         // Shut down the Python engine
