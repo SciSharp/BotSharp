@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Interpreters.Settings;
+using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.PythonInterpreter.Hooks;
 using Microsoft.AspNetCore.Builder;
 using Python.Runtime;
@@ -15,6 +16,12 @@ public class InterpreterPlugin : IBotSharpAppPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        services.AddSingleton(provider =>
+        {
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<InterpreterSettings>("Interpreter");
+        });
+
         services.AddScoped<IAgentUtilityHook, InterpreterUtilityHook>();
     }
 

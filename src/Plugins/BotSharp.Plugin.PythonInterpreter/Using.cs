@@ -14,5 +14,12 @@ global using BotSharp.Abstraction.Agents.Settings;
 global using BotSharp.Abstraction.Conversations;
 global using BotSharp.Abstraction.Functions.Models;
 global using BotSharp.Abstraction.Repositories;
+global using BotSharp.Abstraction.Conversations.Models;
+global using BotSharp.Abstraction.Functions;
+global using BotSharp.Abstraction.Interpreters.Models;
+
+
+global using BotSharp.Core.Infrastructures;
 
 global using BotSharp.Plugin.PythonInterpreter.Enums;
+global using BotSharp.Plugin.PythonInterpreter.LlmContext;

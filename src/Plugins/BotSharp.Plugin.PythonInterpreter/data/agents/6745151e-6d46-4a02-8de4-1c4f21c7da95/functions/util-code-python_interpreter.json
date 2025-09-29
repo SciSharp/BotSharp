@@ -1,19 +1,14 @@
 {
-  "name": "python_interpreter",
-  "description": "write and execute python code, print the result in Console",
+  "name": "util-code-python_interpreter",
+  "description": "If the user requests you generating python code to complete tasks, you can call this function to generate python code to execute.",
   "parameters": {
     "type": "object",
     "properties": {
-      "script": {
+      "user_requirement": {
         "type": "string",
-        "description": "python code"
-      },
-      "language": {
-        "type": "string",
-        "enum": [ "python" ],
-        "description": "python code"
+        "description": "The requirement that user posted for generating python code."
       }
     },
-    "required": [ "language", "script" ]
+    "required": [ "user_requirement" ]
   }
 }

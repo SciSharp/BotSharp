@@ -1,8 +1,7 @@
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Interpreters.Models;
+using BotSharp.Abstraction.Routing;
 using Microsoft.Extensions.Logging;
 using Python.Runtime;
+using System.Runtime;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -26,7 +25,40 @@ public class PyInterpretationFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<InterpretationRequest>(message.FunctionArgs);
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var convService = _services.GetRequiredService<IConversationService>();
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
+
+        var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
+
+        var agent = await agentService.GetAgent(message.CurrentAgentId);
+        var inst = GetPyCodeGenerationInstruction(message.CurrentAgentId);
+        var innerAgent = new Agent
+        {
+            Id = agent.Id,
+            Name = agent.Name,
+            Instruction = inst,
+            LlmConfig = GetLlmConfig(),
+            TemplateDict = new Dictionary<string, object>
+            {
+                { "user_requirement", args?.UserRquirement ?? string.Empty }
+            }
+        };
+
+        var dialogs = routingCtx.GetDialogs();
+        if (dialogs.IsNullOrEmpty())
+        {
+            dialogs = convService.GetDialogHistory();
+        }
+
+        dialogs.Add(new RoleDialogModel(AgentRole.User, "Please follow the instruction and chat context to generate valid python code.")
+        {
+            CurrentAgentId = message.CurrentAgentId,
+            MessageId = message.MessageId
+        });
+
+        var response = await GetChatCompletion(innerAgent, dialogs);
+        var ret = response.JsonContent<LlmContextOut>();
 
         using (Py.GIL())
         {
@@ -40,7 +72,7 @@ public class PyInterpretationFn : IFunctionCallback
 
             // Execute a simple Python script
             using var locals = new PyDict();
-            PythonEngine.Exec(args.Script, null, locals);
+            PythonEngine.Exec(ret.PythonCode, null, locals);
 
             // Console.WriteLine($"Result from Python: {result}");
             message.Content = stringIO.getvalue();
@@ -50,5 +82,75 @@ public class PyInterpretationFn : IFunctionCallback
         }
 
         return true;
+    }
+
+    private async Task<string> GetChatCompletion(Agent agent, List<RoleDialogModel> dialogs)
+    {
+        try
+        {
+            var (provider, model) = GetLlmProviderModel();
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
+            var response = await completion.GetChatCompletions(agent, dialogs);
+            return response.Content;
+        }
+        catch (Exception ex)
+        {
+            var error = $"Error when plotting chart. {ex.Message}";
+            _logger.LogWarning(ex, error);
+            return error;
+        }
+    }
+
+    private string GetPyCodeGenerationInstruction(string agentId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var state = _services.GetRequiredService<IConversationStateService>();
+
+        var templateContent = string.Empty;
+        var templateName = state.GetState("python_generate_template");
+
+        if (!string.IsNullOrEmpty(templateName))
+        {
+            templateContent = db.GetAgentTemplate(agentId, templateName);
+        }
+        else
+        {
+            templateName = "util-code-python_generate_instruction";
+            templateContent = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, templateName);
+        }
+
+        return templateContent;
+    }
+
+    private (string, string) GetLlmProviderModel()
+    {
+        var provider = "openai";
+        var model = "gpt-5";
+
+        var state = _services.GetRequiredService<IConversationStateService>();
+        provider = state.GetState("py_generator_llm_provider")
+                        //.IfNullOrEmptyAs(_settings.ChartPlot?.LlmProvider)
+                        .IfNullOrEmptyAs(provider);
+        model = state.GetState("py_generator_llm_model")
+                     //.IfNullOrEmptyAs(_settings.ChartPlot?.LlmModel)
+                     .IfNullOrEmptyAs(model);
+
+        return (provider, model);
+    }
+
+    private AgentLlmConfig GetLlmConfig()
+    {
+        var maxOutputTokens = 8192;
+        var reasoningEffortLevel = "minimal";
+
+        var state = _services.GetRequiredService<IConversationStateService>();
+        maxOutputTokens = int.TryParse(state.GetState("py_generator_max_output_tokens"), out var tokens) ? tokens : maxOutputTokens;
+        reasoningEffortLevel = state.GetState("py_generator_reasoning_effort_level").IfNullOrEmptyAs(reasoningEffortLevel);
+
+        return new AgentLlmConfig
+        {
+            MaxOutputTokens = maxOutputTokens,
+            ReasoningEffortLevel = reasoningEffortLevel
+        };
     }
 }
