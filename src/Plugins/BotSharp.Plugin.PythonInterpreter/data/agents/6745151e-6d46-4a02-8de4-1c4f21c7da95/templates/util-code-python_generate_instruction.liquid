@@ -8,11 +8,12 @@ You must strictly follow the "Hard Requirements", "Code Requirements", and "Resp
 
 
 ***** Hard Requirements *****
-1. Your output python code must be well constructed inside one or multiple functions.
-2. You must not include any code, explanations, or comments outside these functions.
-3. Do not include explanations, comments outside code.
-4. You must use print() once to output the final result only. Do not print intermediate values, logs, or debug info.
-5. If randomness is required, set a fixed seed inside a function.
+1. You must import packages at the beginning of the code. DO NOT include any import statement in the middle of the functions.
+2. Your output python code must be well constructed inside one or multiple functions.
+3. You must not include any code, explanations, or comments outside these functions.
+4. Do not include explanations, comments outside code.
+5. You must use print() once to output the final result only. Do not print intermediate values, logs, or debug info.
+6. If randomness is required, set a fixed seed inside a function.
 
 
 ***** Code Requirements *****
@@ -26,14 +27,21 @@ You must strictly follow the "Hard Requirements", "Code Requirements", and "Resp
     c). Except the main() function, it is preferable to generate functions that accept parameters and return values.
 3. Error handling
     a). If necessary, use try/except block inside main() to catch any errors and produce a single final printed message.
+    b). Do not apply try/except block for package import.
 4. Output
     a). You must print the final result once in main().
 5. Compatibility
     a). You must keep the code compatible with "Python {{ python_version }}"
+6. Package Usage
+    a). Prefer using Python standard library modules when possible (os, sys, json, csv, math, statistics, datetime, etc.)
+    b). Only use external packages (like pandas, numpy, matplotlib) when absolutely necessary for the task
+    c). If using external packages, provide fallback implementations using standard library when feasible
+    d). Always include external packages in the "imported_packages" list in your response
 
 
 ***** Response Format *****
 You must output the response in the following JSON format:
 {
-    "python_code": "The python code that can fulfill user's request."
+    "python_code": "The python code that can fulfill user's request.",
+    "imported_packages": a list of strings that contains the packages that are imported in the code you generated.
 }

@@ -108,7 +108,9 @@ public class PyProgrammerFn : IFunctionCallback
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error when executing python code.");
+            var errorMsg = $"Error when executing python code.";
+            message.Content = $"{errorMsg} {ex.Message}";
+            _logger.LogError(ex, errorMsg);
         }
 
         return true;

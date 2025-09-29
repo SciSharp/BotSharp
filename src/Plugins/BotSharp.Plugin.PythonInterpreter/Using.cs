@@ -28,3 +28,5 @@ global using BotSharp.Plugin.PythonInterpreter.LlmContext;
 global using BotSharp.Plugin.PythonInterpreter.Settings;
 global using BotSharp.Plugin.PythonInterpreter.Functions;
 global using BotSharp.Plugin.PythonInterpreter.Hooks;
+global using BotSharp.Plugin.PythonInterpreter.Models;
+global using BotSharp.Plugin.PythonInterpreter.Helpers;
