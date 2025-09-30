@@ -61,7 +61,8 @@ public partial class InstructService
 
         var response = new InstructResult
         {
-            MessageId = message.MessageId
+            MessageId = message.MessageId,
+            Template = templateName,
         };
 
         if (completer is ITextCompletion textCompleter)
