@@ -111,8 +111,8 @@ public class ChatCompletionProvider : IChatCompletion
         foreach (var message in samples)
         {
             messages.Add(message.Role == AgentRole.User ?
-                new MessageItem("user", message.Content) :
-                new MessageItem("assistant", message.Content));
+                new MessageItem("user", message.RoleContent) :
+                new MessageItem("assistant", message.RoleContent));
         }
 
         foreach (var function in functions)
@@ -129,13 +129,13 @@ public class ChatCompletionProvider : IChatCompletion
             }
             else if (message.Role == "user")
             {
-                var userMessage = new MessageItem("user",message.Content);
+                var userMessage = new MessageItem("user",message.RoleContent);
 
                 messages.Add(userMessage);
             }
             else if (message.Role == "assistant")
             {
-                messages.Add(new MessageItem("assistant", message.Content));
+                messages.Add(new MessageItem("assistant", message.RoleContent));
             }
         }
 
