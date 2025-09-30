@@ -99,7 +99,7 @@ public class PyProgrammerFn : IFunctionCallback
                         Language = "python"
                     }
                 };
-                //message.StopCompletion = true;
+                message.StopCompletion = true;
 
                 // Restore the original stdout/stderr
                 sys.stdout = sys.__stdout__;
