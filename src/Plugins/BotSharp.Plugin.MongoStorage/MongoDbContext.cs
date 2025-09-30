@@ -160,6 +160,9 @@ public class MongoDbContext
     public IMongoCollection<AgentTaskDocument> AgentTasks
         => CreateAgentTaskIndex();
 
+    public IMongoCollection<AgentCodeDocument> AgentCodes
+        => GetCollectionOrCreate<AgentCodeDocument>("AgentCodes");
+
     public IMongoCollection<ConversationDocument> Conversations
         => CreateConversationIndex();
 

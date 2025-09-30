@@ -2,17 +2,13 @@ namespace BotSharp.Abstraction.Agents.Models;
 
 public class AgentCodeScript
 {
+    public string Id { get; set; }
+    public string AgentId { get; set; }
     public string Name { get; set; }
     public string Content { get; set; }
 
     public AgentCodeScript()
     {
-    }
-
-    public AgentCodeScript(string name, string content)
-    {
-        Name = name;
-        Content = content;
     }
 
     public override string ToString()

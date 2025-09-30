@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
+using MongoDB.Driver;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -593,6 +594,8 @@ public partial class MongoRepository
         {
             _dc.UserAgents.DeleteMany(Builders<UserAgentDocument>.Filter.Empty);
             _dc.RoleAgents.DeleteMany(Builders<RoleAgentDocument>.Filter.Empty);
+            _dc.AgentTasks.DeleteMany(Builders<AgentTaskDocument>.Filter.Empty);
+            _dc.AgentCodes.DeleteMany(Builders<AgentCodeDocument>.Filter.Empty);
             _dc.Agents.DeleteMany(Builders<AgentDocument>.Filter.Empty);
             return true;
         }
@@ -612,11 +615,13 @@ public partial class MongoRepository
             var userAgentFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
             var roleAgentFilter = Builders<RoleAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
             var agentTaskFilter = Builders<AgentTaskDocument>.Filter.Eq(x => x.AgentId, agentId);
+            var agentCodeFilter = Builders<AgentCodeDocument>.Filter.Eq(x => x.AgentId, agentId);
 
-            _dc.Agents.DeleteOne(agentFilter);
             _dc.UserAgents.DeleteMany(userAgentFilter);
             _dc.RoleAgents.DeleteMany(roleAgentFilter);
             _dc.AgentTasks.DeleteMany(agentTaskFilter);
+            _dc.AgentCodes.DeleteMany(agentCodeFilter);
+            _dc.Agents.DeleteOne(agentFilter);
             return true;
         }
         catch

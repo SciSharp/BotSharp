@@ -5,6 +5,39 @@ namespace BotSharp.Core.Repository;
 public partial class FileRepository
 {
     #region Code
+    public List<AgentCodeScript> GetAgentCodeScripts(string agentId, List<string>? scriptNames = null)
+    {
+        if (string.IsNullOrWhiteSpace(agentId))
+        {
+            return [];
+        }
+
+        var dir = BuildAgentCodeDir(agentId);
+        if (!Directory.Exists(dir))
+        {
+            return [];
+        }
+
+        var results = new List<AgentCodeScript>();
+        foreach (var file in Directory.GetFiles(dir))
+        {
+            var fileName = Path.GetFileName(file);
+            if (scriptNames != null || !scriptNames.Contains(fileName))
+            {
+                continue;
+            }
+
+            var script = new AgentCodeScript
+            {
+                AgentId = agentId,
+                Name = fileName,
+                Content = File.ReadAllText(file)
+            };
+            results.Add(script);
+        }
+        return results;
+    }
+
     public string? GetAgentCodeScript(string agentId, string scriptName)
     {
         if (string.IsNullOrWhiteSpace(agentId)
@@ -13,7 +46,7 @@ public partial class FileRepository
             return null;
         }
 
-        var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_CODES_FOLDER);
+        var dir = BuildAgentCodeDir(agentId);
         if (!Directory.Exists(dir))
         {
             return null;
@@ -30,14 +63,14 @@ public partial class FileRepository
         return string.Empty;
     }
 
-    public bool PatchAgentCodeScript(string agentId, AgentCodeScript script)
+    public bool UpdateAgentCodeScript(string agentId, AgentCodeScript script)
     {
-        if (string.IsNullOrEmpty(agentId) || script == null)
+        if (string.IsNullOrWhiteSpace(agentId) || script == null)
         {
             return false;
         }
 
-        var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_CODES_FOLDER);
+        var dir = BuildAgentCodeDir(agentId);
         if (!Directory.Exists(dir))
         {
             return false;
@@ -57,5 +90,71 @@ public partial class FileRepository
         File.WriteAllText(found, script.Content);
         return true;
     }
+
+    public bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
+    {
+        if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        var dir = BuildAgentCodeDir(agentId);
+        if (!Directory.Exists(dir))
+        {
+            return false;
+        }
+
+        foreach (var script in scripts)
+        {
+            if (string.IsNullOrWhiteSpace(script.Name))
+            {
+                continue;
+            }
+
+            var path = Path.Combine(dir, script.Name);
+            File.WriteAllText(path, script.Content);
+        }
+
+        return true;
+    }
+
+    public bool DeleteAgentCodeScripts(string agentId, List<string>? scriptNames)
+    {
+        if (string.IsNullOrWhiteSpace(agentId))
+        {
+            return false;
+        }
+
+        var dir = BuildAgentCodeDir(agentId);
+        if (!Directory.Exists(dir))
+        {
+            return false;
+        }
+
+        if (scriptNames == null)
+        {
+            Directory.Delete(dir, true);
+            return true;
+        }
+        else if (!scriptNames.Any())
+        {
+            return false;
+        }
+
+        foreach (var file in Directory.GetFiles(dir))
+        {
+            var fileName = Path.GetFileName(file);
+            if (scriptNames.Contains(fileName))
+            {
+                File.Delete(file);
+            }
+        }
+        return true;
+    }
     #endregion
+
+    private string BuildAgentCodeDir(string agentId)
+    {
+        return Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_CODES_FOLDER);
+    }
 }

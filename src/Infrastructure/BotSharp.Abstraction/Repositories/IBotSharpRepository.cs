@@ -98,21 +98,24 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     void InsertAgentTask(AgentTask task)
         => throw new NotImplementedException();
-    void BulkInsertAgentTasks(List<AgentTask> tasks)
+    void BulkInsertAgentTasks(string agentId, List<AgentTask> tasks)
         => throw new NotImplementedException();
     void UpdateAgentTask(AgentTask task, AgentTaskField field)
         => throw new NotImplementedException();
-    bool DeleteAgentTask(string agentId, List<string> taskIds)
-        => throw new NotImplementedException();
-    bool DeleteAgentTasks()
+    bool DeleteAgentTasks(string agentId, List<string>? taskIds = null)
         => throw new NotImplementedException();
     #endregion
 
     #region Agent Code
+    List<AgentCodeScript> GetAgentCodeScripts(string agentId, List<string>? scriptNames = null)
+        => throw new NotImplementedException();
     string? GetAgentCodeScript(string agentId, string scriptName)
         => throw new NotImplementedException();
-
-    bool PatchAgentCodeScript(string agentId, AgentCodeScript script)
+    bool UpdateAgentCodeScript(string agentId, AgentCodeScript script)
+        => throw new NotImplementedException();
+    bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
+        => throw new NotImplementedException();
+    bool DeleteAgentCodeScripts(string agentId, List<string>? scriptNames)
         => throw new NotImplementedException();
     #endregion
 
