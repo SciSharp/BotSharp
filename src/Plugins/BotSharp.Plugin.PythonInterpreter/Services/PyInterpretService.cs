@@ -20,7 +20,8 @@ public class PyInterpretService : ICodeInterpretService
 
     public string Provider => "python-interpreter";
 
-    public async Task<CodeInterpretResult> RunCode(string code, List<KeyValue>? arguments = null, CodeInterpretOptions? options = null)
+    public async Task<CodeInterpretResult> RunCode(string code,
+        IEnumerable<KeyValue>? arguments = null, CodeInterpretOptions? options = null)
     {
         try
         {
@@ -45,14 +46,18 @@ public class PyInterpretService : ICodeInterpretService
                 // Set arguments
                 if (!arguments.IsNullOrEmpty())
                 {
-                    sys.argv = new PyList();
-                    sys.argv.Append("code.py");
+                    var list = new PyList();
+                    list.Append(new PyString("code.py"));
 
                     foreach (var arg in arguments)
                     {
-                        sys.argv.Append($"--{arg.Key}");
-                        sys.argv.Append($"{arg.Value}");
+                        if (!string.IsNullOrWhiteSpace(arg.Key) && !string.IsNullOrWhiteSpace(arg.Value))
+                        {
+                            list.Append(new PyString($"--{arg.Key}"));
+                            list.Append(new PyString($"{arg.Value}"));
+                        }
                     }
+                    sys.argv = list;
                 }
 
                 // Execute Python script

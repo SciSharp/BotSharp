@@ -6,5 +6,5 @@ public interface ICodeInterpretService
 {
     string Provider { get; }
 
-    Task<CodeInterpretResult> RunCode(string code, List<KeyValue>? arguments = null, CodeInterpretOptions? options = null);
+    Task<CodeInterpretResult> RunCode(string code, IEnumerable<KeyValue>? arguments = null, CodeInterpretOptions? options = null);
 }
