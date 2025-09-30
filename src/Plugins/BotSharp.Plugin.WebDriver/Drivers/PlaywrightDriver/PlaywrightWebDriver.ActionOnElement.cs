@@ -8,9 +8,12 @@ public partial class PlaywrightWebDriver
         var result = await LocateElement(message, location);
         if (result.IsSuccess)
         {
+            action.Position = location.Position;
             await DoAction(message, action, result);
-            result.UrlAfterAction = _instance.GetPage(message.ContextId)?.Url;
         }
+
+        result.UrlAfterAction = _instance.GetPage(message.ContextId)?.Url;
+
         return result;
     }
 }

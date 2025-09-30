@@ -45,6 +45,7 @@ public class UtilWebActionOnElementFn : IFunctionCallback
                 FunctionArgs = message.FunctionArgs
             };
             browser.SetServiceProvider(_services);
+
             var result = await browser.ActionOnElement(msg, locatorArgs, actionArgs);
 
             message.Content = $"{actionArgs.Action} executed {(result.IsSuccess ? "success" : "failed")}.";

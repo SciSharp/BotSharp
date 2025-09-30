@@ -21,6 +21,23 @@ public partial class PlaywrightWebDriver
                 IsSuccess = false
             };
         }
+
+        // Use IWebElementLocator to detect element position by element description
+        var locators = _services.GetServices<IWebElementLocator>();
+        foreach (var el in locators)
+        {
+            location.Position = await el.DetectElementCoordinates(this, message.ContextId, location.ElementLocatorDescription);
+
+            if (location.Position != null && location.Position.X > 0 && location.Position.Y > 0)
+            {
+                result.Message = $"Position based locating is found at {location.Position}";
+                return new BrowserActionResult
+                {
+                    IsSuccess = true
+                };
+            }
+        }
+
         ILocator locator = page.Locator("body");
         int count = 0;
         var keyword = string.Empty;
