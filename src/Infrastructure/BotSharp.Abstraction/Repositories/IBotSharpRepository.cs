@@ -85,7 +85,6 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     bool PatchAgentTemplate(string agentId, AgentTemplate template)
         => throw new NotImplementedException();
-
     bool UpdateAgentLabels(string agentId, List<string> labels)
         => throw new NotImplementedException();
     bool AppendAgentLabels(string agentId, List<string> labels)
@@ -106,6 +105,14 @@ public interface IBotSharpRepository : IHaveServiceProvider
     bool DeleteAgentTask(string agentId, List<string> taskIds)
         => throw new NotImplementedException();
     bool DeleteAgentTasks()
+        => throw new NotImplementedException();
+    #endregion
+
+    #region Agent Code
+    string? GetAgentCodeScript(string agentId, string scriptName)
+        => throw new NotImplementedException();
+
+    bool UpdateAgentCodeScript(string agentId, AgentCodeScript script)
         => throw new NotImplementedException();
     #endregion
 

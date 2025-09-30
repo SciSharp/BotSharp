@@ -20,7 +20,7 @@ public class PyInterpretService : ICodeInterpretService
 
     public string Provider => "python-interpreter";
 
-    public async Task<CodeInterpretResult> RunCode(string code,
+    public async Task<CodeInterpretResult> RunCode(string codeScript,
         IEnumerable<KeyValue>? arguments = null, CodeInterpretOptions? options = null)
     {
         try
@@ -38,7 +38,7 @@ public class PyInterpretService : ICodeInterpretService
 
                 // Set global items
                 using var globals = new PyDict();
-                if (code.Contains("__main__") == true)
+                if (codeScript.Contains("__main__") == true)
                 {
                     globals.SetItem("__name__", new PyString("__main__"));
                 }
@@ -61,7 +61,7 @@ public class PyInterpretService : ICodeInterpretService
                 }
 
                 // Execute Python script
-                PythonEngine.Exec(code, globals);
+                PythonEngine.Exec(codeScript, globals);
 
                 // Get result
                 var result = stringIO.getvalue().ToString();

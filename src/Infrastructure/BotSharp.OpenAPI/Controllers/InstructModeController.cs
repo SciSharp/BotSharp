@@ -42,7 +42,6 @@ public class InstructModeController : ControllerBase
             codeOptions: input.CodeOptions);
 
         result.States = state.GetStates();
-
         return result; 
     }
 

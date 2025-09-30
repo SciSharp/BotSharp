@@ -12,7 +12,7 @@ public partial class InstructService
         string agentId,
         RoleDialogModel message,
         string? instruction = null,
-        string? llmTemplateName = null,
+        string? templateName = null,
         IEnumerable<InstructFileModel>? files = null,
         CodeInstructOptions? codeOptions = null)
     {
@@ -22,7 +22,7 @@ public partial class InstructService
         var response = new InstructResult
         {
             MessageId = message.MessageId,
-            Template = codeOptions?.CodeTemplateName ?? llmTemplateName
+            Template = codeOptions?.CodeScriptName ?? templateName
         };
 
 
@@ -40,23 +40,36 @@ public partial class InstructService
         }
 
         // Run code template
-        if (!string.IsNullOrWhiteSpace(codeOptions?.CodeTemplateName))
+        if (!string.IsNullOrWhiteSpace(codeOptions?.CodeScriptName))
         {
             var codeInterpreter = _services.GetServices<ICodeInterpretService>()
                                            .FirstOrDefault(x => x.Provider.IsEqualTo(codeOptions?.CodeInterpretProvider.IfNullOrEmptyAs("python-interpreter")));
 
             if (codeInterpreter == null)
             {
-                var error = "No code interpreter found.";
+                var error = $"No code interpreter found. (Agent: {agentId}, Code interpreter: {codeOptions.CodeInterpretProvider})";
                 _logger.LogError(error);
                 response.Text = error;
             }
             else
             {
+                var db = _services.GetRequiredService<IBotSharpRepository>();
                 var state = _services.GetRequiredService<IConversationStateService>();
+
                 var arguments = state.GetStates().Select(x => new KeyValue(x.Key, x.Value));
-                var result = await codeInterpreter.RunCode("", arguments);
-                response.Text = result?.Result?.ToString();
+                var codeScript = db.GetAgentCodeScript(agentId, codeOptions.CodeScriptName);
+
+                if (string.IsNullOrWhiteSpace(codeScript))
+                {
+                    var error = $"Empty code script. (Agent: {agentId}, Code script: {codeOptions.CodeScriptName})";
+                    _logger.LogError(error);
+                    response.Text = error;
+                }
+                else
+                {
+                    var result = await codeInterpreter.RunCode(codeScript, arguments);
+                    response.Text = result?.Result?.ToString();
+                }
             }
             return response;
         }
@@ -83,9 +96,9 @@ public partial class InstructService
         var model = string.Empty;
 
         // Render prompt
-        var prompt = string.IsNullOrEmpty(llmTemplateName) ?
+        var prompt = string.IsNullOrEmpty(templateName) ?
             agentService.RenderInstruction(agent) :
-            agentService.RenderTemplate(agent, llmTemplateName);
+            agentService.RenderTemplate(agent, templateName);
 
         var completer = CompletionProvider.GetCompletion(_services,
             agentConfig: agent.LlmConfig);
@@ -136,7 +149,7 @@ public partial class InstructService
                 AgentId = agentId,
                 Provider = provider,
                 Model = model,
-                TemplateName = llmTemplateName,
+                TemplateName = templateName,
                 UserMessage = prompt,
                 SystemInstruction = instruction,
                 CompletionText = response.Text

@@ -10,12 +10,12 @@ public interface IInstructService
     /// <param name="agentId"></param>
     /// <param name="message"></param>
     /// <param name="instruction"></param>
-    /// <param name="llmTemplateName"></param>
+    /// <param name="templateName"></param>
     /// <param name="files"></param>
     /// <param name="codeOptions"></param>
     /// <returns></returns>
     Task<InstructResult> Execute(string agentId, RoleDialogModel message,
-        string? instruction = null, string? llmTemplateName = null,
+        string? instruction = null, string? templateName = null,
         IEnumerable<InstructFileModel>? files = null, CodeInstructOptions? codeOptions = null);
 
     /// <summary>
