@@ -72,7 +72,7 @@ public partial class MongoRepository
         return true;
     }
 
-    public bool InsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
+    public bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
     {
         if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
         {
@@ -91,7 +91,7 @@ public partial class MongoRepository
         return true;
     }
 
-    public bool BulkInsertAgentCodeScripts(string agentId, List<string>? scriptNames)
+    public bool DeleteAgentCodeScripts(string agentId, List<string>? scriptNames)
     {
         if (string.IsNullOrWhiteSpace(agentId))
         {
