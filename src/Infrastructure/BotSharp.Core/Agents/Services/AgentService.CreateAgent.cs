@@ -229,17 +229,12 @@ public partial class AgentService
         }
 
         var agentId = fileDir.Split(Path.DirectorySeparatorChar).Last();
-        foreach (var file in Directory.GetFiles(codeDir))
+        scripts = Directory.GetFiles(codeDir).Select(file => new AgentCodeScript
         {
-            var script = new AgentCodeScript
-            {
-                AgentId = agentId,
-                Name = Path.GetFileName(file),
-                Content = File.ReadAllText(file)
-            };
-            scripts.Add(script);
-        }
-
+            AgentId = agentId,
+            Name = Path.GetFileName(file),
+            Content = File.ReadAllText(file)
+        }).ToList();
         return scripts;
     }
 }
