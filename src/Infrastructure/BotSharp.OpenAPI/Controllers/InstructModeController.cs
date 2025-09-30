@@ -37,7 +37,7 @@ public class InstructModeController : ControllerBase
         var result = await instructor.Execute(agentId,
             new RoleDialogModel(AgentRole.User, input.Text),
             instruction: input.Instruction,
-            llmTemplateName: input.Template,
+            templateName: input.Template,
             files: input.Files,
             codeOptions: input.CodeOptions);
 

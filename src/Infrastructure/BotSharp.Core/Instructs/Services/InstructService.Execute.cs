@@ -56,9 +56,7 @@ public partial class InstructService
                 var db = _services.GetRequiredService<IBotSharpRepository>();
                 var state = _services.GetRequiredService<IConversationStateService>();
 
-                var arguments = state.GetStates().Select(x => new KeyValue(x.Key, x.Value));
                 var codeScript = db.GetAgentCodeScript(agentId, codeOptions.CodeScriptName);
-
                 if (string.IsNullOrWhiteSpace(codeScript))
                 {
                     var error = $"Empty code script. (Agent: {agentId}, Code script: {codeOptions.CodeScriptName})";
@@ -67,7 +65,7 @@ public partial class InstructService
                 }
                 else
                 {
-                    var result = await codeInterpreter.RunCode(codeScript, arguments);
+                    var result = await codeInterpreter.RunCode(codeScript, codeOptions.Arguments);
                     response.Text = result?.Result?.ToString();
                 }
             }

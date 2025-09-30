@@ -26,7 +26,7 @@ public partial class FileRepository : IBotSharpRepository
     private const string AGENT_FUNCTIONS_FOLDER = "functions";
     private const string AGENT_TEMPLATES_FOLDER = "templates";
     private const string AGENT_RESPONSES_FOLDER = "responses";
-    private const string AGENT_CODE_FOLDER = "codes";
+    private const string AGENT_CODES_FOLDER = "codes";
     private const string AGENT_TASKS_FOLDER = "tasks";
     private const string AGENT_TASK_PREFIX = "#metadata";
     private const string AGENT_TASK_SUFFIX = "/metadata";

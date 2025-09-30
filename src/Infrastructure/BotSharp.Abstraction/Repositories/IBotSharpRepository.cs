@@ -112,7 +112,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     string? GetAgentCodeScript(string agentId, string scriptName)
         => throw new NotImplementedException();
 
-    bool UpdateAgentCodeScript(string agentId, AgentCodeScript script)
+    bool PatchAgentCodeScript(string agentId, AgentCodeScript script)
         => throw new NotImplementedException();
     #endregion
 

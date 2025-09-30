@@ -79,7 +79,7 @@ public class PyInterpretService : ICodeInterpretService
         }
         catch (Exception ex)
         {
-            var errorMsg = $"Error when executing python code in {nameof(PyInterpretService)}-{Provider}. {ex.Message}";
+            var errorMsg = $"Error when executing python code in {nameof(PyInterpretService)}: {Provider}. {ex.Message}";
             _logger.LogError(ex, errorMsg);
 
             return new CodeInterpretResult

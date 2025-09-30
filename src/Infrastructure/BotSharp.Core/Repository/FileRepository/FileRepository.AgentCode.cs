@@ -13,7 +13,7 @@ public partial class FileRepository
             return null;
         }
 
-        var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_CODE_FOLDER);
+        var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_CODES_FOLDER);
         if (!Directory.Exists(dir))
         {
             return null;
@@ -30,14 +30,14 @@ public partial class FileRepository
         return string.Empty;
     }
 
-    public bool UpdateAgentCodeScript(string agentId, AgentCodeScript script)
+    public bool PatchAgentCodeScript(string agentId, AgentCodeScript script)
     {
         if (string.IsNullOrEmpty(agentId) || script == null)
         {
             return false;
         }
 
-        var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_CODE_FOLDER);
+        var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_CODES_FOLDER);
         if (!Directory.Exists(dir))
         {
             return false;
