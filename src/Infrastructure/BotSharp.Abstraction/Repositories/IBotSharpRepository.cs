@@ -111,7 +111,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     string? GetAgentCodeScript(string agentId, string scriptName)
         => throw new NotImplementedException();
-    bool UpdateAgentCodeScript(string agentId, AgentCodeScript script)
+    bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
         => throw new NotImplementedException();
     bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
         => throw new NotImplementedException();

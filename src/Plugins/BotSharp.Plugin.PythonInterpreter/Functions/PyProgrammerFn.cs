@@ -88,8 +88,8 @@ public class PyProgrammerFn : IFunctionCallback
                 PythonEngine.Exec(ret.PythonCode, globals);
 
                 // Get result
-                var result = stringIO.getvalue().ToString();
-                message.Content = result;
+                var result = stringIO.getvalue()?.ToString() as string;
+                message.Content = result?.TrimEnd('\r', '\n') ?? string.Empty;
                 message.RichContent = new RichContent<IRichMessage>
                 {
                     Recipient = new Recipient { Id = convService.ConversationId },

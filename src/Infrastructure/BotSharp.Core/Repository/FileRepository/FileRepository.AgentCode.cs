@@ -63,9 +63,9 @@ public partial class FileRepository
         return string.Empty;
     }
 
-    public bool UpdateAgentCodeScript(string agentId, AgentCodeScript script)
+    public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
     {
-        if (string.IsNullOrWhiteSpace(agentId) || script == null)
+        if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
         {
             return false;
         }
@@ -76,18 +76,17 @@ public partial class FileRepository
             return false;
         }
 
-        var found = Directory.GetFiles(dir).FirstOrDefault(f =>
-        {
-            var fileName = Path.GetFileName(f);
-            return fileName.IsEqualTo(script.Name);
-        });
+        var dict = scripts.DistinctBy(x => x.Name).ToDictionary(x => x.Name, x => x);
+        var files = Directory.GetFiles(dir).Where(x => dict.Keys.Contains(Path.GetFileName(x))).ToList();
 
-        if (found == null)
+        foreach (var file in files)
         {
-            return false;
+            if (dict.TryGetValue(Path.GetFileName(file), out var script))
+            {
+                File.WriteAllText(file, script.Content);
+            }
         }
 
-        File.WriteAllText(found, script.Content);
         return true;
     }
 

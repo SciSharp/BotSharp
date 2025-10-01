@@ -65,7 +65,10 @@ public partial class InstructService
                 }
                 else
                 {
-                    var result = await codeInterpreter.RunCode(codeScript, codeOptions.Arguments);
+                    var result = await codeInterpreter.RunCode(codeScript, options: new()
+                    {
+                        Arguments = codeOptions?.Arguments
+                    });
                     response.Text = result?.Result?.ToString();
                 }
             }

@@ -20,8 +20,7 @@ public class PyInterpretService : ICodeInterpretService
 
     public string Provider => "python-interpreter";
 
-    public async Task<CodeInterpretResult> RunCode(string codeScript,
-        IEnumerable<KeyValue>? arguments = null, CodeInterpretOptions? options = null)
+    public async Task<CodeInterpretResult> RunCode(string codeScript, CodeInterpretOptions? options = null)
     {
         try
         {
@@ -44,12 +43,12 @@ public class PyInterpretService : ICodeInterpretService
                 }
 
                 // Set arguments
-                if (!arguments.IsNullOrEmpty())
+                if (options?.Arguments?.Any() == true)
                 {
                     var list = new PyList();
                     list.Append(new PyString("code.py"));
 
-                    foreach (var arg in arguments)
+                    foreach (var arg in options.Arguments)
                     {
                         if (!string.IsNullOrWhiteSpace(arg.Key) && !string.IsNullOrWhiteSpace(arg.Value))
                         {
@@ -64,7 +63,7 @@ public class PyInterpretService : ICodeInterpretService
                 PythonEngine.Exec(codeScript, globals);
 
                 // Get result
-                var result = stringIO.getvalue().ToString();
+                var result = stringIO.getvalue()?.ToString() as string;
 
                 // Restore the original stdout/stderr
                 sys.stdout = sys.__stdout__;
@@ -72,7 +71,7 @@ public class PyInterpretService : ICodeInterpretService
 
                 return new CodeInterpretResult
                 {
-                    Result = result,
+                    Result = result?.TrimEnd('\r', '\n'),
                     Success = true
                 };
             }

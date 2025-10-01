@@ -6,5 +6,6 @@ public interface ICodeInterpretService
 {
     string Provider { get; }
 
-    Task<CodeInterpretResult> RunCode(string codeScript, IEnumerable<KeyValue>? arguments = null, CodeInterpretOptions? options = null);
+    Task<CodeInterpretResult> RunCode(string codeScript, CodeInterpretOptions? options = null)
+        => throw new NotImplementedException();
 }

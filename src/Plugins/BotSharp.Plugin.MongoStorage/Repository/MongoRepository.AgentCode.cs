@@ -46,30 +46,27 @@ public partial class MongoRepository
         return found?.Content;
     }
 
-    public bool UpdateAgentCodeScript(string agentId, AgentCodeScript script)
+    public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
     {
-        if (string.IsNullOrWhiteSpace(agentId) || script == null)
+        if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
         {
             return false;
         }
 
         var builder = Builders<AgentCodeDocument>.Filter;
-        var filters = new List<FilterDefinition<AgentCodeDocument>>()
-        {
-            builder.Eq(x => x.AgentId, agentId),
-            builder.Eq(x => x.Name, script.Name)
-        };
-        var filterDef = builder.And(filters);
+        var ops = scripts.Where(x => !string.IsNullOrWhiteSpace(x.Name))
+                         .Select(x => new UpdateOneModel<AgentCodeDocument>(
+                                builder.And(new List<FilterDefinition<AgentCodeDocument>>
+                                {
+                                    builder.Eq(y => y.AgentId, agentId),
+                                    builder.Eq(y => y.Name, x.Name)
+                                }),
+                                Builders<AgentCodeDocument>.Update.Set(y => y.Content, x.Content)
+                         ))
+                         .ToList();
 
-        var found = _dc.AgentCodes.Find(filterDef).FirstOrDefault();
-        if (found == null)
-        {
-            return false;
-        }
-
-        var update = Builders<AgentCodeDocument>.Update.Set(x => x.Content, script.Content);
-        _dc.AgentCodes.UpdateOne(filterDef, update);
-        return true;
+        var result = _dc.AgentCodes.BulkWrite(ops, new BulkWriteOptions { IsOrdered = false });
+        return result.ModifiedCount > 0;
     }
 
     public bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
