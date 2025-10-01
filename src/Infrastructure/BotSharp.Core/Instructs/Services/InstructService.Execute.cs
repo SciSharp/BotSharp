@@ -8,6 +8,8 @@ namespace BotSharp.Core.Instructs;
 
 public partial class InstructService
 {
+    private const string DEFAULT_CODE_INTERPRETER = "python-interpreter";
+
     public async Task<InstructResult> Execute(
         string agentId,
         RoleDialogModel message,
@@ -22,7 +24,7 @@ public partial class InstructService
         var response = new InstructResult
         {
             MessageId = message.MessageId,
-            Template = codeOptions?.CodeScriptName ?? templateName
+            Template = templateName
         };
 
 
@@ -40,41 +42,13 @@ public partial class InstructService
         }
 
         // Run code template
-        if (!string.IsNullOrWhiteSpace(codeOptions?.CodeScriptName))
+        var (text, isCodeComplete) = await GetCodeResponse(agentId, templateName, codeOptions);
+        if (isCodeComplete)
         {
-            var codeInterpreter = _services.GetServices<ICodeInterpretService>()
-                                           .FirstOrDefault(x => x.Provider.IsEqualTo(codeOptions?.CodeInterpretProvider.IfNullOrEmptyAs("python-interpreter")));
-
-            if (codeInterpreter == null)
-            {
-                var error = $"No code interpreter found. (Agent: {agentId}, Code interpreter: {codeOptions.CodeInterpretProvider})";
-                _logger.LogError(error);
-                response.Text = error;
-            }
-            else
-            {
-                var db = _services.GetRequiredService<IBotSharpRepository>();
-                var state = _services.GetRequiredService<IConversationStateService>();
-
-                var codeScript = db.GetAgentCodeScript(agentId, codeOptions.CodeScriptName);
-                if (string.IsNullOrWhiteSpace(codeScript))
-                {
-                    var error = $"Empty code script. (Agent: {agentId}, Code script: {codeOptions.CodeScriptName})";
-                    _logger.LogError(error);
-                    response.Text = error;
-                }
-                else
-                {
-                    var result = await codeInterpreter.RunCode(codeScript, options: new()
-                    {
-                        Arguments = codeOptions?.Arguments
-                    });
-                    response.Text = result?.Result?.ToString();
-                }
-            }
+            response.Text = text;
             return response;
         }
-        
+
 
         // Trigger before completion hooks
         var hooks = _services.GetHooks<IInstructHook>(agentId);
@@ -92,6 +66,7 @@ public partial class InstructService
                 };
             }
         }
+
 
         var provider = string.Empty;
         var model = string.Empty;
@@ -158,5 +133,66 @@ public partial class InstructService
         }
 
         return response;
+    }
+
+    private async Task<(string?, bool)> GetCodeResponse(string agentId, string templateName, CodeInstructOptions? codeOptions)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        var isComplete = false;
+        var response = string.Empty;
+
+        var codeProvider = codeOptions?.CodeInterpretProvider.IfNullOrEmptyAs(DEFAULT_CODE_INTERPRETER);
+        var codeInterpreter = _services.GetServices<ICodeInterpretService>()
+                                       .FirstOrDefault(x => x.Provider.IsEqualTo(codeProvider));
+        
+        if (codeInterpreter == null)
+        {
+            _logger.LogWarning($"No code interpreter found. (Agent: {agentId}, Code interpreter: {codeProvider})");
+            return (response, isComplete);
+        }
+
+        // Get code script name
+        var scriptName = string.Empty;
+        if (!string.IsNullOrEmpty(codeOptions?.CodeScriptName))
+        {
+            scriptName = codeOptions.CodeScriptName;
+        }
+        else if (!string.IsNullOrEmpty(templateName))
+        {
+            scriptName = $"{templateName}.py";
+        }
+
+        if (string.IsNullOrEmpty(scriptName))
+        {
+            _logger.LogWarning($"Empty code script name. (Agent: {agentId}, {scriptName})");
+            return (response, isComplete);
+        }
+
+        // Get code script
+        var codeScript = db.GetAgentCodeScript(agentId, scriptName);
+        if (string.IsNullOrWhiteSpace(codeScript))
+        {
+            _logger.LogWarning($"Empty code script. (Agent: {agentId}, {scriptName})");
+            return (response, isComplete);
+        }
+
+        // Get code arguments
+        var arguments = codeOptions?.Arguments ?? [];
+        if (arguments.IsNullOrEmpty())
+        {
+            arguments = state.GetStates().Select(x => new KeyValue(x.Key, x.Value)).ToList();
+        }
+
+        // Run code script
+        var result = await codeInterpreter.RunCode(codeScript, options: new()
+        {
+            Arguments = arguments
+        });
+
+        response = result?.Result?.ToString();
+        isComplete = true;
+        return (response, isComplete);
     }
 }
