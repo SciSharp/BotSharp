@@ -5,6 +5,9 @@ namespace BotSharp.Abstraction.Browsing.Models;
 [DebuggerStepThrough]
 public class ElementLocatingArgs
 {
+    [JsonPropertyName("element_locator_desc")]
+    public string ElementLocatorDescription { get; set; } = string.Empty;
+
     [JsonPropertyName("match_rule")]
     public string MatchRule { get; set; } = string.Empty;
 
@@ -25,6 +28,8 @@ public class ElementLocatingArgs
 
     [JsonPropertyName("selector")]
     public string? Selector { get; set; }
+
+    public ElementPosition? Position { get; set; }
 
     public bool Parent { get; set; }
 

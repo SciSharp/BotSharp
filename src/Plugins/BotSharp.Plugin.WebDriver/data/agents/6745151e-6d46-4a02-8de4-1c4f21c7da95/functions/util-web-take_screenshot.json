@@ -1,0 +1,10 @@
+{
+  "name": "util-web-take_screenshot",
+  "description": "Take screenshot for current viewport.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+    },
+    "required": []
+  }
+}

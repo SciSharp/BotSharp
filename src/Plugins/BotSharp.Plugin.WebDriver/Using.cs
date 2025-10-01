@@ -21,6 +21,6 @@ global using BotSharp.Abstraction.Utilities;
 global using BotSharp.Plugin.WebDriver.Models;
 global using BotSharp.Plugin.WebDriver.Services;
 global using BotSharp.Plugin.WebDriver.LlmContexts;
-global using BotSharp.Plugin.WebDriver.Drivers;
 global using BotSharp.Abstraction.Browsing.Models;
 global using BotSharp.Abstraction.Browsing;
+global using BotSharp.Abstraction.Browsing.Settings;
