@@ -58,11 +58,6 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         _logger = logger;
     }
 
-    public void SetModelName(string model)
-    {
-        _model = model;
-    }
-
     public async Task Connect(
         RealtimeHubConnection conn,
         Func<Task> onModelReady,
@@ -418,6 +413,16 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         {
             throw new NotImplementedException($"Unrecognized role {message.Role}.");
         }
+    }
+
+    public void SetModelName(string model)
+    {
+        _model = model;
+    }
+
+    public void SetOptions(RealtimeOptions? options)
+    {
+
     }
 
     #region Private methods
