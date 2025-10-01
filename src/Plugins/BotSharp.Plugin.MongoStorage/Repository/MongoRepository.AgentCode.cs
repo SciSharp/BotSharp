@@ -66,7 +66,7 @@ public partial class MongoRepository
                          .ToList();
 
         var result = _dc.AgentCodes.BulkWrite(ops, new BulkWriteOptions { IsOrdered = false });
-        return result.ModifiedCount > 0;
+        return result.ModifiedCount > 0 || result.MatchedCount > 0;
     }
 
     public bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
