@@ -22,7 +22,7 @@ public partial class FileRepository
         foreach (var file in Directory.GetFiles(dir))
         {
             var fileName = Path.GetFileName(file);
-            if (scriptNames != null || !scriptNames.Contains(fileName))
+            if (scriptNames != null && !scriptNames.Contains(fileName))
             {
                 continue;
             }
@@ -152,8 +152,10 @@ public partial class FileRepository
     }
     #endregion
 
+    #region Private methods
     private string BuildAgentCodeDir(string agentId)
     {
         return Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_CODES_FOLDER);
     }
+    #endregion
 }
