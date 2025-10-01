@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Models;
 using Microsoft.Extensions.Logging;
 using Python.Runtime;
 using System.Threading.Tasks;
@@ -35,6 +34,8 @@ public class PyInterpretService : ICodeInterpretService
                 sys.stdout = stringIO;
                 sys.stderr = stringIO;
 
+                var org = sys.argv;
+
                 // Set global items
                 using var globals = new PyDict();
                 if (codeScript.Contains("__main__") == true)
@@ -43,9 +44,9 @@ public class PyInterpretService : ICodeInterpretService
                 }
 
                 // Set arguments
+                var list = new PyList();
                 if (options?.Arguments?.Any() == true)
                 {
-                    var list = new PyList();
                     list.Append(new PyString("code.py"));
 
                     foreach (var arg in options.Arguments)
@@ -56,8 +57,8 @@ public class PyInterpretService : ICodeInterpretService
                             list.Append(new PyString($"{arg.Value}"));
                         }
                     }
-                    sys.argv = list;
                 }
+                sys.argv = list;
 
                 // Execute Python script
                 PythonEngine.Exec(codeScript, globals);
@@ -68,6 +69,7 @@ public class PyInterpretService : ICodeInterpretService
                 // Restore the original stdout/stderr
                 sys.stdout = sys.__stdout__;
                 sys.stderr = sys.__stderr__;
+                sys.argv = new PyList();
 
                 return new CodeInterpretResult
                 {

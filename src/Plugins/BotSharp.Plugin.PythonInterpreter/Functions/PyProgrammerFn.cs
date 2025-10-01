@@ -104,6 +104,7 @@ public class PyProgrammerFn : IFunctionCallback
                 // Restore the original stdout/stderr
                 sys.stdout = sys.__stdout__;
                 sys.stderr = sys.__stderr__;
+                sys.argv = new PyList();
             }
         }
         catch (Exception ex)
