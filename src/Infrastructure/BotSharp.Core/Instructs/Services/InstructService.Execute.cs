@@ -8,8 +8,6 @@ namespace BotSharp.Core.Instructs;
 
 public partial class InstructService
 {
-    private const string DEFAULT_CODE_INTERPRETER = "python-interpreter";
-
     public async Task<InstructResult> Execute(
         string agentId,
         RoleDialogModel message,
@@ -41,16 +39,13 @@ public partial class InstructService
             return response;
         }
 
-        // Run code template
-        var (text, isCodeComplete) = await GetCodeResponse(agentId, templateName, codeOptions);
-        if (isCodeComplete)
-        {
-            response.Text = text;
-            return response;
-        }
+
+        var provider = string.Empty;
+        var model = string.Empty;
+        var prompt = string.Empty;
 
 
-        // Trigger before completion hooks
+        // Before completion hooks
         var hooks = _services.GetHooks<IInstructHook>(agentId);
         foreach (var hook in hooks)
         {
@@ -68,43 +63,48 @@ public partial class InstructService
         }
 
 
-        var provider = string.Empty;
-        var model = string.Empty;
-
-        // Render prompt
-        var prompt = string.IsNullOrEmpty(templateName) ?
-            agentService.RenderInstruction(agent) :
-            agentService.RenderTemplate(agent, templateName);
-
-        var completer = CompletionProvider.GetCompletion(_services,
-            agentConfig: agent.LlmConfig);
-
-        if (completer is ITextCompletion textCompleter)
+        // Run code template
+        var (text, isCodeComplete) = await GetCodeResponse(agentId, templateName, codeOptions);
+        if (isCodeComplete)
         {
-            instruction = null;
-            provider = textCompleter.Provider;
-            model = textCompleter.Model;
-
-            var result = await textCompleter.GetCompletion(prompt, agentId, message.MessageId);
-            response.Text = result;
+            response.Text = text;
         }
-        else if (completer is IChatCompletion chatCompleter)
+        else
         {
-            provider = chatCompleter.Provider;
-            model = chatCompleter.Model;
+            // Render prompt
+            prompt = string.IsNullOrEmpty(templateName) ?
+                agentService.RenderInstruction(agent) :
+                agentService.RenderTemplate(agent, templateName);
 
-            if (instruction == "#TEMPLATE#")
+            var completer = CompletionProvider.GetCompletion(_services,
+                agentConfig: agent.LlmConfig);
+
+            if (completer is ITextCompletion textCompleter)
             {
-                instruction = prompt;
-                prompt = message.Content;
+                instruction = null;
+                provider = textCompleter.Provider;
+                model = textCompleter.Model;
+
+                var result = await textCompleter.GetCompletion(prompt, agentId, message.MessageId);
+                response.Text = result;
             }
-
-            var result = await chatCompleter.GetChatCompletions(new Agent
+            else if (completer is IChatCompletion chatCompleter)
             {
-                Id = agentId,
-                Name = agent.Name,
-                Instruction = instruction
-            }, new List<RoleDialogModel>
+                provider = chatCompleter.Provider;
+                model = chatCompleter.Model;
+
+                if (instruction == "#TEMPLATE#")
+                {
+                    instruction = prompt;
+                    prompt = message.Content;
+                }
+
+                var result = await chatCompleter.GetChatCompletions(new Agent
+                {
+                    Id = agentId,
+                    Name = agent.Name,
+                    Instruction = instruction
+                }, new List<RoleDialogModel>
             {
                 new RoleDialogModel(AgentRole.User, prompt)
                 {
@@ -113,28 +113,39 @@ public partial class InstructService
                     Files = files?.Select(x => new BotSharpFile { FileUrl = x.FileUrl, FileData = x.FileData, ContentType = x.ContentType }).ToList() ?? []
                 }
             });
-            response.Text = result.Content;
+                response.Text = result.Content;
+            }
         }
 
-
+        // After completion hooks
         foreach (var hook in hooks)
         {
             await hook.AfterCompletion(agent, response);
-            await hook.OnResponseGenerated(new InstructResponseModel
+            if (!isCodeComplete)
             {
-                AgentId = agentId,
-                Provider = provider,
-                Model = model,
-                TemplateName = templateName,
-                UserMessage = prompt,
-                SystemInstruction = instruction,
-                CompletionText = response.Text
-            });
+                await hook.OnResponseGenerated(new InstructResponseModel
+                {
+                    AgentId = agentId,
+                    Provider = provider,
+                    Model = model,
+                    TemplateName = templateName,
+                    UserMessage = prompt,
+                    SystemInstruction = instruction,
+                    CompletionText = response.Text
+                });
+            }
         }
 
         return response;
     }
 
+    /// <summary>
+    /// Get code response => return: (response text, whether code execution is completed)
+    /// </summary>
+    /// <param name="agentId"></param>
+    /// <param name="templateName"></param>
+    /// <param name="codeOptions"></param>
+    /// <returns></returns>
     private async Task<(string?, bool)> GetCodeResponse(string agentId, string templateName, CodeInstructOptions? codeOptions)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -143,13 +154,15 @@ public partial class InstructService
         var isComplete = false;
         var response = string.Empty;
 
-        var codeProvider = codeOptions?.CodeInterpretProvider.IfNullOrEmptyAs(DEFAULT_CODE_INTERPRETER);
+        var codeProvider = codeOptions?.CodeInterpretProvider.IfNullOrEmptyAs("botsharp-py-interpreter");
         var codeInterpreter = _services.GetServices<ICodeInterpretService>()
                                        .FirstOrDefault(x => x.Provider.IsEqualTo(codeProvider));
         
         if (codeInterpreter == null)
         {
+#if DEBUG
             _logger.LogWarning($"No code interpreter found. (Agent: {agentId}, Code interpreter: {codeProvider})");
+#endif
             return (response, isComplete);
         }
 
@@ -166,7 +179,9 @@ public partial class InstructService
 
         if (string.IsNullOrEmpty(scriptName))
         {
+#if DEBUG
             _logger.LogWarning($"Empty code script name. (Agent: {agentId}, {scriptName})");
+#endif
             return (response, isComplete);
         }
 
@@ -174,7 +189,9 @@ public partial class InstructService
         var codeScript = db.GetAgentCodeScript(agentId, scriptName);
         if (string.IsNullOrWhiteSpace(codeScript))
         {
+#if DEBUG
             _logger.LogWarning($"Empty code script. (Agent: {agentId}, {scriptName})");
+#endif
             return (response, isComplete);
         }
 

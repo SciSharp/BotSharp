@@ -17,7 +17,7 @@ public class PyInterpretService : ICodeInterpretService
         _logger = logger;
     }
 
-    public string Provider => "python-interpreter";
+    public string Provider => "botsharp-py-interpreter";
 
     public async Task<CodeInterpretResult> RunCode(string codeScript, CodeInterpretOptions? options = null)
     {
@@ -33,8 +33,6 @@ public class PyInterpretService : ICodeInterpretService
                 dynamic stringIO = io.StringIO();
                 sys.stdout = stringIO;
                 sys.stderr = stringIO;
-
-                var org = sys.argv;
 
                 // Set global items
                 using var globals = new PyDict();
