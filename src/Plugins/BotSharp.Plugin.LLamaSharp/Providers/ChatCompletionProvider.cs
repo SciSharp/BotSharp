@@ -42,7 +42,7 @@ public class ChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var content = string.Join("\r\n", conversations.Select(x => $"{x.Role}: {x.Content}")).Trim();
+        var content = string.Join("\r\n", conversations.Select(x => $"{x.Role}: {x.RoleContent}")).Trim();
         content += $"\r\n{AgentRole.Assistant}: ";
 
         var llama = _services.GetRequiredService<LlamaAiModel>();
@@ -118,7 +118,7 @@ public class ChatCompletionProvider : IChatCompletion
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting)
     {
-        var content = string.Join("\r\n", conversations.Select(x => $"{x.Role}: {x.Content}")).Trim();
+        var content = string.Join("\r\n", conversations.Select(x => $"{x.Role}: {x.RoleContent}")).Trim();
         content += $"\r\n{AgentRole.Assistant}: ";
 
         var state = _services.GetRequiredService<IConversationStateService>();

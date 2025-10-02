@@ -1,20 +1,20 @@
 namespace BotSharp.Plugin.PythonInterpreter.Hooks;
 
-public class InterpreterUtilityHook : IAgentUtilityHook
+public class PyProgrammerUtilityHook : IAgentUtilityHook
 {
-    private static string FUNCTION_NAME = "python_interpreter";
+    private const string PY_PROGRAMMER_FN = "util-code-python_programmer";
 
     public void AddUtilities(List<AgentUtility> utilities)
     {
         var utility = new AgentUtility()
         {
-            Category = "coding",
-            Name = UtilityName.PythonInterpreter,
+            Category = "code",
+            Name = UtilityName.PythonProgrammer,
             Items = [
                 new UtilityItem
                 {
-                    FunctionName = FUNCTION_NAME,
-                    TemplateName = $"{FUNCTION_NAME}.fn"
+                    FunctionName = PY_PROGRAMMER_FN,
+                    TemplateName = $"{PY_PROGRAMMER_FN}.fn"
                 }
             ]
         };

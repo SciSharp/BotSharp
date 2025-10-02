@@ -60,13 +60,16 @@ public partial class AgentService
                      .SetSamples(samples);
 
                 var tasks = GetTasksFromFile(dir);
+                var codeScripts = GetCodeScriptsFromFile(dir);
 
                 var isAgentDeleted = _db.DeleteAgent(agent.Id);
                 if (isAgentDeleted)
                 {
                     await Task.Delay(100);
-                    _db.BulkInsertAgents(new List<Agent> { agent });
-                    _db.BulkInsertAgentTasks(tasks);
+                    _db.BulkInsertAgents([agent]);
+                    _db.BulkInsertAgentTasks(agent.Id, tasks);
+                    _db.BulkInsertAgentCodeScripts(agent.Id, codeScripts);
+
                     refreshedAgents.Add(agent.Name);
                     _logger.LogInformation($"Agent {agent.Name} has been migrated.");
                 }

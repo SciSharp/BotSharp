@@ -136,17 +136,17 @@ public class ChatCompletionProvider : IChatCompletion
             filteredMessages = filteredMessages.Where((_, idx) => idx >= firstUserMsgIdx).ToList();
         }
 
-        foreach (var conv in filteredMessages)
+        foreach (var message in filteredMessages)
         {
-            if (conv.Role == AgentRole.User)
+            if (message.Role == AgentRole.User)
             {
-                messages.Add(new Message(RoleType.User, conv.Payload ?? conv.Content));
+                messages.Add(new Message(RoleType.User, message.RoleContent));
             }
-            else if (conv.Role == AgentRole.Assistant)
+            else if (message.Role == AgentRole.Assistant)
             {
-                messages.Add(new Message(RoleType.Assistant, conv.Content));
+                messages.Add(new Message(RoleType.Assistant, message.RoleContent));
             }
-            else if (conv.Role == AgentRole.Function)
+            else if (message.Role == AgentRole.Function)
             {
                 messages.Add(new Message
                 {
@@ -155,9 +155,9 @@ public class ChatCompletionProvider : IChatCompletion
                     {
                         new ToolUseContent()
                         {
-                            Id = conv.ToolCallId,
-                            Name = conv.FunctionName,
-                            Input = JsonNode.Parse(conv.FunctionArgs ?? "{}")
+                            Id = message.ToolCallId,
+                            Name = message.FunctionName,
+                            Input = JsonNode.Parse(message.FunctionArgs ?? "{}")
                         }
                     }
                 });
@@ -169,8 +169,8 @@ public class ChatCompletionProvider : IChatCompletion
                     {
                         new ToolResultContent()
                         {
-                            ToolUseId = conv.ToolCallId,
-                            Content = [new TextContent() { Text = conv.Content }]
+                            ToolUseId = message.ToolCallId,
+                            Content = [new TextContent() { Text = message.RoleContent }]
                         }
                     }
                 });
