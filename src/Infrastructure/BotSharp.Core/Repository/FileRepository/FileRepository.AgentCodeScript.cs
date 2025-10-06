@@ -4,7 +4,7 @@ namespace BotSharp.Core.Repository;
 
 public partial class FileRepository
 {
-    #region Code
+    #region Code script
     public List<AgentCodeScript> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
     {
         if (string.IsNullOrWhiteSpace(agentId))

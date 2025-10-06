@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
-    #region Code
+    #region Code script
     public List<AgentCodeScript> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
     {
         if (string.IsNullOrWhiteSpace(agentId))
@@ -72,6 +72,7 @@ public partial class MongoRepository
                                     builder.Eq(y => y.ScriptType, x.ScriptType)
                                 }),
                                 Builders<AgentCodeScriptDocument>.Update.Set(y => y.Content, x.Content)
+                                                                        .Set(x => x.UpdatedTime, DateTime.UtcNow)
                          ))
                          .ToList();
 
@@ -91,6 +92,8 @@ public partial class MongoRepository
             var script = AgentCodeScriptDocument.ToMongoModel(x);
             script.AgentId = agentId;
             script.Id = x.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+            script.CreatedTime = DateTime.UtcNow;
+            script.UpdatedTime = DateTime.UtcNow;
             return script;
         }).ToList();
 

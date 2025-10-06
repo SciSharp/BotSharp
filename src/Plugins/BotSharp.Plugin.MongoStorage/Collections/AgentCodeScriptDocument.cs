@@ -8,6 +8,8 @@ public class AgentCodeScriptDocument : MongoBase
     public string Name { get; set; } = default!;
     public string Content { get; set; } = default!;
     public string ScriptType { get; set; } = default!;
+    public DateTime CreatedTime { get; set; }
+    public DateTime UpdatedTime { get; set; }
 
     public static AgentCodeScriptDocument ToMongoModel(AgentCodeScript script)
     {

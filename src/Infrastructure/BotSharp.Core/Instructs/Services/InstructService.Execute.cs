@@ -233,6 +233,7 @@ public partial class InstructService
         response = new InstructResult
         {
             MessageId = message.MessageId,
+            Template = scriptName,
             Text = result?.Result?.ToString()
         };
 
