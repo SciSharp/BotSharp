@@ -2,31 +2,34 @@ using BotSharp.Abstraction.Agents.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Collections;
 
-public class AgentCodeDocument : MongoBase
+public class AgentCodeScriptDocument : MongoBase
 {
     public string AgentId { get; set; } = default!;
     public string Name { get; set; } = default!;
     public string Content { get; set; } = default!;
+    public string ScriptType { get; set; } = default!;
 
-    public static AgentCodeDocument ToMongoModel(AgentCodeScript script)
+    public static AgentCodeScriptDocument ToMongoModel(AgentCodeScript script)
     {
-        return new AgentCodeDocument
+        return new AgentCodeScriptDocument
         {
             Id = script.Id,
             AgentId = script.AgentId,
             Name = script.Name,
-            Content = script.Content
+            Content = script.Content,
+            ScriptType = script.ScriptType
         };
     }
 
-    public static AgentCodeScript ToDomainModel(AgentCodeDocument script)
+    public static AgentCodeScript ToDomainModel(AgentCodeScriptDocument script)
     {
         return new AgentCodeScript
         {
             Id = script.Id,
             AgentId = script.AgentId,
             Name = script.Name,
-            Content = script.Content
+            Content = script.Content,
+            ScriptType = script.ScriptType
         };
     }
 }

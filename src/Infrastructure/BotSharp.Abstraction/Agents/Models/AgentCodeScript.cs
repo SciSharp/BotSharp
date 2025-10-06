@@ -1,18 +1,29 @@
 namespace BotSharp.Abstraction.Agents.Models;
 
-public class AgentCodeScript
+public class AgentCodeScript : AgentCodeScriptBase
 {
     public string Id { get; set; }
-    public string AgentId { get; set; }
-    public string Name { get; set; }
-    public string Content { get; set; }
+    public string AgentId { get; set; } = null!;
 
-    public AgentCodeScript()
+    public AgentCodeScript() : base()
     {
     }
 
     public override string ToString()
     {
-        return Name;
+        return $"{CodePath}";
     }
+}
+
+public class AgentCodeScriptBase
+{
+    public string Name { get; set; } = null!;
+    public string Content { get; set; } = null!;
+
+    /// <summary>
+    /// Code script type: src, test
+    /// </summary>
+    public string ScriptType { get; set; } = null!;
+
+    public string CodePath => $"{ScriptType}/{Name}";
 }

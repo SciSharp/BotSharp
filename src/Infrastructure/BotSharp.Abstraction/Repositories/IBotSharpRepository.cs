@@ -107,15 +107,15 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #endregion
 
     #region Agent Code
-    List<AgentCodeScript> GetAgentCodeScripts(string agentId, List<string>? scriptNames = null)
+    List<AgentCodeScript> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
         => throw new NotImplementedException();
-    string? GetAgentCodeScript(string agentId, string scriptName)
+    string? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
         => throw new NotImplementedException();
     bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
         => throw new NotImplementedException();
     bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
         => throw new NotImplementedException();
-    bool DeleteAgentCodeScripts(string agentId, List<string>? scriptNames)
+    bool DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? scripts = null)
         => throw new NotImplementedException();
     #endregion
 

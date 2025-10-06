@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Agents.Enums;
 
-public class BuiltInAgentId
+public static class BuiltInAgentId
 {
     /// <summary>
     /// A routing agent can be used as a base router.
