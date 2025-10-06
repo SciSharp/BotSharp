@@ -205,6 +205,7 @@ public partial class InstructService
 
         var context = new CodeInstructContext
         {
+            CodeScript = codeScript,
             Arguments = arguments
         };
 
@@ -225,7 +226,7 @@ public partial class InstructService
         }
 
         // Run code script
-        var result = await codeInterpreter.RunCode(codeScript, options: new()
+        var result = await codeInterpreter.RunCode(context.CodeScript, options: new()
         {
             Arguments = context.Arguments
         });
