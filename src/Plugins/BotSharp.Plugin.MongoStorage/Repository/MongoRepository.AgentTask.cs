@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Tasks.Models;
+using MongoDB.Driver;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -86,13 +87,17 @@ public partial class MongoRepository
         _dc.AgentTasks.InsertOne(taskDoc);
     }
 
-    public void BulkInsertAgentTasks(List<AgentTask> tasks)
+    public void BulkInsertAgentTasks(string agentId, List<AgentTask> tasks)
     {
-        if (tasks.IsNullOrEmpty()) return;
+        if (string.IsNullOrWhiteSpace(agentId) || tasks.IsNullOrEmpty())
+        {
+            return;
+        }
 
         var taskDocs = tasks.Select(x =>
         {
             var task = AgentTaskDocument.ToMongoModel(x);
+            task.AgentId = agentId;
             task.Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString();
             return task;
         }).ToList();
@@ -138,30 +143,21 @@ public partial class MongoRepository
         _dc.AgentTasks.ReplaceOne(filter, taskDoc);
     }
 
-    public bool DeleteAgentTask(string agentId, List<string> taskIds)
+    public bool DeleteAgentTasks(string agentId, List<string>? taskIds = null)
     {
-        if (taskIds.IsNullOrEmpty()) return false;
-
-        var builder = Builders<AgentTaskDocument>.Filter;
-        var filters = new List<FilterDefinition<AgentTaskDocument>>
+        var filterDef = Builders<AgentTaskDocument>.Filter.Empty;
+        if (taskIds != null)
         {
-            builder.In(x => x.Id, taskIds)
-        };
-        var taskDeleted = _dc.AgentTasks.DeleteMany(builder.And(filters));
+            var builder = Builders<AgentTaskDocument>.Filter;
+            var filters = new List<FilterDefinition<AgentTaskDocument>>
+            {
+                builder.In(x => x.Id, taskIds)
+            };
+            filterDef = builder.And(filters);
+        }
+
+        var taskDeleted = _dc.AgentTasks.DeleteMany(filterDef);
         return taskDeleted.DeletedCount > 0;
-    }
-
-    public bool DeleteAgentTasks()
-    {
-        try
-        {
-            _dc.AgentTasks.DeleteMany(Builders<AgentTaskDocument>.Filter.Empty);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
     }
     #endregion
 }

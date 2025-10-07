@@ -402,11 +402,11 @@ public class ChatCompletionProvider : IChatCompletion
                     ChatToolCall.CreateFunctionToolCall(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? "{}"))
                 }));
 
-                messages.Add(new ToolChatMessage(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.Content));
+                messages.Add(new ToolChatMessage(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.RoleContent));
             }
             else if (message.Role == AgentRole.User)
             {
-                var text = !string.IsNullOrWhiteSpace(message.Payload) ? message.Payload : message.Content;
+                var text = message.RoleContent;
                 var textPart = ChatMessageContentPart.CreateTextPart(text);
                 var contentParts = new List<ChatMessageContentPart> { textPart };
 
@@ -418,7 +418,7 @@ public class ChatCompletionProvider : IChatCompletion
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                var text = message.Content;
+                var text = message.RoleContent;
                 var textPart = ChatMessageContentPart.CreateTextPart(text);
                 var contentParts = new List<ChatMessageContentPart> { textPart };
 

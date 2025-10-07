@@ -36,12 +36,12 @@ public class InstructModeController : ControllerBase
         var instructor = _services.GetRequiredService<IInstructService>();
         var result = await instructor.Execute(agentId,
             new RoleDialogModel(AgentRole.User, input.Text),
-            templateName: input.Template,
             instruction: input.Instruction,
-            files: input.Files);
+            templateName: input.Template,
+            files: input.Files,
+            codeOptions: input.CodeOptions);
 
         result.States = state.GetStates();
-
         return result; 
     }
 

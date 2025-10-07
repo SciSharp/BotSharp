@@ -269,13 +269,13 @@ public class ChatCompletionProvider : IChatCompletion
             }
             else if (message.Role == "user")
             {
-                var userMessage = ChatMessage.FromUser(message.Content);
+                var userMessage = ChatMessage.FromUser(message.RoleContent);
 
                 messages.Add(userMessage);
             }
             else if (message.Role == "assistant")
             {
-                messages.Add(ChatMessage.FromAssistant(message.Content));
+                messages.Add(ChatMessage.FromAssistant(message.RoleContent));
             }
         }
 

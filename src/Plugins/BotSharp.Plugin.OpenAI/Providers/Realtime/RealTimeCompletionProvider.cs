@@ -555,10 +555,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
-        var allowMultiModal = settings != null && settings.MultiModal;
 
         var messages = new List<ChatMessage>();
 
@@ -623,44 +621,15 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     ChatToolCall.CreateFunctionToolCall(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? "{}"))
                 }));
 
-                messages.Add(new ToolChatMessage(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.Content));
+                messages.Add(new ToolChatMessage(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.RoleContent));
             }
             else if (message.Role == AgentRole.User)
             {
-                var text = !string.IsNullOrWhiteSpace(message.Payload) ? message.Payload : message.Content;
-                var textPart = ChatMessageContentPart.CreateTextPart(text);
-                var contentParts = new List<ChatMessageContentPart> { textPart };
-
-                if (allowMultiModal && !message.Files.IsNullOrEmpty())
-                {
-                    foreach (var file in message.Files)
-                    {
-                        if (!string.IsNullOrEmpty(file.FileData))
-                        {
-                            var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType, ChatImageDetailLevel.Auto);
-                            contentParts.Add(contentPart);
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileStorageUrl))
-                        {
-                            var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
-                            var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(binary, contentType, ChatImageDetailLevel.Auto);
-                            contentParts.Add(contentPart);
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileUrl))
-                        {
-                            var uri = new Uri(file.FileUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(uri, ChatImageDetailLevel.Auto);
-                            contentParts.Add(contentPart);
-                        }
-                    }
-                }
-                messages.Add(new UserChatMessage(contentParts) { ParticipantName = message.FunctionName });
+                messages.Add(new UserChatMessage(message.RoleContent));
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                messages.Add(new AssistantChatMessage(message.Content));
+                messages.Add(new AssistantChatMessage(message.RoleContent));
             }
         }
 

@@ -59,7 +59,6 @@ public interface IAgentService
     /// <param name="agent"></param>
     /// <returns></returns>
     Task<string> PatchAgentTemplate(Agent agent);
-    Task<string> UpdateAgentFromFile(string id);
     string GetDataDir();
     string GetAgentDataDir(string agentId);
 

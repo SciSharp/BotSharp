@@ -547,6 +547,12 @@ namespace BotSharp.Core.Repository
 
         public string GetAgentTemplate(string agentId, string templateName)
         {
+            if (string.IsNullOrWhiteSpace(agentId)
+            || string.IsNullOrWhiteSpace(templateName))
+            {
+                return string.Empty;
+            }
+
             var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_TEMPLATES_FOLDER);
             if (!Directory.Exists(dir)) return string.Empty;
 

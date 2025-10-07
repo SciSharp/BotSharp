@@ -80,6 +80,7 @@
     <None Remove="data\agents\01fcc3e5-0af7-49e6-ad7a-a760bd12dc4d\instructions\instruction.liquid" />
     <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\agent.json" />
     <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\instructions\instruction.liquid" />
+    <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\codes\src\demo.py" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\agent.json" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\instructions\instruction.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\.welcome.liquid" />
@@ -126,7 +127,7 @@
     <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\instructions\instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\agent.json">
+    <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\codes\src\demo.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\functions\response_to_user.json">
