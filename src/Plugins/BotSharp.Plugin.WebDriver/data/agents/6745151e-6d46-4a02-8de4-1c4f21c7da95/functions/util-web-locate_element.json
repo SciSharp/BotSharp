@@ -4,6 +4,10 @@
   "parameters": {
     "type": "object",
     "properties": {
+      "element_locator_desc": {
+        "type": "string",
+        "description": "The element locator description."
+      },
       "selector": {
         "type": "string",
         "description": "element selector in XPath, use syntax of Playwright in .NET"
@@ -17,6 +21,6 @@
         "description": "ignore error logging if element not exists"
       }
     },
-    "required": [ "selector" ]
+    "required": [ "element_locator_desc" ]
   }
 }

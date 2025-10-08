@@ -7,6 +7,7 @@ public class WebUtilityHook : IAgentUtilityHook
     private const string GO_TO_PAGE_FN = $"{PREFIX}go_to_page";
     private const string LOCATE_ELEMENT_FN = $"{PREFIX}locate_element";
     private const string ACTION_ON_ELEMENT_FN = $"{PREFIX}action_on_element";
+    private const string TAKE_SCREENSHOT_FN = $"{PREFIX}take_screenshot";
 
     public void AddUtilities(List<AgentUtility> utilities)
     {
@@ -20,12 +21,10 @@ public class WebUtilityHook : IAgentUtilityHook
                     new UtilityItem
                     {
                         FunctionName = GO_TO_PAGE_FN,
-                        TemplateName = $"{GO_TO_PAGE_FN}.fn"
                     },
                     new UtilityItem
                     {
                         FunctionName = ACTION_ON_ELEMENT_FN,
-                        TemplateName = $"{ACTION_ON_ELEMENT_FN}.fn"
                     },
                     new UtilityItem
                     {
@@ -34,6 +33,10 @@ public class WebUtilityHook : IAgentUtilityHook
                     new UtilityItem
                     {
                         FunctionName = CLOSE_BROWSER_FN
+                    },
+                    new UtilityItem
+                    {
+                        FunctionName = TAKE_SCREENSHOT_FN
                     }
                 ]
             }
