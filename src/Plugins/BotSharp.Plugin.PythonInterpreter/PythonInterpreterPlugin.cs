@@ -39,16 +39,12 @@ public class PythonInterpreterPlugin : IBotSharpAppPlugin
             {
                 Runtime.PythonDLL = pyLoc;
                 PythonEngine.Initialize();
-#if DEBUG
                 _pyState = PythonEngine.BeginAllowThreads();
-#endif
 
                 lifetime.ApplicationStopping.Register(() => {
                     try
                     {
-#if DEBUG
                         PythonEngine.EndAllowThreads(_pyState);
-#endif
                         PythonEngine.Shutdown();
                     }
                     catch { }
