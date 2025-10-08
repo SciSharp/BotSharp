@@ -11,7 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-code-python_generate_instruction.liquid" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-code-python_programmer.json" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-code-python_programmer.fn.liquid" />
+    <None Remove="data\agents\c2a2faf6-b8b5-47fe-807b-f4714cf25dd4\templates\py-code_generate_instruction.liquid" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,7 +23,7 @@
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-code-python_programmer.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-code-python_generate_instruction.liquid">
+    <Content Include="data\agents\c2a2faf6-b8b5-47fe-807b-f4714cf25dd4\templates\py-code_generate_instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

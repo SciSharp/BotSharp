@@ -114,8 +114,8 @@ public partial class FileInstructService
                 return new NameDesc(text, desc);
             }).ToList();
 
-            var agentId = !string.IsNullOrWhiteSpace(options.AgentId) ? options.AgentId : BuiltInAgentId.UtilityAssistant;
-            var template = !string.IsNullOrWhiteSpace(options.Template) ? options.Template : "util-file-select_file_instruction";
+            var agentId = !string.IsNullOrWhiteSpace(options.AgentId) ? options.AgentId : BuiltInAgentId.FileAssistant;
+            var template = !string.IsNullOrWhiteSpace(options.Template) ? options.Template : "select_chat_file_instruction";
             var prompt = db.GetAgentTemplate(agentId, template);
 
             var data = new Dictionary<string, object>

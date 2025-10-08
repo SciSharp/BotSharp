@@ -8,7 +8,7 @@ namespace BotSharp.Plugin.PythonInterpreter.Functions;
 public class PyProgrammerFn : IFunctionCallback
 {
     public string Name => "util-code-python_programmer";
-    public string Indication => "Programming and executing code";
+    public string Indication => "Coding";
 
     private readonly IServiceProvider _services;
     private readonly ILogger<PyProgrammerFn> _logger;
@@ -66,30 +66,10 @@ public class PyProgrammerFn : IFunctionCallback
 
         try
         {
-            using (Py.GIL())
+            var (isSuccess, result) = InnerRunCode(ret.PythonCode);
+            if (isSuccess)
             {
-                // Import necessary Python modules
-                dynamic sys = Py.Import("sys");
-                dynamic io = Py.Import("io");
-
-                // Redirect standard output/error to capture it
-                dynamic stringIO = io.StringIO();
-                sys.stdout = stringIO;
-                sys.stderr = stringIO;
-
-                // Set global items
-                using var globals = new PyDict();
-                if (ret.PythonCode?.Contains("__main__") == true)
-                {
-                    globals.SetItem("__name__", new PyString("__main__"));
-                }
-
-                // Execute Python script
-                PythonEngine.Exec(ret.PythonCode, globals);
-
-                // Get result
-                var result = stringIO.getvalue()?.ToString() as string;
-                message.Content = result?.TrimEnd('\r', '\n') ?? string.Empty;
+                message.Content = result;
                 message.RichContent = new RichContent<IRichMessage>
                 {
                     Recipient = new Recipient { Id = convService.ConversationId },
@@ -100,21 +80,70 @@ public class PyProgrammerFn : IFunctionCallback
                     }
                 };
                 message.StopCompletion = true;
+            }
+            else
+            {
+                message.Content = result;
+            }
+        }
+        catch (Exception ex)
+        {
+            var errorMsg = $"Error when executing python code. {ex.Message}";
+            message.Content = errorMsg;
+            _logger.LogError(ex, errorMsg);
+        }
 
-                // Restore the original stdout/stderr
+        return true;
+    }
+
+    /// <summary>
+    /// Run python code script => (isSuccess, result)
+    /// </summary>
+    /// <param name="codeScript"></param>
+    /// <returns></returns>
+    private (bool, string) InnerRunCode(string codeScript)
+    {
+        using (Py.GIL())
+        {
+            // Import necessary Python modules
+            dynamic sys = Py.Import("sys");
+            dynamic io = Py.Import("io");
+
+            try
+            {
+                // Redirect standard output/error to capture it
+                dynamic stringIO = io.StringIO();
+                sys.stdout = stringIO;
+                sys.stderr = stringIO;
+
+                // Set global items
+                using var globals = new PyDict();
+                if (codeScript?.Contains("__main__") == true)
+                {
+                    globals.SetItem("__name__", new PyString("__main__"));
+                }
+
+                // Execute Python script
+                PythonEngine.Exec(codeScript, globals);
+
+                // Get result
+                var result = stringIO.getvalue()?.ToString() as string;
+                return (true, result?.TrimEnd('\r', '\n') ?? string.Empty);
+            }
+            catch (Exception ex)
+            {
+                var errorMsg = $"Error when executing inner python code. {ex.Message}";
+                _logger.LogError(ex, errorMsg);
+                return (false, errorMsg);
+            }
+            finally
+            {
+                // Restore the original stdout/stderr/argv
                 sys.stdout = sys.__stdout__;
                 sys.stderr = sys.__stderr__;
                 sys.argv = new PyList();
             }
         }
-        catch (Exception ex)
-        {
-            var errorMsg = $"Error when executing python code.";
-            message.Content = $"{errorMsg} {ex.Message}";
-            _logger.LogError(ex, errorMsg);
-        }
-
-        return true;
     }
 
     private async Task<string> GetChatCompletion(Agent agent, List<RoleDialogModel> dialogs)
@@ -148,8 +177,8 @@ public class PyProgrammerFn : IFunctionCallback
         }
         else
         {
-            templateName = "util-code-python_generate_instruction";
-            templateContent = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, templateName);
+            templateName = "py-code_generate_instruction";
+            templateContent = db.GetAgentTemplate(BuiltInAgentId.AIProgrammer, templateName);
         }
 
         return templateContent;

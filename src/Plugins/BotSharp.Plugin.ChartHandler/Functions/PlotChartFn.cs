@@ -123,8 +123,8 @@ public class PlotChartFn : IFunctionCallback
         }
         else
         {
-            templateName = "util-chart-plot_instruction";
-            templateContent = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, templateName);
+            templateName = "chart-js-generate_instruction";
+            templateContent = db.GetAgentTemplate(BuiltInAgentId.AIProgrammer, templateName);
         }
 
         return templateContent;

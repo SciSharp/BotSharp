@@ -155,7 +155,7 @@ public partial class InstructService
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var hooks = _services.GetHooks<IInstructHook>(agent.Id);
 
-        var codeProvider = codeOptions?.CodeInterpretProvider.IfNullOrEmptyAs("botsharp-py-interpreter");
+        var codeProvider = codeOptions?.CodeInterpretProvider ?? "botsharp-py-interpreter";
         var codeInterpreter = _services.GetServices<ICodeInterpretService>()
                                        .FirstOrDefault(x => x.Provider.IsEqualTo(codeProvider));
         
@@ -228,6 +228,7 @@ public partial class InstructService
         // Run code script
         var result = await codeInterpreter.RunCode(context.CodeScript, options: new()
         {
+            ScriptName = scriptName,
             Arguments = context.Arguments
         });
 

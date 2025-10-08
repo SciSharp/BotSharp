@@ -19,6 +19,7 @@
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-file-read_pdf.fn.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-file-edit_image.json" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-file-edit_image.fn.liquid" />
+    <None Remove="data\agents\f1e09a73-9efe-46ce-ba02-b3aaf96d97e0\templates\select-chat-file_instruction.liquid" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +45,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-file-edit_image.fn.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f1e09a73-9efe-46ce-ba02-b3aaf96d97e0\templates\select-chat-file_instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
