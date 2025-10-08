@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.CodeInterpreter.Models;
-using System.Threading;
 
 namespace BotSharp.Abstraction.CodeInterpreter;
 
