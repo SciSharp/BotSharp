@@ -177,8 +177,8 @@ public class PyProgrammerFn : IFunctionCallback
         }
         else
         {
-            templateName = "util-code-python_generate_instruction";
-            templateContent = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, templateName);
+            templateName = "py-code_generate_instruction";
+            templateContent = db.GetAgentTemplate(BuiltInAgentId.AIProgrammer, templateName);
         }
 
         return templateContent;

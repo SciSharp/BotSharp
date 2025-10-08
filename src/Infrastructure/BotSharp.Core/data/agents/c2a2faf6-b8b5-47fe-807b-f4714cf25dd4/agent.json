@@ -1,0 +1,18 @@
+{
+  "id": "c2a2faf6-b8b5-47fe-807b-f4714cf25dd4",
+  "name": "AI programmer",
+  "description": "AI programmer is designed to generate code scripts.",
+  "type": "task",
+  "createdDateTime": "2025-10-07T10:39:32Z",
+  "updatedDateTime": "2025-10-07T14:39:32Z",
+  "iconUrl": "/images/logo.png",
+  "disabled": false,
+  "isPublic": true,
+  "llmConfig": {
+    "is_inherit": false,
+    "provider": "openai",
+    "model": "gpt-5",
+    "max_recursion_depth": 3,
+    "reasoning_effort_level": "minimal"
+  }
+}
