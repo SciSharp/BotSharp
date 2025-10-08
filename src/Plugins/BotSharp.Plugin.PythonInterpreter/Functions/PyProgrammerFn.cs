@@ -8,7 +8,7 @@ namespace BotSharp.Plugin.PythonInterpreter.Functions;
 public class PyProgrammerFn : IFunctionCallback
 {
     public string Name => "util-code-python_programmer";
-    public string Indication => "Programming and executing code";
+    public string Indication => "Coding";
 
     private readonly IServiceProvider _services;
     private readonly ILogger<PyProgrammerFn> _logger;
