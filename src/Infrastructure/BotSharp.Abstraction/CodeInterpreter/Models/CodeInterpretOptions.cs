@@ -4,7 +4,7 @@ namespace BotSharp.Abstraction.CodeInterpreter.Models;
 
 public class CodeInterpretOptions
 {
+    public string? ScriptName { get; set; }
     public IEnumerable<KeyValue>? Arguments { get; set; }
-    public bool LockFree { get; set; }
     public CancellationToken? CancellationToken { get; set; }
 }

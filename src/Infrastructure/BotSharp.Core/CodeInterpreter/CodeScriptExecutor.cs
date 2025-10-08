@@ -13,7 +13,7 @@ public class CodeScriptExecutor
         _logger = logger;
     }
 
-    public async Task<CodeInterpretResult> Execute(Func<Task<CodeInterpretResult>> func, CancellationToken cancellationToken = default)
+    public async Task<T> Execute<T>(Func<Task<T>> func, CancellationToken cancellationToken = default)
     {
         await _semLock.WaitAsync(cancellationToken);
 
@@ -24,11 +24,7 @@ public class CodeScriptExecutor
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error in {nameof(CodeScriptExecutor)}.");
-            return new CodeInterpretResult
-            {
-                Success = false,
-                ErrorMsg = ex.Message
-            };
+            return default(T);
         }
         finally
         {

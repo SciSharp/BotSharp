@@ -29,6 +29,7 @@ public class PythonInterpreterPlugin : IBotSharpAppPlugin
     {
         var sp = app.ApplicationServices;
         var settings = sp.GetRequiredService<PythonInterpreterSettings>();
+        var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
         var logger = sp.GetRequiredService<ILogger<PyProgrammerFn>>();
         var pyLoc = settings.InstallLocation;
 
@@ -38,12 +39,19 @@ public class PythonInterpreterPlugin : IBotSharpAppPlugin
             {
                 Runtime.PythonDLL = pyLoc;
                 PythonEngine.Initialize();
+#if DEBUG
                 _pyState = PythonEngine.BeginAllowThreads();
+#endif
 
-                var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
                 lifetime.ApplicationStopping.Register(() => {
-                    PythonEngine.EndAllowThreads(_pyState);
-                    PythonEngine.Shutdown();
+                    try
+                    {
+#if DEBUG
+                        PythonEngine.EndAllowThreads(_pyState);
+#endif
+                        PythonEngine.Shutdown();
+                    }
+                    catch { }
                 });
             }
             else

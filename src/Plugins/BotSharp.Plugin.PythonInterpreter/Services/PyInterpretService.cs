@@ -1,7 +1,6 @@
 using BotSharp.Core.CodeInterpreter;
 using Microsoft.Extensions.Logging;
 using Python.Runtime;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.PythonInterpreter.Services;
@@ -26,15 +25,6 @@ public class PyInterpretService : ICodeInterpretService
 
     public async Task<CodeInterpretResult> RunCode(string codeScript, CodeInterpretOptions? options = null)
     {
-        if (options?.LockFree != true)
-        {
-            return await _executor.Execute(async () =>
-            {
-                return InnerRunCode(codeScript, options);
-            }, cancellationToken: options?.CancellationToken ?? CancellationToken.None);
-            
-        }
-
         return InnerRunCode(codeScript, options);
     }
 
@@ -83,7 +73,7 @@ public class PyInterpretService : ICodeInterpretService
                 var list = new PyList();
                 if (options?.Arguments?.Any() == true)
                 {
-                    list.Append(new PyString("code.py"));
+                    list.Append(new PyString(options?.ScriptName.IfNullOrEmptyAs("script.py")));
 
                     foreach (var arg in options.Arguments)
                     {
