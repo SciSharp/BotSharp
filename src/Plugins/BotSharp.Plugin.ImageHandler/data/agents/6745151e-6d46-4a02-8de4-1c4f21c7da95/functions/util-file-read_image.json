@@ -1,5 +1,5 @@
 {
-  "name": "util-image-read_image",
+  "name": "util-file-read_image",
   "description": "If the user's request is related to describing or analyzing images, you can call this function to analyze images.",
   "parameters": {
     "type": "object",

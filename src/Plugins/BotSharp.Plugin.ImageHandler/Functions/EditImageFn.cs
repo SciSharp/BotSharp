@@ -4,7 +4,7 @@ namespace BotSharp.Plugin.ImageHandler.Functions;
 
 public class EditImageFn : IFunctionCallback
 {
-    public string Name => "util-image-edit_image";
+    public string Name => "util-file-edit_image";
     public string Indication => "Editing image";
 
     private readonly IServiceProvider _services;

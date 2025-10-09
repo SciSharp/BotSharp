@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.ImageHandler.Functions;
 
 public class GenerateImageFn : IFunctionCallback
 {
-    public string Name => "util-image-generate_image";
+    public string Name => "util-file-generate_image";
     public string Indication => "Generating image";
 
     private readonly IServiceProvider _services;

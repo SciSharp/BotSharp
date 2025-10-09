@@ -2,9 +2,9 @@ namespace BotSharp.Plugin.ImageHandler.Hooks;
 
 public class ImageHandlerUtilityHook : IAgentUtilityHook
 {
-    private const string READ_IMAGE_FN = "util-image-read_image";
-    private const string GENERATE_IMAGE_FN = "util-image-generate_image";
-    private const string EDIT_IMAGE_FN = "util-image-edit_image";
+    private const string READ_IMAGE_FN = "util-file-read_image";
+    private const string GENERATE_IMAGE_FN = "util-file-generate_image";
+    private const string EDIT_IMAGE_FN = "util-file-edit_image";
 
     public void AddUtilities(List<AgentUtility> utilities)
     {
@@ -12,7 +12,7 @@ public class ImageHandlerUtilityHook : IAgentUtilityHook
         {
             new AgentUtility
             {
-                Category = "image",
+                Category = "file",
                 Name = UtilityName.ImageReader,
                 Items = [
                     new UtilityItem
@@ -24,7 +24,7 @@ public class ImageHandlerUtilityHook : IAgentUtilityHook
             },
             new AgentUtility
             {
-                Category = "image",
+                Category = "file",
                 Name = UtilityName.ImageGenerator,
                 Items = [
                     new UtilityItem
@@ -36,7 +36,7 @@ public class ImageHandlerUtilityHook : IAgentUtilityHook
             },
             new AgentUtility
             {
-                Category = "image",
+                Category = "file",
                 Name = UtilityName.ImageEditor,
                 Items = [
                     new UtilityItem
