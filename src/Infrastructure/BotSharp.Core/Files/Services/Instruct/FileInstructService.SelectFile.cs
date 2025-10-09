@@ -83,7 +83,7 @@ public partial class FileInstructService
         else if (files.Count() == 1)
         {
             return files;
-        } 
+        }
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
