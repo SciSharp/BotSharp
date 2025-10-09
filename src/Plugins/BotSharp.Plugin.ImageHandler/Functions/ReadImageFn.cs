@@ -106,7 +106,7 @@ public class ReadImageFn : IFunctionCallback
 
             var addnFiles = imageUrls.Select(x => x?.Trim())
                                      .Where(x => !string.IsNullOrWhiteSpace(x))
-                                     .Select(x => new BotSharpFile { FileUrl = x }).ToList();            
+                                     .Select(x => new BotSharpFile { FileUrl = x }).ToList();
             lastDialog.Files.AddRange(addnFiles);
         }
 
