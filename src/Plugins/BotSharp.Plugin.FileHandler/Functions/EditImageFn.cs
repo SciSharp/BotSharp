@@ -137,7 +137,7 @@ public class EditImageFn : IFunctionCallback
             LlmConfig = new AgentLlmConfig
             {
                 Provider = llmConfig?.Provider ?? "openai",
-                Model = llmConfig?.Model ?? "gpt-4o-mini",
+                Model = llmConfig?.Model ?? "gpt-5-mini",
                 MaxOutputTokens = llmConfig?.MaxOutputTokens,
                 ReasoningEffortLevel = llmConfig?.ReasoningEffortLevel
             }
@@ -168,7 +168,7 @@ public class EditImageFn : IFunctionCallback
         }
 
         provider = "openai";
-        model = "gpt-image-1";
+        model = "gpt-image-1-mini";
 
         return (provider, model);
     }
