@@ -1,15 +1,15 @@
 using BotSharp.Abstraction.Routing;
 
-namespace BotSharp.Plugin.FileHandler.Functions;
+namespace BotSharp.Plugin.ImageHandler.Functions;
 
 public class ReadImageFn : IFunctionCallback
 {
-    public string Name => "util-file-read_image";
+    public string Name => "util-image-read_image";
     public string Indication => "Reading images";
 
     private readonly IServiceProvider _services;
     private readonly ILogger<ReadImageFn> _logger;
-    private readonly FileHandlerSettings _settings;
+    private readonly ImageHandlerSettings _settings;
 
     private readonly IEnumerable<string> _imageContentTypes = new List<string>
     {
@@ -20,7 +20,7 @@ public class ReadImageFn : IFunctionCallback
     public ReadImageFn(
         IServiceProvider services,
         ILogger<ReadImageFn> logger,
-        FileHandlerSettings settings)
+        ImageHandlerSettings settings)
     {
         _services = services;
         _logger = logger;
@@ -42,8 +42,8 @@ public class ReadImageFn : IFunctionCallback
 
         var agent = new Agent
         {
-            Id = fromAgent?.Id ?? BuiltInAgentId.UtilityAssistant,
-            Name = fromAgent?.Name ?? "Utility Assistant",
+            Id = fromAgent?.Id ?? BuiltInAgentId.FileAssistant,
+            Name = fromAgent?.Name ?? "File Assistant",
             Instruction = fromAgent?.Instruction ?? args?.UserRequest ?? "Please describe the image(s).",
             LlmConfig = fromAgent?.LlmConfig ?? new()
         };
@@ -144,8 +144,8 @@ public class ReadImageFn : IFunctionCallback
             return (provider, model);
         }
 
-        provider = _settings?.Image?.Reading?.LlmProvider;
-        model = _settings?.Image?.Reading?.LlmModel;
+        provider = _settings?.Reading?.LlmProvider;
+        model = _settings?.Reading?.LlmModel;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
@@ -161,14 +161,13 @@ public class ReadImageFn : IFunctionCallback
     private void SetImageDetailLevel()
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        var fileSettings = _services.GetRequiredService<FileHandlerSettings>();
 
         var key = "chat_image_detail_level";
         var level = state.GetState(key);
 
-        if (string.IsNullOrWhiteSpace(level) && !string.IsNullOrWhiteSpace(fileSettings.Image?.Reading?.ImageDetailLevel))
+        if (string.IsNullOrWhiteSpace(level) && !string.IsNullOrWhiteSpace(_settings.Reading?.ImageDetailLevel))
         {
-            state.SetState(key, fileSettings.Image.Reading.ImageDetailLevel);
+            state.SetState(key, _settings.Reading.ImageDetailLevel);
         }
     }
 }

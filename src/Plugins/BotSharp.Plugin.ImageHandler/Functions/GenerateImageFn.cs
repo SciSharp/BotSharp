@@ -1,13 +1,13 @@
-namespace BotSharp.Plugin.FileHandler.Functions;
+namespace BotSharp.Plugin.ImageHandler.Functions;
 
 public class GenerateImageFn : IFunctionCallback
 {
-    public string Name => "util-file-generate_image";
+    public string Name => "util-image-generate_image";
     public string Indication => "Generating image";
 
     private readonly IServiceProvider _services;
     private readonly ILogger<GenerateImageFn> _logger;
-    private readonly FileHandlerSettings _settings;
+    private readonly ImageHandlerSettings _settings;
 
     private Agent _agent;
     private string _conversationId;
@@ -16,7 +16,7 @@ public class GenerateImageFn : IFunctionCallback
     public GenerateImageFn(
         IServiceProvider services,
         ILogger<GenerateImageFn> logger,
-        FileHandlerSettings settings)
+        ImageHandlerSettings settings)
     {
         _services = services;
         _logger = logger;
@@ -59,8 +59,8 @@ public class GenerateImageFn : IFunctionCallback
         {
             var agent = new Agent
             {
-                Id = _agent?.Id ?? BuiltInAgentId.UtilityAssistant,
-                Name = _agent?.Name ?? "Utility Assistant",
+                Id = _agent?.Id ?? BuiltInAgentId.FileAssistant,
+                Name = _agent?.Name ?? "File Assistant",
                 Instruction = description
             };
 
@@ -96,8 +96,8 @@ public class GenerateImageFn : IFunctionCallback
         var llmConfig = _agent.LlmConfig;
         var agent = new Agent
         {
-            Id = _agent?.Id ?? BuiltInAgentId.UtilityAssistant,
-            Name = _agent?.Name ?? "Utility Assistant",
+            Id = _agent?.Id ?? BuiltInAgentId.FileAssistant,
+            Name = _agent?.Name ?? "File Assistant",
             LlmConfig = new AgentLlmConfig
             {
                 Provider = llmConfig?.Provider ?? "openai",
@@ -123,8 +123,8 @@ public class GenerateImageFn : IFunctionCallback
             return (provider, model);
         }
 
-        provider = _settings?.Image?.Generation?.LlmProvider;
-        model = _settings?.Image?.Generation?.LlmModel;
+        provider = _settings?.Generation?.LlmProvider;
+        model = _settings?.Generation?.LlmModel;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {

@@ -1,15 +1,15 @@
 using BotSharp.Abstraction.Conversations.Settings;
 
-namespace BotSharp.Plugin.FileHandler.Functions;
+namespace BotSharp.Plugin.ImageHandler.Functions;
 
 public class EditImageFn : IFunctionCallback
 {
-    public string Name => "util-file-edit_image";
+    public string Name => "util-image-edit_image";
     public string Indication => "Editing image";
 
     private readonly IServiceProvider _services;
     private readonly ILogger<EditImageFn> _logger;
-    private readonly FileHandlerSettings _settings;
+    private readonly ImageHandlerSettings _settings;
 
     private Agent _agent;
     private string _conversationId;
@@ -18,7 +18,7 @@ public class EditImageFn : IFunctionCallback
     public EditImageFn(
         IServiceProvider services,
         ILogger<EditImageFn> logger,
-        FileHandlerSettings settings)
+        ImageHandlerSettings settings)
     {
         _services = services;
         _logger = logger;
@@ -91,8 +91,8 @@ public class EditImageFn : IFunctionCallback
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
             var agent = new Agent
             {
-                Id = _agent?.Id ?? BuiltInAgentId.UtilityAssistant,
-                Name = _agent?.Name ?? "Utility Assistant"
+                Id = _agent?.Id ?? BuiltInAgentId.FileAssistant,
+                Name = _agent?.Name ?? "File Assistant"
             };
 
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
@@ -132,8 +132,8 @@ public class EditImageFn : IFunctionCallback
         var llmConfig = _agent.LlmConfig;
         var agent = new Agent
         {
-            Id = _agent?.Id ?? BuiltInAgentId.UtilityAssistant,
-            Name = _agent?.Name ?? "Utility Assistant",
+            Id = _agent?.Id ?? BuiltInAgentId.FileAssistant,
+            Name = _agent?.Name ?? "File Assistant",
             LlmConfig = new AgentLlmConfig
             {
                 Provider = llmConfig?.Provider ?? "openai",
@@ -159,8 +159,8 @@ public class EditImageFn : IFunctionCallback
             return (provider, model);
         }
 
-        provider = _settings?.Image?.Edit?.LlmProvider;
-        model = _settings?.Image?.Edit?.LlmModel;
+        provider = _settings?.Edit?.LlmProvider;
+        model = _settings?.Edit?.LlmModel;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
@@ -196,7 +196,7 @@ public class EditImageFn : IFunctionCallback
 
     private async Task<BinaryData> ConvertImageToPngWithRgba(BinaryData binaryFile)
     {
-        var provider = _settings?.Image?.Edit?.ImageConverter?.Provider;
+        var provider = _settings?.Edit?.ImageConverter?.Provider;
         var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == provider);
         if (converter == null)
         {

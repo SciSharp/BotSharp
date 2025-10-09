@@ -137,8 +137,8 @@ public partial class FileInstructService
             var foundAgent = await agentService.GetAgent(agentId);
             var agent = new Agent
             {
-                Id = foundAgent?.Id ?? BuiltInAgentId.UtilityAssistant,
-                Name = foundAgent?.Name ?? "Utility Assistant",
+                Id = foundAgent?.Id ?? BuiltInAgentId.FileAssistant,
+                Name = foundAgent?.Name ?? "File Assistant",
                 Instruction = prompt,
                 LlmConfig = new AgentLlmConfig
                 {
