@@ -7,8 +7,8 @@ public class FileHandlerPlugin : IBotSharpPlugin
 {
     public string Id => "65be5aee-48df-4ff8-a50a-05c8bcd2a793";
     public string Name => "File Handler";
-    public string Description => "AI reads files, such as image, pdf, excel";
-    public string IconUrl => "https://lirp.cdn-website.com/6f8d6d8a/dms3rep/multi/opt/API_Icon-640w.png";
+    public string Description => "AI handles files.";
+    public string IconUrl => "https://cdn-icons-png.flaticon.com/512/2567/2567656.png";
     public string[] AgentIds => [];
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
@@ -21,5 +21,4 @@ public class FileHandlerPlugin : IBotSharpPlugin
 
         services.AddScoped<IAgentUtilityHook, FileHandlerUtilityHook>();
     }
-
 }
