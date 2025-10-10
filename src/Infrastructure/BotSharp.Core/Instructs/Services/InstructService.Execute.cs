@@ -150,9 +150,8 @@ public partial class InstructService
             return response;
         }
 
-
+        var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        var db = _services.GetRequiredService<IBotSharpRepository>();
         var hooks = _services.GetHooks<IInstructHook>(agent.Id);
 
         var codeProvider = codeOptions?.CodeInterpretProvider ?? "botsharp-py-interpreter";
@@ -187,7 +186,7 @@ public partial class InstructService
         }
 
         // Get code script
-        var codeScript = db.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
+        var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
         if (string.IsNullOrWhiteSpace(codeScript))
         {
 #if DEBUG
