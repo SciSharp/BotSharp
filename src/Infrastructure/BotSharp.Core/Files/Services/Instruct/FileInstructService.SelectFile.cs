@@ -141,8 +141,8 @@ public partial class FileInstructService
             var foundAgent = await agentService.GetAgent(agentId);
             var agent = new Agent
             {
-                Id = foundAgent?.Id ?? BuiltInAgentId.UtilityAssistant,
-                Name = foundAgent?.Name ?? "Utility Assistant",
+                Id = foundAgent?.Id ?? BuiltInAgentId.FileAssistant,
+                Name = foundAgent?.Name ?? "File Assistant",
                 Instruction = prompt,
                 LlmConfig = new AgentLlmConfig
                 {
@@ -153,8 +153,8 @@ public partial class FileInstructService
 
 
             // Get ai response
-            var provider = options.LlmProvider ?? "openai";
-            var model = options?.LlmModel ?? "gpt-5-mini";
+            var provider = options.Provider ?? "openai";
+            var model = options?.Model ?? "gpt-5-mini";
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
 
             var response = await completion.GetChatCompletions(agent, innerDialogs);

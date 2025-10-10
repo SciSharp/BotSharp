@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Models;
 
-public class LlmConfigBase : LlmBase
+public class LlmConfigBase : LlmProviderModel
 {
     /// <summary>
     /// Llm maximum output tokens
@@ -13,15 +13,13 @@ public class LlmConfigBase : LlmBase
     public string? ReasoningEffortLevel { get; set; }
 }
 
-public class LlmBase
+public class LlmProviderModel
 {
-    /// <summary>
-    /// Llm provider
-    /// </summary>
-    public string? LlmProvider { get; set; }
+    [JsonPropertyName("provider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Provider { get; set; }
 
-    /// <summary>
-    /// Llm model
-    /// </summary>
-    public string? LlmModel { get; set; }
+    [JsonPropertyName("model")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Model { get; set; }
 }

@@ -18,11 +18,13 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     private string _model = GoogleAIModels.Gemini2FlashLive001;
 
     private readonly IServiceProvider _services;
-    private readonly ILogger _logger;
+    private readonly ILogger<GoogleRealTimeProvider> _logger;
+    private readonly GoogleAiSettings _settings;
+
     private List<string> renderedInstructions = [];
 
     private LlmRealtimeSession _session;
-    private readonly GoogleAiSettings _settings;
+    private RealtimeOptions? _realtimeOptions;
 
     private const string DEFAULT_MIME_TYPE = "audio/pcm;rate=16000";
     private readonly JsonSerializerOptions _jsonOptions = new()
@@ -50,12 +52,12 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
     public GoogleRealTimeProvider(
         IServiceProvider services,
-        GoogleAiSettings settings,
-        ILogger<GoogleRealTimeProvider> logger)
+        ILogger<GoogleRealTimeProvider> logger,
+        GoogleAiSettings settings)
     {
-        _settings = settings;
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
     public async Task Connect(
@@ -84,7 +86,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
-        _model = realtimeModelSettings.Model;
+        _model ??= realtimeModelSettings.Model;
         var modelSettings = settingsService.GetSetting(Provider, _model);
 
         Reset();
@@ -422,7 +424,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
     public void SetOptions(RealtimeOptions? options)
     {
-
+        _realtimeOptions = options;
     }
 
     #region Private methods

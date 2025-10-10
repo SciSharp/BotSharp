@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories.Models;
 using System.IO;
 
 namespace BotSharp.Core.Repository;
@@ -73,7 +74,7 @@ public partial class FileRepository
         return string.Empty;
     }
 
-    public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
+    public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
         {
@@ -95,7 +96,10 @@ public partial class FileRepository
             }
 
             var file = Path.Combine(dir, script.Name);
-            File.WriteAllText(file, script.Content);
+            if (options?.IsUpsert == true || File.Exists(file))
+            {
+                File.WriteAllText(file, script.Content);
+            }
         }
 
         return true;

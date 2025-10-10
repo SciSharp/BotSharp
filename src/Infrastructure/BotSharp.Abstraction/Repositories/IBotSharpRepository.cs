@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Roles.Models;
 using BotSharp.Abstraction.Shared;
 using BotSharp.Abstraction.Statistics.Enums;
@@ -111,7 +112,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     string? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
         => throw new NotImplementedException();
-    bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
+    bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
         => throw new NotImplementedException();
     bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
         => throw new NotImplementedException();

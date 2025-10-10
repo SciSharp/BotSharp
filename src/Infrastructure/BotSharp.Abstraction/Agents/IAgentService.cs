@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
@@ -65,4 +66,13 @@ public interface IAgentService
     Task<List<UserAgent>> GetUserAgents(string userId);
 
     PluginDef GetPlugin(string agentId);
+
+    Task<List<AgentCodeScript>> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
+        => Task.FromResult(new List<AgentCodeScript>());
+
+    Task<string?> GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+        => Task.FromResult(string.Empty);
+
+    Task<bool> UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> codeScripts, AgentCodeScriptUpdateOptions? options = null)
+        => Task.FromResult(false);
 }

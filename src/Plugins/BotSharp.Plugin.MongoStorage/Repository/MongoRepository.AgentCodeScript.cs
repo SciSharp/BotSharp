@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Repositories.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -55,7 +56,7 @@ public partial class MongoRepository
         return found?.Content;
     }
 
-    public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
+    public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
         {
@@ -73,7 +74,7 @@ public partial class MongoRepository
                                 }),
                                 Builders<AgentCodeScriptDocument>.Update.Set(y => y.Content, x.Content)
                                                                         .Set(x => x.UpdatedTime, DateTime.UtcNow)
-                         ))
+                         ) { IsUpsert = options?.IsUpsert ?? false })
                          .ToList();
 
         var result = _dc.AgentCodeScripts.BulkWrite(ops, new BulkWriteOptions { IsOrdered = false });

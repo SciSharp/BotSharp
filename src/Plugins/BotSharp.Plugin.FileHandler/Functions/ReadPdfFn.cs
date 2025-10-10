@@ -29,20 +29,15 @@ public class ReadPdfFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
+        var agentService = _services.GetRequiredService<IAgentService>();
         var conv = _services.GetRequiredService<IConversationService>();
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
-        var agentService = _services.GetRequiredService<IAgentService>();
-
-        Agent? fromAgent = null;
-        if (!string.IsNullOrEmpty(message.CurrentAgentId))
-        {
-            fromAgent = await agentService.GetAgent(message.CurrentAgentId);
-        }
-
+        
+        var fromAgent = await agentService.GetAgent(message.CurrentAgentId);
         var agent = new Agent
         {
-            Id = fromAgent?.Id ?? BuiltInAgentId.UtilityAssistant,
-            Name = fromAgent?.Name ?? "Utility Assistant",
+            Id = fromAgent?.Id ?? BuiltInAgentId.FileAssistant,
+            Name = fromAgent?.Name ?? "File Assistant",
             Instruction = fromAgent?.Instruction ?? args?.UserRequest ?? "Please describe the pdf file(s).",
             LlmConfig = fromAgent?.LlmConfig ?? new()
         };
@@ -140,27 +135,16 @@ public class ReadPdfFn : IFunctionCallback
 
     private (string, string) GetLlmProviderModel()
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-
-        var provider = state.GetState("pdf_read_llm_provider");
-        var model = state.GetState("pdf_read_llm_model");
+        var provider = _settings?.Pdf?.Reading?.Provider;
+        var model = _settings?.Pdf?.Reading?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
             return (provider, model);
         }
 
-        provider = _settings?.Pdf?.Reading?.LlmProvider;
-        model = _settings?.Pdf?.Reading?.LlmModel;
-
-        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
-        {
-            return (provider, model);
-        }
-
-        provider = "openai";
-        model = "gpt-5-mini";
+        provider = "google-ai";
+        model = "gemini-2.0-flash";
 
         return (provider, model);
     }

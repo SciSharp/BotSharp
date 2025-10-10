@@ -3,22 +3,22 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Png;
 using System.IO;
 
-namespace BotSharp.Plugin.FileHandler.Converters;
+namespace BotSharp.Plugin.ImageHandler.Converters;
 
-public class FileHandlerImageConverter : IImageConverter
+public class ImageHandlerImageConverter : IImageConverter
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<FileHandlerImageConverter> _logger;
+    private readonly ILogger<ImageHandlerImageConverter> _logger;
 
-    public FileHandlerImageConverter(
+    public ImageHandlerImageConverter(
         IServiceProvider services,
-        ILogger<FileHandlerImageConverter> logger)
+        ILogger<ImageHandlerImageConverter> logger)
     {
         _services = services;
         _logger = logger;
     }
 
-    public string Provider => "file-handler";
+    public string Provider => "image-handler";
 
     public async Task<BinaryData> ConvertImage(BinaryData binary, ImageConvertOptions? options = null)
     {

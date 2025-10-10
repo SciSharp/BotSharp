@@ -37,6 +37,7 @@
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
     <ProjectReference Include="..\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ExcelHandler\BotSharp.Plugin.ExcelHandler.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.ImageHandler\BotSharp.Plugin.ImageHandler.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.PythonInterpreter\BotSharp.Plugin.PythonInterpreter.csproj" />
   </ItemGroup>
   
