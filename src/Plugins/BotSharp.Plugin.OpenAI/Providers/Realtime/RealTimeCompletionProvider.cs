@@ -67,7 +67,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var realtimeSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
-        _model = realtimeSettings.Model;
+        _model ??= realtimeSettings.Model;
         var settings = settingsService.GetSetting(Provider, _model);
 
         _session = new LlmRealtimeSession(_services, new ChatSessionOptions
