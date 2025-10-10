@@ -9,17 +9,17 @@ public class ImageHandlerSettings
     public ImageEditSettings? Edit { get; set; }
 }
 
-public class ImageReadSettings : LlmBase
+public class ImageReadSettings : LlmProviderModel
 {
     public string? ImageDetailLevel { get; set; }
 }
 
-public class ImageGenerationSettings : LlmBase
+public class ImageGenerationSettings : LlmProviderModel
 {
 
 }
 
-public class ImageEditSettings : LlmBase
+public class ImageEditSettings : LlmProviderModel
 {
     public SettingBase? ImageConverter { get; set; }
 }

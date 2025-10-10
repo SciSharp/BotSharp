@@ -30,16 +30,11 @@ public class ReadImageFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
+        var agentService = _services.GetRequiredService<IAgentService>();
         var conv = _services.GetRequiredService<IConversationService>();
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
-        var agentService = _services.GetRequiredService<IAgentService>();
-
-        Agent? fromAgent = null;
-        if (!string.IsNullOrEmpty(message.CurrentAgentId))
-        {
-            fromAgent = await agentService.GetAgent(message.CurrentAgentId);
-        }
-
+        
+        var fromAgent = await agentService.GetAgent(message.CurrentAgentId);
         var agent = new Agent
         {
             Id = fromAgent?.Id ?? BuiltInAgentId.FileAssistant,
@@ -133,19 +128,8 @@ public class ReadImageFn : IFunctionCallback
 
     private (string, string) GetLlmProviderModel()
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-
-        var provider = state.GetState("image_read_llm_provider");
-        var model = state.GetState("image_read_llm_model");
-
-        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
-        {
-            return (provider, model);
-        }
-
-        provider = _settings?.Reading?.LlmProvider;
-        model = _settings?.Reading?.LlmModel;
+        var provider = _settings?.Reading?.Provider;
+        var model = _settings?.Reading?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {

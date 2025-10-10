@@ -11,7 +11,6 @@ public class EditImageFn : IFunctionCallback
     private readonly ILogger<EditImageFn> _logger;
     private readonly ImageHandlerSettings _settings;
 
-    private Agent _agent;
     private string _conversationId;
     private string _messageId;
 
@@ -29,11 +28,15 @@ public class EditImageFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
         var descrpition = args?.UserRequest ?? string.Empty;
+
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(message.CurrentAgentId);
+
         await Init(message);
         SetImageOptions();
 
         var image = await SelectImage(descrpition);
-        var response = await GetImageEditGeneration(message, descrpition, image);
+        var response = await GetImageEdit(agent, message, descrpition, image);
         message.Content = response;
         message.StopCompletion = true;
         return true;
@@ -41,10 +44,8 @@ public class EditImageFn : IFunctionCallback
 
     private async Task Init(RoleDialogModel message)
     {
-        var agentService = _services.GetRequiredService<IAgentService>();
         var convService = _services.GetRequiredService<IConversationService>();
 
-        _agent = await agentService.GetAgent(message.CurrentAgentId);
         _conversationId = convService.ConversationId;
         _messageId = message.MessageId;
     }
@@ -68,15 +69,15 @@ public class EditImageFn : IFunctionCallback
             IsAttachFiles = true,
             ContentTypes = [MediaTypeNames.Image.Png, MediaTypeNames.Image.Jpeg],
             MessageLimit = convSettings?.FileSelect?.MessageLimit,
-            LlmProvider = convSettings?.FileSelect?.LlmProvider,
-            LlmModel = convSettings?.FileSelect?.LlmModel,
+            Provider = convSettings?.FileSelect?.Provider,
+            Model = convSettings?.FileSelect?.Model,
             MaxOutputTokens = convSettings?.FileSelect?.MaxOutputTokens,
             ReasoningEffortLevel = convSettings?.FileSelect?.ReasoningEffortLevel
         });
         return selecteds?.FirstOrDefault();
     }
 
-    private async Task<string> GetImageEditGeneration(RoleDialogModel message, string description, MessageFileModel? image)
+    private async Task<string> GetImageEdit(Agent agent, RoleDialogModel message, string description, MessageFileModel? image)
     {
         if (image == null)
         {
@@ -85,15 +86,10 @@ public class EditImageFn : IFunctionCallback
 
         try
         {
-            var (provider, model) = GetLlmProviderModel();
+            var (provider, model) = GetLlmProviderModel(agent);
             var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
             var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
-            var agent = new Agent
-            {
-                Id = _agent?.Id ?? BuiltInAgentId.FileAssistant,
-                Name = _agent?.Name ?? "File Assistant"
-            };
 
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
             var fileBinary = fileStorage.GetFileBytes(image.FileStorageUrl);
@@ -112,7 +108,7 @@ public class EditImageFn : IFunctionCallback
                 return response.Content;
             }
 
-            return await GetImageEditResponse(description, defaultContent: null);
+            return await GetImageEditResponse(agent, description);
         }
         catch (Exception ex)
         {
@@ -122,45 +118,23 @@ public class EditImageFn : IFunctionCallback
         }
     }
 
-    private async Task<string> GetImageEditResponse(string description, string? defaultContent)
+    private async Task<string> GetImageEditResponse(Agent agent, string description)
     {
-        if (defaultContent != null)
-        {
-            return defaultContent;
-        }
-
-        var llmConfig = _agent.LlmConfig;
-        var agent = new Agent
-        {
-            Id = _agent?.Id ?? BuiltInAgentId.FileAssistant,
-            Name = _agent?.Name ?? "File Assistant",
-            LlmConfig = new AgentLlmConfig
-            {
-                Provider = llmConfig?.Provider ?? "openai",
-                Model = llmConfig?.Model ?? "gpt-5-mini",
-                MaxOutputTokens = llmConfig?.MaxOutputTokens,
-                ReasoningEffortLevel = llmConfig?.ReasoningEffortLevel
-            }
-        };
-
         return await AiResponseHelper.GetImageGenerationResponse(_services, agent, description);
     }
 
-    private (string, string) GetLlmProviderModel()
+    private (string, string) GetLlmProviderModel(Agent agent)
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-
-        var provider = state.GetState("image_edit_llm_provider");
-        var model = state.GetState("image_edit_llm_provider");
+        var provider = agent?.LlmConfig?.ImageEdit?.Provider;
+        var model = agent?.LlmConfig?.ImageEdit?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
             return (provider, model);
         }
 
-        provider = _settings?.Edit?.LlmProvider;
-        model = _settings?.Edit?.LlmModel;
+        provider = _settings?.Edit?.Provider;
+        model = _settings?.Edit?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {

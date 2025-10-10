@@ -13,7 +13,7 @@ public class AudioSettings
     public AudioReadSettings? Reading { get; set; }
 }
 
-public class AudioReadSettings : LlmBase
+public class AudioReadSettings : LlmProviderModel
 {
 }
 #endregion

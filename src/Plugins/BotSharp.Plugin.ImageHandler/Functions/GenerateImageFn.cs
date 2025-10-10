@@ -9,7 +9,6 @@ public class GenerateImageFn : IFunctionCallback
     private readonly ILogger<GenerateImageFn> _logger;
     private readonly ImageHandlerSettings _settings;
 
-    private Agent _agent;
     private string _conversationId;
     private string _messageId;
 
@@ -30,9 +29,9 @@ public class GenerateImageFn : IFunctionCallback
         SetImageOptions();
         
         var agentService = _services.GetRequiredService<IAgentService>();
-        _agent = await agentService.GetAgent(message.CurrentAgentId);
+        var currentAgent = await agentService.GetAgent(message.CurrentAgentId);
 
-        var response = await GetImageGeneration(message, args?.ImageDescription);
+        var response = await GetImageGeneration(currentAgent, message, args?.ImageDescription);
         message.Content = response;
         message.StopCompletion = true;
         return true;
@@ -53,18 +52,11 @@ public class GenerateImageFn : IFunctionCallback
         state.SetState("image_response_format", "bytes");
     }
 
-    private async Task<string> GetImageGeneration(RoleDialogModel message, string? description)
+    private async Task<string> GetImageGeneration(Agent agent, RoleDialogModel message, string? description)
     {
         try
         {
-            var agent = new Agent
-            {
-                Id = _agent?.Id ?? BuiltInAgentId.FileAssistant,
-                Name = _agent?.Name ?? "File Assistant",
-                Instruction = description
-            };
-
-            var (provider, model) = GetLlmProviderModel();
+            var (provider, model) = GetLlmProviderModel(agent);
             var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
             var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
@@ -76,7 +68,7 @@ public class GenerateImageFn : IFunctionCallback
                 return result.Content;
             }
 
-            return await GetImageGenerationResponse(description, defaultContent: null);
+            return await GetImageGenerationResponse(agent, description);
         }
         catch (Exception ex)
         {
@@ -86,45 +78,23 @@ public class GenerateImageFn : IFunctionCallback
         }
     }
 
-    private async Task<string> GetImageGenerationResponse(string description, string? defaultContent)
+    private async Task<string> GetImageGenerationResponse(Agent agent, string description)
     {
-        if (defaultContent != null)
-        {
-            return defaultContent;
-        }
-
-        var llmConfig = _agent.LlmConfig;
-        var agent = new Agent
-        {
-            Id = _agent?.Id ?? BuiltInAgentId.FileAssistant,
-            Name = _agent?.Name ?? "File Assistant",
-            LlmConfig = new AgentLlmConfig
-            {
-                Provider = llmConfig?.Provider ?? "openai",
-                Model = llmConfig?.Model ?? "gpt-5-mini",
-                MaxOutputTokens = llmConfig?.MaxOutputTokens,
-                ReasoningEffortLevel = llmConfig?.ReasoningEffortLevel
-            }
-        };
-
         return await AiResponseHelper.GetImageGenerationResponse(_services, agent, description);
     }
 
-    private (string, string) GetLlmProviderModel()
+    private (string, string) GetLlmProviderModel(Agent agent)
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-
-        var provider = state.GetState("image_generate_llm_provider");
-        var model = state.GetState("image_generate_llm_model");
+        var provider = agent?.LlmConfig?.ImageGeneration?.Provider;
+        var model = agent?.LlmConfig?.ImageGeneration?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
             return (provider, model);
         }
 
-        provider = _settings?.Generation?.LlmProvider;
-        model = _settings?.Generation?.LlmModel;
+        provider = _settings?.Generation?.Provider;
+        model = _settings?.Generation?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {

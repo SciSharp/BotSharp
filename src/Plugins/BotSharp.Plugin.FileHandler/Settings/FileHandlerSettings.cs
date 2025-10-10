@@ -13,7 +13,7 @@ public class PdfSettings
     public PdfReadSettings? Reading { get; set; }
 }
 
-public class PdfReadSettings : LlmBase
+public class PdfReadSettings : LlmProviderModel
 {
     public bool ConvertToImage { get; set; }
     public string? ImageDetailLevel { get; set; }
