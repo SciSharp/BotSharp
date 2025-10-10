@@ -80,10 +80,10 @@ public class LlmImageEditConfig : LlmProviderModel
 {
 }
 
-public class LlmRealtimeConfig : LlmProviderModel
+public class LlmAudioTranscriptionConfig : LlmProviderModel
 {
 }
 
-public class LlmAudioTranscriptionConfig : LlmProviderModel
+public class LlmRealtimeConfig : LlmProviderModel
 {
 }

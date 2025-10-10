@@ -333,7 +333,7 @@ public partial class MongoRepository
 
     private void UpdateAgentLlmConfig(string agentId, AgentLlmConfig? config)
     {
-        var llmConfig = AgentLlmConfigMongoElement.ToMongoElement(config);
+        var llmConfig = AgentLlmConfigMongoModel.ToMongoElement(config);
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
             .Set(x => x.LlmConfig, llmConfig)
@@ -377,7 +377,7 @@ public partial class MongoRepository
             .Set(x => x.McpTools, agent.McpTools.Select(u => AgentMcpToolMongoElement.ToMongoElement(u)).ToList())
             .Set(x => x.KnowledgeBases, agent.KnowledgeBases.Select(u => AgentKnowledgeBaseMongoElement.ToMongoElement(u)).ToList())
             .Set(x => x.Rules, agent.Rules.Select(e => AgentRuleMongoElement.ToMongoElement(e)).ToList())
-            .Set(x => x.LlmConfig, AgentLlmConfigMongoElement.ToMongoElement(agent.LlmConfig))
+            .Set(x => x.LlmConfig, AgentLlmConfigMongoModel.ToMongoElement(agent.LlmConfig))
             .Set(x => x.IsPublic, agent.IsPublic)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
@@ -550,7 +550,7 @@ public partial class MongoRepository
             MaxMessageCount = x.MaxMessageCount,
             Profiles = x.Profiles ?? [],
             Labels = x.Labels ?? [],
-            LlmConfig = AgentLlmConfigMongoElement.ToMongoElement(x.LlmConfig),
+            LlmConfig = AgentLlmConfigMongoModel.ToMongoElement(x.LlmConfig),
             ChannelInstructions = x.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToMongoElement(i))?.ToList() ?? [],
             Templates = x.Templates?.Select(t => AgentTemplateMongoElement.ToMongoElement(t))?.ToList() ?? [],
             Functions = x.Functions?.Select(f => FunctionDefMongoElement.ToMongoElement(f))?.ToList() ?? [],
@@ -651,7 +651,7 @@ public partial class MongoRepository
             Profiles = agentDoc.Profiles ?? [],
             Labels = agentDoc.Labels ?? [],
             MaxMessageCount = agentDoc.MaxMessageCount,
-            LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(agentDoc.LlmConfig),
+            LlmConfig = AgentLlmConfigMongoModel.ToDomainElement(agentDoc.LlmConfig),
             ChannelInstructions = agentDoc.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToDomainElement(i))?.ToList() ?? [],
             Templates = agentDoc.Templates?.Select(t => AgentTemplateMongoElement.ToDomainElement(t))?.ToList() ?? [],
             Functions = agentDoc.Functions?.Select(f => FunctionDefMongoElement.ToDomainElement(f)).ToList() ?? [],
