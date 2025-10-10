@@ -49,7 +49,7 @@ public partial class FileInstructService
         var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
 
         var textContent = text.IfNullOrEmptyAs(instruction).IfNullOrEmptyAs(string.Empty);
-        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1");
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1-mini");
         var message = await completion.GetImageGeneration(new Agent()
         {
             Id = innerAgentId,
@@ -124,7 +124,7 @@ public partial class FileInstructService
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
         var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
 
-        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1");
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1-mini");
         var binary = await DownloadFile(image);
 
         // Convert image
@@ -173,7 +173,7 @@ public partial class FileInstructService
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
         var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
 
-        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1");
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1-mini");
         var imageBinary = await DownloadFile(image);
         var maskBinary = await DownloadFile(mask);
 

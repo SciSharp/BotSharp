@@ -20,4 +20,7 @@ public class ButtonTemplateMessage : IRichMessage, ITemplateMessage
 
     [JsonPropertyName("is_horizontal")]
     public bool IsHorizontal { get; set; }
+
+    [JsonPropertyName("alignment")]
+    public string Alignment { get; set; } = AlignmentEnum.TopLeft;
 }
