@@ -152,7 +152,7 @@ public class RoleDialogModel : ITrackableMessage
             }
             else
             {
-                text = !string.IsNullOrWhiteSpace(RichContent?.Message?.Text) ? RichContent.Message.Text : Content;
+                text = !string.IsNullOrWhiteSpace(Content) ? Content : RichContent?.Message?.Text;
             }
 
             return text;
