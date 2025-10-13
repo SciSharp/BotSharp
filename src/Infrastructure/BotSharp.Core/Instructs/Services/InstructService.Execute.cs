@@ -248,7 +248,7 @@ public partial class InstructService
                 Provider = codeInterpreter.Provider,
                 Model = string.Empty,
                 TemplateName = scriptName,
-                UserMessage = string.Empty,
+                UserMessage = message.Content,
                 SystemInstruction = string.Empty,
                 CompletionText = response.Text
             });
