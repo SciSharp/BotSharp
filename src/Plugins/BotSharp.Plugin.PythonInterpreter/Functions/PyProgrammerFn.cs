@@ -115,6 +115,7 @@ public class PyProgrammerFn : IFunctionCallback
                 dynamic stringIO = io.StringIO();
                 sys.stdout = stringIO;
                 sys.stderr = stringIO;
+                sys.argv = new PyList();
 
                 // Set global items
                 using var globals = new PyDict();
