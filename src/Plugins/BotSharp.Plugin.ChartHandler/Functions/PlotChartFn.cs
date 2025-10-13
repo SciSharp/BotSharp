@@ -83,6 +83,7 @@ public class PlotChartFn : IFunctionCallback
             Message = new ProgramCodeTemplateMessage
             {
                 Text = ret?.JsCode ?? string.Empty,
+                CodeScript = ret?.JsCode,
                 Language = "javascript"
             }
         };

@@ -567,25 +567,25 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                             Name = message.FunctionName ?? string.Empty,
                             Response = new JsonObject()
                             {
-                                ["result"] = message.RoleContent ?? string.Empty
+                                ["result"] = message.LlmContent ?? string.Empty
                             }
                         }
                     }
                 ], AgentRole.Function));
 
                 convPrompts.Add(
-                    $"{AgentRole.Assistant}: Call function {message.FunctionName}({message.FunctionArgs}) => {message.RoleContent}");
+                    $"{AgentRole.Assistant}: Call function {message.FunctionName}({message.FunctionArgs}) => {message.LlmContent}");
             }
             else if (message.Role == AgentRole.User)
             {
-                var text = message.RoleContent;
+                var text = message.LlmContent;
                 contents.Add(new Content(text, AgentRole.User));
                 convPrompts.Add($"{AgentRole.User}: {text}");
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                contents.Add(new Content(message.RoleContent, AgentRole.Model));
-                convPrompts.Add($"{AgentRole.Assistant}: {message.RoleContent}");
+                contents.Add(new Content(message.LlmContent, AgentRole.Model));
+                convPrompts.Add($"{AgentRole.Assistant}: {message.LlmContent}");
             }
         }
 

@@ -621,15 +621,15 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     ChatToolCall.CreateFunctionToolCall(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? "{}"))
                 }));
 
-                messages.Add(new ToolChatMessage(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.RoleContent));
+                messages.Add(new ToolChatMessage(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.LlmContent));
             }
             else if (message.Role == AgentRole.User)
             {
-                messages.Add(new UserChatMessage(message.RoleContent));
+                messages.Add(new UserChatMessage(message.LlmContent));
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                messages.Add(new AssistantChatMessage(message.RoleContent));
+                messages.Add(new AssistantChatMessage(message.LlmContent));
             }
         }
 

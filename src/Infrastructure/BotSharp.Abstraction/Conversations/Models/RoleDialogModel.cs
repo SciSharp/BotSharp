@@ -141,7 +141,7 @@ public class RoleDialogModel : ITrackableMessage
     public bool IsFromAssistant => Role == AgentRole.Assistant || Role == AgentRole.Model;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
-    public string RoleContent
+    public string LlmContent
     {
         get
         {

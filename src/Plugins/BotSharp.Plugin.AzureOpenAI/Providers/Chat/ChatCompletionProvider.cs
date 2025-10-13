@@ -432,11 +432,11 @@ public class ChatCompletionProvider : IChatCompletion
                     ChatToolCall.CreateFunctionToolCall(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? "{}"))
                 }));
 
-                messages.Add(new ToolChatMessage(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.RoleContent));
+                messages.Add(new ToolChatMessage(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.LlmContent));
             }
             else if (message.Role == AgentRole.User)
             {
-                var text = message.RoleContent;
+                var text = message.LlmContent;
                 var textPart = ChatMessageContentPart.CreateTextPart(text);
                 var contentParts = new List<ChatMessageContentPart> { textPart };
 
@@ -448,7 +448,7 @@ public class ChatCompletionProvider : IChatCompletion
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                var text = message.RoleContent;
+                var text = message.LlmContent;
                 var textPart = ChatMessageContentPart.CreateTextPart(text);
                 var contentParts = new List<ChatMessageContentPart> { textPart };
 

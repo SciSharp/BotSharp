@@ -75,7 +75,8 @@ public class PyProgrammerFn : IFunctionCallback
                     Recipient = new Recipient { Id = convService.ConversationId },
                     Message = new ProgramCodeTemplateMessage
                     {
-                        Text = ret.PythonCode ?? string.Empty,
+                        Text = result,
+                        CodeScript = ret.PythonCode,
                         Language = "python"
                     }
                 };
