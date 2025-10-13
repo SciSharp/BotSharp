@@ -150,10 +150,6 @@ public class RoleDialogModel : ITrackableMessage
             {
                 text = !string.IsNullOrWhiteSpace(Payload) ? Payload : Content;
             }
-            else
-            {
-                text = !string.IsNullOrWhiteSpace(Content) ? Content : RichContent?.Message?.Text;
-            }
 
             return text;
         }
