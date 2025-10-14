@@ -105,6 +105,7 @@
   <ItemGroup>
     <PackageReference Include="MySqlConnector" />
     <PackageReference Include="Npgsql" />
+    <PackageReference Include="MongoDB.Driver" />
   </ItemGroup>
 
   <ItemGroup>
