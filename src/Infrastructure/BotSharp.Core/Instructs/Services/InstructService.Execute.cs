@@ -103,10 +103,10 @@ public partial class InstructService
             }
 
             IFileLlmProcessor? fileProcessor = null;
-            if (!files.IsNullOrEmpty() && !string.IsNullOrEmpty(fileOptions?.FileLlmProcessorProvider))
+            if (!files.IsNullOrEmpty() && fileOptions != null)
             {
                 fileProcessor = _services.GetServices<IFileLlmProcessor>()
-                                         .FirstOrDefault(x => x.Provider.IsEqualTo(fileOptions?.FileLlmProcessorProvider));
+                                         .FirstOrDefault(x => x.Provider.IsEqualTo(fileOptions.FileLlmProcessorProvider));
             }
 
             if (fileProcessor != null)
