@@ -13,10 +13,13 @@ public interface IInstructService
     /// <param name="templateName"></param>
     /// <param name="files"></param>
     /// <param name="codeOptions"></param>
+    /// <param name="fileOptions"></param>
     /// <returns></returns>
     Task<InstructResult> Execute(string agentId, RoleDialogModel message,
         string? instruction = null, string? templateName = null,
-        IEnumerable<InstructFileModel>? files = null, CodeInstructOptions? codeOptions = null);
+        IEnumerable<InstructFileModel>? files = null,
+        CodeInstructOptions? codeOptions = null,
+        FileInstructOptions? fileOptions = null);
 
     /// <summary>
     /// A generic way to execute completion by using specified instruction or template

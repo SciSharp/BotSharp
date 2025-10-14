@@ -39,7 +39,8 @@ public class InstructModeController : ControllerBase
             instruction: input.Instruction,
             templateName: input.Template,
             files: input.Files,
-            codeOptions: input.CodeOptions);
+            codeOptions: input.CodeOptions,
+            fileOptions: input.FileOptions);
 
         result.States = state.GetStates();
         return result; 

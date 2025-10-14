@@ -12,6 +12,7 @@ public class InstructMessageModel : IncomingMessageModel
     public string? Template { get; set; }
     public List<InstructFileModel> Files { get; set; } = [];
     public CodeInstructOptions? CodeOptions { get; set; }
+    public FileInstructOptions? FileOptions { get; set; }
 }
 
 
