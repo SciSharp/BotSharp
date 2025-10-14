@@ -10,7 +10,7 @@ public class SelectFileOptions : LlmConfigBase
     /// <summary>
     /// Template (prompt) name
     /// </summary>
-    public string? Template { get; set; }
+    public string? TemplateName { get; set; }
 
     /// <summary>
     /// Description that user provides to select files
