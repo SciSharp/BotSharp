@@ -57,16 +57,16 @@ public class TokenStatistics : ITokenStatistics
         _completionCost += deltaCompletionCost;
 
         // Accumulated Token
-        var stat = _services.GetRequiredService<IConversationStateService>();
-        var inputCount = int.Parse(stat.GetState("prompt_total", "0"));
-        stat.SetState("prompt_total", stats.TotalInputTokens + inputCount, isNeedVersion: false, source: StateSource.Application);
-        var outputCount = int.Parse(stat.GetState("completion_total", "0"));
-        stat.SetState("completion_total", stats.TotalOutputTokens + outputCount, isNeedVersion: false, source: StateSource.Application);
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var inputCount = int.Parse(state.GetState("prompt_total", "0"));
+        state.SetState("prompt_total", stats.TotalInputTokens + inputCount, isNeedVersion: false, source: StateSource.Application);
+        var outputCount = int.Parse(state.GetState("completion_total", "0"));
+        state.SetState("completion_total", stats.TotalOutputTokens + outputCount, isNeedVersion: false, source: StateSource.Application);
 
         // Total cost
-        var total_cost = float.Parse(stat.GetState("llm_total_cost", "0"));
+        var total_cost = float.Parse(state.GetState("llm_total_cost", "0"));
         total_cost += deltaTotal;
-        stat.SetState("llm_total_cost", total_cost, isNeedVersion: false, source: StateSource.Application);
+        state.SetState("llm_total_cost", total_cost, isNeedVersion: false, source: StateSource.Application);
 
         // Save stats
         var metric = StatsMetric.AgentLlmCost;
