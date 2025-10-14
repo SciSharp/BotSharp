@@ -154,7 +154,13 @@ public class SqlSelect : IFunctionCallback
         // Apply limit
         var limitMatch = Regex.Match(chainedOps, @"\.limit\s*\((\d+)\)");
         if (limitMatch.Success && int.TryParse(limitMatch.Groups[1].Value, out var limit))
+        {
             findFluent = findFluent.Limit(limit);
+        }
+        else 
+        {
+            findFluent = findFluent.Limit(10);
+        } 
 
         return findFluent;
     }
