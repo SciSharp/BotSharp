@@ -109,16 +109,16 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
                 messages.Add(new(ChatRole.Assistant,
                 [
                     new FunctionCallContent(x.FunctionName, x.FunctionName, JsonSerializer.Deserialize<Dictionary<string, object?>>(x.FunctionArgs ?? "{}")),
-                    new FunctionResultContent(x.FunctionName, x.RoleContent)
+                    new FunctionResultContent(x.FunctionName, x.LlmContent)
                 ]));
             }
             else if (x.Role == AgentRole.System || x.Role == AgentRole.Assistant)
             {
-                messages.Add(new(x.Role == AgentRole.System ? ChatRole.System : ChatRole.Assistant, x.RoleContent));
+                messages.Add(new(x.Role == AgentRole.System ? ChatRole.System : ChatRole.Assistant, x.LlmContent));
             }
             else if (x.Role == AgentRole.User)
             {
-                List<AIContent> contents = [new TextContent(x.RoleContent)];
+                List<AIContent> contents = [new TextContent(x.LlmContent)];
                 if (allowMultiModal)
                 {
                     foreach (var file in x.Files)

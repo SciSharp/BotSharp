@@ -18,11 +18,13 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
     private string _model = GoogleAIModels.Gemini2FlashLive001;
 
     private readonly IServiceProvider _services;
-    private readonly ILogger _logger;
+    private readonly ILogger<GoogleRealTimeProvider> _logger;
+    private readonly GoogleAiSettings _settings;
+
     private List<string> renderedInstructions = [];
 
     private LlmRealtimeSession _session;
-    private readonly GoogleAiSettings _settings;
+    private RealtimeOptions? _realtimeOptions;
 
     private const string DEFAULT_MIME_TYPE = "audio/pcm;rate=16000";
     private readonly JsonSerializerOptions _jsonOptions = new()
@@ -50,12 +52,12 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
     public GoogleRealTimeProvider(
         IServiceProvider services,
-        GoogleAiSettings settings,
-        ILogger<GoogleRealTimeProvider> logger)
+        ILogger<GoogleRealTimeProvider> logger,
+        GoogleAiSettings settings)
     {
-        _settings = settings;
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
     public async Task Connect(
@@ -84,7 +86,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
-        _model = realtimeModelSettings.Model;
+        _model ??= realtimeModelSettings.Model;
         var modelSettings = settingsService.GetSetting(Provider, _model);
 
         Reset();
@@ -422,7 +424,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
     public void SetOptions(RealtimeOptions? options)
     {
-
+        _realtimeOptions = options;
     }
 
     #region Private methods
@@ -565,25 +567,25 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                             Name = message.FunctionName ?? string.Empty,
                             Response = new JsonObject()
                             {
-                                ["result"] = message.RoleContent ?? string.Empty
+                                ["result"] = message.LlmContent ?? string.Empty
                             }
                         }
                     }
                 ], AgentRole.Function));
 
                 convPrompts.Add(
-                    $"{AgentRole.Assistant}: Call function {message.FunctionName}({message.FunctionArgs}) => {message.RoleContent}");
+                    $"{AgentRole.Assistant}: Call function {message.FunctionName}({message.FunctionArgs}) => {message.LlmContent}");
             }
             else if (message.Role == AgentRole.User)
             {
-                var text = message.RoleContent;
+                var text = message.LlmContent;
                 contents.Add(new Content(text, AgentRole.User));
                 convPrompts.Add($"{AgentRole.User}: {text}");
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                contents.Add(new Content(message.RoleContent, AgentRole.Model));
-                convPrompts.Add($"{AgentRole.Assistant}: {message.RoleContent}");
+                contents.Add(new Content(message.LlmContent, AgentRole.Model));
+                convPrompts.Add($"{AgentRole.Assistant}: {message.LlmContent}");
             }
         }
 

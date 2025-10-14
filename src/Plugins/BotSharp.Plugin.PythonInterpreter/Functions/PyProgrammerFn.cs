@@ -75,7 +75,8 @@ public class PyProgrammerFn : IFunctionCallback
                     Recipient = new Recipient { Id = convService.ConversationId },
                     Message = new ProgramCodeTemplateMessage
                     {
-                        Text = ret.PythonCode ?? string.Empty,
+                        Text = result,
+                        CodeScript = ret.PythonCode,
                         Language = "python"
                     }
                 };
@@ -115,6 +116,7 @@ public class PyProgrammerFn : IFunctionCallback
                 dynamic stringIO = io.StringIO();
                 sys.stdout = stringIO;
                 sys.stderr = stringIO;
+                sys.argv = new PyList();
 
                 // Set global items
                 using var globals = new PyDict();
@@ -186,16 +188,16 @@ public class PyProgrammerFn : IFunctionCallback
 
     private (string, string) GetLlmProviderModel()
     {
-        var provider = "openai";
-        var model = "gpt-5";
+        var provider = _settings.CodeGeneration?.Provider;
+        var model = _settings.CodeGeneration?.Model;
 
-        var state = _services.GetRequiredService<IConversationStateService>();
-        provider = state.GetState("py_intepreter_llm_provider")
-                        .IfNullOrEmptyAs(_settings.CodeGeneration?.LlmProvider)
-                        .IfNullOrEmptyAs(provider);
-        model = state.GetState("py_intepreter_llm_model")
-                     .IfNullOrEmptyAs(_settings.CodeGeneration?.LlmModel)
-                     .IfNullOrEmptyAs(model);
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = "openai";
+        model = "gpt-5";
 
         return (provider, model);
     }
@@ -204,10 +206,6 @@ public class PyProgrammerFn : IFunctionCallback
     {
         var maxOutputTokens = _settings?.CodeGeneration?.MaxOutputTokens ?? 8192;
         var reasoningEffortLevel = _settings?.CodeGeneration?.ReasoningEffortLevel ?? "minimal";
-
-        var state = _services.GetRequiredService<IConversationStateService>();
-        maxOutputTokens = int.TryParse(state.GetState("py_intepreter_max_output_tokens"), out var tokens) ? tokens : maxOutputTokens;
-        reasoningEffortLevel = state.GetState("py_intepreter_reasoning_effort_level").IfNullOrEmptyAs(reasoningEffortLevel);
 
         return new AgentLlmConfig
         {

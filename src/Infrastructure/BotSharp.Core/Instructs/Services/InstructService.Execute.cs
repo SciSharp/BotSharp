@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.CodeInterpreter;
+using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.MLTasks;
@@ -14,9 +15,11 @@ public partial class InstructService
         string? instruction = null,
         string? templateName = null,
         IEnumerable<InstructFileModel>? files = null,
-        CodeInstructOptions? codeOptions = null)
+        CodeInstructOptions? codeOptions = null,
+        FileInstructOptions? fileOptions = null)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
         Agent agent = await agentService.LoadAgent(agentId);
 
         var response = new InstructResult
@@ -68,6 +71,7 @@ public partial class InstructService
 
         var provider = string.Empty;
         var model = string.Empty;
+        var result = string.Empty;
 
         // Render prompt
         var prompt = string.IsNullOrEmpty(templateName) ?
@@ -83,13 +87,14 @@ public partial class InstructService
             provider = textCompleter.Provider;
             model = textCompleter.Model;
 
-            var result = await textCompleter.GetCompletion(prompt, agentId, message.MessageId);
+            result = await GetTextCompletion(textCompleter, agent, prompt, message.MessageId);
             response.Text = result;
         }
         else if (completer is IChatCompletion chatCompleter)
         {
             provider = chatCompleter.Provider;
             model = chatCompleter.Model;
+           
 
             if (instruction == "#TEMPLATE#")
             {
@@ -97,21 +102,30 @@ public partial class InstructService
                 prompt = message.Content;
             }
 
-            var result = await chatCompleter.GetChatCompletions(new Agent
+            IFileLlmProcessor? fileProcessor = null;
+            if (!files.IsNullOrEmpty() && fileOptions != null)
             {
-                Id = agentId,
-                Name = agent.Name,
-                Instruction = instruction
-            }, new List<RoleDialogModel>
+                fileProcessor = _services.GetServices<IFileLlmProcessor>()
+                                         .FirstOrDefault(x => x.Provider.IsEqualTo(fileOptions.FileLlmProcessorProvider));
+            }
+
+            if (fileProcessor != null)
             {
-                new RoleDialogModel(AgentRole.User, prompt)
+                var inference = await fileProcessor.GetFileLlmInferenceAsync(agent, prompt, files, new FileLlmProcessOptions
                 {
-                    CurrentAgentId = agentId,
-                    MessageId = message.MessageId,
-                    Files = files?.Select(x => new BotSharpFile { FileUrl = x.FileUrl, FileData = x.FileData, ContentType = x.ContentType }).ToList() ?? []
-                }
-            });
-            response.Text = result.Content;
+                    Provider = provider,
+                    Model = model,
+                    Instruction = instruction,
+                    TemplateName = templateName,
+                    Data = state.GetStates().ToDictionary(x => x.Key, x => (object)x.Value)
+                });
+                result = inference?.Content ?? string.Empty;
+            }
+            else
+            {
+                result = await GetChatCompletion(chatCompleter, agent, instruction, prompt, message.MessageId, files);
+            }
+            response.Text = result;
         }
 
         // After completion hooks
@@ -141,7 +155,11 @@ public partial class InstructService
     /// <param name="templateName"></param>
     /// <param name="codeOptions"></param>
     /// <returns></returns>
-    private async Task<InstructResult?> GetCodeResponse(Agent agent, RoleDialogModel message, string templateName, CodeInstructOptions? codeOptions)
+    private async Task<InstructResult?> GetCodeResponse(
+        Agent agent,
+        RoleDialogModel message,
+        string templateName,
+        CodeInstructOptions? codeOptions)
     {
         InstructResult? response = null;
 
@@ -150,9 +168,8 @@ public partial class InstructService
             return response;
         }
 
-
+        var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        var db = _services.GetRequiredService<IBotSharpRepository>();
         var hooks = _services.GetHooks<IInstructHook>(agent.Id);
 
         var codeProvider = codeOptions?.CodeInterpretProvider ?? "botsharp-py-interpreter";
@@ -187,7 +204,7 @@ public partial class InstructService
         }
 
         // Get code script
-        var codeScript = db.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
+        var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
         if (string.IsNullOrWhiteSpace(codeScript))
         {
 #if DEBUG
@@ -239,6 +256,11 @@ public partial class InstructService
             Text = result?.Result?.ToString()
         };
 
+        if (context?.Arguments != null)
+        {
+            context.Arguments.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+        }
+
         // After code execution
         foreach (var hook in hooks)
         {
@@ -249,12 +271,48 @@ public partial class InstructService
                 Provider = codeInterpreter.Provider,
                 Model = string.Empty,
                 TemplateName = scriptName,
-                UserMessage = string.Empty,
-                SystemInstruction = string.Empty,
+                UserMessage = message.Content,
+                SystemInstruction = context?.CodeScript,
                 CompletionText = response.Text
             });
         }
 
         return response;
+    }
+
+    private async Task<string> GetTextCompletion(
+        ITextCompletion textCompleter,
+        Agent agent,
+        string text,
+        string messageId)
+    {
+        var result = await textCompleter.GetCompletion(text, agent.Id, messageId);
+        return result;
+    }
+
+    private async Task<string> GetChatCompletion(
+        IChatCompletion chatCompleter,
+        Agent agent,
+        string instruction,
+        string text,
+        string messageId,
+        IEnumerable<InstructFileModel>? files = null)
+    {
+        var result = await chatCompleter.GetChatCompletions(new Agent
+        {
+            Id = agent.Id,
+            Name = agent.Name,
+            Instruction = instruction
+        }, new List<RoleDialogModel>
+        {
+            new RoleDialogModel(AgentRole.User, text)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = messageId,
+                Files = files?.Select(x => new BotSharpFile { FileUrl = x.FileUrl, FileData = x.FileData, ContentType = x.ContentType }).ToList() ?? []
+            }
+        });
+
+        return result.Content;
     }
 }

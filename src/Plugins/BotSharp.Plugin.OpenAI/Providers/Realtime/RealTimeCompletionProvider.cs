@@ -67,7 +67,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var realtimeSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
-        _model = realtimeSettings.Model;
+        _model ??= realtimeSettings.Model;
         var settings = settingsService.GetSetting(Provider, _model);
 
         _session = new LlmRealtimeSession(_services, new ChatSessionOptions
@@ -621,15 +621,15 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     ChatToolCall.CreateFunctionToolCall(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? "{}"))
                 }));
 
-                messages.Add(new ToolChatMessage(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.RoleContent));
+                messages.Add(new ToolChatMessage(message.ToolCallId.IfNullOrEmptyAs(message.FunctionName), message.LlmContent));
             }
             else if (message.Role == AgentRole.User)
             {
-                messages.Add(new UserChatMessage(message.RoleContent));
+                messages.Add(new UserChatMessage(message.LlmContent));
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                messages.Add(new AssistantChatMessage(message.RoleContent));
+                messages.Add(new AssistantChatMessage(message.LlmContent));
             }
         }
 

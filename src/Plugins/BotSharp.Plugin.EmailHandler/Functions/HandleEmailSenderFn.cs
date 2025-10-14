@@ -76,8 +76,8 @@ public class HandleEmailSenderFn : IFunctionCallback
             IsIncludeBotFiles = true,
             IsAttachFiles = true,
             MessageLimit = convSettings?.FileSelect?.MessageLimit,
-            LlmProvider = convSettings?.FileSelect?.LlmProvider,
-            LlmModel = convSettings?.FileSelect?.LlmModel,
+            Provider = convSettings?.FileSelect?.Provider,
+            Model = convSettings?.FileSelect?.Model,
             MaxOutputTokens = convSettings?.FileSelect?.MaxOutputTokens,
             ReasoningEffortLevel = convSettings?.FileSelect?.ReasoningEffortLevel
         });

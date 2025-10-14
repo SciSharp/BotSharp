@@ -263,17 +263,17 @@ public class GeminiChatCompletionProvider : IChatCompletion
                             Name = message.FunctionName,
                             Response = new JsonObject()
                             {
-                                ["result"] = message.RoleContent ?? string.Empty
+                                ["result"] = message.LlmContent ?? string.Empty
                             }
                         }
                     }
                 ], AgentRole.Function));
 
-                convPrompts.Add($"{AgentRole.Assistant}: Call function {message.FunctionName}({message.FunctionArgs}) => {message.RoleContent}");
+                convPrompts.Add($"{AgentRole.Assistant}: Call function {message.FunctionName}({message.FunctionArgs}) => {message.LlmContent}");
             }
             else if (message.Role == AgentRole.User)
             {
-                var text = message.RoleContent;
+                var text = message.LlmContent;
                 var contentParts = new List<Part> { new() { Text = text } };
 
                 if (allowMultiModal && !message.Files.IsNullOrEmpty())
@@ -285,7 +285,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                var text = message.RoleContent;
+                var text = message.LlmContent;
                 var contentParts = new List<Part> { new() { Text = text } };
 
                 if (allowMultiModal && !message.Files.IsNullOrEmpty())

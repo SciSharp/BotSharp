@@ -140,11 +140,11 @@ public class ChatCompletionProvider : IChatCompletion
         {
             if (message.Role == AgentRole.User)
             {
-                messages.Add(new Message(RoleType.User, message.RoleContent));
+                messages.Add(new Message(RoleType.User, message.LlmContent));
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                messages.Add(new Message(RoleType.Assistant, message.RoleContent));
+                messages.Add(new Message(RoleType.Assistant, message.LlmContent));
             }
             else if (message.Role == AgentRole.Function)
             {
@@ -170,7 +170,7 @@ public class ChatCompletionProvider : IChatCompletion
                         new ToolResultContent()
                         {
                             ToolUseId = message.ToolCallId,
-                            Content = [new TextContent() { Text = message.RoleContent }]
+                            Content = [new TextContent() { Text = message.LlmContent }]
                         }
                     }
                 });
