@@ -5,12 +5,17 @@ public class FileLlmProcessOptions
     /// <summary>
     /// Llm provider
     /// </summary>
-    public string? LlmProvider { get; set; }
+    public string? Provider { get; set; }
 
     /// <summary>
     /// llm model
     /// </summary>
-    public string? LlModel { get; set; }
+    public string? Model { get; set; }
+
+    /// <summary>
+    /// Llm maximum output tokens
+    /// </summary>
+    public int? MaxOutputTokens { get; set; }
 
     /// <summary>
     /// Reasoning effort level

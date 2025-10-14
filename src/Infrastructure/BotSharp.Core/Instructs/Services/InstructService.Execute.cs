@@ -113,8 +113,8 @@ public partial class InstructService
             {
                 var inference = await fileProcessor.GetFileLlmInferenceAsync(agent, prompt, files, new FileLlmProcessOptions
                 {
-                    LlmProvider = provider,
-                    LlModel = model,
+                    Provider = provider,
+                    Model = model,
                     Instruction = instruction,
                     TemplateName = templateName,
                     Data = state.GetStates().ToDictionary(x => x.Key, x => (object)x.Value)
