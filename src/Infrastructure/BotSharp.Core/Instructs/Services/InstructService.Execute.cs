@@ -238,6 +238,11 @@ public partial class InstructService
             Text = result?.Result?.ToString()
         };
 
+        if (context?.Arguments != null)
+        {
+            context.Arguments.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+        }
+
         // After code execution
         foreach (var hook in hooks)
         {
@@ -249,7 +254,7 @@ public partial class InstructService
                 Model = string.Empty,
                 TemplateName = scriptName,
                 UserMessage = message.Content,
-                SystemInstruction = string.Empty,
+                SystemInstruction = context?.CodeScript,
                 CompletionText = response.Text
             });
         }
