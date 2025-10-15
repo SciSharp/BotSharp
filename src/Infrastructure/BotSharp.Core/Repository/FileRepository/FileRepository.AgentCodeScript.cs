@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Repositories.Models;
 using System.IO;
 
 namespace BotSharp.Core.Repository;

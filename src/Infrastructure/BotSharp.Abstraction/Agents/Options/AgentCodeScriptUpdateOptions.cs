@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Repositories.Models;
+using BotSharp.Abstraction.Repositories.Options;
 
 namespace BotSharp.Abstraction.Agents.Options;
 

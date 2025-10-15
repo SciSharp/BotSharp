@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.VectorStorage.Filters;
+
 namespace BotSharp.Plugin.KnowledgeBase.Helpers;
 
 public static class KnowledgeSettingHelper

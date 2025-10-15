@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.OpenAPI.ViewModels.Instructs;
 
 namespace BotSharp.OpenAPI.Controllers;

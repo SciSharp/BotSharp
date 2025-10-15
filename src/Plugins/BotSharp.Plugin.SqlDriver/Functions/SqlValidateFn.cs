@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Instructs.Options;
+
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
 public class SqlValidateFn : IFunctionCallback
