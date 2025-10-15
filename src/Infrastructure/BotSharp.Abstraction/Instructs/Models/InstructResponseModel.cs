@@ -9,4 +9,5 @@ public class InstructResponseModel
     public string UserMessage { get; set; } = default!;
     public string? SystemInstruction { get; set; }
     public string CompletionText { get; set; } = default!;
+    public string LogId { get; set; } = default!;
 }

@@ -48,6 +48,7 @@ public class InstructionLogHook : InstructHookBase
         {
             new InstructionLogModel
             {
+                Id = response.LogId,
                 AgentId = response.AgentId,
                 Provider = response.Provider,
                 Model = response.Model,

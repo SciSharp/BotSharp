@@ -19,6 +19,7 @@ public class InstructionLogDocument : MongoBase
     {
         return new InstructionLogDocument
         {
+            Id = log.Id,
             AgentId = log.AgentId,
             Provider = log.Provider,
             Model = log.Model,

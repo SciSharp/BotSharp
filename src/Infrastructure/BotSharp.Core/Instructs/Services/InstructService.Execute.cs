@@ -128,12 +128,14 @@ public partial class InstructService
             response.Text = result;
         }
 
+        response.LogId = Guid.NewGuid().ToString();
         // After completion hooks
         foreach (var hook in hooks)
         {
             await hook.AfterCompletion(agent, response);
             await hook.OnResponseGenerated(new InstructResponseModel
             {
+                LogId = response.LogId,
                 AgentId = agentId,
                 Provider = provider,
                 Model = model,
