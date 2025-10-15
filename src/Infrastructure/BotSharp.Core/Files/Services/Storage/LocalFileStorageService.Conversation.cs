@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Files.Converters;
+using BotSharp.Abstraction.Files.Options;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 

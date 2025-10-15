@@ -61,7 +61,7 @@ public class ComposeImageFn : IFunctionCallback
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var convSettings = _services.GetRequiredService<ConversationSetting>();
 
-        var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, new SelectFileOptions
+        var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, new()
         {
             Description = description,
             IsIncludeBotFiles = true,

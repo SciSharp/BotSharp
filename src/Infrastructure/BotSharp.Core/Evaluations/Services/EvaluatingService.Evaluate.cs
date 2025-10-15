@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Evaluations.Models;
 using BotSharp.Abstraction.Instructs;
-using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Core.Evaluations.Services;

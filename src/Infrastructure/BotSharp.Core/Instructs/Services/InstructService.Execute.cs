@@ -1,7 +1,10 @@
 using BotSharp.Abstraction.CodeInterpreter;
+using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.Instructs.Contexts;
 using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Models;
 
@@ -119,7 +122,7 @@ public partial class InstructService
                     TemplateName = templateName,
                     Data = state.GetStates().ToDictionary(x => x.Key, x => (object)x.Value)
                 });
-                result = inference?.Content ?? string.Empty;
+                result = inference.Result.IfNullOrEmptyAs(string.Empty);
             }
             else
             {
@@ -253,7 +256,7 @@ public partial class InstructService
         {
             MessageId = message.MessageId,
             Template = scriptName,
-            Text = result?.Result?.ToString()
+            Text = result?.Result ?? result?.ErrorMsg
         };
 
         if (context?.Arguments != null)

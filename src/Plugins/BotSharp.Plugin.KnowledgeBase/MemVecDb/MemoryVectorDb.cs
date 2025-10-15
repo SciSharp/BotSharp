@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.VectorStorage.Enums;
+using BotSharp.Abstraction.VectorStorage.Options;
 using System.Linq;
 using Tensorflow.NumPy;
 

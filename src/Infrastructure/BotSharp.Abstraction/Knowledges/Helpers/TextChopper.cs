@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Knowledges.Options;
 using System.Text.RegularExpressions;
 
 namespace BotSharp.Abstraction.Knowledges.Helpers;

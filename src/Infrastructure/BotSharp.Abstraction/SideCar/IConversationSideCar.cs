@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.SideCar.Models;
+using BotSharp.Abstraction.SideCar.Options;
 
 namespace BotSharp.Abstraction.SideCar;
 

@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Files.Options;
+
 namespace BotSharp.Abstraction.Files.Converters;
 
 public interface IImageConverter

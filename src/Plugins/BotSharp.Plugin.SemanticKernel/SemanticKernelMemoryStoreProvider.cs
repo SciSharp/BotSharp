@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage;
 using BotSharp.Abstraction.VectorStorage.Enums;
 using BotSharp.Abstraction.VectorStorage.Models;
+using BotSharp.Abstraction.VectorStorage.Options;
 using Microsoft.SemanticKernel.Memory;
 using System;
 using System.Collections.Generic;

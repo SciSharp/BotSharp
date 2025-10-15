@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.VectorStorage.Filters;
 using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
