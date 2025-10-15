@@ -4,7 +4,7 @@ namespace BotSharp.Plugin.ImageHandler.Functions;
 
 public class ComposeImageFn : IFunctionCallback
 {
-    public string Name => "util-file-compose_images";
+    public string Name => "util-image-compose_images";
     public string Indication => "Composing images";
 
     private readonly IServiceProvider _services;

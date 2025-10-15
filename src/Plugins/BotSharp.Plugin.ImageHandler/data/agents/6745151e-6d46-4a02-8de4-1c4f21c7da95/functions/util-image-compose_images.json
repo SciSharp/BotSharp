@@ -1,5 +1,5 @@
 {
-  "name": "util-file-compose_images",
+  "name": "util-image-compose_images",
   "description": "Use multiple input images to compose a new scene or transfer the style from one image to another",
   "parameters": {
     "type": "object",
