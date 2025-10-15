@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Knowledges.Filters;
 using BotSharp.Abstraction.VectorStorage.Filters;
 using BotSharp.Abstraction.VectorStorage.Models;
 using System.IO;

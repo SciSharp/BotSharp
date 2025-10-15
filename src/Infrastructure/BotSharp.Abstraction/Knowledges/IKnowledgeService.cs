@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Graph.Options;
+using BotSharp.Abstraction.Knowledges.Filters;
 using BotSharp.Abstraction.Knowledges.Options;
 using BotSharp.Abstraction.Knowledges.Responses;
 using BotSharp.Abstraction.VectorStorage.Models;

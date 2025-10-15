@@ -119,7 +119,9 @@ public partial class InstructService
                     Provider = provider,
                     Model = model,
                     Instruction = instruction,
+                    UserMessage = message.Content,
                     TemplateName = templateName,
+                    InvokeFrom = $"{nameof(InstructService)}.{nameof(Execute)}",
                     Data = state.GetStates().ToDictionary(x => x.Key, x => (object)x.Value)
                 });
                 result = inference.Result.IfNullOrEmptyAs(string.Empty);

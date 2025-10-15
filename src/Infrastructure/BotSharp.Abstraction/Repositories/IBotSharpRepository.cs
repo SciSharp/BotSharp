@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Knowledges.Filters;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
