@@ -11,7 +11,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-file-compose_images.json" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-file-compose_images.fn.liquid" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-file-compose_images.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-file-generate_image.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-file-compose_images.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-file-generate_image.fn.liquid">

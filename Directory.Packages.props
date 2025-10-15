@@ -6,8 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="EntityFramework" Version="6.4.4" />
-    <PackageVersion Include="Google_GenerativeAI" Version="3.2.0" />
-    <PackageVersion Include="Google_GenerativeAI.Live" Version="3.2.0" />
+    <PackageVersion Include="Google_GenerativeAI" Version="3.3.0" />
+    <PackageVersion Include="Google_GenerativeAI.Live" Version="3.3.0" />
     <PackageVersion Include="LLMSharp.Google.Palm" Version="1.0.2" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="$(AspNetCoreVersion)" />
@@ -46,7 +46,7 @@
     <PackageVersion Include="Whisper.net.Runtime" Version="1.8.1" />
     <PackageVersion Include="NCrontab" Version="3.3.3" />
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.3.0-beta.2" />
-    <PackageVersion Include="OpenAI" Version="2.4.0" />
+    <PackageVersion Include="OpenAI" Version="2.5.0" />
     <PackageVersion Include="MailKit" Version="4.11.0" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.8" />
     <PackageVersion Include="MySql.Data" Version="9.0.0" />

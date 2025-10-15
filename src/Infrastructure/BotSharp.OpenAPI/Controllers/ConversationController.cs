@@ -294,12 +294,12 @@ public class ConversationController : ControllerBase
     }
 
     [HttpDelete("/conversation/{conversationId}/message/{messageId}")]
-    public async Task<string?> DeleteConversationMessage([FromRoute] string conversationId, [FromRoute] string messageId, [FromBody] TruncateMessageRequest request)
+    public async Task<IActionResult> DeleteConversationMessage([FromRoute] string conversationId, [FromRoute] string messageId, [FromBody] TruncateMessageRequest request)
     {
         var conversationService = _services.GetRequiredService<IConversationService>();
         var newMessageId = request.isNewMessage ? Guid.NewGuid().ToString() : null;
         var isSuccess = await conversationService.TruncateConversation(conversationId, messageId, newMessageId);
-        return isSuccess ? newMessageId : string.Empty;
+        return Ok(new { Deleted = isSuccess, MessageId = isSuccess ? newMessageId : string.Empty });
     }
 
     #region Send notification
@@ -460,6 +460,40 @@ public class ConversationController : ControllerBase
     #endregion
 
     #region Files and attachments
+    [HttpGet("/conversation/{conversationId}/attachments")]
+    public List<MessageFileViewModel> ListAttachments([FromRoute] string conversationId)
+    {
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var dir = fileStorage.GetDirectory(conversationId);
+
+        // List files in the directory
+        var files = Directory.Exists(dir)
+            ? Directory.GetFiles(dir).Select(f => new MessageFileViewModel
+            {
+                FileName = Path.GetFileName(f),
+                FileExtension = Path.GetExtension(f).TrimStart('.').ToLower(),
+                ContentType = FileUtility.GetFileContentType(f),
+                FileDownloadUrl = $"/conversation/{conversationId}/attachments/file/{Path.GetFileName(f)}",
+            }).ToList()
+            : new List<MessageFileViewModel>();
+
+        return files;
+    }
+
+    [AllowAnonymous]
+    [HttpGet("/conversation/{conversationId}/attachments/file/{fileName}")]
+    public IActionResult GetAttachment([FromRoute] string conversationId, [FromRoute] string fileName)
+    {
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var dir = fileStorage.GetDirectory(conversationId);
+        var filePath = Path.Combine(dir, fileName);
+        if (!System.IO.File.Exists(filePath))
+        {
+            return NotFound();
+        }
+        return BuildFileResult(filePath);
+    }
+
     [HttpPost("/conversation/{conversationId}/attachments")]
     public IActionResult UploadAttachments([FromRoute] string conversationId, IFormFile[] files)
     {

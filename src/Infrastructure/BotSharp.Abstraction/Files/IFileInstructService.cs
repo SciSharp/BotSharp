@@ -10,6 +10,7 @@ public interface IFileInstructService
     Task<RoleDialogModel> VaryImage(InstructFileModel image, InstructOptions? options = null);
     Task<RoleDialogModel> EditImage(string text, InstructFileModel image, InstructOptions? options = null);
     Task<RoleDialogModel> EditImage(string text, InstructFileModel image, InstructFileModel mask, InstructOptions? options = null);
+    Task<RoleDialogModel> ComposeImages(string text, InstructFileModel[] images, InstructOptions? options = null);
     #endregion
 
     #region Pdf

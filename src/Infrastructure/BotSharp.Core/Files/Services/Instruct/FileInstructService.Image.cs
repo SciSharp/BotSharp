@@ -1,5 +1,6 @@
-using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.Instructs.Models;
+using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
@@ -204,6 +205,60 @@ public partial class FileInstructService
 
         imageStream.Close();
         maskStream.Close();
+
+        await HookEmitter.Emit<IInstructHook>(_services, async hook =>
+            await hook.OnResponseGenerated(new InstructResponseModel
+            {
+                AgentId = innerAgentId,
+                Provider = completion.Provider,
+                Model = completion.Model,
+                TemplateName = options?.TemplateName,
+                UserMessage = text,
+                SystemInstruction = instruction,
+                CompletionText = message.Content
+            }), innerAgentId);
+
+        return message;
+    }
+
+    public async Task<RoleDialogModel> ComposeImages(string text, InstructFileModel[] images, InstructOptions? options = null)
+    {
+        var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
+        var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
+
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1-mini");
+
+        var streams = new List<Stream>();
+        var fileNames = new List<string>();
+        foreach (var image in images)
+        {
+            var binary = await DownloadFile(image);
+
+            // Convert image
+            var converter = GetImageConverter(options?.ImageConvertProvider);
+            if (converter != null)
+            {
+                binary = await converter.ConvertImage(binary);
+                image.FileExtension = "png";
+            }
+
+            var stream = binary.ToStream();
+            streams.Add(stream);
+
+            var fileName = BuildFileName(image.FileName, image.FileExtension, "image", "png");
+            fileNames.Add(fileName);
+        }
+
+        var textContent = text.IfNullOrEmptyAs(instruction).IfNullOrEmptyAs(string.Empty);
+        var message = await completion.GetImageComposition(new Agent()
+        {
+            Id = innerAgentId
+        }, new RoleDialogModel(AgentRole.User, textContent), streams.ToArray(), fileNames.ToArray());
+
+        foreach (var stream in streams)
+        {
+            stream.Close();
+        }
 
         await HookEmitter.Emit<IInstructHook>(_services, async hook =>
             await hook.OnResponseGenerated(new InstructResponseModel

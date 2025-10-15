@@ -5,6 +5,7 @@ public class ImageHandlerUtilityHook : IAgentUtilityHook
     private const string READ_IMAGE_FN = "util-file-read_image";
     private const string GENERATE_IMAGE_FN = "util-file-generate_image";
     private const string EDIT_IMAGE_FN = "util-file-edit_image";
+    private const string COMPOSE_IMAGES_FN = "util-file-edit_images";
 
     public void AddUtilities(List<AgentUtility> utilities)
     {
@@ -45,7 +46,19 @@ public class ImageHandlerUtilityHook : IAgentUtilityHook
                         TemplateName = $"{EDIT_IMAGE_FN}.fn"
                     }
                 ]
-            }
+            },
+            new AgentUtility
+            {
+                Category = "file",
+                Name = UtilityName.ImageComposer,
+                Items = [
+                    new UtilityItem
+                    {
+                        FunctionName = COMPOSE_IMAGES_FN,
+                        TemplateName = $"{COMPOSE_IMAGES_FN}.fn"
+                    }
+                ]
+            },
         };
 
         utilities.AddRange(items);

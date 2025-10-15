@@ -70,6 +70,11 @@ public class ImageEditFileRequest : ImageEditRequest
     public InstructFileModel File { get; set; }
 }
 
+public class ImageCompositionRequest : ImageEditRequest
+{
+    [JsonPropertyName("files")]
+    public InstructFileModel[] Files { get; set; } = [];
+}
 
 public class ImageMaskEditRequest : InstructBaseRequest
 {
