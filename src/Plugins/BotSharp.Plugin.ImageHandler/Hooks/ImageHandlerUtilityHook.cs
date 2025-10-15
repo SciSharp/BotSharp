@@ -5,7 +5,7 @@ public class ImageHandlerUtilityHook : IAgentUtilityHook
     private const string READ_IMAGE_FN = "util-image-read_image";
     private const string GENERATE_IMAGE_FN = "util-image-generate_image";
     private const string EDIT_IMAGE_FN = "util-image-edit_image";
-    private const string COMPOSE_IMAGES_FN = "util-image-edit_images";
+    private const string COMPOSE_IMAGES_FN = "util-image-compose_images";
 
     public void AddUtilities(List<AgentUtility> utilities)
     {
