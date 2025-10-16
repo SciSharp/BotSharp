@@ -184,7 +184,7 @@ public partial class InstructService
         if (codeProcessor == null)
         {
 #if DEBUG
-            _logger.LogWarning($"No code interpreter found. (Agent: {agent.Id}, Code interpreter: {codeProvider})");
+            _logger.LogWarning($"No code processor found. (Agent: {agent.Id}, Code processor: {codeProvider})");
 #endif
             return response;
         }
