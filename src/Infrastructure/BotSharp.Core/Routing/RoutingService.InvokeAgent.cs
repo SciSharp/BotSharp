@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Diagnostics;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 
@@ -15,7 +14,7 @@ public partial class RoutingService
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
 
-        using var activity = ModelDiagnostics.StartAgentInvocationActivity(agentId, agent.Name, agent.Description, agent, dialogs);
+        using var activity = _telemetryService.StartAgentInvocationActivity(agentId, agent.Name, agent.Description, agent, dialogs);
 
         Context.IncreaseRecursiveCounter();
         if (Context.CurrentRecursionDepth > agent.LlmConfig.MaxRecursionDepth)
@@ -82,7 +81,7 @@ public partial class RoutingService
             dialogs.Add(message);
             Context.AddDialogs([message]);
         }
-        activity?.SetAgentResponse(Context.GetDialogs());
+ 
         return true;
     }
 

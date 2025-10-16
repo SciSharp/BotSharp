@@ -1,6 +1,6 @@
 #pragma warning disable OPENAI001
 using BotSharp.Abstraction.Conversations.Enums;
-using BotSharp.Abstraction.Diagnostics;
+using BotSharp.Abstraction.Diagnostics.Telemetry;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
@@ -8,8 +8,7 @@ using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
 using OpenAI.Chat;
 using System.ClientModel;
-using System.Diagnostics;
-using static BotSharp.Abstraction.Diagnostics.ModelDiagnostics;
+using static BotSharp.Abstraction.Diagnostics.Telemetry.TelemetryConstants;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers.Chat;
 
@@ -18,6 +17,7 @@ public class ChatCompletionProvider : IChatCompletion
     protected readonly AzureOpenAiSettings _settings;
     protected readonly IServiceProvider _services;
     protected readonly ILogger<ChatCompletionProvider> _logger;
+    protected readonly ITelemetryService _telemetryService;
     private List<string> renderedInstructions = [];
 
     protected string _model;
@@ -28,11 +28,13 @@ public class ChatCompletionProvider : IChatCompletion
     public ChatCompletionProvider(
         AzureOpenAiSettings settings,
         ILogger<ChatCompletionProvider> logger,
+        ITelemetryService telemetryService,
         IServiceProvider services)
     {
         _settings = settings;
         _logger = logger;
         _services = services;
+        _telemetryService = telemetryService;
     }
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
@@ -53,7 +55,7 @@ public class ChatCompletionProvider : IChatCompletion
         ClientResult<ChatCompletion>? response = null;
         ChatCompletion value = default;
         RoleDialogModel responseMessage;
-        using (var activity = ModelDiagnostics.StartCompletionActivity(null, _model, Provider, prompt, convService))
+        using (var activity = _telemetryService.StartCompletionActivity(null, _model, Provider, conversations, convService))
         {
             try
             {

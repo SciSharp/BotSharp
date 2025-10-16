@@ -1,9 +1,10 @@
 using BotSharp.Abstraction.Diagnostics;
 using BotSharp.Abstraction.Routing.Executor;
 using BotSharp.Core.MCP.Managers;
-using ModelContextProtocol.Client;
+using ModelContextProtocol;
+using ModelContextProtocol.Protocol;
 using System.Diagnostics;
-using static BotSharp.Abstraction.Diagnostics.ModelDiagnostics;
+using static BotSharp.Abstraction.Diagnostics.Telemetry.TelemetryConstants;
 
 namespace BotSharp.Core.Routing.Executor;
 
@@ -46,7 +47,10 @@ public class McpToolExecutor: IFunctionExecutor
                 var result = await client.CallToolAsync(_functionName, !argDict.IsNullOrEmpty() ? argDict : []);
 
                 // Extract the text content from the result
-                var json = string.Join("\n", result.Content.Where(c => c.Type == "text").Select(c => c.Text));
+                var json = string.Join("\n", result.Content
+                        .OfType<TextContentBlock>()
+                        .Where(c => c.Type == "text")
+                        .Select(c => c.Text));
 
                 message.Content = json;
                 message.Data = json.JsonContent();

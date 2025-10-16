@@ -1,8 +1,9 @@
 using BotSharp.Abstraction.Diagnostics;
+using BotSharp.Abstraction.Diagnostics.Telemetry;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Routing.Executor;
 using System.Diagnostics;
-using static BotSharp.Abstraction.Diagnostics.ModelDiagnostics;
+using static BotSharp.Abstraction.Diagnostics.Telemetry.TelemetryConstants;
 
 namespace BotSharp.Core.Routing.Executor;
 

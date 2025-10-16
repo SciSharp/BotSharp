@@ -8,9 +8,8 @@ using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users.Dtos;
 using BotSharp.Core.Infrastructures;
-using BotSharp.Core.Users.Services;
 using System.Diagnostics;
-using static BotSharp.Abstraction.Diagnostics.ModelDiagnostics;
+using static BotSharp.Abstraction.Diagnostics.Telemetry.TelemetryConstants;
 
 namespace BotSharp.OpenAPI.Controllers;
 
