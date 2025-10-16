@@ -1,4 +1,3 @@
-using BotSharp.Core.CodeInterpreter;
 using Microsoft.Extensions.Logging;
 using Python.Runtime;
 using System.Threading;
@@ -6,15 +5,15 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.PythonInterpreter.Services;
 
-public class PyInterpretService : ICodeInterpretService
+public class PyCodeInterpreter : ICodeProcessor
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<PyInterpretService> _logger;
+    private readonly ILogger<PyCodeInterpreter> _logger;
     private readonly CodeScriptExecutor _executor;
 
-    public PyInterpretService(
+    public PyCodeInterpreter(
         IServiceProvider services,
-        ILogger<PyInterpretService> logger,
+        ILogger<PyCodeInterpreter> logger,
         CodeScriptExecutor executor)
     {
         _services = services;
@@ -24,11 +23,11 @@ public class PyInterpretService : ICodeInterpretService
 
     public string Provider => "botsharp-py-interpreter";
 
-    public async Task<CodeInterpretResult> RunCode(string codeScript, CodeInterpretOptions? options = null)
+    public async Task<CodeInterpretResponse> RunAsync(string codeScript, CodeInterpretOptions? options = null)
     {
         if (options?.UseMutex == true)
         {
-            return await _executor.Execute(async () =>
+            return await _executor.ExecuteAsync(async () =>
             {
                 return InnerRunCode(codeScript, options);
             }, cancellationToken: options?.CancellationToken ?? CancellationToken.None);
@@ -36,7 +35,7 @@ public class PyInterpretService : ICodeInterpretService
         return InnerRunCode(codeScript, options);
     }
 
-    private CodeInterpretResult InnerRunCode(string codeScript, CodeInterpretOptions? options = null)
+    private CodeInterpretResponse InnerRunCode(string codeScript, CodeInterpretOptions? options = null)
     {
         try
         {
@@ -44,10 +43,10 @@ public class PyInterpretService : ICodeInterpretService
         }
         catch (Exception ex)
         {
-            var errorMsg = $"Error when executing inner python code in {nameof(PyInterpretService)}: {Provider}.";
+            var errorMsg = $"Error when executing inner python code in {nameof(PyCodeInterpreter)}: {Provider}.";
             _logger.LogError(ex, errorMsg);
 
-            return new CodeInterpretResult
+            return new CodeInterpretResponse
             {
                 Success = false,
                 ErrorMsg = errorMsg
@@ -55,7 +54,7 @@ public class PyInterpretService : ICodeInterpretService
         }
     }
 
-    private CodeInterpretResult CoreRun(string codeScript, CodeInterpretOptions? options = null)
+    private CodeInterpretResponse CoreRun(string codeScript, CodeInterpretOptions? options = null)
     {
         using (Py.GIL())
         {
@@ -100,7 +99,7 @@ public class PyInterpretService : ICodeInterpretService
                 // Get result
                 var result = stringIO.getvalue()?.ToString() as string;
 
-                return new CodeInterpretResult
+                return new CodeInterpretResponse
                 {
                     Result = result?.TrimEnd('\r', '\n'),
                     Success = true
@@ -108,10 +107,10 @@ public class PyInterpretService : ICodeInterpretService
             }
             catch (Exception ex)
             {
-                var errorMsg = $"Error when executing core python code in {nameof(PyInterpretService)}: {Provider}. {ex.Message}";
+                var errorMsg = $"Error when executing core python code in {nameof(PyCodeInterpreter)}: {Provider}. {ex.Message}";
                 _logger.LogError(ex, errorMsg);
 
-                return new CodeInterpretResult
+                return new CodeInterpretResponse
                 {
                     Success = false,
                     ErrorMsg = errorMsg

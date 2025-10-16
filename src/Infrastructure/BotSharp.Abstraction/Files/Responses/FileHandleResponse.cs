@@ -1,6 +1,6 @@
-namespace BotSharp.Abstraction.CodeInterpreter.Models;
+namespace BotSharp.Abstraction.Files.Responses;
 
-public class CodeInterpretResult
+public class FileHandleResponse
 {
     public string Result { get; set; } = string.Empty;
     public bool Success { get; set; }

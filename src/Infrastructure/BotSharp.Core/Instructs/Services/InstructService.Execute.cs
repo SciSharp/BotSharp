@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.CodeInterpreter;
+using BotSharp.Abstraction.Coding;
 using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
@@ -47,7 +47,7 @@ public partial class InstructService
 
 
         // Run code template
-        var codeResponse = await GetCodeResponse(agent, message, templateName, codeOptions);
+        var codeResponse = await RunCode(agent, message, templateName, codeOptions);
         if (codeResponse != null)
         {
             return codeResponse;
@@ -105,16 +105,16 @@ public partial class InstructService
                 prompt = message.Content;
             }
 
-            IFileLlmProcessor? fileProcessor = null;
+            IFileProcessor? fileProcessor = null;
             if (!files.IsNullOrEmpty() && fileOptions != null)
             {
-                fileProcessor = _services.GetServices<IFileLlmProcessor>()
-                                         .FirstOrDefault(x => x.Provider.IsEqualTo(fileOptions.FileLlmProcessorProvider));
+                fileProcessor = _services.GetServices<IFileProcessor>()
+                                         .FirstOrDefault(x => x.Provider.IsEqualTo(fileOptions.Processor));
             }
 
             if (fileProcessor != null)
             {
-                var inference = await fileProcessor.GetFileLlmInferenceAsync(agent, prompt, files, new FileLlmProcessOptions
+                var fileResponse = await fileProcessor.HandleFilesAsync(agent, prompt, files, new FileHandleOptions
                 {
                     Provider = provider,
                     Model = model,
@@ -124,7 +124,7 @@ public partial class InstructService
                     InvokeFrom = $"{nameof(InstructService)}.{nameof(Execute)}",
                     Data = state.GetStates().ToDictionary(x => x.Key, x => (object)x.Value)
                 });
-                result = inference.Result.IfNullOrEmptyAs(string.Empty);
+                result = fileResponse.Result.IfNullOrEmptyAs(string.Empty);
             }
             else
             {
@@ -160,7 +160,7 @@ public partial class InstructService
     /// <param name="templateName"></param>
     /// <param name="codeOptions"></param>
     /// <returns></returns>
-    private async Task<InstructResult?> GetCodeResponse(
+    private async Task<InstructResult?> RunCode(
         Agent agent,
         RoleDialogModel message,
         string templateName,
@@ -177,8 +177,8 @@ public partial class InstructService
         var state = _services.GetRequiredService<IConversationStateService>();
         var hooks = _services.GetHooks<IInstructHook>(agent.Id);
 
-        var codeProvider = codeOptions?.CodeInterpretProvider ?? "botsharp-py-interpreter";
-        var codeInterpreter = _services.GetServices<ICodeInterpretService>()
+        var codeProvider = codeOptions?.Processor ?? "botsharp-py-interpreter";
+        var codeInterpreter = _services.GetServices<ICodeProcessor>()
                                        .FirstOrDefault(x => x.Provider.IsEqualTo(codeProvider));
         
         if (codeInterpreter == null)
@@ -248,7 +248,7 @@ public partial class InstructService
         }
 
         // Run code script
-        var result = await codeInterpreter.RunCode(context.CodeScript, options: new()
+        var result = await codeInterpreter.RunAsync(context.CodeScript, options: new()
         {
             ScriptName = scriptName,
             Arguments = context.Arguments

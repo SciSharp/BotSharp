@@ -1,6 +1,6 @@
 using System.Threading;
 
-namespace BotSharp.Abstraction.CodeInterpreter.Models;
+namespace BotSharp.Abstraction.Coding.Options;
 
 public class CodeInterpretOptions
 {
