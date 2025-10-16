@@ -1,6 +1,6 @@
-namespace BotSharp.Abstraction.Files.Responses;
+namespace BotSharp.Abstraction.Coding.Responses;
 
-public class FileLlmInferenceResponse
+public class CodeInterpretResponse
 {
     public string Result { get; set; } = string.Empty;
     public bool Success { get; set; }

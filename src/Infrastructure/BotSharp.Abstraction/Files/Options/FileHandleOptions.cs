@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Files.Options;
 
-public class FileLlmProcessOptions
+public class FileHandleOptions
 {
     /// <summary>
     /// Llm provider

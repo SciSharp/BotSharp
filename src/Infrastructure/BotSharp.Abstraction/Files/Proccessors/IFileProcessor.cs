@@ -3,10 +3,10 @@ using BotSharp.Abstraction.Files.Responses;
 
 namespace BotSharp.Abstraction.Files.Proccessors;
 
-public interface IFileLlmProcessor
+public interface IFileProcessor
 {
     public string Provider { get; }
 
-    Task<FileLlmInferenceResponse> GetFileLlmInferenceAsync(Agent agent, string text, IEnumerable<InstructFileModel> files, FileLlmProcessOptions? options = null)
+    Task<FileHandleResponse> HandleFilesAsync(Agent agent, string text, IEnumerable<InstructFileModel> files, FileHandleOptions? options = null)
         => throw new NotImplementedException();
 }

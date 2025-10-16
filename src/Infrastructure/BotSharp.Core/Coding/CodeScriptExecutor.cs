@@ -1,6 +1,4 @@
-using BotSharp.Abstraction.CodeInterpreter.Models;
-
-namespace BotSharp.Core.CodeInterpreter;
+namespace BotSharp.Core.Coding;
 
 public class CodeScriptExecutor
 {
@@ -13,7 +11,7 @@ public class CodeScriptExecutor
         _logger = logger;
     }
 
-    public async Task<T> Execute<T>(Func<Task<T>> func, CancellationToken cancellationToken = default)
+    public async Task<T> ExecuteAsync<T>(Func<Task<T>> func, CancellationToken cancellationToken = default)
     {
         await _semLock.WaitAsync(cancellationToken);
 
