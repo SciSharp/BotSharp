@@ -178,10 +178,10 @@ public partial class InstructService
         var hooks = _services.GetHooks<IInstructHook>(agent.Id);
 
         var codeProvider = codeOptions?.Processor ?? "botsharp-py-interpreter";
-        var codeInterpreter = _services.GetServices<ICodeProcessor>()
+        var codeProcessor = _services.GetServices<ICodeProcessor>()
                                        .FirstOrDefault(x => x.Provider.IsEqualTo(codeProvider));
         
-        if (codeInterpreter == null)
+        if (codeProcessor == null)
         {
 #if DEBUG
             _logger.LogWarning($"No code interpreter found. (Agent: {agent.Id}, Code interpreter: {codeProvider})");
@@ -248,7 +248,7 @@ public partial class InstructService
         }
 
         // Run code script
-        var result = await codeInterpreter.RunAsync(context.CodeScript, options: new()
+        var codeResponse = await codeProcessor.RunAsync(context.CodeScript, options: new()
         {
             ScriptName = scriptName,
             Arguments = context.Arguments
@@ -258,7 +258,7 @@ public partial class InstructService
         {
             MessageId = message.MessageId,
             Template = scriptName,
-            Text = result?.Result ?? result?.ErrorMsg
+            Text = codeResponse?.Result ?? codeResponse?.ErrorMsg
         };
 
         if (context?.Arguments != null)
@@ -273,7 +273,7 @@ public partial class InstructService
             await hook.OnResponseGenerated(new InstructResponseModel
             {
                 AgentId = agent.Id,
-                Provider = codeInterpreter.Provider,
+                Provider = codeProcessor.Provider,
                 Model = string.Empty,
                 TemplateName = scriptName,
                 UserMessage = message.Content,
