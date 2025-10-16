@@ -197,6 +197,9 @@ public interface IBotSharpRepository : IHaveServiceProvider
 
     List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
          => throw new NotImplementedException();
+
+    Task<bool> UpdateInstructionLogStates(UpdateInstructionLogStatesModel updateInstructionStates)
+        => throw new NotImplementedException();
     #endregion
 
     #region Statistics

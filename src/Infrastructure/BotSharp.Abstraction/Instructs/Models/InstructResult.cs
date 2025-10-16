@@ -10,4 +10,7 @@ public class InstructResult : ITrackableMessage
     [JsonPropertyName("template")]
     public string? Template { get; set; }
     public Dictionary<string, string>? States { get; set; } = new();
+
+    [JsonPropertyName("log_id")]
+    public string LogId { get; set; } = default!;
 }
