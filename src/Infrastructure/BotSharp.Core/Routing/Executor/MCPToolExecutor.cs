@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Routing.Executor;
 using BotSharp.Core.MCP.Managers;
 using ModelContextProtocol.Client;
 using System.Diagnostics;
+using static BotSharp.Abstraction.Diagnostics.ModelDiagnostics;
 
 namespace BotSharp.Core.Routing.Executor;
 
@@ -32,6 +33,9 @@ public class McpToolExecutor: IFunctionExecutor
         {
             try
             {
+                activity?.SetTag("input", message.FunctionArgs);
+                activity?.SetTag(ModelDiagnosticsTags.AgentId, message.CurrentAgentId);
+
                 // Convert arguments to dictionary format expected by mcpdotnet
                 Dictionary<string, object> argDict = JsonToDictionary(message.FunctionArgs);
 

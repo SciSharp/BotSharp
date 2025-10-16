@@ -209,72 +209,7 @@ public  static class ModelDiagnostics
         }
     }
 
-    ///// <summary>
-    ///// End the agent streaming response for a given activity.
-    ///// </summary>
-    //internal static void EndAgentStreamingResponse(
-    //    this Activity activity,
-    //    IEnumerable<StreamingChatMessageContent>? contents)
-    //{
-    //    if (!IsModelDiagnosticsEnabled() || contents is null)
-    //    {
-    //        return;
-    //    }
-
-    //    Dictionary<int, List<StreamingKernelContent>> choices = [];
-    //    foreach (var content in contents)
-    //    {
-    //        if (!choices.TryGetValue(content.ChoiceIndex, out var choiceContents))
-    //        {
-    //            choiceContents = [];
-    //            choices[content.ChoiceIndex] = choiceContents;
-    //        }
-
-    //        choiceContents.Add(content);
-    //    }
-
-    //    var chatCompletions = choices.Select(choiceContents =>
-    //        {
-    //            var lastContent = (StreamingChatMessageContent)choiceContents.Value.Last();
-    //            var chatMessage = choiceContents.Value.Select(c => c.ToString()).Aggregate((a, b) => a + b);
-    //            return new ChatMessageContent(lastContent.Role ?? AuthorRole.Assistant, chatMessage, metadata: lastContent.Metadata);
-    //        }).ToList();
-
-    //    activity?.SetTag(
-    //        ModelDiagnosticsTags.AgentInvocationOutput,
-    //        JsonSerializer.Serialize(chatCompletions.Select(r => ToGenAIConventionsFormat(r))));
-    //}
-
-    ///// <summary>
-    ///// Set the text completion response for a given activity.
-    ///// The activity will be enriched with the response attributes specified by the semantic conventions.
-    ///// </summary>
-    //internal static void SetCompletionResponse(this Activity activity, IEnumerable<TextContent> completions, int? promptTokens = null, int? completionTokens = null)
-    //    => SetCompletionResponse(activity, completions, promptTokens, completionTokens, ToGenAIConventionsChoiceFormat);
-
-    ///// <summary>
-    ///// Set the chat completion response for a given activity.
-    ///// The activity will be enriched with the response attributes specified by the semantic conventions.
-    ///// </summary>
-    //internal static void SetCompletionResponse(this Activity activity, IEnumerable<ChatMessageContent> completions, int? promptTokens = null, int? completionTokens = null)
-    //    => SetCompletionResponse(activity, completions, promptTokens, completionTokens, ToGenAIConventionsChoiceFormat);
-
-    ///// <summary>
-    ///// Notify the end of streaming for a given activity.
-    ///// </summary>
-    //internal static void EndStreaming(
-    //    this Activity activity,
-    //    IEnumerable<StreamingKernelContent>? contents,
-    //    IEnumerable<FunctionCallContent>? toolCalls = null,
-    //    int? promptTokens = null,
-    //    int? completionTokens = null)
-    //{
-    //    if (IsModelDiagnosticsEnabled())
-    //    {
-    //        var choices = OrganizeStreamingContent(contents);
-    //        SetCompletionResponse(activity, choices, toolCalls, promptTokens, completionTokens);
-    //    }
-    //}
+    
 
     /// <summary>
     /// Set the response id for a given activity.
@@ -417,7 +352,7 @@ public  static class ModelDiagnostics
     /// <summary>
     /// Tags used in model diagnostics
     /// </summary>
-    private static class ModelDiagnosticsTags
+    public static class ModelDiagnosticsTags
     {
         // Activity tags
         public const string System = "gen_ai.system";

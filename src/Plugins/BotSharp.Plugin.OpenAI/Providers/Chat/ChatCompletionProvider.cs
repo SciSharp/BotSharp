@@ -1,9 +1,12 @@
 #pragma warning disable OPENAI001
+using BotSharp.Abstraction.Diagnostics;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using OpenAI.Chat;
+using static BotSharp.Abstraction.Diagnostics.ModelDiagnostics;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
@@ -32,6 +35,7 @@ public class ChatCompletionProvider : IChatCompletion
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
         var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
+        var convService = _services.GetService<IConversationStateService>();
 
         // Before chat completion hook
         foreach (var hook in contentHooks)
@@ -42,68 +46,77 @@ public class ChatCompletionProvider : IChatCompletion
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
-
-        var response = chatClient.CompleteChat(messages, options);
-        var value = response.Value;
-        var reason = value.FinishReason;
-        var content = value.Content;
-        var text = content.FirstOrDefault()?.Text ?? string.Empty;
-
-        RoleDialogModel responseMessage;
-        if (reason == ChatFinishReason.FunctionCall || reason == ChatFinishReason.ToolCalls)
+        using (var activity = ModelDiagnostics.StartCompletionActivity(null, _model, Provider, prompt, convService))
         {
-            var toolCall = value.ToolCalls.FirstOrDefault();
-            responseMessage = new RoleDialogModel(AgentRole.Function, text)
-            {
-                CurrentAgentId = agent.Id,
-                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                ToolCallId = toolCall?.Id,
-                FunctionName = toolCall?.FunctionName,
-                FunctionArgs = toolCall?.FunctionArguments?.ToString(),
-                RenderedInstruction = string.Join("\r\n", renderedInstructions)
-            };
+            var response = chatClient.CompleteChat(messages, options);
+            var value = response.Value;
+            var reason = value.FinishReason;
+            var content = value.Content;
+            var text = content.FirstOrDefault()?.Text ?? string.Empty;
 
-            // Somethings LLM will generate a function name with agent name.
-            if (!string.IsNullOrEmpty(responseMessage.FunctionName))
+            RoleDialogModel responseMessage;
+            if (reason == ChatFinishReason.FunctionCall || reason == ChatFinishReason.ToolCalls)
             {
-                responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
-            }
-        }
-        else
-        {
-            responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
-            {
-                CurrentAgentId = agent.Id,
-                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                RenderedInstruction = string.Join("\r\n", renderedInstructions),
-                Annotations = value.Annotations?.Select(x => new ChatAnnotation
+                var toolCall = value.ToolCalls.FirstOrDefault();
+                responseMessage = new RoleDialogModel(AgentRole.Function, text)
                 {
-                    Title = x.WebResourceTitle,
-                    Url = x.WebResourceUri.AbsoluteUri,
-                    StartIndex = x.StartIndex,
-                    EndIndex = x.EndIndex
-                })?.ToList()
-            };
-        }
+                    CurrentAgentId = agent.Id,
+                    MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                    ToolCallId = toolCall?.Id,
+                    FunctionName = toolCall?.FunctionName,
+                    FunctionArgs = toolCall?.FunctionArguments?.ToString(),
+                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                };
 
-        var tokenUsage = response.Value?.Usage;
-        var inputTokenDetails = response.Value?.Usage?.InputTokenDetails;
-
-        // After chat completion hook
-        foreach (var hook in contentHooks)
-        {
-            await hook.AfterGenerated(responseMessage, new TokenStatsModel
+                // Somethings LLM will generate a function name with agent name.
+                if (!string.IsNullOrEmpty(responseMessage.FunctionName))
+                {
+                    responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
+                }
+            }
+            else
             {
-                Prompt = prompt,
-                Provider = Provider,
-                Model = _model,
-                TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
-                CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
-                TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
-            });
-        }
+                responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                    RenderedInstruction = string.Join("\r\n", renderedInstructions),
+                    Annotations = value.Annotations?.Select(x => new ChatAnnotation
+                    {
+                        Title = x.WebResourceTitle,
+                        Url = x.WebResourceUri.AbsoluteUri,
+                        StartIndex = x.StartIndex,
+                        EndIndex = x.EndIndex
+                    })?.ToList()
+                };
+            }
 
-        return responseMessage;
+            var tokenUsage = response.Value?.Usage;
+            var inputTokenDetails = response.Value?.Usage?.InputTokenDetails;
+
+            activity?.SetTag(ModelDiagnosticsTags.InputTokens, (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0));
+            activity?.SetTag(ModelDiagnosticsTags.OutputTokens, tokenUsage?.OutputTokenCount ?? 0);
+            activity?.SetTag(ModelDiagnosticsTags.OutputTokens, tokenUsage?.OutputTokenCount ?? 0);
+
+
+
+            // After chat completion hook
+            foreach (var hook in contentHooks)
+            {
+                await hook.AfterGenerated(responseMessage, new TokenStatsModel
+                {
+                    Prompt = prompt,
+                    Provider = Provider,
+                    Model = _model,
+                    TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
+                    CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
+                    TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
+                });
+            }
+            activity?.SetTag("output", responseMessage.Content);
+
+            return responseMessage;
+        }
     }
 
     public async Task<bool> GetChatCompletionsAsync(Agent agent,

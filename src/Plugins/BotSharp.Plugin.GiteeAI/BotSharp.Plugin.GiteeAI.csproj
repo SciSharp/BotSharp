@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>$(TargetFramework)</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>$(LangVersion)</LangVersion>
+		<IsPackable>true</IsPackable>
+		<VersionPrefix>$(Ai4cVersion)</VersionPrefix>
+		<GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
+		<EnableDynamicLoading>true</EnableDynamicLoading>
+    <OutputPath>$(SolutionDir)packages</OutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="OpenAI">
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <Content Include="README.md">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+	</ItemGroup>
+</Project>
