@@ -1,16 +1,13 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Hooks;
-using BotSharp.Abstraction.Loggers;
 using GenerativeAI;
 using GenerativeAI.Core;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Text;
 
-public class GeminiTextCompletionProvider : ITextCompletion
+public class TextCompletionProvider : ITextCompletion
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<GeminiTextCompletionProvider> _logger;
+    private readonly ILogger<TextCompletionProvider> _logger;
     private readonly ITokenStatistics _tokenStatistics;
     private string _model;
 
@@ -18,10 +15,10 @@ public class GeminiTextCompletionProvider : ITextCompletion
     public string Model => _model;
 
     private GoogleAiSettings _settings;
-    public GeminiTextCompletionProvider(
+    public TextCompletionProvider(
         IServiceProvider services,
         GoogleAiSettings googleSettings,
-        ILogger<GeminiTextCompletionProvider> logger,
+        ILogger<TextCompletionProvider> logger,
         ITokenStatistics tokenStatistics)
     {
         _settings = googleSettings;

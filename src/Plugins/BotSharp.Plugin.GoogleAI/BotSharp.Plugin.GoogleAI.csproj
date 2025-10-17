@@ -17,7 +17,6 @@
   <ItemGroup>
     <PackageReference Include="Google_GenerativeAI" />
     <PackageReference Include="Google_GenerativeAI.Live" />
-    <PackageReference Include="LLMSharp.Google.Palm" />
   </ItemGroup>
 
 </Project>

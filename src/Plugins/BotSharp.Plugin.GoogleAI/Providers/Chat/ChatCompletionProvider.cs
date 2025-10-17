@@ -5,14 +5,13 @@ using BotSharp.Abstraction.Hooks;
 using GenerativeAI;
 using GenerativeAI.Core;
 using GenerativeAI.Types;
-using Google.Ai.Generativelanguage.V1Beta2;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Chat;
 
-public class GeminiChatCompletionProvider : IChatCompletion
+public class ChatCompletionProvider : IChatCompletion
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<GeminiChatCompletionProvider> _logger;
+    private readonly ILogger<ChatCompletionProvider> _logger;
     private List<string> renderedInstructions = [];
 
     private string _model;
@@ -21,10 +20,10 @@ public class GeminiChatCompletionProvider : IChatCompletion
     public string Model => _model;
 
     private GoogleAiSettings _settings;
-    public GeminiChatCompletionProvider(
+    public ChatCompletionProvider(
         IServiceProvider services,
         GoogleAiSettings googleSettings,
-        ILogger<GeminiChatCompletionProvider> logger)
+        ILogger<ChatCompletionProvider> logger)
     {
         _settings = googleSettings;
         _services = services;
@@ -104,7 +103,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
         var (prompt, messages) = PrepareOptions(chatClient, agent, conversations);
 
         var response = await chatClient.GenerateContentAsync(messages);
-        
+
         var candidate = response.Candidates?.First();
         var part = candidate?.Content?.Parts?.FirstOrDefault();
         var text = part?.Text ?? string.Empty;
