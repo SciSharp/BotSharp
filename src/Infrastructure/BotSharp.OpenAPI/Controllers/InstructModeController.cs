@@ -32,7 +32,9 @@ public class InstructModeController : ControllerBase
             .SetState("instruction", input.Instruction, source: StateSource.External)
             .SetState("input_text", input.Text, source: StateSource.External)
             .SetState("template_name", input.Template, source: StateSource.External)
-            .SetState("channel", input.Channel, source: StateSource.External);
+            .SetState("channel", input.Channel, source: StateSource.External)
+            .SetState("code_options", input.CodeOptions, source: StateSource.External)
+            .SetState("file_options", input.FileOptions, source: StateSource.External);
 
         var instructor = _services.GetRequiredService<IInstructService>();
         var result = await instructor.Execute(agentId,
