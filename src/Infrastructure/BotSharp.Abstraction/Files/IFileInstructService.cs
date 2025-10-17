@@ -1,4 +1,5 @@
-using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Files.Options;
+using BotSharp.Abstraction.Instructs.Options;
 
 namespace BotSharp.Abstraction.Files;
 
@@ -10,6 +11,7 @@ public interface IFileInstructService
     Task<RoleDialogModel> VaryImage(InstructFileModel image, InstructOptions? options = null);
     Task<RoleDialogModel> EditImage(string text, InstructFileModel image, InstructOptions? options = null);
     Task<RoleDialogModel> EditImage(string text, InstructFileModel image, InstructFileModel mask, InstructOptions? options = null);
+    Task<RoleDialogModel> ComposeImages(string text, InstructFileModel[] images, InstructOptions? options = null);
     #endregion
 
     #region Pdf

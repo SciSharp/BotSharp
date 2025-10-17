@@ -115,12 +115,6 @@ public class AgentController : ControllerBase
         return await _agentService.RefreshAgents(request?.AgentIds);
     }
 
-    [HttpPut("/agent/file/{agentId}")]
-    public async Task<string> UpdateAgentFromFile([FromRoute] string agentId)
-    {
-        return await _agentService.UpdateAgentFromFile(agentId);
-    }
-
     [HttpPut("/agent/{agentId}")]
     public async Task UpdateAgent([FromRoute] string agentId, [FromBody] AgentUpdateModel agent)
     {

@@ -71,13 +71,13 @@ public class HandleEmailSenderFn : IFunctionCallback
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var convSettings = _services.GetRequiredService<ConversationSetting>();
 
-        var selecteds = await fileInstruct.SelectMessageFiles(convService.ConversationId, new SelectFileOptions
+        var selecteds = await fileInstruct.SelectMessageFiles(convService.ConversationId, options: new()
         {
             IsIncludeBotFiles = true,
             IsAttachFiles = true,
             MessageLimit = convSettings?.FileSelect?.MessageLimit,
-            LlmProvider = convSettings?.FileSelect?.LlmProvider,
-            LlmModel = convSettings?.FileSelect?.LlmModel,
+            Provider = convSettings?.FileSelect?.Provider,
+            Model = convSettings?.FileSelect?.Model,
             MaxOutputTokens = convSettings?.FileSelect?.MaxOutputTokens,
             ReasoningEffortLevel = convSettings?.FileSelect?.ReasoningEffortLevel
         });

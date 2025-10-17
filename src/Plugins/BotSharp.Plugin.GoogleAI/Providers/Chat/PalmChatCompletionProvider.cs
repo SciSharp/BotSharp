@@ -108,7 +108,7 @@ public class PalmChatCompletionProvider : IChatCompletion
             renderedInstructions.Add(prompt);
         }
 
-        var messages = conversations.Select(c => new PalmChatMessage(c.Content, c.Role == AgentRole.User ? "user" : "AI"))
+        var messages = conversations.Select(c => new PalmChatMessage(c.LlmContent, c.Role == AgentRole.User ? "user" : "AI"))
             .ToList();
 
         if (!functions.IsNullOrEmpty())
@@ -124,8 +124,8 @@ public class PalmChatCompletionProvider : IChatCompletion
             foreach (var dialog in conversations)
             {
                 prompt += dialog.Role == AgentRole.Function ?
-                    $"{dialog.Role}: {dialog.FunctionName} => {dialog.Content}\r\n" :
-                    $"{dialog.Role}: {dialog.Content}\r\n";
+                    $"{dialog.Role}: {dialog.FunctionName} => {dialog.LlmContent}\r\n" :
+                    $"{dialog.Role}: {dialog.LlmContent}\r\n";
             }
 
             prompt += "\r\n\r\n" + router.Templates.FirstOrDefault(x => x.Name == "response_with_function").Content;

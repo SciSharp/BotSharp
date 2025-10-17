@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Graph.Models;
+using BotSharp.Abstraction.Graph.Options;
 
 namespace BotSharp.Abstraction.Graph;
 

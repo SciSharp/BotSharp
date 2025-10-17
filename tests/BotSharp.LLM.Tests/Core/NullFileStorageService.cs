@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
+using BotSharp.Abstraction.Files.Options;
 
 namespace BotSharp.Plugin.Google.Core
 {

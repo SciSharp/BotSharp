@@ -6,7 +6,7 @@
     "properties": {
       "sql_statement": {
         "type": "string",
-        "description": "SQL statement with SELECT provided in context."
+        "description": "Provide an SQL query statement or a JSON query for MongoDB."
       },
       "reason": {
         "type": "string",

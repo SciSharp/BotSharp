@@ -26,7 +26,7 @@ public class AgentDocument : MongoBase
     public List<string> Labels { get; set; }
     public List<RoutingRuleMongoElement> RoutingRules { get; set; }
     public List<AgentRuleMongoElement> Rules { get; set; }
-    public AgentLlmConfigMongoElement? LlmConfig { get; set; }
+    public AgentLlmConfigMongoModel? LlmConfig { get; set; }
 
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }

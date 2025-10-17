@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Agents.Enums;
 
-public class AgentRole
+public static class AgentRole
 {
     public const string System = "system";
     public const string Assistant = "assistant";

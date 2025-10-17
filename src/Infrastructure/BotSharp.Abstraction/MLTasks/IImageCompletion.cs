@@ -24,4 +24,6 @@ public interface IImageCompletion
     Task<RoleDialogModel> GetImageEdits(Agent agent, RoleDialogModel message, Stream image, string imageFileName);
 
     Task<RoleDialogModel> GetImageEdits(Agent agent, RoleDialogModel message, Stream image, string imageFileName, Stream mask, string maskFileName);
+
+    Task<RoleDialogModel> GetImageComposition(Agent agent, RoleDialogModel message, Stream[] images, string[] imageFileNames);
 }

@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Realtime.Models;
+using BotSharp.Abstraction.Realtime.Options;
 
 namespace BotSharp.Abstraction.Realtime;
 

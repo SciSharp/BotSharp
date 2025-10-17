@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Loggers.Services;
+using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.OpenAPI.ViewModels.Instructs;
 using Microsoft.AspNetCore.Hosting;
 
@@ -75,6 +76,14 @@ public class LoggerController : ControllerBase
         var logging = _services.GetRequiredService<ILoggerService>();
         var keys = await logging.GetInstructionLogSearchKeys(request);
         return keys;
+    }
+
+    [HttpPost("/logger/instruction/log/{logId}/states")]
+    public async Task<bool> UpdateInstructionLogStates([FromRoute] string logId, UpdateInstructionLogStatesModel request)
+    {
+        request.LogId = logId;
+        var logging = _services.GetRequiredService<ILoggerService>();
+        return await logging.UpdateInstructionLogStates(request);
     }
     #endregion
 }

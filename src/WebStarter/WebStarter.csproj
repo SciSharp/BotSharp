@@ -38,6 +38,8 @@
     <ProjectReference Include="..\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ExcelHandler\BotSharp.Plugin.ExcelHandler.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.GiteeAI\BotSharp.Plugin.GiteeAI.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.ImageHandler\BotSharp.Plugin.ImageHandler.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.PythonInterpreter\BotSharp.Plugin.PythonInterpreter.csproj" />
   </ItemGroup>
   
   <ItemGroup Condition="$(SolutionName)==BotSharp">

@@ -1,6 +1,9 @@
+using BotSharp.Abstraction.Knowledges.Filters;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Repositories.Models;
+using BotSharp.Abstraction.Repositories.Options;
 using BotSharp.Abstraction.Roles.Models;
 using BotSharp.Abstraction.Shared;
 using BotSharp.Abstraction.Statistics.Enums;
@@ -9,6 +12,7 @@ using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Translation.Models;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
+using BotSharp.Abstraction.VectorStorage.Filters;
 using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Abstraction.Repositories;
@@ -85,7 +89,6 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     bool PatchAgentTemplate(string agentId, AgentTemplate template)
         => throw new NotImplementedException();
-
     bool UpdateAgentLabels(string agentId, List<string> labels)
         => throw new NotImplementedException();
     bool AppendAgentLabels(string agentId, List<string> labels)
@@ -99,13 +102,24 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     void InsertAgentTask(AgentTask task)
         => throw new NotImplementedException();
-    void BulkInsertAgentTasks(List<AgentTask> tasks)
+    void BulkInsertAgentTasks(string agentId, List<AgentTask> tasks)
         => throw new NotImplementedException();
     void UpdateAgentTask(AgentTask task, AgentTaskField field)
         => throw new NotImplementedException();
-    bool DeleteAgentTask(string agentId, List<string> taskIds)
+    bool DeleteAgentTasks(string agentId, List<string>? taskIds = null)
         => throw new NotImplementedException();
-    bool DeleteAgentTasks()
+    #endregion
+
+    #region Agent Code
+    List<AgentCodeScript> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
+        => throw new NotImplementedException();
+    string? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+        => throw new NotImplementedException();
+    bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
+        => throw new NotImplementedException();
+    bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
+        => throw new NotImplementedException();
+    bool DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? scripts = null)
         => throw new NotImplementedException();
     #endregion
 
@@ -184,6 +198,9 @@ public interface IBotSharpRepository : IHaveServiceProvider
 
     List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
          => throw new NotImplementedException();
+
+    Task<bool> UpdateInstructionLogStates(UpdateInstructionLogStatesModel updateInstructionStates)
+        => throw new NotImplementedException();
     #endregion
 
     #region Statistics

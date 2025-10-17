@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Agents.Enums;
 
-public class BuiltInAgentId
+public static class BuiltInAgentId
 {
     /// <summary>
     /// A routing agent can be used as a base router.
@@ -51,4 +51,14 @@ public class BuiltInAgentId
     /// Translates user-defined natural language rules into programmatic code
     /// </summary>
     public const string RulesInterpreter = "201e49a2-40b3-4ccd-b8cc-2476565a1b40";
+
+    /// <summary>
+    /// Generate code script
+    /// </summary>
+    public const string AIProgrammer = "c2a2faf6-b8b5-47fe-807b-f4714cf25dd4";
+
+    /// <summary>
+    /// Handle files
+    /// </summary>
+    public const string FileAssistant = "f1e09a73-9efe-46ce-ba02-b3aaf96d97e0";
 }

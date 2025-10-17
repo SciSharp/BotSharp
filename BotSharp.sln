@@ -149,6 +149,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.ExcelHandle
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.GiteeAI", "src\Plugins\BotSharp.Plugin.GiteeAI\BotSharp.Plugin.GiteeAI.csproj", "{50B57066-3267-1D10-0F72-D2F5CC494F2C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.ImageHandler", "src\Plugins\BotSharp.Plugin.ImageHandler\BotSharp.Plugin.ImageHandler.csproj", "{242F2D93-FCCE-4982-8075-F3052ECCA92C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -629,6 +631,14 @@ Global
 		{50B57066-3267-1D10-0F72-D2F5CC494F2C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{50B57066-3267-1D10-0F72-D2F5CC494F2C}.Release|x64.ActiveCfg = Release|Any CPU
 		{50B57066-3267-1D10-0F72-D2F5CC494F2C}.Release|x64.Build.0 = Release|Any CPU
+		{242F2D93-FCCE-4982-8075-F3052ECCA92C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{242F2D93-FCCE-4982-8075-F3052ECCA92C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{242F2D93-FCCE-4982-8075-F3052ECCA92C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{242F2D93-FCCE-4982-8075-F3052ECCA92C}.Debug|x64.Build.0 = Debug|Any CPU
+		{242F2D93-FCCE-4982-8075-F3052ECCA92C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{242F2D93-FCCE-4982-8075-F3052ECCA92C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{242F2D93-FCCE-4982-8075-F3052ECCA92C}.Release|x64.ActiveCfg = Release|Any CPU
+		{242F2D93-FCCE-4982-8075-F3052ECCA92C}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -701,6 +711,7 @@ Global
 		{0428DEAA-E4FE-4259-A6D8-6EDD1A9D0702} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
 		{FC63C875-E880-D8BB-B8B5-978AB7B62983} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
 		{50B57066-3267-1D10-0F72-D2F5CC494F2C} = {D5293208-2BEF-42FC-A64C-5954F61720BA}
+		{242F2D93-FCCE-4982-8075-F3052ECCA92C} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9969D89-C98B-40A5-A12B-FC87E55B3A19}

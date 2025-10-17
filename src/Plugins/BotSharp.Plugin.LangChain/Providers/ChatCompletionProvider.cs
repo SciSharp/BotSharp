@@ -41,7 +41,7 @@ namespace BotSharp.Plugin.VertexAI.Providers
             var client = new VertexAIProvider(_config);
             var model = new VertexAIChatModel(client, _model);
             var messages = conversations
-                .Select(c => new Message(c.Content, c.Role == AgentRole.User ? MessageRole.Human : MessageRole.Ai)).ToList();
+                .Select(c => new Message(c.LlmContent, c.Role == AgentRole.User ? MessageRole.Human : MessageRole.Ai)).ToList();
 
             var response = await model.GenerateAsync(new ChatRequest { Messages = messages }, _settings);
 
