@@ -8,7 +8,6 @@
     <PackageVersion Include="EntityFramework" Version="6.4.4" />
     <PackageVersion Include="Google_GenerativeAI" Version="3.3.0" />
     <PackageVersion Include="Google_GenerativeAI.Live" Version="3.3.0" />
-    <PackageVersion Include="LLMSharp.Google.Palm" Version="1.0.2" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
@@ -38,7 +37,7 @@
     <PackageVersion Include="Nanoid" Version="3.1.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="8.1.2" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
-    <PackageVersion Include="Anthropic.SDK" Version="5.5.0" />
+    <PackageVersion Include="Anthropic.SDK" Version="5.6.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageVersion Include="NAudio" Version="2.2.1" />
     <PackageVersion Include="NAudio.Core" Version="2.2.1" />
