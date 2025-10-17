@@ -125,6 +125,7 @@ public partial class InstructService
                     Data = state.GetStates().ToDictionary(x => x.Key, x => (object)x.Value)
                 });
                 result = fileResponse.Result.IfNullOrEmptyAs(string.Empty);
+                state.SetState("fileOptions", fileOptions.ConvertToString());
             }
             else
             {
