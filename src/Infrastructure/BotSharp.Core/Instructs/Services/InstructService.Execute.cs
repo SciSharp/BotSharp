@@ -236,6 +236,7 @@ public partial class InstructService
         // Before code execution
         foreach (var hook in hooks)
         {
+            await hook.BeforeCompletion(agent, message);
             await hook.BeforeCodeExecution(agent, message, context);
 
             // Interrupted by hook
@@ -271,6 +272,7 @@ public partial class InstructService
         // After code execution
         foreach (var hook in hooks)
         {
+            await hook.AfterCompletion(agent, response);
             await hook.AfterCodeExecution(agent, response);
             await hook.OnResponseGenerated(new InstructResponseModel
             {
