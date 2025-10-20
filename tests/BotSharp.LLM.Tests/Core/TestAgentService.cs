@@ -6,6 +6,7 @@ using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Utilities;
+using System.Collections.Concurrent;
 
 namespace BotSharp.Plugin.Google.Core
 {
@@ -41,32 +42,32 @@ namespace BotSharp.Plugin.Google.Core
             return Task.CompletedTask;
         }
 
-        public string RenderInstruction(Agent agent, Dictionary<string, object>? renderData = null)
+        public string RenderInstruction(Agent agent, IDictionary<string, object>? renderData = null)
         {
             return "Fake Instruction";
         }
 
-        public string RenderTemplate(Agent agent, string templateName, Dictionary<string, object>? renderData = null)
+        public string RenderTemplate(Agent agent, string templateName, IDictionary<string, object>? renderData = null)
         {
             return $"Rendered template for {templateName}";
         }
 
-        public bool RenderFunction(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null)
+        public bool RenderFunction(Agent agent, FunctionDef def, IDictionary<string, object>? renderData = null)
         {
             return true;
         }
 
-        public (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, Dictionary<string, object>? renderData = null, StringComparer? comparer = null)
+        public (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, IDictionary<string, object>? renderData = null, StringComparer? comparer = null)
         {
             return (string.Empty, []);
         }
 
-        public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null)
+        public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def, IDictionary<string, object>? renderData = null)
         {
             return def.Parameters;
         }
 
-        public bool RenderVisibility(string? visibilityExpression, Dictionary<string, object> dict)
+        public bool RenderVisibility(string? visibilityExpression, IDictionary<string, object> dict)
         {
             return true;
         }
@@ -121,7 +122,7 @@ namespace BotSharp.Plugin.Google.Core
             return Task.FromResult(Enumerable.Empty<AgentUtility>());
         }
 
-        public Dictionary<string, object> CollectRenderData(Agent agent)
+        public ConcurrentDictionary<string, object> CollectRenderData(Agent agent)
         {
             return [];
         }

@@ -27,7 +27,7 @@ public class ImageGenerationController
 
         try
         {
-            if (request.Files.Length < 1)
+            if (request.Files.IsNullOrEmpty())
             {
                 return new ImageGenerationViewModel { Message = "No image found" };
             }
@@ -46,7 +46,7 @@ public class ImageGenerationController
         }
         catch (Exception ex)
         {
-            var error = $"Error in image edit. {ex.Message}";
+            var error = $"Error in image composition. {ex.Message}";
             _logger.LogError(ex, error);
             imageViewModel.Message = error;
             return imageViewModel;

@@ -161,7 +161,7 @@ public class TwilioMessageQueueService : BackgroundService
     private static string GetHints(string agentId, AssistantMessage reply, IServiceProvider sp)
     {
         var agentService = sp.GetRequiredService<IAgentService>();
-        var agent = agentService.GetAgent(agentId).Result;
+        var agent = agentService.GetAgent(agentId).ConfigureAwait(false).GetAwaiter().GetResult();
         var extraWords = new List<string>();
         HookEmitter.Emit<IRealtimeHook>(sp, hook => extraWords.AddRange(hook.OnModelTranscriptPrompt(agent)),
             agentId);

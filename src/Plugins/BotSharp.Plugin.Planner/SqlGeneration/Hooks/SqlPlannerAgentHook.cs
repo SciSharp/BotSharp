@@ -20,7 +20,7 @@ public class SqlPlannerAgentHook : AgentHookBase
             var k = hook.GetGlobalKnowledges(new RoleDialogModel(AgentRole.User, template)
             {
                 CurrentAgentId = PlannerAgentId.SqlPlanner
-            }).Result;
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
             Knowledges.AddRange(k);
         }
         dict["global_knowledges"] = Knowledges;

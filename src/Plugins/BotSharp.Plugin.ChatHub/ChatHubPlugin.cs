@@ -1,11 +1,7 @@
-using BotSharp.Abstraction.Crontab;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Abstraction.MessageHub.Observers;
-using BotSharp.Core.MessageHub;
-using BotSharp.Core.MessageHub.Observers;
 using BotSharp.Plugin.ChatHub.Hooks;
 using BotSharp.Plugin.ChatHub.Observers;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Plugin.ChatHub;
@@ -34,6 +30,5 @@ public class ChatHubPlugin : IBotSharpPlugin
         services.AddScoped<IConversationHook, WelcomeHook>();
         services.AddScoped<IRoutingHook, StreamingLogHook>();
         services.AddScoped<IContentGeneratingHook, StreamingLogHook>();
-        services.AddScoped<ICrontabHook, ChatHubCrontabHook>();
     }
 }

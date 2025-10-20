@@ -41,7 +41,7 @@ public partial class AgentService
         return agents?.Select(x => new IdName(x.Id, x.Name))?.OrderBy(x => x.Name)?.ToList() ?? [];
     }
 
-    [SharpCache(10)]
+    [SharpCache(10, perInstanceCache: true)]
     public async Task<Agent> GetAgent(string id)
     {
         if (string.IsNullOrWhiteSpace(id) || id == Guid.Empty.ToString())

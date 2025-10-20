@@ -1,6 +1,4 @@
 #pragma warning disable OPENAI001
-using OpenAI.Images;
-
 namespace BotSharp.Plugin.OpenAI.Providers.Image;
 
 public partial class ImageCompletionProvider
@@ -20,11 +18,7 @@ public partial class ImageCompletionProvider
         var imageClient = client.GetImageClient(_model);
 
         // Use the new extension method to support multiple images
-        options.ResponseFormat = "b64_json";
-        options.Quality = "medium";
-        options.Background = "auto";
-        options.Size = GeneratedImageSize.Auto;
-        var response = imageClient.GenerateImageEdits(images, imageFileNames, prompt, imageCount, options);
+        var response = imageClient.GenerateImageEdits(_model, images, imageFileNames, prompt, imageCount, options);
         var generatedImageCollection = response.Value;
 
         var generatedImages = GetImageGenerations(generatedImageCollection, options.ResponseFormat);

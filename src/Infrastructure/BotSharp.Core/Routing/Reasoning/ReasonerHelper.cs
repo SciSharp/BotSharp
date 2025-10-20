@@ -12,7 +12,7 @@ public static class ReasonerHelper
         var agents = agentService.GetAgents(new AgentFilter
         {
             Types = [AgentType.Task]
-        }).Result.Items.ToList();
+        }).ConfigureAwait(false).GetAwaiter().GetResult().Items.ToList();
         var malformed = false;
 
         // Sometimes it populate malformed Function in Agent name

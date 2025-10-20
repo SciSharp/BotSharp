@@ -2,6 +2,8 @@
 using OpenAI.Images;
 using System.ClientModel;
 using System.ClientModel.Primitives;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Image;
@@ -23,52 +25,62 @@ public static class ImageClientExtensions
     /// <returns>ClientResult containing the generated image collection</returns>
     public static ClientResult<GeneratedImageCollection> GenerateImageEdits(
         this ImageClient client,
+        string model,
         Stream[] images,
         string[] imageFileNames,
         string prompt,
         int? imageCount = null,
-        ImageEditOptions options = null)
+        ImageEditOptions? options = null)
     {
         if (client == null)
+        {
             throw new ArgumentNullException(nameof(client));
+        }
 
-        if (images == null || images.Length == 0)
+        if (images.IsNullOrEmpty())
+        {
             throw new ArgumentException("At least one image is required", nameof(images));
+        }
 
         if (imageFileNames == null || imageFileNames.Length != images.Length)
+        {
             throw new ArgumentException("Image file names array must match images array length", nameof(imageFileNames));
+        }
 
         if (string.IsNullOrWhiteSpace(prompt))
+        {
             throw new ArgumentException("Prompt cannot be null or empty", nameof(prompt));
+        }
 
         // Get the pipeline from the client
         var pipeline = client.Pipeline;
         using var message = pipeline.CreateMessage();
 
         // Build the request
-        BuildMultipartRequest(message, images, imageFileNames, prompt, imageCount, options);
+        BuildMultipartRequest(message, model, images, imageFileNames, prompt, imageCount, options);
 
         // Send the request
         pipeline.Send(message);
 
-        if (message.Response.IsError)
+        if (message.Response == null || message.Response.IsError)
         {
-            throw new InvalidOperationException($"API request failed with status {message.Response.Status}: {message.Response.ReasonPhrase} \r\n{message.Response.Content}");
+            throw new InvalidOperationException($"API request failed with status {message.Response?.Status}: {message.Response?.ReasonPhrase} \r\n{message.Response?.Content}");
         }
 
         // Parse the response
-        var generatedImages = ParseResponse(message.Response, options?.ResponseFormat);
+        var generatedImages = ParseResponse(message.Response);
 
         return ClientResult.FromValue(generatedImages, message.Response);
     }
 
     private static void BuildMultipartRequest(
         PipelineMessage message,
+        string model,
         Stream[] images,
         string[] imageFileNames,
         string prompt,
         int? imageCount,
-        ImageEditOptions options)
+        ImageEditOptions? options)
     {
         message.Request.Method = "POST";
 
@@ -76,102 +88,82 @@ public static class ImageClientExtensions
         var endpoint = "https://api.openai.com";
         message.Request.Uri = new Uri($"{endpoint.TrimEnd('/')}/v1/images/edits");
 
-        // Create multipart form data
         var boundary = $"----WebKitFormBoundary{Guid.NewGuid():N}";
-        var contentBuilder = new MemoryStream();
+        using var form = new MultipartFormDataContent(boundary)
+        {
+            { new StringContent(prompt), "prompt" },
+            { new StringContent(model ?? "gpt-image-1-mini"), "model" }
+        };
 
-        // Add prompt
-        WriteFormField(contentBuilder, boundary, "prompt", prompt);
+        if (imageCount.HasValue)
+        {
+            form.Add(new StringContent(imageCount.Value.ToString()), "n");
+        }
+        else
+        {
+            form.Add(new StringContent("1"), "n");
+        }
 
-        WriteFormField(contentBuilder, boundary, "model", "gpt-image-1-mini");
+        if (options != null)
+        {
+            if (options.Quality.HasValue)
+            {
+                form.Add(new StringContent(options.Quality.ToString()), "quality");
+            }
 
-        // Add image count
-        WriteFormField(contentBuilder, boundary, "n", imageCount.Value.ToString() ?? "1");
+            if (options.Size.HasValue)
+            {
+                form.Add(new StringContent(ConvertImageSizeToString(options.Size.Value)), "size");
+            }
+
+            if (options.Background.HasValue)
+            {
+                form.Add(new StringContent(options.Background.ToString()), "background");
+            }
+
+            if (options.ResponseFormat.HasValue)
+            {
+                form.Add(new StringContent(options.ResponseFormat.ToString()), "response_format");
+            }
+        }
 
         for (var i = 0; i < images.Length; i++)
         {
-            WriteFormField(contentBuilder, boundary, "image[]", imageFileNames[i], images[i], "image/png");
+            if (images[i].CanSeek)
+            {
+                images[i].Position = 0;
+            }
+            var fileContent = new StreamContent(images[i]);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+
+            if (images.Length > 1)
+            {
+                form.Add(fileContent, name: "image[]", fileName: imageFileNames[i]);
+            }
+            else
+            {
+                form.Add(fileContent, name: "image", fileName: imageFileNames[i]);
+            }
         }
 
-        // Add optional parameters supported by OpenAI image edits API
-        if (options.Quality.HasValue)
-        {
-            WriteFormField(contentBuilder, boundary, "quality", options.Quality.ToString() ?? "auto");
-        }
+        using var ms = new MemoryStream();
+        form.CopyTo(ms, null, CancellationToken.None);
+        ms.Position = 0;
 
-        if (options.Size.HasValue)
-        {
-            WriteFormField(contentBuilder, boundary, "size", ConvertImageSizeToString(options.Size.Value));
-        }
-
-        if (options.Background.HasValue)
-        {
-            WriteFormField(contentBuilder, boundary, "background", options.Background.ToString() ?? "auto");
-        }
-
-        WriteFormField(contentBuilder, boundary, "output_format", "png");
-
-        if (!string.IsNullOrEmpty(options.EndUserId))
-        {
-            WriteFormField(contentBuilder, boundary, "user", options.EndUserId);
-        }
-
-        WriteFormField(contentBuilder, boundary, "moderation", "auto");
-
-        // Write closing boundary
-        var closingBoundary = Encoding.UTF8.GetBytes($"--{boundary}--\r\n");
-        contentBuilder.Write(closingBoundary, 0, closingBoundary.Length);
-
-        // Set the content
-        contentBuilder.Position = 0;
-        message.Request.Content = BinaryContent.Create(BinaryData.FromStream(contentBuilder));
-
-        // Set content type header
-        message.Request.Headers.Set("Content-Type", $"multipart/form-data; boundary={boundary}");
+        message.Request.Headers.Set("Content-Type", form.Headers.ContentType.ToString());
+        message.Request.Content = BinaryContent.Create(BinaryData.FromStream(ms));
     }
 
-    private static void WriteFormField(MemoryStream stream, string boundary, string name, string value)
-    {
-        var header = $"--{boundary}\r\nContent-Disposition: form-data; name=\"{name}\"\r\n";
-        var body = $"{header}\r\n{value}\r\n";
-        var bytes = Encoding.UTF8.GetBytes(body);
-        stream.Write(bytes, 0, bytes.Length);
-    }
-
-    private static void WriteFormField(MemoryStream stream, string boundary, string name, string fileName, Stream fileStream, string contentType)
-    {
-        var header = $"--{boundary}\r\nContent-Disposition: form-data; name=\"{name}\"; filename=\"{fileName}\"\r\nContent-Type: {contentType}\r\n\r\n";
-        var headerBytes = Encoding.UTF8.GetBytes(header);
-        stream.Write(headerBytes, 0, headerBytes.Length);
-
-        // Copy file stream
-        if (fileStream.CanSeek)
-        {
-            fileStream.Position = 0;
-        }
-        fileStream.CopyTo(stream);
-
-        var newLine = Encoding.UTF8.GetBytes("\r\n");
-        stream.Write(newLine, 0, newLine.Length);
-    }
-
-    #region Helper Methods
-
-    private static string GetEndpoint(PipelineMessage message)
-    {
-        // Try to get the endpoint from the request URI if already set
-        return message.Request.Uri?.GetLeftPart(UriPartial.Authority);
-    }
-
-    private static GeneratedImageCollection ParseResponse(PipelineResponse response, GeneratedImageFormat? format)
+    #region Private Methods
+    private static GeneratedImageCollection ParseResponse(PipelineResponse response)
     {
         try
         {
             // Try to use ModelReaderWriter to deserialize the response
-            var modelReaderWriter = ModelReaderWriter.Read<GeneratedImageCollection>(response.Content);
-            if (modelReaderWriter != null)
+            var result = ModelReaderWriter.Read<GeneratedImageCollection>(response.Content);
+            if (result != null)
             {
-                return modelReaderWriter;
+                return result;
             }
         }
         catch (Exception ex)
@@ -196,7 +188,7 @@ public static class ImageClientExtensions
                 var result = fromResponseMethod.Invoke(null, new object[] { response });
                 if (result != null)
                 {
-                    return (GeneratedImageCollection)result;
+                    return result as GeneratedImageCollection;
                 }
             }
 
@@ -211,7 +203,7 @@ public static class ImageClientExtensions
                 var result = deserializeMethod.Invoke(null, new object[] { jsonDocument.RootElement });
                 if (result != null)
                 {
-                    return (GeneratedImageCollection)result;
+                    return result as GeneratedImageCollection;
                 }
             }
         }

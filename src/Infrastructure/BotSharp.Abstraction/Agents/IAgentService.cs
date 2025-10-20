@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using System.Collections.Concurrent;
 
 namespace BotSharp.Abstraction.Agents;
 
@@ -30,18 +31,18 @@ public interface IAgentService
     /// <returns></returns>
     Task InheritAgent(Agent agent);
 
-    string RenderInstruction(Agent agent, Dictionary<string, object>? renderData = null);
+    string RenderInstruction(Agent agent, IDictionary<string, object>? renderData = null);
 
-    string RenderTemplate(Agent agent, string templateName, Dictionary<string, object>? renderData = null);
+    string RenderTemplate(Agent agent, string templateName, IDictionary<string, object>? renderData = null);
 
-    bool RenderFunction(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null);
+    bool RenderFunction(Agent agent, FunctionDef def, IDictionary<string, object>? renderData = null);
 
-    FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null);
+    FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def, IDictionary<string, object>? renderData = null);
 
-    (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, Dictionary<string, object>? renderData = null, StringComparer? comparer = null);
+    (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, IDictionary<string, object>? renderData = null, StringComparer? comparer = null);
 
-    bool RenderVisibility(string? visibilityExpression, Dictionary<string, object> dict);
-    Dictionary<string, object> CollectRenderData(Agent agent);
+    bool RenderVisibility(string? visibilityExpression, IDictionary<string, object> dict);
+    ConcurrentDictionary<string, object> CollectRenderData(Agent agent);
 
 
     /// <summary>
