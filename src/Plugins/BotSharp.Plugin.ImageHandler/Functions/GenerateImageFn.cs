@@ -68,7 +68,7 @@ public class GenerateImageFn : IFunctionCallback
                 return result.Content;
             }
 
-            return await GetImageGenerationResponse(agent, description);
+            return await AiResponseHelper.GetImageGenerationResponse(_services, agent, description, savedFiles);
         }
         catch (Exception ex)
         {
@@ -76,11 +76,6 @@ public class GenerateImageFn : IFunctionCallback
             _logger.LogWarning(ex, $"{error}");
             return error;
         }
-    }
-
-    private async Task<string> GetImageGenerationResponse(Agent agent, string description)
-    {
-        return await AiResponseHelper.GetImageGenerationResponse(_services, agent, description);
     }
 
     private (string, string) GetLlmProviderModel(Agent agent)
