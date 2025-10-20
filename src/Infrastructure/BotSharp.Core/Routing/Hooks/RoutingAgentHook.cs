@@ -74,7 +74,7 @@ public class RoutingAgentHook : AgentHookBase
             if (rule != null)
             {
                 var agentService = _services.GetRequiredService<IAgentService>();
-                var redirectAgent = agentService.GetAgent(rule.RedirectTo).Result;
+                var redirectAgent = agentService.GetAgent(rule.RedirectTo).ConfigureAwait(false).GetAwaiter().GetResult();
 
                 var json = JsonSerializer.Serialize(new
                 {

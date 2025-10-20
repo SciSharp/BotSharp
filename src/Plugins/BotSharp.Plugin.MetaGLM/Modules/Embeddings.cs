@@ -35,8 +35,8 @@ public class Embeddings
 
         };
 
-        var response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).Result;
-        var stream = response.Content.ReadAsStreamAsync().Result;
+        var response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false).GetAwaiter().GetResult();
+        var stream = response.Content.ReadAsStreamAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         byte[] buffer = new byte[8192];
         int bytesRead;
 

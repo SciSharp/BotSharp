@@ -23,7 +23,7 @@ public partial class InstructService
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        Agent agent = await agentService.LoadAgent(agentId);
+        var agent = await agentService.LoadAgent(agentId);
 
         var response = new InstructResult
         {

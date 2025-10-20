@@ -39,7 +39,7 @@ public partial class AgentService
             try
             {
                 var agentJson = File.ReadAllText(Path.Combine(dir, "agent.json"));
-                var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options);
+                var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options.JsonSerializerOptions);
                 
                 if (agent == null)
                 {

@@ -1,13 +1,14 @@
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Templating;
 using Newtonsoft.Json.Linq;
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    public string RenderInstruction(Agent agent, Dictionary<string, object>? renderData = null)
+    public string RenderInstruction(Agent agent, IDictionary<string, object>? renderData = null)
     {
         var render = _services.GetRequiredService<ITemplateRender>();
         var conv = _services.GetRequiredService<IConversationService>();
@@ -18,16 +19,18 @@ public partial class AgentService
         instructions.AddRange(secondaryInstructions);
 
         // update states
-        var renderDict = renderData != null ? new Dictionary<string, object>(renderData ?? []) : CollectRenderData(agent);
-        renderDict[TemplateRenderConstant.RENDER_AGENT] = agent;
+        var renderDict = renderData != null
+                        ? new ConcurrentDictionary<string, object>(renderData)
+                        : CollectRenderData(agent);
+        renderDict.AddOrUpdate(TemplateRenderConstant.RENDER_AGENT, agent, (key, curValue) => agent);
 
         var res = render.Render(string.Join("\r\n", instructions), renderDict);
         return res;
     }
 
-    public bool RenderFunction(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null)
+    public bool RenderFunction(Agent agent, FunctionDef def, IDictionary<string, object>? renderData = null)
     {
-        var renderDict = renderData ?? agent.TemplateDict;
+        var renderDict = new Dictionary<string, object>(renderData ?? agent.TemplateDict ?? []);
         var isRender = true;
 
         var channels = def.Channels;
@@ -41,7 +44,10 @@ public partial class AgentService
             }
         }
 
-        if (!isRender) return false;
+        if (!isRender)
+        {
+            return false;
+        }
 
         if (!string.IsNullOrWhiteSpace(def.VisibilityExpression))
         {
@@ -51,13 +57,16 @@ public partial class AgentService
         return isRender;
     }
 
-    public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null)
+    public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def, IDictionary<string, object>? renderData = null)
     {
-        var parameterDef = def?.Parameters;
+        var parameterDef = def?.Parameters?.DeepClone(options: _options);
         var propertyDef = parameterDef?.Properties;
-        if (propertyDef == null) return null;
+        if (propertyDef == null)
+        {
+            return null;
+        }
 
-        var renderDict = renderData ?? agent.TemplateDict;
+        var renderDict = new Dictionary<string, object>(renderData ?? agent.TemplateDict ?? []);
         var visibleExpress = "visibility_expression";
         var root = propertyDef.RootElement;
         var iterator = root.EnumerateObject();
@@ -105,7 +114,7 @@ public partial class AgentService
         return parameterDef;
     }
 
-    public (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, Dictionary<string, object>? renderData = null, StringComparer ? comparer = null)
+    public (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, IDictionary<string, object>? renderData = null, StringComparer ? comparer = null)
     {
         var text = string.Empty;
         if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
@@ -117,7 +126,7 @@ public partial class AgentService
         return (text, functions);
     }
 
-    public string RenderTemplate(Agent agent, string templateName, Dictionary<string, object>? renderData = null)
+    public string RenderTemplate(Agent agent, string templateName, IDictionary<string, object>? renderData = null)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -125,8 +134,10 @@ public partial class AgentService
         var template = agent.Templates.FirstOrDefault(x => x.Name == templateName)?.Content ?? string.Empty;
 
         // update states
-        var renderDict = renderData != null ? new Dictionary<string, object>(renderData ?? []) : CollectRenderData(agent);
-        renderDict[TemplateRenderConstant.RENDER_AGENT] = agent;
+        var renderDict = renderData != null
+                        ? new ConcurrentDictionary<string, object>(renderData)
+                        : CollectRenderData(agent);
+        renderDict.AddOrUpdate(TemplateRenderConstant.RENDER_AGENT, agent, (key, curValue) => agent);
 
         // render liquid template
         var content = render.Render(template, renderDict);
@@ -137,7 +148,7 @@ public partial class AgentService
         return content;
     }
 
-    public bool RenderVisibility(string? visibilityExpression, Dictionary<string, object> dict)
+    public bool RenderVisibility(string? visibilityExpression, IDictionary<string, object> dict)
     {
         if (string.IsNullOrWhiteSpace(visibilityExpression))
         {
@@ -145,25 +156,38 @@ public partial class AgentService
         }
 
         var render = _services.GetRequiredService<ITemplateRender>();
+        var copy = new Dictionary<string, object>(dict);
         var result = render.Render(visibilityExpression, new Dictionary<string, object>
         {
-            { "states", dict ?? [] }
+            { "states", copy }
         });
 
         return result.IsEqualTo("visible");
     }
 
-    public Dictionary<string, object> CollectRenderData(Agent agent)
+    public ConcurrentDictionary<string, object> CollectRenderData(Agent agent)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
 
-        var renderDict = new Dictionary<string, object>(agent?.TemplateDict ?? []);
-        foreach (var t in state.GetStates())
+        var innerDict = new ConcurrentDictionary<string, object>();
+        if (agent?.TemplateDict != null)
         {
-            renderDict[t.Key] = t.Value;
+            var dict = new ConcurrentDictionary<string, object>(agent.TemplateDict);
+            if (dict != null)
+            {
+                foreach (var p in dict)
+                {
+                    innerDict.AddOrUpdate(p.Key, p.Value, (key, curValue) => p.Value);
+                }
+            }
         }
 
-        return renderDict;
+        foreach (var p in state.GetStates())
+        {
+            innerDict.AddOrUpdate(p.Key, p.Value, (key, curValue) => p.Value);
+        }
+
+        return innerDict;
     }
 
     #region Private methods

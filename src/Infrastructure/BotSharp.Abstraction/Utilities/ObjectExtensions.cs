@@ -1,55 +1,41 @@
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using BotSharp.Abstraction.Options;
 using System.Text.Json;
-using System.Threading.Tasks;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
-namespace BotSharp.Abstraction.Utilities
+namespace BotSharp.Abstraction.Utilities;
+
+public static class ObjectExtensions
 {
-    public static class ObjectExtensions
+    private static readonly JsonSerializerOptions DefaultJsonOptions = new()
     {
-        private static readonly JsonSerializerOptions DefaultOptions = new()
-        {
-            ReferenceHandler = ReferenceHandler.IgnoreCycles
-        };
-        private static JsonSerializerSettings DefaultSettings = new()
-        {
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-        };
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        AllowTrailingCommas = true,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles
+    };
 
-        public static T DeepClone<T>(this T obj) where T : class
+    public static T? DeepClone<T>(this T? obj, Action<T>? modifier = null, BotSharpOptions? options = null) where T : class
+    {
+        if (obj == null)
         {
-            if (obj == null) return null;
-
-            try
-            {
-                var json = JsonSerializer.Serialize(obj, DefaultOptions);
-                return JsonSerializer.Deserialize<T>(json, DefaultOptions);
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine($"DeepClone Error:{ex}");
-                return DeepCloneWithNewtonsoft(obj);
-            }            
+            return null;
         }
 
-        private static T DeepCloneWithNewtonsoft<T>(this T obj) where T : class
+        try
         {
-            if (obj == null) return null;
-
-            try
+            var json = JsonSerializer.Serialize(obj, options?.JsonSerializerOptions ?? DefaultJsonOptions);
+            var newObj = JsonSerializer.Deserialize<T>(json, options?.JsonSerializerOptions ?? DefaultJsonOptions);
+            if (modifier != null && newObj != null)
             {
-                var json = JsonConvert.SerializeObject(obj, DefaultSettings);
-                return JsonConvert.DeserializeObject<T>(json, DefaultSettings);
+                modifier(newObj);
             }
-            catch(Exception ex)
-            {
-                Console.WriteLine($"DeepClone Error:{ex}");
-                return obj;
-            }            
+
+            return newObj;
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"DeepClone Error in {nameof(DeepClone)}: {ex}");
+            return null;
+        }            
     }
 }
