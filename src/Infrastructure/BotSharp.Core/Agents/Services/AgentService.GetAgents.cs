@@ -5,7 +5,7 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    [SharpCache(10, perInstanceCache: true)]
+    [SharpCache(10)]
     public async Task<PagedItems<Agent>> GetAgents(AgentFilter filter)
     {
         var agents = _db.GetAgents(filter);
@@ -25,7 +25,7 @@ public partial class AgentService
         };
     }
 
-    [SharpCache(10, perInstanceCache: true)]
+    [SharpCache(10)]
     public async Task<List<IdName>> GetAgentOptions(List<string>? agentIdsOrNames, bool byName = false)
     {
         var agents = byName ? 
