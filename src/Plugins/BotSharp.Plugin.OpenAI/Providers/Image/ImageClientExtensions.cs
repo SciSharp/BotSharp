@@ -30,16 +30,24 @@ public static class ImageClientExtensions
         ImageEditOptions options = null)
     {
         if (client == null)
+        {
             throw new ArgumentNullException(nameof(client));
+        }
 
-        if (images == null || images.Length == 0)
+        if (images.IsNullOrEmpty())
+        {
             throw new ArgumentException("At least one image is required", nameof(images));
+        }
 
         if (imageFileNames == null || imageFileNames.Length != images.Length)
+        {
             throw new ArgumentException("Image file names array must match images array length", nameof(imageFileNames));
+        }
 
         if (string.IsNullOrWhiteSpace(prompt))
+        {
             throw new ArgumentException("Prompt cannot be null or empty", nameof(prompt));
+        }
 
         // Get the pipeline from the client
         var pipeline = client.Pipeline;
@@ -155,23 +163,16 @@ public static class ImageClientExtensions
         stream.Write(newLine, 0, newLine.Length);
     }
 
-    #region Helper Methods
-
-    private static string GetEndpoint(PipelineMessage message)
-    {
-        // Try to get the endpoint from the request URI if already set
-        return message.Request.Uri?.GetLeftPart(UriPartial.Authority);
-    }
-
+    #region Private Methods
     private static GeneratedImageCollection ParseResponse(PipelineResponse response, GeneratedImageFormat? format)
     {
         try
         {
             // Try to use ModelReaderWriter to deserialize the response
-            var modelReaderWriter = ModelReaderWriter.Read<GeneratedImageCollection>(response.Content);
-            if (modelReaderWriter != null)
+            var result = ModelReaderWriter.Read<GeneratedImageCollection>(response.Content);
+            if (result != null)
             {
-                return modelReaderWriter;
+                return result;
             }
         }
         catch (Exception ex)
@@ -196,7 +197,7 @@ public static class ImageClientExtensions
                 var result = fromResponseMethod.Invoke(null, new object[] { response });
                 if (result != null)
                 {
-                    return (GeneratedImageCollection)result;
+                    return result as GeneratedImageCollection;
                 }
             }
 
@@ -211,7 +212,7 @@ public static class ImageClientExtensions
                 var result = deserializeMethod.Invoke(null, new object[] { jsonDocument.RootElement });
                 if (result != null)
                 {
-                    return (GeneratedImageCollection)result;
+                    return result as GeneratedImageCollection;
                 }
             }
         }

@@ -32,7 +32,7 @@ public class EditImageFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(message.CurrentAgentId);
 
-        await Init(message);
+        Init(message);
         SetImageOptions();
 
         var image = await SelectImage(descrpition);
@@ -42,10 +42,9 @@ public class EditImageFn : IFunctionCallback
         return true;
     }
 
-    private async Task Init(RoleDialogModel message)
+    private void Init(RoleDialogModel message)
     {
         var convService = _services.GetRequiredService<IConversationService>();
-
         _conversationId = convService.ConversationId;
         _messageId = message.MessageId;
     }

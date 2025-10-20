@@ -11,7 +11,6 @@ public class ComposeImageFn : IFunctionCallback
     private readonly ILogger _logger;
     private readonly ImageHandlerSettings _settings;
 
-    private Agent _agent;
     private string _conversationId;
     private string _messageId;
 
@@ -29,22 +28,23 @@ public class ComposeImageFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
         var descrpition = args?.UserRequest ?? string.Empty;
-        await Init(message);
+
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(message.CurrentAgentId);
+
+        Init(message);
         SetImageOptions();
 
         var image = await SelectImage(descrpition);
-        var response = await GetImageEditGeneration(message, descrpition, image);
+        var response = await GetImageEditGeneration(agent, message, descrpition, image);
         message.Content = response;
         message.StopCompletion = true;
         return true;
     }
 
-    private async Task Init(RoleDialogModel message)
+    private void Init(RoleDialogModel message)
     {
-        var agentService = _services.GetRequiredService<IAgentService>();
         var convService = _services.GetRequiredService<IConversationService>();
-
-        _agent = await agentService.GetAgent(message.CurrentAgentId);
         _conversationId = convService.ConversationId;
         _messageId = message.MessageId;
     }
@@ -74,7 +74,7 @@ public class ComposeImageFn : IFunctionCallback
         return selecteds?.FirstOrDefault();
     }
 
-    private async Task<string> GetImageEditGeneration(RoleDialogModel message, string description, MessageFileModel? image)
+    private async Task<string> GetImageEditGeneration(Agent agent, RoleDialogModel message, string description, MessageFileModel? image)
     {
         if (image == null)
         {
@@ -83,15 +83,10 @@ public class ComposeImageFn : IFunctionCallback
 
         try
         {
-            var (provider, model) = GetLlmProviderModel();
+            var (provider, model) = GetLlmProviderModel(agent);
             var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
             var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
-            var agent = new Agent
-            {
-                Id = _agent?.Id ?? BuiltInAgentId.UtilityAssistant,
-                Name = _agent?.Name ?? "Utility Assistant"
-            };
 
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
             var fileBinary = fileStorage.GetFileBytes(image.FileStorageUrl);
@@ -110,7 +105,7 @@ public class ComposeImageFn : IFunctionCallback
                 return response.Content;
             }
 
-            return await GetImageEditResponse(description, defaultContent: null);
+            return await GetImageEditResponse(agent, description);
         }
         catch (Exception ex)
         {
@@ -120,42 +115,23 @@ public class ComposeImageFn : IFunctionCallback
         }
     }
 
-    private async Task<string> GetImageEditResponse(string description, string? defaultContent)
+    private async Task<string> GetImageEditResponse(Agent agent, string description)
     {
-        if (defaultContent != null)
-        {
-            return defaultContent;
-        }
-
-        var llmConfig = _agent.LlmConfig;
-        var agent = new Agent
-        {
-            Id = _agent?.Id ?? BuiltInAgentId.UtilityAssistant,
-            Name = _agent?.Name ?? "Utility Assistant",
-            LlmConfig = new AgentLlmConfig
-            {
-                Provider = llmConfig?.Provider ?? "openai",
-                Model = llmConfig?.Model ?? "gpt-5-mini",
-                MaxOutputTokens = llmConfig?.MaxOutputTokens,
-                ReasoningEffortLevel = llmConfig?.ReasoningEffortLevel
-            }
-        };
-
         return await AiResponseHelper.GetImageGenerationResponse(_services, agent, description);
     }
 
-    private (string, string) GetLlmProviderModel()
+    private (string, string) GetLlmProviderModel(Agent agent)
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-
-        var provider = state.GetState("image_edit_llm_provider");
-        var model = state.GetState("image_edit_llm_provider");
+        var provider = agent?.LlmConfig?.ImageEdit?.Provider;
+        var model = agent?.LlmConfig?.ImageEdit?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
             return (provider, model);
         }
+
+        provider = _settings?.Edit?.Provider;
+        model = _settings?.Edit?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
