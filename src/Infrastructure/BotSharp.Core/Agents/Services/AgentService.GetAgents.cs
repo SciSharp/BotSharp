@@ -83,17 +83,34 @@ public partial class AgentService
     private void AddDefaultInstruction(Agent agent, string instruction)
     {
         //check if instruction is empty
-        if (string.IsNullOrWhiteSpace(instruction)) return;
+        if (string.IsNullOrWhiteSpace(instruction))
+        {
+            return;
+        }
+
         //check if instruction is already set
-        if (agent.ChannelInstructions.Exists(p => p.Channel == string.Empty)) return;
+        var instructions = new List<ChannelInstruction>(agent.ChannelInstructions);
+        if (instructions.Exists(p => string.IsNullOrEmpty(p.Channel)))
+        {
+            return;
+        }
+
         //Add default instruction to ChannelInstructions
-        var defaultInstruction = new ChannelInstruction() { Channel = string.Empty, Instruction = instruction };
-        agent.ChannelInstructions.Insert(0, defaultInstruction);
+        var defaultInstruction = new ChannelInstruction()
+        {
+            Channel = string.Empty,
+            Instruction = instruction
+        };
+        instructions.Insert(0, defaultInstruction);
+        agent.ChannelInstructions = instructions;
     }
 
     public async Task InheritAgent(Agent agent)
     {
-        if (string.IsNullOrWhiteSpace(agent?.InheritAgentId)) return;
+        if (string.IsNullOrWhiteSpace(agent?.InheritAgentId))
+        {
+            return;
+        }
 
         var inheritedAgent = await GetAgent(agent.InheritAgentId);
         agent.Templates.AddRange(inheritedAgent.Templates

@@ -17,18 +17,7 @@ public partial class AgentService
 
         HookEmitter.Emit<IAgentHook>(_services, hook => hook.OnAgentLoading(ref id), id);
 
-        var originalAgent = await GetAgent(id);
-        var agent = originalAgent.DeepClone(modifier: agt =>
-        {
-            agt.ChannelInstructions = originalAgent.ChannelInstructions.DeepClone() ?? new();
-            agt.Functions = originalAgent.Functions.DeepClone() ?? new();
-            agt.Templates = originalAgent.Templates.DeepClone() ?? new();
-            agt.Samples = originalAgent.Samples.DeepClone() ?? new();
-            agt.Responses = originalAgent.Responses.DeepClone() ?? new();
-            agt.LlmConfig = originalAgent.LlmConfig.DeepClone() ?? new();
-            agt.Plugin = originalAgent.Plugin.DeepClone() ?? new();
-        });
-
+        var agent = await GetAgent(id);
         if (agent == null)
         {
             return null;
@@ -51,9 +40,7 @@ public partial class AgentService
 
             if (!string.IsNullOrEmpty(agent.Instruction))
             {
-                var dict = new Dictionary<string, object>(agent.TemplateDict);
-                hook.OnInstructionLoaded(agent.Instruction, dict);
-                agent.TemplateDict = new Dictionary<string, object>(dict);
+                hook.OnInstructionLoaded(agent.Instruction, agent.TemplateDict);
             }
 
             if (agent.Functions != null)
@@ -87,7 +74,7 @@ public partial class AgentService
 
     private void OverrideInstructionByChannel(Agent agent)
     {
-        var instructions = agent.ChannelInstructions;
+        var instructions = new List<ChannelInstruction>(agent.ChannelInstructions);
         if (instructions.IsNullOrEmpty())
         {
             return;
@@ -97,14 +84,13 @@ public partial class AgentService
         var channel = state.GetState("channel");
         
         var found = instructions.FirstOrDefault(x => x.Channel.IsEqualTo(channel));
-        var defaultInstruction = instructions.FirstOrDefault(x => x.Channel == string.Empty);
+        var defaultInstruction = instructions.FirstOrDefault(x => string.IsNullOrEmpty(x.Channel));
         agent.Instruction = !string.IsNullOrWhiteSpace(found?.Instruction) ? found.Instruction : defaultInstruction?.Instruction;
     }
 
     private void PopulateState(Agent agent)
     {
-        var dict = CollectRenderData(agent);
-        agent.TemplateDict = new Dictionary<string, object>(dict);
+        agent.TemplateDict = new(CollectRenderData(agent));
     }
 
     private void AddOrUpdateParameters(Agent agent)

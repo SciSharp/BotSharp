@@ -136,7 +136,6 @@ public class ExecuteQueryFn : IFunctionCallback
             Id = message.CurrentAgentId ?? string.Empty,
             Name = "sqlDriver_ExecuteQuery",
             Instruction = dictionarySqlPrompt,
-            TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
         };
 

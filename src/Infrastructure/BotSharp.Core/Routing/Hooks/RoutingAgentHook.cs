@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing.Hooks;
@@ -14,7 +13,7 @@ public class RoutingAgentHook : AgentHookBase
         _routingSetting = routingSetting;
     }
 
-    public override bool OnInstructionLoaded(string template, Dictionary<string, object> dict)
+    public override bool OnInstructionLoaded(string template, IDictionary<string, object> dict)
     {
         if (_agent.Type != AgentType.Routing)
         {

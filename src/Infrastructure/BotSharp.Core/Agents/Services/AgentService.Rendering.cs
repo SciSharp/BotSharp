@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Templating;
 using Newtonsoft.Json.Linq;
-using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Agents.Services;
@@ -20,9 +19,9 @@ public partial class AgentService
 
         // update states
         var renderDict = renderData != null
-                        ? new ConcurrentDictionary<string, object>(renderData)
+                        ? new Dictionary<string, object>(renderData)
                         : CollectRenderData(agent);
-        renderDict.AddOrUpdate(TemplateRenderConstant.RENDER_AGENT, agent, (key, curValue) => agent);
+        renderDict[TemplateRenderConstant.RENDER_AGENT] = agent;
 
         var res = render.Render(string.Join("\r\n", instructions), renderDict);
         return res;
@@ -135,9 +134,9 @@ public partial class AgentService
 
         // update states
         var renderDict = renderData != null
-                        ? new ConcurrentDictionary<string, object>(renderData)
+                        ? new Dictionary<string, object>(renderData)
                         : CollectRenderData(agent);
-        renderDict.AddOrUpdate(TemplateRenderConstant.RENDER_AGENT, agent, (key, curValue) => agent);
+        renderDict[TemplateRenderConstant.RENDER_AGENT] = agent;
 
         // render liquid template
         var content = render.Render(template, renderDict);
@@ -165,26 +164,24 @@ public partial class AgentService
         return result.IsEqualTo("visible");
     }
 
-    public ConcurrentDictionary<string, object> CollectRenderData(Agent agent)
+    public IDictionary<string, object> CollectRenderData(Agent agent)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
 
-        var innerDict = new ConcurrentDictionary<string, object>();
-        if (agent?.TemplateDict != null)
+        var innerDict = new Dictionary<string, object>();
+        var dict = new Dictionary<string, object>(agent.TemplateDict ?? []);
+        if (dict != null)
         {
-            var dict = new ConcurrentDictionary<string, object>(agent.TemplateDict);
-            if (dict != null)
+            foreach (var p in dict)
             {
-                foreach (var p in dict)
-                {
-                    innerDict.AddOrUpdate(p.Key, p.Value, (key, curValue) => p.Value);
-                }
+                innerDict[p.Key] = p.Value;
             }
         }
 
-        foreach (var p in state.GetStates())
+        var states = new Dictionary<string, string>(state.GetStates());
+        foreach (var p in states)
         {
-            innerDict.AddOrUpdate(p.Key, p.Value, (key, curValue) => p.Value);
+            innerDict[p.Key] = p.Value;
         }
 
         return innerDict;

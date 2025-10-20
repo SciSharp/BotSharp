@@ -75,7 +75,7 @@ public class SqlChartService : IBotSharpChartService
                 MaxOutputTokens = options.Llm?.MaxOutputTokens ?? 8192,
                 ReasoningEffortLevel = options.Llm?.ReasoningEffortLevel
             },
-            TemplateDict = BuildChartStates(options)
+            TemplateDict = new(BuildChartStates(options))
         };
 
         var dialogs = new List<RoleDialogModel>
