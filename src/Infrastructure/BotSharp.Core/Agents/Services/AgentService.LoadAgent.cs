@@ -74,7 +74,7 @@ public partial class AgentService
 
     private void OverrideInstructionByChannel(Agent agent)
     {
-        var instructions = agent.ChannelInstructions;
+        var instructions = new List<ChannelInstruction>(agent.ChannelInstructions);
         if (instructions.IsNullOrEmpty())
         {
             return;
@@ -84,7 +84,7 @@ public partial class AgentService
         var channel = state.GetState("channel");
         
         var found = instructions.FirstOrDefault(x => x.Channel.IsEqualTo(channel));
-        var defaultInstruction = instructions.FirstOrDefault(x => x.Channel == string.Empty);
+        var defaultInstruction = instructions.FirstOrDefault(x => string.IsNullOrEmpty(x.Channel));
         agent.Instruction = !string.IsNullOrWhiteSpace(found?.Instruction) ? found.Instruction : defaultInstruction?.Instruction;
     }
 

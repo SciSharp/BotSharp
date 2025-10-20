@@ -89,7 +89,8 @@ public partial class AgentService
         }
 
         //check if instruction is already set
-        if (agent.ChannelInstructions.Exists(p => p.Channel == string.Empty))
+        var instructions = new List<ChannelInstruction>(agent.ChannelInstructions);
+        if (instructions.Exists(p => string.IsNullOrEmpty(p.Channel)))
         {
             return;
         }
@@ -100,7 +101,8 @@ public partial class AgentService
             Channel = string.Empty,
             Instruction = instruction
         };
-        agent.ChannelInstructions.Insert(0, defaultInstruction);
+        instructions.Insert(0, defaultInstruction);
+        agent.ChannelInstructions = instructions;
     }
 
     public async Task InheritAgent(Agent agent)
