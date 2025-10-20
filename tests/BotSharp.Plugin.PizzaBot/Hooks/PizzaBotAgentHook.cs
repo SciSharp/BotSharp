@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
+using System.Collections.Concurrent;
 
 namespace BotSharp.Plugin.PizzaBot.Hooks;
 
@@ -12,7 +13,7 @@ public class PizzaBotAgentHook : AgentHookBase
     {
     }
 
-    public override bool OnInstructionLoaded(string template, Dictionary<string, object> dict)
+    public override bool OnInstructionLoaded(string template, ConcurrentDictionary<string, object> dict)
     {
         return base.OnInstructionLoaded(template, dict);
     }

@@ -17,18 +17,7 @@ public partial class AgentService
 
         HookEmitter.Emit<IAgentHook>(_services, hook => hook.OnAgentLoading(ref id), id);
 
-        var originalAgent = await GetAgent(id);
-        var agent = originalAgent.DeepClone(modifier: agt =>
-        {
-            agt.ChannelInstructions = originalAgent.ChannelInstructions.DeepClone() ?? new();
-            agt.Functions = originalAgent.Functions.DeepClone() ?? new();
-            agt.Templates = originalAgent.Templates.DeepClone() ?? new();
-            agt.Samples = originalAgent.Samples.DeepClone() ?? new();
-            agt.Responses = originalAgent.Responses.DeepClone() ?? new();
-            agt.LlmConfig = originalAgent.LlmConfig.DeepClone() ?? new();
-            agt.Plugin = originalAgent.Plugin.DeepClone() ?? new();
-        });
-
+        var agent = await GetAgent(id);
         if (agent == null)
         {
             return null;
@@ -51,9 +40,7 @@ public partial class AgentService
 
             if (!string.IsNullOrEmpty(agent.Instruction))
             {
-                var dict = new Dictionary<string, object>(agent.TemplateDict);
-                hook.OnInstructionLoaded(agent.Instruction, dict);
-                agent.TemplateDict = new Dictionary<string, object>(dict);
+                hook.OnInstructionLoaded(agent.Instruction, agent.TemplateDict);
             }
 
             if (agent.Functions != null)
@@ -103,8 +90,7 @@ public partial class AgentService
 
     private void PopulateState(Agent agent)
     {
-        var dict = CollectRenderData(agent);
-        agent.TemplateDict = new Dictionary<string, object>(dict);
+        agent.TemplateDict = CollectRenderData(agent);
     }
 
     private void AddOrUpdateParameters(Agent agent)

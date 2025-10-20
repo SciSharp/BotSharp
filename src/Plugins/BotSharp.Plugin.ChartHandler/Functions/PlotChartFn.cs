@@ -38,10 +38,10 @@ public class PlotChartFn : IFunctionCallback
             Name = agent?.Name ?? "AI Programmer",
             Instruction = inst,
             LlmConfig = GetLlmConfig(),
-            TemplateDict = new Dictionary<string, object>
+            TemplateDict = new()
             {
-                { "plotting_requirement", args?.PlottingRequirement ?? string.Empty },
-                { "chart_element_id", $"chart-{message.MessageId}" }
+                ["plotting_requirement"] = args?.PlottingRequirement ?? string.Empty,
+                ["chart_element_id"] = $"chart-{message.MessageId}"
             }
         };
 

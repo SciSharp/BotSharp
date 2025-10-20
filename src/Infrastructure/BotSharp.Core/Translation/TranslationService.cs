@@ -20,6 +20,7 @@ using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Translation.Models;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Encodings.Web;
 
@@ -380,11 +381,11 @@ public class TranslationService : ITranslationService
             Id = Guid.Empty.ToString(),
             Name = "Translator",
             Instruction = "You are a translation expert.",
-            TemplateDict = new Dictionary<string, object>
+            TemplateDict = new ConcurrentDictionary<string, object>
             {
-                { "text_list",  jsonString },
-                { "text_list_size", texts.Count },
-                { StateConst.LANGUAGE, language }
+                ["text_list"] = jsonString,
+                ["text_list_size"] = texts.Count,
+                [StateConst.LANGUAGE] = language
             }
         };
 

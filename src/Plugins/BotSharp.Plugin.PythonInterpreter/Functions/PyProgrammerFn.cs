@@ -40,10 +40,10 @@ public class PyProgrammerFn : IFunctionCallback
             Name = agent.Name,
             Instruction = inst,
             LlmConfig = GetLlmConfig(),
-            TemplateDict = new Dictionary<string, object>
+            TemplateDict = new()
             {
-                { "python_version", _settings.PythonVersion ?? "3.11" },
-                { "user_requirement", args?.UserRquirement ?? string.Empty }
+                ["python_version"] = _settings.PythonVersion ?? "3.11",
+                ["user_requirement"] = args?.UserRquirement ?? string.Empty
             }
         };
 

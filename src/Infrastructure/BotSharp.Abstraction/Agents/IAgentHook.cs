@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Hooks;
+using System.Collections.Concurrent;
 
 namespace BotSharp.Abstraction.Agents;
 
@@ -16,7 +17,7 @@ public interface IAgentHook : IHookBase
     /// <returns></returns>
     bool OnAgentLoading(ref string id);
 
-    bool OnInstructionLoaded(string template, Dictionary<string, object> dict);
+    bool OnInstructionLoaded(string template, ConcurrentDictionary<string, object> dict);
 
     bool OnFunctionsLoaded(List<FunctionDef> functions);
 

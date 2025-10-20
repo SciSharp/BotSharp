@@ -52,7 +52,6 @@ public class PrimaryStagePlanFn : IFunctionCallback
             Id = message.CurrentAgentId,
             Name = Name,
             Instruction = prompt,
-            TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
         };
         var response = await GetAiResponse(plannerAgent);

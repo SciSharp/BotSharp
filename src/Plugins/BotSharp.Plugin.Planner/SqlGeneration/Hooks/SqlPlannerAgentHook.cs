@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace BotSharp.Plugin.Planner.SqlGeneration.Hooks;
 
 public class SqlPlannerAgentHook : AgentHookBase
@@ -9,7 +11,7 @@ public class SqlPlannerAgentHook : AgentHookBase
     {
     }
 
-    public override bool OnInstructionLoaded(string template, Dictionary<string, object> dict)
+    public override bool OnInstructionLoaded(string template, ConcurrentDictionary<string, object> dict)
     {
         var knowledgeHooks = _services.GetServices<IKnowledgeHook>();
 

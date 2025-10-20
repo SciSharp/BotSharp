@@ -19,10 +19,10 @@ public partial class AgentService
         instructions.AddRange(secondaryInstructions);
 
         // update states
-        var renderDict = renderData != null
-                        ? new ConcurrentDictionary<string, object>(renderData)
-                        : CollectRenderData(agent);
-        renderDict.AddOrUpdate(TemplateRenderConstant.RENDER_AGENT, agent, (key, curValue) => agent);
+        IDictionary<string, object> renderDict = renderData != null
+                                                ? new Dictionary<string, object>(renderData)
+                                                : CollectRenderData(agent);
+        renderDict[TemplateRenderConstant.RENDER_AGENT] = agent;
 
         var res = render.Render(string.Join("\r\n", instructions), renderDict);
         return res;
@@ -134,10 +134,10 @@ public partial class AgentService
         var template = agent.Templates.FirstOrDefault(x => x.Name == templateName)?.Content ?? string.Empty;
 
         // update states
-        var renderDict = renderData != null
-                        ? new ConcurrentDictionary<string, object>(renderData)
-                        : CollectRenderData(agent);
-        renderDict.AddOrUpdate(TemplateRenderConstant.RENDER_AGENT, agent, (key, curValue) => agent);
+        IDictionary<string, object> renderDict = renderData != null
+                                                ? new Dictionary<string, object>(renderData)
+                                                : CollectRenderData(agent);
+        renderDict[TemplateRenderConstant.RENDER_AGENT] = agent;
 
         // render liquid template
         var content = render.Render(template, renderDict);
@@ -172,7 +172,7 @@ public partial class AgentService
         var innerDict = new ConcurrentDictionary<string, object>();
         if (agent?.TemplateDict != null)
         {
-            var dict = new ConcurrentDictionary<string, object>(agent.TemplateDict);
+            var dict = new Dictionary<string, object>(agent.TemplateDict);
             if (dict != null)
             {
                 foreach (var p in dict)

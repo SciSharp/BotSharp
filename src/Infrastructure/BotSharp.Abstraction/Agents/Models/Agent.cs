@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Tasks.Models;
+using System.Collections.Concurrent;
 
 namespace BotSharp.Abstraction.Agents.Models;
 
@@ -151,7 +152,7 @@ public class Agent
     /// For rendering deferral
     /// </summary>
     [JsonIgnore]
-    public Dictionary<string, object> TemplateDict { get; set; } = new();
+    public ConcurrentDictionary<string, object> TemplateDict { get; set; } = new();
 
     [JsonIgnore]
     public List<FunctionDef> SecondaryFunctions { get; set; } = [];

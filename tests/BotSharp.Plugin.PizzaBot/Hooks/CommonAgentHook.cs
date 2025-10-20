@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents;
+using System.Collections.Concurrent;
 
 namespace BotSharp.Plugin.PizzaBot.Hooks;
 
@@ -11,7 +12,7 @@ public class CommonAgentHook : AgentHookBase
     {
     }
 
-    public override bool OnInstructionLoaded(string template, Dictionary<string, object> dict)
+    public override bool OnInstructionLoaded(string template, ConcurrentDictionary<string, object> dict)
     {
         dict["current_date"] = DateTime.Now.ToString("MM/dd/yyyy");
         dict["current_time"] = DateTime.Now.ToString("hh:mm tt");
