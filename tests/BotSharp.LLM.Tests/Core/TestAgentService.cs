@@ -6,7 +6,6 @@ using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Utilities;
-using System.Collections.Concurrent;
 
 namespace BotSharp.Plugin.Google.Core
 {
@@ -122,9 +121,9 @@ namespace BotSharp.Plugin.Google.Core
             return Task.FromResult(Enumerable.Empty<AgentUtility>());
         }
 
-        public ConcurrentDictionary<string, object> CollectRenderData(Agent agent)
+        public IDictionary<string, object> CollectRenderData(Agent agent)
         {
-            return [];
+            return new Dictionary<string, object>();
         }
     }
 }

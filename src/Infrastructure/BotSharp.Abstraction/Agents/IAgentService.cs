@@ -2,7 +2,6 @@ using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
-using System.Collections.Concurrent;
 
 namespace BotSharp.Abstraction.Agents;
 
@@ -42,7 +41,7 @@ public interface IAgentService
     (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, IDictionary<string, object>? renderData = null, StringComparer? comparer = null);
 
     bool RenderVisibility(string? visibilityExpression, IDictionary<string, object> dict);
-    ConcurrentDictionary<string, object> CollectRenderData(Agent agent);
+    IDictionary<string, object> CollectRenderData(Agent agent);
 
 
     /// <summary>

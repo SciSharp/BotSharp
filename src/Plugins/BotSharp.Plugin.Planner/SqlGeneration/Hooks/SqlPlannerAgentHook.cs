@@ -16,16 +16,16 @@ public class SqlPlannerAgentHook : AgentHookBase
         var knowledgeHooks = _services.GetServices<IKnowledgeHook>();
 
         // Get global knowledges
-        var Knowledges = new List<string>();
+        var knowledges = new List<string>();
         foreach (var hook in knowledgeHooks)
         {
             var k = hook.GetGlobalKnowledges(new RoleDialogModel(AgentRole.User, template)
             {
                 CurrentAgentId = PlannerAgentId.SqlPlanner
             }).ConfigureAwait(false).GetAwaiter().GetResult();
-            Knowledges.AddRange(k);
+            knowledges.AddRange(k);
         }
-        dict["global_knowledges"] = Knowledges;
+        dict["global_knowledges"] = knowledges;
 
         return true;
     }

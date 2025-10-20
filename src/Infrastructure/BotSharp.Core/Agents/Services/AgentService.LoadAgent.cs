@@ -90,7 +90,7 @@ public partial class AgentService
 
     private void PopulateState(Agent agent)
     {
-        agent.TemplateDict = CollectRenderData(agent);
+        agent.TemplateDict = new(CollectRenderData(agent));
     }
 
     private void AddOrUpdateParameters(Agent agent)
