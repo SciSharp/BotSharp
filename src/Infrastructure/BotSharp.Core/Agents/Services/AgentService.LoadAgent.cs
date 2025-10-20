@@ -14,7 +14,7 @@ public partial class AgentService
 
         HookEmitter.Emit<IAgentHook>(_services, hook => hook.OnAgentLoading(ref id), id);
 
-        var agent = await GetAgent(id);
+        var agent = (await GetAgent(id)).DeepClone();
         if (agent == null) return null;
 
         agent.TemplateDict = [];
