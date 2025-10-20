@@ -5,7 +5,7 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    [SharpCache(10)]
+    [SharpCache(10, perInstanceCache: true)]
     public async Task<PagedItems<Agent>> GetAgents(AgentFilter filter)
     {
         var agents = _db.GetAgents(filter);
@@ -25,7 +25,7 @@ public partial class AgentService
         };
     }
 
-    [SharpCache(10)]
+    [SharpCache(10, perInstanceCache: true)]
     public async Task<List<IdName>> GetAgentOptions(List<string>? agentIdsOrNames, bool byName = false)
     {
         var agents = byName ? 
@@ -83,17 +83,32 @@ public partial class AgentService
     private void AddDefaultInstruction(Agent agent, string instruction)
     {
         //check if instruction is empty
-        if (string.IsNullOrWhiteSpace(instruction)) return;
+        if (string.IsNullOrWhiteSpace(instruction))
+        {
+            return;
+        }
+
         //check if instruction is already set
-        if (agent.ChannelInstructions.Exists(p => p.Channel == string.Empty)) return;
+        if (agent.ChannelInstructions.Exists(p => p.Channel == string.Empty))
+        {
+            return;
+        }
+
         //Add default instruction to ChannelInstructions
-        var defaultInstruction = new ChannelInstruction() { Channel = string.Empty, Instruction = instruction };
+        var defaultInstruction = new ChannelInstruction()
+        {
+            Channel = string.Empty,
+            Instruction = instruction
+        };
         agent.ChannelInstructions.Insert(0, defaultInstruction);
     }
 
     public async Task InheritAgent(Agent agent)
     {
-        if (string.IsNullOrWhiteSpace(agent?.InheritAgentId)) return;
+        if (string.IsNullOrWhiteSpace(agent?.InheritAgentId))
+        {
+            return;
+        }
 
         var inheritedAgent = await GetAgent(agent.InheritAgentId);
         agent.Templates.AddRange(inheritedAgent.Templates
