@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Routing.Settings;
-using System.Collections.Concurrent;
 
 namespace BotSharp.Core.Routing.Hooks;
 
@@ -14,7 +13,7 @@ public class RoutingAgentHook : AgentHookBase
         _routingSetting = routingSetting;
     }
 
-    public override bool OnInstructionLoaded(string template, ConcurrentDictionary<string, object> dict)
+    public override bool OnInstructionLoaded(string template, IDictionary<string, object> dict)
     {
         if (_agent.Type != AgentType.Routing)
         {

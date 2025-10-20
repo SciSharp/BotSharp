@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Functions.Models;
-using System.Collections.Concurrent;
 
 namespace BotSharp.Abstraction.Agents;
 
@@ -30,7 +29,7 @@ public abstract class AgentHookBase : IAgentHook
         return true;
     }
 
-    public virtual bool OnInstructionLoaded(string template, ConcurrentDictionary<string, object> dict)
+    public virtual bool OnInstructionLoaded(string template, IDictionary<string, object> dict)
     {
         dict["current_date"] = $"{DateTime.Now:MMM dd, yyyy}";
         dict["current_time"] = $"{DateTime.Now:hh:mm tt}";

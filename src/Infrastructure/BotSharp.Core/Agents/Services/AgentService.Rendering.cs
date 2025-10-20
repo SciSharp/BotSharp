@@ -18,9 +18,9 @@ public partial class AgentService
         instructions.AddRange(secondaryInstructions);
 
         // update states
-        IDictionary<string, object> renderDict = renderData != null
-                                                ? new Dictionary<string, object>(renderData)
-                                                : CollectRenderData(agent);
+        var renderDict = renderData != null
+                        ? new Dictionary<string, object>(renderData)
+                        : CollectRenderData(agent);
         renderDict[TemplateRenderConstant.RENDER_AGENT] = agent;
 
         var res = render.Render(string.Join("\r\n", instructions), renderDict);
@@ -133,9 +133,9 @@ public partial class AgentService
         var template = agent.Templates.FirstOrDefault(x => x.Name == templateName)?.Content ?? string.Empty;
 
         // update states
-        IDictionary<string, object> renderDict = renderData != null
-                                                ? new Dictionary<string, object>(renderData)
-                                                : CollectRenderData(agent);
+        var renderDict = renderData != null
+                        ? new Dictionary<string, object>(renderData)
+                        : CollectRenderData(agent);
         renderDict[TemplateRenderConstant.RENDER_AGENT] = agent;
 
         // render liquid template
