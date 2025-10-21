@@ -107,7 +107,7 @@ public class EditImageFn : IFunctionCallback
                 return response.Content;
             }
 
-            return await GetImageEditResponse(agent, description);
+            return await AiResponseHelper.GetImageGenerationResponse(_services, agent, description, savedFiles);
         }
         catch (Exception ex)
         {
@@ -115,11 +115,6 @@ public class EditImageFn : IFunctionCallback
             _logger.LogWarning(ex, $"{error}");
             return error;
         }
-    }
-
-    private async Task<string> GetImageEditResponse(Agent agent, string description)
-    {
-        return await AiResponseHelper.GetImageGenerationResponse(_services, agent, description);
     }
 
     private (string, string) GetLlmProviderModel(Agent agent)

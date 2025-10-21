@@ -170,12 +170,9 @@ public partial class AgentService
 
         var innerDict = new Dictionary<string, object>();
         var dict = new Dictionary<string, object>(agent.TemplateDict ?? []);
-        if (dict != null)
+        foreach (var p in dict)
         {
-            foreach (var p in dict)
-            {
-                innerDict[p.Key] = p.Value;
-            }
+            innerDict[p.Key] = p.Value;
         }
 
         var states = new Dictionary<string, string>(state.GetStates());
