@@ -59,9 +59,6 @@ public partial class AgentService
     public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def, IDictionary<string, object>? renderData = null)
     {
         var parameterDef = def?.Parameters?.DeepClone(options: _options);
-
-
-
         var propertyDef = parameterDef?.Properties;
         if (propertyDef == null)
         {
