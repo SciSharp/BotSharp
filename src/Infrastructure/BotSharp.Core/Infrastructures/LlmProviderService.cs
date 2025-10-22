@@ -79,6 +79,7 @@ public class LlmProviderService : ILlmProviderService
         var settings = _services.GetRequiredService<List<LlmProviderSetting>>();
         var providerSetting = settings.FirstOrDefault(p => 
             p.Provider.Equals(provider, StringComparison.CurrentCultureIgnoreCase));
+
         if (providerSetting == null)
         {
             _logger.LogError($"Can't find provider settings for {provider}");
