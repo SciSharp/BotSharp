@@ -37,7 +37,7 @@
     <PackageVersion Include="Nanoid" Version="3.1.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="8.1.2" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
-    <PackageVersion Include="Anthropic.SDK" Version="5.6.0" />
+    <PackageVersion Include="Anthropic.SDK" Version="5.7.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageVersion Include="NAudio" Version="2.2.1" />
     <PackageVersion Include="NAudio.Core" Version="2.2.1" />
@@ -73,10 +73,10 @@
     <PackageVersion Include="Sdcb.PaddleOCR.Models.LocalV3" Version="2.7.0.1" />
     <PackageVersion Include="System.Drawing.Common" Version="8.0.14" />
     <PackageVersion Include="pythonnet" Version="3.0.5" />
-    <PackageVersion Include="Qdrant.Client" Version="1.15.0" />
+    <PackageVersion Include="Qdrant.Client" Version="1.15.1" />
     <PackageVersion Include="Selenium.WebDriver" Version="4.27.0" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.0" />
-    <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="1.16.0" />
+    <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="1.66.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.16.0-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
     <PackageVersion Include="Sdcb.SparkDesk" Version="3.1.0" />
