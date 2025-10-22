@@ -1,5 +1,5 @@
 using BotSharp.Abstraction.MLTasks;
-using BotSharp.Abstraction.MLTasks.Options;
+using BotSharp.Abstraction.MLTasks.Filters;
 using BotSharp.Abstraction.MLTasks.Settings;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -31,9 +31,9 @@ public class LlmProviderController : ControllerBase
     }
 
     [HttpGet("/llm-configs")]
-    public List<LlmProviderSetting> GetLlmConfigs([FromQuery] LlmConfigOptions options)
+    public List<LlmProviderSetting> GetLlmConfigs([FromQuery] LlmConfigFilter filter)
     {
-        var configs = _llmProvider.GetLlmConfigs(options);
+        var configs = _llmProvider.GetLlmConfigs(filter);
         return configs;
     }
 }

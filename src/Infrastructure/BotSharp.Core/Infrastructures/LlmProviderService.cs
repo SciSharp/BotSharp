@@ -1,5 +1,5 @@
 using BotSharp.Abstraction.MLTasks;
-using BotSharp.Abstraction.MLTasks.Options;
+using BotSharp.Abstraction.MLTasks.Filters;
 using BotSharp.Abstraction.MLTasks.Settings;
 using BotSharp.Abstraction.Settings;
 
@@ -107,7 +107,7 @@ public class LlmProviderService : ILlmProviderService
     }
 
 
-    public List<LlmProviderSetting> GetLlmConfigs(LlmConfigOptions? options = null)
+    public List<LlmProviderSetting> GetLlmConfigs(LlmConfigFilter? filter = null)
     {
         var settingService = _services.GetRequiredService<ISettingService>();
         var providers = settingService.Bind<List<LlmProviderSetting>>($"LlmProviders");
@@ -118,37 +118,42 @@ public class LlmProviderService : ILlmProviderService
             return configs;
         }
 
-        if (options == null)
+        if (filter == null)
         {
             return providers ?? [];
+        }
+
+        if (filter.Providers != null)
+        {
+            providers = providers.Where(x => filter.Providers.Contains(x.Provider, StringComparer.OrdinalIgnoreCase)).ToList();
         }
 
         foreach (var provider in providers)
         {
             IEnumerable<LlmModelSetting> models = provider.Models ?? [];
-            if (options.ModelTypes != null)
+            if (filter.ModelTypes != null)
             {
-                models = models.Where(x => options.ModelTypes.Contains(x.Type));
+                models = models.Where(x => filter.ModelTypes.Contains(x.Type));
             }
 
-            if (options.ModelIds != null)
+            if (filter.ModelIds != null)
             {
-                models = models.Where(x => options.ModelIds.Contains(x.Id));
+                models = models.Where(x => filter.ModelIds.Contains(x.Id));
             }
 
-            if (options.ModelNames != null)
+            if (filter.ModelNames != null)
             {
-                models = models.Where(x => options.ModelNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase));
+                models = models.Where(x => filter.ModelNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase));
             }
 
-            if (options.Capabilities != null)
+            if (filter.ModelCapabilities != null)
             {
-                models = models.Where(x => x.Capabilities != null && options.Capabilities.Any(y => x.Capabilities.Contains(y)));
+                models = models.Where(x => x.Capabilities != null && filter.ModelCapabilities.Any(y => x.Capabilities.Contains(y)));
             }
 
-            if (options.MultiModal.HasValue)
+            if (filter.MultiModal.HasValue)
             {
-                models = models.Where(x => x.MultiModal == options.MultiModal.Value);
+                models = models.Where(x => x.MultiModal == filter.MultiModal.Value);
             }
 
             if (models.IsNullOrEmpty())
