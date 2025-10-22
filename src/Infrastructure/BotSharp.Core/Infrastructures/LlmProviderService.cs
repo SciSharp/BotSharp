@@ -44,7 +44,7 @@ public class LlmProviderService : ILlmProviderService
                              .FirstOrDefault(x => x.Provider.Equals(provider))?.Models ?? [];
     }
 
-    public LlmModelSetting GetProviderModel(string provider, string id, bool? multiModal = null, LlmModelType? modelType = null, IEnumerable<LlmModelCapability>? capabilities = null)
+    public LlmModelSetting? GetProviderModel(string provider, string id, bool? multiModal = null, LlmModelType? modelType = null, IEnumerable<LlmModelCapability>? capabilities = null)
     {
         var models = GetProviderModels(provider).Where(x => x.Id == id);
 
@@ -65,7 +65,7 @@ public class LlmProviderService : ILlmProviderService
 
         if (models.IsNullOrEmpty())
         {
-            return new();
+            return null;
         }
 
         var random = new Random();
