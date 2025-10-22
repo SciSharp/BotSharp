@@ -63,6 +63,11 @@ public class LlmProviderService : ILlmProviderService
             models = models.Where(x => x.Capabilities != null && capabilities.Any(y => x.Capabilities.Contains(y)));
         }
 
+        if (models.IsNullOrEmpty())
+        {
+            return new();
+        }
+
         var random = new Random();
         var index = random.Next(0, models.Count());
         var modelSetting = models.ElementAt(index);
@@ -80,8 +85,7 @@ public class LlmProviderService : ILlmProviderService
             return null;
         }        
 
-        var modelSetting = providerSetting.Models.FirstOrDefault(m => 
-            m.Name.Equals(model, StringComparison.CurrentCultureIgnoreCase));
+        var modelSetting = providerSetting.Models.FirstOrDefault(m => m.Name.Equals(model, StringComparison.CurrentCultureIgnoreCase));
         if (modelSetting == null)
         {
             _logger.LogError($"Can't find model settings for {provider}.{model}");
@@ -97,10 +101,13 @@ public class LlmProviderService : ILlmProviderService
                     m.Group.Equals(modelSetting.Group, StringComparison.CurrentCultureIgnoreCase))
                 .ToList();
 
-            // pick one model randomly
-            var random = new Random();
-            var index = random.Next(0, models.Count());
-            modelSetting = models.ElementAt(index);
+            if (!models.IsNullOrEmpty())
+            {
+                // pick one model randomly
+                var random = new Random();
+                var index = random.Next(0, models.Count());
+                modelSetting = models.ElementAt(index);
+            }
         }
 
         return modelSetting;
@@ -112,6 +119,7 @@ public class LlmProviderService : ILlmProviderService
         var settingService = _services.GetRequiredService<ISettingService>();
         var providers = settingService.Bind<List<LlmProviderSetting>>($"LlmProviders");
         var configs = new List<LlmProviderSetting>();
+        var comparer = StringComparer.OrdinalIgnoreCase;
 
         if (providers.IsNullOrEmpty())
         {
@@ -125,7 +133,7 @@ public class LlmProviderService : ILlmProviderService
 
         if (filter.Providers != null)
         {
-            providers = providers.Where(x => filter.Providers.Contains(x.Provider, StringComparer.OrdinalIgnoreCase)).ToList();
+            providers = providers.Where(x => filter.Providers.Contains(x.Provider, comparer)).ToList();
         }
 
         foreach (var provider in providers)
@@ -138,12 +146,12 @@ public class LlmProviderService : ILlmProviderService
 
             if (filter.ModelIds != null)
             {
-                models = models.Where(x => filter.ModelIds.Contains(x.Id));
+                models = models.Where(x => filter.ModelIds.Contains(x.Id, comparer));
             }
 
             if (filter.ModelNames != null)
             {
-                models = models.Where(x => filter.ModelNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase));
+                models = models.Where(x => filter.ModelNames.Contains(x.Name, comparer));
             }
 
             if (filter.ModelCapabilities != null)
