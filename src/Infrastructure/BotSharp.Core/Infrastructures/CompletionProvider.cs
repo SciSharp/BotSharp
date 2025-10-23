@@ -5,7 +5,8 @@ namespace BotSharp.Core.Infrastructures;
 
 public class CompletionProvider
 {
-    public static object GetCompletion(IServiceProvider services, 
+    public static object GetCompletion(
+        IServiceProvider services, 
         string? provider = null, 
         string? model = null, 
         AgentLlmConfig? agentConfig = null)
@@ -42,7 +43,8 @@ public class CompletionProvider
         }
     }
 
-    public static IChatCompletion GetChatCompletion(IServiceProvider services, 
+    public static IChatCompletion GetChatCompletion(
+        IServiceProvider services, 
         string? provider = null, 
         string? model = null,
         string? modelId = null,
@@ -66,7 +68,8 @@ public class CompletionProvider
         return completer;
     }
 
-    public static ITextCompletion GetTextCompletion(IServiceProvider services, 
+    public static ITextCompletion GetTextCompletion(
+        IServiceProvider services, 
         string? provider = null, 
         string? model = null,
         AgentLlmConfig? agentConfig = null)
@@ -86,15 +89,16 @@ public class CompletionProvider
         return completer;
     }
 
-    public static IImageCompletion GetImageCompletion(IServiceProvider services,
+    public static IImageCompletion GetImageCompletion(
+        IServiceProvider services,
         string? provider = null,
         string? model = null,
         string? modelId = null,
-        bool imageGenerate = false)
+        IEnumerable<LlmModelCapability>? capabilities = null)
     {
         var completions = services.GetServices<IImageCompletion>();
         (provider, model) = GetProviderAndModel(services, provider: provider, 
-            model: model, modelId: modelId, imageGenerate: imageGenerate);
+            model: model, modelId: modelId, capabilities: capabilities);
 
         var completer = completions.FirstOrDefault(x => x.Provider == provider);
         if (completer == null)
@@ -107,7 +111,8 @@ public class CompletionProvider
         return completer;
     }
 
-    public static ITextEmbedding GetTextEmbedding(IServiceProvider services,
+    public static ITextEmbedding GetTextEmbedding(
+        IServiceProvider services,
         string? provider = null,
         string? model = null)
     {
@@ -166,7 +171,8 @@ public class CompletionProvider
         return completer;
     }
 
-    public static IRealTimeCompletion GetRealTimeCompletion(IServiceProvider services,
+    public static IRealTimeCompletion GetRealTimeCompletion(
+        IServiceProvider services,
         string? provider = null,
         string? model = null,
         string? modelId = null,
@@ -176,7 +182,7 @@ public class CompletionProvider
         var completions = services.GetServices<IRealTimeCompletion>();
         (provider, model) = GetProviderAndModel(services, provider: provider, model: model, modelId: modelId,
             multiModal: multiModal,
-            modelType:  LlmModelType.Realtime,
+            modelType: LlmModelType.Realtime,
             agentConfig: agentConfig);
 
         var completer = completions.FirstOrDefault(x => x.Provider == provider);
@@ -190,13 +196,14 @@ public class CompletionProvider
         return completer;
     }
 
-    private static (string, string) GetProviderAndModel(IServiceProvider services,
+    private static (string, string) GetProviderAndModel(
+        IServiceProvider services,
         string? provider = null,
         string? model = null,
         string? modelId = null,
         bool? multiModal = null,
         LlmModelType? modelType = null,
-        bool imageGenerate = false,
+        IEnumerable<LlmModelCapability>? capabilities = null,
         AgentLlmConfig? agentConfig = null)
     {
         var agentSetting = services.GetRequiredService<AgentSettings>();
@@ -220,9 +227,9 @@ public class CompletionProvider
                 var modelIdentity = state.ContainsState("model_id") ? state.GetState("model_id") : modelId;
                 var llmProviderService = services.GetRequiredService<ILlmProviderService>();
                 model = llmProviderService.GetProviderModel(provider, modelIdentity,
-                    multiModal: multiModal, 
+                    multiModal: multiModal,
                     modelType: modelType,
-                    imageGenerate: imageGenerate)?.Name;
+                    capabilities: capabilities)?.Name;
             }
         }
 

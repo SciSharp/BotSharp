@@ -36,7 +36,8 @@ public class CrontabWatcher : BackgroundService
                     await RunCronChecker(scope.ServiceProvider);
                     await Task.Delay(1000, stoppingToken);
                 });
-                if (isLocked == false)
+
+                if (!isLocked)
                 { 
                     await Task.Delay(1000, stoppingToken);
                 }
