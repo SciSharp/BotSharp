@@ -36,7 +36,7 @@ public class InstructModeController : ControllerBase
             .SetState("code_options", input.CodeOptions, source: StateSource.External)
             .SetState("file_options", input.FileOptions, source: StateSource.External);
 
-        if (!input.Files.IsNullOrEmpty()) state.SetState("file_count", input.Files.Count);
+        if (!input.Files.IsNullOrEmpty()) state.SetState("file_count", input.Files.Count, source: StateSource.External);
 
         var instructor = _services.GetRequiredService<IInstructService>();
         var result = await instructor.Execute(agentId,
