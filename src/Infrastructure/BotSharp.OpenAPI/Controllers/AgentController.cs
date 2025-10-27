@@ -1,22 +1,26 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Infrastructures.Attributes;
+using BotSharp.Abstraction.Tasks;
 
 namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
 [ApiController]
-public class AgentController : ControllerBase
+public partial class AgentController : ControllerBase
 {
     private readonly IAgentService _agentService;
+    private readonly IAgentTaskService _agentTaskService;
     private readonly IUserIdentity _user;
     private readonly IServiceProvider _services;
  
     public AgentController(
         IAgentService agentService,
+        IAgentTaskService agentTaskService,
         IUserIdentity user,
         IServiceProvider services)
     {
         _agentService = agentService;
+        _agentTaskService = agentTaskService;
         _user = user;
         _services = services;
      }

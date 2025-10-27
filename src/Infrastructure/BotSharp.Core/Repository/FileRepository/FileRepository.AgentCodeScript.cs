@@ -91,7 +91,14 @@ public partial class FileRepository
             var dir = BuildAgentCodeScriptDir(agentId, script.ScriptType);
             if (!Directory.Exists(dir))
             {
-                continue;
+                if (options?.IsUpsert == true)
+                {
+                    Directory.CreateDirectory(dir);
+                }
+                else
+                {
+                    continue;
+                }
             }
 
             var file = Path.Combine(dir, script.Name);
