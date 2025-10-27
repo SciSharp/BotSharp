@@ -6,11 +6,17 @@ public partial class FileRepository
 {
     public bool RefreshRoles(IEnumerable<Role> roles)
     {
-        if (roles.IsNullOrEmpty()) return false;
+        if (roles.IsNullOrEmpty())
+        {
+            return false;
+        }
 
         var validRoles = roles.Where(x => !string.IsNullOrWhiteSpace(x.Id)
                                        && !string.IsNullOrWhiteSpace(x.Name)).ToList();
-        if (validRoles.IsNullOrEmpty()) return false;
+        if (validRoles.IsNullOrEmpty())
+        {
+            return false;
+        }
 
         var baseDir = Path.Combine(_dbSettings.FileRepository, ROLES_FOLDER);
         if (Directory.Exists(baseDir))
@@ -58,10 +64,16 @@ public partial class FileRepository
 
     public Role? GetRoleDetails(string roleId, bool includeAgent = false)
     {
-        if (string.IsNullOrWhiteSpace(roleId)) return null;
+        if (string.IsNullOrWhiteSpace(roleId))
+        {
+            return null;
+        }
 
         var role = Roles.FirstOrDefault(x => x.Id == roleId);
-        if (role == null) return null;
+        if (role == null)
+        {
+            return null;
+        }
 
         var agentActions = new List<RoleAgentAction>();
         var roleAgents = RoleAgents?.Where(x => x.RoleId == roleId)?.ToList() ?? [];

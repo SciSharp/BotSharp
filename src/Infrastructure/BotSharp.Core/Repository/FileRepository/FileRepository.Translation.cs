@@ -112,7 +112,10 @@ public partial class FileRepository
                 else
                 {
                     var foundItem = foundMemory.Translations?.FirstOrDefault(x => x.Language.Equals(input.Language));
-                    if (foundItem != null) continue;
+                    if (foundItem != null)
+                    {
+                        continue;
+                    }
 
                     if (foundMemory.Translations == null)
                     {
