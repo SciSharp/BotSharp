@@ -17,6 +17,7 @@ public class DashboardController : ControllerBase
         _user = user;
 
     }
+
     #region User Components
     [HttpGet("/dashboard/components")]
     public async Task<UserDashboardViewModel> GetComponents()

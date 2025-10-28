@@ -3,18 +3,8 @@ using BotSharp.Abstraction.Rules;
 
 namespace BotSharp.OpenAPI.Controllers;
 
-[Authorize]
-[ApiController]
-public class RulesController
+public partial class AgentController
 {
-    private readonly IServiceProvider _services;
-
-    public RulesController(
-        IServiceProvider services)
-    {
-        _services = services;
-    }
-
     [HttpGet("/rule/triggers")]
     public IEnumerable<AgentRule> GetRuleTriggers()
     {
