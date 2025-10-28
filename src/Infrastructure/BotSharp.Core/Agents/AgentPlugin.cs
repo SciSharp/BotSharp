@@ -60,9 +60,9 @@ public class AgentPlugin : IBotSharpPlugin
         {
             SubMenu = new List<PluginMenuDef>
             {
+                new PluginMenuDef("Agents", link: "page/agent"), // icon: "bx bx-bot",
                 new PluginMenuDef("Routing", link: "page/agent/router"), // icon: "bx bx-map-pin"
                 new PluginMenuDef("Evaluating", link: "page/agent/evaluator") { Roles = [UserRole.Root, UserRole.Admin] }, // icon: "bx bx-task"
-                new PluginMenuDef("Agents", link: "page/agent"), // icon: "bx bx-bot",
                 new PluginMenuDef("Coding", link: "page/agent/code-scripts") { Roles = [UserRole.Root, UserRole.Admin] },
             }
         });
