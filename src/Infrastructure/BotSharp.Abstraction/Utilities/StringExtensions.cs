@@ -11,12 +11,18 @@ public static class StringExtensions
     public static string SubstringMax(this string str, int maxLength)
     {
         if (string.IsNullOrEmpty(str))
+        {
             return str;
+        }
 
         if (str.Length > maxLength)
+        {
             return str.Substring(0, maxLength);
+        }
         else
+        {
             return str;
+        }
     }
 
     public static string[] SplitByNewLine(this string input)
@@ -39,14 +45,20 @@ public static class StringExtensions
 
     public static bool IsEqualTo(this string? str1, string? str2, StringComparison option = StringComparison.OrdinalIgnoreCase)
     {
-        if (str1 == null) return str2 == null;
+        if (str1 == null)
+        {
+            return str2 == null;
+        }
 
         return str1.Equals(str2, option);
     }
 
     public static string CleanStr(this string? str)
     {
-        if (string.IsNullOrWhiteSpace(str)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(str))
+        {
+            return string.Empty;
+        }
 
         return str.Replace(" ", "").Replace("\t", "").Replace("\n", "").Replace("\r", "");
     }

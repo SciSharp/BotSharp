@@ -65,7 +65,7 @@ public partial class FileRepository
             return null;
         }
 
-        var foundFile = Directory.GetFiles(dir).FirstOrDefault(file => scriptName.IsEqualTo(Path.GetFileName(file)));
+        var foundFile = Directory.EnumerateFiles(dir).FirstOrDefault(file => scriptName.IsEqualTo(Path.GetFileName(file)));
         if (!string.IsNullOrEmpty(foundFile))
         {
             return File.ReadAllText(foundFile);
@@ -75,9 +75,14 @@ public partial class FileRepository
 
     public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
     {
-        if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
+        if (string.IsNullOrWhiteSpace(agentId) || scripts == null)
         {
             return false;
+        }
+
+        if (options?.IsUpsert == true && !scripts.Any())
+        {
+            return DeleteAgentCodeScripts(agentId);
         }
 
         foreach (var script in scripts)
@@ -113,7 +118,7 @@ public partial class FileRepository
 
     public bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
     {
-        return UpdateAgentCodeScripts(agentId, scripts);
+        return UpdateAgentCodeScripts(agentId, scripts, options: new() { IsUpsert = true });
     }
 
     public bool DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? scripts = null)
@@ -126,7 +131,7 @@ public partial class FileRepository
         var dir = BuildAgentCodeScriptDir(agentId);
         if (!Directory.Exists(dir))
         {
-            return false;
+            return true;
         }
 
         if (scripts == null)

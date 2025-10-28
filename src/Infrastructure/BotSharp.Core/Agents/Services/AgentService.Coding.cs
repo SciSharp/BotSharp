@@ -20,7 +20,7 @@ public partial class AgentService
 
     public async Task<bool> UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> codeScripts, AgentCodeScriptUpdateOptions? options = null)
     {
-        if (string.IsNullOrWhiteSpace(agentId) || codeScripts.IsNullOrEmpty())
+        if (string.IsNullOrWhiteSpace(agentId) || codeScripts == null)
         {
             return false;
         }

@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Repositories.Options;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
@@ -59,9 +58,14 @@ public partial class MongoRepository
 
     public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
     {
-        if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
+        if (string.IsNullOrWhiteSpace(agentId) || scripts == null)
         {
             return false;
+        }
+
+        if (options?.IsUpsert == true && !scripts.Any())
+        {
+            return DeleteAgentCodeScripts(agentId);
         }
 
         var builder = Builders<AgentCodeScriptDocument>.Filter;
@@ -93,7 +97,7 @@ public partial class MongoRepository
         {
             var script = AgentCodeScriptDocument.ToMongoModel(x);
             script.AgentId = agentId;
-            script.Id = x.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+            script.Id = x.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString())!;
             script.CreatedTime = DateTime.UtcNow;
             script.UpdatedTime = DateTime.UtcNow;
             return script;
@@ -120,15 +124,19 @@ public partial class MongoRepository
                 new BsonArray(scriptPaths)
             }));
 
-            var filterDef = new BsonDocumentFilterDefinition<AgentCodeScriptDocument>(exprFilter);
+            var builder = Builders<AgentCodeScriptDocument>.Filter;
+            var filterDef = builder.And(
+                builder.Eq(x => x.AgentId, agentId),
+                new BsonDocumentFilterDefinition<AgentCodeScriptDocument>(exprFilter)
+            );
             deleted = _dc.AgentCodeScripts.DeleteMany(filterDef);
         }
         else
         {
-            deleted = _dc.AgentCodeScripts.DeleteMany(Builders<AgentCodeScriptDocument>.Filter.Empty);
+            deleted = _dc.AgentCodeScripts.DeleteMany(Builders<AgentCodeScriptDocument>.Filter.Eq(x => x.AgentId, agentId));
         }
 
-        return deleted.DeletedCount > 0;
+        return true;
     }
     #endregion
 }
