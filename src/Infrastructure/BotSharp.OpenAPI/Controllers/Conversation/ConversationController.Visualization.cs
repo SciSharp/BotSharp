@@ -12,24 +12,11 @@ public partial class ConversationController
         [FromRoute] string messageId,
         [FromQuery] ConversationChartDataRequest request)
     {
-        var chart = _services.GetServices<IBotSharpChartService>().FirstOrDefault(x => x.Provider == request?.ChartProvider);
+        var chart = _services.GetServices<IChartProcessor>().FirstOrDefault(x => x.Provider == request?.ChartProvider);
         if (chart == null) return null;
 
-        var result = await chart.GetConversationChartData(conversationId, messageId, request);
+        var result = await chart.GetConversationChartDataAsync(conversationId, messageId, request);
         return ConversationChartDataResponse.From(result);
-    }
-
-    [HttpPost("/conversation/{conversationId}/message/{messageId}/user/chart/code")]
-    public async Task<ConversationChartCodeResponse?> GetConversationChartCode(
-        [FromRoute] string conversationId,
-        [FromRoute] string messageId,
-        [FromBody] ConversationChartCodeRequest request)
-    {
-        var chart = _services.GetServices<IBotSharpChartService>().FirstOrDefault(x => x.Provider == request?.ChartProvider);
-        if (chart == null) return null;
-
-        var result = await chart.GetConversationChartCode(conversationId, messageId, request);
-        return ConversationChartCodeResponse.From(result);
     }
     #endregion
 

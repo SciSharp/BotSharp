@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Coding.Models;
 using Microsoft.Extensions.Logging;
 using Python.Runtime;
 using System.Threading;
@@ -35,6 +36,58 @@ public class PyCodeInterpreter : ICodeProcessor
         return InnerRunCode(codeScript, options);
     }
 
+    public async Task<CodeGenerationResult> GenerateCodeScriptAsync(string text, CodeGenerationOptions? options = null)
+    {
+        Agent? agent = null;
+
+        var agentId = options?.AgentId;
+        var templateName = options?.TemplateName;
+
+        var agentService = _services.GetRequiredService<IAgentService>();
+        if (!string.IsNullOrEmpty(agentId))
+        {
+            agent = await agentService.GetAgent(agentId);
+        }
+        
+        var instruction = string.Empty;
+        if (agent != null && !string.IsNullOrEmpty(templateName))
+        {
+            instruction = agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName))?.Content;
+        }
+
+        var innerAgent = new Agent
+        {
+            Id = agent?.Id ?? BuiltInAgentId.AIProgrammer,
+            Name = agent?.Name ?? "AI Programmer",
+            Instruction = instruction,
+            LlmConfig = new AgentLlmConfig
+            {
+                Provider = options?.Provider ?? "openai",
+                Model = options?.Model ?? "gpt-5-mini",
+                MaxOutputTokens = options?.MaxOutputTokens,
+                ReasoningEffortLevel = options?.ReasoningEffortLevel
+            },
+            TemplateDict = options?.Data ?? new()
+        };
+        
+        text = text.IfNullOrEmptyAs("Please follow the instruction to generate code script.")!;
+        var completion = CompletionProvider.GetChatCompletion(_services, provider: innerAgent.LlmConfig.Provider, model: innerAgent.LlmConfig.Model);
+        var response = await completion.GetChatCompletions(innerAgent, new List<RoleDialogModel>
+        {
+            new RoleDialogModel(AgentRole.User, text)
+            {
+                CurrentAgentId = innerAgent.Id
+            }
+        });
+
+        return new CodeGenerationResult
+        {
+            Content = response.Content,
+            Language = options?.Language ?? "python"
+        };
+    }
+
+    #region Private methods
     private CodeInterpretResponse InnerRunCode(string codeScript, CodeInterpretOptions? options = null)
     {
         try
@@ -125,4 +178,5 @@ public class PyCodeInterpreter : ICodeProcessor
             }
         }
     }
+    #endregion
 }
