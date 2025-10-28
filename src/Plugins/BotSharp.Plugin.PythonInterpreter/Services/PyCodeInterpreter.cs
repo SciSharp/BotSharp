@@ -82,6 +82,7 @@ public class PyCodeInterpreter : ICodeProcessor
 
         return new CodeGenerationResult
         {
+            Success = true,
             Content = response.Content,
             Language = options?.Language ?? "python"
         };

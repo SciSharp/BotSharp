@@ -3,37 +3,30 @@ namespace BotSharp.Abstraction.Coding.Options;
 public class CodeGenerationOptions : LlmConfigBase
 {
     /// <summary>
-    /// Agent id
+    /// Agent id to get instruction
     /// </summary>
+    [JsonPropertyName("agent_id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? AgentId { get; set; }
 
     /// <summary>
     /// Template (prompt) name
     /// </summary>
+    [JsonPropertyName("template_name")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? TemplateName { get; set; }
-
-    /// <summary>
-    /// User description to generate code script
-    /// </summary>
-    public string? Description { get; set; }
 
     /// <summary>
     /// The programming language
     /// </summary>
+    [JsonPropertyName("language")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Language { get; set; } = "python";
-
-    /// <summary>
-    /// Code script name (e.g., demo.py)
-    /// </summary>
-    public string? CodeScriptName { get; set; }
-
-    /// <summary>
-    /// Code script type (i.e., src, test)
-    /// </summary>
-    public string? CodeScriptType { get; set; } = AgentCodeScriptType.Src;
 
     /// <summary>
     /// Data that can be used to fill in the prompt
     /// </summary>
+    [JsonPropertyName("data")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, object>? Data { get; set; }
 }

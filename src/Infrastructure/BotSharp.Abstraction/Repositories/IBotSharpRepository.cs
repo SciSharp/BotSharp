@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Knowledges.Filters;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
@@ -81,7 +82,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     bool DeleteAgents()
         => throw new NotImplementedException();
-    bool DeleteAgent(string agentId)
+    bool DeleteAgent(string agentId, AgentDeleteOptions? options = null)
         => throw new NotImplementedException();
     List<string> GetAgentResponses(string agentId, string prefix, string intent)
         => throw new NotImplementedException();

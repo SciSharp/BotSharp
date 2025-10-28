@@ -144,9 +144,9 @@ public partial class AgentController : ControllerBase
     }
 
     [HttpDelete("/agent/{agentId}")]
-    public async Task<bool> DeleteAgent([FromRoute] string agentId)
+    public async Task<bool> DeleteAgent([FromRoute] string agentId, [FromBody] AgentDeleteRequest request)
     {
-        return await _agentService.DeleteAgent(agentId);
+        return await _agentService.DeleteAgent(agentId, request?.Options);
     }
 
     [HttpGet("/agent/options")]

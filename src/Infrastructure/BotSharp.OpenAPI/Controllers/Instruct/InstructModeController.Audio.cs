@@ -22,7 +22,7 @@ public partial class InstructModeController
             var audio = request.File;
             if (audio == null)
             {
-                return new SpeechToTextViewModel { Message = "Error! Cannot find a valid audio file!" };
+                return new SpeechToTextViewModel { ErrorMsg = "Error! Cannot find a valid audio file!" };
             }
             var content = await fileInstruct.SpeechToText(audio, request.Text, new InstructOptions
             {
@@ -31,6 +31,8 @@ public partial class InstructModeController
                 AgentId = request.AgentId,
                 TemplateName = request.TemplateName
             });
+
+            viewModel.Success = true;
             viewModel.Content = content;
             return viewModel;
         }
@@ -38,7 +40,7 @@ public partial class InstructModeController
         {
             var error = $"Error in speech to text. {ex.Message}";
             _logger.LogError(ex, error);
-            viewModel.Message = error;
+            viewModel.ErrorMsg = error;
             return viewModel;
         }
     }
@@ -69,6 +71,7 @@ public partial class InstructModeController
                 TemplateName = request?.TemplateName
             });
 
+            viewModel.Success = true;
             viewModel.Content = content;
             return viewModel;
         }
@@ -76,7 +79,7 @@ public partial class InstructModeController
         {
             var error = $"Error in speech-to-text. {ex.Message}";
             _logger.LogError(ex, error);
-            viewModel.Message = error;
+            viewModel.ErrorMsg = error;
             return viewModel;
         }
     }

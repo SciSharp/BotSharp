@@ -21,7 +21,7 @@ public partial class InstructModeController
         {
             if (request.Files.IsNullOrEmpty())
             {
-                return new ImageGenerationViewModel { Message = "No image found" };
+                return new ImageGenerationViewModel { ErrorMsg = "No image found" };
             }
 
             var message = await fileInstruct.ComposeImages(request.Text, request.Files, new InstructOptions
@@ -32,6 +32,8 @@ public partial class InstructModeController
                 TemplateName = request.TemplateName,
                 ImageConvertProvider = request.ImageConvertProvider
             });
+
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -40,7 +42,7 @@ public partial class InstructModeController
         {
             var error = $"Error in image composition. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -64,6 +66,8 @@ public partial class InstructModeController
                 AgentId = request.AgentId,
                 TemplateName = request.TemplateName
             });
+
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -72,7 +76,7 @@ public partial class InstructModeController
         {
             var error = $"Error in image generation. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -90,7 +94,7 @@ public partial class InstructModeController
         {
             if (request.File == null)
             {
-                return new ImageGenerationViewModel { Message = "Error! Cannot find an image!" };
+                return new ImageGenerationViewModel { ErrorMsg = "Error! Cannot find an image!" };
             }
 
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
@@ -102,6 +106,7 @@ public partial class InstructModeController
                 ImageConvertProvider = request.ImageConvertProvider
             });
 
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -110,7 +115,7 @@ public partial class InstructModeController
         {
             var error = $"Error in image variation. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -140,6 +145,7 @@ public partial class InstructModeController
                 ImageConvertProvider = request?.ImageConvertProvider
             });
 
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -148,7 +154,7 @@ public partial class InstructModeController
         {
             var error = $"Error in image variation upload. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -167,8 +173,9 @@ public partial class InstructModeController
         {
             if (request.File == null)
             {
-                return new ImageGenerationViewModel { Message = "Error! Cannot find a valid image file!" };
+                return new ImageGenerationViewModel { ErrorMsg = "Error! Cannot find a valid image file!" };
             }
+
             var message = await fileInstruct.EditImage(request.Text, request.File, new InstructOptions
             {
                 Provider = request.Provider,
@@ -177,6 +184,8 @@ public partial class InstructModeController
                 TemplateName = request.TemplateName,
                 ImageConvertProvider = request.ImageConvertProvider
             });
+
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -185,7 +194,7 @@ public partial class InstructModeController
         {
             var error = $"Error in image edit. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -216,6 +225,7 @@ public partial class InstructModeController
                 ImageConvertProvider = request?.ImageConvertProvider
             });
 
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -224,7 +234,7 @@ public partial class InstructModeController
         {
             var error = $"Error in image edit upload. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -245,8 +255,9 @@ public partial class InstructModeController
             var mask = request.Mask;
             if (image == null || mask == null)
             {
-                return new ImageGenerationViewModel { Message = "Error! Cannot find a valid image or mask!" };
+                return new ImageGenerationViewModel { ErrorMsg = "Error! Cannot find a valid image or mask!" };
             }
+
             var message = await fileInstruct.EditImage(request.Text, image, mask, new InstructOptions
             {
                 Provider = request.Provider,
@@ -255,6 +266,8 @@ public partial class InstructModeController
                 TemplateName = request.TemplateName,
                 ImageConvertProvider = request.ImageConvertProvider
             });
+
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -263,7 +276,7 @@ public partial class InstructModeController
         {
             var error = $"Error in image mask edit. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -302,6 +315,7 @@ public partial class InstructModeController
                     ImageConvertProvider = request?.ImageConvertProvider
                 });
 
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -310,7 +324,7 @@ public partial class InstructModeController
         {
             var error = $"Error in image mask edit upload. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -366,6 +380,7 @@ public partial class InstructModeController
                 AgentId = request?.AgentId,
                 TemplateName = request?.TemplateName
             });
+            viewModel.Success = true;
             viewModel.Content = content;
             return viewModel;
         }
@@ -373,7 +388,7 @@ public partial class InstructModeController
         {
             var error = $"Error in reading multi-modal files. {ex.Message}";
             _logger.LogError(ex, error);
-            viewModel.Message = error;
+            viewModel.ErrorMsg = error;
             return viewModel;
         }
     }

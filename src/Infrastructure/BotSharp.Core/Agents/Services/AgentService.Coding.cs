@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Agents.Options;
+using BotSharp.Abstraction.Coding;
+using BotSharp.Abstraction.Coding.Options;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -62,5 +64,47 @@ public partial class AgentService
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var deleted = db.DeleteAgentCodeScripts(agentId, codeScripts);
         return await Task.FromResult(deleted);
+    }
+
+    public async Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeProcessOptions? options = null)
+    {
+        if (string.IsNullOrWhiteSpace(agentId))
+        {
+            return new CodeGenerationResult
+            {
+                ErrorMsg = "Agent id cannot be empty."
+            };
+        }
+
+        var processor = options?.Processor ?? "botsharp-py-interpreter";
+        var codeProcessor = _services.GetServices<ICodeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(processor));
+        if (codeProcessor == null)
+        {
+            var errorMsg = $"Unable to find code processor {processor}.";
+            _logger.LogWarning(errorMsg);
+            return new CodeGenerationResult
+            {
+                ErrorMsg = errorMsg
+            };
+        }
+
+        var result = await codeProcessor.GenerateCodeScriptAsync(text, options);
+        if (result.Success && options?.SaveToDb == true)
+        {
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var scripts = new List<AgentCodeScript>
+            {
+                new AgentCodeScript
+                {
+                    Name = options?.ScriptName ?? $"{Guid.NewGuid()}.py",
+                    Content = result.Content,
+                    ScriptType = options?.ScriptType ?? AgentCodeScriptType.Src
+                }
+            };
+            var saved = db.UpdateAgentCodeScripts(agentId, scripts, new() { IsUpsert = true });
+            result.Success = saved;
+        }
+
+        return result;
     }
 }

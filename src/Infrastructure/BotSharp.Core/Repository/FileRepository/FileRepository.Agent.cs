@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Routing.Models;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -841,7 +842,7 @@ namespace BotSharp.Core.Repository
             return false;
         }
 
-        public bool DeleteAgent(string agentId)
+        public bool DeleteAgent(string agentId, AgentDeleteOptions? options = null)
         {
             if (string.IsNullOrEmpty(agentId))
             {
@@ -856,51 +857,57 @@ namespace BotSharp.Core.Repository
                     return false;
                 }
 
-                // Delete user agents
-                var usersDir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER);
-                if (Directory.Exists(usersDir))
+                if (options == null || options.DeleteUserAgents)
                 {
-                    foreach (var userDir in Directory.EnumerateDirectories(usersDir))
+                    // Delete user agents
+                    var usersDir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER);
+                    if (Directory.Exists(usersDir))
                     {
-                        var userAgentFile = Directory.GetFiles(userDir).FirstOrDefault(x => Path.GetFileName(x) == USER_AGENT_FILE);
-                        if (string.IsNullOrEmpty(userAgentFile))
+                        foreach (var userDir in Directory.EnumerateDirectories(usersDir))
                         {
-                            continue;
-                        }
+                            var userAgentFile = Directory.GetFiles(userDir).FirstOrDefault(x => Path.GetFileName(x) == USER_AGENT_FILE);
+                            if (string.IsNullOrEmpty(userAgentFile))
+                            {
+                                continue;
+                            }
 
-                        var text = File.ReadAllText(userAgentFile);
-                        var userAgents = JsonSerializer.Deserialize<List<UserAgent>>(text, _options);
-                        if (userAgents.IsNullOrEmpty())
-                        {
-                            continue;
-                        }
+                            var text = File.ReadAllText(userAgentFile);
+                            var userAgents = JsonSerializer.Deserialize<List<UserAgent>>(text, _options);
+                            if (userAgents.IsNullOrEmpty())
+                            {
+                                continue;
+                            }
 
-                        userAgents = userAgents?.Where(x => x.AgentId != agentId)?.ToList() ?? [];
-                        File.WriteAllText(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
+                            userAgents = userAgents?.Where(x => x.AgentId != agentId)?.ToList() ?? [];
+                            File.WriteAllText(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
+                        }
                     }
                 }
-
-                // Delete role agents
-                var rolesDir = Path.Combine(_dbSettings.FileRepository, ROLES_FOLDER);
-                if (Directory.Exists(rolesDir))
+                
+                if (options == null || options.DeleteRoleAgents)
                 {
-                    foreach (var roleDir in Directory.EnumerateDirectories(rolesDir))
+                    // Delete role agents
+                    var rolesDir = Path.Combine(_dbSettings.FileRepository, ROLES_FOLDER);
+                    if (Directory.Exists(rolesDir))
                     {
-                        var roleAgentFile = Directory.EnumerateFiles(roleDir).FirstOrDefault(x => Path.GetFileName(x) == ROLE_AGENT_FILE);
-                        if (string.IsNullOrEmpty(roleAgentFile))
+                        foreach (var roleDir in Directory.EnumerateDirectories(rolesDir))
                         {
-                            continue;
-                        }
+                            var roleAgentFile = Directory.GetFiles(roleDir).FirstOrDefault(x => Path.GetFileName(x) == ROLE_AGENT_FILE);
+                            if (string.IsNullOrEmpty(roleAgentFile))
+                            {
+                                continue;
+                            }
 
-                        var text = File.ReadAllText(roleAgentFile);
-                        var roleAgents = JsonSerializer.Deserialize<List<RoleAgent>>(text, _options);
-                        if (roleAgents.IsNullOrEmpty())
-                        {
-                            continue;
-                        }
+                            var text = File.ReadAllText(roleAgentFile);
+                            var roleAgents = JsonSerializer.Deserialize<List<RoleAgent>>(text, _options);
+                            if (roleAgents.IsNullOrEmpty())
+                            {
+                                continue;
+                            }
 
-                        roleAgents = roleAgents?.Where(x => x.AgentId != agentId)?.ToList() ?? [];
-                        File.WriteAllText(roleAgentFile, JsonSerializer.Serialize(roleAgents, _options));
+                            roleAgents = roleAgents?.Where(x => x.AgentId != agentId)?.ToList() ?? [];
+                            File.WriteAllText(roleAgentFile, JsonSerializer.Serialize(roleAgents, _options));
+                        }
                     }
                 }
 

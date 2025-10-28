@@ -26,6 +26,8 @@ public partial class InstructModeController
                 TemplateName = request.TemplateName,
                 ImageConvertProvider = request.ImageConvertProvider
             });
+
+            viewModel.Success = true;
             viewModel.Content = content;
             return viewModel;
         }
@@ -33,7 +35,7 @@ public partial class InstructModeController
         {
             var error = $"Error in pdf completion. {ex.Message}";
             _logger.LogError(ex, error);
-            viewModel.Message = error;
+            viewModel.ErrorMsg = error;
             return viewModel;
         }
     }
@@ -62,6 +64,8 @@ public partial class InstructModeController
                 TemplateName = request?.TemplateName,
                 ImageConvertProvider = request?.ImageConvertProvider
             });
+
+            viewModel.Success = true;
             viewModel.Content = content;
             return viewModel;
         }
@@ -69,7 +73,7 @@ public partial class InstructModeController
         {
             var error = $"Error in pdf completion. {ex.Message}";
             _logger.LogError(ex, error);
-            viewModel.Message = error;
+            viewModel.ErrorMsg = error;
             return viewModel;
         }
     }

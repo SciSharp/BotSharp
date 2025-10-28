@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Coding.Models;
 using BotSharp.Abstraction.Infrastructures.Attributes;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -45,5 +46,18 @@ public partial class AgentController
         var scripts = request?.CodeScripts?.Select(x => AgentCodeScriptViewModel.To(x))?.ToList();
         var updated = await _agentService.DeleteAgentCodeScripts(agentId, scripts);
         return updated;
+    }
+
+    [HttpPost("/agent/{agentId}/code-script/generate")]
+    public async Task<CodeGenerationResult> GenerateAgentCodeScript([FromRoute] string agentId, [FromBody] AgentCodeScriptGenerationRequest request)
+    {
+        request ??= new();
+        var states = request.Options?.Data?.ToList();
+        var state = _services.GetRequiredService<IConversationStateService>();
+        states?.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+        state.SetState("programming_language", request.Options?.Language, source: StateSource.External);
+
+        var result = await _agentService.GenerateCodeScript(agentId, request.Text, request?.Options);
+        return result;
     }
 }
