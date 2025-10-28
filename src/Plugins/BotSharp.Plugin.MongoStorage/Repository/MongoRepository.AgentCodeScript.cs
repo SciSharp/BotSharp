@@ -58,14 +58,9 @@ public partial class MongoRepository
 
     public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
     {
-        if (string.IsNullOrWhiteSpace(agentId) || scripts == null)
+        if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
         {
             return false;
-        }
-
-        if (options?.IsUpsert == true && !scripts.Any())
-        {
-            return DeleteAgentCodeScripts(agentId);
         }
 
         var builder = Builders<AgentCodeScriptDocument>.Filter;
@@ -115,6 +110,8 @@ public partial class MongoRepository
         }
 
         DeleteResult deleted;
+        var builder = Builders<AgentCodeScriptDocument>.Filter;
+
         if (scripts != null)
         {
             var scriptPaths = scripts.Select(x => x.CodePath);
@@ -123,8 +120,7 @@ public partial class MongoRepository
                 new BsonDocument("$concat", new BsonArray { "$ScriptType", "/", "$Name" }),
                 new BsonArray(scriptPaths)
             }));
-
-            var builder = Builders<AgentCodeScriptDocument>.Filter;
+            
             var filterDef = builder.And(
                 builder.Eq(x => x.AgentId, agentId),
                 new BsonDocumentFilterDefinition<AgentCodeScriptDocument>(exprFilter)
@@ -133,10 +129,10 @@ public partial class MongoRepository
         }
         else
         {
-            deleted = _dc.AgentCodeScripts.DeleteMany(Builders<AgentCodeScriptDocument>.Filter.Eq(x => x.AgentId, agentId));
+            deleted = _dc.AgentCodeScripts.DeleteMany(builder.Eq(x => x.AgentId, agentId));
         }
 
-        return true;
+        return deleted.DeletedCount > 0;
     }
     #endregion
 }

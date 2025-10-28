@@ -20,12 +20,20 @@ public partial class AgentService
 
     public async Task<bool> UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> codeScripts, AgentCodeScriptUpdateOptions? options = null)
     {
-        if (string.IsNullOrWhiteSpace(agentId) || codeScripts == null)
+        if (string.IsNullOrWhiteSpace(agentId))
         {
             return false;
         }
 
+        codeScripts ??= new();
         var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        if (options?.DeleteIfNotIncluded == true && codeScripts.IsNullOrEmpty())
+        {
+            // Delete all code scripts in this agent
+            db.DeleteAgentCodeScripts(agentId);
+            return true;
+        }
 
         var toDeleteScripts = new List<AgentCodeScript>();
         if (options?.DeleteIfNotIncluded == true)
@@ -42,5 +50,17 @@ public partial class AgentService
         }
 
         return updateResult;
+    }
+
+    public async Task<bool> DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? codeScripts = null)
+    {
+        if (string.IsNullOrWhiteSpace(agentId))
+        {
+            return false;
+        }
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var deleted = db.DeleteAgentCodeScripts(agentId, codeScripts);
+        return await Task.FromResult(deleted);
     }
 }

@@ -163,12 +163,12 @@ public partial class AgentController : ControllerBase
     }
  
     [HttpGet("/agent/labels")]
-    public async Task<IEnumerable<string>> GetAgentLabels()
+    public async Task<IEnumerable<string>> GetAgentLabels([FromQuery] int? size = null)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agents = await agentService.GetAgents(new AgentFilter
         {
-            Pager = new Pagination { Size = 1000 }
+            Pager = new Pagination { Size = size ?? 1000 }
         });
 
         var labels = agents.Items?.SelectMany(x => x.Labels)

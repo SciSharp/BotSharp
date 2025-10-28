@@ -31,4 +31,19 @@ public partial class AgentController
         var updated = await _agentService.UpdateAgentCodeScripts(agentId, scripts, request?.Options);
         return updated;
     }
+
+    /// <summary>
+    /// Delete agent code scripts
+    /// </summary>
+    /// <param name="agentId"></param>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [BotSharpAuth]
+    [HttpDelete("/agent/{agentId}/code-scripts")]
+    public async Task<bool> DeleteAgentCodeScripts([FromRoute] string agentId, [FromBody] AgentCodeScriptDeleteModel request)
+    {
+        var scripts = request?.CodeScripts?.Select(x => AgentCodeScriptViewModel.To(x))?.ToList();
+        var updated = await _agentService.DeleteAgentCodeScripts(agentId, scripts);
+        return updated;
+    }
 }

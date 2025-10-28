@@ -75,4 +75,7 @@ public interface IAgentService
 
     Task<bool> UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> codeScripts, AgentCodeScriptUpdateOptions? options = null)
         => Task.FromResult(false);
+
+    Task<bool> DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? codeScripts = null)
+        => Task.FromResult(false);
 }

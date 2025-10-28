@@ -14,3 +14,10 @@ public class AgentCodeScriptUpdateModel
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AgentCodeScriptUpdateOptions? Options { get; set; }
 }
+
+public class AgentCodeScriptDeleteModel
+{
+    [JsonPropertyName("code_scripts")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<AgentCodeScriptViewModel>? CodeScripts { get; set; }
+}

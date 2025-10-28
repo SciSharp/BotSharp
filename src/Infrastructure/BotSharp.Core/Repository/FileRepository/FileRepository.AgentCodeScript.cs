@@ -75,14 +75,9 @@ public partial class FileRepository
 
     public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
     {
-        if (string.IsNullOrWhiteSpace(agentId) || scripts == null)
+        if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
         {
             return false;
-        }
-
-        if (options?.IsUpsert == true && !scripts.Any())
-        {
-            return DeleteAgentCodeScripts(agentId);
         }
 
         foreach (var script in scripts)
@@ -129,17 +124,20 @@ public partial class FileRepository
         }
 
         var dir = BuildAgentCodeScriptDir(agentId);
-        if (!Directory.Exists(dir))
-        {
-            return true;
-        }
-
         if (scripts == null)
         {
-            Directory.Delete(dir, true);
+            if (Directory.Exists(dir))
+            {
+                Directory.Delete(dir, true);
+            }
             return true;
         }
         else if (!scripts.Any())
+        {
+            return false;
+        }
+
+        if (!Directory.Exists(dir))
         {
             return false;
         }
