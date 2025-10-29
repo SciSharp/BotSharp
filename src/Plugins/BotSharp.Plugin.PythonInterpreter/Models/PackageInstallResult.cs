@@ -1,7 +1,8 @@
+using BotSharp.Abstraction.Models;
+
 namespace BotSharp.Plugin.PythonInterpreter.Models;
 
-internal class PackageInstallResult
+internal class PackageInstallResult : ResponseBase
 {
-    internal bool Success { get; set; }
-    internal string ErrorMsg { get; set; }
+    
 }

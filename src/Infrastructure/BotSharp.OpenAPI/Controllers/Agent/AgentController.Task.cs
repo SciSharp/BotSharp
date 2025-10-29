@@ -1,20 +1,7 @@
-using BotSharp.Abstraction.Tasks;
-
 namespace BotSharp.OpenAPI.Controllers;
 
-[Authorize]
-[ApiController]
-public class AgentTaskController : ControllerBase
+public partial class AgentController
 {
-    private readonly IAgentTaskService _agentTaskService;
-    private readonly IServiceProvider _services;
-
-    public AgentTaskController(IAgentTaskService agentTaskService, IServiceProvider services)
-    {
-        _agentTaskService = agentTaskService;
-        _services = services;
-    }
-
     /// <summary>
     /// Get an agent task
     /// </summary>
@@ -25,7 +12,10 @@ public class AgentTaskController : ControllerBase
     public async Task<AgentTaskViewModel> GetAgentTask([FromRoute] string agentId, [FromRoute] string taskId)
     {
         var task = await _agentTaskService.GetTask(agentId, taskId);
-        if (task == null) return null;
+        if (task == null)
+        {
+            return null;
+        }
 
         return AgentTaskViewModel.From(task);
     }

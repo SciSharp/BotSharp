@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Agents.Options;
+using BotSharp.Abstraction.Coding.Models;
+using BotSharp.Abstraction.Coding.Options;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
@@ -51,7 +53,7 @@ public interface IAgentService
     /// <returns>Original agent information</returns>
     Task<Agent> GetAgent(string id);
     
-    Task<bool> DeleteAgent(string id);
+    Task<bool> DeleteAgent(string id, AgentDeleteOptions? options = null);
     Task UpdateAgent(Agent agent, AgentField updateField);
 
     /// <summary>
@@ -75,4 +77,10 @@ public interface IAgentService
 
     Task<bool> UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> codeScripts, AgentCodeScriptUpdateOptions? options = null)
         => Task.FromResult(false);
+
+    Task<bool> DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? codeScripts = null)
+        => Task.FromResult(false);
+
+    Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeProcessOptions? options = null)
+        => Task.FromResult(new CodeGenerationResult());
 }

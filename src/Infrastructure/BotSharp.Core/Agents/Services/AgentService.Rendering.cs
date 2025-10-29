@@ -155,7 +155,7 @@ public partial class AgentService
         }
 
         var render = _services.GetRequiredService<ITemplateRender>();
-        var copy = new Dictionary<string, object>(dict);
+        var copy = dict != null ? new Dictionary<string, object>(dict) : [];
         var result = render.Render(visibilityExpression, new Dictionary<string, object>
         {
             { "states", copy }

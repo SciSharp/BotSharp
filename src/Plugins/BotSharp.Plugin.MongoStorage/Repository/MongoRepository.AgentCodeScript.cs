@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Repositories.Options;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
@@ -66,20 +65,31 @@ public partial class MongoRepository
 
         var builder = Builders<AgentCodeScriptDocument>.Filter;
         var ops = scripts.Where(x => !string.IsNullOrWhiteSpace(x.Name))
-                         .Select(x => new UpdateOneModel<AgentCodeScriptDocument>(
-                                builder.And(new List<FilterDefinition<AgentCodeScriptDocument>>
-                                {
-                                    builder.Eq(y => y.AgentId, agentId),
-                                    builder.Eq(y => y.Name, x.Name),
-                                    builder.Eq(y => y.ScriptType, x.ScriptType)
-                                }),
-                                Builders<AgentCodeScriptDocument>.Update.Set(y => y.Content, x.Content)
-                                                                        .Set(x => x.UpdatedTime, DateTime.UtcNow)
-                         ) { IsUpsert = options?.IsUpsert ?? false })
+                         .Select(x =>
+                         {
+                             var updateBuilder = Builders<AgentCodeScriptDocument>.Update
+                                 .Set(y => y.Content, x.Content)
+                                 .Set(y => y.UpdatedTime, DateTime.UtcNow)
+                                 .SetOnInsert(y => y.Id, Guid.NewGuid().ToString())
+                                 .SetOnInsert(y => y.AgentId, agentId)
+                                 .SetOnInsert(y => y.Name, x.Name)
+                                 .SetOnInsert(y => y.ScriptType, x.ScriptType)
+                                 .SetOnInsert(y => y.CreatedTime, DateTime.UtcNow);
+
+                             return new UpdateOneModel<AgentCodeScriptDocument>(
+                                 builder.And(new List<FilterDefinition<AgentCodeScriptDocument>>
+                                 {
+                                     builder.Eq(y => y.AgentId, agentId),
+                                     builder.Eq(y => y.Name, x.Name),
+                                     builder.Eq(y => y.ScriptType, x.ScriptType)
+                                 }),
+                                 updateBuilder
+                             ) { IsUpsert = options?.IsUpsert ?? false };
+                         })
                          .ToList();
 
         var result = _dc.AgentCodeScripts.BulkWrite(ops, new BulkWriteOptions { IsOrdered = false });
-        return result.ModifiedCount > 0 || result.MatchedCount > 0;
+        return true;
     }
 
     public bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
@@ -93,7 +103,7 @@ public partial class MongoRepository
         {
             var script = AgentCodeScriptDocument.ToMongoModel(x);
             script.AgentId = agentId;
-            script.Id = x.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+            script.Id = x.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString())!;
             script.CreatedTime = DateTime.UtcNow;
             script.UpdatedTime = DateTime.UtcNow;
             return script;
@@ -111,6 +121,8 @@ public partial class MongoRepository
         }
 
         DeleteResult deleted;
+        var builder = Builders<AgentCodeScriptDocument>.Filter;
+
         if (scripts != null)
         {
             var scriptPaths = scripts.Select(x => x.CodePath);
@@ -119,13 +131,16 @@ public partial class MongoRepository
                 new BsonDocument("$concat", new BsonArray { "$ScriptType", "/", "$Name" }),
                 new BsonArray(scriptPaths)
             }));
-
-            var filterDef = new BsonDocumentFilterDefinition<AgentCodeScriptDocument>(exprFilter);
+            
+            var filterDef = builder.And(
+                builder.Eq(x => x.AgentId, agentId),
+                new BsonDocumentFilterDefinition<AgentCodeScriptDocument>(exprFilter)
+            );
             deleted = _dc.AgentCodeScripts.DeleteMany(filterDef);
         }
         else
         {
-            deleted = _dc.AgentCodeScripts.DeleteMany(Builders<AgentCodeScriptDocument>.Filter.Empty);
+            deleted = _dc.AgentCodeScripts.DeleteMany(builder.Eq(x => x.AgentId, agentId));
         }
 
         return deleted.DeletedCount > 0;

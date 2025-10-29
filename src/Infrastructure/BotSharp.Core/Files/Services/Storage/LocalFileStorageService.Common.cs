@@ -40,7 +40,10 @@ public partial class LocalFileStorageService
 
     public bool SaveFileStreamToPath(string filePath, Stream stream)
     {
-        if (string.IsNullOrEmpty(filePath)) return false;
+        if (string.IsNullOrEmpty(filePath))
+        {
+            return false;
+        }
 
         using (var fileStream = new FileStream(filePath, FileMode.Create))
         {

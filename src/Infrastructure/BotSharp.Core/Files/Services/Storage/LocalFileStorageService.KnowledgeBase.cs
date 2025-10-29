@@ -46,7 +46,10 @@ public partial class LocalFileStorageService
         }
 
         var dir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
-        if (!ExistDirectory(dir)) return false;
+        if (!ExistDirectory(dir))
+        {
+            return false;
+        }
 
         if (fileId == null)
         {

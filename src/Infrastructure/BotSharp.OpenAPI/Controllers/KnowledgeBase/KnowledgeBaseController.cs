@@ -68,14 +68,15 @@ public class KnowledgeBaseController : ControllerBase
     {
         var options = new VectorSearchOptions
         {
-            Fields = request.Fields,
-            FilterGroups = request.FilterGroups,
-            Limit = request.Limit ?? 5,
-            Confidence = request.Confidence ?? 0.5f,
-            WithVector = request.WithVector
+            Fields = request?.Fields,
+            FilterGroups = request?.FilterGroups,
+            Limit = request?.Limit ?? 5,
+            Confidence = request?.Confidence ?? 0.5f,
+            WithVector = request?.WithVector ?? false,
+            SearchParam = request?.SearchParam
         };
 
-        var results = await _knowledgeService.SearchVectorKnowledge(request.Text, collection, options);
+        var results = await _knowledgeService.SearchVectorKnowledge(request?.Text ?? string.Empty, collection, options);
         return results.Select(x => VectorKnowledgeViewModel.From(x)).ToList();
     }
 

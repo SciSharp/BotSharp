@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Loggers.Models;
-using Microsoft.IdentityModel.Logging;
 using System.IO;
 
 namespace BotSharp.Core.Repository
@@ -9,7 +8,10 @@ namespace BotSharp.Core.Repository
         #region LLM Completion Log
         public void SaveLlmCompletionLog(LlmCompletionLog log)
         {
-            if (log == null) return;
+            if (log == null)
+            {
+                return;
+            }
 
             log.ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
             log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
@@ -36,13 +38,19 @@ namespace BotSharp.Core.Repository
         #region Conversation Content Log
         public void SaveConversationContentLog(ContentLogOutputModel log)
         {
-            if (log == null) return;
+            if (log == null)
+            {
+                return;
+            }
 
             log.ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
             log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
 
             var convDir = FindConversationDirectory(log.ConversationId);
-            if (string.IsNullOrEmpty(convDir)) return;
+            if (string.IsNullOrEmpty(convDir))
+            {
+                return;
+            }
 
             var logDir = Path.Combine(convDir, "content_log");
             if (!Directory.Exists(logDir))
@@ -57,20 +65,32 @@ namespace BotSharp.Core.Repository
 
         public DateTimePagination<ContentLogOutputModel> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
         {
-            if (string.IsNullOrEmpty(conversationId)) return new();
+            if (string.IsNullOrEmpty(conversationId))
+            {
+                return new();
+            }
 
             var convDir = FindConversationDirectory(conversationId);
-            if (string.IsNullOrEmpty(convDir)) return new();
+            if (string.IsNullOrEmpty(convDir))
+            {
+                return new();
+            }
 
             var logDir = Path.Combine(convDir, "content_log");
-            if (!Directory.Exists(logDir)) return new();
+            if (!Directory.Exists(logDir))
+            {
+                return new();
+            }
 
             var logs = new List<ContentLogOutputModel>();
-            foreach (var file in Directory.GetFiles(logDir))
+            foreach (var file in Directory.EnumerateFiles(logDir))
             {
                 var text = File.ReadAllText(file);
                 var log = JsonSerializer.Deserialize<ContentLogOutputModel>(text);
-                if (log == null || log.CreatedTime >= filter.StartTime) continue;
+                if (log == null || log.CreatedTime >= filter.StartTime)
+                {
+                    continue;
+                }
 
                 logs.Add(log);
             }
@@ -89,13 +109,19 @@ namespace BotSharp.Core.Repository
         #region Conversation State Log
         public void SaveConversationStateLog(ConversationStateLogModel log)
         {
-            if (log == null) return;
+            if (log == null)
+            {
+                return;
+            }
 
             log.ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
             log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
 
             var convDir = FindConversationDirectory(log.ConversationId);
-            if (string.IsNullOrEmpty(convDir)) return;
+            if (string.IsNullOrEmpty(convDir))
+            {
+                return;
+            }
 
             var logDir = Path.Combine(convDir, "state_log");
             if (!Directory.Exists(logDir))
@@ -110,20 +136,32 @@ namespace BotSharp.Core.Repository
 
         public DateTimePagination<ConversationStateLogModel> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
         {
-            if (string.IsNullOrEmpty(conversationId)) return new();
+            if (string.IsNullOrEmpty(conversationId))
+            {
+                return new();
+            }
 
             var convDir = FindConversationDirectory(conversationId);
-            if (string.IsNullOrEmpty(convDir)) return new();
+            if (string.IsNullOrEmpty(convDir))
+            {
+                return new();
+            }
 
             var logDir = Path.Combine(convDir, "state_log");
-            if (!Directory.Exists(logDir)) return new();
+            if (!Directory.Exists(logDir))
+            {
+                return new();
+            }
 
             var logs = new List<ConversationStateLogModel>();
-            foreach (var file in Directory.GetFiles(logDir))
+            foreach (var file in Directory.EnumerateFiles(logDir))
             {
                 var text = File.ReadAllText(file);
                 var log = JsonSerializer.Deserialize<ConversationStateLogModel>(text);
-                if (log == null || log.CreatedTime >= filter.StartTime) continue;
+                if (log == null || log.CreatedTime >= filter.StartTime)
+                {
+                    continue;
+                }
 
                 logs.Add(log);
             }
@@ -142,7 +180,10 @@ namespace BotSharp.Core.Repository
         #region Instruction Log
         public bool SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
         {
-            if (logs.IsNullOrEmpty()) return false;
+            if (logs.IsNullOrEmpty())
+            {
+                return false;
+            }
 
             var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
             if (!Directory.Exists(baseDir))
@@ -174,12 +215,14 @@ namespace BotSharp.Core.Repository
             }
 
             var logs = new List<InstructionLogModel>();
-            var files = Directory.GetFiles(baseDir);
-            foreach (var file in files)
+            foreach (var file in Directory.EnumerateFiles(baseDir))
             {
                 var json = File.ReadAllText(file);
                 var log = JsonSerializer.Deserialize<InstructionLogModel>(json, _options);
-                if (log == null) continue;
+                if (log == null)
+                {
+                    continue;
+                }
 
                 var matched = true;
                 if (!filter.AgentIds.IsNullOrEmpty())
@@ -223,7 +266,10 @@ namespace BotSharp.Core.Repository
                     {
                         foreach (var pair in filter.States)
                         {
-                            if (pair == null || string.IsNullOrWhiteSpace(pair.Key)) continue;
+                            if (pair == null || string.IsNullOrWhiteSpace(pair.Key))
+                            {
+                                continue;
+                            }
 
                             var components = pair.Key.Split(".").ToList();
                             var primaryKey = components[0];
@@ -266,12 +312,18 @@ namespace BotSharp.Core.Repository
                                 matched = false;
                             }
 
-                            if (!matched) break;
+                            if (!matched)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
 
-                if (!matched) continue;
+                if (!matched)
+                {
+                    continue;
+                }
 
                 log.Id = Path.GetFileNameWithoutExtension(file);
                 logs.Add(log);
@@ -306,12 +358,14 @@ namespace BotSharp.Core.Repository
             }
 
             var count = 0;
-            var files = Directory.GetFiles(baseDir);
-            foreach (var file in files)
+            foreach (var file in Directory.EnumerateFiles(baseDir))
             {
                 var json = File.ReadAllText(file);
                 var log = JsonSerializer.Deserialize<InstructionLogModel>(json, _options);
-                if (log == null) continue;
+                if (log == null)
+                {
+                    continue;
+                }
 
                 if (log == null
                     || log.InnerStates.IsNullOrEmpty()
@@ -340,11 +394,7 @@ namespace BotSharp.Core.Repository
         #region Private methods
         private int GetNextLogIndex(string logDir, string id)
         {
-            var files = Directory.GetFiles(logDir);
-            if (files.IsNullOrEmpty())
-                return 0;
-
-            var logIndexes = files.Where(file =>
+            var logIndexes = Directory.EnumerateFiles(logDir).Where(file =>
             {
                 var fileName = ParseFileNameByPath(file);
                 return fileName[0].IsEqualTo(id);

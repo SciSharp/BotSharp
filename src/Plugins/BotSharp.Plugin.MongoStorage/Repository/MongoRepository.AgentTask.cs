@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Tasks.Models;
-using MongoDB.Driver;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -67,10 +66,16 @@ public partial class MongoRepository
 
     public AgentTask? GetAgentTask(string agentId, string taskId)
     {
-        if (string.IsNullOrEmpty(taskId)) return null;
+        if (string.IsNullOrEmpty(taskId))
+        {
+            return null;
+        }
 
         var taskDoc = _dc.AgentTasks.AsQueryable().FirstOrDefault(x => x.Id == taskId);
-        if (taskDoc == null) return null;
+        if (taskDoc == null)
+        {
+            return null;
+        }
 
         var agentDoc = _dc.Agents.AsQueryable().FirstOrDefault(x => x.Id == taskDoc.AgentId);
         var agent = TransformAgentDocument(agentDoc);
@@ -107,11 +112,17 @@ public partial class MongoRepository
 
     public void UpdateAgentTask(AgentTask task, AgentTaskField field)
     {
-        if (task == null || string.IsNullOrEmpty(task.Id)) return;
+        if (task == null || string.IsNullOrEmpty(task.Id))
+        {
+            return;
+        }
 
         var filter = Builders<AgentTaskDocument>.Filter.Eq(x => x.Id, task.Id);
         var taskDoc = _dc.AgentTasks.Find(filter).FirstOrDefault();
-        if (taskDoc == null) return;
+        if (taskDoc == null)
+        {
+            return;
+        }
 
         switch (field)
         {

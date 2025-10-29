@@ -1,22 +1,26 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Infrastructures.Attributes;
+using BotSharp.Abstraction.Tasks;
 
 namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
 [ApiController]
-public class AgentController : ControllerBase
+public partial class AgentController : ControllerBase
 {
     private readonly IAgentService _agentService;
+    private readonly IAgentTaskService _agentTaskService;
     private readonly IUserIdentity _user;
     private readonly IServiceProvider _services;
  
     public AgentController(
         IAgentService agentService,
+        IAgentTaskService agentTaskService,
         IUserIdentity user,
         IServiceProvider services)
     {
         _agentService = agentService;
+        _agentTaskService = agentTaskService;
         _user = user;
         _services = services;
      }
@@ -140,9 +144,9 @@ public class AgentController : ControllerBase
     }
 
     [HttpDelete("/agent/{agentId}")]
-    public async Task<bool> DeleteAgent([FromRoute] string agentId)
+    public async Task<bool> DeleteAgent([FromRoute] string agentId, [FromBody] AgentDeleteRequest request)
     {
-        return await _agentService.DeleteAgent(agentId);
+        return await _agentService.DeleteAgent(agentId, request?.Options);
     }
 
     [HttpGet("/agent/options")]
@@ -159,12 +163,12 @@ public class AgentController : ControllerBase
     }
  
     [HttpGet("/agent/labels")]
-    public async Task<IEnumerable<string>> GetAgentLabels()
+    public async Task<IEnumerable<string>> GetAgentLabels([FromQuery] int? size = null)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agents = await agentService.GetAgents(new AgentFilter
         {
-            Pager = new Pagination { Size = 1000 }
+            Pager = new Pagination { Size = size ?? 1000 }
         });
 
         var labels = agents.Items?.SelectMany(x => x.Labels)

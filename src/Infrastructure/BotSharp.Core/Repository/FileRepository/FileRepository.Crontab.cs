@@ -65,7 +65,6 @@ public partial class FileRepository
 
     public async ValueTask<PagedItems<CrontabItem>> GetCrontabItems(CrontabItemFilter filter)
     {
-        
         if (filter == null)
         {
             filter = CrontabItemFilter.Empty();
@@ -79,15 +78,20 @@ public partial class FileRepository
             Directory.CreateDirectory(baseDir);
         }
 
-        var totalDirs = Directory.GetDirectories(baseDir);
-        foreach (var d in totalDirs)
+        foreach (var d in Directory.EnumerateDirectories(baseDir))
         {
             var file = Path.Combine(d, CRON_FILE);
-            if (!File.Exists(file)) continue;
+            if (!File.Exists(file))
+            {
+                continue;
+            }
 
             var json = File.ReadAllText(file);
             var record = JsonSerializer.Deserialize<CrontabItem>(json, _options);
-            if (record == null) continue;
+            if (record == null)
+            {
+                continue;
+            }
 
             var matched = true;
             if (filter?.AgentIds != null)
@@ -103,7 +107,10 @@ public partial class FileRepository
                 matched = matched && filter.UserIds.Contains(record.UserId);
             }
 
-            if (!matched) continue;
+            if (!matched)
+            {
+                continue;
+            }
 
             records.Add(record);
         }

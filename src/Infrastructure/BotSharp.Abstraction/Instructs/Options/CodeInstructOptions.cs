@@ -2,14 +2,30 @@ namespace BotSharp.Abstraction.Instructs.Options;
 
 public class CodeInstructOptions
 {
+    /// <summary>
+    /// Code processor provider
+    /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("processor")]
     public string? Processor { get; set; }
 
+    /// <summary>
+    /// Code script name
+    /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonPropertyName("code_script_name")]
-    public string? CodeScriptName { get; set; }
+    [JsonPropertyName("script_name")]
+    public string? ScriptName { get; set; }
 
+    /// <summary>
+    /// Code script name
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("script_type")]
+    public string? ScriptType { get; set; }
+
+    /// <summary>
+    /// Arguments
+    /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("arguments")]
     public List<KeyValue>? Arguments { get; set; }
