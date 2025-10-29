@@ -65,20 +65,31 @@ public partial class MongoRepository
 
         var builder = Builders<AgentCodeScriptDocument>.Filter;
         var ops = scripts.Where(x => !string.IsNullOrWhiteSpace(x.Name))
-                         .Select(x => new UpdateOneModel<AgentCodeScriptDocument>(
-                                builder.And(new List<FilterDefinition<AgentCodeScriptDocument>>
-                                {
-                                    builder.Eq(y => y.AgentId, agentId),
-                                    builder.Eq(y => y.Name, x.Name),
-                                    builder.Eq(y => y.ScriptType, x.ScriptType)
-                                }),
-                                Builders<AgentCodeScriptDocument>.Update.Set(y => y.Content, x.Content)
-                                                                        .Set(x => x.UpdatedTime, DateTime.UtcNow)
-                         ) { IsUpsert = options?.IsUpsert ?? false })
+                         .Select(x =>
+                         {
+                             var updateBuilder = Builders<AgentCodeScriptDocument>.Update
+                                 .Set(y => y.Content, x.Content)
+                                 .Set(y => y.UpdatedTime, DateTime.UtcNow)
+                                 .SetOnInsert(y => y.Id, Guid.NewGuid().ToString())
+                                 .SetOnInsert(y => y.AgentId, agentId)
+                                 .SetOnInsert(y => y.Name, x.Name)
+                                 .SetOnInsert(y => y.ScriptType, x.ScriptType)
+                                 .SetOnInsert(y => y.CreatedTime, DateTime.UtcNow);
+
+                             return new UpdateOneModel<AgentCodeScriptDocument>(
+                                 builder.And(new List<FilterDefinition<AgentCodeScriptDocument>>
+                                 {
+                                     builder.Eq(y => y.AgentId, agentId),
+                                     builder.Eq(y => y.Name, x.Name),
+                                     builder.Eq(y => y.ScriptType, x.ScriptType)
+                                 }),
+                                 updateBuilder
+                             ) { IsUpsert = options?.IsUpsert ?? false };
+                         })
                          .ToList();
 
         var result = _dc.AgentCodeScripts.BulkWrite(ops, new BulkWriteOptions { IsOrdered = false });
-        return result.ModifiedCount > 0 || result.MatchedCount > 0;
+        return true;
     }
 
     public bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
