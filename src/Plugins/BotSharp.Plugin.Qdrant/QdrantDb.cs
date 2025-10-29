@@ -840,12 +840,10 @@ public class QdrantDb : IVectorDb
             return null;
         }
 
-        var search = new SearchParams();
-        if (param.ExactSearch.HasValue)
+        var search = new SearchParams
         {
-            search.Exact = param.ExactSearch.Value;
-        }
-
+            Exact = param.ExactSearch.Value
+        };
         return search;
     }
 
