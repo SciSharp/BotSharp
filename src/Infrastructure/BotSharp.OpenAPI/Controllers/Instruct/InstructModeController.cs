@@ -1,8 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
-using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Core.Infrastructures;
 using BotSharp.OpenAPI.ViewModels.Instructs;
 
@@ -34,7 +32,8 @@ public partial class InstructModeController : ControllerBase
             .SetState("template_name", input.Template, source: StateSource.External)
             .SetState("channel", input.Channel, source: StateSource.External)
             .SetState("code_options", input.CodeOptions, source: StateSource.External)
-            .SetState("file_options", input.FileOptions, source: StateSource.External);
+            .SetState("file_options", input.FileOptions, source: StateSource.External)
+            .SetState("file_count", !input.Files.IsNullOrEmpty() ? input.Files.Count : (int?)null, source: StateSource.External);
 
         var instructor = _services.GetRequiredService<IInstructService>();
         var result = await instructor.Execute(agentId,
