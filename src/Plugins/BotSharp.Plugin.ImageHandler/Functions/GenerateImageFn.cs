@@ -80,16 +80,16 @@ public class GenerateImageFn : IFunctionCallback
 
     private (string, string) GetLlmProviderModel(Agent agent)
     {
-        var provider = agent?.LlmConfig?.ImageGeneration?.Provider;
-        var model = agent?.LlmConfig?.ImageGeneration?.Model;
+        var provider = agent?.LlmConfig?.ImageComposition?.Provider;
+        var model = agent?.LlmConfig?.ImageComposition?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
             return (provider, model);
         }
 
-        provider = _settings?.Generation?.Provider;
-        model = _settings?.Generation?.Model;
+        provider = _settings?.Composition?.Provider;
+        model = _settings?.Composition?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {

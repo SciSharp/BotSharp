@@ -188,10 +188,11 @@ public enum LlmModelCapability
     ImageGeneration = 4,
     ImageEdit = 5,
     ImageVariation = 6,
-    Embedding = 7,
-    AudioTranscription = 8,
-    AudioGeneration = 9,
-    Realtime = 10,
-    WebSearch = 11,
-    PdfReading = 12
+    ImageComposition = 7,
+    Embedding = 8,
+    AudioTranscription = 9,
+    AudioGeneration = 10,
+    Realtime = 11,
+    WebSearch = 12,
+    PdfReading = 13
 }
