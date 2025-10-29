@@ -48,6 +48,12 @@ public partial class AgentController
         return updated;
     }
 
+    /// <summary>
+    /// Generate agent code script
+    /// </summary>
+    /// <param name="agentId"></param>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("/agent/{agentId}/code-script/generate")]
     public async Task<CodeGenerationResult> GenerateAgentCodeScript([FromRoute] string agentId, [FromBody] AgentCodeScriptGenerationRequest request)
     {

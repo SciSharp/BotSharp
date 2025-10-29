@@ -119,16 +119,16 @@ public class EditImageFn : IFunctionCallback
 
     private (string, string) GetLlmProviderModel(Agent agent)
     {
-        var provider = agent?.LlmConfig?.ImageEdit?.Provider;
-        var model = agent?.LlmConfig?.ImageEdit?.Model;
+        var provider = agent?.LlmConfig?.ImageComposition?.Provider;
+        var model = agent?.LlmConfig?.ImageComposition?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
             return (provider, model);
         }
 
-        provider = _settings?.Edit?.Provider;
-        model = _settings?.Edit?.Model;
+        provider = _settings?.Composition?.Provider;
+        model = _settings?.Composition?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
@@ -164,7 +164,7 @@ public class EditImageFn : IFunctionCallback
 
     private async Task<BinaryData> ConvertImageToPngWithRgba(BinaryData binaryFile)
     {
-        var provider = _settings?.Edit?.ImageConverter?.Provider;
+        var provider = _settings?.Composition?.ImageConverter?.Provider;
         var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == provider);
         if (converter == null)
         {
