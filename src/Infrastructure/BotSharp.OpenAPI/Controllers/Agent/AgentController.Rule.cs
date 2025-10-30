@@ -6,12 +6,13 @@ namespace BotSharp.OpenAPI.Controllers;
 public partial class AgentController
 {
     [HttpGet("/rule/triggers")]
-    public IEnumerable<AgentRule> GetRuleTriggers()
+    public IEnumerable<AgentRuleViewModel> GetRuleTriggers()
     {
         var triggers = _services.GetServices<IRuleTrigger>();
-        return triggers.Select(x => new AgentRule
+        return triggers.Select(x => new AgentRuleViewModel
         {
-            TriggerName = x.GetType().Name
+            TriggerName = x.GetType().Name,
+            OutputArgs = x.OutputArgs
         }).OrderBy(x => x.TriggerName).ToList();
     }
 

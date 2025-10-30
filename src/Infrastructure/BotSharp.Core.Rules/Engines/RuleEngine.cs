@@ -1,25 +1,33 @@
+using BotSharp.Abstraction.Coding;
+using BotSharp.Abstraction.Coding.Enums;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Rules.Options;
 using BotSharp.Abstraction.Utilities;
 using Microsoft.Extensions.Logging;
 using System.Data;
+using System.Text.Json;
 
 namespace BotSharp.Core.Rules.Engines;
 
 public class RuleEngine : IRuleEngine
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger _logger;
+    private readonly ILogger<RuleEngine> _logger;
 
-    public RuleEngine(IServiceProvider services, ILogger<RuleEngine> logger)
+    public RuleEngine(
+        IServiceProvider services,
+        ILogger<RuleEngine> logger)
     {
         _services = services;
         _logger = logger;
     }
 
-    public async Task<IEnumerable<string>> Triggered(IRuleTrigger trigger, string data, List<MessageState>? states = null)
+    public async Task<IEnumerable<string>> Trigger(IRuleTrigger trigger, string text, RuleTriggerOptions? options = null)
     {
+        var newConversationIds = new List<string>();
+
         // Pull all user defined rules
         var agentService = _services.GetRequiredService<IAgentService>();
         var agents = await agentService.GetAgents(new AgentFilter
@@ -30,34 +38,41 @@ public class RuleEngine : IRuleEngine
             }
         });
 
-        var preFilteredAgents = agents.Items.Where(x => 
-            x.Rules.Exists(r => r.TriggerName == trigger.Name &&
-                !x.Disabled)).ToList();
-
-        // Trigger the agents
-        var instructService = _services.GetRequiredService<IInstructService>();
-        var newConversationIds = new List<string>();
-
-        foreach (var agent in preFilteredAgents)
+        // Trigger agents
+        var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName == trigger.Name && !x.Disabled)).ToList();
+        foreach (var agent in filteredAgents)
         {
+            var isTriggered = true;
+
+            // Code trigger
+            if (options != null)
+            {
+                isTriggered = await TriggerCodeScript(agent.Id, trigger.Name, options);
+            }
+
+            if (!isTriggered)
+            {
+                continue;
+            }
+
             var convService = _services.GetRequiredService<IConversationService>();
             var conv = await convService.NewConversation(new Conversation
             {
                 Channel = trigger.Channel,
-                Title = data,
+                Title = text,
                 AgentId = agent.Id
             });
 
-            var message = new RoleDialogModel(AgentRole.User, data);
+            var message = new RoleDialogModel(AgentRole.User, text);
 
             var allStates = new List<MessageState>
             {
                 new("channel", trigger.Channel)
             };
 
-            if (states != null)
+            if (options?.States != null)
             {
-                allStates.AddRange(states);
+                allStates.AddRange(options.States);
             }
 
             convService.SetConversationId(conv.Id, allStates);
@@ -69,27 +84,84 @@ public class RuleEngine : IRuleEngine
 
             convService.SaveStates();
             newConversationIds.Add(conv.Id);
-
-            /*foreach (var rule in agent.Rules)
-            {
-                var userSay = $"===Input data with Before and After values===\r\n{data}\r\n\r\n===Trigger Criteria===\r\n{rule.Criteria}\r\n\r\nJust output 1 or 0 without explanation: ";
-
-                var result = await instructService.Execute(BuiltInAgentId.RulesInterpreter, new RoleDialogModel(AgentRole.User, userSay), "criteria_check", "#TEMPLATE#");
-
-                // Check if meet the criteria
-                if (result.Text == "1")
-                {
-                    // Hit rule
-                    _logger.LogInformation($"Hit rule {rule.TriggerName} {rule.EntityType} {rule.EventName}, {data}");
-
-                    await convService.SendMessage(agent.Id, 
-                        new RoleDialogModel(AgentRole.User, $"The conversation was triggered by {rule.Criteria}"), 
-                        null, 
-                        msg => Task.CompletedTask);
-                }
-            }*/
         }
 
         return newConversationIds;
     }
+
+    #region Private methods
+    private async Task<bool> TriggerCodeScript(string agentId, string triggerName, RuleTriggerOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(agentId))
+        {
+            return false;
+        }
+
+        var provider = options.CodeProcessor ?? BuiltInCodeProcessor.PyInterpreter;
+        var processor = _services.GetServices<ICodeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
+        if (processor == null)
+        {
+            _logger.LogWarning($"Unable to find code processor: {provider}.");
+            return false;
+        }
+
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var scriptName = options.CodeScriptName ?? $"{triggerName}_rule.py";
+        var codeScript = await agentService.GetAgentCodeScript(agentId, scriptName, scriptType: AgentCodeScriptType.Src);
+
+        var msg = $"rule trigger ({triggerName}) code script ({scriptName}) in agent ({agentId}) => args: {options.Arguments?.RootElement.GetRawText()}.";
+
+        if (string.IsNullOrWhiteSpace(codeScript))
+        {
+            _logger.LogWarning($"Unable to find {msg}.");
+            return false;
+        }
+
+        try
+        {
+            var response = await processor.RunAsync(codeScript, options: new()
+            {
+                ScriptName = scriptName,
+                Arguments = BuildArguments(options.ArgsName, options.Arguments)
+            });
+
+            if (response == null || !response.Success)
+            {
+                _logger.LogWarning($"Failed to handle {msg}");
+                return false;
+            }
+
+            bool result;
+            LogLevel logLevel;
+            if (response.Result.IsEqualTo("true") || response.Result.IsEqualTo("1"))
+            {
+                logLevel = LogLevel.Information;
+                result = true;
+            }
+            else
+            {
+                logLevel = LogLevel.Warning;
+                result = false;
+            }
+
+            _logger.Log(logLevel, $"Code script execution result ({response.Result}) from {msg}");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when handling {msg}");
+            return false;
+        }
+    }
+
+    private IEnumerable<KeyValue> BuildArguments(string? argName, JsonDocument? args)
+    {
+        var keyValues = new List<KeyValue>();
+        if (args != null)
+        {
+            keyValues.Add(new KeyValue(argName ?? "rule_args", args.RootElement.GetRawText()));
+        }
+        return keyValues;
+    }
+#endregion
 }

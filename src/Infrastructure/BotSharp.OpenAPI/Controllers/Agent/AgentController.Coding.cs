@@ -61,7 +61,8 @@ public partial class AgentController
         var states = request.Options?.Data?.ToList();
         var state = _services.GetRequiredService<IConversationStateService>();
         states?.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
-        state.SetState("programming_language", request.Options?.Language, source: StateSource.External);
+        state.SetState("code_processor", request.Options?.Processor, source: StateSource.External);
+        state.SetState("programming_language", request.Options?.ProgrammingLanguage, source: StateSource.External);
 
         var result = await _agentService.GenerateCodeScript(agentId, request.Text, request?.Options);
         return result;
