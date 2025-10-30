@@ -22,3 +22,4 @@ global using BotSharp.Abstraction.Knowledges.Models;
 global using BotSharp.Abstraction.Crontab.Models;
 global using BotSharp.Abstraction.MCP.Models;
 global using BotSharp.Abstraction.Settings;
+global using BotSharp.Abstraction.Rules.Options;
