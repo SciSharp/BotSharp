@@ -10,15 +10,18 @@ public class PyCodeInterpreter : ICodeProcessor
     private readonly IServiceProvider _services;
     private readonly ILogger<PyCodeInterpreter> _logger;
     private readonly CodeScriptExecutor _executor;
+    private readonly AgentSettings _agentSettings;
 
     public PyCodeInterpreter(
         IServiceProvider services,
         ILogger<PyCodeInterpreter> logger,
-        CodeScriptExecutor executor)
+        CodeScriptExecutor executor,
+        AgentSettings agentSettings)
     {
         _services = services;
         _logger = logger;
         _executor = executor;
+        _agentSettings = agentSettings;
     }
 
     public string Provider => BuiltInCodeProcessor.PyInterpreter;
@@ -54,6 +57,7 @@ public class PyCodeInterpreter : ICodeProcessor
             instruction = agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName))?.Content;
         }
 
+        var (provider, model) = GetLlmProviderModel();
         var innerAgent = new Agent
         {
             Id = agent?.Id ?? BuiltInAgentId.AIProgrammer,
@@ -61,8 +65,8 @@ public class PyCodeInterpreter : ICodeProcessor
             Instruction = instruction,
             LlmConfig = new AgentLlmConfig
             {
-                Provider = options?.Provider ?? "openai",
-                Model = options?.Model ?? "gpt-5-mini",
+                Provider = options?.Provider ?? provider,
+                Model = options?.Model ?? model,
                 MaxOutputTokens = options?.MaxOutputTokens,
                 ReasoningEffortLevel = options?.ReasoningEffortLevel
             },
@@ -177,6 +181,22 @@ public class PyCodeInterpreter : ICodeProcessor
                 sys.argv = new PyList();
             }
         }
+    }
+
+    private (string, string) GetLlmProviderModel()
+    {
+        var provider = _agentSettings.Coding?.Provider;
+        var model = _agentSettings.Coding?.Model;
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = "openai";
+        model = "gpt-5-mini";
+
+        return (provider, model);
     }
     #endregion
 }
