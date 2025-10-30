@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace BotSharp.Abstraction.Rules;
 
 public interface IRuleTrigger
@@ -9,4 +11,6 @@ public interface IRuleTrigger
     string EntityType { get; set; }
 
     string EntityId { get; set; }
+
+    JsonDocument OutputArgs => JsonDocument.Parse("{}");
 }
