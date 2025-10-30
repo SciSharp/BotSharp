@@ -5,19 +5,9 @@ using BotSharp.OpenAPI.ViewModels.Instructs;
 
 namespace BotSharp.OpenAPI.Controllers;
 
-[Authorize]
-[ApiController]
-public class ImageGenerationController
+
+public partial class InstructModeController
 {
-    private readonly IServiceProvider _services;
-    private readonly ILogger<InstructModeController> _logger;
-
-    public ImageGenerationController(IServiceProvider services, ILogger<InstructModeController> logger)
-    {
-        _services = services;
-        _logger = logger;
-    }
-
     #region Image composition
     [HttpPost("/instruct/image-composition")]
     public async Task<ImageGenerationViewModel> ComposeImages([FromBody] ImageCompositionRequest request)
@@ -31,7 +21,7 @@ public class ImageGenerationController
         {
             if (request.Files.IsNullOrEmpty())
             {
-                return new ImageGenerationViewModel { Message = "No image found" };
+                return new ImageGenerationViewModel { ErrorMsg = "No image found" };
             }
 
             var message = await fileInstruct.ComposeImages(request.Text, request.Files, new InstructOptions
@@ -42,6 +32,8 @@ public class ImageGenerationController
                 TemplateName = request.TemplateName,
                 ImageConvertProvider = request.ImageConvertProvider
             });
+
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -50,7 +42,7 @@ public class ImageGenerationController
         {
             var error = $"Error in image composition. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -74,6 +66,8 @@ public class ImageGenerationController
                 AgentId = request.AgentId,
                 TemplateName = request.TemplateName
             });
+
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -82,7 +76,7 @@ public class ImageGenerationController
         {
             var error = $"Error in image generation. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -100,7 +94,7 @@ public class ImageGenerationController
         {
             if (request.File == null)
             {
-                return new ImageGenerationViewModel { Message = "Error! Cannot find an image!" };
+                return new ImageGenerationViewModel { ErrorMsg = "Error! Cannot find an image!" };
             }
 
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
@@ -112,6 +106,7 @@ public class ImageGenerationController
                 ImageConvertProvider = request.ImageConvertProvider
             });
 
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -120,7 +115,7 @@ public class ImageGenerationController
         {
             var error = $"Error in image variation. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -150,6 +145,7 @@ public class ImageGenerationController
                 ImageConvertProvider = request?.ImageConvertProvider
             });
 
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -158,7 +154,7 @@ public class ImageGenerationController
         {
             var error = $"Error in image variation upload. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -177,8 +173,9 @@ public class ImageGenerationController
         {
             if (request.File == null)
             {
-                return new ImageGenerationViewModel { Message = "Error! Cannot find a valid image file!" };
+                return new ImageGenerationViewModel { ErrorMsg = "Error! Cannot find a valid image file!" };
             }
+
             var message = await fileInstruct.EditImage(request.Text, request.File, new InstructOptions
             {
                 Provider = request.Provider,
@@ -187,6 +184,8 @@ public class ImageGenerationController
                 TemplateName = request.TemplateName,
                 ImageConvertProvider = request.ImageConvertProvider
             });
+
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -195,7 +194,7 @@ public class ImageGenerationController
         {
             var error = $"Error in image edit. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -226,6 +225,7 @@ public class ImageGenerationController
                 ImageConvertProvider = request?.ImageConvertProvider
             });
 
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -234,7 +234,7 @@ public class ImageGenerationController
         {
             var error = $"Error in image edit upload. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -255,8 +255,9 @@ public class ImageGenerationController
             var mask = request.Mask;
             if (image == null || mask == null)
             {
-                return new ImageGenerationViewModel { Message = "Error! Cannot find a valid image or mask!" };
+                return new ImageGenerationViewModel { ErrorMsg = "Error! Cannot find a valid image or mask!" };
             }
+
             var message = await fileInstruct.EditImage(request.Text, image, mask, new InstructOptions
             {
                 Provider = request.Provider,
@@ -265,6 +266,8 @@ public class ImageGenerationController
                 TemplateName = request.TemplateName,
                 ImageConvertProvider = request.ImageConvertProvider
             });
+
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -273,7 +276,7 @@ public class ImageGenerationController
         {
             var error = $"Error in image mask edit. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
         }
     }
@@ -312,6 +315,7 @@ public class ImageGenerationController
                     ImageConvertProvider = request?.ImageConvertProvider
                 });
 
+            imageViewModel.Success = true;
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages?.Select(x => ImageViewModel.ToViewModel(x)) ?? [];
             return imageViewModel;
@@ -320,8 +324,72 @@ public class ImageGenerationController
         {
             var error = $"Error in image mask edit upload. {ex.Message}";
             _logger.LogError(ex, error);
-            imageViewModel.Message = error;
+            imageViewModel.ErrorMsg = error;
             return imageViewModel;
+        }
+    }
+    #endregion
+
+    #region Read image
+    [HttpPost("/instruct/multi-modal")]
+    public async Task<string> MultiModalCompletion([FromBody] MultiModalFileRequest input)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+
+        try
+        {
+            var fileInstruct = _services.GetRequiredService<IFileInstructService>();
+            var content = await fileInstruct.ReadImages(input.Text, input.Files, new InstructOptions
+            {
+                Provider = input.Provider,
+                Model = input.Model,
+                AgentId = input.AgentId,
+                TemplateName = input.TemplateName
+            });
+            return content;
+        }
+        catch (Exception ex)
+        {
+            var error = $"Error in reading multi-modal files. {ex.Message}";
+            _logger.LogError(ex, error);
+            return error;
+        }
+    }
+
+    [HttpPost("/instruct/multi-modal/form")]
+    public async Task<MultiModalViewModel> MultiModalCompletion([FromForm] IEnumerable<IFormFile> files, [FromForm] MultiModalRequest request)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        request?.States?.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+        var viewModel = new MultiModalViewModel();
+
+        try
+        {
+            var fileModels = files.Select(x => new InstructFileModel
+            {
+                FileData = FileUtility.BuildFileDataFromFile(x),
+                ContentType = x.ContentType
+            }).ToList();
+
+            var fileInstruct = _services.GetRequiredService<IFileInstructService>();
+            var content = await fileInstruct.ReadImages(request?.Text ?? string.Empty, fileModels, new InstructOptions
+            {
+                Provider = request?.Provider,
+                Model = request?.Model,
+                AgentId = request?.AgentId,
+                TemplateName = request?.TemplateName
+            });
+            viewModel.Success = true;
+            viewModel.Content = content;
+            return viewModel;
+        }
+        catch (Exception ex)
+        {
+            var error = $"Error in reading multi-modal files. {ex.Message}";
+            _logger.LogError(ex, error);
+            viewModel.ErrorMsg = error;
+            return viewModel;
         }
     }
     #endregion

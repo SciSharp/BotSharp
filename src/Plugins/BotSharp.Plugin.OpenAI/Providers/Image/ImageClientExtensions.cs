@@ -17,6 +17,7 @@ public static class ImageClientExtensions
     /// Generates image edits with multiple input images for composition
     /// </summary>
     /// <param name="client">The ImageClient instance</param>
+    /// <param name="model">The LLM model</param>
     /// <param name="images">Array of image streams to compose</param>
     /// <param name="imageFileNames">Array of corresponding file names for the images</param>
     /// <param name="prompt">The prompt describing the desired composition</param>

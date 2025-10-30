@@ -193,9 +193,9 @@ public partial class InstructService
 
         // Get code script name
         var scriptName = string.Empty;
-        if (!string.IsNullOrEmpty(codeOptions?.CodeScriptName))
+        if (!string.IsNullOrEmpty(codeOptions?.ScriptName))
         {
-            scriptName = codeOptions.CodeScriptName;
+            scriptName = codeOptions.ScriptName;
         }
         else if (!string.IsNullOrEmpty(templateName))
         {
@@ -211,7 +211,8 @@ public partial class InstructService
         }
 
         // Get code script
-        var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
+        var scriptType = codeOptions?.ScriptType ?? AgentCodeScriptType.Src;
+        var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType);
         if (string.IsNullOrWhiteSpace(codeScript))
         {
 #if DEBUG
@@ -230,6 +231,7 @@ public partial class InstructService
         var context = new CodeInstructContext
         {
             CodeScript = codeScript,
+            ScriptType = scriptType,
             Arguments = arguments
         };
 

@@ -15,7 +15,10 @@ public partial class LocalFileStorageService
             }
 
             var filePath = Path.Combine(dir, fileName);
-            if (File.Exists(filePath)) return false;
+            if (File.Exists(filePath))
+            {
+                return false;
+            }
 
             using var fs = File.Create(filePath);
             using var ds = data.ToStream();

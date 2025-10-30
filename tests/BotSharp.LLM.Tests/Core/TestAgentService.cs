@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Plugins.Models;
@@ -76,7 +77,7 @@ namespace BotSharp.Plugin.Google.Core
             return Task.FromResult(new Agent());
         }
 
-        public Task<bool> DeleteAgent(string id)
+        public Task<bool> DeleteAgent(string id, AgentDeleteOptions? options = null)
         {
             return Task.FromResult(true);
         }
