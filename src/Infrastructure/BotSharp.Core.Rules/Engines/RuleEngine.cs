@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Coding;
+using BotSharp.Abstraction.Coding.Constants;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories.Filters;
@@ -39,13 +40,10 @@ public class RuleEngine : IRuleEngine
 
         var isTriggered = true;
 
-        // Apply code trigger
-        if (options != null
-            && !string.IsNullOrWhiteSpace(options.CodeProcessor)
-            && !string.IsNullOrWhiteSpace(options.AgentId))
+        // Code trigger
+        if (options != null)
         {
-            var scriptName = options.CodeScriptName ?? $"{trigger.Name}_cron.py";
-            isTriggered = await TriggerCodeScript(options.AgentId, scriptName, options.CodeProcessor, trigger.Name, options.Arguments, options.States);
+            isTriggered = await TriggerCodeScript(trigger.Name, options);
         }
 
         if (!isTriggered)
@@ -53,9 +51,8 @@ public class RuleEngine : IRuleEngine
             return newConversationIds;
         }
 
-        var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName == trigger.Name && !x.Disabled)).ToList();
-
         // Trigger agents
+        var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName == trigger.Name && !x.Disabled)).ToList();
         foreach (var agent in filteredAgents)
         {
             var convService = _services.GetRequiredService<IConversationService>();
@@ -93,32 +90,40 @@ public class RuleEngine : IRuleEngine
     }
 
     #region Private methods
-    private async Task<bool> TriggerCodeScript(string agentId, string scriptName, string codeProcessor, string triggerName, JsonDocument? args = null, IEnumerable<MessageState>? states = null)
+    private async Task<bool> TriggerCodeScript(string triggerName, RuleTriggerOptions options)
     {
-        var processor = _services.GetServices<ICodeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(codeProcessor));
+        var agentId = options.AgentId;
+        if (string.IsNullOrWhiteSpace(agentId))
+        {
+            return false;
+        }
+
+        var provider = options.CodeProcessor ?? BuiltInCodeProcessor.PyInterpreter;
+        var processor = _services.GetServices<ICodeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
         if (processor == null)
         {
-            _logger.LogWarning($"Unable to find code processor: {codeProcessor}.");
+            _logger.LogWarning($"Unable to find code processor: {provider}.");
             return false;
         }
 
         var agentService = _services.GetRequiredService<IAgentService>();
+        var scriptName = options.CodeScriptName ?? $"{triggerName}_rule.py";
         var codeScript = await agentService.GetAgentCodeScript(agentId, scriptName, scriptType: AgentCodeScriptType.Src);
+
+        var msg = $"rule trigger ({triggerName}) code script ({scriptName}) in agent ({agentId}) => args: {options.Arguments?.RootElement.GetRawText()}.";
 
         if (string.IsNullOrWhiteSpace(codeScript))
         {
-            _logger.LogWarning($"Unable to find code script ({scriptName}) in agent ({agentId}).");
+            _logger.LogWarning($"Unable to find {msg}.");
             return false;
         }
-
-        var msg = $"rule trigger ({triggerName}) code script ({scriptName}) in agent ({agentId}) => args: {args?.RootElement.GetRawText()}.";
 
         try
         {
             var response = await processor.RunAsync(codeScript, options: new()
             {
                 ScriptName = scriptName,
-                Arguments = BuildArguments(args, states)
+                Arguments = BuildArguments(options.Arguments, options.States)
             });
 
             if (response == null || !response.Success)
@@ -140,7 +145,7 @@ public class RuleEngine : IRuleEngine
                 result = false;
             }
 
-            _logger.Log(logLevel, $"Code result ({response.Result}) from {msg}");
+            _logger.Log(logLevel, $"Code script execution result ({response.Result}) from {msg}");
             return result;
         }
         catch (Exception ex)
@@ -166,7 +171,7 @@ public class RuleEngine : IRuleEngine
 
         if (args != null)
         {
-            dict["trigger_input"] = args.RootElement.GetRawText();
+            dict["trigger_args"] = args.RootElement.GetRawText();
         }
 
         return dict.Select(x => new KeyValue(x.Key, x.Value));

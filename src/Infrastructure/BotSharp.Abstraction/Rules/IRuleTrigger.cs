@@ -12,5 +12,8 @@ public interface IRuleTrigger
 
     string EntityId { get; set; }
 
+    /// <summary>
+    /// The default arguments as input to code trigger (display purpose)
+    /// </summary>
     JsonDocument OutputArgs => JsonDocument.Parse("{}");
 }

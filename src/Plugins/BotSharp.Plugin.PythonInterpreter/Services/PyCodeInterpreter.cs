@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Coding.Models;
 using Microsoft.Extensions.Logging;
 using Python.Runtime;
 using System.Threading;
@@ -22,7 +21,7 @@ public class PyCodeInterpreter : ICodeProcessor
         _executor = executor;
     }
 
-    public string Provider => "botsharp-py-interpreter";
+    public string Provider => BuiltInCodeProcessor.PyInterpreter;
 
     public async Task<CodeInterpretResponse> RunAsync(string codeScript, CodeInterpretOptions? options = null)
     {

@@ -7,7 +7,7 @@ public class RuleTriggerOptions
     /// <summary>
     /// Code processor provider
     /// </summary>
-    public string? CodeProcessor { get; set; } = "botsharp-py-interpreter";
+    public string? CodeProcessor { get; set; }
 
     /// <summary>
     /// Code script name

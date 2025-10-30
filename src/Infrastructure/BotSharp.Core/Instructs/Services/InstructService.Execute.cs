@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Coding;
+using BotSharp.Abstraction.Coding.Constants;
 using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
@@ -179,7 +180,7 @@ public partial class InstructService
         var state = _services.GetRequiredService<IConversationStateService>();
         var hooks = _services.GetHooks<IInstructHook>(agent.Id);
 
-        var codeProvider = codeOptions?.Processor ?? "botsharp-py-interpreter";
+        var codeProvider = codeOptions?.Processor ?? BuiltInCodeProcessor.PyInterpreter;
         var codeProcessor = _services.GetServices<ICodeProcessor>()
                                        .FirstOrDefault(x => x.Provider.IsEqualTo(codeProvider));
         

@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Coding;
+using BotSharp.Abstraction.Coding.Constants;
 using BotSharp.Abstraction.Coding.Options;
 
 namespace BotSharp.Core.Agents.Services;
@@ -76,7 +77,7 @@ public partial class AgentService
             };
         }
 
-        var processor = options?.Processor ?? "botsharp-py-interpreter";
+        var processor = options?.Processor ?? BuiltInCodeProcessor.PyInterpreter;
         var codeProcessor = _services.GetServices<ICodeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(processor));
         if (codeProcessor == null)
         {
