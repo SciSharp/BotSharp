@@ -15,14 +15,14 @@ public class RuleTriggerOptions
     public string? CodeScriptName { get; set; }
 
     /// <summary>
-    /// Json arguments
+    /// Argument name as an input key to the code script
     /// </summary>
-    public JsonDocument? Arguments { get; set; }
+    public string? ArgsName { get; set; }
 
     /// <summary>
-    /// Agent where the code script is stored
+    /// Json arguments as an input value to the code script
     /// </summary>
-    public string? AgentId { get; set; }
+    public JsonDocument? Arguments { get; set; }
 
     /// <summary>
     /// States

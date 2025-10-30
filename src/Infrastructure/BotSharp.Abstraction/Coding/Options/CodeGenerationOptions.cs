@@ -17,11 +17,10 @@ public class CodeGenerationOptions : LlmConfigBase
     public string? TemplateName { get; set; }
 
     /// <summary>
-    /// The programming language
+    /// Programming language
     /// </summary>
-    [JsonPropertyName("language")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Language { get; set; } = "python";
+    [JsonPropertyName("programming_language")]
+    public string? ProgrammingLanguage { get; set; }
 
     /// <summary>
     /// Data that can be used to fill in the prompt

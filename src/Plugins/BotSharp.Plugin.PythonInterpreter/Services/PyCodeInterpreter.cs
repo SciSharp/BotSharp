@@ -41,10 +41,10 @@ public class PyCodeInterpreter : ICodeProcessor
 
         var agentId = options?.AgentId;
         var templateName = options?.TemplateName;
-
-        var agentService = _services.GetRequiredService<IAgentService>();
+        
         if (!string.IsNullOrEmpty(agentId))
         {
+            var agentService = _services.GetRequiredService<IAgentService>();
             agent = await agentService.GetAgent(agentId);
         }
         
@@ -83,7 +83,7 @@ public class PyCodeInterpreter : ICodeProcessor
         {
             Success = true,
             Content = response.Content,
-            Language = options?.Language ?? "python"
+            Language = options?.ProgrammingLanguage ?? "python"
         };
     }
 

@@ -38,23 +38,23 @@ public class RuleEngine : IRuleEngine
             }
         });
 
-        var isTriggered = true;
-
-        // Code trigger
-        if (options != null)
-        {
-            isTriggered = await TriggerCodeScript(trigger.Name, options);
-        }
-
-        if (!isTriggered)
-        {
-            return newConversationIds;
-        }
-
         // Trigger agents
         var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName == trigger.Name && !x.Disabled)).ToList();
         foreach (var agent in filteredAgents)
         {
+            var isTriggered = true;
+
+            // Code trigger
+            if (options != null)
+            {
+                isTriggered = await TriggerCodeScript(agent.Id, trigger.Name, options);
+            }
+
+            if (!isTriggered)
+            {
+                continue;
+            }
+
             var convService = _services.GetRequiredService<IConversationService>();
             var conv = await convService.NewConversation(new Conversation
             {
@@ -90,9 +90,8 @@ public class RuleEngine : IRuleEngine
     }
 
     #region Private methods
-    private async Task<bool> TriggerCodeScript(string triggerName, RuleTriggerOptions options)
+    private async Task<bool> TriggerCodeScript(string agentId, string triggerName, RuleTriggerOptions options)
     {
-        var agentId = options.AgentId;
         if (string.IsNullOrWhiteSpace(agentId))
         {
             return false;
@@ -123,7 +122,7 @@ public class RuleEngine : IRuleEngine
             var response = await processor.RunAsync(codeScript, options: new()
             {
                 ScriptName = scriptName,
-                Arguments = BuildArguments(options.Arguments, options.States)
+                Arguments = BuildArguments(options.ArgsName, options.Arguments)
             });
 
             if (response == null || !response.Success)
@@ -155,26 +154,14 @@ public class RuleEngine : IRuleEngine
         }
     }
 
-    private IEnumerable<KeyValue> BuildArguments(JsonDocument? args, IEnumerable<MessageState>? states)
+    private IEnumerable<KeyValue> BuildArguments(string? argName, JsonDocument? args)
     {
-        var dict = new Dictionary<string, string>();
-        if (!states.IsNullOrEmpty())
-        {
-            foreach (var state in states)
-            {
-                if (state.Value != null)
-                {
-                    dict[state.Key] = state.Value.ConvertToString();
-                }
-            }
-        }
-
+        var keyValues = new List<KeyValue>();
         if (args != null)
         {
-            dict["trigger_args"] = args.RootElement.GetRawText();
+            keyValues.Add(new KeyValue(argName ?? "rule_args", args.RootElement.GetRawText()));
         }
-
-        return dict.Select(x => new KeyValue(x.Key, x.Value));
+        return keyValues;
     }
 #endregion
 }
