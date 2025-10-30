@@ -45,7 +45,7 @@ public class RuleEngine : IRuleEngine
             && !string.IsNullOrWhiteSpace(options.AgentId))
         {
             var scriptName = options.CodeScriptName ?? $"{trigger.Name}_cron.py";
-            isTriggered = await HandleCodeTrigger(options.AgentId, scriptName, options.CodeProcessor, trigger.Name, options.Arguments, options.States);
+            isTriggered = await TriggerCodeScript(options.AgentId, scriptName, options.CodeProcessor, trigger.Name, options.Arguments, options.States);
         }
 
         if (!isTriggered)
@@ -87,32 +87,13 @@ public class RuleEngine : IRuleEngine
 
             convService.SaveStates();
             newConversationIds.Add(conv.Id);
-
-            /*foreach (var rule in agent.Rules)
-            {
-                var userSay = $"===Input data with Before and After values===\r\n{data}\r\n\r\n===Trigger Criteria===\r\n{rule.Criteria}\r\n\r\nJust output 1 or 0 without explanation: ";
-
-                var result = await instructService.Execute(BuiltInAgentId.RulesInterpreter, new RoleDialogModel(AgentRole.User, userSay), "criteria_check", "#TEMPLATE#");
-
-                // Check if meet the criteria
-                if (result.Text == "1")
-                {
-                    // Hit rule
-                    _logger.LogInformation($"Hit rule {rule.TriggerName} {rule.EntityType} {rule.EventName}, {data}");
-
-                    await convService.SendMessage(agent.Id, 
-                        new RoleDialogModel(AgentRole.User, $"The conversation was triggered by {rule.Criteria}"), 
-                        null, 
-                        msg => Task.CompletedTask);
-                }
-            }*/
         }
 
         return newConversationIds;
     }
 
     #region Private methods
-    private async Task<bool> HandleCodeTrigger(string agentId, string scriptName, string codeProcessor, string triggerName, JsonDocument? args = null, IEnumerable<MessageState>? states = null)
+    private async Task<bool> TriggerCodeScript(string agentId, string scriptName, string codeProcessor, string triggerName, JsonDocument? args = null, IEnumerable<MessageState>? states = null)
     {
         var processor = _services.GetServices<ICodeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(codeProcessor));
         if (processor == null)
@@ -159,7 +140,7 @@ public class RuleEngine : IRuleEngine
                 result = false;
             }
 
-            _logger.Log(logLevel, $"Code result: {response.Result}. {msg}");
+            _logger.Log(logLevel, $"Code result ({response.Result}) from {msg}");
             return result;
         }
         catch (Exception ex)
