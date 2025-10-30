@@ -1,5 +1,5 @@
 using BotSharp.Abstraction.Coding;
-using BotSharp.Abstraction.Coding.Constants;
+using BotSharp.Abstraction.Coding.Enums;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories.Filters;

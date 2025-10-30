@@ -21,7 +21,7 @@ global using BotSharp.Abstraction.Messaging.Models.RichContent;
 global using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 global using BotSharp.Abstraction.Routing;
 global using BotSharp.Abstraction.Coding;
-global using BotSharp.Abstraction.Coding.Constants;
+global using BotSharp.Abstraction.Coding.Enums;
 global using BotSharp.Abstraction.Coding.Models;
 global using BotSharp.Abstraction.Coding.Options;
 global using BotSharp.Abstraction.Coding.Responses;

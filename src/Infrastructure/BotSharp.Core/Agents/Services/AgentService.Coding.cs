@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Coding;
-using BotSharp.Abstraction.Coding.Constants;
+using BotSharp.Abstraction.Coding.Enums;
 using BotSharp.Abstraction.Coding.Options;
 
 namespace BotSharp.Core.Agents.Services;

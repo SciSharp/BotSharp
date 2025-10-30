@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.Coding.Constants;
+namespace BotSharp.Abstraction.Coding.Enums;
 
 public static class BuiltInCodeProcessor
 {

@@ -1,5 +1,5 @@
 using BotSharp.Abstraction.Coding;
-using BotSharp.Abstraction.Coding.Constants;
+using BotSharp.Abstraction.Coding.Enums;
 using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
