@@ -1,7 +1,10 @@
+using BotSharp.Abstraction.Agents.Options;
+using BotSharp.Abstraction.Knowledges.Filters;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
+using BotSharp.Abstraction.Repositories.Options;
 using BotSharp.Abstraction.Roles.Models;
 using BotSharp.Abstraction.Shared;
 using BotSharp.Abstraction.Statistics.Enums;
@@ -10,6 +13,7 @@ using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Translation.Models;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
+using BotSharp.Abstraction.VectorStorage.Filters;
 using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Abstraction.Repositories;
@@ -78,7 +82,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     bool DeleteAgents()
         => throw new NotImplementedException();
-    bool DeleteAgent(string agentId)
+    bool DeleteAgent(string agentId, AgentDeleteOptions? options = null)
         => throw new NotImplementedException();
     List<string> GetAgentResponses(string agentId, string prefix, string intent)
         => throw new NotImplementedException();
@@ -195,6 +199,9 @@ public interface IBotSharpRepository : IHaveServiceProvider
 
     List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
          => throw new NotImplementedException();
+
+    Task<bool> UpdateInstructionLogStates(UpdateInstructionLogStatesModel updateInstructionStates)
+        => throw new NotImplementedException();
     #endregion
 
     #region Statistics

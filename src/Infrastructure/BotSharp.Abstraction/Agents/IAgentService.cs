@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Agents.Options;
+using BotSharp.Abstraction.Coding.Models;
+using BotSharp.Abstraction.Coding.Options;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
@@ -30,18 +32,18 @@ public interface IAgentService
     /// <returns></returns>
     Task InheritAgent(Agent agent);
 
-    string RenderInstruction(Agent agent, Dictionary<string, object>? renderData = null);
+    string RenderInstruction(Agent agent, IDictionary<string, object>? renderData = null);
 
-    string RenderTemplate(Agent agent, string templateName, Dictionary<string, object>? renderData = null);
+    string RenderTemplate(Agent agent, string templateName, IDictionary<string, object>? renderData = null);
 
-    bool RenderFunction(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null);
+    bool RenderFunction(Agent agent, FunctionDef def, IDictionary<string, object>? renderData = null);
 
-    FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def, Dictionary<string, object>? renderData = null);
+    FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def, IDictionary<string, object>? renderData = null);
 
-    (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, Dictionary<string, object>? renderData = null, StringComparer? comparer = null);
+    (string, IEnumerable<FunctionDef>) PrepareInstructionAndFunctions(Agent agent, IDictionary<string, object>? renderData = null, StringComparer? comparer = null);
 
-    bool RenderVisibility(string? visibilityExpression, Dictionary<string, object> dict);
-    Dictionary<string, object> CollectRenderData(Agent agent);
+    bool RenderVisibility(string? visibilityExpression, IDictionary<string, object> dict);
+    IDictionary<string, object> CollectRenderData(Agent agent);
 
 
     /// <summary>
@@ -51,7 +53,7 @@ public interface IAgentService
     /// <returns>Original agent information</returns>
     Task<Agent> GetAgent(string id);
     
-    Task<bool> DeleteAgent(string id);
+    Task<bool> DeleteAgent(string id, AgentDeleteOptions? options = null);
     Task UpdateAgent(Agent agent, AgentField updateField);
 
     /// <summary>
@@ -75,4 +77,10 @@ public interface IAgentService
 
     Task<bool> UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> codeScripts, AgentCodeScriptUpdateOptions? options = null)
         => Task.FromResult(false);
+
+    Task<bool> DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? codeScripts = null)
+        => Task.FromResult(false);
+
+    Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeProcessOptions? options = null)
+        => Task.FromResult(new CodeGenerationResult());
 }

@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.Hooks;
-using BotSharp.Abstraction.Realtime.Models.Session;
+using BotSharp.Abstraction.Realtime.Options;
+using BotSharp.Abstraction.Realtime.Sessions;
+using BotSharp.Abstraction.Realtime.Settings;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.Session;
 using BotSharp.Plugin.GoogleAI.Models.Realtime;

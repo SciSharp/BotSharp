@@ -380,11 +380,11 @@ public class TranslationService : ITranslationService
             Id = Guid.Empty.ToString(),
             Name = "Translator",
             Instruction = "You are a translation expert.",
-            TemplateDict = new Dictionary<string, object>
+            TemplateDict = new()
             {
-                { "text_list",  jsonString },
-                { "text_list_size", texts.Count },
-                { StateConst.LANGUAGE, language }
+                ["text_list"] = jsonString,
+                ["text_list_size"] = texts.Count,
+                [StateConst.LANGUAGE] = language
             }
         };
 

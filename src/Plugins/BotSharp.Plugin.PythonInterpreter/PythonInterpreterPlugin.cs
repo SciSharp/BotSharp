@@ -22,7 +22,7 @@ public class PythonInterpreterPlugin : IBotSharpAppPlugin
         services.AddSingleton(x => settings);
 
         services.AddScoped<IAgentUtilityHook, PyProgrammerUtilityHook>();
-        services.AddScoped<ICodeInterpretService, PyInterpretService>();
+        services.AddScoped<ICodeProcessor, PyCodeInterpreter>();
     }
 
     public void Configure(IApplicationBuilder app)

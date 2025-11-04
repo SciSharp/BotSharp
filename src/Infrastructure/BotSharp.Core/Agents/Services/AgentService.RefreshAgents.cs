@@ -39,7 +39,7 @@ public partial class AgentService
             try
             {
                 var agentJson = File.ReadAllText(Path.Combine(dir, "agent.json"));
-                var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options);
+                var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options.JsonSerializerOptions);
                 
                 if (agent == null)
                 {
@@ -62,7 +62,13 @@ public partial class AgentService
                 var tasks = GetTasksFromFile(dir);
                 var codeScripts = GetCodeScriptsFromFile(dir);
 
-                var isAgentDeleted = _db.DeleteAgent(agent.Id);
+                var isAgentDeleted = _db.DeleteAgent(agent.Id, options: new()
+                {
+                    DeleteRoleAgents = false,
+                    DeleteUserAgents = false,
+                    ToDeleteCodeScripts = codeScripts
+                });
+
                 if (isAgentDeleted)
                 {
                     await Task.Delay(100);

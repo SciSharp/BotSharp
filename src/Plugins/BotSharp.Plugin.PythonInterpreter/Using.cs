@@ -20,9 +20,10 @@ global using BotSharp.Abstraction.Messaging;
 global using BotSharp.Abstraction.Messaging.Models.RichContent;
 global using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 global using BotSharp.Abstraction.Routing;
-global using BotSharp.Abstraction.CodeInterpreter.Models;
-global using BotSharp.Abstraction.CodeInterpreter;
-
+global using BotSharp.Abstraction.Coding;
+global using BotSharp.Abstraction.Coding.Options;
+global using BotSharp.Abstraction.Coding.Responses;
+global using BotSharp.Core.Coding;
 global using BotSharp.Core.Infrastructures;
 
 global using BotSharp.Plugin.PythonInterpreter.Enums;

@@ -12,8 +12,7 @@ public class AgentLlmConfigMongoModel
     public int? MaxOutputTokens { get; set; }
     public string? ReasoningEffortLevel { get; set; }
 
-    public LlmImageGenerationConfigMongoModel? ImageGeneration { get; set; }
-    public LlmImageEditConfigMongoModel? ImageEdit { get; set; }
+    public LlmImageCompositionConfigMongoModel? ImageComposition { get; set; }
     public LlmAudioTranscriptionConfigMongoModel? AudioTranscription { get; set; }
     public LlmRealtimeConfigMongoModel? Realtime { get; set; }
 
@@ -34,8 +33,7 @@ public class AgentLlmConfigMongoModel
             MaxRecursionDepth = config.MaxRecursionDepth,
             MaxOutputTokens = config.MaxOutputTokens,
             ReasoningEffortLevel = config.ReasoningEffortLevel,
-            ImageGeneration = LlmImageGenerationConfigMongoModel.ToMongoModel(config.ImageGeneration),
-            ImageEdit = LlmImageEditConfigMongoModel.ToMongoModel(config.ImageEdit),
+            ImageComposition = LlmImageCompositionConfigMongoModel.ToMongoModel(config.ImageComposition),
             AudioTranscription = LlmAudioTranscriptionConfigMongoModel.ToMongoModel(config.AudioTranscription),
             Realtime = LlmRealtimeConfigMongoModel.ToMongoModel(config.Realtime)
         };
@@ -56,8 +54,7 @@ public class AgentLlmConfigMongoModel
             MaxRecursionDepth = config.MaxRecursionDepth,
             MaxOutputTokens = config.MaxOutputTokens,
             ReasoningEffortLevel = config.ReasoningEffortLevel,
-            ImageGeneration = LlmImageGenerationConfigMongoModel.ToDomainModel(config.ImageGeneration),
-            ImageEdit = LlmImageEditConfigMongoModel.ToDomainModel(config.ImageEdit),
+            ImageComposition = LlmImageCompositionConfigMongoModel.ToDomainModel(config.ImageComposition),
             AudioTranscription = LlmAudioTranscriptionConfigMongoModel.ToDomainModel(config.AudioTranscription),
             Realtime = LlmRealtimeConfigMongoModel.ToDomainModel(config.Realtime)
         };
@@ -65,65 +62,33 @@ public class AgentLlmConfigMongoModel
 }
 
 [BsonIgnoreExtraElements(Inherited = true)]
-public class LlmImageGenerationConfigMongoModel : LlmProviderModelMongoModel
+public class LlmImageCompositionConfigMongoModel : LlmProviderModelMongoModel
 {
-    public static LlmImageGenerationConfig? ToDomainModel(LlmImageGenerationConfigMongoModel? config)
+    public static LlmImageCompositionConfig? ToDomainModel(LlmImageCompositionConfigMongoModel? config)
     {
         if (config == null)
         {
             return null;
         }
 
-        return new LlmImageGenerationConfig
+        return new LlmImageCompositionConfig
         {
             Provider = config.Provider,
-            Model = config.Model,
+            Model = config.Model
         };
     }
 
-    public static LlmImageGenerationConfigMongoModel? ToMongoModel(LlmImageGenerationConfig? config)
+    public static LlmImageCompositionConfigMongoModel? ToMongoModel(LlmImageCompositionConfig? config)
     {
         if (config == null)
         {
             return null;
         }
 
-        return new LlmImageGenerationConfigMongoModel
+        return new LlmImageCompositionConfigMongoModel
         {
             Provider = config.Provider,
-            Model = config.Model,
-        };
-    }
-}
-
-[BsonIgnoreExtraElements(Inherited = true)]
-public class LlmImageEditConfigMongoModel : LlmProviderModelMongoModel
-{
-    public static LlmImageEditConfig? ToDomainModel(LlmImageEditConfigMongoModel? config)
-    {
-        if (config == null)
-        {
-            return null;
-        }
-
-        return new LlmImageEditConfig
-        {
-            Provider = config.Provider,
-            Model = config.Model,
-        };
-    }
-
-    public static LlmImageEditConfigMongoModel? ToMongoModel(LlmImageEditConfig? config)
-    {
-        if (config == null)
-        {
-            return null;
-        }
-
-        return new LlmImageEditConfigMongoModel
-        {
-            Provider = config.Provider,
-            Model = config.Model,
+            Model = config.Model
         };
     }
 }
@@ -141,7 +106,7 @@ public class LlmAudioTranscriptionConfigMongoModel : LlmProviderModelMongoModel
         return new LlmAudioTranscriptionConfig
         {
             Provider = config.Provider,
-            Model = config.Model,
+            Model = config.Model
         };
     }
 
@@ -155,7 +120,7 @@ public class LlmAudioTranscriptionConfigMongoModel : LlmProviderModelMongoModel
         return new LlmAudioTranscriptionConfigMongoModel
         {
             Provider = config.Provider,
-            Model = config.Model,
+            Model = config.Model
         };
     }
 }
@@ -173,7 +138,7 @@ public class LlmRealtimeConfigMongoModel : LlmProviderModelMongoModel
         return new LlmRealtimeConfig
         {
             Provider = config.Provider,
-            Model = config.Model,
+            Model = config.Model
         };
     }
 
@@ -187,7 +152,7 @@ public class LlmRealtimeConfigMongoModel : LlmProviderModelMongoModel
         return new LlmRealtimeConfigMongoModel
         {
             Provider = config.Provider,
-            Model = config.Model,
+            Model = config.Model
         };
     }
 }

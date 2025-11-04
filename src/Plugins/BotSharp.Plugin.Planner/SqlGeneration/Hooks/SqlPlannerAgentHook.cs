@@ -9,21 +9,21 @@ public class SqlPlannerAgentHook : AgentHookBase
     {
     }
 
-    public override bool OnInstructionLoaded(string template, Dictionary<string, object> dict)
+    public override bool OnInstructionLoaded(string template, IDictionary<string, object> dict)
     {
         var knowledgeHooks = _services.GetServices<IKnowledgeHook>();
 
         // Get global knowledges
-        var Knowledges = new List<string>();
+        var knowledges = new List<string>();
         foreach (var hook in knowledgeHooks)
         {
             var k = hook.GetGlobalKnowledges(new RoleDialogModel(AgentRole.User, template)
             {
                 CurrentAgentId = PlannerAgentId.SqlPlanner
-            }).Result;
-            Knowledges.AddRange(k);
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
+            knowledges.AddRange(k);
         }
-        dict["global_knowledges"] = Knowledges;
+        dict["global_knowledges"] = knowledges;
 
         return true;
     }

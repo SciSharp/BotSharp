@@ -166,10 +166,13 @@
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\translation_prompt.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-routing-fallback_to_router.json">
+    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\agent.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\functions\route_to_agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-routing-fallback_to_router.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-routing-fallback_to_router.fn.liquid">

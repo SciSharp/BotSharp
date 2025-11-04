@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Google.Settings;
 using BotSharp.Abstraction.Instructs;
-using BotSharp.Abstraction.MessageHub;
 using BotSharp.Abstraction.MessageHub.Observers;
 using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Messaging;
@@ -8,7 +7,7 @@ using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Templating;
-using BotSharp.Core.CodeInterpreter;
+using BotSharp.Core.Coding;
 using BotSharp.Core.Instructs;
 using BotSharp.Core.MessageHub;
 using BotSharp.Core.MessageHub.Observers;
@@ -18,7 +17,6 @@ using BotSharp.Core.Routing.Reasoning;
 using BotSharp.Core.Templating;
 using BotSharp.Core.Translation;
 using BotSharp.Core.WebSearch.Hooks;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Conversations;

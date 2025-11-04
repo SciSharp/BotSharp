@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Files.Converters;
+using BotSharp.Abstraction.Files.Options;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 
@@ -33,9 +34,9 @@ public partial class LocalFileStorageService
                     continue;
                 }
 
-                foreach (var subDir in Directory.GetDirectories(dir))
+                foreach (var subDir in Directory.EnumerateDirectories(dir))
                 {
-                    var file = Directory.GetFiles(subDir).FirstOrDefault();
+                    var file = Directory.EnumerateFiles(subDir).FirstOrDefault();
                     if (file == null)
                     {
                         continue;
@@ -78,7 +79,7 @@ public partial class LocalFileStorageService
 
             var sources = options?.Sources != null
                             ? options.Sources
-                            : Directory.GetDirectories(baseDir).Select(x => x.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries).Last());
+                            : Directory.EnumerateDirectories(baseDir).Select(x => x.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries).Last());
             if (sources.IsNullOrEmpty())
             {
                 continue;
@@ -92,11 +93,11 @@ public partial class LocalFileStorageService
                     continue;
                 }
 
-                foreach (var subDir in Directory.GetDirectories(dir))
+                foreach (var subDir in Directory.EnumerateDirectories(dir))
                 {
                     var fileIndex = subDir.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries).Last();
 
-                    foreach (var file in Directory.GetFiles(subDir))
+                    foreach (var file in Directory.EnumerateFiles(subDir))
                     {
                         var contentType = FileUtility.GetFileContentType(file);
                         if (options?.ContentTypes != null && !options.ContentTypes.Contains(contentType))
@@ -142,7 +143,7 @@ public partial class LocalFileStorageService
             return string.Empty;
         }
 
-        var found = Directory.GetFiles(dir).FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).IsEqualTo(fileName));
+        var found = Directory.EnumerateFiles(dir).FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).IsEqualTo(fileName));
         return found;
     }
 
@@ -307,9 +308,9 @@ public partial class LocalFileStorageService
             var contentType = FileUtility.GetFileContentType(file);
             var screenshotDir = Path.Combine(parentDir, SCREENSHOT_FILE_FOLDER);
 
-            if (ExistDirectory(screenshotDir) && !Directory.GetFiles(screenshotDir).IsNullOrEmpty())
+            if (ExistDirectory(screenshotDir))
             {
-                foreach (var screenshot in Directory.GetFiles(screenshotDir))
+                foreach (var screenshot in Directory.EnumerateFiles(screenshotDir))
                 {
                     var fileName = Path.GetFileNameWithoutExtension(screenshot);
                     var fileExtension = Path.GetExtension(screenshot).Substring(1);

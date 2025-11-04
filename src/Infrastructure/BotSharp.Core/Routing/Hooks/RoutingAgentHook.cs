@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing.Hooks;
@@ -14,7 +13,7 @@ public class RoutingAgentHook : AgentHookBase
         _routingSetting = routingSetting;
     }
 
-    public override bool OnInstructionLoaded(string template, Dictionary<string, object> dict)
+    public override bool OnInstructionLoaded(string template, IDictionary<string, object> dict)
     {
         if (_agent.Type != AgentType.Routing)
         {
@@ -74,7 +73,7 @@ public class RoutingAgentHook : AgentHookBase
             if (rule != null)
             {
                 var agentService = _services.GetRequiredService<IAgentService>();
-                var redirectAgent = agentService.GetAgent(rule.RedirectTo).Result;
+                var redirectAgent = agentService.GetAgent(rule.RedirectTo).ConfigureAwait(false).GetAwaiter().GetResult();
 
                 var json = JsonSerializer.Serialize(new
                 {

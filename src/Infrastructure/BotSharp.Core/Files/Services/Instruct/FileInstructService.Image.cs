@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Instructs.Options;
 using System.IO;
 
 namespace BotSharp.Core.Files.Services;

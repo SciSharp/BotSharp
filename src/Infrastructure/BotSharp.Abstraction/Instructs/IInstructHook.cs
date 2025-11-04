@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Hooks;
+using BotSharp.Abstraction.Instructs.Contexts;
 using BotSharp.Abstraction.Instructs.Models;
 
 namespace BotSharp.Abstraction.Instructs;

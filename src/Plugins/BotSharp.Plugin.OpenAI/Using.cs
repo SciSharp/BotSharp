@@ -30,7 +30,7 @@ global using BotSharp.Abstraction.MLTasks.Utilities;
 global using BotSharp.Abstraction.Options;
 global using BotSharp.Abstraction.Realtime;
 global using BotSharp.Abstraction.Realtime.Models;
-global using BotSharp.Abstraction.Realtime.Models.Session;
+global using BotSharp.Abstraction.Realtime.Sessions;
 global using BotSharp.Core.Infrastructures;
 global using BotSharp.Core.Session;
 global using BotSharp.Plugin.OpenAI.Models;
