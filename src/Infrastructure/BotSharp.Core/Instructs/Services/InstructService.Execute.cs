@@ -1,7 +1,10 @@
-using BotSharp.Abstraction.CodeInterpreter;
+using BotSharp.Abstraction.Coding;
+using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.Instructs.Contexts;
 using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Models;
 
@@ -20,7 +23,7 @@ public partial class InstructService
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        Agent agent = await agentService.LoadAgent(agentId);
+        var agent = await agentService.LoadAgent(agentId);
 
         var response = new InstructResult
         {
@@ -44,7 +47,7 @@ public partial class InstructService
 
 
         // Run code template
-        var codeResponse = await GetCodeResponse(agent, message, templateName, codeOptions);
+        var codeResponse = await RunCode(agent, message, templateName, codeOptions);
         if (codeResponse != null)
         {
             return codeResponse;
@@ -102,24 +105,26 @@ public partial class InstructService
                 prompt = message.Content;
             }
 
-            IFileLlmProcessor? fileProcessor = null;
+            IFileProcessor? fileProcessor = null;
             if (!files.IsNullOrEmpty() && fileOptions != null)
             {
-                fileProcessor = _services.GetServices<IFileLlmProcessor>()
-                                         .FirstOrDefault(x => x.Provider.IsEqualTo(fileOptions.FileLlmProcessorProvider));
+                fileProcessor = _services.GetServices<IFileProcessor>()
+                                         .FirstOrDefault(x => x.Provider.IsEqualTo(fileOptions.Processor));
             }
 
             if (fileProcessor != null)
             {
-                var inference = await fileProcessor.GetFileLlmInferenceAsync(agent, prompt, files, new FileLlmProcessOptions
+                var fileResponse = await fileProcessor.HandleFilesAsync(agent, prompt, files, new FileHandleOptions
                 {
                     Provider = provider,
                     Model = model,
                     Instruction = instruction,
+                    UserMessage = message.Content,
                     TemplateName = templateName,
+                    InvokeFrom = $"{nameof(InstructService)}.{nameof(Execute)}",
                     Data = state.GetStates().ToDictionary(x => x.Key, x => (object)x.Value)
                 });
-                result = inference?.Content ?? string.Empty;
+                result = fileResponse.Result.IfNullOrEmptyAs(string.Empty);
             }
             else
             {
@@ -128,12 +133,14 @@ public partial class InstructService
             response.Text = result;
         }
 
+        response.LogId = Guid.NewGuid().ToString();
         // After completion hooks
         foreach (var hook in hooks)
         {
             await hook.AfterCompletion(agent, response);
             await hook.OnResponseGenerated(new InstructResponseModel
             {
+                LogId = response.LogId,
                 AgentId = agentId,
                 Provider = provider,
                 Model = model,
@@ -155,7 +162,7 @@ public partial class InstructService
     /// <param name="templateName"></param>
     /// <param name="codeOptions"></param>
     /// <returns></returns>
-    private async Task<InstructResult?> GetCodeResponse(
+    private async Task<InstructResult?> RunCode(
         Agent agent,
         RoleDialogModel message,
         string templateName,
@@ -172,23 +179,23 @@ public partial class InstructService
         var state = _services.GetRequiredService<IConversationStateService>();
         var hooks = _services.GetHooks<IInstructHook>(agent.Id);
 
-        var codeProvider = codeOptions?.CodeInterpretProvider ?? "botsharp-py-interpreter";
-        var codeInterpreter = _services.GetServices<ICodeInterpretService>()
+        var codeProvider = codeOptions?.Processor ?? "botsharp-py-interpreter";
+        var codeProcessor = _services.GetServices<ICodeProcessor>()
                                        .FirstOrDefault(x => x.Provider.IsEqualTo(codeProvider));
         
-        if (codeInterpreter == null)
+        if (codeProcessor == null)
         {
 #if DEBUG
-            _logger.LogWarning($"No code interpreter found. (Agent: {agent.Id}, Code interpreter: {codeProvider})");
+            _logger.LogWarning($"No code processor found. (Agent: {agent.Id}, Code processor: {codeProvider})");
 #endif
             return response;
         }
 
         // Get code script name
         var scriptName = string.Empty;
-        if (!string.IsNullOrEmpty(codeOptions?.CodeScriptName))
+        if (!string.IsNullOrEmpty(codeOptions?.ScriptName))
         {
-            scriptName = codeOptions.CodeScriptName;
+            scriptName = codeOptions.ScriptName;
         }
         else if (!string.IsNullOrEmpty(templateName))
         {
@@ -204,7 +211,8 @@ public partial class InstructService
         }
 
         // Get code script
-        var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
+        var scriptType = codeOptions?.ScriptType ?? AgentCodeScriptType.Src;
+        var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType);
         if (string.IsNullOrWhiteSpace(codeScript))
         {
 #if DEBUG
@@ -223,12 +231,14 @@ public partial class InstructService
         var context = new CodeInstructContext
         {
             CodeScript = codeScript,
+            ScriptType = scriptType,
             Arguments = arguments
         };
 
         // Before code execution
         foreach (var hook in hooks)
         {
+            await hook.BeforeCompletion(agent, message);
             await hook.BeforeCodeExecution(agent, message, context);
 
             // Interrupted by hook
@@ -243,7 +253,7 @@ public partial class InstructService
         }
 
         // Run code script
-        var result = await codeInterpreter.RunCode(context.CodeScript, options: new()
+        var codeResponse = await codeProcessor.RunAsync(context.CodeScript, options: new()
         {
             ScriptName = scriptName,
             Arguments = context.Arguments
@@ -253,7 +263,7 @@ public partial class InstructService
         {
             MessageId = message.MessageId,
             Template = scriptName,
-            Text = result?.Result?.ToString()
+            Text = codeResponse?.Result ?? codeResponse?.ErrorMsg
         };
 
         if (context?.Arguments != null)
@@ -264,11 +274,12 @@ public partial class InstructService
         // After code execution
         foreach (var hook in hooks)
         {
+            await hook.AfterCompletion(agent, response);
             await hook.AfterCodeExecution(agent, response);
             await hook.OnResponseGenerated(new InstructResponseModel
             {
                 AgentId = agent.Id,
-                Provider = codeInterpreter.Provider,
+                Provider = codeProcessor.Provider,
                 Model = string.Empty,
                 TemplateName = scriptName,
                 UserMessage = message.Content,

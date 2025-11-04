@@ -31,11 +31,16 @@ public class CrontabWatcher : BackgroundService
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                await locker.LockAsync(DIST_KEY, async () =>
+                var isLocked = await locker.LockAsync(DIST_KEY, async () =>
                 {
                     await RunCronChecker(scope.ServiceProvider);
                     await Task.Delay(1000, stoppingToken);
                 });
+
+                if (!isLocked)
+                { 
+                    await Task.Delay(1000, stoppingToken);
+                }
             }
 
             _logger.LogWarning("Crontab Watcher background service is stopped.");

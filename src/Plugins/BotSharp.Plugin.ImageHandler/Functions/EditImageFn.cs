@@ -32,7 +32,7 @@ public class EditImageFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(message.CurrentAgentId);
 
-        await Init(message);
+        Init(message);
         SetImageOptions();
 
         var image = await SelectImage(descrpition);
@@ -42,10 +42,9 @@ public class EditImageFn : IFunctionCallback
         return true;
     }
 
-    private async Task Init(RoleDialogModel message)
+    private void Init(RoleDialogModel message)
     {
         var convService = _services.GetRequiredService<IConversationService>();
-
         _conversationId = convService.ConversationId;
         _messageId = message.MessageId;
     }
@@ -62,7 +61,7 @@ public class EditImageFn : IFunctionCallback
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var convSettings = _services.GetRequiredService<ConversationSetting>();
 
-        var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, new SelectFileOptions
+        var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, options: new()
         {
             Description = description,
             IsIncludeBotFiles = true,
@@ -108,7 +107,7 @@ public class EditImageFn : IFunctionCallback
                 return response.Content;
             }
 
-            return await GetImageEditResponse(agent, description);
+            return await AiResponseHelper.GetImageGenerationResponse(_services, agent, description, savedFiles);
         }
         catch (Exception ex)
         {
@@ -118,23 +117,18 @@ public class EditImageFn : IFunctionCallback
         }
     }
 
-    private async Task<string> GetImageEditResponse(Agent agent, string description)
-    {
-        return await AiResponseHelper.GetImageGenerationResponse(_services, agent, description);
-    }
-
     private (string, string) GetLlmProviderModel(Agent agent)
     {
-        var provider = agent?.LlmConfig?.ImageEdit?.Provider;
-        var model = agent?.LlmConfig?.ImageEdit?.Model;
+        var provider = agent?.LlmConfig?.ImageComposition?.Provider;
+        var model = agent?.LlmConfig?.ImageComposition?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
             return (provider, model);
         }
 
-        provider = _settings?.Edit?.Provider;
-        model = _settings?.Edit?.Model;
+        provider = _settings?.Composition?.Provider;
+        model = _settings?.Composition?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
@@ -170,7 +164,7 @@ public class EditImageFn : IFunctionCallback
 
     private async Task<BinaryData> ConvertImageToPngWithRgba(BinaryData binaryFile)
     {
-        var provider = _settings?.Edit?.ImageConverter?.Provider;
+        var provider = _settings?.Composition?.ImageConverter?.Provider;
         var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == provider);
         if (converter == null)
         {

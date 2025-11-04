@@ -1,4 +1,5 @@
-using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Files.Options;
+using BotSharp.Abstraction.Instructs.Options;
 
 namespace BotSharp.Abstraction.Files;
 

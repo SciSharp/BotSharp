@@ -7,6 +7,6 @@ public class AgentCodeScriptFilter
 
     public static AgentCodeScriptFilter Empty()
     {
-        return new AgentCodeScriptFilter();
+        return new();
     }
 }

@@ -1,7 +1,9 @@
 using Anthropic.SDK.Common;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Files.Models;
+using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Hooks;
-using BotSharp.Abstraction.MLTasks.Settings;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
@@ -39,10 +41,10 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting(Provider, _model ?? agent.LlmConfig?.Model ?? "claude-3-haiku");
+        var settings = settingsService.GetSetting(Provider, _model ?? agent.LlmConfig?.Model ?? "claude-haiku-4-5-20251001");
 
         var client = new AnthropicClient(new APIAuthentication(settings.ApiKey));
-        var (prompt, parameters) = PrepareOptions(agent, conversations, settings);
+        var (prompt, parameters) = PrepareOptions(agent, conversations);
 
         var response = await client.Messages.GetClaudeMessageAsync(parameters);
 
@@ -74,6 +76,8 @@ public class ChatCompletionProvider : IChatCompletion
             };
         }
 
+        var tokenUsage = response.Usage;
+
         // After chat completion hook
         foreach (var hook in contentHooks)
         {
@@ -82,8 +86,8 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
-                TextInputTokens = response.Usage?.InputTokens ?? 0,
-                TextOutputTokens = response.Usage?.OutputTokens ?? 0
+                TextInputTokens = tokenUsage?.InputTokens ?? 0,
+                TextOutputTokens = tokenUsage?.OutputTokens ?? 0
             });
         }
 
@@ -101,10 +105,13 @@ public class ChatCompletionProvider : IChatCompletion
         throw new NotImplementedException();
     }
 
-    private (string, MessageParameters) PrepareOptions(Agent agent, List<RoleDialogModel> conversations,
-        LlmModelSetting settings)
+    private (string, MessageParameters) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model);
+        var allowMultiModal = settings != null && settings.MultiModal;
         renderedInstructions = [];
 
         // Prepare instruction and functions
@@ -140,7 +147,17 @@ public class ChatCompletionProvider : IChatCompletion
         {
             if (message.Role == AgentRole.User)
             {
-                messages.Add(new Message(RoleType.User, message.LlmContent));
+                var contentParts = new List<ContentBase>();
+                if (allowMultiModal && !message.Files.IsNullOrEmpty())
+                {
+                    CollectMessageContentParts(contentParts, message.Files);
+                }
+                contentParts.Add(new TextContent() { Text = message.LlmContent });
+                messages.Add(new Message
+                {
+                    Role = RoleType.User,
+                    Content = contentParts
+                });
             }
             else if (message.Role == AgentRole.Assistant)
             {
@@ -177,7 +194,6 @@ public class ChatCompletionProvider : IChatCompletion
             }
         }
 
-        var state = _services.GetRequiredService<IConversationStateService>();
         var temperature = decimal.Parse(state.GetState("temperature", "0.0"));
         var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
             ? tokens
@@ -200,8 +216,6 @@ public class ChatCompletionProvider : IChatCompletion
                 new SystemMessage(instruction)
             };
         }
-
-        ;
 
         JsonSerializerOptions? jsonSerializationOptions = new()
         {
@@ -298,5 +312,54 @@ public class ChatCompletionProvider : IChatCompletion
     public void SetModelName(string model)
     {
         _model = model;
+    }
+
+    private void CollectMessageContentParts(List<ContentBase> contentParts, List<BotSharpFile> files)
+    {
+        foreach (var file in files)
+        {
+            if (!string.IsNullOrEmpty(file.FileData))
+            {
+                var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
+                var contentPart = new ImageContent
+                {
+                    Source = new ImageSource
+                    {
+                        MediaType = contentType,
+                        Data = Convert.ToBase64String(binary.ToArray())
+                    }
+                };
+                contentParts.Add(contentPart);
+            }
+            else if (!string.IsNullOrEmpty(file.FileStorageUrl))
+            {
+                var fileStorage = _services.GetRequiredService<IFileStorageService>();
+                var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
+                var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
+                var contentPart = new ImageContent
+                {
+                    Source = new ImageSource
+                    {
+                        MediaType = contentType,
+                        Data = Convert.ToBase64String(binary)
+                    }
+                };
+                contentParts.Add(contentPart);
+            }
+            else if (!string.IsNullOrEmpty(file.FileUrl))
+            {
+                var contentType = FileUtility.GetFileContentType(file.FileUrl);
+
+                var contentPart = new ImageContent
+                {
+                    Source = new ImageSource
+                    {
+                        MediaType = contentType,
+                        Url = file.FileUrl
+                    }
+                };
+                contentParts.Add(contentPart);
+            }
+        }
     }
 }

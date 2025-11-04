@@ -31,16 +31,12 @@ public class LlmModelSetting
     public string ApiKey { get; set; } = null!;
     public string? Endpoint { get; set; }
     public LlmModelType Type { get; set; } = LlmModelType.Chat;
+    public List<LlmModelCapability> Capabilities { get; set; } = [];
 
     /// <summary>
-    /// If true, allow sending images/vidoes to this model
+    /// If true, allow sending images/videos to this model
     /// </summary>
     public bool MultiModal { get; set; }
-
-    /// <summary>
-    /// If true, allow generating images
-    /// </summary>
-    public bool ImageGeneration { get; set; }
 
     /// <summary>
     /// Settings for embedding
@@ -122,6 +118,7 @@ public class ImageGenerationSetting
 public class ImageEditSetting
 {
     public ModelSettingBase? Size { get; set; }
+    public ModelSettingBase? Quality { get; set; }
     public ModelSettingBase? ResponseFormat { get; set; }
     public ModelSettingBase? Background { get; set; }
 }
@@ -172,10 +169,30 @@ public class LlmCostSetting
 
 public enum LlmModelType
 {
+    All = 0,
     Text = 1,
     Chat = 2,
     Image = 3,
     Embedding = 4,
     Audio = 5,
     Realtime = 6,
+    Web = 7
+}
+
+public enum LlmModelCapability
+{
+    All = 0,
+    Text = 1,
+    Chat = 2,
+    ImageReading = 3,
+    ImageGeneration = 4,
+    ImageEdit = 5,
+    ImageVariation = 6,
+    ImageComposition = 7,
+    Embedding = 8,
+    AudioTranscription = 9,
+    AudioGeneration = 10,
+    Realtime = 11,
+    WebSearch = 12,
+    PdfReading = 13
 }

@@ -5,6 +5,7 @@ using BotSharp.Abstraction.Statistics.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Core.Agents.Hooks;
+using BotSharp.Core.Coding;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Agents;
@@ -48,6 +49,8 @@ public class AgentPlugin : IBotSharpPlugin
             render.RegisterType(typeof(AgentSettings));
             return settingService.Bind<AgentSettings>("Agent");
         });
+
+        services.AddSingleton<CodeScriptExecutor>();
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)
@@ -57,9 +60,10 @@ public class AgentPlugin : IBotSharpPlugin
         {
             SubMenu = new List<PluginMenuDef>
             {
+                new PluginMenuDef("Agents", link: "page/agent"), // icon: "bx bx-bot",
                 new PluginMenuDef("Routing", link: "page/agent/router"), // icon: "bx bx-map-pin"
-                new PluginMenuDef("Evaluating", link: "page/agent/evaluator") { Roles = new List<string> { UserRole.Root, UserRole.Admin } }, // icon: "bx bx-task"
-                new PluginMenuDef("Agents", link: "page/agent"), // icon: "bx bx-bot"
+                new PluginMenuDef("Evaluating", link: "page/agent/evaluator") { Roles = [UserRole.Root, UserRole.Admin] }, // icon: "bx bx-task"
+                new PluginMenuDef("Coding", link: "page/agent/code-scripts") { Roles = [UserRole.Root, UserRole.Admin] },
             }
         });
 

@@ -38,7 +38,6 @@ public class VerifyDictionaryTerm : IFunctionCallback
             Id = message.CurrentAgentId ?? string.Empty,
             Name = "sqlDriver_DictionarySearch",
             Instruction = dictionarySqlPrompt,
-            TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
         };
 

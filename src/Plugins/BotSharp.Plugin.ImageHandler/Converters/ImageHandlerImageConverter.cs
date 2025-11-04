@@ -2,6 +2,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Png;
 using System.IO;
+using BotSharp.Abstraction.Files.Options;
 
 namespace BotSharp.Plugin.ImageHandler.Converters;
 

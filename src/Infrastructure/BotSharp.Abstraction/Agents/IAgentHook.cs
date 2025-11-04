@@ -16,7 +16,7 @@ public interface IAgentHook : IHookBase
     /// <returns></returns>
     bool OnAgentLoading(ref string id);
 
-    bool OnInstructionLoaded(string template, Dictionary<string, object> dict);
+    bool OnInstructionLoaded(string template, IDictionary<string, object> dict);
 
     bool OnFunctionsLoaded(List<FunctionDef> functions);
 

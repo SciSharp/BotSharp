@@ -115,8 +115,11 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 - BotSharp.Plugin.Dashboard
 - BotSharp.Plugin.RoutingSpeeder
 - BotSharp.Plugin.AudioHandler
+- BotSharp.Plugin.ChartHandler
 - BotSharp.Plugin.EmailHandler
+- BotSharp.Plugin.ExcelHandler
 - BotSharp.Plugin.FileHandler
+- BotSharp.Plugin.ImageHandler
 - BotSharp.Plugin.HttpHandler
 - BotSharp.Plugin.SqlDriver
 - BotSharp.Plugin.WebDriver
@@ -130,7 +133,7 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 - [x] MCP
 - [x] Realtime
 - [ ] Computer Use
-- [x] Browser Use
+- [ ] Browser Use
 - [x] Database Assistant
 - [x] Code Interpreter
 - [x] Conversation Management

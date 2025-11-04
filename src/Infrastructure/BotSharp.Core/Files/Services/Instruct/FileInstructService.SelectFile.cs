@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Files.Contexts;
+using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Templating;

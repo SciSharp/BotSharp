@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.VectorStorage.Enums;
-using Microsoft.AspNetCore.Http.HttpResults;
+using BotSharp.Abstraction.VectorStorage.Filters;
+using BotSharp.Abstraction.VectorStorage.Options;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
@@ -80,7 +81,10 @@ public partial class KnowledgeService
             }).ToList();
 
             var vectorDb = GetVectorDb();
-            if (vectorDb == null) return [];
+            if (vectorDb == null)
+            {
+                return [];
+            }
             var dbCollections = await vectorDb.GetCollections();
             return configs.Where(x => dbCollections.Contains(x.Name));
         }

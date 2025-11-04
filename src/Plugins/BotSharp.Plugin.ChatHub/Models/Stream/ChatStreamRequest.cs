@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Realtime.Options;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.Plugin.ChatHub.Models.Stream;
