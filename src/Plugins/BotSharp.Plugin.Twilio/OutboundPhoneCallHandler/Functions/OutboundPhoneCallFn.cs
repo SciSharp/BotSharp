@@ -25,6 +25,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
 
     public string Name => "util-twilio-outbound_phone_call";
     public string Indication => "Dialing the phone number";
+    public const string WelcomeMessageAllowToBeInterrupted = "welcome_message_allow_to_be_interrupted";
 
     public OutboundPhoneCallFn(
         IServiceProvider services,
@@ -104,6 +105,11 @@ public class OutboundPhoneCallFn : IFunctionCallback
         if (!string.IsNullOrEmpty(initAudioFile))
         {
             processUrl += $"&init-audio-file={initAudioFile}";
+        }
+
+        if (agent.Labels.Contains(WelcomeMessageAllowToBeInterrupted))
+        {
+            processUrl += $"${WelcomeMessageAllowToBeInterrupted}=true";
         }
 
         // Make outbound call
