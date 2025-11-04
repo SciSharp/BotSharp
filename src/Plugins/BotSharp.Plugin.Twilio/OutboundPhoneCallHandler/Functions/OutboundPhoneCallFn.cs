@@ -25,7 +25,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
 
     public string Name => "util-twilio-outbound_phone_call";
     public string Indication => "Dialing the phone number";
-    public const string WelcomeMessageAllowToBeInterrupted = "welcome_message_allow_to_be_interrupted";
+    public const string WelcomeMessageAllowToBeInterrupted = "welcome_msg_allow_interrupt";
 
     public OutboundPhoneCallFn(
         IServiceProvider services,

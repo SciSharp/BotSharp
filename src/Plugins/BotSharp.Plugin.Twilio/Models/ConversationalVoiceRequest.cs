@@ -42,7 +42,7 @@ public class ConversationalVoiceRequest : VoiceRequest
     [FromForm]
     public int MachineDetectionDuration { get; set; }
 
-    [FromQuery(Name = "welcome_message_allow_to_be_interrupted")]
+    [FromQuery(Name = "welcome_msg_allow_interrupt")]
     public bool? WelcomeMessageAllowToBeInterrupted { get; set; }
 
     [FromForm]
