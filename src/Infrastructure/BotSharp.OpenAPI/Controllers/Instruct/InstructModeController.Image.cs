@@ -30,7 +30,7 @@ public partial class InstructModeController
                 Model = request.Model,
                 AgentId = request.AgentId,
                 TemplateName = request.TemplateName,
-                ImageConvertProvider = request.ImageConvertProvider
+                ImageConverter = request.ImageConverter
             });
 
             imageViewModel.Success = true;
@@ -103,7 +103,7 @@ public partial class InstructModeController
                 Provider = request.Provider,
                 Model = request.Model,
                 AgentId = request.AgentId,
-                ImageConvertProvider = request.ImageConvertProvider
+                ImageConverter = request.ImageConverter
             });
 
             imageViewModel.Success = true;
@@ -142,7 +142,7 @@ public partial class InstructModeController
                 Provider = request?.Provider,
                 Model = request?.Model,
                 AgentId = request?.AgentId,
-                ImageConvertProvider = request?.ImageConvertProvider
+                ImageConverter = request?.ImageConverter
             });
 
             imageViewModel.Success = true;
@@ -182,7 +182,7 @@ public partial class InstructModeController
                 Model = request.Model,
                 AgentId = request.AgentId,
                 TemplateName = request.TemplateName,
-                ImageConvertProvider = request.ImageConvertProvider
+                ImageConverter = request.ImageConverter
             });
 
             imageViewModel.Success = true;
@@ -222,7 +222,7 @@ public partial class InstructModeController
                 Model = request?.Model,
                 AgentId = request?.AgentId,
                 TemplateName = request?.TemplateName,
-                ImageConvertProvider = request?.ImageConvertProvider
+                ImageConverter = request?.ImageConverter
             });
 
             imageViewModel.Success = true;
@@ -264,7 +264,7 @@ public partial class InstructModeController
                 Model = request.Model,
                 AgentId = request.AgentId,
                 TemplateName = request.TemplateName,
-                ImageConvertProvider = request.ImageConvertProvider
+                ImageConverter = request.ImageConverter
             });
 
             imageViewModel.Success = true;
@@ -312,7 +312,7 @@ public partial class InstructModeController
                     Model = request?.Model,
                     AgentId = request?.AgentId,
                     TemplateName = request?.TemplateName,
-                    ImageConvertProvider = request?.ImageConvertProvider
+                    ImageConverter = request?.ImageConverter
                 });
 
             imageViewModel.Success = true;

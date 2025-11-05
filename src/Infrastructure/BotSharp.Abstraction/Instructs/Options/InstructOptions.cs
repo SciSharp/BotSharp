@@ -35,5 +35,5 @@ public class InstructOptions
     /// <summary>
     /// Image convert provider
     /// </summary>
-    public string? ImageConvertProvider { get; set; }
+    public string? ImageConverter { get; set; }
 }

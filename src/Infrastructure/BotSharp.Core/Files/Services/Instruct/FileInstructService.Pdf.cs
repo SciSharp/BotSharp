@@ -26,7 +26,7 @@ public partial class FileInstructService
             var pdfFiles = await DownloadAndSaveFiles(sessionDir, files);
             var targetFiles = pdfFiles;
 
-            var converter = GetImageConverter(options?.ImageConvertProvider);
+            var converter = GetImageConverter(options?.ImageConverter);
             if (converter == null && provider == "openai")
             {
                 var fileCoreSettings = _services.GetRequiredService<FileCoreSettings>();

@@ -24,7 +24,7 @@ public partial class InstructModeController
                 Model = request.Model,
                 AgentId = request.AgentId,
                 TemplateName = request.TemplateName,
-                ImageConvertProvider = request.ImageConvertProvider
+                ImageConverter = request.ImageConverter
             });
 
             viewModel.Success = true;
@@ -62,7 +62,7 @@ public partial class InstructModeController
                 Model = request?.Model,
                 AgentId = request?.AgentId,
                 TemplateName = request?.TemplateName,
-                ImageConvertProvider = request?.ImageConvertProvider
+                ImageConverter = request?.ImageConverter
             });
 
             viewModel.Success = true;

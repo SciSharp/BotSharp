@@ -85,7 +85,7 @@ public partial class FileInstructService
         var binary = await DownloadFile(image);
 
         // Convert image
-        var converter = GetImageConverter(options?.ImageConvertProvider);
+        var converter = GetImageConverter(options?.ImageConverter);
         if (converter != null)
         {
             binary = await converter.ConvertImage(binary);
@@ -130,7 +130,7 @@ public partial class FileInstructService
         var binary = await DownloadFile(image);
 
         // Convert image
-        var converter = GetImageConverter(options?.ImageConvertProvider);
+        var converter = GetImageConverter(options?.ImageConverter);
         if (converter != null)
         {
             binary = await converter.ConvertImage(binary);
@@ -180,7 +180,7 @@ public partial class FileInstructService
         var maskBinary = await DownloadFile(mask);
 
         // Convert image
-        var converter = GetImageConverter(options?.ImageConvertProvider);
+        var converter = GetImageConverter(options?.ImageConverter);
         if (converter != null)
         {
             imageBinary = await converter.ConvertImage(imageBinary);
@@ -236,7 +236,7 @@ public partial class FileInstructService
             var binary = await DownloadFile(image);
 
             // Convert image
-            var converter = GetImageConverter(options?.ImageConvertProvider);
+            var converter = GetImageConverter(options?.ImageConverter);
             if (converter != null)
             {
                 binary = await converter.ConvertImage(binary);

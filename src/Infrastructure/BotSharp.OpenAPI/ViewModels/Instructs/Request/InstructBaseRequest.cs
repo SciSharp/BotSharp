@@ -44,8 +44,8 @@ public class ImageGenerationRequest : InstructBaseRequest
 
 public class ImageVariationRequest : InstructBaseRequest
 {
-    [JsonPropertyName("image_convert_provider")]
-    public string? ImageConvertProvider { get; set; }
+    [JsonPropertyName("image_converter")]
+    public string? ImageConverter { get; set; }
 }
 
 public class ImageVariationFileRequest : ImageVariationRequest
@@ -60,8 +60,8 @@ public class ImageEditRequest : InstructBaseRequest
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
-    [JsonPropertyName("image_convert_provider")]
-    public string? ImageConvertProvider { get; set; }
+    [JsonPropertyName("image_converter")]
+    public string? ImageConverter { get; set; }
 }
 
 public class ImageEditFileRequest : ImageEditRequest
@@ -81,8 +81,8 @@ public class ImageMaskEditRequest : InstructBaseRequest
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
-    [JsonPropertyName("image_convert_provider")]
-    public string? ImageConvertProvider { get; set; }
+    [JsonPropertyName("image_converter")]
+    public string? ImageConverter { get; set; }
 }
 
 public class ImageMaskEditFileRequest : ImageMaskEditRequest
@@ -100,8 +100,8 @@ public class PdfReadRequest : InstructBaseRequest
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
-    [JsonPropertyName("image_convert_provider")]
-    public string? ImageConvertProvider { get; set; }
+    [JsonPropertyName("image_converter")]
+    public string? ImageConverter { get; set; }
 }
 
 public class PdfReadFileRequest : PdfReadRequest
