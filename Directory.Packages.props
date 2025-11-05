@@ -6,8 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="EntityFramework" Version="6.4.4" />
-    <PackageVersion Include="Google_GenerativeAI" Version="3.3.0" />
-    <PackageVersion Include="Google_GenerativeAI.Live" Version="3.3.0" />
+    <PackageVersion Include="Google_GenerativeAI" Version="3.4.0" />
+    <PackageVersion Include="Google_GenerativeAI.Live" Version="3.4.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
@@ -37,7 +37,7 @@
     <PackageVersion Include="Nanoid" Version="3.1.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="8.1.2" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
-    <PackageVersion Include="Anthropic.SDK" Version="5.7.1" />
+    <PackageVersion Include="Anthropic.SDK" Version="5.8.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageVersion Include="NAudio" Version="2.2.1" />
     <PackageVersion Include="NAudio.Core" Version="2.2.1" />
@@ -45,7 +45,7 @@
     <PackageVersion Include="Whisper.net.Runtime" Version="1.8.1" />
     <PackageVersion Include="NCrontab" Version="3.3.3" />
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.5.0-beta.1" />
-    <PackageVersion Include="OpenAI" Version="2.5.0" />
+    <PackageVersion Include="OpenAI" Version="2.6.0" />
     <PackageVersion Include="MailKit" Version="4.11.0" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.8" />
     <PackageVersion Include="MySql.Data" Version="9.0.0" />
@@ -64,8 +64,8 @@
     <PackageVersion Include="System.Text.Encodings.Web" Version="8.0.0" />
     <PackageVersion Include="MongoDB.Driver" Version="3.1.0" />
     <PackageVersion Include="Docnet.Core" Version="2.7.0-alpha.1" />
-    <PackageVersion Include="Magick.NET-Q16-AnyCPU" Version="13.8.0" />
-    <PackageVersion Include="Magick.NET.Core" Version="13.8.0" />
+    <PackageVersion Include="Magick.NET-Q16-AnyCPU" Version="14.9.1" />
+    <PackageVersion Include="Magick.NET.Core" Version="14.9.1" />
     <PackageVersion Include="OpenCvSharp4.runtime.win" Version="4.9.0.20240103" />
     <PackageVersion Include="Sdcb.PaddleInference" Version="2.5.0.1" />
     <PackageVersion Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="2.5.1" />
