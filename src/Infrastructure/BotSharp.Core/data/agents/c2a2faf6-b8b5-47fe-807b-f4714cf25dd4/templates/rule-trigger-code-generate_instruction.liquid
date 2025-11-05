@@ -1,0 +1,15 @@
+Based on user's request, help generate a refined python code of function definition, only using base python packages, that can return a boolean value of true or false to determine if based on known states, the function can determine if conditions are met.
+
+User's request is {{user_request}}
+
+Couple of notes to address:
+1. You need to generate a function named check_trigger_criterion(args), where input is a json object. The example of this json object is {{args_example}}.
+2. The input to this function comes from the arguments. You must use "ArgumentParser" to take an argument named "states", and then use "parse_known_args" to get the raw args.
+3. After getting the raw args, you need to use 'clean_args = bytes(raw_args, "utf-8").decode("unicode_escape")' to clean the raw argument, and then use 'args = json.loads(clean_args)' to get the json args.
+4. Based on the user's request and input args, generate the function logic and ONLY return a boolean value.
+5. You must only call check_trigger_criterion with the parsed json args in "if __name__ == '__main__'" block, and print only the function output. If any error occurs, print "Error".
+6. Refine the code so it will return for certain errors if detected, for example, when input is not a valid json, return "Error: Input is not a valid JSON string."; or when certain attributes are missing from json args, so I can better track of this.
+7. You can use try-except blocks to catch any errors, and return "Error" if any error occurs. Do not use sys.exit(0) to exit the program.
+8. Use as fewer comments and try-except blocks as possible.
+
+Output the executable code directly in order to directly save it to a py file.
