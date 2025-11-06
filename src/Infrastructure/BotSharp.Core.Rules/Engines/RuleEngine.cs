@@ -111,7 +111,7 @@ public class RuleEngine : IRuleEngine
 
         var msg = $"rule trigger ({triggerName}) code script ({scriptName}) in agent ({agentId}) => args: {options.ArgumentContent?.RootElement.GetRawText()}.";
 
-        if (string.IsNullOrWhiteSpace(codeScript))
+        if (string.IsNullOrWhiteSpace(codeScript?.Content))
         {
             _logger.LogWarning($"Unable to find {msg}.");
             return false;
@@ -119,7 +119,7 @@ public class RuleEngine : IRuleEngine
 
         try
         {
-            var response = await processor.RunAsync(codeScript, options: new()
+            var response = await processor.RunAsync(codeScript.Content, options: new()
             {
                 ScriptName = scriptName,
                 Arguments = BuildArguments(options.ArgumentName, options.ArgumentContent)

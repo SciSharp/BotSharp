@@ -101,7 +101,7 @@ public partial class FileInstructService : IFileInstructService
 
     private IImageConverter? GetImageConverter(string? provider)
     {
-        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == (provider ?? "file-handler"));
+        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == (provider ?? "image-handler"));
         return converter;
     }
     #endregion

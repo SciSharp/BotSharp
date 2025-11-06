@@ -50,7 +50,7 @@ public partial class FileRepository
         return results;
     }
 
-    public string? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+    public AgentCodeScript? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
     {
         if (string.IsNullOrWhiteSpace(agentId)
             || string.IsNullOrWhiteSpace(scriptName)
@@ -66,11 +66,20 @@ public partial class FileRepository
         }
 
         var foundFile = Directory.EnumerateFiles(dir).FirstOrDefault(file => scriptName.IsEqualTo(Path.GetFileName(file)));
-        if (!string.IsNullOrEmpty(foundFile))
+        if (!File.Exists(foundFile))
         {
-            return File.ReadAllText(foundFile);
+            return null;
         }
-        return string.Empty;
+
+        return new AgentCodeScript
+        {
+            AgentId = agentId,
+            Name = scriptName,
+            ScriptType = scriptType,
+            Content = File.ReadAllText(foundFile),
+            CreatedTime = File.GetCreationTimeUtc(foundFile),
+            UpdatedTime = File.GetLastWriteTimeUtc(foundFile)
+        };
     }
 
     public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)

@@ -14,7 +14,7 @@ public partial class AgentService
         return await Task.FromResult(scripts);
     }
 
-    public async Task<string?> GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+    public async Task<AgentCodeScript?> GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var script = db.GetAgentCodeScript(agentId, scriptName, scriptType);

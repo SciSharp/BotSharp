@@ -214,7 +214,7 @@ public partial class InstructService
         // Get code script
         var scriptType = codeOptions?.ScriptType ?? AgentCodeScriptType.Src;
         var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType);
-        if (string.IsNullOrWhiteSpace(codeScript))
+        if (string.IsNullOrWhiteSpace(codeScript?.Content))
         {
 #if DEBUG
             _logger.LogWarning($"Empty code script. (Agent: {agent.Id}, {scriptName})");
@@ -231,7 +231,8 @@ public partial class InstructService
 
         var context = new CodeInstructContext
         {
-            CodeScript = codeScript,
+            ScriptName = codeScript.Name,
+            ScriptContent = codeScript.Content,
             ScriptType = scriptType,
             Arguments = arguments
         };
@@ -254,7 +255,7 @@ public partial class InstructService
         }
 
         // Run code script
-        var codeResponse = await codeProcessor.RunAsync(context.CodeScript, options: new()
+        var codeResponse = await codeProcessor.RunAsync(context.ScriptContent, options: new()
         {
             ScriptName = scriptName,
             Arguments = context.Arguments
@@ -284,7 +285,7 @@ public partial class InstructService
                 Model = string.Empty,
                 TemplateName = scriptName,
                 UserMessage = message.Content,
-                SystemInstruction = context?.CodeScript,
+                SystemInstruction = $"Code script name: {codeScript.Name}, Version: {codeScript.UpdatedTime.ToString("o")}",
                 CompletionText = response.Text
             });
         }
