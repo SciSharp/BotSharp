@@ -8,20 +8,23 @@ namespace BotSharp.Plugin.FuzzySharp.Constants
         /// Includes: parentheses, brackets, braces, punctuation marks, special symbols, etc.
         /// This ensures "(IH)" is split into "(", "IH", ")"
         /// </summary>
-        public static readonly char[] TokenSeparationChars =
+        public static readonly char[] SeparatorChars =
         {
             // Parentheses and brackets
             '(', ')', '[', ']', '{', '}',
             // Punctuation marks
             ',', '.', ';', ':', '!', '?',
             // Special symbols
-            '=', '@', '#', '$', '%', '^', '&', '*', '+', '-', '/', '\\', '|', '<', '>', '~', '`'
+            '=', '@', '#', '$', '%', '^', '&', '*', '+', '-', '\\', '|', '<', '>', '~', '`'
         };
 
         /// <summary>
-        /// Text separators used for tokenization and n-gram processing
-        /// Includes: equals, colon, semicolon, question mark, exclamation mark, comma, period
+        /// Whitespace characters used as token separators during tokenization.
+        /// Includes: space, tab, newline, and carriage return.
         /// </summary>
-        public static readonly char[] SeparatorChars = { '=', ':', ';', '?', '!', ',', '.' };
+        public static readonly char[] TokenSeparators =
+        {
+            ' ', '\t', '\n', '\r'
+        };
     }
 }

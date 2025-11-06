@@ -18,12 +18,12 @@ namespace BotSharp.Plugin.FuzzySharp.Utils
                 return text;
             }
 
-            var result = new System.Text.StringBuilder(text.Length * 2);
+            var result = new StringBuilder(text.Length * 2);
 
             foreach (var ch in text)
             {
                 // If it's a character that needs to be separated, add spaces before and after
-                if (TextConstants.TokenSeparationChars.Contains(ch))
+                if (TextConstants.SeparatorChars.Contains(ch))
                 {
                     result.Append(' ');
                     result.Append(ch);
@@ -46,7 +46,7 @@ namespace BotSharp.Plugin.FuzzySharp.Utils
         /// <returns>List of tokens</returns>
         public static List<string> SimpleTokenize(string text)
         {
-            return text.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            return text.Split(TextConstants.TokenSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
         }
 
         /// <summary>

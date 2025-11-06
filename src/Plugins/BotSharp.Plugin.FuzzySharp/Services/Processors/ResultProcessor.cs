@@ -1,7 +1,8 @@
 using BotSharp.Abstraction.FuzzSharp;
 using BotSharp.Abstraction.FuzzSharp.Models;
+using BotSharp.Plugin.FuzzySharp.Constants;
 
-namespace BotSharp.Plugin.FuzzySharp.Services
+namespace BotSharp.Plugin.FuzzySharp.Services.Processors
 {
     public class ResultProcessor : IResultProcessor
     {
@@ -19,10 +20,12 @@ namespace BotSharp.Plugin.FuzzySharp.Services
         }
 
         /// <summary>
-        /// Remove overlapping detections with the same canonical form and match type.
-        /// When multiple detections overlap and have the same canonical_form and match_type,
-        /// keep only the best one based on: 1. Highest confidence, 2. Shortest n-gram length
-        /// This matches Python's _remove_overlapping_duplicates function.
+        /// Remove overlapping detections with the same canonical form.
+        /// When multiple detections overlap and have the same canonical_form,
+        /// keep only the best one based on:
+        /// 1. Prefer domain_term_mapping over exact_match over typo_correction (matches matcher priority)
+        /// 2. Highest confidence
+        /// 3. Shortest n-gram length
         /// </summary>
         private List<FlaggedItem> RemoveOverlappingDuplicates(List<FlaggedItem> flagged)
         {
@@ -39,7 +42,7 @@ namespace BotSharp.Plugin.FuzzySharp.Services
                 var item = flagged[i];
                 var itemRange = (item.Index, item.Index + item.NgramLength);
 
-                // Find all overlapping items with same canonical_form and match_type
+                // Find all overlapping items with same canonical_form (regardless of match_type)
                 var overlappingGroup = new List<FlaggedItem> { item };
                 for (int j = i + 1; j < flagged.Count; j++)
                 {
@@ -49,7 +52,7 @@ namespace BotSharp.Plugin.FuzzySharp.Services
                     }
 
                     var other = flagged[j];
-                    if (item.CanonicalForm == other.CanonicalForm && item.MatchType == other.MatchType)
+                    if (item.CanonicalForm == other.CanonicalForm)
                     {
                         var otherRange = (other.Index, other.Index + other.NgramLength);
                         if (RangesOverlap(itemRange, otherRange))
@@ -61,15 +64,32 @@ namespace BotSharp.Plugin.FuzzySharp.Services
                 }
 
                 // Keep the best item from the overlapping group
-                // Priority: highest confidence, then shortest ngram
+                // Priority: domain_term_mapping (3) > exact_match (2) > typo_correction (1)
+                // Then highest confidence, then shortest ngram
                 var bestItem = overlappingGroup
-                    .OrderByDescending(x => x.Confidence)
+                    .OrderByDescending(x => GetMatchTypePriority(x.MatchType))
+                    .ThenByDescending(x => x.Confidence)
                     .ThenBy(x => x.NgramLength)
                     .First();
                 deduped.Add(bestItem);
             }
 
             return deduped;
+        }
+
+        /// <summary>
+        /// Get priority value for match type (higher is better)
+        /// Matches the priority order in matchers: domain > exact > fuzzy
+        /// </summary>
+        private int GetMatchTypePriority(string matchType)
+        {
+            return matchType switch
+            {
+                MatchReason.DomainTermMapping => 3,  // Highest priority
+                MatchReason.ExactMatch => 2,          // Second priority
+                MatchReason.TypoCorrection => 1,      // Lowest priority
+                _ => 0                                // Unknown types get lowest priority
+            };
         }
 
         /// <summary>

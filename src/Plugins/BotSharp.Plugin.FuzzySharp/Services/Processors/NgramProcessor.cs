@@ -3,7 +3,7 @@ using BotSharp.Abstraction.FuzzSharp.Models;
 using BotSharp.Plugin.FuzzySharp.Constants;
 using BotSharp.Plugin.FuzzySharp.Utils;
 
-namespace BotSharp.Plugin.FuzzySharp.Services
+namespace BotSharp.Plugin.FuzzySharp.Services.Processors
 {
     public class NgramProcessor : INgramProcessor
     {
@@ -64,42 +64,33 @@ namespace BotSharp.Plugin.FuzzySharp.Services
             double cutoff,
             int topK)
         {
-            // Skip if starting with separator
-            if (IsSeparatorToken(tokens[startIdx]))
+            // Extract content span
+            var (contentSpan, spanTokens, contentIndices) = ExtractContentSpan(tokens, startIdx, n);
+            if (string.IsNullOrWhiteSpace(contentSpan))
             {
                 return null;
             }
 
-            // Extract content span (remove leading/trailing separators)
-            var (contentSpan, contentIndices) = ExtractContentSpan(tokens, startIdx, n);
-
-            if (string.IsNullOrWhiteSpace(contentSpan) || contentIndices.Count == 0)
-            {
-                return null;
-            }
-
-            var startIndex = contentIndices[0];
             var contentLow = contentSpan.ToLowerInvariant();
-
-            // Before fuzzy matching, skip if any contiguous sub-span has an exact or mapped match
-            // This prevents "with pending dispatch" from being fuzzy-matched when "pending dispatch" is exact
-            if (n > 1 && HasExactSubspanMatch(contentSpan, lookup, domainTermMapping))
-            {
-                return null;
-            }
 
             // Try matching in priority order using matchers
             var context = new MatchContext(
-                contentSpan, contentLow, startIndex, n,
-                vocabulary, domainTermMapping, lookup,
-                cutoff, topK);
+                contentSpan, 
+                contentLow, 
+                startIdx, 
+                n,
+                vocabulary, 
+                domainTermMapping, 
+                lookup,
+                cutoff, 
+                topK);
 
             foreach (var matcher in _matchers)
             {
                 var matchResult = matcher.TryMatch(context);
                 if (matchResult != null)
                 {
-                    return CreateFlaggedItem(matchResult, startIndex, contentSpan, n);
+                    return CreateFlaggedItem(matchResult, startIdx, contentSpan, n);
                 }
             }
 
@@ -128,77 +119,16 @@ namespace BotSharp.Plugin.FuzzySharp.Services
         }
 
         /// <summary>
-        /// Check if token is a separator
+        /// Extract content span 
         /// </summary>
-        private bool IsSeparatorToken(string token)
-        {
-            return token.Length == 1 && TextConstants.SeparatorChars.Contains(token[0]);
-        }
-
-        /// <summary>
-        /// Extract content span by removing leading and trailing separators
-        /// </summary>
-        private (string ContentSpan, List<int> ContentIndices) ExtractContentSpan(
-            List<string> tokens, int startIdx, int n)
+        private (string ContentSpan, List<string> Tokens, List<int> ContentIndices) ExtractContentSpan(
+            List<string> tokens, 
+            int startIdx, 
+            int n)
         {
             var span = tokens.Skip(startIdx).Take(n).ToList();
             var indices = Enumerable.Range(startIdx, n).ToList();
-
-            // Remove leading separators
-            while (span.Count > 0 && IsSeparatorToken(span[0]))
-            {
-                span.RemoveAt(0);
-                indices.RemoveAt(0);
-            }
-
-            // Remove trailing separators
-            while (span.Count > 0 && IsSeparatorToken(span[^1]))
-            {
-                span.RemoveAt(span.Count - 1);
-                indices.RemoveAt(indices.Count - 1);
-            }
-
-            return (string.Join(" ", span), indices);
-        }
-
-        /// <summary>
-        /// Check whether any contiguous sub-span of content_span is an exact hit
-        /// </summary>
-        private bool HasExactSubspanMatch(
-            string contentSpan,
-            Dictionary<string, (string CanonicalForm, List<string> DomainTypes)> lookup,
-            Dictionary<string, (string DbPath, string CanonicalForm)> domainTermMapping)
-        {
-            if (string.IsNullOrWhiteSpace(contentSpan))
-            {
-                return false;
-            }
-
-            var contentTokens = TextTokenizer.SimpleTokenize(contentSpan);
-
-            // Try all contiguous sub-spans
-            for (int subN = contentTokens.Count; subN > 0; subN--)
-            {
-                for (int subI = 0; subI <= contentTokens.Count - subN; subI++)
-                {
-                    var subSpan = string.Join(" ", contentTokens.Skip(subI).Take(subN));
-                    var subSpanLow = subSpan.ToLowerInvariant();
-
-                    // Check if it's in domain term mapping
-                    if (domainTermMapping.ContainsKey(subSpanLow))
-                    {
-                        return true;
-                    }
-
-                    // Check if it's an exact match in lookup table
-                    if (lookup.ContainsKey(subSpanLow))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return (string.Join(" ", span), span, indices);
         }
     }
 }

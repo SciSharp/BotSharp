@@ -7,8 +7,6 @@ using System.Diagnostics;
 
 namespace BotSharp.Plugin.FuzzySharp.Services
 {
-    internal record TypoCorrectionMatch(string CanonicalForm, string DomainType, double Confidence);
-
     public class TextAnalysisService : ITextAnalysisService
     {
         private readonly ILogger<TextAnalysisService> _logger;
@@ -40,7 +38,7 @@ namespace BotSharp.Plugin.FuzzySharp.Services
                 var tokens = TextTokenizer.Tokenize(request.Text);
 
                 // Load vocabulary
-                var vocabulary = await _vocabularyService.LoadVocabularyAsync(request.VocabularyFolderPath);
+                var vocabulary = await _vocabularyService.LoadVocabularyAsync(request.VocabularyFolderName);
 
                 // Load domain term mapping
                 var domainTermMapping = await _vocabularyService.LoadDomainTermMappingAsync(request.DomainTermMappingFile);

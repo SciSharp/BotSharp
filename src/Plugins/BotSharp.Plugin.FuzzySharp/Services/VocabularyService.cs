@@ -3,6 +3,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
+using System.IO;
 
 namespace BotSharp.Plugin.FuzzySharp.Services
 {
@@ -15,17 +16,17 @@ namespace BotSharp.Plugin.FuzzySharp.Services
             _logger = logger;
         }
 
-        public async Task<Dictionary<string, HashSet<string>>> LoadVocabularyAsync(string? folderPath)
+        public async Task<Dictionary<string, HashSet<string>>> LoadVocabularyAsync(string? foldername)
         {
             var vocabulary = new Dictionary<string, HashSet<string>>();
 
-            if (string.IsNullOrEmpty(folderPath))
+            if (string.IsNullOrEmpty(foldername))
             {
                 return vocabulary;
             }
 
             // Load CSV files from the folder
-            var csvFileDict = await LoadCsvFilesFromFolderAsync(folderPath);
+            var csvFileDict = await LoadCsvFilesFromFolderAsync(foldername);
             if (csvFileDict.Count == 0)
             {
                 return vocabulary;
@@ -49,14 +50,16 @@ namespace BotSharp.Plugin.FuzzySharp.Services
             return vocabulary;
         }
 
-        public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadDomainTermMappingAsync(string? filePath)
+        public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadDomainTermMappingAsync(string? filename)
         {
             var result = new Dictionary<string, (string DbPath, string CanonicalForm)>();
-
-            if (string.IsNullOrWhiteSpace(filePath))
+            if (string.IsNullOrWhiteSpace(filename))
             {
                 return result;
             }
+
+            var searchFolder = Path.Combine(AppContext.BaseDirectory, "data", "plugins", "fuzzySharp");
+            var filePath = Path.Combine(searchFolder, filename);
 
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
@@ -65,7 +68,7 @@ namespace BotSharp.Plugin.FuzzySharp.Services
 
             try
             {
-                using var reader = new StreamReader(filePath);
+                using var reader = new StreamReader(filePath); 
                 using var csv = new CsvReader(reader, CreateCsvConfig());
 
                 await csv.ReadAsync();
@@ -138,14 +141,10 @@ namespace BotSharp.Plugin.FuzzySharp.Services
             return terms;
         }
 
-        private async Task<Dictionary<string, string>> LoadCsvFilesFromFolderAsync(string folderPath)
+        private async Task<Dictionary<string, string>> LoadCsvFilesFromFolderAsync(string folderName)
         {
             var csvFileDict = new Dictionary<string, string>();
-
-            // Check if the folder has an 'output' subdirectory
-            var outputFolder = Path.Combine(folderPath, "output");
-            var searchFolder = Directory.Exists(outputFolder) ? outputFolder : folderPath;
-
+            var searchFolder = Path.Combine(AppContext.BaseDirectory, "data", "plugins", "fuzzySharp", folderName);
             if (!Directory.Exists(searchFolder))
             {
                 _logger.LogWarning($"Folder does not exist: {searchFolder}");

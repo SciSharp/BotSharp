@@ -13,8 +13,8 @@ namespace BotSharp.Abstraction.FuzzSharp.Arguments
         /// <summary>
         /// Folder path containing CSV files (will read all .csv files from the folder or its 'output' subfolder)
         /// </summary>
-        [JsonPropertyName("vocabulary_folder_path")]
-        public string? VocabularyFolderPath { get; set; }
+        [JsonPropertyName("vocabulary_folder_name")]
+        public string? VocabularyFolderName { get; set; }
 
         /// <summary>
         /// Domain term mapping CSV file
