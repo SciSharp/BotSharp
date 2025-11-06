@@ -7,6 +7,12 @@ public class AgentRuleViewModel
     [JsonPropertyName("trigger_name")]
     public string TriggerName { get; set; } = string.Empty;
 
+    [JsonPropertyName("channel")]
+    public string Channel { get; set; } = string.Empty;
+
+    [JsonPropertyName("statement")]
+    public string Statement { get; set; } = string.Empty;
+
     [JsonPropertyName("output_args")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public JsonDocument? OutputArgs { get; set; }

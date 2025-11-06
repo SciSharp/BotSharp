@@ -159,7 +159,7 @@ public class RuleEngine : IRuleEngine
         var keyValues = new List<KeyValue>();
         if (args != null)
         {
-            keyValues.Add(new KeyValue(name ?? "rule_args", args.RootElement.GetRawText()));
+            keyValues.Add(new KeyValue(name ?? "trigger_args", args.RootElement.GetRawText()));
         }
         return keyValues;
     }

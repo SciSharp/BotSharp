@@ -16,4 +16,9 @@ public interface IRuleTrigger
     /// The default arguments as input to code trigger (display purpose)
     /// </summary>
     JsonDocument OutputArgs => JsonDocument.Parse("{}");
+
+    /// <summary>
+    /// Explain the purpose of rule trigger (display purpose)
+    /// </summary>
+    string Statement => string.Empty;
 }

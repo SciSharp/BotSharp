@@ -81,7 +81,7 @@ public partial class FileInstructService : IFileInstructService
     private string BuildFileName(string? name, string? extension, string defaultName, string defaultExtension)
     {
         var fname = name.IfNullOrEmptyAs(defaultName);
-        var fextension = extension.IfNullOrEmptyAs(defaultExtension);
+        var fextension = extension.IfNullOrEmptyAs(defaultExtension)!;
         fextension = fextension.StartsWith(".") ? fextension.Substring(1) : fextension;
         return $"{name}.{fextension}";
     }

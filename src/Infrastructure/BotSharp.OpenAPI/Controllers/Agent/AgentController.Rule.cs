@@ -11,9 +11,11 @@ public partial class AgentController
         var triggers = _services.GetServices<IRuleTrigger>();
         return triggers.Select(x => new AgentRuleViewModel
         {
-            TriggerName = x.GetType().Name,
+            TriggerName = x.Name,
+            Channel = x.Channel,
+            Statement = x.Statement,
             OutputArgs = x.OutputArgs
-        }).OrderBy(x => x.TriggerName).ToList();
+        }).OrderBy(x => x.TriggerName);
     }
 
     [HttpGet("/rule/formalization")]
