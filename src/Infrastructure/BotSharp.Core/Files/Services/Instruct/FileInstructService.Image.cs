@@ -10,7 +10,8 @@ public partial class FileInstructService
     public async Task<string> ReadImages(string text, IEnumerable<InstructFileModel> images, InstructOptions? options = null)
     {
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
-        var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
+        var instruction = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
+        text = RenderText(text, options?.Data);
 
         var completion = CompletionProvider.GetChatCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-4o", multiModal: true);
         var message = await completion.GetChatCompletions(new Agent()
@@ -48,7 +49,8 @@ public partial class FileInstructService
     public async Task<RoleDialogModel> GenerateImage(string text, InstructOptions? options = null)
     {
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
-        var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
+        var instruction = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
+        text = RenderText(text, options?.Data);
 
         var textContent = text.IfNullOrEmptyAs(instruction).IfNullOrEmptyAs(string.Empty);
         var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1-mini");
@@ -124,7 +126,8 @@ public partial class FileInstructService
         }
 
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
-        var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
+        var instruction = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
+        text = RenderText(text, options?.Data);
 
         var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1-mini");
         var binary = await DownloadFile(image);
@@ -173,7 +176,8 @@ public partial class FileInstructService
         }
 
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
-        var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
+        var instruction = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
+        text = RenderText(text, options?.Data);
 
         var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1-mini");
         var imageBinary = await DownloadFile(image);
@@ -225,7 +229,8 @@ public partial class FileInstructService
     public async Task<RoleDialogModel> ComposeImages(string text, InstructFileModel[] images, InstructOptions? options = null)
     {
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
-        var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
+        var instruction = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
+        text = RenderText(text, options?.Data);
 
         var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1-mini");
 

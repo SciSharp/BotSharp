@@ -9,9 +9,13 @@ public partial class FileInstructService
         if (string.IsNullOrWhiteSpace(text))
         {
             var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
-            text = await GetAgentTemplate(innerAgentId, options?.TemplateName);
+            text = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
         }
-
+        else
+        {
+            text = RenderText(text, options?.Data);
+        }
+        
         var completion = CompletionProvider.GetAudioTranscriber(_services, provider: options?.Provider, model: options?.Model);
         var audioBinary = await DownloadFile(audio);
         using var stream = audioBinary.ToStream();

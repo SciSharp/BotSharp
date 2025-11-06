@@ -40,7 +40,8 @@ public partial class FileInstructService
             }
 
             var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
-            var instruction = await GetAgentTemplate(innerAgentId, options?.TemplateName);
+            var instruction = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
+            text = RenderText(text, options?.Data);
 
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider,
                 model: options?.Model ?? "gpt-5-mini", multiModal: true);
