@@ -17,15 +17,10 @@ public class RuleTriggerOptions
     /// <summary>
     /// Argument name as an input key to the code script
     /// </summary>
-    public string? ArgsName { get; set; }
+    public string? ArgumentName { get; set; }
 
     /// <summary>
     /// Json arguments as an input value to the code script
     /// </summary>
-    public JsonDocument? Arguments { get; set; }
-
-    /// <summary>
-    /// States
-    /// </summary>
-    public List<MessageState>? States { get; set; } = null;
+    public JsonDocument? ArgumentContent { get; set; }
 }

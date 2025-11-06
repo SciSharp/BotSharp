@@ -24,7 +24,7 @@ public class RuleEngine : IRuleEngine
         _logger = logger;
     }
 
-    public async Task<IEnumerable<string>> Trigger(IRuleTrigger trigger, string text, RuleTriggerOptions? options = null)
+    public async Task<IEnumerable<string>> Trigger(IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null, RuleTriggerOptions? options = null)
     {
         var newConversationIds = new List<string>();
 
@@ -39,7 +39,7 @@ public class RuleEngine : IRuleEngine
         });
 
         // Trigger agents
-        var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName == trigger.Name && !x.Disabled)).ToList();
+        var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled)).ToList();
         foreach (var agent in filteredAgents)
         {
             var isTriggered = true;
@@ -70,9 +70,9 @@ public class RuleEngine : IRuleEngine
                 new("channel", trigger.Channel)
             };
 
-            if (options?.States != null)
+            if (states != null)
             {
-                allStates.AddRange(options.States);
+                allStates.AddRange(states);
             }
 
             convService.SetConversationId(conv.Id, allStates);
@@ -109,7 +109,7 @@ public class RuleEngine : IRuleEngine
         var scriptName = options.CodeScriptName ?? $"{triggerName}_rule.py";
         var codeScript = await agentService.GetAgentCodeScript(agentId, scriptName, scriptType: AgentCodeScriptType.Src);
 
-        var msg = $"rule trigger ({triggerName}) code script ({scriptName}) in agent ({agentId}) => args: {options.Arguments?.RootElement.GetRawText()}.";
+        var msg = $"rule trigger ({triggerName}) code script ({scriptName}) in agent ({agentId}) => args: {options.ArgumentContent?.RootElement.GetRawText()}.";
 
         if (string.IsNullOrWhiteSpace(codeScript))
         {
@@ -122,7 +122,7 @@ public class RuleEngine : IRuleEngine
             var response = await processor.RunAsync(codeScript, options: new()
             {
                 ScriptName = scriptName,
-                Arguments = BuildArguments(options.ArgsName, options.Arguments)
+                Arguments = BuildArguments(options.ArgumentName, options.ArgumentContent)
             });
 
             if (response == null || !response.Success)
@@ -133,7 +133,7 @@ public class RuleEngine : IRuleEngine
 
             bool result;
             LogLevel logLevel;
-            if (response.Result.IsEqualTo("true") || response.Result.IsEqualTo("1"))
+            if (response.Result.IsEqualTo("true"))
             {
                 logLevel = LogLevel.Information;
                 result = true;
@@ -154,12 +154,12 @@ public class RuleEngine : IRuleEngine
         }
     }
 
-    private IEnumerable<KeyValue> BuildArguments(string? argName, JsonDocument? args)
+    private IEnumerable<KeyValue> BuildArguments(string? name, JsonDocument? args)
     {
         var keyValues = new List<KeyValue>();
         if (args != null)
         {
-            keyValues.Add(new KeyValue(argName ?? "rule_args", args.RootElement.GetRawText()));
+            keyValues.Add(new KeyValue(name ?? "rule_args", args.RootElement.GetRawText()));
         }
         return keyValues;
     }
