@@ -38,6 +38,7 @@ namespace BotSharp.Plugin.FuzzySharp.Services
                 var tokens = TextTokenizer.Tokenize(request.Text);
 
                 // Load vocabulary
+                // TODO: read the vocabulary from GSMP in Onebrain
                 var vocabulary = await _vocabularyService.LoadVocabularyAsync(request.VocabularyFolderName);
 
                 // Load domain term mapping

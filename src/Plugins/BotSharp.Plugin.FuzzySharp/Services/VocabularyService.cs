@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.FuzzSharp;
+using BotSharp.Core.Infrastructures;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,7 @@ namespace BotSharp.Plugin.FuzzySharp.Services
             _logger = logger;
         }
 
+        [SharpCache(60)]
         public async Task<Dictionary<string, HashSet<string>>> LoadVocabularyAsync(string? foldername)
         {
             var vocabulary = new Dictionary<string, HashSet<string>>();
@@ -50,6 +52,7 @@ namespace BotSharp.Plugin.FuzzySharp.Services
             return vocabulary;
         }
 
+        [SharpCache(60)]
         public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadDomainTermMappingAsync(string? filename)
         {
             var result = new Dictionary<string, (string DbPath, string CanonicalForm)>();
