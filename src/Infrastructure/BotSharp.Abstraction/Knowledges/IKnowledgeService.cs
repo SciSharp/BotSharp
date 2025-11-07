@@ -36,8 +36,9 @@ public interface IKnowledgeService
     /// </summary>
     /// <param name="collectionName"></param>
     /// <param name="files"></param>
+    /// <param name="option"></param>
     /// <returns></returns>
-    Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(string collectionName, IEnumerable<ExternalFileModel> files, ChunkOption? option = null);
+    Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(string collectionName, IEnumerable<ExternalFileModel> files, KnowledgeDocOptions? options = null);
     /// <summary>
     /// Save document content to knowledgebase without saving the document
     /// </summary>

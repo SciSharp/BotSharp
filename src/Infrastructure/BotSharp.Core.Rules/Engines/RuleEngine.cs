@@ -24,7 +24,7 @@ public class RuleEngine : IRuleEngine
         _logger = logger;
     }
 
-    public async Task<IEnumerable<string>> Trigger(IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null, RuleTriggerOptions? options = null)
+    public async Task<IEnumerable<string>> Triggered(IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null, RuleTriggerOptions? options = null)
     {
         var newConversationIds = new List<string>();
 

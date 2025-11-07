@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
+using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Knowledges.Filters;
 using BotSharp.Abstraction.Knowledges.Helpers;
@@ -7,19 +8,20 @@ using BotSharp.Abstraction.Knowledges.Options;
 using BotSharp.Abstraction.Knowledges.Responses;
 using BotSharp.Abstraction.VectorStorage.Enums;
 using System.Net.Http;
-using System.Net.Mime;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public partial class KnowledgeService
 {
-    public async Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(string collectionName,
-        IEnumerable<ExternalFileModel> files, ChunkOption? option = null)
+    public async Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(
+        string collectionName,
+        IEnumerable<ExternalFileModel> files,
+        KnowledgeDocOptions? options = null)
     {
         var res = new UploadKnowledgeResponse
         {
             Success = [],
-            Failed = files?.Select(x => x.FileName) ?? new List<string>()
+            Failed = files?.Select(x => x.FileName) ?? []
         };
 
         if (string.IsNullOrWhiteSpace(collectionName) || files.IsNullOrEmpty())
@@ -33,14 +35,13 @@ public partial class KnowledgeService
             return res;
         }
 
-        var db = _services.GetRequiredService<IBotSharpRepository>();
         var fileStoreage = _services.GetRequiredService<IFileStorageService>();
-        var userId = await GetUserId();
         var vectorStoreProvider = _settings.VectorDb.Provider;
+        var knowledgeFiles = new List<FileKnowledgeWrapper>();
         var successFiles = new List<string>();
         var failedFiles = new List<string>();
 
-        foreach (var file in files)
+        foreach (var file in files!)
         {
             if (string.IsNullOrWhiteSpace(file.FileData)
                 && string.IsNullOrWhiteSpace(file.FileUrl))
@@ -52,52 +53,50 @@ public partial class KnowledgeService
             {
                 // Get document info
                 var (contentType, binary) = await GetFileInfo(file);
-                var contents = await GetFileContent(contentType, binary, option ?? ChunkOption.Default());
-                
-                // Save document
-                var fileId = Guid.NewGuid();
-                var saved = SaveDocument(collectionName, vectorStoreProvider, fileId, file.FileName, binary);
-                if (!saved)
+                var fileData = new FileBinaryDataModel
+                {
+                    FileName = file.FileName,
+                    ContentType = contentType,
+                    FileBinaryData = binary
+                };
+                var knowledges = await GetFileKnowledge(fileData, options);
+                if (knowledges.IsNullOrEmpty())
                 {
                     failedFiles.Add(file.FileName);
                     continue;
                 }
 
-                // Save to vector db
+                var fileId = Guid.NewGuid();
                 var payload = new Dictionary<string, VectorPayloadValue>()
                 {
-                    { KnowledgePayloadName.DataSource, VectorPayloadValue.BuildStringValue(VectorDataSource.File) },
-                    { KnowledgePayloadName.FileId, VectorPayloadValue.BuildStringValue(fileId.ToString()) },
-                    { KnowledgePayloadName.FileName, VectorPayloadValue.BuildStringValue(file.FileName) },
-                    { KnowledgePayloadName.FileSource, VectorPayloadValue.BuildStringValue(file.FileSource) }
+                    { KnowledgePayloadName.DataSource, (VectorPayloadValue)VectorDataSource.File },
+                    { KnowledgePayloadName.FileId, (VectorPayloadValue)fileId.ToString() },
+                    { KnowledgePayloadName.FileName, (VectorPayloadValue)file.FileName },
+                    { KnowledgePayloadName.FileSource, (VectorPayloadValue)file.FileSource }
                 };
 
                 if (!string.IsNullOrWhiteSpace(file.FileUrl))
                 {
-                    payload[KnowledgePayloadName.FileUrl] = VectorPayloadValue.BuildStringValue(file.FileUrl);
+                    payload[KnowledgePayloadName.FileUrl] = (VectorPayloadValue)file.FileUrl;
                 }
 
-                var dataIds = await SaveToVectorDb(collectionName, contents, payload);
-                if (!dataIds.IsNullOrEmpty())
+                foreach (var kg in knowledges)
                 {
-                    db.SaveKnolwedgeBaseFileMeta(new KnowledgeDocMetaData
+                    var kgPayload = new Dictionary<string, VectorPayloadValue>(kg.Payload ?? new Dictionary<string, VectorPayloadValue>());
+                    foreach (var pair in payload)
                     {
-                        Collection = collectionName,
-                        FileId = fileId,
-                        FileName = file.FileName,
-                        FileSource = file.FileSource,
-                        ContentType = contentType,
-                        VectorStoreProvider = vectorStoreProvider,
-                        VectorDataIds = dataIds,
-                        CreateDate = DateTime.UtcNow,
-                        CreateUserId = userId
-                    });
-                    successFiles.Add(file.FileName);
+                        kgPayload[pair.Key] = pair.Value;
+                    }
+                    kg.Payload = kgPayload;
                 }
-                else
+
+                knowledgeFiles.Add(new()
                 {
-                    failedFiles.Add(file.FileName);
-                }
+                    FileId = fileId,
+                    FileData = fileData,
+                    FileSource = VectorDataSource.File,
+                    FileKnowledges = knowledges
+                });
             }
             catch (Exception ex)
             {
@@ -107,10 +106,11 @@ public partial class KnowledgeService
             }
         }
 
+        var response = await HandleKnowledgeFiles(collectionName, vectorStoreProvider, knowledgeFiles, saveFile: true);
         return new UploadKnowledgeResponse
         {
-            Success = successFiles,
-            Failed = failedFiles
+            Success = successFiles.Concat(response.Success).Distinct(),
+            Failed = failedFiles.Concat(response.Failed).Distinct()
         };
     }
 
@@ -136,39 +136,37 @@ public partial class KnowledgeService
             var fileId = Guid.NewGuid();
             var contentType = FileUtility.GetFileContentType(fileName);
 
-            var innerPayload = new Dictionary<string, VectorPayloadValue>();
-            if (payload != null)
-            {
-                foreach (var item in payload)
-                {
-                    innerPayload[item.Key] = item.Value;
-                }
-            }
-
-            innerPayload[KnowledgePayloadName.DataSource] = VectorPayloadValue.BuildStringValue(VectorDataSource.File);
-            innerPayload[KnowledgePayloadName.FileId] = VectorPayloadValue.BuildStringValue(fileId.ToString());
-            innerPayload[KnowledgePayloadName.FileName] = VectorPayloadValue.BuildStringValue(fileName);
-            innerPayload[KnowledgePayloadName.FileSource] = VectorPayloadValue.BuildStringValue(fileSource);
+            var innerPayload = new Dictionary<string, VectorPayloadValue>(payload ?? []);
+            innerPayload[KnowledgePayloadName.DataSource] = (VectorPayloadValue)VectorDataSource.File;
+            innerPayload[KnowledgePayloadName.FileId] = (VectorPayloadValue)fileId.ToString();
+            innerPayload[KnowledgePayloadName.FileName] = (VectorPayloadValue)fileName;
+            innerPayload[KnowledgePayloadName.FileSource] = (VectorPayloadValue)fileSource;
 
             if (!string.IsNullOrWhiteSpace(refData?.Url))
             {
-                innerPayload[KnowledgePayloadName.FileUrl] = VectorPayloadValue.BuildStringValue(refData.Url);
+                innerPayload[KnowledgePayloadName.FileUrl] = (VectorPayloadValue)refData.Url;
             }
 
-            var dataIds = await SaveToVectorDb(collectionName, contents, innerPayload);
-            db.SaveKnolwedgeBaseFileMeta(new KnowledgeDocMetaData
+            var kgFile = new FileKnowledgeWrapper
             {
-                Collection = collectionName,
                 FileId = fileId,
-                FileName = fileName,
                 FileSource = fileSource,
-                ContentType = contentType,
-                VectorStoreProvider = vectorStoreProvider,
-                VectorDataIds = dataIds,
-                RefData = refData,
-                CreateDate = DateTime.UtcNow,
-                CreateUserId = userId
-            });
+                FileData = new()
+                {
+                    FileName = fileName,
+                    ContentType = contentType,
+                    FileBinaryData = BinaryData.Empty
+                },
+                FileKnowledges = new List<FileKnowledgeModel>
+                {
+                    new()
+                    {
+                        Contents = contents,
+                        Payload = innerPayload
+                    }
+                }
+            };
+            await HandleKnowledgeFiles(collectionName, vectorStoreProvider, [kgFile], saveFile: false);
             return true;
         }
         catch (Exception ex)
@@ -338,7 +336,6 @@ public partial class KnowledgeService
     }
 
 
-
     #region Private methods
     /// <summary>
     /// Get file content type and file bytes
@@ -370,20 +367,16 @@ public partial class KnowledgeService
     }
 
     #region Read doc content
-    private async Task<IEnumerable<string>> GetFileContent(string contentType, BinaryData binary, ChunkOption option)
+    private async Task<IEnumerable<FileKnowledgeModel>> GetFileKnowledge(FileBinaryDataModel file, KnowledgeDocOptions? options)
     {
-        IEnumerable<string> results = new List<string>();
+        var processor = _services.GetServices<IFileProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(options?.Processor));
+        if (processor == null)
+        {
+            return Enumerable.Empty<FileKnowledgeModel>();
+        }
 
-        if (contentType.IsEqualTo(MediaTypeNames.Text.Plain))
-        {
-            results = await ReadTxt(binary, option);
-        }
-        else if (contentType.IsEqualTo(MediaTypeNames.Application.Pdf))
-        {
-            results = await ReadPdf(binary);
-        }
-        
-        return results;
+        var response = await processor.GetFileKnowledgeAsync(file, options: new() { });
+        return response?.Knowledges ?? [];
     }
 
     private async Task<IEnumerable<string>> ReadTxt(BinaryData binary, ChunkOption option)
@@ -397,11 +390,6 @@ public partial class KnowledgeService
 
         var lines = TextChopper.Chop(content, option);
         return lines;
-    }
-
-    private async Task<IEnumerable<string>> ReadPdf(BinaryData binary)
-    {
-        return Enumerable.Empty<string>();
     }
     #endregion
 
@@ -427,16 +415,96 @@ public partial class KnowledgeService
         for (int i = 0; i < contents.Count(); i++)
         {
             var content = contents.ElementAt(i);
-            var vector = await textEmbedding.GetVectorAsync(content);
-            var dataId = Guid.NewGuid();
-            var saved = await vectorDb.Upsert(collectionName, dataId, vector, content, payload ?? []);
 
-            if (!saved) continue;
+            try
+            {
+                var vector = await textEmbedding.GetVectorAsync(content);
+                var dataId = Guid.NewGuid();
+                var saved = await vectorDb.Upsert(collectionName, dataId, vector, content, payload ?? []);
 
-            dataIds.Add(dataId.ToString());
+                if (!saved)
+                {
+                    continue;
+                }
+
+                dataIds.Add(dataId.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error when saving file knowledge to vector db collection {collectionName}. (Content: {content.SubstringMax(20)})");
+            }
         }
 
         return dataIds;
+    }
+
+    private async Task<UploadKnowledgeResponse> HandleKnowledgeFiles(
+        string collectionName,
+        string vectorStore,
+        IEnumerable<FileKnowledgeWrapper> knowledgeFiles,
+        bool saveFile = false)
+    {
+        if (knowledgeFiles.IsNullOrEmpty())
+        {
+            return new();
+        }
+
+        var successFiles = new List<string>();
+        var failedFiles = new List<string>();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        var userId = await GetUserId();
+        foreach (var item in knowledgeFiles)
+        {
+            var file = item.FileData;
+
+            // Save document
+            if (saveFile)
+            {
+                var saved = SaveDocument(collectionName, vectorStore, item.FileId, file.FileName, file.FileBinaryData);
+                if (!saved)
+                {
+                    _logger.LogWarning($"Failed to save knowledge file: {file.FileName} to collection {collectionName}.");
+                    failedFiles.Add(file.FileName);
+                    continue;
+                }
+            }
+
+            // Save to vector db
+            var dataIds = new List<string>();
+            foreach (var kg in item.FileKnowledges)
+            {
+                var ids = await SaveToVectorDb(collectionName, kg.Contents, kg.Payload?.ToDictionary());
+                dataIds.AddRange(ids);
+            }
+
+            if (!dataIds.IsNullOrEmpty())
+            {
+                db.SaveKnolwedgeBaseFileMeta(new KnowledgeDocMetaData
+                {
+                    Collection = collectionName,
+                    FileId = item.FileId,
+                    FileName = file.FileName,
+                    FileSource = item.FileSource ?? VectorDataSource.File,
+                    ContentType = file.ContentType,
+                    VectorStoreProvider = vectorStore,
+                    VectorDataIds = dataIds,
+                    CreateDate = DateTime.UtcNow,
+                    CreateUserId = userId
+                });
+                successFiles.Add(file.FileName);
+            }
+            else
+            {
+                failedFiles.Add(file.FileName);
+            }
+        }
+
+        return new UploadKnowledgeResponse
+        {
+            Success = successFiles,
+            Failed = failedFiles
+        };
     }
     #endregion
 }
