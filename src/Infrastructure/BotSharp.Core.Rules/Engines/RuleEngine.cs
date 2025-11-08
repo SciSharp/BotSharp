@@ -119,11 +119,12 @@ public class RuleEngine : IRuleEngine
 
         try
         {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
             var response = await processor.RunAsync(codeScript.Content, options: new()
             {
                 ScriptName = scriptName,
-                Arguments = BuildArguments(options.ArgumentName, options.ArgumentContent)
-            });
+                Arguments = BuildArguments(options.ArgumentName, options.ArgumentContent),
+            }, cancellationToken: cts.Token);
 
             if (response == null || !response.Success)
             {

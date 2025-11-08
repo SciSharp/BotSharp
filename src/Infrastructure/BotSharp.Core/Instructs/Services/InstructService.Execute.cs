@@ -255,13 +255,13 @@ public partial class InstructService
         }
 
         // Run code script
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-        var codeResponse = await codeProcessor.RunAsync(context.ScriptContent, options: new()
+        var seconds = codeOptions?.TimeoutSeconds > 0 ? codeOptions.TimeoutSeconds.Value : 3;
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
+        var codeResponse = await codeProcessor.RunAsync(codeScript.Content, options: new()
         {
-            ScriptName = scriptName,
-            Arguments = context.Arguments,
-            CancellationToken = cts.Token
-        });
+            ScriptName = codeScript.Name,
+            Arguments = context.Arguments
+        }, cancellationToken: cts.Token);
 
         if (codeResponse == null || !codeResponse.Success)
         {
@@ -271,7 +271,7 @@ public partial class InstructService
         response = new InstructResult
         {
             MessageId = message.MessageId,
-            Template = scriptName,
+            Template = codeScript.Name,
             Text = codeResponse.Result
         };
 
@@ -290,7 +290,7 @@ public partial class InstructService
                 AgentId = agent.Id,
                 Provider = codeProcessor.Provider,
                 Model = string.Empty,
-                TemplateName = scriptName,
+                TemplateName = codeScript.Name,
                 UserMessage = message.Content,
                 SystemInstruction = $"Code script name: {codeScript}, Version: {codeScript.UpdatedTime.ToString("o")}",
                 CompletionText = response.Text

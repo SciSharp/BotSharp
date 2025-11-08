@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
-using Python.Runtime;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.PythonInterpreter.Functions;
@@ -12,16 +12,19 @@ public class PyProgrammerFn : IFunctionCallback
 
     private readonly IServiceProvider _services;
     private readonly ILogger<PyProgrammerFn> _logger;
-    private readonly PythonInterpreterSettings _settings;
+    private readonly CodingSettings _codingSettings;
+    private readonly PythonInterpreterSettings _pySettings;
 
     public PyProgrammerFn(
         IServiceProvider services,
         ILogger<PyProgrammerFn> logger,
-        PythonInterpreterSettings settings)
+        CodingSettings codingSettings,
+        PythonInterpreterSettings pySettings)
     {
         _services = services;
         _logger = logger;
-        _settings = settings;
+        _codingSettings = codingSettings;
+        _pySettings = pySettings;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -42,7 +45,7 @@ public class PyProgrammerFn : IFunctionCallback
             LlmConfig = GetLlmConfig(),
             TemplateDict = new()
             {
-                ["python_version"] = _settings.PythonVersion ?? "3.11",
+                ["python_version"] = _pySettings.PythonVersion ?? "3.11",
                 ["user_requirement"] = args?.UserRquirement ?? string.Empty
             }
         };
@@ -53,7 +56,7 @@ public class PyProgrammerFn : IFunctionCallback
             dialogs = convService.GetDialogHistory();
         }
 
-        var messageLimit = _settings.CodeGeneration?.MessageLimit > 0 ? _settings.CodeGeneration.MessageLimit.Value : 50;
+        var messageLimit = _codingSettings.CodeGeneration?.MessageLimit > 0 ? _codingSettings.CodeGeneration.MessageLimit.Value : 50;
         dialogs = dialogs.TakeLast(messageLimit).ToList();
         dialogs.Add(new RoleDialogModel(AgentRole.User, "Please follow the instruction and chat context to generate valid python code.")
         {
@@ -66,7 +69,7 @@ public class PyProgrammerFn : IFunctionCallback
 
         try
         {
-            var (isSuccess, result) = InnerRunCode(ret.PythonCode);
+            var (isSuccess, result) = await InnerRunCode(ret.PythonCode);
             if (isSuccess)
             {
                 message.Content = result;
@@ -102,50 +105,25 @@ public class PyProgrammerFn : IFunctionCallback
     /// </summary>
     /// <param name="codeScript"></param>
     /// <returns></returns>
-    private (bool, string) InnerRunCode(string codeScript)
+    private async Task<(bool, string)> InnerRunCode(string codeScript)
     {
-        using (Py.GIL())
+        var processor = _services.GetServices<ICodeProcessor>()
+                                 .FirstOrDefault(x => x.Provider.IsEqualTo(_codingSettings.CodeExecution?.Processor ?? BuiltInCodeProcessor.PyInterpreter));
+
+        if (processor == null)
         {
-            // Import necessary Python modules
-            dynamic sys = Py.Import("sys");
-            dynamic io = Py.Import("io");
-
-            try
-            {
-                // Redirect standard output/error to capture it
-                dynamic stringIO = io.StringIO();
-                sys.stdout = stringIO;
-                sys.stderr = stringIO;
-                sys.argv = new PyList();
-
-                // Set global items
-                using var globals = new PyDict();
-                if (codeScript?.Contains("__main__") == true)
-                {
-                    globals.SetItem("__name__", new PyString("__main__"));
-                }
-
-                // Execute Python script
-                PythonEngine.Exec(codeScript, globals);
-
-                // Get result
-                var result = stringIO.getvalue()?.ToString() as string;
-                return (true, result?.TrimEnd('\r', '\n') ?? string.Empty);
-            }
-            catch (Exception ex)
-            {
-                var errorMsg = $"Error when executing inner python code. {ex.Message}";
-                _logger.LogError(ex, errorMsg);
-                return (false, errorMsg);
-            }
-            finally
-            {
-                // Restore the original stdout/stderr/argv
-                sys.stdout = sys.__stdout__;
-                sys.stderr = sys.__stderr__;
-                sys.argv = new PyList();
-            }
+            return (false, "Unable to execute python code script.");
         }
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var response = await processor.RunAsync(codeScript, cancellationToken: cts.Token);
+
+        if (response == null || !response.Success)
+        {
+            return (false, !string.IsNullOrEmpty(response?.ErrorMsg) ? response.ErrorMsg : "Failed to execute python code script.");
+        }
+
+        return (true, response.Result);
     }
 
     private async Task<string> GetChatCompletion(Agent agent, List<RoleDialogModel> dialogs)
@@ -188,8 +166,8 @@ public class PyProgrammerFn : IFunctionCallback
 
     private (string, string) GetLlmProviderModel()
     {
-        var provider = _settings.CodeGeneration?.Provider;
-        var model = _settings.CodeGeneration?.Model;
+        var provider = _codingSettings.CodeGeneration?.Provider;
+        var model = _codingSettings.CodeGeneration?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
@@ -204,8 +182,8 @@ public class PyProgrammerFn : IFunctionCallback
 
     private AgentLlmConfig GetLlmConfig()
     {
-        var maxOutputTokens = _settings?.CodeGeneration?.MaxOutputTokens ?? 8192;
-        var reasoningEffortLevel = _settings?.CodeGeneration?.ReasoningEffortLevel ?? "minimal";
+        var maxOutputTokens = _codingSettings?.CodeGeneration?.MaxOutputTokens ?? 8192;
+        var reasoningEffortLevel = _codingSettings?.CodeGeneration?.ReasoningEffortLevel ?? "minimal";
 
         return new AgentLlmConfig
         {
