@@ -192,7 +192,7 @@ public class PyCodeInterpreter : ICodeProcessor
 
                 return new CodeInterpretResponse
                 {
-                    Result = result?.TrimEnd('\r', '\n'),
+                    Result = result?.TrimEnd('\r', '\n') ?? string.Empty,
                     Success = true
                 };
             }
@@ -264,21 +264,18 @@ public class PyCodeInterpreter : ICodeProcessor
                 catch { }
             });
 
-            var stdoutTask = proc.StandardOutput.ReadToEndAsync();
-            var stderrTask = proc.StandardError.ReadToEndAsync();
+            var stdoutTask = proc.StandardOutput.ReadToEndAsync(token);
+            var stderrTask = proc.StandardError.ReadToEndAsync(token);
 
-            await proc.WaitForExitAsync();
-
-            var stdout = await stdoutTask;
-            var stderr = await stderrTask;
+            await Task.WhenAll([proc.WaitForExitAsync(token), stdoutTask, stderrTask]);
 
             token.ThrowIfCancellationRequested();
 
             return new CodeInterpretResponse
             {
                 Success = proc.ExitCode == 0,
-                Result = stdout,
-                ErrorMsg = stderr
+                Result = stdoutTask.Result?.TrimEnd('\r', '\n') ?? string.Empty,
+                ErrorMsg = stderrTask.Result
             };
         }
         catch (Exception ex)
