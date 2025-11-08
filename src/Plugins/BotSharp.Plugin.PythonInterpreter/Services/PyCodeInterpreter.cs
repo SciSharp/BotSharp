@@ -140,7 +140,7 @@ public class PyCodeInterpreter : ICodeProcessor
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var execTask = Task.Run(() =>
+        var execTask = Task.Factory.StartNew(() =>
         {
             using (Py.GIL())
             {
