@@ -254,13 +254,13 @@ public partial class InstructService
         }
 
         // Run code script
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        var seconds = codeOptions?.TimeoutSeconds > 0 ? codeOptions.TimeoutSeconds.Value : 3;
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         var codeResponse = await codeProcessor.RunAsync(context.CodeScript, options: new()
         {
             ScriptName = scriptName,
-            Arguments = context.Arguments,
-            CancellationToken = cts.Token
-        });
+            Arguments = context.Arguments
+        }, cancellationToken: cts.Token);
 
         if (codeResponse == null || !codeResponse.Success)
         {
