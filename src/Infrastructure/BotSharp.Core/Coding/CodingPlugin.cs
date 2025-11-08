@@ -10,6 +10,10 @@ public class CodingPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        var coding = new CodingSettings();
+        config.Bind("Coding", coding);
+        services.AddSingleton(provider => coding);
+
         services.AddSingleton<CodeScriptExecutor>();
     }
 }

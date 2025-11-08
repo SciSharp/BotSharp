@@ -255,17 +255,24 @@ public partial class InstructService
         }
 
         // Run code script
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
         var codeResponse = await codeProcessor.RunAsync(context.ScriptContent, options: new()
         {
             ScriptName = scriptName,
-            Arguments = context.Arguments
+            Arguments = context.Arguments,
+            CancellationToken = cts.Token
         });
+
+        if (codeResponse == null || !codeResponse.Success)
+        {
+            return response;
+        }
 
         response = new InstructResult
         {
             MessageId = message.MessageId,
             Template = scriptName,
-            Text = codeResponse?.Result ?? codeResponse?.ErrorMsg
+            Text = codeResponse.Result
         };
 
         if (context?.Arguments != null)
@@ -285,7 +292,7 @@ public partial class InstructService
                 Model = string.Empty,
                 TemplateName = scriptName,
                 UserMessage = message.Content,
-                SystemInstruction = $"Code script name: {codeScript.Name}, Version: {codeScript.UpdatedTime.ToString("o")}",
+                SystemInstruction = $"Code script name: {codeScript}, Version: {codeScript.UpdatedTime.ToString("o")}",
                 CompletionText = response.Text
             });
         }

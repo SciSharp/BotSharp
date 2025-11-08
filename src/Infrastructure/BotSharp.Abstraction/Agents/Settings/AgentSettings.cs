@@ -10,10 +10,5 @@ public class AgentSettings
     /// <summary>
     /// This is the default LLM config for agent
     /// </summary>
-    public AgentLlmConfig LlmConfig { get; set; } = new AgentLlmConfig();
-
-    /// <summary>
-    /// General coding settings
-    /// </summary>
-    public CodingSettings Coding { get; set; } = new CodingSettings();
+    public AgentLlmConfig LlmConfig { get; set; } = new();
 }
