@@ -5,7 +5,6 @@ using BotSharp.Abstraction.Statistics.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Core.Agents.Hooks;
-using BotSharp.Core.Coding;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Agents;
@@ -49,8 +48,6 @@ public class AgentPlugin : IBotSharpPlugin
             render.RegisterType(typeof(AgentSettings));
             return settingService.Bind<AgentSettings>("Agent");
         });
-
-        services.AddSingleton<CodeScriptExecutor>();
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)
