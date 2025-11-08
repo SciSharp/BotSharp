@@ -293,7 +293,7 @@ public class PyCodeInterpreter : ICodeProcessor
                 if (!proc.HasExited)
                 {
                     proc.Kill(entireProcessTree: true);
-                    await proc.WaitForExitAsync(token);
+                    proc.WaitForExit();
                 }
             }
             catch { }
