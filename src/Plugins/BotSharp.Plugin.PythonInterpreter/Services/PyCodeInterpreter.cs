@@ -30,14 +30,14 @@ public class PyCodeInterpreter : ICodeProcessor
 
     public string Provider => "botsharp-py-interpreter";
 
-    public async Task<CodeInterpretResponse> RunAsync(string codeScript, CodeInterpretOptions? options = null, CancellationToken? cancellationToken = null)
+    public async Task<CodeInterpretResponse> RunAsync(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
         if (options?.UseLock == true)
         {
             return await _executor.ExecuteAsync(async () =>
             {
                 return await InnerRunCode(codeScript, options, cancellationToken);
-            }, cancellationToken: cancellationToken ?? CancellationToken.None);
+            }, cancellationToken: cancellationToken);
         }
         
         return await InnerRunCode(codeScript, options, cancellationToken);
@@ -98,7 +98,7 @@ public class PyCodeInterpreter : ICodeProcessor
 
 
     #region Private methods
-    private async Task<CodeInterpretResponse> InnerRunCode(string codeScript, CodeInterpretOptions? options = null, CancellationToken? cancellationToken = null)
+    private async Task<CodeInterpretResponse> InnerRunCode(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
         var response = new CodeInterpretResponse();
         var scriptName = options?.ScriptName ?? codeScript.SubstringMax(30);
@@ -134,12 +134,11 @@ public class PyCodeInterpreter : ICodeProcessor
         }
     }
 
-    private async Task<CodeInterpretResponse> CoreRunScript(string codeScript, CodeInterpretOptions? options = null, CancellationToken? cancellationToken = null)
+    private async Task<CodeInterpretResponse> CoreRunScript(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
         _logger.LogWarning($"Begin {nameof(CoreRunScript)} in {Provider}: ${options?.ScriptName}");
 
-        var token = cancellationToken ?? CancellationToken.None;
-        token.ThrowIfCancellationRequested();
+        cancellationToken.ThrowIfCancellationRequested();
 
         using (Py.GIL())
         {
@@ -178,7 +177,7 @@ public class PyCodeInterpreter : ICodeProcessor
                 }
                 sys.argv = list;
 
-                token.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // Execute Python script
                 PythonEngine.Exec(codeScript, globals);
@@ -186,7 +185,7 @@ public class PyCodeInterpreter : ICodeProcessor
                 // Get result
                 var result = stringIO.getvalue()?.ToString() as string;
 
-                token.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 return new CodeInterpretResponse
                 {
@@ -210,10 +209,8 @@ public class PyCodeInterpreter : ICodeProcessor
     }
 
 
-    private async Task<CodeInterpretResponse> CoreRunProcess(string codeScript, CodeInterpretOptions? options = null, CancellationToken? cancellationToken = null)
+    private async Task<CodeInterpretResponse> CoreRunProcess(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
-        var token = cancellationToken ?? CancellationToken.None;
-
         var psi = new ProcessStartInfo
         {
             FileName = "python",
@@ -250,7 +247,7 @@ public class PyCodeInterpreter : ICodeProcessor
 
         try
         {
-            using var reg = token.Register(() =>
+            using var reg = cancellationToken.Register(() =>
             {
                 try
                 {
@@ -262,12 +259,12 @@ public class PyCodeInterpreter : ICodeProcessor
                 catch { }
             });
 
-            var stdoutTask = proc.StandardOutput.ReadToEndAsync(token);
-            var stderrTask = proc.StandardError.ReadToEndAsync(token);
+            var stdoutTask = proc.StandardOutput.ReadToEndAsync(cancellationToken);
+            var stderrTask = proc.StandardError.ReadToEndAsync(cancellationToken);
 
-            await Task.WhenAll([proc.WaitForExitAsync(token), stdoutTask, stderrTask]);
+            await Task.WhenAll([proc.WaitForExitAsync(cancellationToken), stdoutTask, stderrTask]);
 
-            token.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             return new CodeInterpretResponse
             {
