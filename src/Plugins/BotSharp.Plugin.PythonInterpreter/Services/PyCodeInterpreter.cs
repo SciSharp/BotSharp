@@ -26,13 +26,16 @@ public class PyCodeInterpreter : ICodeProcessor
 
     public async Task<CodeInterpretResponse> RunAsync(string codeScript, CodeInterpretOptions? options = null)
     {
+        var cancellationToken = options?.CancellationToken ?? CancellationToken.None;
+
         if (options?.UseMutex == true)
         {
             return await _executor.ExecuteAsync(async () =>
             {
                 return InnerRunCode(codeScript, options);
-            }, cancellationToken: options?.CancellationToken ?? CancellationToken.None);
+            }, cancellationToken: cancellationToken);
         }
+
         return InnerRunCode(codeScript, options);
     }
 
@@ -88,95 +91,82 @@ public class PyCodeInterpreter : ICodeProcessor
         };
     }
 
+
     #region Private methods
     private CodeInterpretResponse InnerRunCode(string codeScript, CodeInterpretOptions? options = null)
     {
-        try
-        {
-            return CoreRun(codeScript, options);
-        }
-        catch (Exception ex)
-        {
-            var errorMsg = $"Error when executing inner python code in {nameof(PyCodeInterpreter)}: {Provider}.";
-            _logger.LogError(ex, errorMsg);
+        _logger.LogWarning($"Begin running python code script in {Provider}: ${options?.ScriptName ?? codeScript.SubstringMax(30)}");
 
-            return new CodeInterpretResponse
-            {
-                Success = false,
-                ErrorMsg = errorMsg
-            };
-        }
+        var response = CoreRun(codeScript, options);
+
+        _logger.LogWarning($"End running python code script in {Provider}: ${options?.ScriptName ?? codeScript.SubstringMax(30)}");
+
+        return response;
     }
 
     private CodeInterpretResponse CoreRun(string codeScript, CodeInterpretOptions? options = null)
     {
+        _logger.LogWarning($"Begin {nameof(CoreRun)} in {Provider}: ${options?.ScriptName}");
+
+        var token = options?.CancellationToken ?? CancellationToken.None;
+        token.ThrowIfCancellationRequested();
+
         using (Py.GIL())
         {
             // Import necessary Python modules
             dynamic sys = Py.Import("sys");
             dynamic io = Py.Import("io");
 
-            try
+            // Redirect standard output/error to capture it
+            dynamic stringIO = io.StringIO();
+            sys.stdout = stringIO;
+            sys.stderr = stringIO;
+
+            // Set global items
+            using var globals = new PyDict();
+            if (codeScript.Contains("__main__") == true)
             {
-                // Redirect standard output/error to capture it
-                dynamic stringIO = io.StringIO();
-                sys.stdout = stringIO;
-                sys.stderr = stringIO;
+                globals.SetItem("__name__", new PyString("__main__"));
+            }
 
-                // Set global items
-                using var globals = new PyDict();
-                if (codeScript.Contains("__main__") == true)
+            // Set arguments
+            var list = new PyList();
+            if (options?.Arguments?.Any() == true)
+            {
+                list.Append(new PyString(options?.ScriptName ?? "script.py"));
+
+                foreach (var arg in options!.Arguments)
                 {
-                    globals.SetItem("__name__", new PyString("__main__"));
-                }
-
-                // Set arguments
-                var list = new PyList();
-                if (options?.Arguments?.Any() == true)
-                {
-                    list.Append(new PyString(options?.ScriptName ?? "script.py"));
-
-                    foreach (var arg in options.Arguments)
+                    if (!string.IsNullOrWhiteSpace(arg.Key) && !string.IsNullOrWhiteSpace(arg.Value))
                     {
-                        if (!string.IsNullOrWhiteSpace(arg.Key) && !string.IsNullOrWhiteSpace(arg.Value))
-                        {
-                            list.Append(new PyString($"--{arg.Key}"));
-                            list.Append(new PyString($"{arg.Value}"));
-                        }
+                        list.Append(new PyString($"--{arg.Key}"));
+                        list.Append(new PyString($"{arg.Value}"));
                     }
                 }
-                sys.argv = list;
-
-                // Execute Python script
-                PythonEngine.Exec(codeScript, globals);
-
-                // Get result
-                var result = stringIO.getvalue()?.ToString() as string;
-
-                return new CodeInterpretResponse
-                {
-                    Result = result?.TrimEnd('\r', '\n'),
-                    Success = true
-                };
             }
-            catch (Exception ex)
+            sys.argv = list;
+
+            token.ThrowIfCancellationRequested();
+
+            // Execute Python script
+            PythonEngine.Exec(codeScript, globals);
+
+            // Get result
+            var result = stringIO.getvalue()?.ToString() as string;
+
+            token.ThrowIfCancellationRequested();
+            _logger.LogWarning($"End {nameof(CoreRun)} in {Provider}: ${options?.ScriptName}");
+
+            // Restore the original stdout/stderr/argv
+            sys.stdout = sys.__stdout__;
+            sys.stderr = sys.__stderr__;
+            sys.argv = new PyList();
+
+            return new CodeInterpretResponse
             {
-                var errorMsg = $"Error when executing core python code in {nameof(PyCodeInterpreter)}: {Provider}. {ex.Message}";
-                _logger.LogError(ex, errorMsg);
-
-                return new CodeInterpretResponse
-                {
-                    Success = false,
-                    ErrorMsg = errorMsg
-                };
-            }
-            finally
-            {
-                // Restore the original stdout/stderr/argv
-                sys.stdout = sys.__stdout__;
-                sys.stderr = sys.__stderr__;
-                sys.argv = new PyList();
-            }
+                Result = result?.TrimEnd('\r', '\n'),
+                Success = true
+            };
         }
     }
     #endregion
