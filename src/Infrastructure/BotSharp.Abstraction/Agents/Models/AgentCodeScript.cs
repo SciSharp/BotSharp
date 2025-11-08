@@ -11,7 +11,7 @@ public class AgentCodeScript : AgentCodeScriptBase
 
     public override string ToString()
     {
-        return $"{CodePath}";
+        return base.ToString();
     }
 }
 
@@ -26,4 +26,9 @@ public class AgentCodeScriptBase
     public string ScriptType { get; set; } = null!;
 
     public string CodePath => $"{ScriptType}/{Name}";
+
+    public override string ToString()
+    {
+        return $"{CodePath}";
+    }
 }
