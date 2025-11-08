@@ -248,35 +248,56 @@ public class PyCodeInterpreter : ICodeProcessor
         if (!proc.Start())
         {
             throw new InvalidOperationException($"Failed to start Python process in {Provider}.");
-        }   
+        }
 
-        using var reg = token.Register(() =>
+        try
+        {
+            using var reg = token.Register(() =>
+            {
+                try
+                {
+                    if (!proc.HasExited)
+                    {
+                        proc.Kill(entireProcessTree: true);
+                    }
+                }
+                catch { }
+            });
+
+            var stdoutTask = proc.StandardOutput.ReadToEndAsync();
+            var stderrTask = proc.StandardError.ReadToEndAsync();
+
+            await proc.WaitForExitAsync();
+
+            var stdout = await stdoutTask;
+            var stderr = await stderrTask;
+
+            token.ThrowIfCancellationRequested();
+
+            return new CodeInterpretResponse
+            {
+                Success = proc.ExitCode == 0,
+                Result = stdout,
+                ErrorMsg = stderr
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error in {nameof(CoreRunProcess)} in {Provider}.");
+            throw;
+        }
+        finally
         {
             try
             {
                 if (!proc.HasExited)
                 {
                     proc.Kill(entireProcessTree: true);
+                    await proc.WaitForExitAsync(token);
                 }
-            } catch { }
-        });
-
-        var stdoutTask = proc.StandardOutput.ReadToEndAsync();
-        var stderrTask = proc.StandardError.ReadToEndAsync();
-
-        await proc.WaitForExitAsync();
-
-        var stdout = await stdoutTask;
-        var stderr = await stderrTask;
-
-        token.ThrowIfCancellationRequested();
-
-        return new CodeInterpretResponse
-        {
-            Success = proc.ExitCode == 0,
-            Result = stdout,
-            ErrorMsg = stderr
-        };
+            }
+            catch { }
+        }
     }
 
     private (string, string) GetLlmProviderModel()
