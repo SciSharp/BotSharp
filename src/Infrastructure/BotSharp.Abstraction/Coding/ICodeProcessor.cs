@@ -12,7 +12,7 @@ public interface ICodeProcessor
     /// <summary>
     /// Run code script
     /// </summary>
-    /// <param name="codeScript">The code scirpt to run</param>
+    /// <param name="codeScript">The code script to run</param>
     /// <param name="options">Code script execution options</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns></returns>

@@ -140,72 +140,84 @@ public class PyCodeInterpreter : ICodeProcessor
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        using (Py.GIL())
+        var execTask = Task.Factory.StartNew(() =>
         {
-            // Import necessary Python modules
-            dynamic sys = Py.Import("sys");
-            dynamic io = Py.Import("io");
-
-            try
+            using (Py.GIL())
             {
-                // Redirect standard output/error to capture it
-                dynamic stringIO = io.StringIO();
-                sys.stdout = stringIO;
-                sys.stderr = stringIO;
+                // Import necessary Python modules
+                dynamic sys = Py.Import("sys");
+                dynamic io = Py.Import("io");
 
-                // Set global items
-                using var globals = new PyDict();
-                if (codeScript.Contains("__main__") == true)
+                try
                 {
-                    globals.SetItem("__name__", new PyString("__main__"));
-                }
+                    // Redirect standard output/error to capture it
+                    dynamic stringIO = io.StringIO();
+                    sys.stdout = stringIO;
+                    sys.stderr = stringIO;
 
-                // Set arguments
-                var list = new PyList();
-                if (options?.Arguments?.Any() == true)
-                {
-                    list.Append(new PyString(options?.ScriptName ?? "script.py"));
-
-                    foreach (var arg in options!.Arguments)
+                    // Set global items
+                    using var globals = new PyDict();
+                    if (codeScript.Contains("__main__") == true)
                     {
-                        if (!string.IsNullOrWhiteSpace(arg.Key) && !string.IsNullOrWhiteSpace(arg.Value))
+                        globals.SetItem("__name__", new PyString("__main__"));
+                    }
+
+                    // Set arguments
+                    var list = new PyList();
+                    if (options?.Arguments?.Any() == true)
+                    {
+                        list.Append(new PyString(options?.ScriptName ?? "script.py"));
+
+                        foreach (var arg in options!.Arguments)
                         {
-                            list.Append(new PyString($"--{arg.Key}"));
-                            list.Append(new PyString($"{arg.Value}"));
+                            if (!string.IsNullOrWhiteSpace(arg.Key) && !string.IsNullOrWhiteSpace(arg.Value))
+                            {
+                                list.Append(new PyString($"--{arg.Key}"));
+                                list.Append(new PyString($"{arg.Value}"));
+                            }
                         }
                     }
+                    sys.argv = list;
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Execute Python script
+                    PythonEngine.Exec(codeScript, globals);
+
+                    // Get result
+                    var result = stringIO.getvalue()?.ToString() as string;
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    return new CodeInterpretResponse
+                    {
+                        Result = result?.TrimEnd('\r', '\n') ?? string.Empty,
+                        Success = true
+                    };
                 }
-                sys.argv = list;
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Execute Python script
-                PythonEngine.Exec(codeScript, globals);
-
-                // Get result
-                var result = stringIO.getvalue()?.ToString() as string;
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                return new CodeInterpretResponse
+                catch (Exception ex)
                 {
-                    Result = result?.TrimEnd('\r', '\n') ?? string.Empty,
-                    Success = true
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error in {nameof(CoreRunScript)} in {Provider}.");
-                throw;
-            }
-            finally
-            {
-                // Restore the original stdout/stderr/argv
-                sys.stdout = sys.__stdout__;
-                sys.stderr = sys.__stderr__;
-                sys.argv = new PyList();
-            }
-        };
+                    _logger.LogError(ex, $"Error in {nameof(CoreRunScript)} in {Provider}.");
+                    return new();
+                }
+                finally
+                {
+                    // Restore the original stdout/stderr/argv
+                    sys.stdout = sys.__stdout__;
+                    sys.stderr = sys.__stderr__;
+                    sys.argv = new PyList();
+                }
+            };
+        }, cancellationToken);
+
+        try
+        {
+            return await execTask.WaitAsync(cancellationToken);
+        }
+        catch
+        {
+            throw;
+        }
     }
 
 
