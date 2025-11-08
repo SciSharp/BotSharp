@@ -259,9 +259,8 @@ public partial class InstructService
         var codeResponse = await codeProcessor.RunAsync(context.CodeScript, options: new()
         {
             ScriptName = scriptName,
-            Arguments = context.Arguments,
-            OperationToken = cts.Token
-        });
+            Arguments = context.Arguments
+        }, cancellationToken: cts.Token);
 
         if (codeResponse == null || !codeResponse.Success)
         {

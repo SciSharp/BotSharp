@@ -30,17 +30,17 @@ public class PyCodeInterpreter : ICodeProcessor
 
     public string Provider => "botsharp-py-interpreter";
 
-    public async Task<CodeInterpretResponse> RunAsync(string codeScript, CodeInterpretOptions? options = null)
+    public async Task<CodeInterpretResponse> RunAsync(string codeScript, CodeInterpretOptions? options = null, CancellationToken? cancellationToken = null)
     {
         if (options?.UseLock == true)
         {
             return await _executor.ExecuteAsync(async () =>
             {
-                return await InnerRunCode(codeScript, options);
-            }, cancellationToken: options?.LockToken ?? CancellationToken.None);
+                return await InnerRunCode(codeScript, options, cancellationToken);
+            }, cancellationToken: cancellationToken ?? CancellationToken.None);
         }
         
-        return await InnerRunCode(codeScript, options);
+        return await InnerRunCode(codeScript, options, cancellationToken);
     }
 
     public async Task<CodeGenerationResult> GenerateCodeScriptAsync(string text, CodeGenerationOptions? options = null)
@@ -98,7 +98,7 @@ public class PyCodeInterpreter : ICodeProcessor
 
 
     #region Private methods
-    private async Task<CodeInterpretResponse> InnerRunCode(string codeScript, CodeInterpretOptions? options = null)
+    private async Task<CodeInterpretResponse> InnerRunCode(string codeScript, CodeInterpretOptions? options = null, CancellationToken? cancellationToken = null)
     {
         var response = new CodeInterpretResponse();
         var scriptName = options?.ScriptName ?? codeScript.SubstringMax(30);
@@ -109,11 +109,11 @@ public class PyCodeInterpreter : ICodeProcessor
 
             if (options?.UseProcess == true)
             {
-                response = await CoreRunProcess(codeScript, options);
+                response = await CoreRunProcess(codeScript, options, cancellationToken);
             }
             else
             {
-                response = await CoreRunScript(codeScript, options);
+                response = await CoreRunScript(codeScript, options, cancellationToken);
             }
             
             _logger.LogWarning($"End running python code script in {Provider}: {scriptName}");
@@ -134,11 +134,11 @@ public class PyCodeInterpreter : ICodeProcessor
         }
     }
 
-    private async Task<CodeInterpretResponse> CoreRunScript(string codeScript, CodeInterpretOptions? options = null)
+    private async Task<CodeInterpretResponse> CoreRunScript(string codeScript, CodeInterpretOptions? options = null, CancellationToken? cancellationToken = null)
     {
         _logger.LogWarning($"Begin {nameof(CoreRunScript)} in {Provider}: ${options?.ScriptName}");
 
-        var token = options?.OperationToken ?? CancellationToken.None;
+        var token = cancellationToken ?? CancellationToken.None;
         token.ThrowIfCancellationRequested();
 
         using (Py.GIL())
@@ -210,9 +210,9 @@ public class PyCodeInterpreter : ICodeProcessor
     }
 
 
-    private async Task<CodeInterpretResponse> CoreRunProcess(string codeScript, CodeInterpretOptions? options = null)
+    private async Task<CodeInterpretResponse> CoreRunProcess(string codeScript, CodeInterpretOptions? options = null, CancellationToken? cancellationToken = null)
     {
-        var token = options?.OperationToken ?? CancellationToken.None;
+        var token = cancellationToken ?? CancellationToken.None;
 
         var psi = new ProcessStartInfo
         {

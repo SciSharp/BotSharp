@@ -8,6 +8,4 @@ public class CodeInterpretOptions
     public IEnumerable<KeyValue>? Arguments { get; set; }
     public bool UseLock { get; set; }
     public bool UseProcess { get; set; }
-    public CancellationToken? OperationToken { get; set; }
-    public CancellationToken? LockToken { get; set; }
 }
