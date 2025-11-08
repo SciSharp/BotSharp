@@ -140,7 +140,7 @@ public class PyCodeInterpreter : ICodeProcessor
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var execTask = Task.Factory.StartNew(() =>
+        var execTask = Task.Run(() =>
         {
             using (Py.GIL())
             {
@@ -151,9 +151,10 @@ public class PyCodeInterpreter : ICodeProcessor
                 try
                 {
                     // Redirect standard output/error to capture it
-                    dynamic stringIO = io.StringIO();
-                    sys.stdout = stringIO;
-                    sys.stderr = stringIO;
+                    dynamic outIO = io.StringIO();
+                    dynamic errIO = io.StringIO();
+                    sys.stdout = outIO;
+                    sys.stderr = errIO;
 
                     // Set global items
                     using var globals = new PyDict();
@@ -185,20 +186,21 @@ public class PyCodeInterpreter : ICodeProcessor
                     PythonEngine.Exec(codeScript, globals);
 
                     // Get result
-                    var result = stringIO.getvalue()?.ToString() as string;
+                    var stdout = outIO.getvalue()?.ToString() as string;
+                    var stderr = errIO.getvalue()?.ToString() as string;
 
                     cancellationToken.ThrowIfCancellationRequested();
 
                     return new CodeInterpretResponse
                     {
-                        Result = result?.TrimEnd('\r', '\n') ?? string.Empty,
+                        Result = stdout?.TrimEnd('\r', '\n') ?? string.Empty,
                         Success = true
                     };
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Error in {nameof(CoreRunScript)} in {Provider}.");
-                    return new();
+                    return new() { ErrorMsg = ex.Message };
                 }
                 finally
                 {
@@ -210,14 +212,7 @@ public class PyCodeInterpreter : ICodeProcessor
             };
         }, cancellationToken);
 
-        try
-        {
-            return await execTask.WaitAsync(cancellationToken);
-        }
-        catch
-        {
-            throw;
-        }
+        return await execTask.WaitAsync(cancellationToken);
     }
 
 
