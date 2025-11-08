@@ -32,12 +32,12 @@ public class PyCodeInterpreter : ICodeProcessor
 
     public async Task<CodeInterpretResponse> RunAsync(string codeScript, CodeInterpretOptions? options = null)
     {
-        if (options?.UseMutex == true)
+        if (options?.UseLock == true)
         {
             return await _executor.ExecuteAsync(async () =>
             {
                 return await InnerRunCode(codeScript, options);
-            }, cancellationToken: options?.CancellationToken ?? CancellationToken.None);
+            }, cancellationToken: options?.LockToken ?? CancellationToken.None);
         }
         
         return await InnerRunCode(codeScript, options);
@@ -138,13 +138,11 @@ public class PyCodeInterpreter : ICodeProcessor
     {
         _logger.LogWarning($"Begin {nameof(CoreRunScript)} in {Provider}: ${options?.ScriptName}");
 
-        var token = options?.CancellationToken ?? CancellationToken.None;
+        var token = options?.OperationToken ?? CancellationToken.None;
         token.ThrowIfCancellationRequested();
 
         using (Py.GIL())
         {
-            token.ThrowIfCancellationRequested();
-
             // Import necessary Python modules
             dynamic sys = Py.Import("sys");
             dynamic io = Py.Import("io");
@@ -214,7 +212,7 @@ public class PyCodeInterpreter : ICodeProcessor
 
     private async Task<CodeInterpretResponse> CoreRunProcess(string codeScript, CodeInterpretOptions? options = null)
     {
-        var token = options?.CancellationToken ?? CancellationToken.None;
+        var token = options?.OperationToken ?? CancellationToken.None;
 
         var psi = new ProcessStartInfo
         {
