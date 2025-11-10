@@ -2,9 +2,11 @@ namespace BotSharp.Core.Coding;
 
 public class CodeScriptExecutor
 {
+    private const int DEFAULT_MAX_CONCURRENCY = 1;
+
     private readonly CodingSettings _settings;
     private readonly ILogger<CodeScriptExecutor> _logger;
-    private readonly SemaphoreSlim _semLock = new(initialCount: 1, maxCount: 1);
+    private readonly SemaphoreSlim _semLock = new(initialCount: DEFAULT_MAX_CONCURRENCY, maxCount: DEFAULT_MAX_CONCURRENCY);
 
     public CodeScriptExecutor(
         CodingSettings settings,
@@ -13,7 +15,7 @@ public class CodeScriptExecutor
         _settings = settings;
         _logger = logger;
 
-        var maxConcurrency = settings.CodeExecution?.MaxConcurrency > 0 ? settings.CodeExecution.MaxConcurrency : 1;
+        var maxConcurrency = settings.CodeExecution?.MaxConcurrency > 0 ? settings.CodeExecution.MaxConcurrency : DEFAULT_MAX_CONCURRENCY;
         _semLock = new(initialCount: maxConcurrency, maxCount: maxConcurrency);
     }
 

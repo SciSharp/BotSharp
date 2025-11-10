@@ -53,6 +53,11 @@ public partial class MongoRepository
         };
 
         var found = _dc.AgentCodeScripts.Find(builder.And(filters)).FirstOrDefault();
+        if (found == null)
+        {
+            return null;
+        }
+
         return AgentCodeScriptDocument.ToDomainModel(found);
     }
 

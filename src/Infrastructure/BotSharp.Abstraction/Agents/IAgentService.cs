@@ -81,6 +81,6 @@ public interface IAgentService
     Task<bool> DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? codeScripts = null)
         => Task.FromResult(false);
 
-    Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeProcessOptions? options = null)
+    Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeGenHandleOptions? options = null)
         => Task.FromResult(new CodeGenerationResult());
 }

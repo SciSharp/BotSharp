@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Coding.Options;
 
-public class CodeProcessOptions : CodeGenerationOptions
+public class CodeGenHandleOptions : CodeGenerationOptions
 {
     /// <summary>
     /// Code processor provider

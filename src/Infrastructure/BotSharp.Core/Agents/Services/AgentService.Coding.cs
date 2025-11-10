@@ -67,7 +67,7 @@ public partial class AgentService
         return await Task.FromResult(deleted);
     }
 
-    public async Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeProcessOptions? options = null)
+    public async Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeGenHandleOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(agentId))
         {
@@ -77,7 +77,8 @@ public partial class AgentService
             };
         }
 
-        var processor = options?.Processor ?? BuiltInCodeProcessor.PyInterpreter;
+        var settings = _services.GetRequiredService<CodingSettings>();
+        var processor = options?.Processor ?? settings?.CodeGeneration?.Processor ?? BuiltInCodeProcessor.PyInterpreter;
         var codeProcessor = _services.GetServices<ICodeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(processor));
         if (codeProcessor == null)
         {

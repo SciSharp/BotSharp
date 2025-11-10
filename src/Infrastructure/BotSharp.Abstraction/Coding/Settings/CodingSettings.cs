@@ -11,6 +11,7 @@ public class CodingSettings
 
 public class CodeScriptGenerationSettings : LlmConfigBase
 {
+    public string? Processor { get; set; } = BuiltInCodeProcessor.PyInterpreter;
     public int? MessageLimit { get; set; }
 }
 
