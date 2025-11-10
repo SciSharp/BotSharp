@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 
 namespace BotSharp.Abstraction.FuzzSharp.Models
 {
