@@ -50,9 +50,9 @@ public class PyCodeInterpreter : ICodeProcessor
         var agentId = options?.AgentId;
         var templateName = options?.TemplateName;
 
-        var agentService = _services.GetRequiredService<IAgentService>();
         if (!string.IsNullOrEmpty(agentId))
         {
+            var agentService = _services.GetRequiredService<IAgentService>();
             agent = await agentService.GetAgent(agentId);
         }
         
@@ -70,10 +70,10 @@ public class PyCodeInterpreter : ICodeProcessor
             Instruction = instruction,
             LlmConfig = new AgentLlmConfig
             {
-                Provider = options?.Provider ?? "openai",
-                Model = options?.Model ?? "gpt-5-mini",
-                MaxOutputTokens = options?.MaxOutputTokens,
-                ReasoningEffortLevel = options?.ReasoningEffortLevel
+                Provider = options?.Provider ?? provider,
+                Model = options?.Model ?? model,
+                MaxOutputTokens = options?.MaxOutputTokens ?? _settings?.CodeGeneration?.MaxOutputTokens,
+                ReasoningEffortLevel = options?.ReasoningEffortLevel ?? _settings?.CodeGeneration?.ReasoningEffortLevel
             },
             TemplateDict = options?.Data ?? new()
         };
@@ -167,7 +167,7 @@ public class PyCodeInterpreter : ICodeProcessor
                     var list = new PyList();
                     if (options?.Arguments?.Any() == true)
                     {
-                        list.Append(new PyString(options?.ScriptName ?? "script.py"));
+                        list.Append(new PyString(options?.ScriptName ?? $"{Guid.NewGuid()}.py"));
 
                         foreach (var arg in options!.Arguments)
                         {

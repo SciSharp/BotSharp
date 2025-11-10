@@ -76,7 +76,9 @@ public partial class AgentService
             };
         }
 
-        var processor = options?.Processor ?? "botsharp-py-interpreter";
+        var settings = _services.GetRequiredService<CodingSettings>();
+        var processor = options?.Processor ?? settings?.CodeGeneration?.Processor;
+        processor = !string.IsNullOrEmpty(processor) ? processor : "botsharp-py-interpreter";
         var codeProcessor = _services.GetServices<ICodeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(processor));
         if (codeProcessor == null)
         {
