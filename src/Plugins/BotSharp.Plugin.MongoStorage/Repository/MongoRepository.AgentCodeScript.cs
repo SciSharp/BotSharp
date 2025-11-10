@@ -53,12 +53,7 @@ public partial class MongoRepository
         };
 
         var found = _dc.AgentCodeScripts.Find(builder.And(filters)).FirstOrDefault();
-        if (found == null)
-        {
-            return null;
-        }
-
-        return AgentCodeScriptDocument.ToDomainModel(found);
+        return found != null ? AgentCodeScriptDocument.ToDomainModel(found) : null;
     }
 
     public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
