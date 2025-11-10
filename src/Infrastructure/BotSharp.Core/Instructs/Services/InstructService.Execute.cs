@@ -8,6 +8,8 @@ using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Models;
+using Microsoft.Extensions.Options;
+using static Dapper.SqlMapper;
 
 namespace BotSharp.Core.Instructs;
 
@@ -178,9 +180,12 @@ public partial class InstructService
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
+        var codingSettings = _services.GetRequiredService<CodingSettings>();
         var hooks = _services.GetHooks<IInstructHook>(agent.Id);
 
-        var codeProvider = codeOptions?.Processor ?? BuiltInCodeProcessor.PyInterpreter;
+        var codeProvider = codeOptions?.Processor ?? codingSettings.CodeExecution?.Processor;
+        codeProvider = !string.IsNullOrEmpty(codeProvider) ? codeProvider : BuiltInCodeProcessor.PyInterpreter;
+
         var codeProcessor = _services.GetServices<ICodeProcessor>()
                                        .FirstOrDefault(x => x.Provider.IsEqualTo(codeProvider));
         
@@ -255,12 +260,14 @@ public partial class InstructService
         }
 
         // Run code script
-        var seconds = codeOptions?.TimeoutSeconds > 0 ? codeOptions.TimeoutSeconds.Value : 3;
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
+        var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig(codingSettings);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
         var codeResponse = await codeProcessor.RunAsync(codeScript.Content, options: new()
         {
             ScriptName = codeScript.Name,
-            Arguments = context.Arguments
+            Arguments = context.Arguments,
+            UseLock = useLock,
+            UseProcess = useProcess
         }, cancellationToken: cts.Token);
 
         if (codeResponse == null || !codeResponse.Success)
@@ -334,5 +341,22 @@ public partial class InstructService
         });
 
         return result.Content;
+    }
+
+    /// <summary>
+    /// Returns (useLock, useProcess, timeoutSeconds)
+    /// </summary>
+    /// <returns></returns>
+    private (bool, bool, int) GetCodeExecutionConfig(CodingSettings settings)
+    {
+        var useLock = false;
+        var useProcess = false;
+        var timeoutSeconds = 3;
+
+        useLock = settings.CodeExecution?.UseLock ?? useLock;
+        useProcess = settings.CodeExecution?.UseProcess ?? useProcess;
+        timeoutSeconds = settings.CodeExecution?.TimeoutSeconds > 0 ? settings.CodeExecution.TimeoutSeconds.Value : timeoutSeconds;
+
+        return (useLock, useProcess, timeoutSeconds);
     }
 }

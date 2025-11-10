@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Coding.Settings;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Threading;
@@ -107,16 +108,23 @@ public class PyProgrammerFn : IFunctionCallback
     /// <returns></returns>
     private async Task<(bool, string)> InnerRunCode(string codeScript)
     {
+        var codeProvider = _codingSettings.CodeExecution?.Processor;
+        codeProvider = !string.IsNullOrEmpty(codeProvider) ? codeProvider : BuiltInCodeProcessor.PyInterpreter;
         var processor = _services.GetServices<ICodeProcessor>()
-                                 .FirstOrDefault(x => x.Provider.IsEqualTo(_codingSettings.CodeExecution?.Processor ?? BuiltInCodeProcessor.PyInterpreter));
+                                 .FirstOrDefault(x => x.Provider.IsEqualTo(codeProvider));
 
         if (processor == null)
         {
             return (false, "Unable to execute python code script.");
         }
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        var response = await processor.RunAsync(codeScript, cancellationToken: cts.Token);
+        var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+        var response = await processor.RunAsync(codeScript, options: new()
+        {
+            UseLock = useLock,
+            UseProcess = useProcess
+        }, cancellationToken: cts.Token);
 
         if (response == null || !response.Success)
         {
@@ -190,5 +198,18 @@ public class PyProgrammerFn : IFunctionCallback
             MaxOutputTokens = maxOutputTokens,
             ReasoningEffortLevel = reasoningEffortLevel
         };
+    }
+
+    private (bool, bool, int) GetCodeExecutionConfig()
+    {
+        var useLock = false;
+        var useProcess = false;
+        var timeoutSeconds = 3;
+
+        useLock = _codingSettings.CodeExecution?.UseLock ?? useLock;
+        useProcess = _codingSettings.CodeExecution?.UseProcess ?? useProcess;
+        timeoutSeconds = _codingSettings.CodeExecution?.TimeoutSeconds > 0 ? _codingSettings.CodeExecution.TimeoutSeconds.Value : timeoutSeconds;
+
+        return (useLock, useProcess, timeoutSeconds);
     }
 }
