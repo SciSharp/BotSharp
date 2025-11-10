@@ -18,4 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="data\" />
+  </ItemGroup>
 </Project>

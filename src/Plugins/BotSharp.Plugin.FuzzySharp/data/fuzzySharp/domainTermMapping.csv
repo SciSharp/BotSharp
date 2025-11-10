@@ -1,5 +1,0 @@
-term,dbPath,canonical_form
-HVAC,data_ServiceCategory.Name,Air Conditioning/Heating
-PVA,data_WOStatus.Name,Pending Vendor Approval
-PVQ,data_WOStatus.Name,Pending Vendor Quote
-WCPVI,data_WOStatus.Name,Work Complete Pending Vendor Invoice
