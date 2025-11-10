@@ -8,8 +8,6 @@ using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Models;
-using Microsoft.Extensions.Options;
-using static Dapper.SqlMapper;
 
 namespace BotSharp.Core.Instructs;
 
