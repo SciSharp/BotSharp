@@ -29,4 +29,11 @@ public class CodeInstructOptions
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("arguments")]
     public List<KeyValue>? Arguments { get; set; }
+
+    /// <summary>
+    /// Timeout in seconds
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("timeout_seconds")]
+    public int? TimeoutSeconds { get; set; }
 }

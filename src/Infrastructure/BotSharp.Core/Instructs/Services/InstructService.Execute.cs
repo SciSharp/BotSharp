@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Coding;
+using BotSharp.Abstraction.Coding.Responses;
 using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
@@ -253,17 +254,24 @@ public partial class InstructService
         }
 
         // Run code script
+        var seconds = codeOptions?.TimeoutSeconds > 0 ? codeOptions.TimeoutSeconds.Value : 3;
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         var codeResponse = await codeProcessor.RunAsync(context.CodeScript, options: new()
         {
             ScriptName = scriptName,
             Arguments = context.Arguments
-        });
+        }, cancellationToken: cts.Token);
+
+        if (codeResponse == null || !codeResponse.Success)
+        {
+            return response;
+        }
 
         response = new InstructResult
         {
             MessageId = message.MessageId,
             Template = scriptName,
-            Text = codeResponse?.Result ?? codeResponse?.ErrorMsg
+            Text = codeResponse.Result
         };
 
         if (context?.Arguments != null)
