@@ -32,10 +32,18 @@ public class PyCodeInterpreter : ICodeProcessor
     {
         if (options?.UseLock == true)
         {
-            return await _executor.ExecuteAsync(async () =>
+            try
             {
-                return await InnerRunCode(codeScript, options, cancellationToken);
-            }, cancellationToken: cancellationToken);
+                return await _executor.ExecuteAsync(async () =>
+                {
+                    return await InnerRunCode(codeScript, options, cancellationToken);
+                }, cancellationToken: cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error when using code script executor.");
+                return new() { ErrorMsg = ex.Message };
+            }
         }
         
         return await InnerRunCode(codeScript, options, cancellationToken);
@@ -134,14 +142,18 @@ public class PyCodeInterpreter : ICodeProcessor
 
     private async Task<CodeInterpretResponse> CoreRunScript(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogWarning($"Begin {nameof(CoreRunScript)} in {Provider}: ${options?.ScriptName}");
-
         cancellationToken.ThrowIfCancellationRequested();
 
         var execTask = Task.Factory.StartNew(() =>
         {
+            // For observation purpose
+            var requestId = Guid.NewGuid();
+            _logger.LogWarning($"Before acquiring Py.GIL for request {requestId}");
+
             using (Py.GIL())
             {
+                _logger.LogWarning($"After acquiring Py.GIL for request {requestId}");
+
                 // Import necessary Python modules
                 dynamic sys = Py.Import("sys");
                 dynamic io = Py.Import("io");
@@ -182,6 +194,8 @@ public class PyCodeInterpreter : ICodeProcessor
 
                     // Execute Python script
                     PythonEngine.Exec(codeScript, globals);
+
+                    _logger.LogWarning($"Complete {nameof(CoreRunScript)} in {Provider}: ${options?.ScriptName}");
 
                     // Get result
                     var stdout = outIO.getvalue()?.ToString() as string;
