@@ -123,7 +123,6 @@ public partial class UserService
         try
         {
             User? user = null;
-            var tokenHandler = new JwtSecurityTokenHandler();
 
             var hooks = _services.GetServices<IAuthenticationHook>();
             foreach (var hook in hooks)
@@ -149,6 +148,7 @@ public partial class UserService
                     ClockSkew = TimeSpan.Zero
                 };
 
+                var tokenHandler = new JwtSecurityTokenHandler();
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
                 var userId = principal?.Claims?
                     .FirstOrDefault(x => x.Type.IsEqualTo(JwtRegisteredClaimNames.NameId)

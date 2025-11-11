@@ -34,7 +34,7 @@ public class UserController : ControllerBase
     {
         if (authcode.Contains(' '))
         {
-            authcode = authcode.Split(' ')[1];
+            authcode = authcode.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last();
         }
 
         var token = await _userService.GetToken(authcode);
@@ -48,14 +48,14 @@ public class UserController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("/renew-token")]
-    public async Task<ActionResult<Token>> RenewToken([FromHeader(Name = "Authorization")][Required] string authcode)
+    public async Task<ActionResult<Token>> RenewToken([FromHeader(Name = "Authorization")][Required] string accessToken)
     {
-        if (authcode.Contains(' '))
+        if (accessToken.Contains(' '))
         {
-            authcode = authcode.Split(' ')[1];
+            accessToken = accessToken.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last();
         }
 
-        var token = await _userService.RenewToken(authcode);
+        var token = await _userService.RenewToken(accessToken);
         if (token == null)
         {
             return Unauthorized();
