@@ -156,7 +156,7 @@ public class RuleEngine : IRuleEngine
                 CodeProcessor = processor.Provider,
                 CodeScript = codeScript,
                 Arguments = arguments.DistinctBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value ?? string.Empty),
-                ExecutionResult = response.Result.IfNullOrEmptyAs(response.ErrorMsg ?? string.Empty)!
+                ExecutionResult = response?.ToString() ?? string.Empty
             };
 
             foreach (var hook in hooks)
@@ -183,7 +183,7 @@ public class RuleEngine : IRuleEngine
                 result = false;
             }
 
-            _logger.Log(logLevel, $"Code script execution result ({response.Result}) from {msg}");
+            _logger.Log(logLevel, $"Code script execution result ({response}) from {msg}");
             return result;
         }
         catch (Exception ex)
