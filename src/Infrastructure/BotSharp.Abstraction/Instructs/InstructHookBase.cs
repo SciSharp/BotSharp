@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Coding.Models;
+using BotSharp.Abstraction.Instructs.Contexts;
 using BotSharp.Abstraction.Instructs.Models;
 
 namespace BotSharp.Abstraction.Instructs;
@@ -17,6 +19,16 @@ public class InstructHookBase : IInstructHook
     }
 
     public virtual async Task OnResponseGenerated(InstructResponseModel response)
+    {
+        await Task.CompletedTask;
+    }
+
+    public virtual async Task BeforeCodeExecution(Agent agent, CodeInstructContext context)
+    {
+        await Task.CompletedTask;
+    }
+
+    public virtual async Task AfterCodeExecution(Agent agent, CodeExecutionResponseModel response)
     {
         await Task.CompletedTask;
     }

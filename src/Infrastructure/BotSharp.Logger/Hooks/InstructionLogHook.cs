@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Coding.Models;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Settings;
 using BotSharp.Abstraction.Loggers.Models;
@@ -27,11 +29,7 @@ public class InstructionLogHook : InstructHookBase
     public override async Task OnResponseGenerated(InstructResponseModel response)
     {
         var settings = _services.GetRequiredService<InstructionSettings>();
-        if (response == null
-            || string.IsNullOrWhiteSpace(response.AgentId)
-            || settings == null
-            || !settings.Logging.Enabled
-            || settings.Logging.ExcludedAgentIds.Contains(response.AgentId))
+        if (response == null || !IsLoggingEnabled(response.AgentId))
         {
             return;
         }
@@ -62,5 +60,44 @@ public class InstructionLogHook : InstructHookBase
         });
 
         await base.OnResponseGenerated(response);
+    }
+
+    public override async Task AfterCodeExecution(Agent agent, CodeExecutionResponseModel response)
+    {
+        if (response == null || IsLoggingEnabled(agent?.Id))
+        {
+            return;
+        }
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var codeScriptVersion = response.CodeScript?.UpdatedTime ?? DateTime.UtcNow;
+        var user = db.GetUserById(_user.Id);
+
+        db.SaveInstructionLogs(new List<InstructionLogModel>
+        {
+            new InstructionLogModel
+            {
+                AgentId = agent?.Id,
+                Provider = response.CodeProcessor,
+                Model = string.Empty,
+                TemplateName = response.CodeScript?.Name,
+                UserMessage = response.Text,
+                SystemInstruction = $"Code script name: {response.CodeScript}, Version: {codeScriptVersion.ToString("o")}",
+                CompletionText = response.ExecutionResult,
+                States = response.Arguments?.ToDictionary() ?? [],
+                UserId = user?.Id
+            }
+        });
+
+        await base.AfterCodeExecution(agent, response);
+    }
+
+    private bool IsLoggingEnabled(string? agentId)
+    {
+        var settings = _services.GetRequiredService<InstructionSettings>();
+        return !string.IsNullOrWhiteSpace(agentId)
+            && settings != null
+            && settings.Logging.Enabled
+            && !settings.Logging.ExcludedAgentIds.Contains(agentId);
     }
 }

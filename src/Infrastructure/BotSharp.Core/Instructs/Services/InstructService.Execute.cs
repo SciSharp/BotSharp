@@ -234,9 +234,7 @@ public partial class InstructService
 
         var context = new CodeInstructContext
         {
-            ScriptName = codeScript.Name,
-            ScriptContent = codeScript.Content,
-            ScriptType = scriptType,
+            CodeScript = codeScript,
             Arguments = arguments
         };
 
@@ -244,7 +242,7 @@ public partial class InstructService
         foreach (var hook in hooks)
         {
             await hook.BeforeCompletion(agent, message);
-            await hook.BeforeCodeExecution(agent, message, context);
+            await hook.BeforeCodeExecution(agent, context);
 
             // Interrupted by hook
             if (message.StopCompletion)
@@ -260,9 +258,9 @@ public partial class InstructService
         // Run code script
         var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig(codingSettings);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-        var codeResponse = await codeProcessor.RunAsync(codeScript.Content, options: new()
+        var codeResponse = await codeProcessor.RunAsync(context.CodeScript?.Content ?? string.Empty, options: new()
         {
-            ScriptName = codeScript.Name,
+            ScriptName = context.CodeScript?.Name,
             Arguments = context.Arguments,
             UseLock = useLock,
             UseProcess = useProcess
@@ -276,7 +274,7 @@ public partial class InstructService
         response = new InstructResult
         {
             MessageId = message.MessageId,
-            Template = codeScript.Name,
+            Template = context.CodeScript?.Name,
             Text = codeResponse.Result
         };
 
@@ -285,21 +283,20 @@ public partial class InstructService
             context.Arguments.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
         }
 
+        var codeExeResponse = new CodeExecutionResponseModel
+        {
+            CodeProcessor = codeProcessor.Provider,
+            CodeScript = context.CodeScript,
+            ExecutionResult = response.Text,
+            Text = message.Content,
+            Arguments = state.GetStates()
+        };
+
         // After code execution
         foreach (var hook in hooks)
         {
             await hook.AfterCompletion(agent, response);
-            await hook.AfterCodeExecution(agent, response);
-            await hook.OnResponseGenerated(new InstructResponseModel
-            {
-                AgentId = agent.Id,
-                Provider = codeProcessor.Provider,
-                Model = string.Empty,
-                TemplateName = codeScript.Name,
-                UserMessage = message.Content,
-                SystemInstruction = $"Code script name: {codeScript}, Version: {codeScript.UpdatedTime.ToString("o")}",
-                CompletionText = response.Text
-            });
+            await hook.AfterCodeExecution(agent, codeExeResponse);
         }
 
         return response;

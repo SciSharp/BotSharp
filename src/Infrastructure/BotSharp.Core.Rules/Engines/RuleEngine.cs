@@ -1,6 +1,9 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Coding;
 using BotSharp.Abstraction.Coding.Enums;
+using BotSharp.Abstraction.Coding.Settings;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Rules.Options;
@@ -15,13 +18,16 @@ public class RuleEngine : IRuleEngine
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<RuleEngine> _logger;
+    private readonly CodingSettings _codingSettings;
 
     public RuleEngine(
         IServiceProvider services,
-        ILogger<RuleEngine> logger)
+        ILogger<RuleEngine> logger,
+        CodingSettings codingSettings)
     {
         _services = services;
         _logger = logger;
+        _codingSettings = codingSettings;
     }
 
     public async Task<IEnumerable<string>> Triggered(IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null, RuleTriggerOptions? options = null)
@@ -42,7 +48,7 @@ public class RuleEngine : IRuleEngine
         var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled)).ToList();
         foreach (var agent in filteredAgents)
         {
-            var isTriggered = true;
+            bool? isTriggered = true;
 
             // Code trigger
             if (options != null)
@@ -50,7 +56,7 @@ public class RuleEngine : IRuleEngine
                 isTriggered = await TriggerCodeScript(agent.Id, trigger.Name, options);
             }
 
-            if (!isTriggered)
+            if (isTriggered != null && !isTriggered.Value)
             {
                 continue;
             }
@@ -90,7 +96,7 @@ public class RuleEngine : IRuleEngine
     }
 
     #region Private methods
-    private async Task<bool> TriggerCodeScript(string agentId, string triggerName, RuleTriggerOptions options)
+    private async Task<bool?> TriggerCodeScript(string agentId, string triggerName, RuleTriggerOptions options)
     {
         if (string.IsNullOrWhiteSpace(agentId))
         {
@@ -114,17 +120,25 @@ public class RuleEngine : IRuleEngine
         if (string.IsNullOrWhiteSpace(codeScript?.Content))
         {
             _logger.LogWarning($"Unable to find {msg}.");
-            return false;
+            return null;
         }
 
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+            var hooks = _services.GetHooks<IInstructHook>(agentId);
+
+            var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
             var response = await processor.RunAsync(codeScript.Content, options: new()
             {
                 ScriptName = scriptName,
                 Arguments = BuildArguments(options.ArgumentName, options.ArgumentContent),
+                UseLock = useLock,
+                UseProcess = useProcess
             }, cancellationToken: cts.Token);
+
+            
+
 
             if (response == null || !response.Success)
             {
@@ -164,5 +178,18 @@ public class RuleEngine : IRuleEngine
         }
         return keyValues;
     }
-#endregion
+
+    private (bool, bool, int) GetCodeExecutionConfig()
+    {
+        var useLock = false;
+        var useProcess = false;
+        var timeoutSeconds = 3;
+
+        useLock = _codingSettings.CodeExecution?.UseLock ?? useLock;
+        useProcess = _codingSettings.CodeExecution?.UseProcess ?? useProcess;
+        timeoutSeconds = _codingSettings.CodeExecution?.TimeoutSeconds > 0 ? _codingSettings.CodeExecution.TimeoutSeconds.Value : timeoutSeconds;
+
+        return (useLock, useProcess, timeoutSeconds);
+    }
+    #endregion
 }
