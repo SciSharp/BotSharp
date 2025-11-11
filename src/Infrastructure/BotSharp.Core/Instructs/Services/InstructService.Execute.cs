@@ -344,13 +344,12 @@ public partial class InstructService
     /// <returns></returns>
     private (bool, bool, int) GetCodeExecutionConfig(CodingSettings settings)
     {
-        var useLock = false;
-        var useProcess = false;
-        var timeoutSeconds = 3;
+        var codeExecution = settings.CodeExecution;
+        var defaultTimeoutSeconds = 3;
 
-        useLock = settings.CodeExecution?.UseLock ?? useLock;
-        useProcess = settings.CodeExecution?.UseProcess ?? useProcess;
-        timeoutSeconds = settings.CodeExecution?.TimeoutSeconds > 0 ? settings.CodeExecution.TimeoutSeconds.Value : timeoutSeconds;
+        var useLock = codeExecution?.UseLock ?? false;
+        var useProcess = codeExecution?.UseProcess ?? false;
+        var timeoutSeconds = codeExecution?.TimeoutSeconds > 0 ? codeExecution.TimeoutSeconds : defaultTimeoutSeconds;
 
         return (useLock, useProcess, timeoutSeconds);
     }

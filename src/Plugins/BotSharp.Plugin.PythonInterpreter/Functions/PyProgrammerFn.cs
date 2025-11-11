@@ -120,6 +120,7 @@ public class PyProgrammerFn : IFunctionCallback
 
         var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+
         var response = await processor.RunAsync(codeScript, options: new()
         {
             UseLock = useLock,
@@ -202,13 +203,12 @@ public class PyProgrammerFn : IFunctionCallback
 
     private (bool, bool, int) GetCodeExecutionConfig()
     {
-        var useLock = false;
-        var useProcess = false;
-        var timeoutSeconds = 3;
+        var codeExecution = _codingSettings.CodeExecution;
+        var defaultTimeoutSeconds = 10;
 
-        useLock = _codingSettings.CodeExecution?.UseLock ?? useLock;
-        useProcess = _codingSettings.CodeExecution?.UseProcess ?? useProcess;
-        timeoutSeconds = _codingSettings.CodeExecution?.TimeoutSeconds > 0 ? _codingSettings.CodeExecution.TimeoutSeconds.Value : timeoutSeconds;
+        var useLock = codeExecution?.UseLock ?? false;
+        var useProcess = codeExecution?.UseProcess ?? false;
+        var timeoutSeconds = codeExecution?.TimeoutSeconds > 0 ? codeExecution.TimeoutSeconds : defaultTimeoutSeconds;
 
         return (useLock, useProcess, timeoutSeconds);
     }
