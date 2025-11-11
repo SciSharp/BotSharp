@@ -1,9 +1,9 @@
 using BotSharp.Abstraction.Coding;
 using BotSharp.Abstraction.Coding.Enums;
+using BotSharp.Abstraction.Coding.Contexts;
 using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
-using BotSharp.Abstraction.Instructs.Contexts;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Abstraction.MLTasks;
@@ -232,7 +232,7 @@ public partial class InstructService
             arguments = state.GetStates().Select(x => new KeyValue(x.Key, x.Value)).ToList();
         }
 
-        var context = new CodeInstructContext
+        var context = new CodeExecutionContext
         {
             CodeScript = codeScript,
             Arguments = arguments
@@ -280,14 +280,17 @@ public partial class InstructService
 
         if (context?.Arguments != null)
         {
-            context.Arguments.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+            foreach (var arg in context.Arguments)
+            {
+                state.SetState(arg.Key, arg.Value, source: StateSource.External);
+            }
         }
 
         var codeExeResponse = new CodeExecutionResponseModel
         {
             CodeProcessor = codeProcessor.Provider,
             CodeScript = context.CodeScript,
-            ExecutionResult = response.Text,
+            ExecutionResult = codeResponse.Result.IfNullOrEmptyAs(codeResponse.ErrorMsg ?? string.Empty)!,
             Text = message.Content,
             Arguments = state.GetStates()
         };

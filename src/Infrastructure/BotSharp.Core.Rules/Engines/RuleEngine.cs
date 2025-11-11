@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Coding;
+using BotSharp.Abstraction.Coding.Contexts;
 using BotSharp.Abstraction.Coding.Enums;
+using BotSharp.Abstraction.Coding.Models;
 using BotSharp.Abstraction.Coding.Settings;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Hooks;
@@ -53,7 +55,7 @@ public class RuleEngine : IRuleEngine
             // Code trigger
             if (options != null)
             {
-                isTriggered = await TriggerCodeScript(agent.Id, trigger.Name, options);
+                isTriggered = await TriggerCodeScript(agent, trigger.Name, options);
             }
 
             if (isTriggered != null && !isTriggered.Value)
@@ -96,9 +98,9 @@ public class RuleEngine : IRuleEngine
     }
 
     #region Private methods
-    private async Task<bool?> TriggerCodeScript(string agentId, string triggerName, RuleTriggerOptions options)
+    private async Task<bool?> TriggerCodeScript(Agent agent, string triggerName, RuleTriggerOptions options)
     {
-        if (string.IsNullOrWhiteSpace(agentId))
+        if (string.IsNullOrWhiteSpace(agent?.Id))
         {
             return false;
         }
@@ -113,9 +115,9 @@ public class RuleEngine : IRuleEngine
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var scriptName = options.CodeScriptName ?? $"{triggerName}_rule.py";
-        var codeScript = await agentService.GetAgentCodeScript(agentId, scriptName, scriptType: AgentCodeScriptType.Src);
+        var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
 
-        var msg = $"rule trigger ({triggerName}) code script ({scriptName}) in agent ({agentId}) => args: {options.ArgumentContent?.RootElement.GetRawText()}.";
+        var msg = $"rule trigger ({triggerName}) code script ({scriptName}) in agent ({agent.Name}) => args: {options.ArgumentContent?.RootElement.GetRawText()}.";
 
         if (string.IsNullOrWhiteSpace(codeScript?.Content))
         {
@@ -125,7 +127,19 @@ public class RuleEngine : IRuleEngine
 
         try
         {
-            var hooks = _services.GetHooks<IInstructHook>(agentId);
+            var arguments = BuildArguments(options.ArgumentName, options.ArgumentContent);
+
+            var hooks = _services.GetHooks<IInstructHook>(agent.Id);
+            var context = new CodeExecutionContext
+            {
+                CodeScript = codeScript,
+                Arguments = arguments
+            };
+
+            foreach (var hook in hooks)
+            {
+                await hook.BeforeCodeExecution(agent, context);
+            }
 
             var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
@@ -137,8 +151,18 @@ public class RuleEngine : IRuleEngine
                 UseProcess = useProcess
             }, cancellationToken: cts.Token);
 
-            
+            var codeResponse = new CodeExecutionResponseModel
+            {
+                CodeProcessor = processor.Provider,
+                CodeScript = codeScript,
+                Arguments = arguments.DistinctBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value ?? string.Empty),
+                ExecutionResult = response.Result.IfNullOrEmptyAs(response.ErrorMsg ?? string.Empty)!
+            };
 
+            foreach (var hook in hooks)
+            {
+                await hook.AfterCodeExecution(agent, codeResponse);
+            }
 
             if (response == null || !response.Success)
             {
@@ -181,13 +205,12 @@ public class RuleEngine : IRuleEngine
 
     private (bool, bool, int) GetCodeExecutionConfig()
     {
-        var useLock = false;
-        var useProcess = false;
-        var timeoutSeconds = 3;
+        var codeExecution = _codingSettings.CodeExecution;
+        var defaultTimeoutSeconds = 3;
 
-        useLock = _codingSettings.CodeExecution?.UseLock ?? useLock;
-        useProcess = _codingSettings.CodeExecution?.UseProcess ?? useProcess;
-        timeoutSeconds = _codingSettings.CodeExecution?.TimeoutSeconds > 0 ? _codingSettings.CodeExecution.TimeoutSeconds.Value : timeoutSeconds;
+        var useLock = codeExecution?.UseLock ?? false;
+        var useProcess = codeExecution?.UseProcess ?? false;
+        var timeoutSeconds = codeExecution?.TimeoutSeconds > 0 ? codeExecution.TimeoutSeconds : defaultTimeoutSeconds;
 
         return (useLock, useProcess, timeoutSeconds);
     }

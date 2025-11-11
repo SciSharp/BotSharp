@@ -1,5 +1,5 @@
+using BotSharp.Abstraction.Coding.Contexts;
 using BotSharp.Abstraction.Coding.Models;
-using BotSharp.Abstraction.Instructs.Contexts;
 using BotSharp.Abstraction.Instructs.Models;
 
 namespace BotSharp.Abstraction.Instructs;
@@ -23,7 +23,7 @@ public class InstructHookBase : IInstructHook
         await Task.CompletedTask;
     }
 
-    public virtual async Task BeforeCodeExecution(Agent agent, CodeInstructContext context)
+    public virtual async Task BeforeCodeExecution(Agent agent, CodeExecutionContext context)
     {
         await Task.CompletedTask;
     }
