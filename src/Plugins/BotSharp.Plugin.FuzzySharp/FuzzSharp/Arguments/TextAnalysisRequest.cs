@@ -29,7 +29,7 @@ public class TextAnalysisRequest
     /// </summary>
     [JsonPropertyName("cutoff")]
     [Range(0.0, 1.0)]
-    public double Cutoff { get; set; } = 0.80;
+    public double Cutoff { get; set; } = 0.82;
 
     /// <summary>
     /// Max candidates per domain (1-20)

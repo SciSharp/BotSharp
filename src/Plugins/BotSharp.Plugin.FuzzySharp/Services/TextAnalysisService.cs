@@ -11,18 +11,18 @@ namespace BotSharp.Plugin.FuzzySharp.Services;
 public class TextAnalysisService : ITextAnalysisService
 {
     private readonly ILogger<TextAnalysisService> _logger;
-    private readonly IPhraseCollection _vocabularyService;
+    private readonly IEnumerable<IPhraseCollection> _phraseLoaderServices;
     private readonly INgramProcessor _ngramProcessor;
     private readonly IResultProcessor _resultProcessor;
 
     public TextAnalysisService(
         ILogger<TextAnalysisService> logger,
-        IPhraseCollection vocabularyService,
+        IEnumerable<IPhraseCollection> phraseLoaderServices,
         INgramProcessor ngramProcessor,
         IResultProcessor resultProcessor)
     {
         _logger = logger;
-        _vocabularyService = vocabularyService;
+        _phraseLoaderServices = phraseLoaderServices;
         _ngramProcessor = ngramProcessor;
         _resultProcessor = resultProcessor;
     }
@@ -39,11 +39,10 @@ public class TextAnalysisService : ITextAnalysisService
             var tokens = TextTokenizer.Tokenize(request.Text);
 
             // Load vocabulary
-            // TODO: read the vocabulary from GSMP in Onebrain
-            var vocabulary = await _vocabularyService.LoadVocabularyAsync();
+            var vocabulary = await LoadAllVocabularyAsync();
 
             // Load domain term mapping
-            var domainTermMapping = await _vocabularyService.LoadDomainTermMappingAsync();
+            var domainTermMapping = await LoadAllDomainTermMappingAsync();
 
             // Analyze text
             var flagged = AnalyzeTokens(tokens, vocabulary, domainTermMapping, request);
@@ -75,6 +74,39 @@ public class TextAnalysisService : ITextAnalysisService
             _logger.LogError(ex, $"Error analyzing text after {stopwatch.Elapsed.TotalMilliseconds}ms");
             throw;
         }
+    }
+
+    public async Task<Dictionary<string, HashSet<string>>> LoadAllVocabularyAsync()
+    {
+        var results = await Task.WhenAll(_phraseLoaderServices.Select(c => c.LoadVocabularyAsync()));
+        var merged = new Dictionary<string, HashSet<string>>();
+
+        foreach (var dict in results)
+        {
+            foreach (var kvp in dict)
+            {
+                if (!merged.TryGetValue(kvp.Key, out var set))
+                    merged[kvp.Key] = new HashSet<string>(kvp.Value);
+                else
+                    set.UnionWith(kvp.Value);
+            }
+        }
+
+        return merged;
+    }
+
+    public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadAllDomainTermMappingAsync()
+    {
+        var results = await Task.WhenAll(_phraseLoaderServices.Select(c => c.LoadDomainTermMappingAsync()));
+        var merged = new Dictionary<string, (string DbPath, string CanonicalForm)>();
+
+        foreach (var dict in results)
+        {
+            foreach (var kvp in dict)
+                merged[kvp.Key] = kvp.Value; // later entries override earlier ones
+        }
+
+        return merged;
     }
 
     /// <summary>
