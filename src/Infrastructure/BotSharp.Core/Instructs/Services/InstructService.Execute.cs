@@ -266,17 +266,15 @@ public partial class InstructService
             UseProcess = useProcess
         }, cancellationToken: cts.Token);
 
-        if (codeResponse == null || !codeResponse.Success)
+        if (codeResponse?.Success == true)
         {
-            return response;
+            response = new InstructResult
+            {
+                MessageId = message.MessageId,
+                Template = context.CodeScript?.Name,
+                Text = codeResponse.Result
+            };
         }
-
-        response = new InstructResult
-        {
-            MessageId = message.MessageId,
-            Template = context.CodeScript?.Name,
-            Text = codeResponse.Result
-        };
 
         if (context?.Arguments != null)
         {
@@ -290,7 +288,7 @@ public partial class InstructService
         {
             CodeProcessor = codeProcessor.Provider,
             CodeScript = context.CodeScript,
-            ExecutionResult = codeResponse.Result.IfNullOrEmptyAs(codeResponse.ErrorMsg ?? string.Empty)!,
+            ExecutionResult = codeResponse?.ToString() ?? string.Empty,
             Text = message.Content,
             Arguments = state.GetStates()
         };
@@ -298,7 +296,7 @@ public partial class InstructService
         // After code execution
         foreach (var hook in hooks)
         {
-            await hook.AfterCompletion(agent, response);
+            await hook.AfterCompletion(agent, response ?? new());
             await hook.AfterCodeExecution(agent, codeExeResponse);
         }
 

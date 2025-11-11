@@ -6,6 +6,6 @@ public class CodeInterpretResponse : ResponseBase
 
     public override string ToString()
     {
-        return Result.IfNullOrEmptyAs(ErrorMsg ?? $"Success: {Success}")!;
+        return Result.IfNullOrEmptyAs(ErrorMsg.IfNullOrEmptyAs($"Success: {Success}"))!;
     }
 }

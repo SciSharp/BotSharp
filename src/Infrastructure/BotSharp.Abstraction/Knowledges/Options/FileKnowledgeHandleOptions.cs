@@ -1,7 +1,12 @@
-namespace BotSharp.Abstraction.Files.Options;
+namespace BotSharp.Abstraction.Knowledges.Options;
 
-public class FileHandleOptions : LlmConfigBase
+public class FileKnowledgeHandleOptions : LlmConfigBase
 {
+    /// <summary>
+    /// Agent id
+    /// </summary>
+    public string? AgentId { get; set; }
+
     /// <summary>
     /// Instruction
     /// </summary>

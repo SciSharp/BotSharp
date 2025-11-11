@@ -375,7 +375,7 @@ public partial class KnowledgeService
             return Enumerable.Empty<FileKnowledgeModel>();
         }
 
-        var response = await processor.GetFileKnowledgeAsync(file, options: new() { });
+        var response = await processor.GetFileKnowledgeAsync(file, options: options);
         return response?.Knowledges ?? [];
     }
 

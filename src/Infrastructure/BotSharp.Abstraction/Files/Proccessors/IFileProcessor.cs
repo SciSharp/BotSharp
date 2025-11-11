@@ -12,6 +12,6 @@ public interface IFileProcessor
     Task<FileHandleResponse> HandleFilesAsync(Agent agent, string text, IEnumerable<InstructFileModel> files, FileHandleOptions? options = null)
         => throw new NotImplementedException();
 
-    Task<FileKnowledgeResponse> GetFileKnowledgeAsync(FileBinaryDataModel file, FileKnowledgeProcessOptions? options = null)
+    Task<FileKnowledgeResponse> GetFileKnowledgeAsync(FileBinaryDataModel file, FileKnowledgeHandleOptions? options = null)
         => throw new NotImplementedException();
 }
