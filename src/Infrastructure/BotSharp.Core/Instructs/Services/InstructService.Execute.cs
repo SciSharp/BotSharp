@@ -260,50 +260,62 @@ public partial class InstructService
 
         // Run code script
         var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig(codingSettings);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-        var codeResponse = await codeProcessor.RunAsync(context.CodeScript, options: new()
+        CancellationTokenSource? cts = null;
+        try
         {
-            ScriptName = scriptName,
-            Arguments = context.Arguments,
-            UseLock = useLock,
-            UseProcess = useProcess
-        }, cancellationToken: cts.Token);
+            if (timeoutSeconds != null)
+            {
+                cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds.Value));
+            }
 
-        if (codeResponse == null || !codeResponse.Success)
-        {
+            var codeResponse = await codeProcessor.RunAsync(context.CodeScript, options: new()
+            {
+                ScriptName = scriptName,
+                Arguments = context.Arguments,
+                UseLock = useLock,
+                UseProcess = useProcess
+            }, cancellationToken: cts?.Token ?? CancellationToken.None);
+
+            if (codeResponse == null || !codeResponse.Success)
+            {
+                return response;
+            }
+
+            response = new InstructResult
+            {
+                MessageId = message.MessageId,
+                Template = scriptName,
+                Text = codeResponse.Result
+            };
+
+            if (context?.Arguments != null)
+            {
+                context.Arguments.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+            }
+
+            // After code execution
+            foreach (var hook in hooks)
+            {
+                await hook.AfterCompletion(agent, response);
+                await hook.AfterCodeExecution(agent, response);
+                await hook.OnResponseGenerated(new InstructResponseModel
+                {
+                    AgentId = agent.Id,
+                    Provider = codeProcessor.Provider,
+                    Model = string.Empty,
+                    TemplateName = scriptName,
+                    UserMessage = message.Content,
+                    SystemInstruction = context?.CodeScript,
+                    CompletionText = response.Text
+                });
+            }
+
             return response;
         }
-
-        response = new InstructResult
+        finally
         {
-            MessageId = message.MessageId,
-            Template = scriptName,
-            Text = codeResponse.Result
-        };
-
-        if (context?.Arguments != null)
-        {
-            context.Arguments.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
+            cts?.Dispose();
         }
-
-        // After code execution
-        foreach (var hook in hooks)
-        {
-            await hook.AfterCompletion(agent, response);
-            await hook.AfterCodeExecution(agent, response);
-            await hook.OnResponseGenerated(new InstructResponseModel
-            {
-                AgentId = agent.Id,
-                Provider = codeProcessor.Provider,
-                Model = string.Empty,
-                TemplateName = scriptName,
-                UserMessage = message.Content,
-                SystemInstruction = context?.CodeScript,
-                CompletionText = response.Text
-            });
-        }
-
-        return response;
     }
 
     private async Task<string> GetTextCompletion(
@@ -346,15 +358,15 @@ public partial class InstructService
     /// Returns (useLock, useProcess, timeoutSeconds)
     /// </summary>
     /// <returns></returns>
-    private (bool, bool, int) GetCodeExecutionConfig(CodingSettings settings)
+    private (bool, bool, int?) GetCodeExecutionConfig(CodingSettings settings)
     {
-        var useLock = false;
-        var useProcess = false;
-        var timeoutSeconds = 3;
+        var codeExecution = settings.CodeExecution;
+        var defaultTimeoutSeconds = 3;
 
-        useLock = settings.CodeExecution?.UseLock ?? useLock;
-        useProcess = settings.CodeExecution?.UseProcess ?? useProcess;
-        timeoutSeconds = settings.CodeExecution?.TimeoutSeconds > 0 ? settings.CodeExecution.TimeoutSeconds.Value : timeoutSeconds;
+        var useLock = codeExecution?.UseLock ?? false;
+        var useProcess = codeExecution?.UseProcess ?? false;
+        var timeoutSeconds = codeExecution?.TimeoutSeconds != null
+            ? (codeExecution.TimeoutSeconds > 0 ? codeExecution.TimeoutSeconds : defaultTimeoutSeconds) : null;
 
         return (useLock, useProcess, timeoutSeconds);
     }

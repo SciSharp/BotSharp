@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Coding.Settings;
 using Microsoft.Extensions.Logging;
-using Python.Runtime;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -119,20 +118,33 @@ public class PyProgrammerFn : IFunctionCallback
             return (false, "Unable to execute python code script.");
         }
 
+        CancellationTokenSource? cts = null;
         var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig();
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-        var response = await processor.RunAsync(codeScript, options: new()
-        {
-            UseLock = useLock,
-            UseProcess = useProcess
-        }, cancellationToken: cts.Token);
 
-        if (response == null || !response.Success)
+        try
         {
-            return (false, !string.IsNullOrEmpty(response?.ErrorMsg) ? response.ErrorMsg : "Failed to execute python code script.");
+            if (timeoutSeconds != null)
+            {
+                cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds.Value));
+            }
+
+            var response = await processor.RunAsync(codeScript, options: new()
+            {
+                UseLock = useLock,
+                UseProcess = useProcess
+            }, cancellationToken: cts?.Token ?? CancellationToken.None);
+
+            if (response == null || !response.Success)
+            {
+                return (false, !string.IsNullOrEmpty(response?.ErrorMsg) ? response.ErrorMsg : "Failed to execute python code script.");
+            }
+
+            return (true, response.Result);
         }
-
-        return (true, response.Result);
+        finally
+        {
+            cts?.Dispose();
+        }
     }
 
     private async Task<string> GetChatCompletion(Agent agent, List<RoleDialogModel> dialogs)
@@ -201,15 +213,15 @@ public class PyProgrammerFn : IFunctionCallback
         };
     }
 
-    private (bool, bool, int) GetCodeExecutionConfig()
+    private (bool, bool, int?) GetCodeExecutionConfig()
     {
-        var useLock = false;
-        var useProcess = false;
-        var timeoutSeconds = 3;
+        var codeExecution = _codingSettings.CodeExecution;
+        var defaultTimeoutSeconds = 3;
 
-        useLock = _codingSettings.CodeExecution?.UseLock ?? useLock;
-        useProcess = _codingSettings.CodeExecution?.UseProcess ?? useProcess;
-        timeoutSeconds = _codingSettings.CodeExecution?.TimeoutSeconds > 0 ? _codingSettings.CodeExecution.TimeoutSeconds.Value : timeoutSeconds;
+        var useLock = codeExecution?.UseLock ?? false;
+        var useProcess = codeExecution?.UseProcess ?? false;
+        var timeoutSeconds = codeExecution?.TimeoutSeconds != null
+            ? (codeExecution.TimeoutSeconds > 0 ? codeExecution.TimeoutSeconds : defaultTimeoutSeconds) : null;
 
         return (useLock, useProcess, timeoutSeconds);
     }
