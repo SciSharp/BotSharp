@@ -47,6 +47,23 @@ public class UserController : ControllerBase
     }
 
     [AllowAnonymous]
+    [HttpPost("/renew-token")]
+    public async Task<ActionResult<Token>> RenewToken([FromHeader(Name = "Authorization")][Required] string authcode)
+    {
+        if (authcode.Contains(' '))
+        {
+            authcode = authcode.Split(' ')[1];
+        }
+
+        var token = await _userService.RenewToken(authcode);
+        if (token == null)
+        {
+            return Unauthorized();
+        }
+        return Ok(token);
+    }
+
+    [AllowAnonymous]
     [HttpGet("/sso/{provider}")]
     public async Task<IActionResult> Authorize([FromRoute] string provider, string redirectUrl)
     {
