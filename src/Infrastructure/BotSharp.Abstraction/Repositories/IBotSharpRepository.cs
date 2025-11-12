@@ -114,7 +114,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #region Agent Code
     List<AgentCodeScript> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
         => throw new NotImplementedException();
-    string? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+    AgentCodeScript? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
         => throw new NotImplementedException();
     bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
         => throw new NotImplementedException();

@@ -5,6 +5,9 @@ public class AgentCodeScript : AgentCodeScriptBase
     public string Id { get; set; }
     public string AgentId { get; set; } = null!;
 
+    public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
+
     public AgentCodeScript() : base()
     {
     }

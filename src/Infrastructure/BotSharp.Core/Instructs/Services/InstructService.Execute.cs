@@ -1,15 +1,13 @@
 using BotSharp.Abstraction.Coding;
-using BotSharp.Abstraction.Coding.Responses;
+using BotSharp.Abstraction.Coding.Enums;
+using BotSharp.Abstraction.Coding.Contexts;
 using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
-using BotSharp.Abstraction.Instructs.Contexts;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Models;
-using Microsoft.Extensions.Options;
-using static Dapper.SqlMapper;
 
 namespace BotSharp.Core.Instructs;
 
@@ -184,7 +182,7 @@ public partial class InstructService
         var hooks = _services.GetHooks<IInstructHook>(agent.Id);
 
         var codeProvider = codeOptions?.Processor ?? codingSettings.CodeExecution?.Processor;
-        codeProvider = !string.IsNullOrEmpty(codeProvider) ? codeProvider : "botsharp-py-interpreter";
+        codeProvider = !string.IsNullOrEmpty(codeProvider) ? codeProvider : BuiltInCodeProcessor.PyInterpreter;
 
         var codeProcessor = _services.GetServices<ICodeProcessor>()
                                        .FirstOrDefault(x => x.Provider.IsEqualTo(codeProvider));
@@ -219,7 +217,7 @@ public partial class InstructService
         // Get code script
         var scriptType = codeOptions?.ScriptType ?? AgentCodeScriptType.Src;
         var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType);
-        if (string.IsNullOrWhiteSpace(codeScript))
+        if (string.IsNullOrWhiteSpace(codeScript?.Content))
         {
 #if DEBUG
             _logger.LogWarning($"Empty code script. (Agent: {agent.Id}, {scriptName})");
@@ -234,10 +232,9 @@ public partial class InstructService
             arguments = state.GetStates().Select(x => new KeyValue(x.Key, x.Value)).ToList();
         }
 
-        var context = new CodeInstructContext
+        var context = new CodeExecutionContext
         {
             CodeScript = codeScript,
-            ScriptType = scriptType,
             Arguments = arguments
         };
 
@@ -245,7 +242,7 @@ public partial class InstructService
         foreach (var hook in hooks)
         {
             await hook.BeforeCompletion(agent, message);
-            await hook.BeforeCodeExecution(agent, message, context);
+            await hook.BeforeCodeExecution(agent, context);
 
             // Interrupted by hook
             if (message.StopCompletion)
@@ -261,46 +258,38 @@ public partial class InstructService
         // Run code script
         var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig(codingSettings);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-        var codeResponse = await codeProcessor.RunAsync(context.CodeScript, options: new()
+        var codeResponse = await codeProcessor.RunAsync(context.CodeScript?.Content ?? string.Empty, options: new()
         {
-            ScriptName = scriptName,
+            ScriptName = context.CodeScript?.Name,
             Arguments = context.Arguments,
             UseLock = useLock,
             UseProcess = useProcess
         }, cancellationToken: cts.Token);
 
-        if (codeResponse == null || !codeResponse.Success)
+        if (codeResponse?.Success == true)
         {
-            return response;
+            response = new InstructResult
+            {
+                MessageId = message.MessageId,
+                Template = context.CodeScript?.Name,
+                Text = codeResponse.Result
+            };
         }
 
-        response = new InstructResult
+        var codeExeResponse = new CodeExecutionResponseModel
         {
-            MessageId = message.MessageId,
-            Template = scriptName,
-            Text = codeResponse.Result
+            CodeProcessor = codeProcessor.Provider,
+            CodeScript = context.CodeScript,
+            ExecutionResult = codeResponse?.ToString() ?? string.Empty,
+            Text = message.Content,
+            Arguments = context.Arguments?.DistinctBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value ?? string.Empty)
         };
-
-        if (context?.Arguments != null)
-        {
-            context.Arguments.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
-        }
 
         // After code execution
         foreach (var hook in hooks)
         {
-            await hook.AfterCompletion(agent, response);
-            await hook.AfterCodeExecution(agent, response);
-            await hook.OnResponseGenerated(new InstructResponseModel
-            {
-                AgentId = agent.Id,
-                Provider = codeProcessor.Provider,
-                Model = string.Empty,
-                TemplateName = scriptName,
-                UserMessage = message.Content,
-                SystemInstruction = context?.CodeScript,
-                CompletionText = response.Text
-            });
+            await hook.AfterCompletion(agent, response ?? new());
+            await hook.AfterCodeExecution(agent, codeExeResponse);
         }
 
         return response;
@@ -348,13 +337,12 @@ public partial class InstructService
     /// <returns></returns>
     private (bool, bool, int) GetCodeExecutionConfig(CodingSettings settings)
     {
-        var useLock = false;
-        var useProcess = false;
-        var timeoutSeconds = 3;
+        var codeExecution = settings.CodeExecution;
+        var defaultTimeoutSeconds = 3;
 
-        useLock = settings.CodeExecution?.UseLock ?? useLock;
-        useProcess = settings.CodeExecution?.UseProcess ?? useProcess;
-        timeoutSeconds = settings.CodeExecution?.TimeoutSeconds > 0 ? settings.CodeExecution.TimeoutSeconds.Value : timeoutSeconds;
+        var useLock = codeExecution?.UseLock ?? false;
+        var useProcess = codeExecution?.UseProcess ?? false;
+        var timeoutSeconds = codeExecution?.TimeoutSeconds > 0 ? codeExecution.TimeoutSeconds : defaultTimeoutSeconds;
 
         return (useLock, useProcess, timeoutSeconds);
     }

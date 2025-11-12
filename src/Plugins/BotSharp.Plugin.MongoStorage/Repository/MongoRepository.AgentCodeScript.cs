@@ -35,7 +35,7 @@ public partial class MongoRepository
         return found.Select(x => AgentCodeScriptDocument.ToDomainModel(x)).ToList();
     }
 
-    public string? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+    public AgentCodeScript? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
     {
         if (string.IsNullOrWhiteSpace(agentId)
             || string.IsNullOrWhiteSpace(scriptName)
@@ -53,7 +53,7 @@ public partial class MongoRepository
         };
 
         var found = _dc.AgentCodeScripts.Find(builder.And(filters)).FirstOrDefault();
-        return found?.Content;
+        return found != null ? AgentCodeScriptDocument.ToDomainModel(found) : null;
     }
 
     public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
