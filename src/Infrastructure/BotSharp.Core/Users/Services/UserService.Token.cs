@@ -110,8 +110,7 @@ public partial class UserService
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
         {
-            var (newToken, _) = BuildToken(await GetMyProfile());
-            return newToken;
+            return null;
         }
 
         try

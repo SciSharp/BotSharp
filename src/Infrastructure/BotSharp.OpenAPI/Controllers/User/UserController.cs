@@ -51,8 +51,14 @@ public class UserController : ControllerBase
     public async Task<ActionResult<Token>> RenewToken([FromBody] RenewTokenModel request)
     {
         request ??= new();
-        request.RefreshToken = request.RefreshToken?.Split(' ', StringSplitOptions.RemoveEmptyEntries)?.LastOrDefault() ?? string.Empty;
-        request.AccessToken = request.AccessToken?.Split(' ', StringSplitOptions.RemoveEmptyEntries)?.LastOrDefault();
+        if (request.RefreshToken?.Contains(" ") == true)
+        {
+            request.RefreshToken = request.RefreshToken?.Split(' ', StringSplitOptions.RemoveEmptyEntries)?.LastOrDefault() ?? string.Empty;
+        }
+        if (request.AccessToken?.Contains(" ") == true)
+        {
+            request.AccessToken = request.AccessToken?.Split(' ', StringSplitOptions.RemoveEmptyEntries)?.LastOrDefault();
+        }
 
         var newToken = await _userService.RenewToken(request.RefreshToken, request.AccessToken);
         if (newToken == null)
