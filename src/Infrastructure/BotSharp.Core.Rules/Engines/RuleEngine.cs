@@ -119,7 +119,7 @@ public class RuleEngine : IRuleEngine
 
         var msg = $"rule trigger ({triggerName}) code script ({scriptName}) in agent ({agent.Name}) => args: {options.ArgumentContent?.RootElement.GetRawText()}.";
 
-        if (string.IsNullOrWhiteSpace(codeScript?.Content))
+        if (codeScript == null || string.IsNullOrWhiteSpace(codeScript.Content))
         {
             _logger.LogWarning($"Unable to find {msg}.");
             return null;
@@ -127,9 +127,9 @@ public class RuleEngine : IRuleEngine
 
         try
         {
-            var arguments = BuildArguments(options.ArgumentName, options.ArgumentContent);
-
             var hooks = _services.GetHooks<IInstructHook>(agent.Id);
+
+            var arguments = BuildArguments(options.ArgumentName, options.ArgumentContent);
             var context = new CodeExecutionContext
             {
                 CodeScript = codeScript,
@@ -146,7 +146,7 @@ public class RuleEngine : IRuleEngine
             var response = await processor.RunAsync(codeScript.Content, options: new()
             {
                 ScriptName = scriptName,
-                Arguments = BuildArguments(options.ArgumentName, options.ArgumentContent),
+                Arguments = arguments,
                 UseLock = useLock,
                 UseProcess = useProcess
             }, cancellationToken: cts.Token);
@@ -193,7 +193,7 @@ public class RuleEngine : IRuleEngine
         }
     }
 
-    private IEnumerable<KeyValue> BuildArguments(string? name, JsonDocument? args)
+    private List<KeyValue> BuildArguments(string? name, JsonDocument? args)
     {
         var keyValues = new List<KeyValue>();
         if (args != null)

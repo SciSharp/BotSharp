@@ -276,21 +276,13 @@ public partial class InstructService
             };
         }
 
-        if (context?.Arguments != null)
-        {
-            foreach (var arg in context.Arguments)
-            {
-                state.SetState(arg.Key, arg.Value, source: StateSource.External);
-            }
-        }
-
         var codeExeResponse = new CodeExecutionResponseModel
         {
             CodeProcessor = codeProcessor.Provider,
             CodeScript = context.CodeScript,
             ExecutionResult = codeResponse?.ToString() ?? string.Empty,
             Text = message.Content,
-            Arguments = state.GetStates()
+            Arguments = context.Arguments?.DistinctBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value ?? string.Empty)
         };
 
         // After code execution
