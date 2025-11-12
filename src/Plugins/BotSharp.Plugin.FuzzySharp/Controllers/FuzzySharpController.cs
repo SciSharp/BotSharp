@@ -1,6 +1,5 @@
-using BotSharp.Abstraction.FuzzSharp;
-using BotSharp.Abstraction.FuzzSharp.Arguments;
-using BotSharp.Abstraction.FuzzSharp.Models;
+using BotSharp.Abstraction.Knowledges;
+using BotSharp.Abstraction.Knowledges.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -10,14 +9,14 @@ namespace BotSharp.Plugin.FuzzySharp.Controllers
     [ApiController]
     public class FuzzySharpController : ControllerBase
     {
-        private readonly ITextAnalysisService _textAnalysisService;
+        private readonly IPhraseService _phraseService;
         private readonly ILogger<FuzzySharpController> _logger;
 
         public FuzzySharpController(
-            ITextAnalysisService textAnalysisService,
+            IPhraseService phraseService,
             ILogger<FuzzySharpController> logger)
         {
-            _textAnalysisService = textAnalysisService;
+            _phraseService = phraseService;
             _logger = logger;
         }
 
@@ -36,25 +35,25 @@ namespace BotSharp.Plugin.FuzzySharp.Controllers
         /// <param name="request">Text analysis request</param>
         /// <returns>Text analysis response</returns>
         [HttpPost("fuzzy-sharp/analyze-text")]
-        [ProducesResponseType(typeof(TextAnalysisResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<SearchPhrasesResult>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> AnalyzeText([FromBody] TextAnalysisRequest request)
+        public async Task<IActionResult> AnalyzeText([FromBody] string text)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(request.Text))
+                if (string.IsNullOrWhiteSpace(text))
                 {
                     return BadRequest(new { error = "Text is required" });
                 }
 
-                var result = await _textAnalysisService.AnalyzeTextAsync(request);
+                var result = await _phraseService.SearchPhrasesAsync(text);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error analyzing text");
-                return StatusCode(500, new { error = $"Error analyzing text: {ex.Message}" });
+                _logger.LogError(ex, "Error analyzing and searching entities");
+                return StatusCode(500, new { error = $"Error analyzing and searching entities: {ex.Message}" });
             }
         }
     }

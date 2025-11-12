@@ -2,21 +2,22 @@ using BotSharp.Abstraction.FuzzSharp;
 using BotSharp.Abstraction.FuzzSharp.Arguments;
 using BotSharp.Abstraction.FuzzSharp.Models;
 using BotSharp.Abstraction.Knowledges;
+using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Plugin.FuzzySharp.Utils;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace BotSharp.Plugin.FuzzySharp.Services;
 
-public class TextAnalysisService : ITextAnalysisService
+public class PhraseService : IPhraseService
 {
-    private readonly ILogger<TextAnalysisService> _logger;
+    private readonly ILogger<PhraseService> _logger;
     private readonly IEnumerable<IPhraseCollection> _phraseLoaderServices;
     private readonly INgramProcessor _ngramProcessor;
     private readonly IResultProcessor _resultProcessor;
 
-    public TextAnalysisService(
-        ILogger<TextAnalysisService> logger,
+    public PhraseService(
+        ILogger<PhraseService> logger,
         IEnumerable<IPhraseCollection> phraseLoaderServices,
         INgramProcessor ngramProcessor,
         IResultProcessor resultProcessor)
@@ -27,10 +28,35 @@ public class TextAnalysisService : ITextAnalysisService
         _resultProcessor = resultProcessor;
     }
 
+    public Task<List<SearchPhrasesResult>> SearchPhrasesAsync(string term)
+    {
+        var request = BuildTextAnalysisRequest(term);
+        var response = AnalyzeTextAsync(request);
+        return response.ContinueWith(t =>
+        {
+            var results = t.Result.Flagged.Select(f => new SearchPhrasesResult
+            {
+                Token = f.Token,
+                DomainTypes = f.DomainTypes,
+                CanonicalForm = f.CanonicalForm,
+                Confidence = f.Confidence
+            }).ToList();
+            return results;
+        });
+    }
+
+    private TextAnalysisRequest BuildTextAnalysisRequest(string inputText)
+    {
+        return new TextAnalysisRequest
+        {
+            Text = inputText
+        };
+    }
+
     /// <summary>
     /// Analyze text for typos and entities using domain-specific vocabulary
     /// </summary>
-    public async Task<TextAnalysisResponse> AnalyzeTextAsync(TextAnalysisRequest request)
+    private async Task<TextAnalysisResponse> AnalyzeTextAsync(TextAnalysisRequest request)
     {
         var stopwatch = Stopwatch.StartNew();
         try
@@ -68,10 +94,9 @@ public class TextAnalysisService : ITextAnalysisService
 
             return response;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             stopwatch.Stop();
-            _logger.LogError(ex, $"Error analyzing text after {stopwatch.Elapsed.TotalMilliseconds}ms");
             throw;
         }
     }
