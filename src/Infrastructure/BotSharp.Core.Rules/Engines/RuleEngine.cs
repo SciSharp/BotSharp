@@ -50,17 +50,14 @@ public class RuleEngine : IRuleEngine
         var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled)).ToList();
         foreach (var agent in filteredAgents)
         {
-            bool? isTriggered = true;
-
             // Code trigger
             if (options != null)
             {
-                isTriggered = await TriggerCodeScript(agent, trigger.Name, options);
-            }
-
-            if (isTriggered != null && !isTriggered.Value)
-            {
-                continue;
+                var isTriggered = await TriggerCodeScript(agent, trigger.Name, options);
+                if (!isTriggered)
+                {
+                    continue;
+                }
             }
 
             var convService = _services.GetRequiredService<IConversationService>();
@@ -98,7 +95,7 @@ public class RuleEngine : IRuleEngine
     }
 
     #region Private methods
-    private async Task<bool?> TriggerCodeScript(Agent agent, string triggerName, RuleTriggerOptions options)
+    private async Task<bool> TriggerCodeScript(Agent agent, string triggerName, RuleTriggerOptions options)
     {
         if (string.IsNullOrWhiteSpace(agent?.Id))
         {
@@ -122,7 +119,7 @@ public class RuleEngine : IRuleEngine
         if (codeScript == null || string.IsNullOrWhiteSpace(codeScript.Content))
         {
             _logger.LogWarning($"Unable to find {msg}.");
-            return null;
+            return false;
         }
 
         try
