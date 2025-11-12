@@ -101,8 +101,8 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.8.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.8.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.8.0" />
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="8.2.0" />
-    <PackageVersion Include="Aspire.Hosting.NodeJs" Version="8.0.1" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.5.2" />
+    <PackageVersion Include="Aspire.Hosting.NodeJs" Version="9.5.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageVersion Include="Microsoft.SemanticKernel" Version="1.16.0" />
     <PackageVersion Include="Moq" Version="4.20.70" />
