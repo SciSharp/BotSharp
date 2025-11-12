@@ -34,10 +34,18 @@ public class PyCodeInterpreter : ICodeProcessor
     {
         if (options?.UseLock == true)
         {
-            return await _executor.ExecuteAsync(async () =>
+            try
             {
-                return await InnerRunCode(codeScript, options, cancellationToken);
-            }, cancellationToken: cancellationToken);
+                return await _executor.ExecuteAsync(async () =>
+                {
+                    return await InnerRunCode(codeScript, options, cancellationToken);
+                }, cancellationToken: cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error when using code script executor.");
+                return new() { ErrorMsg = ex.Message };
+            }
         }
         
         return await InnerRunCode(codeScript, options, cancellationToken);
@@ -50,9 +58,9 @@ public class PyCodeInterpreter : ICodeProcessor
         var agentId = options?.AgentId;
         var templateName = options?.TemplateName;
 
-        var agentService = _services.GetRequiredService<IAgentService>();
         if (!string.IsNullOrEmpty(agentId))
         {
+            var agentService = _services.GetRequiredService<IAgentService>();
             agent = await agentService.GetAgent(agentId);
         }
         
@@ -70,10 +78,10 @@ public class PyCodeInterpreter : ICodeProcessor
             Instruction = instruction,
             LlmConfig = new AgentLlmConfig
             {
-                Provider = options?.Provider ?? "openai",
-                Model = options?.Model ?? "gpt-5-mini",
-                MaxOutputTokens = options?.MaxOutputTokens,
-                ReasoningEffortLevel = options?.ReasoningEffortLevel
+                Provider = options?.Provider ?? provider,
+                Model = options?.Model ?? model,
+                MaxOutputTokens = options?.MaxOutputTokens ?? _settings?.CodeGeneration?.MaxOutputTokens,
+                ReasoningEffortLevel = options?.ReasoningEffortLevel ?? _settings?.CodeGeneration?.ReasoningEffortLevel
             },
             TemplateDict = options?.Data ?? new()
         };
@@ -136,14 +144,18 @@ public class PyCodeInterpreter : ICodeProcessor
 
     private async Task<CodeInterpretResponse> CoreRunScript(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogWarning($"Begin {nameof(CoreRunScript)} in {Provider}: ${options?.ScriptName}");
-
         cancellationToken.ThrowIfCancellationRequested();
 
         var execTask = Task.Factory.StartNew(() =>
         {
+            // For observation purpose
+            var requestId = Guid.NewGuid();
+            _logger.LogWarning($"Before acquiring Py.GIL for request {requestId}");
+
             using (Py.GIL())
             {
+                _logger.LogWarning($"After acquiring Py.GIL for request {requestId}");
+
                 // Import necessary Python modules
                 dynamic sys = Py.Import("sys");
                 dynamic io = Py.Import("io");
@@ -167,7 +179,7 @@ public class PyCodeInterpreter : ICodeProcessor
                     var list = new PyList();
                     if (options?.Arguments?.Any() == true)
                     {
-                        list.Append(new PyString(options?.ScriptName ?? "script.py"));
+                        list.Append(new PyString(options?.ScriptName ?? $"{Guid.NewGuid()}.py"));
 
                         foreach (var arg in options!.Arguments)
                         {
@@ -184,6 +196,8 @@ public class PyCodeInterpreter : ICodeProcessor
 
                     // Execute Python script
                     PythonEngine.Exec(codeScript, globals);
+
+                    _logger.LogWarning($"Complete {nameof(CoreRunScript)} in {Provider}: ${options?.ScriptName}");
 
                     // Get result
                     var stdout = outIO.getvalue()?.ToString() as string;
