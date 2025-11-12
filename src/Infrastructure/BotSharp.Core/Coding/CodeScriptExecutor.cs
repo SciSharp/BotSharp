@@ -21,10 +21,9 @@ public class CodeScriptExecutor
 
     public async Task<T> ExecuteAsync<T>(Func<Task<T>> func, CancellationToken cancellationToken = default)
     {
-        await _semLock.WaitAsync(cancellationToken);
-
         try
         {
+            await _semLock.WaitAsync(cancellationToken);
             return await func();
         }
         catch (Exception ex)

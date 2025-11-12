@@ -106,18 +106,12 @@ public partial class UserService
         return token;
     }
 
-    public async Task<Token?> RenewToken(string token)
+    public async Task<Token?> RenewToken(string refreshToken, string? accessToken = null)
     {
-        if (string.IsNullOrWhiteSpace(token))
+        if (string.IsNullOrWhiteSpace(refreshToken))
         {
             var (newToken, _) = BuildToken(await GetMyProfile());
             return newToken;
-        }
-
-        // Allow "Bearer {token}" input
-        if (token.Contains(' '))
-        {
-            token = token.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last();
         }
 
         try
@@ -127,7 +121,7 @@ public partial class UserService
             var hooks = _services.GetServices<IAuthenticationHook>();
             foreach (var hook in hooks)
             {
-                user = await hook.RenewAuthentication(token);
+                user = await hook.RenewAuthentication(refreshToken, accessToken);
                 if (user != null)
                 {
                     break;
@@ -149,7 +143,7 @@ public partial class UserService
                 };
 
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+                var principal = tokenHandler.ValidateToken(refreshToken, validationParameters, out var validatedToken);
                 var userId = principal?.Claims?
                     .FirstOrDefault(x => x.Type.IsEqualTo(JwtRegisteredClaimNames.NameId)
                                        || x.Type.IsEqualTo(ClaimTypes.NameIdentifier)

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 namespace BotSharp.Plugin.PythonInterpreter.Services;
 
 public class PyCodeInterpreter : ICodeProcessor
@@ -45,7 +46,7 @@ public class PyCodeInterpreter : ICodeProcessor
                 return new() { ErrorMsg = ex.Message };
             }
         }
-        
+
         return await InnerRunCode(codeScript, options, cancellationToken);
     }
 
@@ -61,7 +62,7 @@ public class PyCodeInterpreter : ICodeProcessor
             var agentService = _services.GetRequiredService<IAgentService>();
             agent = await agentService.GetAgent(agentId);
         }
-        
+
         var instruction = string.Empty;
         if (agent != null && !string.IsNullOrEmpty(templateName))
         {
@@ -83,7 +84,7 @@ public class PyCodeInterpreter : ICodeProcessor
             },
             TemplateDict = options?.Data ?? new()
         };
-        
+
         text = text.IfNullOrEmptyAs("Please follow the instruction to generate code script.")!;
         var completion = CompletionProvider.GetChatCompletion(_services, provider: innerAgent.LlmConfig.Provider, model: innerAgent.LlmConfig.Model);
         var response = await completion.GetChatCompletions(innerAgent, new List<RoleDialogModel>
@@ -121,7 +122,7 @@ public class PyCodeInterpreter : ICodeProcessor
             {
                 response = await CoreRunScript(codeScript, options, cancellationToken);
             }
-            
+
             _logger.LogWarning($"End running python code script in {Provider}: {scriptName}");
 
             return response;
@@ -160,6 +161,21 @@ public class PyCodeInterpreter : ICodeProcessor
 
                 try
                 {
+                    // Capture the Python thread ID for the current thread executing under the GIL
+                    var pythonThreadId = PythonEngine.GetPythonThreadID();
+                    using var reg = cancellationToken.Register(() =>
+                    {
+                        try
+                        {
+                            PythonEngine.Interrupt(pythonThreadId);
+                            _logger.LogWarning($"Cancellation requested: issued PythonEngine.Interrupt for thread {pythonThreadId} (request {requestId})");
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to interrupt Python execution on cancellation.");
+                        }
+                    });
+
                     // Redirect standard output/error to capture it
                     dynamic outIO = io.StringIO();
                     dynamic errIO = io.StringIO();

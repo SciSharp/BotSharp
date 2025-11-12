@@ -19,7 +19,7 @@ public interface IUserService
     Task<Token?> GetAffiliateToken(string authorization);
     Task<Token?> GetAdminToken(string authorization);
     Task<Token?> GetToken(string authorization);
-    Task<Token?> RenewToken(string token);
+    Task<Token?> RenewToken(string refreshToken, string? accessToken = null);
     Task<Token> CreateTokenByUser(User user);
     Task<User> GetMyProfile();
     Task<bool> VerifyUserNameExisting(string userName);

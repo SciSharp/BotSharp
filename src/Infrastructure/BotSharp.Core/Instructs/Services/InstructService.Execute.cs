@@ -337,9 +337,8 @@ public partial class InstructService
     /// <returns></returns>
     private (bool, bool, int) GetCodeExecutionConfig(CodingSettings settings)
     {
-        var useLock = false;
-        var useProcess = false;
-        var timeoutSeconds = 3;
+        var codeExecution = settings.CodeExecution;
+        var defaultTimeoutSeconds = 3;
 
         var useLock = codeExecution?.UseLock ?? false;
         var useProcess = codeExecution?.UseProcess ?? false;

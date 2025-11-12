@@ -18,9 +18,10 @@ public interface IAuthenticationHook
     /// <summary>
     /// Renew token for authentication
     /// </summary>
-    /// <param name="token"></param>
+    /// <param name="refreshToken"></param>
+    /// <param name="accessToken"></param>
     /// <returns></returns>
-    Task<User?> RenewAuthentication(string token)
+    Task<User?> RenewAuthentication(string refreshToken, string? accessToken = null)
         => Task.FromResult((User?)null);
 
     /// <summary>
