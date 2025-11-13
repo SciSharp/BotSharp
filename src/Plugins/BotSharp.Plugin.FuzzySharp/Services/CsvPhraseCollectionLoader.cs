@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.FuzzSharp;
 using BotSharp.Abstraction.Knowledges;
 using BotSharp.Core.Infrastructures;
 using CsvHelper;
