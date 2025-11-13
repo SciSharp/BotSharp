@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.FuzzSharp;
+using BotSharp.Plugin.FuzzySharp.FuzzSharp;
 using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Plugin.FuzzySharp.Services;
@@ -23,7 +23,7 @@ public class FuzzySharpPlugin : IBotSharpPlugin
         services.AddScoped<IPhraseService, PhraseService>();
         services.AddScoped<IPhraseCollection, CsvPhraseCollectionLoader>();
         services.AddScoped<ITokenMatcher, ExactMatcher>();
-        services.AddScoped<ITokenMatcher, DomainTermMatcher>();
+        services.AddScoped<ITokenMatcher, SynonymMatcher>();
         services.AddScoped<ITokenMatcher, FuzzyMatcher>();
     }
 }

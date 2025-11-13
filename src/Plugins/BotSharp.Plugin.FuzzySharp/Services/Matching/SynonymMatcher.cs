@@ -1,20 +1,20 @@
-using BotSharp.Abstraction.FuzzSharp;
+using BotSharp.Plugin.FuzzySharp.FuzzSharp;
 using BotSharp.Plugin.FuzzySharp.Constants;
 
 namespace BotSharp.Plugin.FuzzySharp.Services.Matching;
 
-public class DomainTermMatcher : ITokenMatcher
+public class SynonymMatcher : ITokenMatcher
 {
     public int Priority => 3; // Highest priority
 
     public MatchResult? TryMatch(MatchContext context)
     {
-        if (context.DomainTermMapping.TryGetValue(context.ContentLow, out var match))
+        if (context.SynonymMapping.TryGetValue(context.ContentLow, out var match))
         {
             return new MatchResult(
                 CanonicalForm: match.CanonicalForm,
-                DomainTypes: new List<string> { match.DbPath },
-                MatchType: MatchReason.DomainTermMapping,
+                Sources: new List<string> { match.DbPath },
+                MatchType: MatchReason.SynonymMatch,
                 Confidence: 1.0);
         }
 

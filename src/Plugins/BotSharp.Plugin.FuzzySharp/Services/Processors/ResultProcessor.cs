@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.FuzzSharp;
-using BotSharp.Abstraction.FuzzSharp.Models;
+using BotSharp.Plugin.FuzzySharp.FuzzSharp;
+using BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
 using BotSharp.Plugin.FuzzySharp.Constants;
 
 namespace BotSharp.Plugin.FuzzySharp.Services.Processors;
@@ -23,7 +23,7 @@ public class ResultProcessor : IResultProcessor
     /// Remove overlapping detections with the same canonical form.
     /// When multiple detections overlap and have the same canonical_form,
     /// keep only the best one based on:
-    /// 1. Prefer domain_term_mapping over exact_match over typo_correction (matches matcher priority)
+    /// 1. Prefer synonym_match over exact_match over typo_correction (matches matcher priority)
     /// 2. Highest confidence
     /// 3. Shortest n-gram length
     /// </summary>
@@ -64,7 +64,7 @@ public class ResultProcessor : IResultProcessor
             }
 
             // Keep the best item from the overlapping group
-            // Priority: domain_term_mapping (3) > exact_match (2) > typo_correction (1)
+            // Priority: synonym_match (3) > exact_match (2) > typo_correction (1)
             // Then highest confidence, then shortest ngram
             var bestItem = overlappingGroup
                 .OrderByDescending(x => GetMatchTypePriority(x.MatchType))
@@ -79,13 +79,13 @@ public class ResultProcessor : IResultProcessor
 
     /// <summary>
     /// Get priority value for match type (higher is better)
-    /// Matches the priority order in matchers: domain > exact > fuzzy
+    /// Matches the priority order in matchers: synonym > exact > fuzzy
     /// </summary>
     private int GetMatchTypePriority(string matchType)
     {
         return matchType switch
         {
-            MatchReason.DomainTermMapping => 3,  // Highest priority
+            MatchReason.SynonymMatch => 3,  // Highest priority
             MatchReason.ExactMatch => 2,          // Second priority
             MatchReason.TypoCorrection => 1,      // Lowest priority
             _ => 0                                // Unknown types get lowest priority

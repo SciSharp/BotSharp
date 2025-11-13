@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.FuzzSharp;
+using BotSharp.Plugin.FuzzySharp.FuzzSharp;
 using System.Text.RegularExpressions;
 using FuzzySharp;
 using FuzzySharp.SimilarityRatio;
@@ -19,10 +19,10 @@ public class FuzzyMatcher : ITokenMatcher
             return null;
         }
 
-        var (canonicalForm, domainTypes, confidence) = match.Value;
+        var (canonicalForm, sources, confidence) = match.Value;
         return new MatchResult(
             CanonicalForm: canonicalForm,
-            DomainTypes: domainTypes,
+            Sources: sources,
             MatchType: MatchReason.TypoCorrection,
             Confidence: confidence);
     }
@@ -30,9 +30,9 @@ public class FuzzyMatcher : ITokenMatcher
     /// <summary>
     /// Check typo correction using fuzzy matching
     /// </summary>
-    private (string CanonicalForm, List<string> DomainTypes, double Confidence)? CheckTypoCorrection(
+    private (string CanonicalForm, List<string> Sources, double Confidence)? CheckTypoCorrection(
        string contentSpan,
-       Dictionary<string, (string CanonicalForm, List<string> DomainTypes)> lookup,
+       Dictionary<string, (string CanonicalForm, List<string> Sources)> lookup,
        double cutoff)
     {
         // Convert cutoff to 0-100 scale for FuzzySharp
@@ -56,9 +56,9 @@ public class FuzzyMatcher : ITokenMatcher
             return null;
         }
 
-        // Get the canonical form and domain types from lookup
+        // Get the canonical form and sources from lookup
         var match = lookup[result.Value];
-        return (match.CanonicalForm, match.DomainTypes, Math.Round(result.Score / 100.0, 3));
+        return (match.CanonicalForm, match.Sources, Math.Round(result.Score / 100.0, 3));
     }
 
     /// <summary>

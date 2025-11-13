@@ -4,9 +4,9 @@ namespace BotSharp.Plugin.FuzzySharp.Constants;
 public static class MatchReason
 {
     /// <summary>
-    /// Token matched a domain term mapping (e.g., HVAC -> Air Conditioning/Heating)
+    /// Token matched a synonym term (e.g., HVAC -> Air Conditioning/Heating)
     /// </summary>
-    public const string DomainTermMapping = "domain_term_mapping";
+    public const string SynonymMatch = "synonym_match";
 
     /// <summary>
     /// Token exactly matched a vocabulary entry

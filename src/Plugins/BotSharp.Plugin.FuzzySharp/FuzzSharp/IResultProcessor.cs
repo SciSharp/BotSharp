@@ -1,6 +1,6 @@
-using BotSharp.Abstraction.FuzzSharp.Models;
+using BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
 
-namespace BotSharp.Abstraction.FuzzSharp;
+namespace BotSharp.Plugin.FuzzySharp.FuzzSharp;
 
 /// <summary>
 /// Result processor interface

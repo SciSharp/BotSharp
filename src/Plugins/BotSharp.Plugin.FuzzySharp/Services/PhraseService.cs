@@ -1,6 +1,6 @@
-using BotSharp.Abstraction.FuzzSharp;
-using BotSharp.Abstraction.FuzzSharp.Arguments;
-using BotSharp.Abstraction.FuzzSharp.Models;
+using BotSharp.Plugin.FuzzySharp.FuzzSharp;
+using BotSharp.Plugin.FuzzySharp.FuzzSharp.Arguments;
+using BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
 using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Plugin.FuzzySharp.Utils;
@@ -37,8 +37,9 @@ public class PhraseService : IPhraseService
             var results = t.Result.Flagged.Select(f => new SearchPhrasesResult
             {
                 Token = f.Token,
-                DomainTypes = f.DomainTypes,
+                Sources = f.Sources,
                 CanonicalForm = f.CanonicalForm,
+                MatchType = f.MatchType,
                 Confidence = f.Confidence
             }).ToList();
             return results;
@@ -67,11 +68,11 @@ public class PhraseService : IPhraseService
             // Load vocabulary
             var vocabulary = await LoadAllVocabularyAsync();
 
-            // Load domain term mapping
-            var domainTermMapping = await LoadAllDomainTermMappingAsync();
+            // Load synonym mapping
+            var synonymMapping = await LoadAllSynonymMappingAsync();
 
             // Analyze text
-            var flagged = AnalyzeTokens(tokens, vocabulary, domainTermMapping, request);
+            var flagged = AnalyzeTokens(tokens, vocabulary, synonymMapping, request);
 
             stopwatch.Stop();
 
@@ -120,9 +121,9 @@ public class PhraseService : IPhraseService
         return merged;
     }
 
-    public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadAllDomainTermMappingAsync()
+    public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadAllSynonymMappingAsync()
     {
-        var results = await Task.WhenAll(_phraseLoaderServices.Select(c => c.LoadDomainTermMappingAsync()));
+        var results = await Task.WhenAll(_phraseLoaderServices.Select(c => c.LoadSynonymMappingAsync()));
         var merged = new Dictionary<string, (string DbPath, string CanonicalForm)>();
 
         foreach (var dict in results)
@@ -140,7 +141,7 @@ public class PhraseService : IPhraseService
     private List<FlaggedItem> AnalyzeTokens(
         List<string> tokens,
         Dictionary<string, HashSet<string>> vocabulary,
-        Dictionary<string, (string DbPath, string CanonicalForm)> domainTermMapping,
+        Dictionary<string, (string DbPath, string CanonicalForm)> synonymMapping,
         TextAnalysisRequest request)
     {
         // Build lookup table for O(1) exact match lookups (matching Python's build_lookup)
@@ -150,7 +151,7 @@ public class PhraseService : IPhraseService
         var flagged = _ngramProcessor.ProcessNgrams(
             tokens,
             vocabulary,
-            domainTermMapping,
+            synonymMapping,
             lookup,
             request.MaxNgram,
             request.Cutoff,
@@ -161,34 +162,34 @@ public class PhraseService : IPhraseService
     }
 
     /// <summary>
-    /// Build a lookup dictionary mapping lowercase terms to their canonical form and domain types.
-    /// This is a performance optimization - instead of iterating through all domains for each lookup,
+    /// Build a lookup dictionary mapping lowercase terms to their canonical form and sources.
+    /// This is a performance optimization - instead of iterating through all sources for each lookup,
     /// we build a flat dictionary once at the start.
     ///
     /// Matches Python's build_lookup() function.
     /// </summary>
-    private Dictionary<string, (string CanonicalForm, List<string> DomainTypes)> BuildLookup(
+    private Dictionary<string, (string CanonicalForm, List<string> Sources)> BuildLookup(
         Dictionary<string, HashSet<string>> vocabulary)
     {
-        var lookup = new Dictionary<string, (string CanonicalForm, List<string> DomainTypes)>();
+        var lookup = new Dictionary<string, (string CanonicalForm, List<string> Sources)>();
 
-        foreach (var (domainType, terms) in vocabulary)
+        foreach (var (source, terms) in vocabulary)
         {
             foreach (var term in terms)
             {
                 var key = term.ToLowerInvariant();
                 if (lookup.TryGetValue(key, out var existing))
                 {
-                    // Term already exists - add this domain type to the list if not already there
-                    if (!existing.DomainTypes.Contains(domainType))
+                    // Term already exists - add this source to the list if not already there
+                    if (!existing.Sources.Contains(source))
                     {
-                        existing.DomainTypes.Add(domainType);
+                        existing.Sources.Add(source);
                     }
                 }
                 else
                 {
-                    // New term - create entry with single type in list
-                    lookup[key] = (term, new List<string> { domainType });
+                    // New term - create entry with single source in list
+                    lookup[key] = (term, new List<string> { source });
                 }
             }
         }

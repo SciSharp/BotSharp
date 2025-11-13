@@ -36,17 +36,17 @@ public class CsvPhraseCollectionLoader : IPhraseCollection
         }
 
         // Load each CSV file
-        foreach (var (domainType, filePath) in csvFileDict)
+        foreach (var (source, filePath) in csvFileDict)
         {
             try
             {
                 var terms = await LoadCsvFileAsync(filePath);
-                vocabulary[domainType] = terms;
-                _logger.LogInformation($"Loaded {terms.Count} terms for domain type '{domainType}' from {filePath}");
+                vocabulary[source] = terms;
+                _logger.LogInformation($"Loaded {terms.Count} terms for source '{source}' from {filePath}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error loading CSV file for domain type '{domainType}': {filePath}");
+                _logger.LogError(ex, $"Error loading CSV file for source '{source}': {filePath}");
             }
         }
 
@@ -54,7 +54,7 @@ public class CsvPhraseCollectionLoader : IPhraseCollection
     }
 
     [SharpCache(60)]
-    public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadDomainTermMappingAsync()
+    public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadSynonymMappingAsync()
     {
         string filename = "";
         var result = new Dictionary<string, (string DbPath, string CanonicalForm)>();
@@ -81,7 +81,7 @@ public class CsvPhraseCollectionLoader : IPhraseCollection
 
             if (!HasRequiredColumns(csv))
             {
-                _logger.LogWarning("Domain term mapping file missing required columns: {FilePath}", filePath);
+                _logger.LogWarning("Synonym mapping file missing required columns: {FilePath}", filePath);
                 return result;
             }
 
@@ -106,11 +106,11 @@ public class CsvPhraseCollectionLoader : IPhraseCollection
                 result[key] = (dbPath, canonicalForm);
             }
 
-            _logger.LogInformation("Loaded domain term mapping from {FilePath}: {Count} terms", filePath, result.Count);
+            _logger.LogInformation("Loaded synonym mapping from {FilePath}: {Count} terms", filePath, result.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading domain term mapping file: {FilePath}", filePath);
+            _logger.LogError(ex, "Error loading synonym mapping file: {FilePath}", filePath);
         }
 
         return result;

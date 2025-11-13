@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.FuzzSharp;
+using BotSharp.Plugin.FuzzySharp.FuzzSharp;
 using BotSharp.Plugin.FuzzySharp.Constants;
 
 namespace BotSharp.Plugin.FuzzySharp.Services.Matching;
@@ -13,7 +13,7 @@ public class ExactMatcher : ITokenMatcher
         {
             return new MatchResult(
                 CanonicalForm: match.CanonicalForm,
-                DomainTypes: match.DomainTypes,
+                Sources: match.Sources,
                 MatchType: MatchReason.ExactMatch,
                 Confidence: 1.0);
         }

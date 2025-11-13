@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.FuzzSharp;
-using BotSharp.Abstraction.FuzzSharp.Models;
+using BotSharp.Plugin.FuzzySharp.FuzzSharp;
+using BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
 
 namespace BotSharp.Plugin.FuzzySharp.Services.Processors;
 
@@ -16,8 +16,8 @@ public class NgramProcessor : INgramProcessor
     public List<FlaggedItem> ProcessNgrams(
         List<string> tokens,
         Dictionary<string, HashSet<string>> vocabulary,
-        Dictionary<string, (string DbPath, string CanonicalForm)> domainTermMapping,
-        Dictionary<string, (string CanonicalForm, List<string> DomainTypes)> lookup,
+        Dictionary<string, (string DbPath, string CanonicalForm)> synonymMapping,
+        Dictionary<string, (string CanonicalForm, List<string> Sources)> lookup,
         int maxNgram,
         double cutoff,
         int topK)
@@ -34,7 +34,7 @@ public class NgramProcessor : INgramProcessor
                     i,
                     n,
                     vocabulary,
-                    domainTermMapping,
+                    synonymMapping,
                     lookup,
                     cutoff,
                     topK);
@@ -57,8 +57,8 @@ public class NgramProcessor : INgramProcessor
         int startIdx,
         int n,
         Dictionary<string, HashSet<string>> vocabulary,
-        Dictionary<string, (string DbPath, string CanonicalForm)> domainTermMapping,
-        Dictionary<string, (string CanonicalForm, List<string> DomainTypes)> lookup,
+        Dictionary<string, (string DbPath, string CanonicalForm)> synonymMapping,
+        Dictionary<string, (string CanonicalForm, List<string> Sources)> lookup,
         double cutoff,
         int topK)
     {
@@ -77,8 +77,8 @@ public class NgramProcessor : INgramProcessor
             contentLow, 
             startIdx, 
             n,
-            vocabulary, 
-            domainTermMapping, 
+            vocabulary,
+            synonymMapping, 
             lookup,
             cutoff, 
             topK);
@@ -108,7 +108,7 @@ public class NgramProcessor : INgramProcessor
         {
             Index = startIndex,
             Token = contentSpan,
-            DomainTypes = matchResult.DomainTypes,
+            Sources = matchResult.Sources,
             MatchType = matchResult.MatchType,
             CanonicalForm = matchResult.CanonicalForm,
             Confidence = matchResult.Confidence,

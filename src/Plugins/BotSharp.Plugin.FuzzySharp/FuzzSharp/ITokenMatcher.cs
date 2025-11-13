@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.FuzzSharp;
+namespace BotSharp.Plugin.FuzzySharp.FuzzSharp;
 
 public interface ITokenMatcher
 {
@@ -24,8 +24,8 @@ public record MatchContext(
     int StartIndex,
     int NgramLength,
     Dictionary<string, HashSet<string>> Vocabulary,
-    Dictionary<string, (string DbPath, string CanonicalForm)> DomainTermMapping,
-    Dictionary<string, (string CanonicalForm, List<string> DomainTypes)> Lookup,
+    Dictionary<string, (string DbPath, string CanonicalForm)> SynonymMapping,
+    Dictionary<string, (string CanonicalForm, List<string> Sources)> Lookup,
     double Cutoff,
     int TopK);
 
@@ -34,6 +34,6 @@ public record MatchContext(
 /// </summary>
 public record MatchResult(
     string CanonicalForm,
-    List<string> DomainTypes,
+    List<string> Sources,
     string MatchType,
     double Confidence);
