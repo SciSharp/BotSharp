@@ -13,7 +13,5 @@ public class CodingPlugin : IBotSharpPlugin
         var coding = new CodingSettings();
         config.Bind("Coding", coding);
         services.AddSingleton(provider => coding);
-
-        services.AddSingleton<CodeScriptExecutor>();
     }
 }

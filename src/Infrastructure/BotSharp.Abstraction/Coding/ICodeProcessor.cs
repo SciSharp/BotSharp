@@ -17,7 +17,7 @@ public interface ICodeProcessor
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    Task<CodeInterpretResponse> RunAsync(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
+    CodeInterpretResponse Run(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
         => throw new NotImplementedException();
 
     /// <summary>
