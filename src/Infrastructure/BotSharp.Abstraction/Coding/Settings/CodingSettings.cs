@@ -19,5 +19,4 @@ public class CodeScriptExecutionSettings
     public bool UseLock { get; set; }
     public bool UseProcess { get; set; }
     public int TimeoutSeconds { get; set; } = 3;
-    public int MaxConcurrency { get; set; } = 1;
 }

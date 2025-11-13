@@ -140,7 +140,7 @@ public class RuleEngine : IRuleEngine
 
             var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-            var response = await processor.RunAsync(codeScript.Content, options: new()
+            var response = processor.Run(codeScript.Content, options: new()
             {
                 ScriptName = scriptName,
                 Arguments = arguments,

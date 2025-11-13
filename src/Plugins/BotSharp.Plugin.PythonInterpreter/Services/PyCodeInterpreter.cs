@@ -12,42 +12,37 @@ public class PyCodeInterpreter : ICodeProcessor
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<PyCodeInterpreter> _logger;
-    private readonly CodeScriptExecutor _executor;
     private readonly CodingSettings _settings;
+    private static SemaphoreSlim _semLock = new(initialCount: 1, maxCount: 1);
 
     public PyCodeInterpreter(
         IServiceProvider services,
         ILogger<PyCodeInterpreter> logger,
-        CodeScriptExecutor executor,
         CodingSettings settings)
     {
         _services = services;
         _logger = logger;
-        _executor = executor;
         _settings = settings;
     }
 
     public string Provider => BuiltInCodeProcessor.PyInterpreter;
 
-    public async Task<CodeInterpretResponse> RunAsync(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
+    public CodeInterpretResponse Run(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
         if (options?.UseLock == true)
         {
             try
             {
-                return await _executor.ExecuteAsync(async () =>
-                {
-                    return await InnerRunCode(codeScript, options, cancellationToken);
-                }, cancellationToken: cancellationToken);
+                return InnerRunWithLock(codeScript, options, cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error when using code script executor.");
+                _logger.LogError(ex, $"Error when using code script with {nameof(SemaphoreSlim)}.");
                 return new() { ErrorMsg = ex.Message };
             }
         }
 
-        return await InnerRunCode(codeScript, options, cancellationToken);
+        return InnerRunCode(codeScript, options, cancellationToken);
     }
 
     public async Task<CodeGenerationResult> GenerateCodeScriptAsync(string text, CodeGenerationOptions? options = null)
@@ -105,7 +100,30 @@ public class PyCodeInterpreter : ICodeProcessor
 
 
     #region Private methods
-    private async Task<CodeInterpretResponse> InnerRunCode(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
+    private CodeInterpretResponse InnerRunWithLock(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        var lockAcquired = false;
+        try
+        {
+            _semLock.Wait(cancellationToken);
+            lockAcquired = true;
+            return InnerRunCode(codeScript, options, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error in {nameof(InnerRunWithLock)}");
+            return new() { ErrorMsg = ex.Message };
+        }
+        finally
+        {
+            if (lockAcquired)
+            {
+                _semLock.Release();
+            }
+        }
+    }
+
+    private CodeInterpretResponse InnerRunCode(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
         var response = new CodeInterpretResponse();
         var scriptName = options?.ScriptName ?? codeScript.SubstringMax(30);
@@ -116,11 +134,11 @@ public class PyCodeInterpreter : ICodeProcessor
 
             if (options?.UseProcess == true)
             {
-                response = await CoreRunProcess(codeScript, options, cancellationToken);
+                response = CoreRunProcess(codeScript, options, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
             }
             else
             {
-                response = await CoreRunScript(codeScript, options, cancellationToken);
+                response = CoreRunScript(codeScript, options, cancellationToken);
             }
 
             _logger.LogWarning($"End running python code script in {Provider}: {scriptName}");
@@ -141,7 +159,7 @@ public class PyCodeInterpreter : ICodeProcessor
         }
     }
 
-    private async Task<CodeInterpretResponse> CoreRunScript(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
+    private CodeInterpretResponse CoreRunScript(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -161,21 +179,6 @@ public class PyCodeInterpreter : ICodeProcessor
 
                 try
                 {
-                    // Capture the Python thread ID for the current thread executing under the GIL
-                    var pythonThreadId = PythonEngine.GetPythonThreadID();
-                    using var reg = cancellationToken.Register(() =>
-                    {
-                        try
-                        {
-                            PythonEngine.Interrupt(pythonThreadId);
-                            _logger.LogWarning($"Cancellation requested: issued PythonEngine.Interrupt for thread {pythonThreadId} (request {requestId})");
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Failed to interrupt Python execution on cancellation.");
-                        }
-                    });
-
                     // Redirect standard output/error to capture it
                     dynamic outIO = io.StringIO();
                     dynamic errIO = io.StringIO();
@@ -206,8 +209,6 @@ public class PyCodeInterpreter : ICodeProcessor
                     }
                     sys.argv = list;
 
-                    cancellationToken.ThrowIfCancellationRequested();
-
                     // Execute Python script
                     PythonEngine.Exec(codeScript, globals);
 
@@ -216,8 +217,6 @@ public class PyCodeInterpreter : ICodeProcessor
                     // Get result
                     var stdout = outIO.getvalue()?.ToString() as string;
                     var stderr = errIO.getvalue()?.ToString() as string;
-
-                    cancellationToken.ThrowIfCancellationRequested();
 
                     return new CodeInterpretResponse
                     {
@@ -237,10 +236,10 @@ public class PyCodeInterpreter : ICodeProcessor
                     sys.stderr = sys.__stderr__;
                     sys.argv = new PyList();
                 }
-            };
+            }
         }, cancellationToken);
 
-        return await execTask.WaitAsync(cancellationToken);
+        return execTask.WaitAsync(cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
 

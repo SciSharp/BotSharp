@@ -258,7 +258,7 @@ public partial class InstructService
         // Run code script
         var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig(codingSettings);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-        var codeResponse = await codeProcessor.RunAsync(context.CodeScript?.Content ?? string.Empty, options: new()
+        var codeResponse = codeProcessor.Run(context.CodeScript?.Content ?? string.Empty, options: new()
         {
             ScriptName = context.CodeScript?.Name,
             Arguments = context.Arguments,

@@ -71,7 +71,7 @@ public class PyProgrammerFn : IFunctionCallback
 
         try
         {
-            var (isSuccess, result) = await InnerRunCode(ret.PythonCode);
+            var (isSuccess, result) = InnerRunCode(ret.PythonCode);
             if (isSuccess)
             {
                 message.Content = result;
@@ -107,7 +107,7 @@ public class PyProgrammerFn : IFunctionCallback
     /// </summary>
     /// <param name="codeScript"></param>
     /// <returns></returns>
-    private async Task<(bool, string)> InnerRunCode(string codeScript)
+    private (bool, string) InnerRunCode(string codeScript)
     {
         var codeProvider = _codingSettings.CodeExecution?.Processor;
         codeProvider = !string.IsNullOrEmpty(codeProvider) ? codeProvider : BuiltInCodeProcessor.PyInterpreter;
@@ -122,7 +122,7 @@ public class PyProgrammerFn : IFunctionCallback
         var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
 
-        var response = await processor.RunAsync(codeScript, options: new()
+        var response = processor.Run(codeScript, options: new()
         {
             UseLock = useLock,
             UseProcess = useProcess
