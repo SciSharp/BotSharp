@@ -31,15 +31,7 @@ public class PyCodeInterpreter : ICodeProcessor
     {
         if (options?.UseLock == true)
         {
-            try
-            {
-                return InnerRunWithLock(codeScript, options, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error when using code script with {nameof(SemaphoreSlim)}.");
-                return new() { ErrorMsg = ex.Message };
-            }
+            return InnerRunWithLock(codeScript, options, cancellationToken);
         }
 
         return InnerRunCode(codeScript, options, cancellationToken);
