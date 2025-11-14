@@ -164,7 +164,7 @@ public class PyCodeInterpreter : ICodeProcessor
 
             var gil = Py.GIL();
 
-            _logger.LogWarning($"After acquiring Py.GIL. Thread {Thread.CurrentThread.ManagedThreadId}.");
+            _logger.LogWarning($"After acquiring Py.GIL ({gil != null}). Thread {Thread.CurrentThread.ManagedThreadId}.");
 
             // Import necessary Python modules
             dynamic sys = Py.Import("sys");
@@ -209,7 +209,7 @@ public class PyCodeInterpreter : ICodeProcessor
                 // Execute Python script
                 PythonEngine.Exec(codeScript, globals);
 
-                _logger.LogWarning($"Before executing code script {options?.ScriptName}. Thread: {Thread.CurrentThread.ManagedThreadId}.");
+                _logger.LogWarning($"After executing code script {options?.ScriptName}. Thread: {Thread.CurrentThread.ManagedThreadId}.");
 
                 // Get result
                 var stdout = outIO.getvalue()?.ToString() as string;
@@ -233,7 +233,7 @@ public class PyCodeInterpreter : ICodeProcessor
                 sys.stderr = sys.__stderr__;
                 sys.argv = new PyList();
 
-                _logger.LogWarning($"Before disposing Py.GIL. Thread {Thread.CurrentThread.ManagedThreadId}.");
+                _logger.LogWarning($"Before disposing Py.GIL ({gil != null}). Thread {Thread.CurrentThread.ManagedThreadId}.");
                 gil?.Dispose();
                 _logger.LogWarning($"After disposing Py.GIL. Thread {Thread.CurrentThread.ManagedThreadId}.");
             }
