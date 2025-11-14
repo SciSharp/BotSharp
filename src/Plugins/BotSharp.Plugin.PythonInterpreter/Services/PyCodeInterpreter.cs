@@ -13,7 +13,7 @@ public class PyCodeInterpreter : ICodeProcessor
     private readonly IServiceProvider _services;
     private readonly ILogger<PyCodeInterpreter> _logger;
     private readonly CodingSettings _settings;
-    private static SemaphoreSlim _semLock = new(initialCount: 1, maxCount: 1);
+    private static readonly SemaphoreSlim _semLock = new(initialCount: 1, maxCount: 1);
 
     public PyCodeInterpreter(
         IServiceProvider services,
@@ -95,6 +95,7 @@ public class PyCodeInterpreter : ICodeProcessor
     private CodeInterpretResponse InnerRunWithLock(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
         var lockAcquired = false;
+
         try
         {
             _semLock.Wait(cancellationToken);
@@ -103,7 +104,7 @@ public class PyCodeInterpreter : ICodeProcessor
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error in {nameof(InnerRunWithLock)}");
+            _logger.LogError(ex, $"Error in {nameof(InnerRunWithLock)} in {Provider}");
             return new() { ErrorMsg = ex.Message };
         }
         finally
@@ -157,6 +158,8 @@ public class PyCodeInterpreter : ICodeProcessor
 
         var execTask = Task.Factory.StartNew(() =>
         {
+            Thread.Sleep(100);
+
             // For observation purpose
             var requestId = Guid.NewGuid();
             _logger.LogWarning($"Before acquiring Py.GIL for request {requestId}");
