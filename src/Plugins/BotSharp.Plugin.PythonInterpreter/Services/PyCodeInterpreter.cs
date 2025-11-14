@@ -13,7 +13,7 @@ public class PyCodeInterpreter : ICodeProcessor
     private readonly IServiceProvider _services;
     private readonly ILogger<PyCodeInterpreter> _logger;
     private readonly CodingSettings _settings;
-    private static SemaphoreSlim _semLock = new(initialCount: 1, maxCount: 1);
+    private static readonly SemaphoreSlim _semLock = new(initialCount: 1, maxCount: 1);
 
     public PyCodeInterpreter(
         IServiceProvider services,
@@ -31,15 +31,7 @@ public class PyCodeInterpreter : ICodeProcessor
     {
         if (options?.UseLock == true)
         {
-            try
-            {
-                return InnerRunWithLock(codeScript, options, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error when running code script with lock in {Provider}.");
-                return new() { ErrorMsg = ex.Message };
-            }
+            return InnerRunWithLock(codeScript, options, cancellationToken);
         }
 
         return InnerRunCode(codeScript, options, cancellationToken);
@@ -102,20 +94,25 @@ public class PyCodeInterpreter : ICodeProcessor
     #region Private methods
     private CodeInterpretResponse InnerRunWithLock(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
-        _semLock.Wait(cancellationToken);
+        var lockAcquired = false;
 
         try
         {
+            _semLock.Wait(cancellationToken);
+            lockAcquired = true;
             return InnerRunCode(codeScript, options, cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error in {nameof(InnerRunWithLock)}");
+            _logger.LogError(ex, $"Error in {nameof(InnerRunWithLock)} in {Provider}");
             return new() { ErrorMsg = ex.Message };
         }
         finally
         {
-            _semLock.Release();
+            if (lockAcquired)
+            {
+                _semLock.Release();
+            }
         }
     }
 
