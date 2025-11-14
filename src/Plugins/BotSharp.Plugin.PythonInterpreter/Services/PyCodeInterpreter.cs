@@ -31,7 +31,15 @@ public class PyCodeInterpreter : ICodeProcessor
     {
         if (options?.UseLock == true)
         {
-            return InnerRunWithLock(codeScript, options, cancellationToken);
+            try
+            {
+                return InnerRunWithLock(codeScript, options, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error when running code script with lock in {Provider}.");
+                return new() { ErrorMsg = ex.Message };
+            }
         }
 
         return InnerRunCode(codeScript, options, cancellationToken);
@@ -94,11 +102,10 @@ public class PyCodeInterpreter : ICodeProcessor
     #region Private methods
     private CodeInterpretResponse InnerRunWithLock(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
-        var lockAcquired = false;
+        _semLock.Wait(cancellationToken);
+
         try
         {
-            _semLock.Wait(cancellationToken);
-            lockAcquired = true;
             return InnerRunCode(codeScript, options, cancellationToken);
         }
         catch (Exception ex)
@@ -108,10 +115,7 @@ public class PyCodeInterpreter : ICodeProcessor
         }
         finally
         {
-            if (lockAcquired)
-            {
-                _semLock.Release();
-            }
+            _semLock.Release();
         }
     }
 
@@ -157,6 +161,8 @@ public class PyCodeInterpreter : ICodeProcessor
 
         var execTask = Task.Factory.StartNew(() =>
         {
+            Thread.Sleep(100);
+
             // For observation purpose
             var requestId = Guid.NewGuid();
             _logger.LogWarning($"Before acquiring Py.GIL for request {requestId}");
