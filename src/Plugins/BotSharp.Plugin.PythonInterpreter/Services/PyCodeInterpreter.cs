@@ -160,79 +160,84 @@ public class PyCodeInterpreter : ICodeProcessor
         {
             Thread.Sleep(100);
 
-            // For observation purpose
-            var requestId = Guid.NewGuid();
-            _logger.LogWarning($"Before acquiring Py.GIL for request {requestId}");
+            _logger.LogWarning($"Before acquiring Py.GIL (Python engine initialized: {PythonEngine.IsInitialized}). Thread {Thread.CurrentThread.ManagedThreadId}.");
 
-            using (Py.GIL())
+            var gil = Py.GIL();
+
+            _logger.LogWarning($"After acquiring Py.GIL ({gil != null}). Thread {Thread.CurrentThread.ManagedThreadId}.");
+
+            // Import necessary Python modules
+            dynamic sys = Py.Import("sys");
+            dynamic io = Py.Import("io");
+
+            try
             {
-                _logger.LogWarning($"After acquiring Py.GIL for request {requestId}");
+                // Redirect standard output/error to capture it
+                dynamic outIO = io.StringIO();
+                dynamic errIO = io.StringIO();
+                sys.stdout = outIO;
+                sys.stderr = errIO;
 
-                // Import necessary Python modules
-                dynamic sys = Py.Import("sys");
-                dynamic io = Py.Import("io");
-
-                try
+                // Set global items
+                using var globals = new PyDict();
+                if (codeScript.Contains("__main__") == true)
                 {
-                    // Redirect standard output/error to capture it
-                    dynamic outIO = io.StringIO();
-                    dynamic errIO = io.StringIO();
-                    sys.stdout = outIO;
-                    sys.stderr = errIO;
+                    globals.SetItem("__name__", new PyString("__main__"));
+                }
 
-                    // Set global items
-                    using var globals = new PyDict();
-                    if (codeScript.Contains("__main__") == true)
+                // Set arguments
+                var list = new PyList();
+                if (options?.Arguments?.Any() == true)
+                {
+                    list.Append(new PyString(options?.ScriptName ?? $"{Guid.NewGuid()}.py"));
+
+                    foreach (var arg in options!.Arguments)
                     {
-                        globals.SetItem("__name__", new PyString("__main__"));
-                    }
-
-                    // Set arguments
-                    var list = new PyList();
-                    if (options?.Arguments?.Any() == true)
-                    {
-                        list.Append(new PyString(options?.ScriptName ?? $"{Guid.NewGuid()}.py"));
-
-                        foreach (var arg in options!.Arguments)
+                        if (!string.IsNullOrWhiteSpace(arg.Key) && !string.IsNullOrWhiteSpace(arg.Value))
                         {
-                            if (!string.IsNullOrWhiteSpace(arg.Key) && !string.IsNullOrWhiteSpace(arg.Value))
-                            {
-                                list.Append(new PyString($"--{arg.Key}"));
-                                list.Append(new PyString($"{arg.Value}"));
-                            }
+                            list.Append(new PyString($"--{arg.Key}"));
+                            list.Append(new PyString($"{arg.Value}"));
                         }
                     }
-                    sys.argv = list;
-
-                    // Execute Python script
-                    PythonEngine.Exec(codeScript, globals);
-
-                    _logger.LogWarning($"Complete {nameof(CoreRunScript)} in {Provider}: ${options?.ScriptName}");
-
-                    // Get result
-                    var stdout = outIO.getvalue()?.ToString() as string;
-                    var stderr = errIO.getvalue()?.ToString() as string;
-
-                    return new CodeInterpretResponse
-                    {
-                        Result = stdout?.TrimEnd('\r', '\n') ?? string.Empty,
-                        Success = true
-                    };
                 }
-                catch (Exception ex)
+                sys.argv = list;
+
+                _logger.LogWarning($"Code script {options?.ScriptName} arguments: {string.Join("\r\n", options?.Arguments?.Select(x => x.ToString()) ?? [])}. Thread: {Thread.CurrentThread.ManagedThreadId}.");
+
+                _logger.LogWarning($"Before executing code script {options?.ScriptName}. Thread: {Thread.CurrentThread.ManagedThreadId}.");
+
+                // Execute Python script
+                PythonEngine.Exec(codeScript, globals);
+
+                _logger.LogWarning($"After executing code script {options?.ScriptName}. Thread: {Thread.CurrentThread.ManagedThreadId}.");
+
+                // Get result
+                var stdout = outIO.getvalue()?.ToString() as string;
+                var stderr = errIO.getvalue()?.ToString() as string;
+
+                return new CodeInterpretResponse
                 {
-                    _logger.LogError(ex, $"Error in {nameof(CoreRunScript)} in {Provider}.");
-                    return new() { ErrorMsg = ex.Message };
-                }
-                finally
-                {
-                    // Restore the original stdout/stderr/argv
-                    sys.stdout = sys.__stdout__;
-                    sys.stderr = sys.__stderr__;
-                    sys.argv = new PyList();
-                }
+                    Result = stdout?.TrimEnd('\r', '\n') ?? string.Empty,
+                    Success = true
+                };
             }
-        }, cancellationToken);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in {nameof(CoreRunScript)} in {Provider}.");
+                return new() { ErrorMsg = ex.Message };
+            }
+            finally
+            {
+                // Restore the original stdout/stderr/argv
+                sys.stdout = sys.__stdout__;
+                sys.stderr = sys.__stderr__;
+                sys.argv = new PyList();
+
+                _logger.LogWarning($"Before disposing Py.GIL ({gil != null}). Thread {Thread.CurrentThread.ManagedThreadId}.");
+                gil?.Dispose();
+                _logger.LogWarning($"After disposing Py.GIL. Thread {Thread.CurrentThread.ManagedThreadId}.");
+            }
+        }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
         return execTask.WaitAsync(cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
     }
