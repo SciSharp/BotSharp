@@ -17,24 +17,3 @@ public class ConversationChartDataResponse
         };
     }
 }
-
-
-public class ConversationChartCodeResponse
-{
-    public string Code { get; set; }
-    public string Language { get; set; }
-
-    public static ConversationChartCodeResponse? From(ChartCodeResult? result)
-    {
-        if (result == null)
-        {
-            return null;
-        }
-
-        return new()
-        {
-            Code = result.Code,
-            Language = result.Language
-        };
-    }
-}

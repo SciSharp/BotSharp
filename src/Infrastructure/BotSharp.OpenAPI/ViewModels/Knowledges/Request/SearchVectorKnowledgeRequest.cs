@@ -22,4 +22,7 @@ public class SearchVectorKnowledgeRequest
 
     [JsonPropertyName("with_vector")]
     public bool WithVector { get; set; }
+
+    [JsonPropertyName("search_param")]
+    public VectorSearchParamModel? SearchParam { get; set; }
 }

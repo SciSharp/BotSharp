@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
@@ -9,7 +10,10 @@ public partial class MongoRepository
 {
     public void UpdateAgent(Agent agent, AgentField field)
     {
-        if (agent == null || string.IsNullOrWhiteSpace(agent.Id)) return;
+        if (agent == null || string.IsNullOrWhiteSpace(agent.Id))
+        {
+            return;
+        }
 
         switch (field)
         {
@@ -90,7 +94,10 @@ public partial class MongoRepository
     #region Update Agent Fields
     private void UpdateAgentName(string agentId, string name)
     {
-        if (string.IsNullOrWhiteSpace(name)) return;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
@@ -102,7 +109,10 @@ public partial class MongoRepository
 
     private void UpdateAgentDescription(string agentId, string description)
     {
-        if (string.IsNullOrWhiteSpace(description)) return;
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            return;
+        }
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
@@ -174,7 +184,10 @@ public partial class MongoRepository
 
     private void UpdateAgentProfiles(string agentId, List<string> profiles)
     {
-        if (profiles == null) return;
+        if (profiles == null)
+        {
+            return;
+        }
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
@@ -186,7 +199,10 @@ public partial class MongoRepository
 
     public bool UpdateAgentLabels(string agentId, List<string> labels)
     {
-        if (labels == null) return false;
+        if (labels == null)
+        {
+            return false;
+        }
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
@@ -199,7 +215,10 @@ public partial class MongoRepository
 
     private void UpdateAgentRoutingRules(string agentId, List<RoutingRule> rules)
     {
-        if (rules == null) return;
+        if (rules == null)
+        {
+            return;
+        }
 
         var ruleElements = rules.Select(x => RoutingRuleMongoElement.ToMongoElement(x)).ToList();
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
@@ -226,7 +245,10 @@ public partial class MongoRepository
 
     private void UpdateAgentFunctions(string agentId, List<FunctionDef> functions)
     {
-        if (functions == null) return;
+        if (functions == null)
+        {
+            return;
+        }
 
         var functionsToUpdate = functions.Select(f => FunctionDefMongoElement.ToMongoElement(f)).ToList();
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
@@ -239,7 +261,10 @@ public partial class MongoRepository
 
     private void UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)
     {
-        if (templates == null) return;
+        if (templates == null)
+        {
+            return;
+        }
 
         var templatesToUpdate = templates.Select(t => AgentTemplateMongoElement.ToMongoElement(t)).ToList();
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
@@ -252,7 +277,10 @@ public partial class MongoRepository
 
     private void UpdateAgentResponses(string agentId, List<AgentResponse> responses)
     {
-        if (responses == null || string.IsNullOrWhiteSpace(agentId)) return;
+        if (responses == null || string.IsNullOrWhiteSpace(agentId))
+        {
+            return;
+        }
 
         var responsesToUpdate = responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList();
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
@@ -265,7 +293,10 @@ public partial class MongoRepository
 
     private void UpdateAgentSamples(string agentId, List<string> samples)
     {
-        if (samples == null) return;
+        if (samples == null)
+        {
+            return;
+        }
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
@@ -277,7 +308,10 @@ public partial class MongoRepository
 
     private void UpdateAgentUtilities(string agentId, bool mergeUtility, List<AgentUtility> utilities)
     {
-        if (utilities == null) return;
+        if (utilities == null)
+        {
+            return;
+        }
 
         var elements = utilities?.Select(x => AgentUtilityMongoElement.ToMongoElement(x))?.ToList() ?? [];
 
@@ -292,7 +326,10 @@ public partial class MongoRepository
 
     private void UpdateAgentMcpTools(string agentId, List<McpTool> mcps)
     {
-        if (mcps == null) return;
+        if (mcps == null)
+        {
+            return;
+        }
 
         var elements = mcps?.Select(x => AgentMcpToolMongoElement.ToMongoElement(x))?.ToList() ?? [];
 
@@ -305,7 +342,10 @@ public partial class MongoRepository
     }
     private void UpdateAgentKnowledgeBases(string agentId, List<AgentKnowledgeBase> knowledgeBases)
     {
-        if (knowledgeBases == null) return;
+        if (knowledgeBases == null)
+        {
+            return;
+        }
 
         var elements = knowledgeBases?.Select(x => AgentKnowledgeBaseMongoElement.ToMongoElement(x))?.ToList() ?? [];
 
@@ -319,7 +359,10 @@ public partial class MongoRepository
 
     private void UpdateAgentRules(string agentId, List<AgentRule> rules)
     {
-        if (rules == null) return;
+        if (rules == null)
+        {
+            return;
+        }
 
         var elements = rules?.Select(x => AgentRuleMongoElement.ToMongoElement(x))?.ToList() ?? [];
 
@@ -389,7 +432,10 @@ public partial class MongoRepository
     public Agent? GetAgent(string agentId, bool basicsOnly = false)
     {
         var agent = _dc.Agents.AsQueryable().FirstOrDefault(x => x.Id == agentId);
-        if (agent == null) return null;
+        if (agent == null)
+        {
+            return null;
+        }
 
         return TransformAgentDocument(agent);
     }
@@ -451,7 +497,10 @@ public partial class MongoRepository
                     where ua.UserId == userId || u.ExternalId == userId
                     select ua).ToList();
 
-        if (found.IsNullOrEmpty()) return [];
+        if (found.IsNullOrEmpty())
+        {
+            return [];
+        }
 
         var res = found.Select(x => new UserAgent
         {
@@ -468,7 +517,10 @@ public partial class MongoRepository
         foreach (var item in res)
         {
             var agent = agents.FirstOrDefault(x => x.Id == item.AgentId);
-            if (agent == null) continue;
+            if (agent == null)
+            {
+                continue;
+            }
 
             item.Agent = agent;
         }
@@ -480,7 +532,10 @@ public partial class MongoRepository
     {
         var responses = new List<string>();
         var agent = _dc.Agents.AsQueryable().FirstOrDefault(x => x.Id == agentId);
-        if (agent == null) return responses;
+        if (agent == null)
+        {
+            return responses;
+        }
 
         return agent.Responses.Where(x => x.Prefix == prefix && x.Intent == intent).Select(x => x.Content).ToList();
     }
@@ -488,21 +543,33 @@ public partial class MongoRepository
     public string GetAgentTemplate(string agentId, string templateName)
     {
         var agent = _dc.Agents.AsQueryable().FirstOrDefault(x => x.Id == agentId);
-        if (agent == null) return string.Empty;
+        if (agent == null)
+        {
+            return string.Empty;
+        }
 
         return agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName))?.Content ?? string.Empty;
     }
 
     public bool PatchAgentTemplate(string agentId, AgentTemplate template)
     {
-        if (string.IsNullOrEmpty(agentId) || template == null) return false;
+        if (string.IsNullOrEmpty(agentId) || template == null)
+        {
+            return false;
+        }
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var agent = _dc.Agents.Find(filter).FirstOrDefault();
-        if (agent == null || agent.Templates.IsNullOrEmpty()) return false;
+        if (agent == null || agent.Templates.IsNullOrEmpty())
+        {
+            return false;
+        }
 
         var foundTemplate = agent.Templates.FirstOrDefault(x => x.Name.IsEqualTo(template.Name));
-        if (foundTemplate == null) return false;
+        if (foundTemplate == null)
+        {
+            return false;
+        }
 
         foundTemplate.Content = template.Content;
         var update = Builders<AgentDocument>.Update.Set(x => x.Templates, agent.Templates);
@@ -512,11 +579,17 @@ public partial class MongoRepository
 
     public bool AppendAgentLabels(string agentId, List<string> labels)
     {
-        if (labels.IsNullOrEmpty()) return false;
+        if (labels.IsNullOrEmpty())
+        {
+            return false;
+        }
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var agent = _dc.Agents.Find(filter).FirstOrDefault();
-        if (agent == null) return false;
+        if (agent == null)
+        {
+            return false;
+        }
 
         var prevLabels = agent.Labels ?? [];
         var curLabels = prevLabels.Concat(labels).Distinct().ToList();
@@ -530,7 +603,10 @@ public partial class MongoRepository
 
     public void BulkInsertAgents(List<Agent> agents)
     {
-        if (agents.IsNullOrEmpty()) return;
+        if (agents.IsNullOrEmpty())
+        {
+            return;
+        }
 
         var agentDocs = agents.Select(x => new AgentDocument
         {
@@ -569,10 +645,16 @@ public partial class MongoRepository
 
     public void BulkInsertUserAgents(List<UserAgent> userAgents)
     {
-        if (userAgents.IsNullOrEmpty()) return;
+        if (userAgents.IsNullOrEmpty())
+        {
+            return;
+        }
 
         var filtered = userAgents.Where(x => !string.IsNullOrEmpty(x.UserId) && !string.IsNullOrEmpty(x.AgentId)).ToList();
-        if (filtered.IsNullOrEmpty()) return;
+        if (filtered.IsNullOrEmpty())
+        {
+            return;
+        }
 
         var userAgentDocs = filtered.Select(x => new UserAgentDocument
         {
@@ -604,22 +686,33 @@ public partial class MongoRepository
         }
     }
 
-    public bool DeleteAgent(string agentId)
+    public bool DeleteAgent(string agentId, AgentDeleteOptions? options = null)
     {
         try
         {
-            if (string.IsNullOrEmpty(agentId)) return false;
+            if (string.IsNullOrEmpty(agentId))
+            {
+                return false;
+            }
+
+            if (options == null || options.DeleteUserAgents)
+            {
+                var userAgentFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
+                _dc.UserAgents.DeleteMany(userAgentFilter);
+            }
+            
+            if (options == null || options.DeleteRoleAgents)
+            {
+                var roleAgentFilter = Builders<RoleAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
+                _dc.RoleAgents.DeleteMany(roleAgentFilter);
+            }
+
+            DeleteAgentCodeScripts(agentId, options?.ToDeleteCodeScripts);
+
+            var agentTaskFilter = Builders<AgentTaskDocument>.Filter.Eq(x => x.AgentId, agentId);
+            _dc.AgentTasks.DeleteMany(agentTaskFilter);
 
             var agentFilter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
-            var userAgentFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
-            var roleAgentFilter = Builders<RoleAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
-            var agentTaskFilter = Builders<AgentTaskDocument>.Filter.Eq(x => x.AgentId, agentId);
-            var agentCodeFilter = Builders<AgentCodeScriptDocument>.Filter.Eq(x => x.AgentId, agentId);
-
-            _dc.UserAgents.DeleteMany(userAgentFilter);
-            _dc.RoleAgents.DeleteMany(roleAgentFilter);
-            _dc.AgentTasks.DeleteMany(agentTaskFilter);
-            _dc.AgentCodeScripts.DeleteMany(agentCodeFilter);
             _dc.Agents.DeleteOne(agentFilter);
             return true;
         }
@@ -631,7 +724,10 @@ public partial class MongoRepository
 
     private Agent TransformAgentDocument(AgentDocument? agentDoc)
     {
-        if (agentDoc == null) return new Agent();
+        if (agentDoc == null)
+        {
+            return new Agent();
+        }
 
         return new Agent
         {

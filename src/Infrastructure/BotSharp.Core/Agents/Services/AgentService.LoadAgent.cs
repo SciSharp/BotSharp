@@ -10,12 +10,18 @@ public partial class AgentService
     // [SharpCache(10, perInstanceCache: true)]
     public async Task<Agent> LoadAgent(string id, bool loadUtility = true)
     {
-        if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString()) return null;
+        if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString())
+        {
+            return null;
+        }
 
         HookEmitter.Emit<IAgentHook>(_services, hook => hook.OnAgentLoading(ref id), id);
 
         var agent = await GetAgent(id);
-        if (agent == null) return null;
+        if (agent == null)
+        {
+            return null;
+        }
 
         agent.TemplateDict = [];
         agent.SecondaryInstructions = [];
@@ -25,8 +31,8 @@ public partial class AgentService
         OverrideInstructionByChannel(agent);
         AddOrUpdateParameters(agent);
 
-        // Populate state into dictionary
-        PopulateState(agent.TemplateDict);
+        // Populate state
+        PopulateState(agent);
 
         // After agent is loaded
         HookEmitter.Emit<IAgentHook>(_services, hook => {
@@ -68,30 +74,32 @@ public partial class AgentService
 
     private void OverrideInstructionByChannel(Agent agent)
     {
-        var instructions = agent.ChannelInstructions;
-        if (instructions.IsNullOrEmpty()) return;
+        var instructions = new List<ChannelInstruction>(agent.ChannelInstructions);
+        if (instructions.IsNullOrEmpty())
+        {
+            return;
+        }
 
         var state = _services.GetRequiredService<IConversationStateService>();
         var channel = state.GetState("channel");
         
         var found = instructions.FirstOrDefault(x => x.Channel.IsEqualTo(channel));
-        var defaultInstruction = instructions.FirstOrDefault(x => x.Channel == string.Empty);
+        var defaultInstruction = instructions.FirstOrDefault(x => string.IsNullOrEmpty(x.Channel));
         agent.Instruction = !string.IsNullOrWhiteSpace(found?.Instruction) ? found.Instruction : defaultInstruction?.Instruction;
     }
 
-    private void PopulateState(Dictionary<string, object> dict)
+    private void PopulateState(Agent agent)
     {
-        var conv = _services.GetRequiredService<IConversationService>();
-        foreach (var t in conv.States.GetStates())
-        {
-            dict[t.Key] = t.Value;
-        }
+        agent.TemplateDict = new(CollectRenderData(agent));
     }
 
     private void AddOrUpdateParameters(Agent agent)
     {
         var agentId = agent.Id ?? agent.Name;
-        if (AgentParameterTypes.ContainsKey(agentId)) return;
+        if (AgentParameterTypes.ContainsKey(agentId))
+        {
+            return;
+        }
 
         AddOrUpdateRoutesParameters(agentId, agent.RoutingRules);
         AddOrUpdateFunctionsParameters(agentId, agent.Functions);
@@ -103,7 +111,10 @@ public partial class AgentService
 
         foreach (var rule in routingRules.Where(x => x.Required))
         {
-            if (string.IsNullOrEmpty(rule.FieldType)) continue;
+            if (string.IsNullOrEmpty(rule.FieldType))
+            {
+                continue;
+            }
             parameterTypes[rule.Field] = rule.FieldType;
         }
     }

@@ -69,7 +69,6 @@ public class ConversationPlugin : IBotSharpPlugin
         services.AddScoped<ITokenStatistics, TokenStatistics>();
 
         services.AddScoped<IAgentUtilityHook, WebSearchUtilityHook>();
-        services.AddSingleton<CodeScriptExecutor>();
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)

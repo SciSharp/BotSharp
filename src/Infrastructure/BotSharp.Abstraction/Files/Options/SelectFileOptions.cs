@@ -13,7 +13,7 @@ public class SelectFileOptions : LlmConfigBase
     public string? TemplateName { get; set; }
 
     /// <summary>
-    /// Description that user provides to select files
+    /// User description to select files
     /// </summary>
     public string? Description { get; set; }
 

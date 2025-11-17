@@ -12,7 +12,7 @@ public class PizzaBotAgentHook : AgentHookBase
     {
     }
 
-    public override bool OnInstructionLoaded(string template, Dictionary<string, object> dict)
+    public override bool OnInstructionLoaded(string template, IDictionary<string, object> dict)
     {
         return base.OnInstructionLoaded(template, dict);
     }

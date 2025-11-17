@@ -15,7 +15,7 @@ public class MongoDbContext
         var mongoDbConnectionString = dbSettings.BotSharpMongoDb;
         _mongoClient = new MongoClient(mongoDbConnectionString);
         _mongoDbDatabaseName = GetDatabaseName(mongoDbConnectionString);
-        _collectionPrefix = dbSettings.TablePrefix.IfNullOrEmptyAs("BotSharp");
+        _collectionPrefix = dbSettings.TablePrefix.IfNullOrEmptyAs("BotSharp")!;
     }
 
     private string GetDatabaseName(string mongoDbConnectionString)
@@ -61,7 +61,9 @@ public class MongoDbContext
     private IMongoCollection<TDocument> GetCollectionOrCreate<TDocument>(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
+        {
             throw new ArgumentException($"The collection {name} cannot be empty.");
+        }
 
         var collectionName = $"{_collectionPrefix}_{name}";
         if (!CollectionExists(Database, collectionName))
@@ -74,6 +76,29 @@ public class MongoDbContext
     }
 
     #region Indexes
+    private IMongoCollection<AgentCodeScriptDocument> CreateAgentCodeScriptIndex()
+    {
+        var collection = GetCollectionOrCreate<AgentCodeScriptDocument>("AgentCodeScripts");
+        var curIndexes = collection.Indexes.List().ToList().Where(x => x.Contains("name")).Select(x => x["name"].AsString);
+
+        if (!curIndexes.Any(x => x.StartsWith("AgentId")))
+        {
+            CreateIndex(collection, Builders<AgentCodeScriptDocument>.IndexKeys.Ascending(x => x.AgentId));
+        }
+
+        if (!curIndexes.Any(x => x.StartsWith("Name")))
+        {
+            CreateIndex(collection, Builders<AgentCodeScriptDocument>.IndexKeys.Ascending(x => x.Name));
+        }
+
+        if (!curIndexes.Any(x => x.StartsWith("ScriptType")))
+        {
+            CreateIndex(collection, Builders<AgentCodeScriptDocument>.IndexKeys.Ascending(x => x.ScriptType));
+        }
+
+        return collection;
+    }
+
     private IMongoCollection<ConversationDocument> CreateConversationIndex()
     {
         var collection = GetCollectionOrCreate<ConversationDocument>("Conversations");
@@ -81,8 +106,7 @@ public class MongoDbContext
         var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
         if (createTimeIndex == null)
         {
-            var indexDef = Builders<ConversationDocument>.IndexKeys.Descending(x => x.CreatedTime);
-            collection.Indexes.CreateOne(new CreateIndexModel<ConversationDocument>(indexDef));
+            CreateIndex(collection, Builders<ConversationDocument>.IndexKeys.Descending(x => x.CreatedTime));
         }
         return collection;
     }
@@ -94,8 +118,7 @@ public class MongoDbContext
         var stateIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("States.Key"));
         if (stateIndex == null)
         {
-            var indexDef = Builders<ConversationStateDocument>.IndexKeys.Ascending("States.Key");
-            collection.Indexes.CreateOne(new CreateIndexModel<ConversationStateDocument>(indexDef));
+            CreateIndex(collection, Builders<ConversationStateDocument>.IndexKeys.Ascending("States.Key"));
         }
         return collection;
     }
@@ -107,8 +130,7 @@ public class MongoDbContext
         var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
         if (createTimeIndex == null)
         {
-            var indexDef = Builders<AgentTaskDocument>.IndexKeys.Descending(x => x.CreatedTime);
-            collection.Indexes.CreateOne(new CreateIndexModel<AgentTaskDocument>(indexDef));
+            CreateIndex(collection, Builders<AgentTaskDocument>.IndexKeys.Descending(x => x.CreatedTime));
         }
         return collection;
     }
@@ -120,8 +142,7 @@ public class MongoDbContext
         var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
         if (createTimeIndex == null)
         {
-            var indexDef = Builders<ConversationContentLogDocument>.IndexKeys.Ascending(x => x.CreatedTime);
-            collection.Indexes.CreateOne(new CreateIndexModel<ConversationContentLogDocument>(indexDef));
+            CreateIndex(collection, Builders<ConversationContentLogDocument>.IndexKeys.Ascending(x => x.CreatedTime));
         }
         return collection;
     }
@@ -133,8 +154,7 @@ public class MongoDbContext
         var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
         if (createTimeIndex == null)
         {
-            var indexDef = Builders<ConversationStateLogDocument>.IndexKeys.Ascending(x => x.CreatedTime);
-            collection.Indexes.CreateOne(new CreateIndexModel<ConversationStateLogDocument>(indexDef));
+            CreateIndex(collection, Builders<ConversationStateLogDocument>.IndexKeys.Ascending(x => x.CreatedTime));
         }
         return collection;
     }
@@ -146,10 +166,14 @@ public class MongoDbContext
         var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
         if (createTimeIndex == null)
         {
-            var indexDef = Builders<InstructionLogDocument>.IndexKeys.Descending(x => x.CreatedTime);
-            collection.Indexes.CreateOne(new CreateIndexModel<InstructionLogDocument>(indexDef));
+            CreateIndex(collection, Builders<InstructionLogDocument>.IndexKeys.Descending(x => x.CreatedTime));
         }
         return collection;
+    }
+
+    private void CreateIndex<T>(IMongoCollection<T> collection, IndexKeysDefinition<T> indexKeyDef, CreateIndexOptions? options = null) where T : MongoBase
+    {
+        collection.Indexes.CreateOne(new CreateIndexModel<T>(indexKeyDef, options));
     }
     #endregion
     #endregion
@@ -161,7 +185,7 @@ public class MongoDbContext
         => CreateAgentTaskIndex();
 
     public IMongoCollection<AgentCodeScriptDocument> AgentCodeScripts
-        => GetCollectionOrCreate<AgentCodeScriptDocument>("AgentCodeScripts");
+        => CreateAgentCodeScriptIndex();
 
     public IMongoCollection<ConversationDocument> Conversations
         => CreateConversationIndex();

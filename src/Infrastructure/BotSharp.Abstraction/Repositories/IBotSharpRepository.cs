@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Knowledges.Filters;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
@@ -81,7 +82,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     bool DeleteAgents()
         => throw new NotImplementedException();
-    bool DeleteAgent(string agentId)
+    bool DeleteAgent(string agentId, AgentDeleteOptions? options = null)
         => throw new NotImplementedException();
     List<string> GetAgentResponses(string agentId, string prefix, string intent)
         => throw new NotImplementedException();
@@ -113,7 +114,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #region Agent Code
     List<AgentCodeScript> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
         => throw new NotImplementedException();
-    string? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+    AgentCodeScript? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
         => throw new NotImplementedException();
     bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
         => throw new NotImplementedException();

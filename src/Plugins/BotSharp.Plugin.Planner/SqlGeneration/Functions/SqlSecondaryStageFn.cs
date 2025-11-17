@@ -56,7 +56,6 @@ public class SqlSecondaryStageFn : IFunctionCallback
             Id = PlannerAgentId.SqlPlanner,
             Name = Name,
             Instruction = prompt,
-            TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
         };
 

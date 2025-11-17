@@ -46,7 +46,7 @@ public class TemplateRender : ITemplateRender
         });
     }
 
-    public string Render(string template, Dictionary<string, object> dict)
+    public string Render(string template, IDictionary<string, object> dict)
     {
         if (_parser.TryParse(template, out var t, out var error))
         {

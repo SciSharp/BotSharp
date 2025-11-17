@@ -159,13 +159,13 @@ public class PluginLoader(IServiceCollection services,
             var agentService = services.GetRequiredService<IAgentService>();
             foreach (var agentId in dependentAgentIds) 
             {
-                var agent = agentService.LoadAgent(agentId).Result;
+                var agent = agentService.LoadAgent(agentId).ConfigureAwait(false).GetAwaiter().GetResult();
                 agent.Disabled = false;
                 agentService.UpdateAgent(agent, AgentField.Disabled);
 
                 if (agent.InheritAgentId != null)
                 {
-                    agent = agentService.LoadAgent(agent.InheritAgentId).Result;
+                    agent = agentService.LoadAgent(agent.InheritAgentId).ConfigureAwait(false).GetAwaiter().GetResult();
                     agent.Disabled = false;
                     agentService.UpdateAgent(agent, AgentField.Disabled);
                 }
@@ -183,7 +183,7 @@ public class PluginLoader(IServiceCollection services,
             var agentService = services.GetRequiredService<IAgentService>();
             foreach (var agentId in plugin.AgentIds)
             {
-                var agent = agentService.LoadAgent(agentId).Result;
+                var agent = agentService.LoadAgent(agentId).ConfigureAwait(false).GetAwaiter().GetResult();
                 if (agent != null)
                 {
                     agent.Disabled = true;

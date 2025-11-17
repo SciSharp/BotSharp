@@ -2,5 +2,15 @@ namespace BotSharp.Abstraction.Rules;
 
 public interface IRuleEngine
 {
-    Task<IEnumerable<string>> Triggered(IRuleTrigger trigger, string data, List<MessageState>? states = null);
+    /// <summary>
+    /// Trigger the rule that is subscribed by agents.
+    /// </summary>
+    /// <param name="trigger"></param>
+    /// <param name="text"></param>
+    /// <param name="states"></param>
+    /// <param name="options"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    Task<IEnumerable<string>> Triggered(IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null, RuleTriggerOptions? options = null)
+        => throw new NotImplementedException();
 }

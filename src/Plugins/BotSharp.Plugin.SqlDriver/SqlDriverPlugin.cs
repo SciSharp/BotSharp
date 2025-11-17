@@ -30,6 +30,6 @@ public class SqlDriverPlugin : IBotSharpPlugin
         services.AddScoped<IConversationHook, SqlDriverConversationHook>();
         services.AddScoped<IAgentUtilityHook, SqlUtilityHook>();
         services.AddScoped<ICrontabHook, SqlDriverCrontabHook>();
-        services.AddScoped<IBotSharpChartService, SqlChartService>();
+        services.AddScoped<IChartProcessor, SqlChartProcessor>();
     }
 }

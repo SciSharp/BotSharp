@@ -103,12 +103,18 @@ public class QdrantDb : IVectorDb
     {
         var exist = await DoesCollectionExist(collectionName);
 
-        if (!exist) return null;
+        if (!exist)
+        {
+            return null;
+        }
 
         var client = GetClient();
         var details = await client.GetCollectionInfoAsync(collectionName);
 
-        if (details == null) return null;
+        if (details == null)
+        {
+            return null;
+        }
 
         var payloadSchema = details.PayloadSchema?.Select(x => new PayloadSchemaDetail
         {
@@ -287,11 +293,13 @@ public class QdrantDb : IVectorDb
         options ??= VectorSearchOptions.Default();
         Filter? queryFilter = BuildQueryFilter(options.FilterGroups);
         WithPayloadSelector? payloadSelector = BuildPayloadSelector(options.Fields);
+        SearchParams? param = BuildSearchParam(options?.SearchParam);
 
         var client = GetClient();
         var points = await client.SearchAsync(collectionName,
                                             vector,
                                             limit: (ulong)options.Limit.GetValueOrDefault(),
+                                            searchParams: param,
                                             scoreThreshold: options.Confidence,
                                             filter: queryFilter,
                                             payloadSelector: payloadSelector,
@@ -822,6 +830,21 @@ public class QdrantDb : IVectorDb
             Key = sort.Field,
             Direction = sort.Order.IsEqualTo("asc") ? Direction.Asc : Direction.Desc
         };
+    }
+
+    private SearchParams? BuildSearchParam(VectorSearchParamModel? param)
+    {
+        if (param == null
+            || param.ExactSearch == null)
+        {
+            return null;
+        }
+
+        var search = new SearchParams
+        {
+            Exact = param.ExactSearch.Value
+        };
+        return search;
     }
 
     private PayloadSchemaType ConvertPayloadSchemaType(string schemaType)

@@ -50,7 +50,7 @@ public partial class FileRepository
         return results;
     }
 
-    public string? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+    public AgentCodeScript? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
     {
         if (string.IsNullOrWhiteSpace(agentId)
             || string.IsNullOrWhiteSpace(scriptName)
@@ -65,12 +65,21 @@ public partial class FileRepository
             return null;
         }
 
-        var foundFile = Directory.GetFiles(dir).FirstOrDefault(file => scriptName.IsEqualTo(Path.GetFileName(file)));
-        if (!string.IsNullOrEmpty(foundFile))
+        var foundFile = Directory.EnumerateFiles(dir).FirstOrDefault(file => scriptName.IsEqualTo(Path.GetFileName(file)));
+        if (!File.Exists(foundFile))
         {
-            return File.ReadAllText(foundFile);
+            return null;
         }
-        return string.Empty;
+
+        return new AgentCodeScript
+        {
+            AgentId = agentId,
+            Name = scriptName,
+            ScriptType = scriptType,
+            Content = File.ReadAllText(foundFile),
+            CreatedTime = File.GetCreationTimeUtc(foundFile),
+            UpdatedTime = File.GetLastWriteTimeUtc(foundFile)
+        };
     }
 
     public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
@@ -91,7 +100,14 @@ public partial class FileRepository
             var dir = BuildAgentCodeScriptDir(agentId, script.ScriptType);
             if (!Directory.Exists(dir))
             {
-                continue;
+                if (options?.IsUpsert == true)
+                {
+                    Directory.CreateDirectory(dir);
+                }
+                else
+                {
+                    continue;
+                }
             }
 
             var file = Path.Combine(dir, script.Name);
@@ -106,7 +122,7 @@ public partial class FileRepository
 
     public bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
     {
-        return UpdateAgentCodeScripts(agentId, scripts);
+        return UpdateAgentCodeScripts(agentId, scripts, options: new() { IsUpsert = true });
     }
 
     public bool DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? scripts = null)
@@ -117,17 +133,20 @@ public partial class FileRepository
         }
 
         var dir = BuildAgentCodeScriptDir(agentId);
-        if (!Directory.Exists(dir))
+        if (scripts == null)
+        {
+            if (Directory.Exists(dir))
+            {
+                Directory.Delete(dir, true);
+            }
+            return true;
+        }
+        else if (!scripts.Any())
         {
             return false;
         }
 
-        if (scripts == null)
-        {
-            Directory.Delete(dir, true);
-            return true;
-        }
-        else if (!scripts.Any())
+        if (!Directory.Exists(dir))
         {
             return false;
         }
