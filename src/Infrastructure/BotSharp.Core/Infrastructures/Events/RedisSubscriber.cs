@@ -81,6 +81,10 @@ public class RedisSubscriber : IEventSubscriber
                     await HandleGroupMessage(db, channel, group, consumer, received, $"{channel}-Error");
                 }
             }
+            catch (RedisTimeoutException)
+            {
+                _logger.LogWarning($"Redis timeout for channel {channel}, will retry in next cycle");
+            }
             catch (Exception ex)
             {
                 _logger.LogError($"Error processing message: {ex.Message}\r\n{ex}");

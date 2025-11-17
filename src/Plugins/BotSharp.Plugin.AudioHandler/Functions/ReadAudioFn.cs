@@ -34,8 +34,11 @@ public class ReadAudioFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs, _options.JsonSerializerOptions);
+        var agentService = _services.GetRequiredService<IAgentService>();
         var conv = _services.GetRequiredService<IConversationService>();
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
+
+        var agent = await agentService.GetAgent(message.CurrentAgentId);
 
         var wholeDialogs = routingCtx.GetDialogs();
         if (wholeDialogs.IsNullOrEmpty())
@@ -44,7 +47,7 @@ public class ReadAudioFn : IFunctionCallback
         }
 
         var dialogs = AssembleFiles(conv.ConversationId, wholeDialogs);
-        var response = await GetAudioTranscription(dialogs);
+        var response = await GetAudioTranscription(agent, dialogs);
         message.Content = response;
         dialogs.ForEach(x => x.Files = null);
         return true;
@@ -54,7 +57,7 @@ public class ReadAudioFn : IFunctionCallback
     {
         if (dialogs.IsNullOrEmpty())
         {
-            return new List<RoleDialogModel>();
+            return [];
         }
 
         var messageId = dialogs.Select(x => x.MessageId).Distinct().ToList();
@@ -85,13 +88,13 @@ public class ReadAudioFn : IFunctionCallback
         return dialogs;
     }
 
-    private async Task<string> GetAudioTranscription(List<RoleDialogModel> dialogs)
+    private async Task<string> GetAudioTranscription(Agent agent, List<RoleDialogModel> dialogs)
     {
-        var audioCompletion = PrepareModel();
+        var audioCompletion = PrepareModel(agent);
         var dialog = dialogs.Where(x => !x.Files.IsNullOrEmpty()).LastOrDefault();
         var transcripts = new List<string>();
 
-        if (dialog != null)
+        if (dialog?.Files != null)
         {
             foreach (var file in dialog.Files)
             {
@@ -129,9 +132,9 @@ public class ReadAudioFn : IFunctionCallback
         return string.Join("\r\n\r\n", transcripts);
     }
 
-    private IAudioTranscription PrepareModel()
+    private IAudioTranscription PrepareModel(Agent agent)
     {
-        var (provider, model) = GetLlmProviderModel();
+        var (provider, model) = GetLlmProviderModel(agent);
         return CompletionProvider.GetAudioTranscriber(_services, provider: provider, model: model);
     }
 
@@ -142,21 +145,18 @@ public class ReadAudioFn : IFunctionCallback
                     || !string.IsNullOrEmpty(FileUtility.GetFileContentType(fileName));
     }
 
-    private (string, string) GetLlmProviderModel()
+    private (string, string) GetLlmProviderModel(Agent agent)
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-
-        var provider = state.GetState("audio_read_llm_provider");
-        var model = state.GetState("audio_read_llm_provider");
+        var provider = agent?.LlmConfig?.AudioTranscription?.Provider;
+        var model = agent?.LlmConfig?.AudioTranscription?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
             return (provider, model);
         }
 
-        provider = _settings?.Audio?.Reading?.LlmProvider;
-        model = _settings?.Audio?.Reading?.LlmModel;
+        provider = _settings?.Audio?.Reading?.Provider;
+        model = _settings?.Audio?.Reading?.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {

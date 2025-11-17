@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Diagnostics;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 

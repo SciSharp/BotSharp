@@ -140,6 +140,21 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public bool IsFromAssistant => Role == AgentRole.Assistant || Role == AgentRole.Model;
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public string LlmContent
+    {
+        get
+        {
+            var text = Content;
+            if (Role == AgentRole.User)
+            {
+                text = !string.IsNullOrWhiteSpace(Payload) ? Payload : Content;
+            }
+
+            return text;
+        }
+    }
+
     public RoleDialogModel()
     {
     }

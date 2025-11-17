@@ -1,7 +1,10 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
+using BotSharp.Abstraction.Knowledges.Filters;
 using BotSharp.Abstraction.Knowledges.Helpers;
+using BotSharp.Abstraction.Knowledges.Options;
+using BotSharp.Abstraction.Knowledges.Responses;
 using BotSharp.Abstraction.VectorStorage.Enums;
 using System.Net.Http;
 using System.Net.Mime;

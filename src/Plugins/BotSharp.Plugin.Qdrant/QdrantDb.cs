@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Utilities;
+using BotSharp.Abstraction.VectorStorage.Options;
 using BotSharp.Plugin.Qdrant.Models;
 using Google.Protobuf.Collections;
 using Microsoft.Extensions.DependencyInjection;

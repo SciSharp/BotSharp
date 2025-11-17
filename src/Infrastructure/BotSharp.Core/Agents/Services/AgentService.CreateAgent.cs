@@ -218,4 +218,33 @@ public partial class AgentService
         task.Content = content.Substring(suffix.Length).Trim();
         return task;
     }
+
+    private List<AgentCodeScript> GetCodeScriptsFromFile(string fileDir)
+    {
+        var scripts = new List<AgentCodeScript>();
+        var codeDir = Path.Combine(fileDir, "codes");
+        if (!Directory.Exists(codeDir))
+        {
+            return scripts;
+        }
+
+        var agentId = fileDir.Split(Path.DirectorySeparatorChar).Last();
+
+        foreach (var folder in Directory.EnumerateDirectories(codeDir))
+        {
+            var scriptType = folder.Split(Path.DirectorySeparatorChar).Last();
+            foreach (var file in Directory.EnumerateFiles(folder))
+            {
+                scripts.Add(new AgentCodeScript
+                {
+                    AgentId = agentId,
+                    Name = Path.GetFileName(file),
+                    ScriptType = scriptType,
+                    Content = File.ReadAllText(file)
+                });
+            }
+        }
+
+        return scripts;
+    }
 }

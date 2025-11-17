@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Chart.Options;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Core.Infrastructures;

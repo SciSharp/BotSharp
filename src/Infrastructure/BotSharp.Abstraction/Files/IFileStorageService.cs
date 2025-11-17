@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Files.Options;
 using System.IO;
 
 namespace BotSharp.Abstraction.Files;

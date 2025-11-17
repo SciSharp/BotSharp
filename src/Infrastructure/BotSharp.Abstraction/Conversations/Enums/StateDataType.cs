@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Conversations.Enums;
 
-public class StateDataType
+public static class StateDataType
 {
     public const string String = "string";
     public const string Boolean = "boolean";

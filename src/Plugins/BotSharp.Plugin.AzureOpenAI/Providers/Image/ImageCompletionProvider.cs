@@ -158,5 +158,10 @@ public partial class ImageCompletionProvider : IImageCompletion
         }
         return retCount;
     }
+
+    public Task<RoleDialogModel> GetImageComposition(Agent agent, RoleDialogModel message, Stream[] images, string[] imageFileNames)
+    {
+        throw new NotImplementedException();
+    }
     #endregion
 }

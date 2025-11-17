@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Chart.Models;
+using BotSharp.Abstraction.Chart.Options;
 
 namespace BotSharp.Abstraction.Chart;
 

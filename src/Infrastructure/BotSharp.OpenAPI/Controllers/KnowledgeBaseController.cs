@@ -1,6 +1,9 @@
 using BotSharp.Abstraction.Files.Utilities;
-using BotSharp.Abstraction.Graph.Models;
+using BotSharp.Abstraction.Graph.Options;
+using BotSharp.Abstraction.Knowledges.Options;
+using BotSharp.Abstraction.Knowledges.Responses;
 using BotSharp.Abstraction.VectorStorage.Models;
+using BotSharp.Abstraction.VectorStorage.Options;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
 using BotSharp.OpenAPI.ViewModels.Knowledges.Request;
 

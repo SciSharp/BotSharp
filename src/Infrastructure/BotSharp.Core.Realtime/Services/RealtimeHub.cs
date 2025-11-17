@@ -1,7 +1,10 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Options;
+using BotSharp.Abstraction.Realtime.Options;
+using BotSharp.Abstraction.Realtime.Settings;
 using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Core.Infrastructures;
 
@@ -10,7 +13,8 @@ namespace BotSharp.Core.Realtime.Services;
 public class RealtimeHub : IRealtimeHub
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger _logger;
+    private readonly ILogger<RealtimeHub> _logger;
+    private readonly RealtimeModelSettings _settings;
 
     private RealtimeHubConnection _conn;
     public RealtimeHubConnection HubConn => _conn;
@@ -18,10 +22,14 @@ public class RealtimeHub : IRealtimeHub
     private IRealTimeCompletion _completer;
     public IRealTimeCompletion Completer => _completer;
 
-    public RealtimeHub(IServiceProvider services, ILogger<RealtimeHub> logger)
+    public RealtimeHub(
+        IServiceProvider services,
+        ILogger<RealtimeHub> logger,
+        RealtimeModelSettings settings)
     {
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
     public async Task ConnectToModel(
@@ -43,10 +51,10 @@ public class RealtimeHub : IRealtimeHub
         routing.Context.SetDialogs(dialogs);
         routing.Context.SetMessageId(_conn.ConversationId, Guid.Empty.ToString());
 
-        var states = _services.GetRequiredService<IConversationStateService>();
-        var settings = _services.GetRequiredService<RealtimeModelSettings>();
+        var (provider, model) = GetLlmProviderModel(agent);
 
-        _completer = _services.GetServices<IRealTimeCompletion>().First(x => x.Provider == settings.Provider);
+        _completer = _services.GetServices<IRealTimeCompletion>().First(x => x.Provider == provider);
+        _completer.SetModelName(model);
         _completer.SetOptions(options);
 
         await _completer.Connect(
@@ -156,7 +164,7 @@ public class RealtimeHub : IRealtimeHub
             },
             onInterruptionDetected: async () =>
             {
-                if (settings.InterruptResponse)
+                if (_settings.InterruptResponse)
                 {
                     // Reset states
                     _conn.ResetResponseState();
@@ -178,5 +186,28 @@ public class RealtimeHub : IRealtimeHub
         };
 
         return _conn;
+    }
+
+    private (string, string) GetLlmProviderModel(Agent agent)
+    {
+        var provider = agent?.LlmConfig?.Realtime?.Provider;
+        var model = agent?.LlmConfig?.Realtime?.Model;
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = _settings.Provider;
+        model = _settings.Model;
+
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = "openai";
+        model = "gpt-realtime";
+        return (provider, model);
     }
 }

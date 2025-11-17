@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.VectorStorage.Options;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 

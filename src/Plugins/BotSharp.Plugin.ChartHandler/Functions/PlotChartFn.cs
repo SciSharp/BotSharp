@@ -12,7 +12,6 @@ public class PlotChartFn : IFunctionCallback
     public string Name => "util-chart-plot_chart";
     public string Indication => "Plotting chart";
 
-
     public PlotChartFn(
         IServiceProvider services,
         ILogger<PlotChartFn> logger,
@@ -35,8 +34,8 @@ public class PlotChartFn : IFunctionCallback
         var inst = GetChartPlotInstruction(message.CurrentAgentId);
         var innerAgent = new Agent
         {
-            Id = agent.Id,
-            Name = agent.Name,
+            Id = agent?.Id ?? BuiltInAgentId.AIProgrammer,
+            Name = agent?.Name ?? "AI Programmer",
             Instruction = inst,
             LlmConfig = GetLlmConfig(),
             TemplateDict = new Dictionary<string, object>
@@ -84,6 +83,7 @@ public class PlotChartFn : IFunctionCallback
             Message = new ProgramCodeTemplateMessage
             {
                 Text = ret?.JsCode ?? string.Empty,
+                CodeScript = ret?.JsCode,
                 Language = "javascript"
             }
         };
@@ -123,8 +123,8 @@ public class PlotChartFn : IFunctionCallback
         }
         else
         {
-            templateName = "util-chart-plot_instruction";
-            templateContent = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, templateName);
+            templateName = "chart-js-generate_instruction";
+            templateContent = db.GetAgentTemplate(BuiltInAgentId.AIProgrammer, templateName);
         }
 
         return templateContent;
@@ -132,16 +132,16 @@ public class PlotChartFn : IFunctionCallback
 
     private (string, string) GetLlmProviderModel()
     {
-        var provider = "openai";
-        var model = "gpt-5";
+        var provider = _settings.ChartPlot?.Provider;
+        var model = _settings.ChartPlot?.Model;
 
-        var state = _services.GetRequiredService<IConversationStateService>();
-        provider = state.GetState("chart_plot_llm_provider")
-                        .IfNullOrEmptyAs(_settings.ChartPlot?.LlmProvider)
-                        .IfNullOrEmptyAs(provider);
-        model = state.GetState("chart_plot_llm_model")
-                     .IfNullOrEmptyAs(_settings.ChartPlot?.LlmModel)
-                     .IfNullOrEmptyAs(model);
+        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        {
+            return (provider, model);
+        }
+
+        provider = "openai";
+        model = "gpt-5";
 
         return (provider, model);
     }
@@ -150,10 +150,6 @@ public class PlotChartFn : IFunctionCallback
     {
         var maxOutputTokens = _settings?.ChartPlot?.MaxOutputTokens ?? 8192;
         var reasoningEffortLevel = _settings?.ChartPlot?.ReasoningEffortLevel ?? "minimal";
-
-        var state = _services.GetRequiredService<IConversationStateService>();
-        maxOutputTokens = int.TryParse(state.GetState("chart_plot_max_output_tokens"), out var tokens) ? tokens : maxOutputTokens;
-        reasoningEffortLevel = state.GetState("chart_plot_reasoning_effort_level").IfNullOrEmptyAs(reasoningEffortLevel);
 
         return new AgentLlmConfig
         {

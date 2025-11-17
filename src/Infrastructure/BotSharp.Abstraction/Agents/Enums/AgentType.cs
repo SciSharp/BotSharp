@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Agents.Enums;
 
-public class AgentType
+public static class AgentType
 {
     /// <summary>
     /// Routing agent

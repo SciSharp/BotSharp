@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Files.Converters;
+using BotSharp.Abstraction.Instructs.Options;
 
 namespace BotSharp.Core.Files.Services;
 

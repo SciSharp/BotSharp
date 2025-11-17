@@ -9,6 +9,7 @@ public class SqlDriverSetting
     public string SqlServerConnectionString { get; set; } = null!;
     public string SqlServerExecutionConnectionString { get; set; } = null!;
     public string RedshiftConnectionString { get; set; } = null!;
+    public string MongoDbConnectionString { get; set; } = null!;
     public bool ExecuteSqlSelectAutonomous { get; set; } = false;
     public bool FormattingResult { get; set; } = true;
 }

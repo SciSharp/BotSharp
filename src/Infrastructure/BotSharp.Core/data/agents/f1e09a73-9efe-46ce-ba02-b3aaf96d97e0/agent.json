@@ -1,0 +1,18 @@
+{
+  "id": "f1e09a73-9efe-46ce-ba02-b3aaf96d97e0",
+  "name": "File Assistant",
+  "description": "File Assistant is designed to handle files.",
+  "type": "task",
+  "createdDateTime": "2025-10-07T10:39:32Z",
+  "updatedDateTime": "2025-10-07T14:39:32Z",
+  "iconUrl": "/images/logo.png",
+  "disabled": false,
+  "isPublic": true,
+  "llmConfig": {
+    "is_inherit": false,
+    "provider": "openai",
+    "model": "gpt-5-mini",
+    "max_recursion_depth": 3,
+    "reasoning_effort_level": "minimal"
+  }
+}

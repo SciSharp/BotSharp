@@ -1,3 +1,6 @@
+using BotSharp.Abstraction.Graph.Options;
+using BotSharp.Abstraction.VectorStorage.Options;
+
 namespace BotSharp.Plugin.KnowledgeBase.Hooks;
 
 public class KnowledgeHook : IKnowledgeHook

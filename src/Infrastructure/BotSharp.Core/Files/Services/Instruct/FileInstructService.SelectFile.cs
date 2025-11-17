@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Files.Contexts;
+using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Templating;
@@ -80,6 +82,10 @@ public partial class FileInstructService
         {
             return res;
         }
+        else if (files.Count() == 1)
+        {
+            return files;
+        }
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
@@ -114,8 +120,8 @@ public partial class FileInstructService
                 return new NameDesc(text, desc);
             }).ToList();
 
-            var agentId = !string.IsNullOrWhiteSpace(options.AgentId) ? options.AgentId : BuiltInAgentId.UtilityAssistant;
-            var template = !string.IsNullOrWhiteSpace(options.Template) ? options.Template : "util-file-select_file_instruction";
+            var agentId = !string.IsNullOrWhiteSpace(options.AgentId) ? options.AgentId : BuiltInAgentId.FileAssistant;
+            var template = !string.IsNullOrWhiteSpace(options.TemplateName) ? options.TemplateName : "select-chat-file_instruction";
             var prompt = db.GetAgentTemplate(agentId, template);
 
             var data = new Dictionary<string, object>
@@ -137,8 +143,8 @@ public partial class FileInstructService
             var foundAgent = await agentService.GetAgent(agentId);
             var agent = new Agent
             {
-                Id = foundAgent?.Id ?? BuiltInAgentId.UtilityAssistant,
-                Name = foundAgent?.Name ?? "Utility Assistant",
+                Id = foundAgent?.Id ?? BuiltInAgentId.FileAssistant,
+                Name = foundAgent?.Name ?? "File Assistant",
                 Instruction = prompt,
                 LlmConfig = new AgentLlmConfig
                 {
@@ -149,8 +155,8 @@ public partial class FileInstructService
 
 
             // Get ai response
-            var provider = options.LlmProvider ?? "openai";
-            var model = options?.LlmModel ?? "gpt-5-mini";
+            var provider = options.Provider ?? "openai";
+            var model = options?.Model ?? "gpt-5-mini";
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
 
             var response = await completion.GetChatCompletions(agent, innerDialogs);

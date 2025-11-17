@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Core.Infrastructures;
 using BotSharp.OpenAPI.ViewModels.Instructs;
 
@@ -36,12 +37,13 @@ public class InstructModeController : ControllerBase
         var instructor = _services.GetRequiredService<IInstructService>();
         var result = await instructor.Execute(agentId,
             new RoleDialogModel(AgentRole.User, input.Text),
-            templateName: input.Template,
             instruction: input.Instruction,
-            files: input.Files);
+            templateName: input.Template,
+            files: input.Files,
+            codeOptions: input.CodeOptions,
+            fileOptions: input.FileOptions);
 
         result.States = state.GetStates();
-
         return result; 
     }
 

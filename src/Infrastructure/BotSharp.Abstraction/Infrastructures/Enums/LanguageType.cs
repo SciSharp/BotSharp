@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Infrastructures.Enums;
 
-public class LanguageType
+public static class LanguageType
 {
     public const string UNKNOWN = "Unknown";
     public const string ENGLISH = "English";

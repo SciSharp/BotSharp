@@ -8,6 +8,9 @@ public class ProgramCodeTemplateMessage : IRichMessage, ITemplateMessage
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
+    [JsonPropertyName("code_script")]
+    public string? CodeScript { get; set; }
+
     [JsonPropertyName("template_type")]
     public virtual string TemplateType { get; set; } = TemplateTypeEnum.ProgramCode;
 

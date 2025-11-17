@@ -21,11 +21,11 @@ internal static class AiResponseHelper
 
     internal static async Task<string> GetImageGenerationResponse(IServiceProvider services, Agent agent, string description)
     {
-        var text = $"Please generate a user-friendly response from the following description to " +
-                   $"inform user that you have completed the required image: {description}";
+        var text = $"Please generate a user-friendly and short response from the following description to " +
+                   $"inform user that the required image is generated : {description}";
 
         var provider = agent?.LlmConfig?.Provider ?? "openai";
-        var model = agent?.LlmConfig?.Model ?? "gpt-4o-mini";
+        var model = agent?.LlmConfig?.Model ?? "gpt-5-mini";
         var completion = CompletionProvider.GetChatCompletion(services, provider: provider, model: model);
         var response = await completion.GetChatCompletions(agent, [new RoleDialogModel(AgentRole.User, text)]);
         return response.Content;

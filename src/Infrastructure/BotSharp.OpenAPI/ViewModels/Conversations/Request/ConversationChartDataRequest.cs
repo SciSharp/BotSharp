@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Chart.Options;
+
 namespace BotSharp.OpenAPI.ViewModels.Conversations;
 
 public class ConversationChartDataRequest : ChartDataOptions

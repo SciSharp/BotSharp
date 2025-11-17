@@ -128,6 +128,8 @@ namespace Microsoft.Extensions.Hosting
 
         private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
         {
+            var langfuseSection = builder.Configuration.GetSection("Langfuse");
+            var useLangfuse = langfuseSection != null;
             var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
 
             if (useOtlpExporter)

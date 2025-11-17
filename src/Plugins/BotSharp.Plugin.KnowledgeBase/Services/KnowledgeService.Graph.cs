@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Graph.Options;
+
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public partial class KnowledgeService

@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Conversations.Enums;
 
-public class ConversationChannel
+public static class ConversationChannel
 {
     public const string WebChat = "webchat";
     public const string OpenAPI = "openapi";

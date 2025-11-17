@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Settings;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Users;
+using BotSharp.Abstraction.Utilities;
 
 namespace BotSharp.Logger.Hooks;
 
@@ -39,12 +40,15 @@ public class InstructionLogHook : InstructHookBase
         var state = _services.GetRequiredService<IConversationStateService>();
 
         var user = db.GetUserById(_user.Id);
-        var templateName = response.TemplateName ?? state.GetState("instruct_template_name") ?? null;
+        var templateName = response.TemplateName
+                                   .IfNullOrEmptyAs(state.GetState("instruct_template_name"))
+                                   .IfNullOrEmptyAs(null);
 
         db.SaveInstructionLogs(new List<InstructionLogModel>
         {
             new InstructionLogModel
             {
+                Id = response.LogId,
                 AgentId = response.AgentId,
                 Provider = response.Provider,
                 Model = response.Model,

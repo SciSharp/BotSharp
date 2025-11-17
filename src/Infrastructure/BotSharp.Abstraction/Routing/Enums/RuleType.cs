@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Routing.Enums;
 
-public class RuleType
+public static class RuleType
 {
     /// <summary>
     /// Fallback to redirect agent

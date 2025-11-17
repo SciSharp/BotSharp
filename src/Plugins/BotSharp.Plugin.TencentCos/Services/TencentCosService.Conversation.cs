@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Files.Converters;
+using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Utilities;
 using System.Net.Mime;
 

@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Templating;
 using System.Collections;

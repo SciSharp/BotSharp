@@ -137,7 +137,7 @@ public partial class FileRepository
         File.WriteAllText(taskFile, fileContent);
     }
 
-    public void BulkInsertAgentTasks(List<AgentTask> tasks)
+    public void BulkInsertAgentTasks(string agentId, List<AgentTask> tasks)
     {
         
     }
@@ -194,13 +194,25 @@ public partial class FileRepository
         File.WriteAllText(taskFile, fileContent);
     }
 
-    public bool DeleteAgentTask(string agentId, List<string> taskIds)
+    public bool DeleteAgentTasks(string agentId, List<string>? taskIds = null)
     {
         var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
-        if (!Directory.Exists(agentDir) || taskIds.IsNullOrEmpty()) return false;
+        if (!Directory.Exists(agentDir))
+        {
+            return false;
+        }
 
         var taskDir = Path.Combine(agentDir, AGENT_TASKS_FOLDER);
-        if (!Directory.Exists(taskDir)) return false;
+        if (!Directory.Exists(taskDir))
+        {
+            return false;
+        }
+
+        if (taskIds == null)
+        {
+            Directory.Delete(taskDir, true);
+            return true;
+        }
 
         var deletedTasks = new List<string>();
         foreach (var taskId in taskIds)
@@ -213,11 +225,6 @@ public partial class FileRepository
         }
         
         return deletedTasks.Any();
-    }
-
-    public bool DeleteAgentTasks()
-    {
-        return false;
     }
 
     private string? FindTaskFileById(string taskDir, string taskId)

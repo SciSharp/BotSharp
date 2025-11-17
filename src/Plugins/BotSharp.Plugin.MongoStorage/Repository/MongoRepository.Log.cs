@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Repositories.Models;
 using MongoDB.Driver;
 using System.Text.Json;
 
@@ -166,6 +167,33 @@ public partial class MongoRepository
         }
 
         _dc.InstructionLogs.InsertMany(docs);
+        return true;
+    }
+
+    public async Task<bool> UpdateInstructionLogStates(UpdateInstructionLogStatesModel updateInstructionStates)
+    {
+        var id = updateInstructionStates.LogId;
+
+        var logDoc = await _dc.InstructionLogs.Find(p => p.Id == id).FirstOrDefaultAsync();
+        if (logDoc == null) return false;
+
+        foreach (var pair in updateInstructionStates.States)
+        {
+            var key = updateInstructionStates.StateKeyPrefix + pair.Key;
+            try
+            {
+                var jsonStr = JsonSerializer.Serialize(new { Data = JsonDocument.Parse(pair.Value) }, _botSharpOptions.JsonSerializerOptions);
+                var json = BsonDocument.Parse(jsonStr);
+                logDoc.States[key] = json;
+            }
+            catch
+            {
+                var jsonStr = JsonSerializer.Serialize(new { Data = pair.Value }, _botSharpOptions.JsonSerializerOptions);
+                var json = BsonDocument.Parse(jsonStr);
+                logDoc.States[key] = json;
+            }
+        }
+        await _dc.InstructionLogs.ReplaceOneAsync(p => p.Id == id, logDoc);
         return true;
     }
 

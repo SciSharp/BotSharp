@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Loggers.Models;
+using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Core.Loggers.Services;
@@ -76,5 +77,14 @@ public partial class LoggerService
         keys = db.GetInstructionLogSearchKeys(filter);
         keys = filter.PreLoad ? keys : keys.Where(x => x.Contains(filter.Query ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList();
         return keys.OrderBy(x => x).Take(filter.KeyLimit).ToList();
+    }
+
+    public async Task<bool> UpdateInstructionLogStates(UpdateInstructionLogStatesModel request)
+    {
+        if(request == null) return false;
+        if (string.IsNullOrEmpty(request.LogId) || request.States.IsNullOrEmpty()) return false;
+        
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        return await db.UpdateInstructionLogStates(request);
     }
 }

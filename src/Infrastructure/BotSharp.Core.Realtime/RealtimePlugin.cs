@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Plugins;
+using BotSharp.Abstraction.Realtime.Settings;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Core.Realtime.Hooks;
 using BotSharp.Core.Realtime.Services;

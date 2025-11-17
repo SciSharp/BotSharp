@@ -1,7 +1,7 @@
 /// <summary>
 /// Agent task status
 /// </summary>
-public class TaskStatus
+public static class TaskStatus
 {
     public const string Scheduled = "scheduled";
     public const string New = "new";

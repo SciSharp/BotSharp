@@ -1,11 +1,11 @@
 using BotSharp.Abstraction.Agents.Constants;
-using BotSharp.Abstraction.Diagnostics.Telemetry;
+using BotSharp.Abstraction.Diagnostics;
 using BotSharp.Abstraction.Files;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
 using System.Diagnostics;
-using System.Runtime;
-using static BotSharp.Abstraction.Diagnostics.Telemetry.TelemetryConstants;
+using static BotSharp.Abstraction.Diagnostics.ModelDiagnostics;
 
 namespace BotSharp.Plugin.GiteeAI.Providers.Chat;
 

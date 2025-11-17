@@ -263,17 +263,17 @@ public class GeminiChatCompletionProvider : IChatCompletion
                             Name = message.FunctionName,
                             Response = new JsonObject()
                             {
-                                ["result"] = message.Content ?? string.Empty
+                                ["result"] = message.LlmContent ?? string.Empty
                             }
                         }
                     }
                 ], AgentRole.Function));
 
-                convPrompts.Add($"{AgentRole.Assistant}: Call function {message.FunctionName}({message.FunctionArgs}) => {message.Content}");
+                convPrompts.Add($"{AgentRole.Assistant}: Call function {message.FunctionName}({message.FunctionArgs}) => {message.LlmContent}");
             }
             else if (message.Role == AgentRole.User)
             {
-                var text = !string.IsNullOrWhiteSpace(message.Payload) ? message.Payload : message.Content;
+                var text = message.LlmContent;
                 var contentParts = new List<Part> { new() { Text = text } };
 
                 if (allowMultiModal && !message.Files.IsNullOrEmpty())
@@ -285,7 +285,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                var text = message.Content;
+                var text = message.LlmContent;
                 var contentParts = new List<Part> { new() { Text = text } };
 
                 if (allowMultiModal && !message.Files.IsNullOrEmpty())
@@ -294,7 +294,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
                 }
 
                 contents.Add(new Content(contentParts, AgentRole.Model));
-                convPrompts.Add($"{AgentRole.Assistant}: {message.Content}");
+                convPrompts.Add($"{AgentRole.Assistant}: {text}");
             }
         }
 

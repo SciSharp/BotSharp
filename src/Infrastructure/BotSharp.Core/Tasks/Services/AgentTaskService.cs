@@ -91,7 +91,7 @@ public class AgentTaskService : IAgentTaskService
     public async Task<bool> DeleteTask(string agentId, string taskId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var isDeleted = db.DeleteAgentTask(agentId, new List<string> { taskId });
+        var isDeleted = db.DeleteAgentTasks(agentId, new List<string> { taskId });
         return await Task.FromResult(isDeleted);
     }
 }

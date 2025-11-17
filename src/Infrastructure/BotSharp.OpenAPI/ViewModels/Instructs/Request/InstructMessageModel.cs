@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Instructs.Options;
+
 namespace BotSharp.OpenAPI.ViewModels.Instructs;
 
 public class InstructMessageModel : IncomingMessageModel
@@ -9,6 +11,8 @@ public class InstructMessageModel : IncomingMessageModel
     public override string Channel { get; set; } = ConversationChannel.OpenAPI;
     public string? Template { get; set; }
     public List<InstructFileModel> Files { get; set; } = [];
+    public CodeInstructOptions? CodeOptions { get; set; }
+    public FileInstructOptions? FileOptions { get; set; }
 }
 
 
