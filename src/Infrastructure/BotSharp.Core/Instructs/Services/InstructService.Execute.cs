@@ -49,7 +49,7 @@ public partial class InstructService
 
         // Run code template
         var codeResponse = await RunCode(agent, message, templateName, codeOptions);
-        if (codeResponse != null)
+        if (!string.IsNullOrWhiteSpace(codeResponse?.Text))
         {
             return codeResponse;
         }
@@ -266,17 +266,14 @@ public partial class InstructService
             UseProcess = useProcess
         }, cancellationToken: cts.Token);
 
-        if (codeResponse?.Success == true)
+        instructResult = new InstructResult
         {
-            instructResult = new InstructResult
-            {
-                MessageId = message.MessageId,
-                Template = context.CodeScript?.Name,
-                Text = codeResponse.Result
-            };
-        }
+            MessageId = message.MessageId,
+            Template = context.CodeScript?.Name,
+            Text = codeResponse?.Result ?? string.Empty
+        };
 
-        var codeExeResponse = new CodeExecutionResponseModel
+        var codeExecution = new CodeExecutionResponseModel
         {
             CodeProcessor = codeProcessor.Provider,
             CodeScript = context.CodeScript,
@@ -288,13 +285,8 @@ public partial class InstructService
         // After code execution
         foreach (var hook in hooks)
         {
-            await hook.AfterCompletion(agent, instructResult ?? new());
-            await hook.AfterCodeExecution(agent, codeExeResponse);
-        }
-
-        if (instructResult != null)
-        {
-            instructResult.Text = codeExeResponse?.ExecutionResult?.ToString() ?? string.Empty;
+            await hook.AfterCompletion(agent, instructResult);
+            await hook.AfterCodeExecution(agent, codeExecution);
         }
 
         return instructResult;
