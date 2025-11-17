@@ -49,7 +49,7 @@ public partial class InstructService
 
         // Run code template
         var codeResponse = await RunCode(agent, message, templateName, codeOptions);
-        if (codeResponse != null)
+        if (!string.IsNullOrWhiteSpace(codeResponse?.Text))
         {
             return codeResponse;
         }
@@ -169,11 +169,11 @@ public partial class InstructService
         string templateName,
         CodeInstructOptions? codeOptions)
     {
-        InstructResult? response = null;
+        InstructResult? instructResult = null;
 
         if (agent == null)
         {
-            return response;
+            return instructResult;
         }
 
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -192,7 +192,7 @@ public partial class InstructService
 #if DEBUG
             _logger.LogWarning($"No code processor found. (Agent: {agent.Id}, Code processor: {codeProvider})");
 #endif
-            return response;
+            return instructResult;
         }
 
         // Get code script name
@@ -211,7 +211,7 @@ public partial class InstructService
 #if DEBUG
             _logger.LogWarning($"Empty code script name. (Agent: {agent.Id}, {scriptName})");
 #endif
-            return response;
+            return instructResult;
         }
 
         // Get code script
@@ -222,7 +222,7 @@ public partial class InstructService
 #if DEBUG
             _logger.LogWarning($"Empty code script. (Agent: {agent.Id}, {scriptName})");
 #endif
-            return response;
+            return instructResult;
         }
 
         // Get code arguments
@@ -266,21 +266,18 @@ public partial class InstructService
             UseProcess = useProcess
         }, cancellationToken: cts.Token);
 
-        if (codeResponse?.Success == true)
+        instructResult = new InstructResult
         {
-            response = new InstructResult
-            {
-                MessageId = message.MessageId,
-                Template = context.CodeScript?.Name,
-                Text = codeResponse.Result
-            };
-        }
+            MessageId = message.MessageId,
+            Template = context.CodeScript?.Name,
+            Text = codeResponse?.Result ?? string.Empty
+        };
 
-        var codeExeResponse = new CodeExecutionResponseModel
+        var codeExecution = new CodeExecutionResponseModel
         {
             CodeProcessor = codeProcessor.Provider,
             CodeScript = context.CodeScript,
-            ExecutionResult = codeResponse?.ToString() ?? string.Empty,
+            ExecutionResult = codeResponse,
             Text = message.Content,
             Arguments = context.Arguments?.DistinctBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value ?? string.Empty)
         };
@@ -288,11 +285,11 @@ public partial class InstructService
         // After code execution
         foreach (var hook in hooks)
         {
-            await hook.AfterCompletion(agent, response ?? new());
-            await hook.AfterCodeExecution(agent, codeExeResponse);
+            await hook.AfterCompletion(agent, instructResult);
+            await hook.AfterCodeExecution(agent, codeExecution);
         }
 
-        return response;
+        return instructResult;
     }
 
     private async Task<string> GetTextCompletion(

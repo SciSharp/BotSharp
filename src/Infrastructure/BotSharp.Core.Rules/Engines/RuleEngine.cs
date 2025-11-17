@@ -153,7 +153,7 @@ public class RuleEngine : IRuleEngine
                 CodeProcessor = processor.Provider,
                 CodeScript = codeScript,
                 Arguments = arguments.DistinctBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value ?? string.Empty),
-                ExecutionResult = response?.ToString() ?? string.Empty
+                ExecutionResult = response
             };
 
             foreach (var hook in hooks)
