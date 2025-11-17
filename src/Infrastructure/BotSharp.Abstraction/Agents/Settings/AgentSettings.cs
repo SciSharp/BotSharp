@@ -10,6 +10,5 @@ public class AgentSettings
     /// <summary>
     /// This is the default LLM config for agent
     /// </summary>
-    public AgentLlmConfig LlmConfig { get; set; }
-        = new AgentLlmConfig();
+    public AgentLlmConfig LlmConfig { get; set; } = new();
 }

@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Infrastructures;
 
 namespace BotSharp.Core.Infrastructures;

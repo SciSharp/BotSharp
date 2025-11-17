@@ -30,7 +30,6 @@ public static class KnowledgeSettingHelper
 
         // Set up text embedding
         var embedding = services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == provider);
-
         if (dimension <= 0)
         {
             dimension = GetLlmTextEmbeddingDimension(services, provider, model);

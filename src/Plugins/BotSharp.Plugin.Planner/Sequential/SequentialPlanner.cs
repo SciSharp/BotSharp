@@ -171,7 +171,7 @@ public class SequentialPlanner : ITaskPlanner
         // chat completion
         var completion = CompletionProvider.GetChatCompletion(_services,
             provider: "openai",
-            model: model.Name);
+            model: model?.Name);
 
         int retryCount = 0;
         while (retryCount < 2)

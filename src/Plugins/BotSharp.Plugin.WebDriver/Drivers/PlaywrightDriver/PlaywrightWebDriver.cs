@@ -44,7 +44,7 @@ public partial class PlaywrightWebDriver : IWebBrowser
                 _ => AriaRole.Generic
             };
             element = _instance.GetPage(contextId).Locator($"[name='{context.ElementName}']");
-            var count = element.CountAsync().Result;
+            var count = element.CountAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             if (count == 0)
             {
                 _logger.LogError($"Can't locate element {role} {context.ElementName}");

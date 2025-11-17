@@ -46,7 +46,7 @@ public class RoutingContext : IRoutingContext
                 {
                     Types = [AgentType.Routing],
                     Pager = new Pagination { Size = 100 }
-                }).Result.Items.Select(x => x.Id).ToArray();
+                }).ConfigureAwait(false).GetAwaiter().GetResult().Items.Select(x => x.Id).ToArray();
             }
 
             return _stack.Where(x => !_routerAgentIds.Contains(x)).LastOrDefault() ?? string.Empty;
@@ -87,7 +87,7 @@ public class RoutingContext : IRoutingContext
         if (!Guid.TryParse(agentId, out _))
         {
             var agentService = _services.GetRequiredService<IAgentService>();
-            var agents = agentService.GetAgentOptions([agentId], byName: true).Result;
+            var agents = agentService.GetAgentOptions([agentId], byName: true).ConfigureAwait(false).GetAwaiter().GetResult();
 
             if (agents.Count > 0)
             {
@@ -129,8 +129,8 @@ public class RoutingContext : IRoutingContext
         }
 
         // Run the routing rule
-        var agency = _services.GetRequiredService<IAgentService>();
-        var agent = agency.GetAgent(currentAgentId).Result;
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = agentService.GetAgent(currentAgentId).ConfigureAwait(false).GetAwaiter().GetResult();
 
         var message = new RoleDialogModel(AgentRole.User, $"Try to route to agent {agent.Name}")
         {

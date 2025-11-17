@@ -54,11 +54,17 @@ public partial class FileRepository
 
     public bool DeleteKnowledgeCollectionConfig(string collectionName)
     {
-        if (string.IsNullOrWhiteSpace(collectionName)) return false;
+        if (string.IsNullOrWhiteSpace(collectionName))
+        {
+            return false;
+        }
 
         var vectorDir = BuildKnowledgeCollectionConfigDir();
         var configFile = Path.Combine(vectorDir, COLLECTION_CONFIG_FILE);
-        if (!File.Exists(configFile)) return false;
+        if (!File.Exists(configFile))
+        {
+            return false;
+        }
 
         var str = File.ReadAllText(configFile);
         var savedConfigs = JsonSerializer.Deserialize<List<VectorCollectionConfig>>(str, _options) ?? new();
@@ -139,7 +145,10 @@ public partial class FileRepository
         }
 
         var dir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
-        if (!Directory.Exists(dir)) return false;
+        if (!Directory.Exists(dir))
+        {
+            return false;
+        }
 
         if (fileId == null)
         {
@@ -172,14 +181,20 @@ public partial class FileRepository
         }
 
         var records = new List<KnowledgeDocMetaData>();
-        foreach (var folder in Directory.GetDirectories(dir))
+        foreach (var folder in Directory.EnumerateDirectories(dir))
         {
             var metaFile = Path.Combine(folder, KNOWLEDGE_DOC_META_FILE);
-            if (!File.Exists(metaFile)) continue;
+            if (!File.Exists(metaFile))
+            {
+                continue;
+            }
 
             var content = File.ReadAllText(metaFile);
             var metaData = JsonSerializer.Deserialize<KnowledgeDocMetaData>(content, _options);
-            if (metaData == null) continue;
+            if (metaData == null)
+            {
+                continue;
+            }
 
             var matched = true;
 
@@ -208,7 +223,10 @@ public partial class FileRepository
             }
             
 
-            if (!matched) continue;
+            if (!matched)
+            {
+                continue;
+            }
 
             records.Add(metaData);
         }
