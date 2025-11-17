@@ -1,6 +1,6 @@
+using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Repositories.Settings;
 using System.IO;
-using System.Reflection;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -10,24 +10,19 @@ public partial class AgentService : IAgentService
     private readonly IBotSharpRepository _db;
     private readonly ILogger _logger;
     private readonly AgentSettings _agentSettings;
-    private readonly JsonSerializerOptions _options;
+    private readonly BotSharpOptions _options;
 
     public AgentService(IServiceProvider services,
         IBotSharpRepository db,
         ILogger<AgentService> logger, 
-        AgentSettings agentSettings)
+        AgentSettings agentSettings,
+        BotSharpOptions options)
     {
         _services = services;
         _db = db;
         _logger = logger;
         _agentSettings = agentSettings;
-        _options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true,
-            AllowTrailingCommas = true
-        };
+        _options = options;
     }
 
     public string GetDataDir()
@@ -49,7 +44,10 @@ public partial class AgentService : IAgentService
 
     public async Task<List<UserAgent>> GetUserAgents(string userId)
     {
-        if (string.IsNullOrEmpty(userId)) return [];
+        if (string.IsNullOrEmpty(userId))
+        {
+            return [];
+        }
 
         var userAgents = _db.GetUserAgents(userId);
         return userAgents;

@@ -127,7 +127,7 @@ public partial class AgentService
                 if (extension != "json") continue;
 
                 var json = File.ReadAllText(file);
-                var function = JsonSerializer.Deserialize<FunctionDef>(json, _options);
+                var function = JsonSerializer.Deserialize<FunctionDef>(json, _options.JsonSerializerOptions);
                 functions.Add(function);
             }
             catch

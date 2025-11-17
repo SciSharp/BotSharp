@@ -56,7 +56,6 @@ public class SecondaryStagePlanFn : IFunctionCallback
             Id = PlannerAgentId.TwoStagePlanner,
             Name = Name,
             Instruction = prompt,
-            TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
         };
 

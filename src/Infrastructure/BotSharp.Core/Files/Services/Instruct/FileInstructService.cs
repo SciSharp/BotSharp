@@ -1,7 +1,6 @@
-
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Files.Converters;
-using Microsoft.Extensions.Options;
-using static System.Net.Mime.MediaTypeNames;
+using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Files.Services;
 
@@ -63,7 +62,7 @@ public partial class FileInstructService : IFileInstructService
         }
     }
 
-    private async Task<string?> GetAgentTemplate(string agentId, string? templateName)
+    private async Task<string?> RenderAgentTemplate(string agentId, string? templateName, IDictionary<string, object>? data = null)
     {
         if (string.IsNullOrWhiteSpace(agentId) || string.IsNullOrWhiteSpace(templateName))
         {
@@ -77,21 +76,32 @@ public partial class FileInstructService : IFileInstructService
             return null;
         }
 
-        var instruction = agentService.RenderTemplate(agent, templateName);
+        var instruction = agentService.RenderTemplate(agent, templateName, data);
         return instruction;
+    }
+
+    private string RenderText(string text, IDictionary<string, object>? data = null)
+    {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var render = _services.GetRequiredService<ITemplateRender>();
+
+        var renderData = data != null
+                        ? new Dictionary<string, object>(data)
+                        : agentService.CollectRenderData(new Agent());
+        return render.Render(text, renderData);
     }
 
     private string BuildFileName(string? name, string? extension, string defaultName, string defaultExtension)
     {
         var fname = name.IfNullOrEmptyAs(defaultName);
-        var fextension = extension.IfNullOrEmptyAs(defaultExtension);
+        var fextension = extension.IfNullOrEmptyAs(defaultExtension)!;
         fextension = fextension.StartsWith(".") ? fextension.Substring(1) : fextension;
         return $"{name}.{fextension}";
     }
 
     private IImageConverter? GetImageConverter(string? provider)
     {
-        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == (provider ?? "file-handler"));
+        var converter = _services.GetServices<IImageConverter>().FirstOrDefault(x => x.Provider == (provider ?? "image-handler"));
         return converter;
     }
     #endregion

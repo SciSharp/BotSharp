@@ -43,18 +43,11 @@ public class AgentLlmConfig
     public string? ReasoningEffortLevel { get; set; }
 
     /// <summary>
-    /// Image generation config
+    /// Image composition config
     /// </summary>
-    [JsonPropertyName("image_generation")]
+    [JsonPropertyName("image_composition")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public LlmImageGenerationConfig? ImageGeneration { get; set; }
-
-    /// <summary>
-    /// Image edit config
-    /// </summary>
-    [JsonPropertyName("image_edit")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public LlmImageEditConfig? ImageEdit { get; set; }
+    public LlmImageCompositionConfig? ImageComposition { get; set; }
 
     /// <summary>
     /// Audio transcription config
@@ -71,12 +64,7 @@ public class AgentLlmConfig
     public LlmRealtimeConfig? Realtime { get; set; }
 }
 
-
-public class LlmImageGenerationConfig : LlmProviderModel
-{
-}
-
-public class LlmImageEditConfig : LlmProviderModel
+public class LlmImageCompositionConfig : LlmProviderModel
 {
 }
 

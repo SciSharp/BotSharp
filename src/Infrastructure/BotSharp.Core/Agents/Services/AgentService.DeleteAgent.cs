@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 
@@ -5,7 +6,7 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    public async Task<bool> DeleteAgent(string id)
+    public async Task<bool> DeleteAgent(string id, AgentDeleteOptions? options = null)
     {
         var userService = _services.GetRequiredService<IUserService>();
         var auth = await userService.GetUserAuthorizations(new List<string> { id });
@@ -15,7 +16,7 @@ public partial class AgentService
             return false;
         }
 
-        var deleted = _db.DeleteAgent(id);
+        var deleted = _db.DeleteAgent(id, options);
         return await Task.FromResult(deleted);
     }
 }

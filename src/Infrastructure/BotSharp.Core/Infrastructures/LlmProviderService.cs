@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.MLTasks.Filters;
 using BotSharp.Abstraction.MLTasks.Settings;
 using BotSharp.Abstraction.Settings;
 
@@ -40,14 +41,12 @@ public class LlmProviderService : ILlmProviderService
     {
         var settingService = _services.GetRequiredService<ISettingService>();
         return settingService.Bind<List<LlmProviderSetting>>($"LlmProviders")
-            .FirstOrDefault(x => x.Provider.Equals(provider))
-            ?.Models ?? new List<LlmModelSetting>();
+                             .FirstOrDefault(x => x.Provider.Equals(provider))?.Models ?? [];
     }
 
-    public LlmModelSetting GetProviderModel(string provider, string id, bool? multiModal = null, LlmModelType? modelType = null, bool imageGenerate = false)
+    public LlmModelSetting? GetProviderModel(string provider, string id, bool? multiModal = null, LlmModelType? modelType = null, IEnumerable<LlmModelCapability>? capabilities = null)
     {
-        var models = GetProviderModels(provider)
-            .Where(x => x.Id == id);
+        var models = GetProviderModels(provider).Where(x => x.Id == id);
 
         if (multiModal.HasValue)
         {
@@ -59,7 +58,15 @@ public class LlmProviderService : ILlmProviderService
             models = models.Where(x => x.Type == modelType.Value);
         }
 
-        models = models.Where(x => x.ImageGeneration == imageGenerate);
+        if (capabilities != null)
+        {
+            models = models.Where(x => x.Capabilities != null && capabilities.Any(y => x.Capabilities.Contains(y)));
+        }
+
+        if (models.IsNullOrEmpty())
+        {
+            return null;
+        }
 
         var random = new Random();
         var index = random.Next(0, models.Count());
@@ -72,14 +79,14 @@ public class LlmProviderService : ILlmProviderService
         var settings = _services.GetRequiredService<List<LlmProviderSetting>>();
         var providerSetting = settings.FirstOrDefault(p => 
             p.Provider.Equals(provider, StringComparison.CurrentCultureIgnoreCase));
+
         if (providerSetting == null)
         {
             _logger.LogError($"Can't find provider settings for {provider}");
             return null;
         }        
 
-        var modelSetting = providerSetting.Models.FirstOrDefault(m => 
-            m.Name.Equals(model, StringComparison.CurrentCultureIgnoreCase));
+        var modelSetting = providerSetting.Models.FirstOrDefault(m => m.Name.Equals(model, StringComparison.CurrentCultureIgnoreCase));
         if (modelSetting == null)
         {
             _logger.LogError($"Can't find model settings for {provider}.{model}");
@@ -95,42 +102,67 @@ public class LlmProviderService : ILlmProviderService
                     m.Group.Equals(modelSetting.Group, StringComparison.CurrentCultureIgnoreCase))
                 .ToList();
 
-            // pick one model randomly
-            var random = new Random();
-            var index = random.Next(0, models.Count());
-            modelSetting = models.ElementAt(index);
+            if (!models.IsNullOrEmpty())
+            {
+                // pick one model randomly
+                var random = new Random();
+                var index = random.Next(0, models.Count());
+                modelSetting = models.ElementAt(index);
+            }
         }
 
         return modelSetting;
     }
 
 
-    public List<LlmProviderSetting> GetLlmConfigs(LlmConfigOptions? options = null)
+    public List<LlmProviderSetting> GetLlmConfigs(LlmConfigFilter? filter = null)
     {
         var settingService = _services.GetRequiredService<ISettingService>();
         var providers = settingService.Bind<List<LlmProviderSetting>>($"LlmProviders");
         var configs = new List<LlmProviderSetting>();
+        var comparer = StringComparer.OrdinalIgnoreCase;
 
-        if (providers.IsNullOrEmpty()) return configs;
+        if (providers.IsNullOrEmpty())
+        {
+            return configs;
+        }
 
-        if (options == null) return providers ?? [];
+        if (filter == null)
+        {
+            return providers ?? [];
+        }
+
+        if (filter.Providers != null)
+        {
+            providers = providers.Where(x => filter.Providers.Contains(x.Provider, comparer)).ToList();
+        }
 
         foreach (var provider in providers)
         {
-            var models = provider.Models ?? [];
-            if (options.Type.HasValue)
+            IEnumerable<LlmModelSetting> models = provider.Models ?? [];
+            if (filter.ModelTypes != null)
             {
-                models = models.Where(x => x.Type == options.Type.Value).ToList();
+                models = models.Where(x => filter.ModelTypes.Contains(x.Type));
             }
 
-            if (options.MultiModal.HasValue)
+            if (filter.ModelIds != null)
             {
-                models = models.Where(x => x.MultiModal == options.MultiModal.Value).ToList();
+                models = models.Where(x => filter.ModelIds.Contains(x.Id, comparer));
             }
 
-            if (options.ImageGeneration.HasValue)
+            if (filter.ModelNames != null)
             {
-                models = models.Where(x => x.ImageGeneration == options.ImageGeneration.Value).ToList();
+                models = models.Where(x => filter.ModelNames.Contains(x.Name, comparer));
+            }
+
+            if (filter.ModelCapabilities != null)
+            {
+                models = models.Where(x => x.Capabilities != null && filter.ModelCapabilities.Any(y => x.Capabilities.Contains(y)));
+            }
+
+            if (filter.MultiModal.HasValue)
+            {
+                models = models.Where(x => x.MultiModal == filter.MultiModal.Value);
             }
 
             if (models.IsNullOrEmpty())
@@ -138,7 +170,7 @@ public class LlmProviderService : ILlmProviderService
                 continue;
             }
 
-            provider.Models = models;
+            provider.Models = models.ToList();
             configs.Add(provider);
         }
 

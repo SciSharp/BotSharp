@@ -56,12 +56,14 @@ public partial class ImageCompletionProvider
         var state = _services.GetRequiredService<IConversationStateService>();
 
         var size = state.GetState("image_size");
+        var quality = state.GetState("image_quality");
         var responseFormat = state.GetState("image_response_format");
         var background = state.GetState("image_background");
 
         var settings = settingsService.GetSetting(Provider, _model)?.Image?.Edit;
 
         size = settings?.Size != null ? LlmUtility.VerifyModelParameter(size, settings.Size.Default, settings.Size.Options) : null;
+        quality = settings?.Quality != null ? LlmUtility.VerifyModelParameter(quality, settings.Quality.Default, settings.Quality.Options) : null;
         responseFormat = settings?.ResponseFormat != null ? LlmUtility.VerifyModelParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
         background = settings?.Background != null ? LlmUtility.VerifyModelParameter(background, settings.Background.Default, settings.Background.Options) : null;
 
@@ -69,6 +71,10 @@ public partial class ImageCompletionProvider
         if (!string.IsNullOrEmpty(size))
         {
             options.Size = GetImageSize(size);
+        }
+        if (!string.IsNullOrEmpty(quality))
+        {
+            options.Quality = GetImageQuality(quality);
         }
         if (!string.IsNullOrEmpty(responseFormat))
         {

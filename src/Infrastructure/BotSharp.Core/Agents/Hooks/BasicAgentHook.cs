@@ -70,12 +70,18 @@ public class BasicAgentHook : AgentHookBase
         foreach (var utility in innerUtilities)
         {
             var isVisible = agentService.RenderVisibility(utility.VisibilityExpression, renderDict);
-            if (!isVisible || utility.Items.IsNullOrEmpty()) continue;
+            if (!isVisible || utility.Items.IsNullOrEmpty())
+            {
+                continue;
+            }
 
             foreach (var item in utility.Items)
             {
                 isVisible = agentService.RenderVisibility(item.VisibilityExpression, renderDict);
-                if (!isVisible) continue;
+                if (!isVisible)
+                {
+                    continue;
+                }
 
                 if (item.FunctionName?.StartsWith(UTIL_PREFIX) == true)
                 {
