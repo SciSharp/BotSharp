@@ -96,6 +96,10 @@ public static class BotSharpOpenApiExtensions
                 options.ClientId = config["OAuth:GitHub:ClientId"];
                 options.ClientSecret = config["OAuth:GitHub:ClientSecret"];
                 options.Events.OnTicketReceived = OnTicketReceivedContext;
+
+                // Add the scope for user email for GitHub OAuth
+                // Have to add this scope to get user email when using invite link
+                options.Scope.Add("user:email");
             });
         }
 
