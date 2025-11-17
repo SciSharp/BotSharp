@@ -82,7 +82,7 @@ public class InstructionLogHook : InstructHookBase
                 TemplateName = response.CodeScript?.Name,
                 UserMessage = response.Text,
                 SystemInstruction = $"Code script name: {response.CodeScript}, Version: {codeScriptVersion.ToString("o")}",
-                CompletionText = response.ExecutionResult,
+                CompletionText = response.ExecutionResult?.ToString() ?? string.Empty,
                 States = response.Arguments?.ToDictionary() ?? [],
                 UserId = user?.Id
             }
