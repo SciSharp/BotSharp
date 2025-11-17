@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Diagnostics;
+using BotSharp.Abstraction.Diagnostics.Telemetry;
 using BotSharp.Abstraction.Routing.Executor;
 using BotSharp.Core.MCP.Managers;
 using ModelContextProtocol;
@@ -13,24 +14,20 @@ public class McpToolExecutor: IFunctionExecutor
     private readonly IServiceProvider _services;
     private readonly string _mcpServerId;
     private readonly string _functionName;
+    private readonly ITelemetryService _telemetryService;
+ 
 
-    /// <summary>
-    /// <see cref="ActivitySource"/>
-    /// for function-related activities.
-    /// </summary>
-    private static readonly ActivitySource s_activitySource = new("BotSharp.Core.Routing.Executor");
-
-
-    public McpToolExecutor(IServiceProvider services, string mcpServerId, string functionName)
+    public McpToolExecutor(IServiceProvider services, ITelemetryService telemetryService, string mcpServerId, string functionName)
     { 
         _services = services;
+        _telemetryService = telemetryService;
         _mcpServerId = mcpServerId;
         _functionName = functionName;
     }
 
     public async Task<bool> ExecuteAsync(RoleDialogModel message)
     {
-        using var activity = s_activitySource.StartFunctionActivity(this._functionName, $"calling tool {_functionName} of MCP server {_mcpServerId}");
+        using var activity = _telemetryService.Parent.StartFunctionActivity(this._functionName, $"calling tool {_functionName} of MCP server {_mcpServerId}");
         {
             try
             {
