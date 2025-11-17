@@ -1,28 +1,24 @@
-using BotSharp.Abstraction.Chart;
 using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Enums;
-using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users.Dtos;
 using BotSharp.Core.Infrastructures;
-using BotSharp.Core.Users.Services;
-using System.Diagnostics;
-using static BotSharp.Abstraction.Diagnostics.ModelDiagnostics;
 
 namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
 [ApiController]
-public class ConversationController : ControllerBase
+public partial class ConversationController : ControllerBase
 {
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    public ConversationController(IServiceProvider services,
+    public ConversationController(
+        IServiceProvider services,
         IUserIdentity user,
         BotSharpOptions options)
     {
@@ -46,12 +42,8 @@ public class ConversationController : ControllerBase
         };
         conv = await service.NewConversation(conv);
         service.SetConversationId(conv.Id, config.States);
-        using (var trace = new ActivitySource("BotSharp").StartActivity("NewUserSession", ActivityKind.Internal))
-        {
-            trace?.SetTag("user_id", _user.FullName);
-            trace?.SetTag("conversation_id", conv.Id);
-            return ConversationViewModel.FromSession(conv);
-        }
+
+        return ConversationViewModel.FromSession(conv);
     }
 
     [HttpGet("/conversations")]
@@ -371,34 +363,25 @@ public class ConversationController : ControllerBase
         conv.SetConversationId(conversationId, input.States);
         SetStates(conv, input);
 
-        using (var trace = new ActivitySource("BotSharp").StartActivity("UserSession", ActivityKind.Internal))
-        {
-            trace?.SetTag("user.id", _user.FullName);
-            trace?.SetTag("session.id", conversationId);
-            trace?.SetTag("input", inputMsg.Content);
-            trace?.SetTag(ModelDiagnosticsTags.AgentId, agentId);
+        var response = new ChatResponseModel();
+        await conv.SendMessage(agentId, inputMsg,
+            replyMessage: input.Postback,
+            async msg =>
+            {
+                response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
+                response.Function = msg.FunctionName;
+                response.MessageLabel = msg.MessageLabel;
+                response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
+                response.Instruction = msg.Instruction;
+                response.Data = msg.Data;
+            });
 
-            var response = new ChatResponseModel();
-            await conv.SendMessage(agentId, inputMsg,
-                replyMessage: input.Postback,
-                async msg =>
-                {
-                    response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
-                    response.Function = msg.FunctionName;
-                    response.MessageLabel = msg.MessageLabel;
-                    response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
-                    response.Instruction = msg.Instruction;
-                    response.Data = msg.Data;
-                });
+        var state = _services.GetRequiredService<IConversationStateService>();
+        response.States = state.GetStates();
+        response.MessageId = inputMsg.MessageId;
+        response.ConversationId = conversationId;
 
-            var state = _services.GetRequiredService<IConversationStateService>();
-            response.States = state.GetStates();
-            response.MessageId = inputMsg.MessageId;
-            response.ConversationId = conversationId;
-
-            trace?.SetTag("output", response.Data);
-            return response;
-        }
+        return response;
     }
 
 
@@ -449,7 +432,7 @@ public class ConversationController : ControllerBase
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
                 response.States = state.GetStates();
-                
+
                 await OnChunkReceived(Response, response);
             });
 
@@ -472,183 +455,6 @@ public class ConversationController : ControllerBase
             States = new Dictionary<string, string>()
         };
         await OnChunkReceived(Response, indicator);
-    }
-    #endregion
-
-    #region Files and attachments
-    [HttpGet("/conversation/{conversationId}/attachments")]
-    public List<MessageFileViewModel> ListAttachments([FromRoute] string conversationId)
-    {
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var dir = fileStorage.GetDirectory(conversationId);
-
-        // List files in the directory
-        var files = Directory.Exists(dir)
-            ? Directory.GetFiles(dir).Select(f => new MessageFileViewModel
-            {
-                FileName = Path.GetFileName(f),
-                FileExtension = Path.GetExtension(f).TrimStart('.').ToLower(),
-                ContentType = FileUtility.GetFileContentType(f),
-                FileDownloadUrl = $"/conversation/{conversationId}/attachments/file/{Path.GetFileName(f)}",
-            }).ToList()
-            : new List<MessageFileViewModel>();
-
-        return files;
-    }
-
-    [AllowAnonymous]
-    [HttpGet("/conversation/{conversationId}/attachments/file/{fileName}")]
-    public IActionResult GetAttachment([FromRoute] string conversationId, [FromRoute] string fileName)
-    {
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var dir = fileStorage.GetDirectory(conversationId);
-        var filePath = Path.Combine(dir, fileName);
-        if (!System.IO.File.Exists(filePath))
-        {
-            return NotFound();
-        }
-        return BuildFileResult(filePath);
-    }
-
-    [HttpPost("/conversation/{conversationId}/attachments")]
-    public IActionResult UploadAttachments([FromRoute] string conversationId, IFormFile[] files)
-    {
-        if (files != null && files.Length > 0)
-        {
-            var fileStorage = _services.GetRequiredService<IFileStorageService>();
-            var dir = fileStorage.GetDirectory(conversationId);
-            foreach (var file in files)
-            {
-                // Save the file, process it, etc.
-                var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                var filePath = Path.Combine(dir, fileName);
-
-                fileStorage.SaveFileStreamToPath(filePath, file.OpenReadStream());
-            }
-
-            return Ok(new { message = "File uploaded successfully." });
-        }
-
-        return BadRequest(new { message = "Invalid file." });
-    }
-
-    [HttpPost("/agent/{agentId}/conversation/{conversationId}/upload")]
-    public async Task<IActionResult> UploadConversationMessageFiles([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] InputMessageFiles input)
-    {
-        var convService = _services.GetRequiredService<IConversationService>();
-        convService.SetConversationId(conversationId, input.States);
-        var conv = await convService.GetConversationRecordOrCreateNew(agentId);
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var messageId = Guid.NewGuid().ToString();
-        var isSaved = fileStorage.SaveMessageFiles(conv.Id, messageId, FileSource.User, input.Files);
-        return Ok(new { messageId = isSaved ? messageId : string.Empty });
-    }
-
-    [HttpGet("/conversation/{conversationId}/files/{messageId}/{source}")]
-    public IEnumerable<MessageFileViewModel> GetConversationMessageFiles([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source)
-    {
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var files = fileStorage.GetMessageFiles(conversationId, [messageId], options: new() { Sources = [source] });
-        return files?.Select(x => MessageFileViewModel.Transform(x))?.ToList() ?? [];
-    }
-
-    [HttpGet("/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}")]
-    public IActionResult GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source, [FromRoute] string index, [FromRoute] string fileName)
-    {
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var file = fileStorage.GetMessageFile(conversationId, messageId, source, index, fileName);
-        if (string.IsNullOrEmpty(file))
-        {
-            return NotFound();
-        }
-        return BuildFileResult(file);
-    }
-
-    [HttpGet("/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}/download")]
-    public IActionResult DownloadMessageFile([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source, [FromRoute] string index, [FromRoute] string fileName)
-    {
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var file = fileStorage.GetMessageFile(conversationId, messageId, source, index, fileName);
-        if (string.IsNullOrEmpty(file))
-        {
-            return NotFound();
-        }
-
-        var fName = file.Split(Path.DirectorySeparatorChar).Last();
-        var contentType = FileUtility.GetFileContentType(fName);
-        var stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
-        var bytes = new byte[stream.Length];
-        stream.Read(bytes, 0, (int)stream.Length);
-        stream.Position = 0;
-
-        return new FileStreamResult(stream, contentType) { FileDownloadName = fName };
-    }
-    #endregion
-
-    #region Chart
-    [AllowAnonymous]
-    [HttpGet("/conversation/{conversationId}/message/{messageId}/user/chart/data")]
-    public async Task<ConversationChartDataResponse?> GetConversationChartData(
-        [FromRoute] string conversationId,
-        [FromRoute] string messageId,
-        [FromQuery] ConversationChartDataRequest request)
-    {
-        var chart = _services.GetServices<IBotSharpChartService>().FirstOrDefault(x => x.Provider == request?.ChartProvider);
-        if (chart == null) return null;
-
-        var result = await chart.GetConversationChartData(conversationId, messageId, request);
-        return ConversationChartDataResponse.From(result);
-    }
-
-    [HttpPost("/conversation/{conversationId}/message/{messageId}/user/chart/code")]
-    public async Task<ConversationChartCodeResponse?> GetConversationChartCode(
-        [FromRoute] string conversationId,
-        [FromRoute] string messageId,
-        [FromBody] ConversationChartCodeRequest request)
-    {
-        var chart = _services.GetServices<IBotSharpChartService>().FirstOrDefault(x => x.Provider == request?.ChartProvider);
-        if (chart == null) return null;
-
-        var result = await chart.GetConversationChartCode(conversationId, messageId, request);
-        return ConversationChartCodeResponse.From(result);
-    }
-    #endregion
-
-    #region Dashboard
-    [HttpPut("/agent/{agentId}/conversation/{conversationId}/dashboard")]
-    public async Task<bool> PinConversationToDashboard([FromRoute] string agentId, [FromRoute] string conversationId)
-    {
-        var userService = _services.GetRequiredService<IUserService>();
-        var pinned = await userService.AddDashboardConversation(conversationId);
-        return pinned;
-    }
-
-    [HttpDelete("/agent/{agentId}/conversation/{conversationId}/dashboard")]
-    public async Task<bool> UnpinConversationFromDashboard([FromRoute] string agentId, [FromRoute] string conversationId)
-    {
-        var userService = _services.GetRequiredService<IUserService>();
-        var unpinned = await userService.RemoveDashboardConversation(conversationId);
-        return unpinned;
-    }
-    #endregion
-
-    #region Search state keys
-    [HttpGet("/conversation/state/keys")]
-    public async Task<List<string>> GetConversationStateKeys([FromQuery] ConversationStateKeysFilter request)
-    {
-        var convService = _services.GetRequiredService<IConversationService>();
-        var keys = await convService.GetConversationStateSearhKeys(request);
-        return keys;
-    }
-    #endregion
-
-    #region Migrate Latest States
-    [HttpPost("/conversation/latest-state/migrate")]
-    public async Task<bool> MigrateConversationLatestStates([FromBody] MigrateLatestStateRequest request)
-    {
-        var convService = _services.GetRequiredService<IConversationService>();
-        var res = await convService.MigrateLatestStates(request.BatchSize, request.ErrorLimit);
-        return res;
     }
     #endregion
 
