@@ -25,6 +25,7 @@ public class TextEmbeddingProvider : ITextEmbedding
         _services = services;
     }
 
+    [SharpCache(60)]
     public async Task<float[]> GetVectorAsync(string text)
     {
         var client = ProviderHelper.GetClient(Provider, _model, _services);

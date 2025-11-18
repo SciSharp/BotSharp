@@ -11,15 +11,18 @@ public class GoogleController : ControllerBase
     private readonly IServiceProvider _services;
     private readonly BotSharpOptions _options;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger _logger;
+    private readonly ILogger<GoogleController> _logger;
 
-    public GoogleController(IServiceProvider services,
+    public GoogleController(
+        IServiceProvider services,
+        ILogger<GoogleController> logger,
         IHttpClientFactory httpClientFactory,
         BotSharpOptions options)
     {
         _services = services;
-        _options = options;
+        _logger = logger;
         _httpClientFactory = httpClientFactory;
+        _options = options;
     }
 
     [HttpGet("/address/options")]

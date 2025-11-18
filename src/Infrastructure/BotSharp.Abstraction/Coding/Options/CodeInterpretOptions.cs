@@ -1,5 +1,3 @@
-using System.Threading;
-
 namespace BotSharp.Abstraction.Coding.Options;
 
 public class CodeInterpretOptions

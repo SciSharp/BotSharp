@@ -47,19 +47,19 @@ public class CrontabService : ICrontabService, ITaskFeeder
         var crontable = await repo.GetCrontabItems(CrontabItemFilter.Empty());
 
         // Add fixed crontab items from cronsources
-        var fixedCrantabItems = crontable.Items.ToList();
-        var cronsources = _services.GetServices<ICrontabSource>();
-        foreach (var source in cronsources)
+        var fixedCrontabItems = crontable.Items.ToList();
+        var cronSources = _services.GetServices<ICrontabSource>();
+        foreach (var source in cronSources)
         {
             if (source.IsRealTime)
             {
                 continue;
             }
             var item = source.GetCrontabItem();
-            fixedCrantabItems.Add(item);
+            fixedCrontabItems.Add(item);
         }
 
-        return fixedCrantabItems;
+        return fixedCrontabItems;
     }
 
     public async Task<List<AgentTask>> GetTasks()

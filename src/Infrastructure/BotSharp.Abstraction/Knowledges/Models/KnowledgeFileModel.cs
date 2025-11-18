@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.Files.Models;
+namespace BotSharp.Abstraction.Knowledges.Models;
 
 public class KnowledgeFileModel
 {

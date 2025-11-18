@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.OpenAI.Models;
+namespace BotSharp.Plugin.OpenAI.Models.Text;
 
 public class TextCompletionResponse
 {

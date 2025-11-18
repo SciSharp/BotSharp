@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Coding;
+using BotSharp.Abstraction.Coding.Enums;
 using BotSharp.Abstraction.Coding.Options;
 
 namespace BotSharp.Core.Agents.Services;
@@ -13,7 +14,7 @@ public partial class AgentService
         return await Task.FromResult(scripts);
     }
 
-    public async Task<string?> GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+    public async Task<AgentCodeScript?> GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var script = db.GetAgentCodeScript(agentId, scriptName, scriptType);
@@ -66,7 +67,7 @@ public partial class AgentService
         return await Task.FromResult(deleted);
     }
 
-    public async Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeProcessOptions? options = null)
+    public async Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeGenHandleOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(agentId))
         {
@@ -76,7 +77,9 @@ public partial class AgentService
             };
         }
 
-        var processor = options?.Processor ?? "botsharp-py-interpreter";
+        var settings = _services.GetRequiredService<CodingSettings>();
+        var processor = options?.Processor ?? settings?.CodeGeneration?.Processor;
+        processor = !string.IsNullOrEmpty(processor) ? processor : BuiltInCodeProcessor.PyInterpreter;
         var codeProcessor = _services.GetServices<ICodeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(processor));
         if (codeProcessor == null)
         {

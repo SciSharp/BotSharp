@@ -72,8 +72,8 @@ public interface IAgentService
     Task<List<AgentCodeScript>> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
         => Task.FromResult(new List<AgentCodeScript>());
 
-    Task<string?> GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
-        => Task.FromResult(string.Empty);
+    Task<AgentCodeScript?> GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+        => Task.FromResult((AgentCodeScript?)null);
 
     Task<bool> UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> codeScripts, AgentCodeScriptUpdateOptions? options = null)
         => Task.FromResult(false);
@@ -81,6 +81,6 @@ public interface IAgentService
     Task<bool> DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? codeScripts = null)
         => Task.FromResult(false);
 
-    Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeProcessOptions? options = null)
+    Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeGenHandleOptions? options = null)
         => Task.FromResult(new CodeGenerationResult());
 }

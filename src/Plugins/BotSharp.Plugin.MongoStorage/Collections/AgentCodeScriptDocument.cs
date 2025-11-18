@@ -31,7 +31,9 @@ public class AgentCodeScriptDocument : MongoBase
             AgentId = script.AgentId,
             Name = script.Name,
             Content = script.Content,
-            ScriptType = script.ScriptType
+            ScriptType = script.ScriptType,
+            CreatedTime = script.CreatedTime,
+            UpdatedTime = script.UpdatedTime
         };
     }
 }

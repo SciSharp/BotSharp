@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Coding.Models;
-using BotSharp.Abstraction.Coding.Settings;
 using Microsoft.Extensions.Logging;
 using Python.Runtime;
 using System.Diagnostics;
@@ -7,40 +5,36 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 namespace BotSharp.Plugin.PythonInterpreter.Services;
 
 public class PyCodeInterpreter : ICodeProcessor
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<PyCodeInterpreter> _logger;
-    private readonly CodeScriptExecutor _executor;
     private readonly CodingSettings _settings;
+    private static readonly SemaphoreSlim _semLock = new(initialCount: 1, maxCount: 1);
 
     public PyCodeInterpreter(
         IServiceProvider services,
         ILogger<PyCodeInterpreter> logger,
-        CodeScriptExecutor executor,
         CodingSettings settings)
     {
         _services = services;
         _logger = logger;
-        _executor = executor;
         _settings = settings;
     }
 
-    public string Provider => "botsharp-py-interpreter";
+    public string Provider => BuiltInCodeProcessor.PyInterpreter;
 
-    public async Task<CodeInterpretResponse> RunAsync(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
+    public CodeInterpretResponse Run(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
         if (options?.UseLock == true)
         {
-            return await _executor.ExecuteAsync(async () =>
-            {
-                return await InnerRunCode(codeScript, options, cancellationToken);
-            }, cancellationToken: cancellationToken);
+            return InnerRunWithLock(codeScript, options, cancellationToken);
         }
-        
-        return await InnerRunCode(codeScript, options, cancellationToken);
+
+        return InnerRunCode(codeScript, options, cancellationToken);
     }
 
     public async Task<CodeGenerationResult> GenerateCodeScriptAsync(string text, CodeGenerationOptions? options = null)
@@ -50,12 +44,12 @@ public class PyCodeInterpreter : ICodeProcessor
         var agentId = options?.AgentId;
         var templateName = options?.TemplateName;
 
-        var agentService = _services.GetRequiredService<IAgentService>();
         if (!string.IsNullOrEmpty(agentId))
         {
+            var agentService = _services.GetRequiredService<IAgentService>();
             agent = await agentService.GetAgent(agentId);
         }
-        
+
         var instruction = string.Empty;
         if (agent != null && !string.IsNullOrEmpty(templateName))
         {
@@ -70,14 +64,14 @@ public class PyCodeInterpreter : ICodeProcessor
             Instruction = instruction,
             LlmConfig = new AgentLlmConfig
             {
-                Provider = options?.Provider ?? "openai",
-                Model = options?.Model ?? "gpt-5-mini",
-                MaxOutputTokens = options?.MaxOutputTokens,
-                ReasoningEffortLevel = options?.ReasoningEffortLevel
+                Provider = options?.Provider ?? provider,
+                Model = options?.Model ?? model,
+                MaxOutputTokens = options?.MaxOutputTokens ?? _settings?.CodeGeneration?.MaxOutputTokens,
+                ReasoningEffortLevel = options?.ReasoningEffortLevel ?? _settings?.CodeGeneration?.ReasoningEffortLevel
             },
             TemplateDict = options?.Data ?? new()
         };
-        
+
         text = text.IfNullOrEmptyAs("Please follow the instruction to generate code script.")!;
         var completion = CompletionProvider.GetChatCompletion(_services, provider: innerAgent.LlmConfig.Provider, model: innerAgent.LlmConfig.Model);
         var response = await completion.GetChatCompletions(innerAgent, new List<RoleDialogModel>
@@ -92,13 +86,37 @@ public class PyCodeInterpreter : ICodeProcessor
         {
             Success = true,
             Content = response.Content,
-            Language = options?.Language ?? "python"
+            Language = options?.ProgrammingLanguage ?? "python"
         };
     }
 
 
     #region Private methods
-    private async Task<CodeInterpretResponse> InnerRunCode(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
+    private CodeInterpretResponse InnerRunWithLock(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        var lockAcquired = false;
+
+        try
+        {
+            _semLock.Wait(cancellationToken);
+            lockAcquired = true;
+            return InnerRunCode(codeScript, options, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error in {nameof(InnerRunWithLock)} in {Provider}");
+            return new() { ErrorMsg = ex.Message };
+        }
+        finally
+        {
+            if (lockAcquired)
+            {
+                _semLock.Release();
+            }
+        }
+    }
+
+    private CodeInterpretResponse InnerRunCode(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
         var response = new CodeInterpretResponse();
         var scriptName = options?.ScriptName ?? codeScript.SubstringMax(30);
@@ -109,13 +127,13 @@ public class PyCodeInterpreter : ICodeProcessor
 
             if (options?.UseProcess == true)
             {
-                response = await CoreRunProcess(codeScript, options, cancellationToken);
+                response = CoreRunProcess(codeScript, options, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
             }
             else
             {
-                response = await CoreRunScript(codeScript, options, cancellationToken);
+                response = CoreRunScript(codeScript, options, cancellationToken);
             }
-            
+
             _logger.LogWarning($"End running python code script in {Provider}: {scriptName}");
 
             return response;
@@ -134,85 +152,94 @@ public class PyCodeInterpreter : ICodeProcessor
         }
     }
 
-    private async Task<CodeInterpretResponse> CoreRunScript(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
+    private CodeInterpretResponse CoreRunScript(string codeScript, CodeInterpretOptions? options = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogWarning($"Begin {nameof(CoreRunScript)} in {Provider}: ${options?.ScriptName}");
-
         cancellationToken.ThrowIfCancellationRequested();
 
         var execTask = Task.Factory.StartNew(() =>
         {
-            using (Py.GIL())
+            Thread.Sleep(100);
+
+            _logger.LogWarning($"Before acquiring Py.GIL (Python engine initialized: {PythonEngine.IsInitialized}). Thread {Thread.CurrentThread.ManagedThreadId}.");
+
+            var gil = Py.GIL();
+
+            _logger.LogWarning($"After acquiring Py.GIL ({gil != null}). Thread {Thread.CurrentThread.ManagedThreadId}.");
+
+            // Import necessary Python modules
+            dynamic sys = Py.Import("sys");
+            dynamic io = Py.Import("io");
+
+            try
             {
-                // Import necessary Python modules
-                dynamic sys = Py.Import("sys");
-                dynamic io = Py.Import("io");
+                // Redirect standard output/error to capture it
+                dynamic outIO = io.StringIO();
+                dynamic errIO = io.StringIO();
+                sys.stdout = outIO;
+                sys.stderr = errIO;
 
-                try
+                // Set global items
+                using var globals = new PyDict();
+                if (codeScript.Contains("__main__") == true)
                 {
-                    // Redirect standard output/error to capture it
-                    dynamic outIO = io.StringIO();
-                    dynamic errIO = io.StringIO();
-                    sys.stdout = outIO;
-                    sys.stderr = errIO;
+                    globals.SetItem("__name__", new PyString("__main__"));
+                }
 
-                    // Set global items
-                    using var globals = new PyDict();
-                    if (codeScript.Contains("__main__") == true)
+                // Set arguments
+                var list = new PyList();
+                if (options?.Arguments?.Any() == true)
+                {
+                    list.Append(new PyString(options?.ScriptName ?? $"{Guid.NewGuid()}.py"));
+
+                    foreach (var arg in options!.Arguments)
                     {
-                        globals.SetItem("__name__", new PyString("__main__"));
-                    }
-
-                    // Set arguments
-                    var list = new PyList();
-                    if (options?.Arguments?.Any() == true)
-                    {
-                        list.Append(new PyString(options?.ScriptName ?? "script.py"));
-
-                        foreach (var arg in options!.Arguments)
+                        if (!string.IsNullOrWhiteSpace(arg.Key) && !string.IsNullOrWhiteSpace(arg.Value))
                         {
-                            if (!string.IsNullOrWhiteSpace(arg.Key) && !string.IsNullOrWhiteSpace(arg.Value))
-                            {
-                                list.Append(new PyString($"--{arg.Key}"));
-                                list.Append(new PyString($"{arg.Value}"));
-                            }
+                            list.Append(new PyString($"--{arg.Key}"));
+                            list.Append(new PyString($"{arg.Value}"));
                         }
                     }
-                    sys.argv = list;
-
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    // Execute Python script
-                    PythonEngine.Exec(codeScript, globals);
-
-                    // Get result
-                    var stdout = outIO.getvalue()?.ToString() as string;
-                    var stderr = errIO.getvalue()?.ToString() as string;
-
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    return new CodeInterpretResponse
-                    {
-                        Result = stdout?.TrimEnd('\r', '\n') ?? string.Empty,
-                        Success = true
-                    };
                 }
-                catch (Exception ex)
+                sys.argv = list;
+
+                _logger.LogWarning($"Code script {options?.ScriptName} arguments: {string.Join("\r\n", options?.Arguments?.Select(x => x.ToString()) ?? [])}. Thread: {Thread.CurrentThread.ManagedThreadId}.");
+
+                _logger.LogWarning($"Before executing code script {options?.ScriptName}. Thread: {Thread.CurrentThread.ManagedThreadId}.");
+
+                // Execute Python script
+                PythonEngine.Exec(codeScript, globals);
+
+                _logger.LogWarning($"After executing code script {options?.ScriptName}. Thread: {Thread.CurrentThread.ManagedThreadId}.");
+
+                // Get result
+                var stdout = outIO.getvalue()?.ToString() as string;
+                var stderr = errIO.getvalue()?.ToString() as string;
+
+                return new CodeInterpretResponse
                 {
-                    _logger.LogError(ex, $"Error in {nameof(CoreRunScript)} in {Provider}.");
-                    return new() { ErrorMsg = ex.Message };
-                }
-                finally
-                {
-                    // Restore the original stdout/stderr/argv
-                    sys.stdout = sys.__stdout__;
-                    sys.stderr = sys.__stderr__;
-                    sys.argv = new PyList();
-                }
-            };
-        }, cancellationToken);
+                    Result = stdout?.TrimEnd('\r', '\n') ?? string.Empty,
+                    Success = true
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in {nameof(CoreRunScript)} in {Provider}.");
+                return new() { ErrorMsg = ex.Message };
+            }
+            finally
+            {
+                // Restore the original stdout/stderr/argv
+                sys.stdout = sys.__stdout__;
+                sys.stderr = sys.__stderr__;
+                sys.argv = new PyList();
 
-        return await execTask.WaitAsync(cancellationToken);
+                _logger.LogWarning($"Before disposing Py.GIL ({gil != null}). Thread {Thread.CurrentThread.ManagedThreadId}.");
+                gil?.Dispose();
+                _logger.LogWarning($"After disposing Py.GIL. Thread {Thread.CurrentThread.ManagedThreadId}.");
+            }
+        }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+
+        return execTask.WaitAsync(cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
 

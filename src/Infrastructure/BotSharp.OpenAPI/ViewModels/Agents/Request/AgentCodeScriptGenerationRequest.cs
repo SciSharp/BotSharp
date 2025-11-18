@@ -10,5 +10,5 @@ public class AgentCodeScriptGenerationRequest
 
     [JsonPropertyName("options")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public CodeProcessOptions? Options { get; set; }
+    public CodeGenHandleOptions? Options { get; set; }
 }
