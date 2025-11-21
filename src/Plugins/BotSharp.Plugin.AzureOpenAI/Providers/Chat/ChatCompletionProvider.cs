@@ -8,6 +8,7 @@ using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
 using OpenAI.Chat;
 using System.ClientModel;
+using BotSharp.Abstraction.Diagnostics;
 using static BotSharp.Abstraction.Diagnostics.Telemetry.TelemetryConstants;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers.Chat;
@@ -112,6 +113,7 @@ public class ChatCompletionProvider : IChatCompletion
                     MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                     RenderedInstruction = string.Join("\r\n", renderedInstructions)
                 };
+                activity?.SetError(ex);
             }
             catch (Exception ex)
             {
@@ -122,6 +124,7 @@ public class ChatCompletionProvider : IChatCompletion
                     MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                     RenderedInstruction = string.Join("\r\n", renderedInstructions)
                 };
+                activity?.SetError(ex);
             }
 
             var tokenUsage = response?.Value?.Usage;
