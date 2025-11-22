@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Diagnostics.Telemetry;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ public partial class RoutingService : IRoutingService
     private readonly IServiceProvider _services;
     private readonly RoutingSettings _settings;
     private readonly IRoutingContext _context;
+    private readonly ITelemetryService _telemetryService;
     private readonly ILogger _logger;
     private Agent _router;
 
@@ -19,11 +21,13 @@ public partial class RoutingService : IRoutingService
         IServiceProvider services,
         RoutingSettings settings,
         IRoutingContext context,
+        ITelemetryService telemetryService,
         ILogger<RoutingService> logger)
     {
         _services = services;
         _settings = settings;
         _context = context;
+        _telemetryService = telemetryService;
         _logger = logger;
     }
 

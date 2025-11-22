@@ -3,6 +3,11 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="DeviceId" Version="6.9.0" />
+    <PackageVersion Include="DeviceId.Linux" Version="6.9.0" />
+    <PackageVersion Include="DeviceId.Mac" Version="6.9.0" />
+    <PackageVersion Include="DeviceId.Windows" Version="6.9.0" />
+    <PackageVersion Include="DeviceId.Windows.Wmi" Version="6.9.0" />
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="FuzzySharp" Version="2.0.2" />
     <PackageVersion Include="EntityFramework" Version="6.4.4" />
@@ -16,8 +21,8 @@
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     <PackageVersion Include="System.Memory.Data" Version="8.0.0" />
-    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
-    <PackageVersion Include="System.Reactive" Version="6.0.1" />
+    <PackageVersion Include="System.Text.Json" Version="9.0.11" />
+    <PackageVersion Include="System.Reactive"  Version="6.0.1" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageVersion Include="Serilog.Extensions.Logging" Version="9.0.2" />
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
@@ -35,7 +40,7 @@
     <PackageVersion Include="Whisper.net.Runtime" Version="1.8.1" />
     <PackageVersion Include="NCrontab" Version="3.3.3" />
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.5.0-beta.1" />
-    <PackageVersion Include="OpenAI" Version="2.6.0" />
+    <PackageVersion Include="OpenAI" Version="2.5.0" />
     <PackageVersion Include="MailKit" Version="4.14.1" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.0" />
     <PackageVersion Include="MySql.Data" Version="9.5.0" />
@@ -104,8 +109,10 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
-    <PackageVersion Include="ModelContextProtocol" Version="0.1.0-preview.11" />
-    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.1.0-preview.11" />
+    <PackageVersion Include="ModelContextProtocol.Core" Version="0.4.0-preview.3" />
+    <PackageVersion Include="ModelContextProtocol" Version="0.4.0-preview.3" />
+    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.4.0-preview.3" />
+    <PackageVersion Include="Langfuse.OpenTelemetry" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="BotSharp.Core" Version="$(BotSharpVersion)" />

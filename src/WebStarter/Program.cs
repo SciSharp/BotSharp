@@ -30,7 +30,7 @@ string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get
  }).AddBotSharpOpenAPI(builder.Configuration, allowedOrigins, builder.Environment, true)
    .AddBotSharpMCP(builder.Configuration)
    .AddBotSharpLogger(builder.Configuration);
-
+ 
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
 

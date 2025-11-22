@@ -1,18 +1,33 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
+using BotSharp.Abstraction.Diagnostics.Telemetry;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace BotSharp.Abstraction.Diagnostics;
 
+/// <summary>
+/// Model diagnostics helper class that provides a set of methods to trace model activities with the OTel semantic conventions.
+/// This class contains experimental features and may change in the future.
+/// To enable these features, set one of the following switches to true:
+///     `BotSharp.Experimental.GenAI.EnableOTelDiagnostics`
+///     `BotSharp.Experimental.GenAI.EnableOTelDiagnosticsSensitive`
+/// Or set the following environment variables to true:
+///    `BOTSHARP_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS`
+///    `BOTSHARP_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS_SENSITIVE`
+/// </summary>
 [ExcludeFromCodeCoverage]
-public  static class ActivityExtensions
+public static class ActivityExtensions
 {
+    private const string EnableDiagnosticsSwitch = "BotSharp.Experimental.GenAI.EnableOTelDiagnostics";
+    private const string EnableSensitiveEventsSwitch = "BotSharp.Experimental.GenAI.EnableOTelDiagnosticsSensitive";
+    private const string EnableDiagnosticsEnvVar = "BOTSHARP_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS";
+    private const string EnableSensitiveEventsEnvVar = "BOTSHARP_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS_SENSITIVE";
+
+    public static readonly bool s_enableDiagnostics = AppContextSwitchHelper.GetConfigValue(EnableDiagnosticsSwitch, EnableDiagnosticsEnvVar);
+    public static readonly bool s_enableSensitiveEvents = AppContextSwitchHelper.GetConfigValue(EnableSensitiveEventsSwitch, EnableSensitiveEventsEnvVar);
+
+
     /// <summary>
     /// Starts an activity with the appropriate tags for a kernel function execution.
     /// </summary>
@@ -21,9 +36,9 @@ public  static class ActivityExtensions
         const string OperationName = "execute_tool";
 
         return source.StartActivityWithTags($"{OperationName} {functionName}", [
-            new KeyValuePair<string, object?>("gen_ai.operation.name", OperationName),
-            new KeyValuePair<string, object?>("gen_ai.tool.name", functionName),
-            new KeyValuePair<string, object?>("gen_ai.tool.description", functionDescription)
+            new KeyValuePair<string, object?>(TelemetryConstants.ModelDiagnosticsTags.Operation, OperationName),
+            new KeyValuePair<string, object?>(TelemetryConstants.ModelDiagnosticsTags.ToolName, functionName),
+            new KeyValuePair<string, object?>(TelemetryConstants.ModelDiagnosticsTags.ToolDescription, functionDescription)
         ], ActivityKind.Internal);
     }
 
@@ -42,8 +57,6 @@ public  static class ActivityExtensions
         {
             activity.SetTag(tag.Key, tag.Value);
         }
-        ;
-
         return activity;
     }
 
@@ -68,52 +81,5 @@ public  static class ActivityExtensions
         activity.SetTag("error.type", exception.GetType().FullName);
         activity.SetStatus(ActivityStatusCode.Error, exception.Message);
         return activity;
-    }
-
-    public static async IAsyncEnumerable<TResult> RunWithActivityAsync<TResult>(
-        Func<Activity?> getActivity,
-        Func<IAsyncEnumerable<TResult>> operation,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        using var activity = getActivity();
-
-        ConfiguredCancelableAsyncEnumerable<TResult> result;
-
-        try
-        {
-            result = operation().WithCancellation(cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception ex) when (activity is not null)
-        {
-            activity.SetError(ex);
-            throw;
-        }
-
-        var resultEnumerator = result.ConfigureAwait(false).GetAsyncEnumerator();
-
-        try
-        {
-            while (true)
-            {
-                try
-                {
-                    if (!await resultEnumerator.MoveNextAsync())
-                    {
-                        break;
-                    }
-                }
-                catch (Exception ex) when (activity is not null)
-                {
-                    activity.SetError(ex);
-                    throw;
-                }
-
-                yield return resultEnumerator.Current;
-            }
-        }
-        finally
-        {
-            await resultEnumerator.DisposeAsync();
-        }
     }
 }

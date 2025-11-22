@@ -1,12 +1,12 @@
 #pragma warning disable OPENAI001
-using BotSharp.Abstraction.Diagnostics;
+using BotSharp.Abstraction.Diagnostics.Telemetry;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using OpenAI.Chat;
-using static BotSharp.Abstraction.Diagnostics.ModelDiagnostics;
+using static BotSharp.Abstraction.Diagnostics.Telemetry.TelemetryConstants;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
@@ -15,6 +15,7 @@ public class ChatCompletionProvider : IChatCompletion
     protected readonly OpenAiSettings _settings;
     protected readonly IServiceProvider _services;
     protected readonly ILogger<ChatCompletionProvider> _logger;
+    protected readonly ITelemetryService _telemetryService;
 
     protected string _model;
     private List<string> renderedInstructions = [];
@@ -25,11 +26,13 @@ public class ChatCompletionProvider : IChatCompletion
     public ChatCompletionProvider(
         OpenAiSettings settings,
         ILogger<ChatCompletionProvider> logger,
+        ITelemetryService telemetryService,
         IServiceProvider services)
     {
         _settings = settings;
         _logger = logger;
         _services = services;
+        _telemetryService = telemetryService;
     }
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
@@ -46,7 +49,7 @@ public class ChatCompletionProvider : IChatCompletion
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
-        using (var activity = ModelDiagnostics.StartCompletionActivity(null, _model, Provider, prompt, convService))
+        using (var activity = _telemetryService.StartCompletionActivity(null, _model, Provider, conversations, convService))
         {
             var response = chatClient.CompleteChat(messages, options);
             var value = response.Value;

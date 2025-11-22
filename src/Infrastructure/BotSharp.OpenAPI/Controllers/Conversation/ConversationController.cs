@@ -6,6 +6,8 @@ using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users.Dtos;
 using BotSharp.Core.Infrastructures;
+using System.Diagnostics;
+using static BotSharp.Abstraction.Diagnostics.Telemetry.TelemetryConstants;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -42,8 +44,12 @@ public partial class ConversationController : ControllerBase
         };
         conv = await service.NewConversation(conv);
         service.SetConversationId(conv.Id, config.States);
-
-        return ConversationViewModel.FromSession(conv);
+        using (var trace = new ActivitySource("BotSharp").StartActivity("NewUserSession", ActivityKind.Internal))
+        {
+            trace?.SetTag("user_id", _user.FullName);
+            trace?.SetTag("conversation_id", conv.Id);
+            return ConversationViewModel.FromSession(conv);
+        }
     }
 
     [HttpGet("/conversations")]
@@ -363,25 +369,34 @@ public partial class ConversationController : ControllerBase
         conv.SetConversationId(conversationId, input.States);
         SetStates(conv, input);
 
-        var response = new ChatResponseModel();
-        await conv.SendMessage(agentId, inputMsg,
-            replyMessage: input.Postback,
-            async msg =>
-            {
-                response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
-                response.Function = msg.FunctionName;
-                response.MessageLabel = msg.MessageLabel;
-                response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
-                response.Instruction = msg.Instruction;
-                response.Data = msg.Data;
-            });
+        using (var trace = new ActivitySource("BotSharp").StartActivity("UserSession", ActivityKind.Internal))
+        {
+            trace?.SetTag("user.id", _user.FullName);
+            trace?.SetTag("session.id", conversationId);
+            trace?.SetTag("input", inputMsg.Content);
+            trace?.SetTag(ModelDiagnosticsTags.AgentId, agentId);
 
-        var state = _services.GetRequiredService<IConversationStateService>();
-        response.States = state.GetStates();
-        response.MessageId = inputMsg.MessageId;
-        response.ConversationId = conversationId;
+            var response = new ChatResponseModel();
+            await conv.SendMessage(agentId, inputMsg,
+                replyMessage: input.Postback,
+                async msg =>
+                {
+                    response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
+                    response.Function = msg.FunctionName;
+                    response.MessageLabel = msg.MessageLabel;
+                    response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
+                    response.Instruction = msg.Instruction;
+                    response.Data = msg.Data;
+                });
 
-        return response;
+            var state = _services.GetRequiredService<IConversationStateService>();
+            response.States = state.GetStates();
+            response.MessageId = inputMsg.MessageId;
+            response.ConversationId = conversationId;
+
+            trace?.SetTag("output", response.Data);
+            return response;
+        }
     }
 
 

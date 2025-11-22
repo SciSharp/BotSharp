@@ -1,6 +1,5 @@
 using BotSharp.Core.MCP.Settings;
 using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol.Transport;
 
 namespace BotSharp.Core.MCP.Managers;
 
@@ -17,7 +16,7 @@ public class McpClientManager : IDisposable
         _logger = logger;
     }
 
-    public async Task<IMcpClient?> GetMcpClientAsync(string serverId)
+    public async Task<McpClient?> GetMcpClientAsync(string serverId)
     {
         try
         {
@@ -31,13 +30,15 @@ public class McpClientManager : IDisposable
             IClientTransport? transport = null;
             if (config.SseConfig != null)
             {
-                transport = new SseClientTransport(new SseClientTransportOptions
-                {
-                    Name = config.Name,
-                    Endpoint = new Uri(config.SseConfig.EndPoint),
-                    AdditionalHeaders = config.SseConfig.AdditionalHeaders,
-                    ConnectionTimeout = config.SseConfig.ConnectionTimeout
-                });
+                transport = new HttpClientTransport(
+                    new HttpClientTransportOptions
+                    {
+                        Endpoint = new Uri(config.SseConfig.EndPoint),
+                        TransportMode = HttpTransportMode.AutoDetect,
+                        Name = config.Name,
+                        ConnectionTimeout = config.SseConfig.ConnectionTimeout,
+                        AdditionalHeaders = config.SseConfig.AdditionalHeaders
+                    });
             }
             else if (config.StdioConfig != null)
             {
@@ -56,14 +57,14 @@ public class McpClientManager : IDisposable
                 return null;
             }
 
-            return await McpClientFactory.CreateAsync(transport, settings.McpClientOptions);
+            return await McpClient.CreateAsync(transport, settings.McpClientOptions);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, $"Error when loading mcp client {serverId}");
             return null;
         }
-    }
+    }     
 
     public void Dispose()
     {

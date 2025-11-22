@@ -5,7 +5,7 @@
 		<Nullable>enable</Nullable>
 		<LangVersion>$(LangVersion)</LangVersion>
 		<IsPackable>true</IsPackable>
-		<VersionPrefix>$(Ai4cVersion)</VersionPrefix>
+		<VersionPrefix>$(BotSharpVersion)</VersionPrefix>
 		<GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
 		<EnableDynamicLoading>true</EnableDynamicLoading>
