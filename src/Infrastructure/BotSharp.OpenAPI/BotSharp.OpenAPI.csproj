@@ -22,22 +22,10 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
-    <PackageReference Include="AspNet.Security.OAuth.GitHub" />
-    <PackageReference Include="AspNet.Security.OAuth.Keycloak" />
-    <PackageReference Include="AspNet.Security.OAuth.Weixin" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
-    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" />
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
     <PackageReference Include="AspNet.Security.OAuth.GitHub" />
     <PackageReference Include="AspNet.Security.OAuth.Keycloak" />
@@ -46,8 +34,8 @@
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" />
   </ItemGroup>
 
-  <ItemGroup>    
-    <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />    
+  <ItemGroup>
+    <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
     <ProjectReference Include="..\BotSharp.Logger\BotSharp.Logger.csproj" />
   </ItemGroup>
 
