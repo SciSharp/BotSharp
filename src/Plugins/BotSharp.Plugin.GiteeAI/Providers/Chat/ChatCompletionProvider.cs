@@ -4,7 +4,7 @@ using BotSharp.Abstraction.Files;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
 using System.Diagnostics;
-using static BotSharp.Abstraction.Diagnostics.ModelDiagnostics;
+using static BotSharp.Abstraction.Diagnostics.Telemetry.TelemetryConstants;
 
 namespace BotSharp.Plugin.GiteeAI.Providers.Chat;
 
