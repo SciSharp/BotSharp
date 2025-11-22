@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Coding;
-using BotSharp.Abstraction.Coding.Enums;
 using BotSharp.Abstraction.Coding.Contexts;
+using BotSharp.Abstraction.Coding.Enums;
 using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
@@ -23,7 +23,6 @@ public partial class InstructService
         FileInstructOptions? fileOptions = null)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var state = _services.GetRequiredService<IConversationStateService>();
         var agent = await agentService.LoadAgent(agentId);
 
         var response = new InstructResult
@@ -31,7 +30,6 @@ public partial class InstructService
             MessageId = message.MessageId,
             Template = templateName
         };
-
 
         if (agent == null)
         {
@@ -46,112 +44,14 @@ public partial class InstructService
             return response;
         }
 
-
         // Run code template
         var codeResponse = await RunCode(agent, message, templateName, codeOptions);
-        if (!string.IsNullOrWhiteSpace(codeResponse?.Text))
+        if (codeResponse != null)
         {
             return codeResponse;
         }
 
-
-        // Before completion hooks
-        var hooks = _services.GetHooks<IInstructHook>(agentId);
-        foreach (var hook in hooks)
-        {
-            await hook.BeforeCompletion(agent, message);
-
-            // Interrupted by hook
-            if (message.StopCompletion)
-            {
-                return new InstructResult
-                {
-                    MessageId = message.MessageId,
-                    Text = message.Content
-                };
-            }
-        }
-
-
-        var provider = string.Empty;
-        var model = string.Empty;
-        var result = string.Empty;
-
-        // Render prompt
-        var prompt = string.IsNullOrEmpty(templateName) ?
-            agentService.RenderInstruction(agent) :
-            agentService.RenderTemplate(agent, templateName);
-
-        var completer = CompletionProvider.GetCompletion(_services,
-            agentConfig: agent.LlmConfig);
-
-        if (completer is ITextCompletion textCompleter)
-        {
-            instruction = null;
-            provider = textCompleter.Provider;
-            model = textCompleter.Model;
-
-            result = await GetTextCompletion(textCompleter, agent, prompt, message.MessageId);
-            response.Text = result;
-        }
-        else if (completer is IChatCompletion chatCompleter)
-        {
-            provider = chatCompleter.Provider;
-            model = chatCompleter.Model;
-           
-
-            if (instruction == "#TEMPLATE#")
-            {
-                instruction = prompt;
-                prompt = message.Content;
-            }
-
-            IFileProcessor? fileProcessor = null;
-            if (!files.IsNullOrEmpty() && fileOptions != null)
-            {
-                fileProcessor = _services.GetServices<IFileProcessor>()
-                                         .FirstOrDefault(x => x.Provider.IsEqualTo(fileOptions.Processor));
-            }
-
-            if (fileProcessor != null)
-            {
-                var fileResponse = await fileProcessor.HandleFilesAsync(agent, prompt, files, new FileHandleOptions
-                {
-                    Provider = provider,
-                    Model = model,
-                    Instruction = instruction,
-                    UserMessage = message.Content,
-                    TemplateName = templateName,
-                    InvokeFrom = $"{nameof(InstructService)}.{nameof(Execute)}",
-                    Data = state.GetStates().ToDictionary(x => x.Key, x => (object)x.Value)
-                });
-                result = fileResponse.Result.IfNullOrEmptyAs(string.Empty);
-            }
-            else
-            {
-                result = await GetChatCompletion(chatCompleter, agent, instruction, prompt, message.MessageId, files);
-            }
-            response.Text = result;
-        }
-
-        response.LogId = Guid.NewGuid().ToString();
-        // After completion hooks
-        foreach (var hook in hooks)
-        {
-            await hook.AfterCompletion(agent, response);
-            await hook.OnResponseGenerated(new InstructResponseModel
-            {
-                LogId = response.LogId,
-                AgentId = agentId,
-                Provider = provider,
-                Model = model,
-                TemplateName = templateName,
-                UserMessage = prompt,
-                SystemInstruction = instruction,
-                CompletionText = response.Text
-            });
-        }
-
+        response = await RunLlm(agent, message, instruction, templateName, files, fileOptions);
         return response;
     }
 
@@ -166,7 +66,7 @@ public partial class InstructService
     private async Task<InstructResult?> RunCode(
         Agent agent,
         RoleDialogModel message,
-        string templateName,
+        string? templateName,
         CodeInstructOptions? codeOptions)
     {
         InstructResult? instructResult = null;
@@ -266,11 +166,16 @@ public partial class InstructService
             UseProcess = useProcess
         }, cancellationToken: cts.Token);
 
+        if (codeResponse == null || !codeResponse.Success)
+        {
+            return instructResult;
+        }
+
         instructResult = new InstructResult
         {
             MessageId = message.MessageId,
             Template = context.CodeScript?.Name,
-            Text = codeResponse?.Result ?? string.Empty
+            Text = codeResponse.Result
         };
 
         var codeExecution = new CodeExecutionResponseModel
@@ -291,6 +196,123 @@ public partial class InstructService
 
         return instructResult;
     }
+
+
+    private async Task<InstructResult> RunLlm(
+        Agent agent,
+        RoleDialogModel message,
+        string? instruction,
+        string? templateName,
+        IEnumerable<InstructFileModel>? files = null,
+        FileInstructOptions? fileOptions = null)
+    {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
+
+        var response = new InstructResult
+        {
+            MessageId = message.MessageId,
+            Template = templateName
+        };
+
+        // Before completion hooks
+        var hooks = _services.GetHooks<IInstructHook>(agent.Id);
+        foreach (var hook in hooks)
+        {
+            await hook.BeforeCompletion(agent, message);
+
+            // Interrupted by hook
+            if (message.StopCompletion)
+            {
+                return new InstructResult
+                {
+                    MessageId = message.MessageId,
+                    Text = message.Content
+                };
+            }
+        }
+
+        var provider = string.Empty;
+        var model = string.Empty;
+        var result = string.Empty;
+
+        // Render prompt
+        var prompt = string.IsNullOrEmpty(templateName) ?
+            agentService.RenderInstruction(agent) :
+            agentService.RenderTemplate(agent, templateName);
+
+        var completer = CompletionProvider.GetCompletion(_services,
+            agentConfig: agent.LlmConfig);
+
+        if (completer is ITextCompletion textCompleter)
+        {
+            instruction = null;
+            provider = textCompleter.Provider;
+            model = textCompleter.Model;
+
+            result = await GetTextCompletion(textCompleter, agent, prompt, message.MessageId);
+            response.Text = result;
+        }
+        else if (completer is IChatCompletion chatCompleter)
+        {
+            provider = chatCompleter.Provider;
+            model = chatCompleter.Model;
+
+            if (instruction == "#TEMPLATE#")
+            {
+                instruction = prompt;
+                prompt = message.Content;
+            }
+
+            IFileProcessor? fileProcessor = null;
+            if (!files.IsNullOrEmpty() && fileOptions != null)
+            {
+                fileProcessor = _services.GetServices<IFileProcessor>()
+                                         .FirstOrDefault(x => x.Provider.IsEqualTo(fileOptions.Processor));
+            }
+
+            if (fileProcessor != null)
+            {
+                var fileResponse = await fileProcessor.HandleFilesAsync(agent, prompt, files, new FileHandleOptions
+                {
+                    Provider = provider,
+                    Model = model,
+                    Instruction = instruction,
+                    UserMessage = message.Content,
+                    TemplateName = templateName,
+                    InvokeFrom = $"{nameof(InstructService)}.{nameof(Execute)}",
+                    Data = state.GetStates().ToDictionary(x => x.Key, x => (object)x.Value)
+                });
+                result = fileResponse.Result.IfNullOrEmptyAs(string.Empty);
+            }
+            else
+            {
+                result = await GetChatCompletion(chatCompleter, agent, instruction, prompt, message.MessageId, files);
+            }
+            response.Text = result;
+        }
+
+        response.LogId = Guid.NewGuid().ToString();
+        // After completion hooks
+        foreach (var hook in hooks)
+        {
+            await hook.AfterCompletion(agent, response);
+            await hook.OnResponseGenerated(new InstructResponseModel
+            {
+                LogId = response.LogId,
+                AgentId = agent.Id,
+                Provider = provider,
+                Model = model,
+                TemplateName = templateName,
+                UserMessage = prompt,
+                SystemInstruction = instruction,
+                CompletionText = response.Text
+            });
+        }
+
+        return response;
+    }
+
 
     private async Task<string> GetTextCompletion(
         ITextCompletion textCompleter,

@@ -1,8 +1,6 @@
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Realtime.Options;
-using BotSharp.Abstraction.Realtime.Sessions;
 using BotSharp.Abstraction.Realtime.Settings;
-using BotSharp.Plugin.OpenAI.Models.Realtime;
 using OpenAI.Chat;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Realtime;
