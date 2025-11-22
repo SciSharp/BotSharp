@@ -12,7 +12,8 @@ public class SignalRHub : Hub
     private readonly IUserIdentity _user;
     private readonly IHttpContextAccessor _context;
 
-    public SignalRHub(IServiceProvider services, 
+    public SignalRHub(
+        IServiceProvider services, 
         ILogger<SignalRHub> logger,
         IUserIdentity user,
         IHttpContextAccessor context)
@@ -25,15 +26,16 @@ public class SignalRHub : Hub
 
     public override async Task OnConnectedAsync()
     {
-        _logger.LogInformation($"SignalR Hub: {_user.FirstName} {_user.LastName} ({Context.User.Identity.Name}) connected in {Context.ConnectionId}");
-
         var convService = _services.GetRequiredService<IConversationService>();
-        var httpContext = Context.GetHttpContext();
+        var httpContext = Context?.GetHttpContext();
+
+        _logger.LogInformation($"SignalR Hub: {_user?.FirstName} {_user?.LastName} ({Context?.User?.Identity?.Name ?? "Unkown user"}) connected in {Context?.ConnectionId}");
+
         string? conversationId = httpContext?.Request?.Query["conversation-id"].FirstOrDefault();
 
         if (!string.IsNullOrEmpty(conversationId))
         {
-            _logger.LogInformation($"Connection {Context.ConnectionId} is with conversation {conversationId}");
+            _logger.LogInformation($"Connection {Context?.ConnectionId} is with conversation {conversationId}");
             await AddGroup(conversationId);
 
             var conv = await convService.GetConversation(conversationId);
