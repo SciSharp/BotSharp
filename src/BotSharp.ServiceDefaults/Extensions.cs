@@ -1,4 +1,5 @@
 using BotSharp.Langfuse;
+using Langfuse.OpenTelemetry;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Configuration;
@@ -100,10 +101,11 @@ namespace Microsoft.Extensions.Hosting
                         .AddService("apiservice", serviceVersion: "1.0.0")
                         )
                     .AddSource("BotSharp")
+                    .AddSource("BotSharp.Server")
                     .AddSource("BotSharp.Abstraction.Diagnostics")
-                    .AddSource("BotSharp.Core.Routing.Executor");
-
-                    tracing.AddAspNetCoreInstrumentation()
+                    .AddSource("BotSharp.Core.Routing.Executor")
+                    .AddLangfuseExporter(builder.Configuration)
+                    .AddAspNetCoreInstrumentation()
                         // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                         //.AddGrpcClientInstrumentation()
                         .AddHttpClientInstrumentation()
@@ -115,7 +117,7 @@ namespace Microsoft.Extensions.Hosting
                         //    options.Headers = $"Authorization=Basic {base64EncodedAuth}";
                         //})
                     ;
-                       
+                    
 
                 });
 
@@ -134,26 +136,27 @@ namespace Microsoft.Extensions.Hosting
             {
                 builder.Services.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
                 builder.Services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddOtlpExporter());
-                if (useLangfuse)
-                {                    
-                    var publicKey = langfuseSection.GetValue<string>(nameof(LangfuseSettings.PublicKey)) ?? string.Empty;
-                    var secretKey = langfuseSection.GetValue<string>(nameof(LangfuseSettings.SecretKey)) ?? string.Empty;
-                    var host = langfuseSection.GetValue<string>(nameof(LangfuseSettings.Host)) ?? string.Empty;
-                    var plainTextBytes = System.Text.Encoding.UTF8.GetBytes($"{publicKey}:{secretKey}");
-                    string base64EncodedAuth = Convert.ToBase64String(plainTextBytes);
+                //if (useLangfuse)
+                //{                    
+                //    var publicKey = langfuseSection.GetValue<string>(nameof(LangfuseSettings.PublicKey)) ?? string.Empty;
+                //    var secretKey = langfuseSection.GetValue<string>(nameof(LangfuseSettings.SecretKey)) ?? string.Empty;
+                //    var host = langfuseSection.GetValue<string>(nameof(LangfuseSettings.Host)) ?? string.Empty;
+                //    var plainTextBytes = System.Text.Encoding.UTF8.GetBytes($"{publicKey}:{secretKey}");
+                //    string base64EncodedAuth = Convert.ToBase64String(plainTextBytes);
 
-                    builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter(options =>
-                    {
-                        options.Endpoint = new Uri(host);
-                        options.Protocol = OtlpExportProtocol.HttpProtobuf;
-                        options.Headers = $"Authorization=Basic {base64EncodedAuth}";
-                    })
-                    );
-                }
-                else
-                {
+                //    builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter(options =>
+                //    {
+                //        options.Endpoint = new Uri(host);
+                //        options.Protocol = OtlpExportProtocol.HttpProtobuf;
+                //        options.Headers = $"Authorization=Basic {base64EncodedAuth}";
+                //    })
+                //    );
+                     
+                //}
+                //else
+                //{
                     builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter());
-                }
+                //}
             }
 
             // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)

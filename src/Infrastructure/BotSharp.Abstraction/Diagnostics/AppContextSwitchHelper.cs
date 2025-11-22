@@ -1,7 +1,9 @@
+// Copyright (c) Microsoft. All rights reserved.
+
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace BotSharp.Abstraction.Diagnostics;
+namespace BotSharp.Abstraction.Diagnostics; 
 
 /// <summary>
 /// Helper class to get app context switch value

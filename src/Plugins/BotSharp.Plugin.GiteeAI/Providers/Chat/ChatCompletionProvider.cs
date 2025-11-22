@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Agents.Constants;
-using BotSharp.Abstraction.Diagnostics;
+using BotSharp.Abstraction.Diagnostics.Telemetry;
 using BotSharp.Abstraction.Files;
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
 using System.Diagnostics;
@@ -14,13 +13,15 @@ namespace BotSharp.Plugin.GiteeAI.Providers.Chat;
 /// </summary>
 public class ChatCompletionProvider(
     ILogger<ChatCompletionProvider> logger,
+    ITelemetryService telemetryService,
     IServiceProvider services) : IChatCompletion
 {
-    protected string _model = string.Empty;
+    protected string _model = string.Empty; 
 
     public virtual string Provider => "gitee-ai";
 
     public string Model => _model;
+ 
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
@@ -37,7 +38,7 @@ public class ChatCompletionProvider(
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
-        using (var activity = ModelDiagnostics.StartCompletionActivity(null, _model, Provider, prompt, convService))
+        using (var activity = telemetryService.StartCompletionActivity(null, _model, Provider, conversations, convService))
         {
             var response = chatClient.CompleteChat(messages, options);
             var value = response.Value;

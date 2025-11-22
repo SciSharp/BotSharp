@@ -1,18 +1,19 @@
+using BotSharp.Abstraction.Diagnostics.Telemetry;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Core.Users.Services;
+using BotSharp.OpenAPI.BackgroundServices;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
-using Microsoft.IdentityModel.JsonWebTokens;
-using BotSharp.OpenAPI.BackgroundServices;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authentication;
 
 namespace BotSharp.OpenAPI;
 
@@ -234,6 +235,7 @@ public static class BotSharpOpenApiExtensions
 
         app.UseAuthorization();
 
+        app.UseOtelInitialize();
         app.UseEndpoints(
             endpoints =>
             {
@@ -276,6 +278,18 @@ public static class BotSharpOpenApiExtensions
         });
 
         return app;
+    }
+
+    internal static void UseOtelInitialize(this IApplicationBuilder app)
+    {
+        // Perform any initialization before starting the service.
+        // If the initialization operation fails, do not continue because we do not want
+        // invalid telemetry published.
+        var telemetryService = app.ApplicationServices.GetRequiredService<ITelemetryService>();
+        telemetryService.InitializeAsync()
+            .ConfigureAwait(false)
+            .GetAwaiter()
+            .GetResult();
     }
 }
 
