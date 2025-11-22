@@ -38,7 +38,7 @@ public class ChatCompletionProvider : IChatCompletion
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
         var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
-        var convService = _services.GetService<IConversationStateService>();
+        var convService = _services.GetRequiredService<IConversationStateService>();
 
         // Before chat completion hook
         foreach (var hook in contentHooks)

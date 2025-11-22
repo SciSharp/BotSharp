@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Diagnostics.Telemetry;
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
@@ -5,6 +6,7 @@ using BotSharp.Abstraction.Hooks;
 using GenerativeAI;
 using GenerativeAI.Core;
 using GenerativeAI.Types;
+using static BotSharp.Abstraction.Diagnostics.Telemetry.TelemetryConstants;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Chat;
 
@@ -12,6 +14,8 @@ public class ChatCompletionProvider : IChatCompletion
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<ChatCompletionProvider> _logger;
+
+    protected readonly ITelemetryService _telemetryService;
     private List<string> renderedInstructions = [];
 
     private string _model;
@@ -22,10 +26,12 @@ public class ChatCompletionProvider : IChatCompletion
     private GoogleAiSettings _settings;
     public ChatCompletionProvider(
         IServiceProvider services,
+        ITelemetryService telemetryService,
         GoogleAiSettings googleSettings,
         ILogger<ChatCompletionProvider> logger)
     {
         _settings = googleSettings;
+        _telemetryService = telemetryService;
         _services = services;
         _logger = logger;
     }
@@ -33,6 +39,7 @@ public class ChatCompletionProvider : IChatCompletion
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
         var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
+        var convService = _services.GetRequiredService<IConversationStateService>();
 
         // Before chat completion hook
         foreach (var hook in contentHooks)
@@ -43,49 +50,58 @@ public class ChatCompletionProvider : IChatCompletion
         var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         var aiModel = client.CreateGenerativeModel(_model.ToModelId());
         var (prompt, request) = PrepareOptions(aiModel, agent, conversations);
-
-        var response = await aiModel.GenerateContentAsync(request);
-        var candidate = response.Candidates?.First();
-        var part = candidate?.Content?.Parts?.FirstOrDefault();
-        var text = part?.Text ?? string.Empty;
-
-        RoleDialogModel responseMessage;
-        if (response.GetFunction() != null)
+        using (var activity = _telemetryService.StartCompletionActivity(null, _model, Provider, conversations, convService))
         {
-            responseMessage = new RoleDialogModel(AgentRole.Function, text)
-            {
-                CurrentAgentId = agent.Id,
-                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                ToolCallId = part.FunctionCall.Name,
-                FunctionName = part.FunctionCall.Name,
-                FunctionArgs = part.FunctionCall.Args?.ToJsonString(),
-                RenderedInstruction = string.Join("\r\n", renderedInstructions)
-            };
-        }
-        else
-        {
-            responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
-            {
-                CurrentAgentId = agent.Id,
-                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                RenderedInstruction = string.Join("\r\n", renderedInstructions)
-            };
-        }
+            var response = await aiModel.GenerateContentAsync(request);
+            var candidate = response.Candidates?.First();
+            var part = candidate?.Content?.Parts?.FirstOrDefault();
+            var text = part?.Text ?? string.Empty;
 
-        // After chat completion hook
-        foreach (var hook in contentHooks)
-        {
-            await hook.AfterGenerated(responseMessage, new TokenStatsModel
+            RoleDialogModel responseMessage;
+            if (response.GetFunction() != null)
             {
-                Prompt = prompt,
-                Provider = Provider,
-                Model = _model,
-                TextInputTokens = response?.UsageMetadata?.PromptTokenCount ?? 0,
-                TextOutputTokens = response?.UsageMetadata?.CandidatesTokenCount ?? 0
-            });
-        }
+                responseMessage = new RoleDialogModel(AgentRole.Function, text)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                    ToolCallId = part.FunctionCall.Name,
+                    FunctionName = part.FunctionCall.Name,
+                    FunctionArgs = part.FunctionCall.Args?.ToJsonString(),
+                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                };
+            }
+            else
+            {
+                responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                };
+            }
+            var tokenUsage = response?.UsageMetadata;
+            var inputTokenDetails = tokenUsage?.PromptTokenCount; 
+            var outputTokenDetails = tokenUsage?.CandidatesTokenCount ?? 0;
+            var cachedInputTokens = tokenUsage?.CachedContentTokenCount ?? 0;
 
-        return responseMessage;
+            activity?.SetTag(ModelDiagnosticsTags.InputTokens, (inputTokenDetails - cachedInputTokens));
+            activity?.SetTag(ModelDiagnosticsTags.OutputTokens, outputTokenDetails);
+
+            // After chat completion hook
+            foreach (var hook in contentHooks)
+            {
+                await hook.AfterGenerated(responseMessage, new TokenStatsModel
+                {
+                    Prompt = prompt,
+                    Provider = Provider,
+                    Model = _model,
+                    TextInputTokens = response?.UsageMetadata?.PromptTokenCount ?? 0,
+                    TextOutputTokens = response?.UsageMetadata?.CandidatesTokenCount ?? 0
+                });
+            }
+            activity?.SetTag("output", responseMessage.Content);
+            return responseMessage;
+        }
     }
 
     public async Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived, Func<RoleDialogModel, Task> onFunctionExecuting)

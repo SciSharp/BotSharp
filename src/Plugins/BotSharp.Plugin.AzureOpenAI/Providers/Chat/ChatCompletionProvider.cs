@@ -131,8 +131,7 @@ public class ChatCompletionProvider : IChatCompletion
             var inputTokenDetails = response?.Value?.Usage?.InputTokenDetails;
 
             activity?.SetTag(ModelDiagnosticsTags.InputTokens, (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0));
-            activity?.SetTag(ModelDiagnosticsTags.OutputTokens, tokenUsage?.OutputTokenCount ?? 0);
-            activity?.SetTag(ModelDiagnosticsTags.OutputTokens, tokenUsage?.OutputTokenCount ?? 0);
+            activity?.SetTag(ModelDiagnosticsTags.OutputTokens, tokenUsage?.OutputTokenCount ?? 0); 
            
             // After chat completion hook
             foreach (var hook in contentHooks)
