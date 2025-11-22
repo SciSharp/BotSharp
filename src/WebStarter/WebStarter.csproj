@@ -29,7 +29,6 @@
   <Copy SourceFiles="@(CoreContentFiles)" DestinationFolder="$(OutputPath)data\%(RecursiveDir)" />
 </Target>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
   </ItemGroup>
 
