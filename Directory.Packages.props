@@ -147,7 +147,10 @@
     <PackageVersion Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="10.0.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="3.0.1" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.0" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.0" />
+    <PackageVersion Include="Serilog.Extensions.Logging" Version="10.0.0" />
   </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="8.1.4" />
     <PackageVersion Include="AspNet.Security.OAuth.GitHub" Version="8.3.0" />
@@ -169,24 +172,31 @@
     <PackageVersion Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="8.0.16" />
     <PackageVersion Include="Microsoft.OpenApi" Version="2.3.10" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
+    <PackageVersion Include="Serilog.Extensions.Logging" Version="9.0.2" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.9.0" />
-    <PackageVersion Include="AspNet.Security.OAuth.GitHub" Version="6.0.15" />
-    <PackageVersion Include="AspNet.Security.OAuth.Keycloak" Version="6.0.15" />
-    <PackageVersion Include="AspNet.Security.OAuth.Weixin" Version="6.0.15" />
-    <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="2.3.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="6.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="6.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.4" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="6.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="6.0.3" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.27" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.25" />
-    <PackageVersion Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="6.0.26" />
-    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="6.0.5" />
-  </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+        <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+        <PackageVersion Include="AspNet.Security.OAuth.GitHub" Version="6.0.15" />
+        <PackageVersion Include="AspNet.Security.OAuth.Keycloak" Version="6.0.15" />
+        <PackageVersion Include="AspNet.Security.OAuth.Weixin" Version="6.0.15" />
+        <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
+        <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="2.3.0" />
+        <PackageVersion Include="Microsoft.Extensions.Configuration" Version="6.0.2" />
+        <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.1" />
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+        <PackageVersion Include="Microsoft.Extensions.Http" Version="6.0.1" />
+        <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.4" />
+        <PackageVersion Include="Microsoft.Extensions.Logging" Version="6.0.1" />
+        <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="6.0.3" />
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="6.0.2" />
+        <PackageVersion Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+        <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.27" />
+        <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.25" />
+        <PackageVersion Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="6.0.26" />
+        <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="6.0.5" />
+        <PackageVersion Include="System.Text.Json" Version="6.0.11" />
+        <PackageVersion Include="Serilog.Extensions.Logging" Version="7.0.0" />
+    </ItemGroup>
 </Project>
