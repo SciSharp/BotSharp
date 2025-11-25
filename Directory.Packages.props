@@ -99,8 +99,8 @@
         <PackageVersion Include="MSTest.TestAdapter" Version="4.0.2" />
         <PackageVersion Include="MSTest.TestFramework" Version="4.0.2" />
         <PackageVersion Include="Shouldly" Version="4.3.0" />
-        <PackageVersion Include="ModelContextProtocol" Version="0.1.0-preview.11" />
-        <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.1.0-preview.11" />
+        <PackageVersion Include="ModelContextProtocol" Version="0.4.0-preview.3" />
+        <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.4.0-preview.3" />
     </ItemGroup>
     <ItemGroup>
         <PackageVersion Include="BotSharp.Core" Version="$(BotSharpVersion)" />

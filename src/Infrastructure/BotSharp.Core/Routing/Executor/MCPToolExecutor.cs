@@ -1,17 +1,17 @@
 using BotSharp.Abstraction.Routing.Executor;
 using BotSharp.Core.MCP.Managers;
-using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
 
 namespace BotSharp.Core.Routing.Executor;
 
-public class McpToolExecutor: IFunctionExecutor
+public class McpToolExecutor : IFunctionExecutor
 {
     private readonly IServiceProvider _services;
     private readonly string _mcpServerId;
     private readonly string _functionName;
 
     public McpToolExecutor(IServiceProvider services, string mcpServerId, string functionName)
-    { 
+    {
         _services = services;
         _mcpServerId = mcpServerId;
         _functionName = functionName;
@@ -22,16 +22,22 @@ public class McpToolExecutor: IFunctionExecutor
         try
         {
             // Convert arguments to dictionary format expected by mcpdotnet
-            Dictionary<string, object> argDict = JsonToDictionary(message.FunctionArgs);
+            Dictionary<string, object?> argDict = JsonToDictionary(message.FunctionArgs);
 
             var clientManager = _services.GetRequiredService<McpClientManager>();
             var client = await clientManager.GetMcpClientAsync(_mcpServerId);
+
+            if (client == null)
+            {
+                message.Content = $"MCP client for server {_mcpServerId} not found.";
+                return false;
+            }
 
             // Call the tool through mcpdotnet
             var result = await client.CallToolAsync(_functionName, !argDict.IsNullOrEmpty() ? argDict : []);
 
             // Extract the text content from the result
-            var json = string.Join("\n", result.Content.Where(c => c.Type == "text").Select(c => c.Text));
+            var json = string.Join("\n", result.Content.Where(c => c is TextContentBlock).Select(c => ((TextContentBlock)c).Text));
 
             message.Content = json;
             message.Data = json.JsonContent();
@@ -50,7 +56,7 @@ public class McpToolExecutor: IFunctionExecutor
     }
 
 
-    private static Dictionary<string, object> JsonToDictionary(string? json)
+    private static Dictionary<string, object?> JsonToDictionary(string? json)
     {
         if (string.IsNullOrEmpty(json))
         {
@@ -62,9 +68,9 @@ public class McpToolExecutor: IFunctionExecutor
         return JsonElementToDictionary(root);
     }
 
-    private static Dictionary<string, object> JsonElementToDictionary(JsonElement element)
+    private static Dictionary<string, object?> JsonElementToDictionary(JsonElement element)
     {
-        Dictionary<string, object> dictionary = [];
+        Dictionary<string, object?> dictionary = [];
 
         if (element.ValueKind == JsonValueKind.Object)
         {

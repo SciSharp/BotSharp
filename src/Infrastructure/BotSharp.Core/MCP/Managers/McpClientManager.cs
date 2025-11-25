@@ -1,6 +1,5 @@
 using BotSharp.Core.MCP.Settings;
 using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol.Transport;
 
 namespace BotSharp.Core.MCP.Managers;
 
@@ -17,7 +16,7 @@ public class McpClientManager : IDisposable
         _logger = logger;
     }
 
-    public async Task<IMcpClient?> GetMcpClientAsync(string serverId)
+    public async Task<McpClient?> GetMcpClientAsync(string serverId)
     {
         try
         {
@@ -31,7 +30,7 @@ public class McpClientManager : IDisposable
             IClientTransport? transport = null;
             if (config.SseConfig != null)
             {
-                transport = new SseClientTransport(new SseClientTransportOptions
+                transport = new HttpClientTransport(new HttpClientTransportOptions
                 {
                     Name = config.Name,
                     Endpoint = new Uri(config.SseConfig.EndPoint),
@@ -56,7 +55,7 @@ public class McpClientManager : IDisposable
                 return null;
             }
 
-            return await McpClientFactory.CreateAsync(transport, settings.McpClientOptions);
+            return await McpClient.CreateAsync(transport, settings.McpClientOptions);
         }
         catch (Exception ex)
         {
