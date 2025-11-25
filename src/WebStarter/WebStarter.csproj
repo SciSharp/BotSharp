@@ -38,6 +38,7 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ExcelHandler\BotSharp.Plugin.ExcelHandler.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.FuzzySharp\BotSharp.Plugin.FuzzySharp.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ImageHandler\BotSharp.Plugin.ImageHandler.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.Membase\BotSharp.Plugin.Membase.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.PythonInterpreter\BotSharp.Plugin.PythonInterpreter.csproj" />
   </ItemGroup>
   
