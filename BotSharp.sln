@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11217.181 d18.0
+VisualStudioVersion = 18.0.11217.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{E29DC6C4-5E57-48C5-BCB0-6B8F84782749}"
 EndProject
@@ -147,6 +147,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.GiteeAI", "src\Plugins\BotSharp.Plugin.GiteeAI\BotSharp.Plugin.GiteeAI.csproj", "{50B57066-3267-1D10-0F72-D2F5CC494F2C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.FuzzySharp", "src\Plugins\BotSharp.Plugin.FuzzySharp\BotSharp.Plugin.FuzzySharp.csproj", "{E7C243B9-E751-B3B4-8F16-95C76CA90D31}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.Membase", "src\Plugins\BotSharp.Plugin.Membase\BotSharp.Plugin.Membase.csproj", "{13223C71-9EAC-9835-28ED-5A4833E6F915}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -628,6 +630,14 @@ Global
 		{E7C243B9-E751-B3B4-8F16-95C76CA90D31}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E7C243B9-E751-B3B4-8F16-95C76CA90D31}.Release|x64.ActiveCfg = Release|Any CPU
 		{E7C243B9-E751-B3B4-8F16-95C76CA90D31}.Release|x64.Build.0 = Release|Any CPU
+		{13223C71-9EAC-9835-28ED-5A4833E6F915}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13223C71-9EAC-9835-28ED-5A4833E6F915}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13223C71-9EAC-9835-28ED-5A4833E6F915}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{13223C71-9EAC-9835-28ED-5A4833E6F915}.Debug|x64.Build.0 = Debug|Any CPU
+		{13223C71-9EAC-9835-28ED-5A4833E6F915}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13223C71-9EAC-9835-28ED-5A4833E6F915}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13223C71-9EAC-9835-28ED-5A4833E6F915}.Release|x64.ActiveCfg = Release|Any CPU
+		{13223C71-9EAC-9835-28ED-5A4833E6F915}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -700,6 +710,7 @@ Global
 		{FC63C875-E880-D8BB-B8B5-978AB7B62983} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
 		{50B57066-3267-1D10-0F72-D2F5CC494F2C} = {D5293208-2BEF-42FC-A64C-5954F61720BA}
 		{E7C243B9-E751-B3B4-8F16-95C76CA90D31} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
+		{13223C71-9EAC-9835-28ED-5A4833E6F915} = {53E7CD86-0D19-40D9-A0FA-AB4613837E89}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9969D89-C98B-40A5-A12B-FC87E55B3A19}
