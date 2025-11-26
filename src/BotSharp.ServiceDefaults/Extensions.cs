@@ -1,12 +1,12 @@
+using Langfuse.OpenTelemetry;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.ServiceDiscovery;
-using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
 
@@ -45,6 +45,10 @@ namespace Microsoft.Extensions.Hosting
 
         public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
         {
+            // Enable model diagnostics with sensitive data.
+            AppContext.SetSwitch("BotSharp.Experimental.GenAI.EnableOTelDiagnostics", true);
+            AppContext.SetSwitch("BotSharp.Experimental.GenAI.EnableOTelDiagnosticsSensitive", true);
+
             builder.Logging.AddOpenTelemetry(logging =>
             { // Use Serilog
                 Log.Logger = new LoggerConfiguration()
@@ -87,10 +91,29 @@ namespace Microsoft.Extensions.Hosting
                 })
                 .WithTracing(tracing =>
                 {
-                    tracing.AddAspNetCoreInstrumentation()
+                    tracing.SetResourceBuilder(
+                        ResourceBuilder.CreateDefault()
+                        .AddService("apiservice", serviceVersion: "1.0.0")
+                        )
+                    .AddSource("BotSharp")
+                    .AddSource("BotSharp.Server")
+                    .AddSource("BotSharp.Abstraction.Diagnostics")
+                    .AddSource("BotSharp.Core.Routing.Executor")
+                    .AddLangfuseExporter(builder.Configuration)
+                    .AddAspNetCoreInstrumentation()
                         // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                         //.AddGrpcClientInstrumentation()
-                        .AddHttpClientInstrumentation();
+                        .AddHttpClientInstrumentation()
+                        //.AddOtlpExporter(options =>
+                        //{
+                        //    //options.Endpoint = new Uri(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? "http://localhost:4317");
+                        //    options.Endpoint = new Uri(host);
+                        //    options.Protocol = OtlpExportProtocol.HttpProtobuf;
+                        //    options.Headers = $"Authorization=Basic {base64EncodedAuth}";
+                        //})
+                    ;
+                    
+
                 });
 
             builder.AddOpenTelemetryExporters();
@@ -100,6 +123,8 @@ namespace Microsoft.Extensions.Hosting
 
         private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
         {
+            var langfuseSection = builder.Configuration.GetSection("Langfuse");
+            var useLangfuse = langfuseSection != null;
             var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
 
             if (useOtlpExporter)
@@ -107,15 +132,9 @@ namespace Microsoft.Extensions.Hosting
                 builder.Services.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
                 builder.Services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddOtlpExporter());
                 builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter());
-
+ 
             }
-
-            // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-            //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-            //{
-            //    builder.Services.AddOpenTelemetry()
-            //       .UseAzureMonitor();
-            //}
+ 
 
             return builder;
         }

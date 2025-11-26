@@ -30,13 +30,15 @@ public class McpClientManager : IDisposable
             IClientTransport? transport = null;
             if (config.SseConfig != null)
             {
-                transport = new HttpClientTransport(new HttpClientTransportOptions
-                {
-                    Name = config.Name,
-                    Endpoint = new Uri(config.SseConfig.EndPoint),
-                    AdditionalHeaders = config.SseConfig.AdditionalHeaders,
-                    ConnectionTimeout = config.SseConfig.ConnectionTimeout
-                });
+                transport = new HttpClientTransport(
+                    new HttpClientTransportOptions
+                    {
+                        Endpoint = new Uri(config.SseConfig.EndPoint),
+                        TransportMode = HttpTransportMode.AutoDetect,
+                        Name = config.Name,
+                        ConnectionTimeout = config.SseConfig.ConnectionTimeout,
+                        AdditionalHeaders = config.SseConfig.AdditionalHeaders
+                    });
             }
             else if (config.StdioConfig != null)
             {
@@ -62,7 +64,7 @@ public class McpClientManager : IDisposable
             _logger.LogWarning(ex, $"Error when loading mcp client {serverId}");
             return null;
         }
-    }
+    }     
 
     public void Dispose()
     {

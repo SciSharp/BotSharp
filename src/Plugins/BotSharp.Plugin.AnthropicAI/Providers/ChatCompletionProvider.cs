@@ -1,11 +1,13 @@
 using Anthropic.SDK.Common;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Diagnostics.Telemetry;
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Hooks;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using static BotSharp.Abstraction.Diagnostics.Telemetry.TelemetryConstants;
 
 namespace BotSharp.Plugin.AnthropicAI.Providers;
 
@@ -17,22 +19,26 @@ public class ChatCompletionProvider : IChatCompletion
     protected readonly AnthropicSettings _settings;
     protected readonly IServiceProvider _services;
     protected readonly ILogger _logger;
+    protected readonly ITelemetryService _telemetryService;
     private List<string> renderedInstructions = [];
 
     protected string _model;
 
     public ChatCompletionProvider(AnthropicSettings settings,
         ILogger<ChatCompletionProvider> logger,
+        ITelemetryService telemetryService,
         IServiceProvider services)
     {
         _settings = settings;
         _logger = logger;
         _services = services;
+        _telemetryService = telemetryService;
     }
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
         var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
+        var convService = _services.GetRequiredService<IConversationStateService>();
 
         // Before chat completion hook
         foreach (var hook in contentHooks)
@@ -45,53 +51,61 @@ public class ChatCompletionProvider : IChatCompletion
 
         var client = new AnthropicClient(new APIAuthentication(settings.ApiKey));
         var (prompt, parameters) = PrepareOptions(agent, conversations);
-
-        var response = await client.Messages.GetClaudeMessageAsync(parameters);
-
-        RoleDialogModel responseMessage;
-
-        if (response.StopReason == "tool_use")
+        using (var activity = _telemetryService.StartCompletionActivity(null, _model, Provider, conversations, convService))
         {
-            var content = response.Content.OfType<TextContent>().FirstOrDefault();
-            var toolResult = response.Content.OfType<ToolUseContent>().First();
 
-            responseMessage = new RoleDialogModel(AgentRole.Function, content?.Text ?? string.Empty)
+            var response = await client.Messages.GetClaudeMessageAsync(parameters);
+
+            RoleDialogModel responseMessage;
+            activity?.SetTag(ModelDiagnosticsTags.FinishReason, response.StopReason);
+            if (response.StopReason == "tool_use")
             {
-                CurrentAgentId = agent.Id,
-                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                ToolCallId = toolResult.Id,
-                FunctionName = toolResult.Name,
-                FunctionArgs = JsonSerializer.Serialize(toolResult.Input),
-                RenderedInstruction = string.Join("\r\n", renderedInstructions)
-            };
-        }
-        else
-        {
-            var message = response.FirstMessage;
-            responseMessage = new RoleDialogModel(AgentRole.Assistant, message?.Text ?? string.Empty)
+                var content = response.Content.OfType<TextContent>().FirstOrDefault();
+                var toolResult = response.Content.OfType<ToolUseContent>().First();
+
+                responseMessage = new RoleDialogModel(AgentRole.Function, content?.Text ?? string.Empty)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                    ToolCallId = toolResult.Id,
+                    FunctionName = toolResult.Name,
+                    FunctionArgs = JsonSerializer.Serialize(toolResult.Input),
+                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                };
+            }
+            else
             {
-                CurrentAgentId = agent.Id,
-                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                RenderedInstruction = string.Join("\r\n", renderedInstructions)
-            };
-        }
+                var message = response.FirstMessage;
+                responseMessage = new RoleDialogModel(AgentRole.Assistant, message?.Text ?? string.Empty)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                };
+            }
 
-        var tokenUsage = response.Usage;
+            var tokenUsage = response.Usage; 
+            var inputTokenDetails = tokenUsage?.InputTokens ?? 0;
+            var outputTokenDetails = tokenUsage?.OutputTokens ?? 0;
+            var cachedInputTokens = tokenUsage?.CacheReadInputTokens ;
 
-        // After chat completion hook
-        foreach (var hook in contentHooks)
-        {
-            await hook.AfterGenerated(responseMessage, new TokenStatsModel
+            activity?.SetTag(ModelDiagnosticsTags.InputTokens, (inputTokenDetails - cachedInputTokens));
+            activity?.SetTag(ModelDiagnosticsTags.OutputTokens, outputTokenDetails); 
+            // After chat completion hook
+            foreach (var hook in contentHooks)
             {
-                Prompt = prompt,
-                Provider = Provider,
-                Model = _model,
-                TextInputTokens = tokenUsage?.InputTokens ?? 0,
-                TextOutputTokens = tokenUsage?.OutputTokens ?? 0
-            });
+                await hook.AfterGenerated(responseMessage, new TokenStatsModel
+                {
+                    Prompt = prompt,
+                    Provider = Provider,
+                    Model = _model,
+                    TextInputTokens = tokenUsage?.InputTokens ?? 0,
+                    TextOutputTokens = tokenUsage?.OutputTokens ?? 0
+                });
+            }
+            activity?.SetTag("output", responseMessage.Content);
+            return responseMessage;
         }
-
-        return responseMessage;
     }
 
     public Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations,

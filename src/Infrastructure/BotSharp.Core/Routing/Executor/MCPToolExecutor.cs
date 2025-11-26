@@ -1,6 +1,11 @@
+using BotSharp.Abstraction.Diagnostics;
+using BotSharp.Abstraction.Diagnostics.Telemetry;
 using BotSharp.Abstraction.Routing.Executor;
 using BotSharp.Core.MCP.Managers;
+using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
+using System.Diagnostics;
+using static BotSharp.Abstraction.Diagnostics.Telemetry.TelemetryConstants;
 
 namespace BotSharp.Core.Routing.Executor;
 
@@ -9,44 +14,51 @@ public class McpToolExecutor : IFunctionExecutor
     private readonly IServiceProvider _services;
     private readonly string _mcpServerId;
     private readonly string _functionName;
+    private readonly ITelemetryService _telemetryService;
+ 
 
-    public McpToolExecutor(IServiceProvider services, string mcpServerId, string functionName)
-    {
+    public McpToolExecutor(IServiceProvider services, ITelemetryService telemetryService, string mcpServerId, string functionName)
+    { 
         _services = services;
+        _telemetryService = telemetryService;
         _mcpServerId = mcpServerId;
         _functionName = functionName;
     }
 
     public async Task<bool> ExecuteAsync(RoleDialogModel message)
     {
-        try
+        using var activity = _telemetryService.Parent.StartFunctionActivity(this._functionName, $"calling tool {_functionName} of MCP server {_mcpServerId}");
         {
-            // Convert arguments to dictionary format expected by mcpdotnet
-            Dictionary<string, object?> argDict = JsonToDictionary(message.FunctionArgs);
-
-            var clientManager = _services.GetRequiredService<McpClientManager>();
-            var client = await clientManager.GetMcpClientAsync(_mcpServerId);
-
-            if (client == null)
+            try
             {
-                message.Content = $"MCP client for server {_mcpServerId} not found.";
+                activity?.SetTag("input", message.FunctionArgs);
+                activity?.SetTag(ModelDiagnosticsTags.AgentId, message.CurrentAgentId);
+
+                // Convert arguments to dictionary format expected by mcpdotnet
+                Dictionary<string, object> argDict = JsonToDictionary(message.FunctionArgs);
+
+                var clientManager = _services.GetRequiredService<McpClientManager>();
+                var client = await clientManager.GetMcpClientAsync(_mcpServerId);
+ 
+                // Call the tool through mcpdotnet
+                var result = await client.CallToolAsync(_functionName, !argDict.IsNullOrEmpty() ? argDict : []);
+
+                // Extract the text content from the result
+                var json = string.Join("\n", result.Content
+                        .OfType<TextContentBlock>()
+                        .Where(c => c.Type == "text")
+                        .Select(c => c.Text));
+
+                message.Content = json;
+                message.Data = json.JsonContent();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                message.Content = $"Error when calling tool {_functionName} of MCP server {_mcpServerId}. {ex.Message}";
+                activity?.SetError(ex);
                 return false;
             }
-
-            // Call the tool through mcpdotnet
-            var result = await client.CallToolAsync(_functionName, !argDict.IsNullOrEmpty() ? argDict : []);
-
-            // Extract the text content from the result
-            var json = string.Join("\n", result.Content.Where(c => c is TextContentBlock).Select(c => ((TextContentBlock)c).Text));
-
-            message.Content = json;
-            message.Data = json.JsonContent();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            message.Content = $"Error when calling tool {_functionName} of MCP server {_mcpServerId}. {ex.Message}";
-            return false;
         }
     }
 

@@ -16,6 +16,7 @@ using BotSharp.Core.Templating;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Repositories.Settings;
+using BotSharp.Abstraction.Diagnostics;
 
 namespace BotSharp.Core;
 
@@ -31,7 +32,7 @@ public static class BotSharpCoreExtensions
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ProcessorFactory>();
-
+        services.AddOpenTelemetry(config);
         AddRedisEvents(services, config);
         // Register cache service
         AddCacheServices(services, config);

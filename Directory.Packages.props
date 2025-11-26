@@ -3,6 +3,11 @@
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     </PropertyGroup>
     <ItemGroup>
+        <PackageVersion Include="DeviceId" Version="6.9.0" />
+        <PackageVersion Include="DeviceId.Linux" Version="6.9.0" />
+        <PackageVersion Include="DeviceId.Mac" Version="6.9.0" />
+        <PackageVersion Include="DeviceId.Windows" Version="6.9.0" />
+        <PackageVersion Include="DeviceId.Windows.Wmi" Version="6.9.0" />
         <PackageVersion Include="CsvHelper" Version="33.1.0" />
         <PackageVersion Include="FuzzySharp" Version="2.0.2" />
         <PackageVersion Include="EntityFramework" Version="6.4.4" />
@@ -33,7 +38,7 @@
         <PackageVersion Include="Whisper.net.Runtime" Version="1.8.1" />
         <PackageVersion Include="NCrontab" Version="3.3.3" />
         <PackageVersion Include="Azure.AI.OpenAI" Version="2.5.0-beta.1" />
-        <PackageVersion Include="OpenAI" Version="2.6.0" />
+        <PackageVersion Include="OpenAI" Version="2.5.0" />
         <PackageVersion Include="MailKit" Version="4.14.1" />
         <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.0" />
         <PackageVersion Include="MySql.Data" Version="9.5.0" />
@@ -100,7 +105,8 @@
         <PackageVersion Include="MSTest.TestFramework" Version="4.0.2" />
         <PackageVersion Include="Shouldly" Version="4.3.0" />
         <PackageVersion Include="ModelContextProtocol" Version="0.4.0-preview.3" />
-        <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.4.0-preview.3" />
+        <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.4.0-preview.3" />      
+        <PackageVersion Include="Langfuse.OpenTelemetry" Version="1.0.0" />
     </ItemGroup>
     <ItemGroup>
         <PackageVersion Include="BotSharp.Core" Version="$(BotSharpVersion)" />
@@ -165,7 +171,7 @@
         <PackageVersion Include="System.Text.Json" Version="8.0.5" />
         <PackageVersion Include="Serilog.Extensions.Hosting" Version="8.0.0" />
         <PackageVersion Include="Serilog.Extensions.Logging" Version="8.0.0" />
-    </ItemGroup>
+    </ItemGroup> 
     <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
         <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.9.0" />
         <PackageVersion Include="AspNet.Security.OAuth.GitHub" Version="6.0.15" />

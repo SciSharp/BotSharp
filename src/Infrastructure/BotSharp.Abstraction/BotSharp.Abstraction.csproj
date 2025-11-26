@@ -33,6 +33,11 @@
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.File" />
     <PackageReference Include="Rougamo.Fody" />
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="DeviceId" />
+    <PackageReference Include="DeviceId.Linux" />
+    <PackageReference Include="DeviceId.Mac" />
+    <PackageReference Include="DeviceId.Windows" />
+    <PackageReference Include="DeviceId.Windows.Wmi" />
   </ItemGroup>
-
 </Project>
