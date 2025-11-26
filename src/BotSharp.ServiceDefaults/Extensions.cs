@@ -131,35 +131,10 @@ namespace Microsoft.Extensions.Hosting
             {
                 builder.Services.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
                 builder.Services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddOtlpExporter());
-                //if (useLangfuse)
-                //{                    
-                //    var publicKey = langfuseSection.GetValue<string>(nameof(LangfuseSettings.PublicKey)) ?? string.Empty;
-                //    var secretKey = langfuseSection.GetValue<string>(nameof(LangfuseSettings.SecretKey)) ?? string.Empty;
-                //    var host = langfuseSection.GetValue<string>(nameof(LangfuseSettings.Host)) ?? string.Empty;
-                //    var plainTextBytes = System.Text.Encoding.UTF8.GetBytes($"{publicKey}:{secretKey}");
-                //    string base64EncodedAuth = Convert.ToBase64String(plainTextBytes);
-
-                //    builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter(options =>
-                //    {
-                //        options.Endpoint = new Uri(host);
-                //        options.Protocol = OtlpExportProtocol.HttpProtobuf;
-                //        options.Headers = $"Authorization=Basic {base64EncodedAuth}";
-                //    })
-                //    );
-                     
-                //}
-                //else
-                //{
-                    builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter());
-                //}
+                builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter());
+ 
             }
-
-            // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-            //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-            //{
-            //    builder.Services.AddOpenTelemetry()
-            //       .UseAzureMonitor();
-            //}
+ 
 
             return builder;
         }
