@@ -36,8 +36,8 @@ public class RoleController : ControllerBase
     }
 
     [BotSharpAuth]
-    [HttpPost("/roles")]
-    public async Task<IEnumerable<RoleViewModel>> GetRoles([FromBody] RoleFilter? filter = null)
+    [HttpGet("/roles")]
+    public async Task<IEnumerable<RoleViewModel>> GetRoles([FromQuery] RoleFilter? filter = null)
     {
         if (filter == null)
         {
