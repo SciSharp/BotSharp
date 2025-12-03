@@ -1,5 +1,7 @@
+using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using System.Globalization;
 using System.Linq.Dynamic.Core;
 
 namespace BotSharp.Plugin.ExcelHandler.Functions;
@@ -69,7 +71,7 @@ public class ReadExcelFn : IFunctionCallback
     {
         if (_excelFileTypes.IsNullOrEmpty())
         {
-            _excelFileTypes = FileUtility.GetMimeFileTypes(["excel", "spreadsheet"]).ToHashSet();
+            _excelFileTypes = FileUtility.GetMimeFileTypes(["excel", "spreadsheet", "csv"]).ToHashSet();
         }
     }
 
@@ -133,7 +135,7 @@ public class ReadExcelFn : IFunctionCallback
             }
 
             var binary = _fileStorage.GetFileBytes(file.FileStorageUrl);
-            var workbook = ConvertToWorkBook(binary);
+            var workbook = ConvertToWorkbook(binary, extension);
 
             var currentCommands = _dbService.WriteExcelDataToDB(workbook);
             sqlCommands.AddRange(currentCommands);
@@ -167,11 +169,22 @@ public class ReadExcelFn : IFunctionCallback
         return stringBuilder.ToString();
     }
 
-    private IWorkbook ConvertToWorkBook(BinaryData binary)
+    private IWorkbook ConvertToWorkbook(BinaryData binary, string extension)
     {
-        using var fileStream = new MemoryStream(binary.ToArray());
-        IWorkbook workbook = new XSSFWorkbook(fileStream);
-        return workbook;
+        var bytes = binary.ToArray();
+
+        if (extension.IsEqualTo(".csv"))
+        {
+            return ExcelHelper.ConvertCsvToWorkbook(bytes);
+        }
+
+        using var fileStream = new MemoryStream(bytes);
+        if (extension.IsEqualTo(".xls"))
+        {
+            return new HSSFWorkbook(fileStream);
+        }
+
+        return new XSSFWorkbook(fileStream);
     }
     #endregion
 }
