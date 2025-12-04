@@ -6,6 +6,7 @@ global using BotSharp.Abstraction.Conversations;
 global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Conversations.Settings;
 global using BotSharp.Abstraction.Coding.Models;
+global using BotSharp.Abstraction.Coding.Settings;
 global using BotSharp.Abstraction.Crontab.Models;
 global using BotSharp.Abstraction.Files;
 global using BotSharp.Abstraction.Files.Enums;

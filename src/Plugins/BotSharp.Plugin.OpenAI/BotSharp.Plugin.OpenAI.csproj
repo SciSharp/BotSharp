@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenAI" />
+    <PackageReference Include="Rougamo.Fody" />
   </ItemGroup>
 
   <ItemGroup>

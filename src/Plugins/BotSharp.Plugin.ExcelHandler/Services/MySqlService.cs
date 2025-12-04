@@ -162,11 +162,13 @@ public class MySqlService : IDbService
     private List<string> ParseSheetColumn(ISheet sheet)
     {
         if (sheet.PhysicalNumberOfRows < 2)
+        {
             throw new Exception("No data found in the excel file");
+        }
 
         _excelRowSize = sheet.PhysicalNumberOfRows - 1;
         var headerRow = sheet.GetRow(0);
-        var headerColumn = headerRow.Cells.Select(x => x.StringCellValue.Replace(" ", "_")).ToList();
+        var headerColumn = headerRow.Cells.Where(x => !string.IsNullOrWhiteSpace(x.StringCellValue)).Select(x => x.StringCellValue.Replace(" ", "_")).ToList();
         _excelColumnSize = headerColumn.Count;
         return headerColumn;
     }

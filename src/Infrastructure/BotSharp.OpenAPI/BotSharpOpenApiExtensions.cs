@@ -8,7 +8,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
-using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.JsonWebTokens;
 using BotSharp.OpenAPI.BackgroundServices;
 using System.Text.Json.Serialization;
@@ -96,6 +95,10 @@ public static class BotSharpOpenApiExtensions
                 options.ClientId = config["OAuth:GitHub:ClientId"];
                 options.ClientSecret = config["OAuth:GitHub:ClientSecret"];
                 options.Events.OnTicketReceived = OnTicketReceivedContext;
+
+                // Add the scope for user email for GitHub OAuth
+                // Have to add this scope to get user email when using invite link
+                options.Scope.Add("user:email");
             });
         }
 
@@ -157,26 +160,6 @@ public static class BotSharpOpenApiExtensions
         services.AddSwaggerGen(
             c =>
             {
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                {
-                    In = ParameterLocation.Header,
-                    Description = "Please insert JWT with Bearer into field",
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey
-                });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-                   {
-                     new OpenApiSecurityScheme
-                     {
-                       Reference = new OpenApiReference
-                       {
-                         Type = ReferenceType.SecurityScheme,
-                         Id = "Bearer"
-                       }
-                      },
-                      Array.Empty<string>()
-                   }
-                });
             }
         );
 

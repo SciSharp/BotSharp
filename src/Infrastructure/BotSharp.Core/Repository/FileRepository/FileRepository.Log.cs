@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.Loggers.Models;
 using System.IO;
+using System.Text.RegularExpressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BotSharp.Core.Repository
 {
@@ -240,6 +242,11 @@ namespace BotSharp.Core.Repository
                 if (!filter.TemplateNames.IsNullOrEmpty())
                 {
                     matched = matched && filter.TemplateNames.Contains(log.TemplateName);
+                }
+                if (!string.IsNullOrEmpty(filter.SimilarTemplateName))
+                {
+                    var regex = new Regex(filter.SimilarTemplateName, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    matched = matched && !string.IsNullOrEmpty(log.TemplateName) && regex.IsMatch(log.TemplateName);
                 }
                 if (!filter.UserIds.IsNullOrEmpty())
                 {

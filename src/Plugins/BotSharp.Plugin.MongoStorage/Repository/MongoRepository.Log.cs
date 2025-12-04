@@ -224,6 +224,10 @@ public partial class MongoRepository
         {
             logFilters.Add(logBuilder.In(x => x.TemplateName, filter.TemplateNames));
         }
+        if (!string.IsNullOrEmpty(filter.SimilarTemplateName))
+        {
+            logFilters.Add(logBuilder.Regex(x => x.TemplateName, new BsonRegularExpression(filter.SimilarTemplateName, "i")));
+        }
         if (filter.StartTime.HasValue)
         {
             logFilters.Add(logBuilder.Gte(x => x.CreatedTime, filter.StartTime.Value));
