@@ -6,15 +6,12 @@ namespace BotSharp.Plugin.ExcelHandler.Services;
 public class SqliteService : IDbService
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<SqliteService> _logger;
+    private readonly ILogger _logger;
     private readonly ExcelHandlerSettings _settings;
 
-    private string _dbFilePath = string.Empty;
-    private SqliteConnection _inMemoryDbConnection = null;
     private double _excelRowSize = 0;
     private double _excelColumnSize = 0;
     private string _tableName = "tempTable";
-    private string _currentFileName = string.Empty;
     private List<string> _headerColumns = new List<string>();
     private List<string> _columnTypes = new List<string>();
 
@@ -38,24 +35,23 @@ public class SqliteService : IDbService
         for (int sheetIdx = 0; sheetIdx < numTables; sheetIdx++)
         {
             ISheet sheet = workbook.GetSheetAt(sheetIdx);
+
+            // create table
             var (isCreateSuccess, message) = SqlCreateTableFn(sheet);
 
-            if (!isCreateSuccess)
-            {
-                results.Add(new SqlContextOut
-                {
-                    isSuccessful = isCreateSuccess,
-                    Message = message,
-                    FileName = _currentFileName
-                });
-                continue;
-            }
-            var (isInsertSuccess, insertMessage) = SqlInsertDataFn(sheet);
             results.Add(new SqlContextOut
             {
-                isSuccessful = isInsertSuccess,
-                Message = insertMessage,
-                FileName = _currentFileName
+                IsSuccessful = isCreateSuccess,
+                Message = message
+            });
+
+            // insert data
+            var (isInsertSuccess, insertMessage) = SqlInsertDataFn(sheet);
+
+            results.Add(new SqlContextOut
+            {
+                IsSuccessful = isInsertSuccess,
+                Message = insertMessage
             });
         }
         return results;
@@ -69,13 +65,17 @@ public class SqliteService : IDbService
         {
             string dataSql = ParseSheetData(sheet);
             string insertDataSql = ProcessInsertSqlQuery(dataSql);
-            ExecuteSqlQueryForInsertion(insertDataSql);
+            var insertedRowCount = ExecuteSqlQueryForInsertion(insertDataSql);
 
-            return (true, $"{_currentFileName}: \r\n {_excelRowSize} records have been successfully inserted into `{_tableName}` table");
+            // List top 3 rows
+            var top3rows = dataSql.Split("\r").Take(3);
+            var dataSample = string.Join("\r", dataSql.Split("\r").Take(3)).Trim(',', ' ');
+
+            return (true, $"{insertedRowCount} records have been successfully inserted into `{_tableName}` table. Top {top3rows.Count()} rows:\r\n{dataSample}");
         }
         catch (Exception ex)
         {
-            return (false, $"{_currentFileName}: Failed to parse excel data into `{_tableName}` table. ####Error: {ex.Message}");
+            return (false, $"Failed to parse excel data into `{_tableName}` table. ####Error: {ex.Message}");
         }
     }
 
@@ -86,8 +86,10 @@ public class SqliteService : IDbService
             _tableName = sheet.SheetName;
             _headerColumns = ParseSheetColumn(sheet);
             string createTableSql = CreateDBTableSqlString(_tableName, _headerColumns, null);
-            ExecuteSqlQueryForInsertion(createTableSql);
-            return (true, $"{_tableName} has been successfully created.");
+            var rowCount = ExecuteSqlQueryForInsertion(createTableSql);
+            // Get table schema using sqlite query
+            var schema = GenerateTableSchema();
+            return (true, $"Table `{_tableName}` has been successfully created in {Provider}. Table schema:\r\n{schema}");
         }
         catch (Exception ex)
         {
@@ -166,25 +168,19 @@ public class SqliteService : IDbService
     {
         var wrapUpCols = _headerColumns.Select(x => $"`{x}`").ToList();
         var transferedCols = '(' + string.Join(',', wrapUpCols) + ')';
-        string insertSqlQuery = $"Insert into {_tableName} {transferedCols} Values {dataSql}";
+        string insertSqlQuery = $"INSERT INTO {_tableName} {transferedCols} VALUES {dataSql}";
         return insertSqlQuery;
     }
 
-    private void ExecuteSqlQueryForInsertion(string query)
+    private int ExecuteSqlQueryForInsertion(string query)
     {
-        var physicalDbConnection = GetPhysicalDbConnection();
-        var inMemoryDbConnection = GetInMemoryDbConnection();
+        using var conn = GetDbConnection();
 
-        physicalDbConnection.BackupDatabase(inMemoryDbConnection, "main", "main");
-        physicalDbConnection.Close();
+        using var command = new SqliteCommand();
+        command.CommandText = query;
+        command.Connection = conn;
 
-        using (var command = new SqliteCommand())
-        {
-            command.CommandText = query;
-            command.Connection = inMemoryDbConnection;
-            command.ExecuteNonQuery();
-        }
-        inMemoryDbConnection.BackupDatabase(physicalDbConnection);
+        return command.ExecuteNonQuery();
     }
 
     private void DeleteTableSqlQuery()
@@ -198,8 +194,8 @@ public class SqliteService : IDbService
                     type = 'table' AND
                     name NOT LIKE 'sqlite_%'
             ";
-        var physicalDbConnection = GetPhysicalDbConnection();
-        using var selectCmd = new SqliteCommand(deleteTableSql, physicalDbConnection);
+        using var conn = GetDbConnection();
+        using var selectCmd = new SqliteCommand(deleteTableSql, conn);
         using var reader = selectCmd.ExecuteReader();
         if (reader.HasRows)
         {
@@ -212,11 +208,11 @@ public class SqliteService : IDbService
             }
             dropTableQueries.ForEach(query =>
             {
-                using var dropTableCommand = new SqliteCommand(query, physicalDbConnection);
+                using var dropTableCommand = new SqliteCommand(query, conn);
                 dropTableCommand.ExecuteNonQuery();
             });
         }
-        physicalDbConnection.Close();
+        conn.Close();
     }
 
     private string GenerateTableSchema()
@@ -237,26 +233,30 @@ public class SqliteService : IDbService
     #endregion
 
     #region Db connection
-    private SqliteConnection GetInMemoryDbConnection()
+    private SqliteConnection GetDbConnection()
     {
-        if (_inMemoryDbConnection == null)
+        var connectionString = _settings.Database.ConnectionString;
+        
+        // Extract the database file path from the connection string
+        var builder = new SqliteConnectionStringBuilder(connectionString);
+        var dbFilePath = builder.DataSource;
+
+        _logger.LogInformation("Database file path: {DbFilePath}", dbFilePath);
+        
+        // If it's not an in-memory database, ensure the directory exists
+        if (!string.IsNullOrEmpty(dbFilePath) && 
+            !dbFilePath.Equals(":memory:", StringComparison.OrdinalIgnoreCase))
         {
-            _logger.LogInformation($"Init in-memory Sqlite database connection");
-
-            _inMemoryDbConnection = new SqliteConnection("Data Source=:memory:;Mode=ReadWrite");
-            _inMemoryDbConnection.Open();
+            var directory = Path.GetDirectoryName(dbFilePath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+                _logger.LogInformation("Created directory: {Directory}", directory);
+            }
         }
-        return _inMemoryDbConnection;
-    }
-
-    private SqliteConnection GetPhysicalDbConnection()
-    {
-        if (string.IsNullOrEmpty(_dbFilePath))
-        {
-            _dbFilePath = _settings.Database.ConnectionString;
-        }
-
-        var dbConnection = new SqliteConnection($"Data Source={_dbFilePath};Mode=ReadWrite");
+        
+        // SQLite automatically creates the database file when opening the connection
+        var dbConnection = new SqliteConnection(connectionString);
         dbConnection.Open();
         return dbConnection;
     }

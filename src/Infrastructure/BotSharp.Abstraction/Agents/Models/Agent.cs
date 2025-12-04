@@ -1,9 +1,11 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Tasks.Models;
+using System.Diagnostics;
 
 namespace BotSharp.Abstraction.Agents.Models;
 
+[DebuggerStepThrough]
 public class Agent
 {
     public string Id { get; set; } = string.Empty;

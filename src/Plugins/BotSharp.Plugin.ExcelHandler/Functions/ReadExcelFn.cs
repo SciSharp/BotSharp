@@ -146,26 +146,14 @@ public class ReadExcelFn : IFunctionCallback
     private string GenerateSqlExecutionSummary(List<SqlContextOut> results)
     {
         var stringBuilder = new StringBuilder();
-        if (results.Any(x => x.isSuccessful))
+
+        stringBuilder.Append("\r\n");
+        foreach (var result in results)
         {
-            stringBuilder.Append("---Success---");
-            stringBuilder.Append("\r\n");
-            foreach (var result in results.Where(x => x.isSuccessful))
-            {
-                stringBuilder.Append(result.Message);
-                stringBuilder.Append("\r\n\r\n");
-            }
+            stringBuilder.Append(result.Message);
+            stringBuilder.Append("\r\n\r\n");
         }
-        if (results.Any(x => !x.isSuccessful))
-        {
-            stringBuilder.Append("---Failed---");
-            stringBuilder.Append("\r\n");
-            foreach (var result in results.Where(x => !x.isSuccessful))
-            {
-                stringBuilder.Append(result.Message);
-                stringBuilder.Append("\r\n");
-            }
-        }
+
         return stringBuilder.ToString();
     }
 

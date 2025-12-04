@@ -49,9 +49,8 @@ public class MySqlService : IDbService
             {
                 results.Add(new SqlContextOut
                 {
-                    isSuccessful = isCreateSuccess,
-                    Message = message,
-                    FileName = _currentFileName
+                    IsSuccessful = isCreateSuccess,
+                    Message = message
                 });
                 continue;
             }
@@ -64,9 +63,8 @@ public class MySqlService : IDbService
 
             results.Add(new SqlContextOut
             {
-                isSuccessful = isInsertSuccess,
-                Message = $"{insertMessage}\r\nExample Data: {exampleData}. \r\n The remaining data contains different values. ",
-                FileName = _currentFileName
+                IsSuccessful = isInsertSuccess,
+                Message = $"{insertMessage}\r\nExample Data: {exampleData}. \r\n The remaining data contains different values. "
             });
         }
         return results;
