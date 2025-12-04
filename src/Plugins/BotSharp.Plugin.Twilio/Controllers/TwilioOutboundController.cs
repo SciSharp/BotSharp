@@ -53,15 +53,7 @@ public class TwilioOutboundController : TwilioController
             {
                 instruction.SpeechPaths.Add(request.InitAudioFile);
             }
-
-            if (request.WelcomeMessageAllowToBeInterrupted.HasValue && request.WelcomeMessageAllowToBeInterrupted.Value)
-            {
-                response = twilio.ReturnInstructions(instruction);
-            }
-            else
-            {
-                response = twilio.ReturnNoninterruptedInstructions(instruction);
-            }
+            response = twilio.ReturnNoninterruptedInstructions(instruction);
         }
 
         return TwiML(response);
