@@ -29,6 +29,12 @@ public class CrontabItem : ScheduleTaskArgs
     [JsonPropertyName("created_time")]
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 
+    [JsonPropertyName("trigger_by_watcher")]
+    public bool TriggerByWatcher { get; set; } = true;
+
+    [JsonPropertyName("trigger_by_openapi")]
+    public bool TriggerByOpenAPI { get; set; }
+
     public override string ToString()
     {
         return $"{Title}: {Description} [AgentId: {AgentId}, UserId: {UserId}]";
