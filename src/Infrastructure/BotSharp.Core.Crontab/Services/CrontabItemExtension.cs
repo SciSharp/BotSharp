@@ -14,13 +14,13 @@ namespace BotSharp.Core.Crontab.Services
             });
 
             var currentTime = DateTime.UtcNow;
+            var currentMinute = new DateTime(currentTime.Year, currentTime.Month, currentTime.Day,
+                                   currentTime.Hour, currentTime.Minute, 0, DateTimeKind.Utc);
 
-            // Check if there has been an execution point within the past minute.
-            var oneMinuteAgo = currentTime.AddMinutes(-1);
-            var nextOccurrenceFromPast = schedule.GetNextOccurrence(oneMinuteAgo);
+            var oneMinuteAgo = currentMinute.AddMinutes(-1);
+            var nextOccurrence = schedule.GetNextOccurrence(oneMinuteAgo);
 
-            // If the next execution point falls within the past minute up to the present, then it matches.
-            return nextOccurrenceFromPast > oneMinuteAgo && nextOccurrenceFromPast <= currentTime;
+            return nextOccurrence == currentMinute;
         }
     }
 }

@@ -22,14 +22,27 @@ public class CrontabController : ControllerBase
     [HttpPost("/crontab/{name}")]
     public async Task<bool> RunCrontab(string name)
     {
-        var found = await GetCrontabItems(name);
-        if (found.IsNullOrEmpty())
+        var cron = _services.GetRequiredService<ICrontabService>();
+        var crons = await cron.GetCrontable();
+        var found = crons.FirstOrDefault(x => x.Title.IsEqualTo(name));
+        if (found == null)
         {
             _logger.LogWarning($"Cannnot find crontab {name}");
             return false;
         }
 
-        return await ExecuteTimeArrivedItem(found.First());
+        try
+        {
+            _logger.LogWarning($"Start running crontab {name}");
+            await cron.ScheduledTimeArrived(found);
+            _logger.LogWarning($"Complete running crontab {name}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when running crontab {name}");
+            return false;
+        }
     }
 
     /// <summary>
