@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
@@ -35,6 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BotSharp.Core.Crontab\BotSharp.Core.Crontab.csproj" />
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
     <ProjectReference Include="..\BotSharp.Logger\BotSharp.Logger.csproj" />
   </ItemGroup>
