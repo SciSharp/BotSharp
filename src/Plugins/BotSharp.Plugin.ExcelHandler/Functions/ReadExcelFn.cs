@@ -9,7 +9,7 @@ namespace BotSharp.Plugin.ExcelHandler.Functions;
 public class ReadExcelFn : IFunctionCallback
 {
     public string Name => "util-excel-handle_excel_request";
-    public string Indication => "Reading excel";
+    public string Indication => "Importing data from file...";
 
     private readonly IServiceProvider _services;
     private readonly IFileStorageService _fileStorage;
@@ -60,7 +60,7 @@ public class ReadExcelFn : IFunctionCallback
 
         var results = GetResponeFromDialogs(dialogs);
         message.Content = GenerateSqlExecutionSummary(results);
-        states.SetState("excel_import_result",message.Content);
+        states.SetState("excel_import_result", message.Content);
         dialogs.ForEach(x => x.Files = null);
         return true;
     }

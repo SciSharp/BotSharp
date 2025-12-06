@@ -36,6 +36,9 @@ public class SqliteService : IDbService
         {
             ISheet sheet = workbook.GetSheetAt(sheetIdx);
 
+            // clear existing data
+            DeleteTableSqlQuery();
+
             // create table
             var (isCreateSuccess, message) = SqlCreateTableFn(sheet);
 

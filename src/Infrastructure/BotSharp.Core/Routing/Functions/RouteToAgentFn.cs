@@ -12,7 +12,7 @@ public partial class RouteToAgentFn : IFunctionCallback
     public string Name => "route_to_agent";
     private readonly IServiceProvider _services;
     private readonly IRoutingContext _context;
-
+    public string Indication => "Routing to the specified AI agent...";
     public RouteToAgentFn(IServiceProvider services, IRoutingContext context)
     {
         _services = services;
