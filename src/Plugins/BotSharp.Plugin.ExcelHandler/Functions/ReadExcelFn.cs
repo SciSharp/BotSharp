@@ -58,9 +58,10 @@ public class ReadExcelFn : IFunctionCallback
             return true;
         }
 
-        var results = GetResponeFromDialogs(dialogs);
+        var results = ImportDataFromDialogs(dialogs);
         message.Content = GenerateSqlExecutionSummary(results);
-        states.SetState("excel_import_result", message.Content);
+        states.SetState("data_import_result", message.Content);
+        states.SetState("data_import_dbtype", _dbService.Provider.ToString());
         dialogs.ForEach(x => x.Files = null);
         return true;
     }
@@ -116,7 +117,7 @@ public class ReadExcelFn : IFunctionCallback
         return true;
     }
 
-    private List<SqlContextOut> GetResponeFromDialogs(List<RoleDialogModel> dialogs)
+    private List<SqlContextOut> ImportDataFromDialogs(List<RoleDialogModel> dialogs)
     {
         var sqlCommands = new List<SqlContextOut>();
         var dialog = dialogs.Last(x => !x.Files.IsNullOrEmpty());

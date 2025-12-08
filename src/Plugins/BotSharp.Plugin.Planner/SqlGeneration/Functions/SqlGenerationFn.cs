@@ -37,7 +37,7 @@ public class SqlGenerationFn : IFunctionCallback
         var domainKnowledge = states.GetState("planning_result");
         domainKnowledge += "\r\n" + states.GetState("domain_knowledges");
         var dictionaryItems = states.GetState("dictionary_items");
-        var excelImportResult = states.GetState("excel_import_result");
+        var excelImportResult = states.GetState("data_import_result");
 
         foreach (var step in steps)
         {
@@ -107,7 +107,7 @@ public class SqlGenerationFn : IFunctionCallback
             { "domain_knowledges", domainKnowledge },
             { "dictionary_items", dictionaryItems },
             { "table_structure", ddlStatement },
-            { "excel_import_result", excelImportResult }
+            { "data_import_result", excelImportResult }
         });
     }
     private async Task<RoleDialogModel> GetAiResponse(Agent plannerAgent)

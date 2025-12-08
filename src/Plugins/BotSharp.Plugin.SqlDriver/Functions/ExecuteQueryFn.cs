@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
 using MySqlConnector;
 using Npgsql;
+using System.Text;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
@@ -53,7 +54,8 @@ public class ExecuteQueryFn : IFunctionCallback
                 return true;
             }
 
-            message.Content = JsonSerializer.Serialize(results);
+            message.Content = FormatResultsToCsv(results);
+            message.Data = results;
         }
         catch (DbException ex)
         {
@@ -95,6 +97,59 @@ public class ExecuteQueryFn : IFunctionCallback
         }
 
         return true;
+    }
+
+    private string FormatResultsToCsv(IEnumerable<dynamic> results)
+    {
+        if (results == null || !results.Any())
+        {
+            return string.Empty;
+        }
+
+        var sb = new StringBuilder();
+        var firstRow = results.First() as IDictionary<string, object>;
+        
+        if (firstRow == null)
+        {
+            return string.Empty;
+        }
+
+        // Write CSV header
+        var headers = firstRow.Keys.ToList();
+        sb.AppendLine(string.Join(",", headers.Select(h => EscapeCsvField(h))));
+
+        // Write CSV rows
+        foreach (var row in results)
+        {
+            var rowDict = row as IDictionary<string, object>;
+            if (rowDict != null)
+            {
+                var values = headers.Select(h => 
+                {
+                    var value = rowDict.ContainsKey(h) ? rowDict[h] : null;
+                    return EscapeCsvField(value?.ToString() ?? string.Empty);
+                });
+                sb.AppendLine(string.Join(",", values));
+            }
+        }
+
+        return sb.ToString().TrimEnd();
+    }
+
+    private string EscapeCsvField(string field)
+    {
+        if (string.IsNullOrEmpty(field))
+        {
+            return string.Empty;
+        }
+
+        // If field contains comma, quote, or newline, wrap in quotes and escape quotes
+        if (field.Contains(',') || field.Contains('"') || field.Contains('\n') || field.Contains('\r'))
+        {
+            return $"\"{field.Replace("\"", "\"\"")}\"";
+        }
+
+        return field;
     }
 
     private IEnumerable<dynamic> RunQueryInMySql(string[] sqlTexts)
