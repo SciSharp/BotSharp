@@ -102,7 +102,7 @@ public class MongoDbContext
             return;
         }
 
-        // Perform index creation (only executed on the first call).）
+        // Perform index creation (only executed on the first call).
         CreateConversationIndex();
         CreateConversationStateIndex();
         CreateContentLogIndex();
