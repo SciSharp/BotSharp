@@ -69,6 +69,14 @@ public class ChatCompletionProvider : IChatCompletion
                 responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
             }
         }
+        else if (reason == ChatFinishReason.Length)
+        {
+            responseMessage = new RoleDialogModel(AgentRole.Function, $"AI response execeed max output length {options.MaxOutputTokenCount}")
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty
+            };
+        }
         else
         {
             responseMessage = new RoleDialogModel(AgentRole.Assistant, text)

@@ -336,7 +336,8 @@ public partial class InstructService
         {
             Id = agent.Id,
             Name = agent.Name,
-            Instruction = instruction
+            Instruction = instruction,
+            LlmConfig = agent.LlmConfig
         }, new List<RoleDialogModel>
         {
             new RoleDialogModel(AgentRole.User, text)

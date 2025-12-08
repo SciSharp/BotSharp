@@ -1,6 +1,7 @@
 using BotSharp.Core.Infrastructures;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
 using MySqlConnector;
 using Npgsql;
 
@@ -27,6 +28,7 @@ public class ExecuteQueryFn : IFunctionCallback
         //var refinedArgs = await RefineSqlStatement(message, args);
         var dbHook = _services.GetRequiredService<ISqlDriverHook>();
         var dbType = dbHook.GetDatabaseType(message);
+        var dbConnectionString = dbHook.GetConnectionString(message);
 
         try
         {
@@ -35,6 +37,7 @@ public class ExecuteQueryFn : IFunctionCallback
                 "mysql" => RunQueryInMySql(args.SqlStatements),
                 "sqlserver" or "mssql" => RunQueryInSqlServer(args.SqlStatements),
                 "redshift" => RunQueryInRedshift(args.SqlStatements),
+                "sqlite" => RunQueryInSqlite(dbConnectionString, args.SqlStatements),
                 _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
             };
 
@@ -113,6 +116,13 @@ public class ExecuteQueryFn : IFunctionCallback
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         using var connection = new NpgsqlConnection(settings.RedshiftConnectionString);
         return connection.Query(string.Join("\r\n", sqlTexts));
+    }
+
+    private IEnumerable<dynamic> RunQueryInSqlite(string connectionString, string[] sqlTexts)
+    {
+        var settings = _services.GetRequiredService<SqlDriverSetting>();
+        using var connection = new SqliteConnection(connectionString);
+        return connection.Query(sqlTexts[0]);
     }
 
     private async Task<ExecuteQueryArgs> RefineSqlStatement(RoleDialogModel message, ExecuteQueryArgs args)
