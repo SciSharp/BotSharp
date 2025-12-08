@@ -102,7 +102,7 @@ public class MongoDbContext
             return;
         }
 
-        // Perform index creation (only executed on the first call).）
+        // Perform index creation (only executed on the first call)
         CreateConversationIndex();
         CreateConversationStateIndex();
         CreateContentLogIndex();
@@ -111,104 +111,147 @@ public class MongoDbContext
         CreateAgentCodeScriptIndex();
         CreateAgentTaskIndex();
     }
-    private IMongoCollection<AgentCodeScriptDocument> CreateAgentCodeScriptIndex()
+
+    /// <summary>
+    /// Gets all index names from a collection
+    /// </summary>
+    private HashSet<string> GetIndexNames<T>(IMongoCollection<T> collection)
+    {
+        var indexes = collection.Indexes.List().ToList();
+        var indexNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        
+        foreach (var index in indexes)
+        {
+            if (index.Contains("name"))
+            {
+                var nameElement = index["name"];
+                if (nameElement != BsonNull.Value && nameElement.IsString)
+                {
+                    indexNames.Add(nameElement.AsString);
+                }
+            }
+        }
+        
+        return indexNames;
+    }
+
+    /// <summary>
+    /// Checks if an index exists by field name pattern
+    /// </summary>
+    private bool IndexExistsByField<T>(IMongoCollection<T> collection, string fieldName)
+    {
+        var indexNames = GetIndexNames(collection);
+        // MongoDB index names follow pattern: fieldName_1 or fieldName_-1 for ascending/descending
+        return indexNames.Any(name => 
+            name.Equals(fieldName + "_1", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals(fieldName + "_-1", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals(fieldName, StringComparison.OrdinalIgnoreCase) ||
+            name.StartsWith(fieldName + "_", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Creates an index if it doesn't exist, with error handling
+    /// </summary>
+    private void EnsureIndex<T>(IMongoCollection<T> collection, IndexKeysDefinition<T> indexKeyDef, string? indexName = null, CreateIndexOptions? options = null) where T : MongoBase
+    {
+        try
+        {
+            var indexOptions = options ?? new CreateIndexOptions();
+            if (!string.IsNullOrWhiteSpace(indexName))
+            {
+                indexOptions.Name = indexName;
+            }
+
+            var indexModel = new CreateIndexModel<T>(indexKeyDef, indexOptions);
+            collection.Indexes.CreateOne(indexModel);
+        }
+        catch (MongoCommandException ex) when (ex.CodeName == "IndexOptionsConflict" || ex.CodeName == "IndexKeySpecsConflict" || ex.Code == 85)
+        {
+            // Index already exists with different options or duplicate key, which is acceptable
+        }
+        catch (MongoWriteException ex) when (ex.WriteError?.Code == 85)
+        {
+            // Duplicate key error, index already exists
+        }
+    }
+
+    private void CreateAgentCodeScriptIndex()
     {
         var collection = GetCollectionOrCreate<AgentCodeScriptDocument>("AgentCodeScripts");
-        var curIndexes = collection.Indexes.List().ToList().Where(x => x.Contains("name")).Select(x => x["name"].AsString);
+        var indexNames = GetIndexNames(collection);
 
-        if (!curIndexes.Any(x => x.StartsWith("AgentId")))
+        bool IndexExists(string fieldName) => indexNames.Any(name => 
+            name.Equals(fieldName + "_1", StringComparison.OrdinalIgnoreCase) ||
+            name.StartsWith(fieldName + "_", StringComparison.OrdinalIgnoreCase));
+
+        if (!IndexExists("AgentId"))
         {
-            CreateIndex(collection, Builders<AgentCodeScriptDocument>.IndexKeys.Ascending(x => x.AgentId));
+            EnsureIndex(collection, Builders<AgentCodeScriptDocument>.IndexKeys.Ascending(x => x.AgentId), "AgentId_1");
         }
 
-        if (!curIndexes.Any(x => x.StartsWith("Name")))
+        if (!IndexExists("Name"))
         {
-            CreateIndex(collection, Builders<AgentCodeScriptDocument>.IndexKeys.Ascending(x => x.Name));
+            EnsureIndex(collection, Builders<AgentCodeScriptDocument>.IndexKeys.Ascending(x => x.Name), "Name_1");
         }
 
-        if (!curIndexes.Any(x => x.StartsWith("ScriptType")))
+        if (!IndexExists("ScriptType"))
         {
-            CreateIndex(collection, Builders<AgentCodeScriptDocument>.IndexKeys.Ascending(x => x.ScriptType));
+            EnsureIndex(collection, Builders<AgentCodeScriptDocument>.IndexKeys.Ascending(x => x.ScriptType), "ScriptType_1");
         }
-
-        return collection;
     }
 
-    private IMongoCollection<ConversationDocument> CreateConversationIndex()
+    private void CreateConversationIndex()
     {
         var collection = GetCollectionOrCreate<ConversationDocument>("Conversations");
-        var indexes = collection.Indexes.List().ToList();
-        var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
-        if (createTimeIndex == null)
+        if (!IndexExistsByField(collection, "CreatedTime"))
         {
-            CreateIndex(collection, Builders<ConversationDocument>.IndexKeys.Descending(x => x.CreatedTime));
+            EnsureIndex(collection, Builders<ConversationDocument>.IndexKeys.Descending(x => x.CreatedTime), "CreatedTime_-1");
         }
-        return collection;
     }
 
-    private IMongoCollection<ConversationStateDocument> CreateConversationStateIndex()
+    private void CreateConversationStateIndex()
     {
         var collection = GetCollectionOrCreate<ConversationStateDocument>("ConversationStates");
-        var indexes = collection.Indexes.List().ToList();
-        var stateIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("States.Key"));
-        if (stateIndex == null)
+        if (!IndexExistsByField(collection, "States.Key"))
         {
-            CreateIndex(collection, Builders<ConversationStateDocument>.IndexKeys.Ascending("States.Key"));
+            EnsureIndex(collection, Builders<ConversationStateDocument>.IndexKeys.Ascending("States.Key"), "States.Key_1");
         }
-        return collection;
     }
 
-    private IMongoCollection<AgentTaskDocument> CreateAgentTaskIndex()
+    private void CreateAgentTaskIndex()
     {
         var collection = GetCollectionOrCreate<AgentTaskDocument>("AgentTasks");
-        var indexes = collection.Indexes.List().ToList();
-        var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
-        if (createTimeIndex == null)
+        if (!IndexExistsByField(collection, "CreatedTime"))
         {
-            CreateIndex(collection, Builders<AgentTaskDocument>.IndexKeys.Descending(x => x.CreatedTime));
+            EnsureIndex(collection, Builders<AgentTaskDocument>.IndexKeys.Descending(x => x.CreatedTime), "CreatedTime_-1");
         }
-        return collection;
     }
 
-    private IMongoCollection<ConversationContentLogDocument> CreateContentLogIndex()
+    private void CreateContentLogIndex()
     {
         var collection = GetCollectionOrCreate<ConversationContentLogDocument>("ConversationContentLogs");
-        var indexes = collection.Indexes.List().ToList();
-        var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
-        if (createTimeIndex == null)
+        if (!IndexExistsByField(collection, "CreatedTime"))
         {
-            CreateIndex(collection, Builders<ConversationContentLogDocument>.IndexKeys.Ascending(x => x.CreatedTime));
+            EnsureIndex(collection, Builders<ConversationContentLogDocument>.IndexKeys.Ascending(x => x.CreatedTime), "CreatedTime_1");
         }
-        return collection;
     }
 
-    private IMongoCollection<ConversationStateLogDocument> CreateStateLogIndex()
+    private void CreateStateLogIndex()
     {
         var collection = GetCollectionOrCreate<ConversationStateLogDocument>("ConversationStateLogs");
-        var indexes = collection.Indexes.List().ToList();
-        var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
-        if (createTimeIndex == null)
+        if (!IndexExistsByField(collection, "CreatedTime"))
         {
-            CreateIndex(collection, Builders<ConversationStateLogDocument>.IndexKeys.Ascending(x => x.CreatedTime));
+            EnsureIndex(collection, Builders<ConversationStateLogDocument>.IndexKeys.Ascending(x => x.CreatedTime), "CreatedTime_1");
         }
-        return collection;
     }
 
-    private IMongoCollection<InstructionLogDocument> CreateInstructionLogIndex()
+    private void CreateInstructionLogIndex()
     {
         var collection = GetCollectionOrCreate<InstructionLogDocument>("InstructionLogs");
-        var indexes = collection.Indexes.List().ToList();
-        var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
-        if (createTimeIndex == null)
+        if (!IndexExistsByField(collection, "CreatedTime"))
         {
-            CreateIndex(collection, Builders<InstructionLogDocument>.IndexKeys.Descending(x => x.CreatedTime));
+            EnsureIndex(collection, Builders<InstructionLogDocument>.IndexKeys.Descending(x => x.CreatedTime), "CreatedTime_-1");
         }
-        return collection;
-    }
-
-    private void CreateIndex<T>(IMongoCollection<T> collection, IndexKeysDefinition<T> indexKeyDef, CreateIndexOptions? options = null) where T : MongoBase
-    {
-        collection.Indexes.CreateOne(new CreateIndexModel<T>(indexKeyDef, options));
     }
     #endregion
     #endregion
