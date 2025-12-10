@@ -48,8 +48,7 @@ public class SqlDriverPlanningHook : IPlanningHook
         {
             FunctionArgs = JsonSerializer.Serialize(new ExecuteQueryArgs
             {
-                SqlStatements = [msg.Content],
-                FormattingResult = settings.FormattingResult
+                SqlStatements = [msg.Content]
             })
         };
         await routing.InvokeFunction("execute_sql", executionMsg);

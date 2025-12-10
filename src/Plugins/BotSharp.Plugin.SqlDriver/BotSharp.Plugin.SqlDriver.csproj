@@ -38,7 +38,6 @@
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-db-sql_table_definition.fn.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-db-verify_dictionary_term.json" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-db-verify_dictionary_term.fn.liquid" />
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-db-sql_executor.fn.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-db-sql_select.json" />
   </ItemGroup>
 
@@ -76,7 +75,7 @@
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-db-sql_select.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-db-sql_executor.fn.liquid">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-db-sql_select.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\database.summarize.redshift.liquid">
