@@ -1,4 +1,7 @@
 using BotSharp.Abstraction.Crontab;
+using BotSharp.Abstraction.Crontab.Models;
+using BotSharp.Core.Crontab.Services;
+using BotSharp.OpenAPI.Controllers.Crontab.Models;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -39,6 +42,62 @@ public class CrontabController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error when running crontab {name}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// As the Dkron job trigger API, run every 1 minutes
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost("/crontab/scheduling-per-minute")]
+    public async Task<CrontabSchedulingResult> SchedulingCrontab()
+    {
+        var result = new CrontabSchedulingResult();
+        var allowedCrons = await GetCrontabItems();
+
+        foreach (var item in allowedCrons)
+        {
+            if (item.CheckNextOccurrenceEveryOneMinute())
+            {
+                _logger.LogInformation("Crontab: {0}, One occurrence was matched, Beginning execution...", item.Title);
+                Task.Run(() => ExecuteTimeArrivedItem(item, _services));
+                result.OccurrenceMatchedItems.Add(item.Title);
+            }
+        }
+
+        await Task.Delay(1000);
+        return result;
+    }
+
+    private async Task<List<CrontabItem>> GetCrontabItems(string? title = null)
+    {
+        var crontabService = _services.GetRequiredService<ICrontabService>();
+        var crons = await crontabService.GetCrontable();
+        var allowedCrons = crons.Where(cron => cron.TriggerType == CronTabItemTriggerType.OpenAPI).ToList();
+
+        if (title is null)
+        {
+            return allowedCrons;
+        }
+
+        return allowedCrons.Where(cron => cron.Title.IsEqualTo(title)).ToList();
+    }
+
+    private async Task<bool> ExecuteTimeArrivedItem(CrontabItem item, IServiceProvider services)
+    {
+        try
+        {
+            using var scope = services.CreateScope();
+            var crontabService = scope.ServiceProvider.GetRequiredService<ICrontabService>();
+            _logger.LogInformation($"Start running crontab {item.Title}");
+            await crontabService.ScheduledTimeArrived(item);
+            _logger.LogInformation($"Complete running crontab {item.Title}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when running crontab {item.Title}");
             return false;
         }
     }

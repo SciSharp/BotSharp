@@ -58,10 +58,11 @@ public class CrontabWatcher : BackgroundService
     {
         var cron = services.GetRequiredService<ICrontabService>();
         var crons = await cron.GetCrontable();
+        var allowedCrons = crons.Where(cron => cron.TriggerType == CronTabItemTriggerType.BackgroundWatcher).ToList();
         var settings = services.GetRequiredService<CrontabSettings>();
         var publisher = services.GetService<IEventPublisher>();
 
-        foreach (var item in crons)
+        foreach (var item in allowedCrons)
         {
             _logger.LogDebug($"[{DateTime.UtcNow}] Cron task ({item.Title}, {item.Cron}), Last Execution Time:  {item.LastExecutionTime}");
 

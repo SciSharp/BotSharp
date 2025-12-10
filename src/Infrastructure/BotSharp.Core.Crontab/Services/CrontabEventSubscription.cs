@@ -29,7 +29,8 @@ public class CrontabEventSubscription : BackgroundService
             var subscriber = scope.ServiceProvider.GetRequiredService<IEventSubscriber>();
             var cron = scope.ServiceProvider.GetRequiredService<ICrontabService>();
             var crons = await cron.GetCrontable();
-            foreach (var item in crons)
+            var allowedCrons = crons.Where(cron => cron.TriggerType == CronTabItemTriggerType.BackgroundWatcher).ToList();
+            foreach (var item in allowedCrons)
             {
                 _ = Task.Run(async () =>
                 {

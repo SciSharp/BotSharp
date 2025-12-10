@@ -142,7 +142,10 @@ public partial class MongoRepository
     #region Instruction Log
     public bool SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
     {
-        if (logs.IsNullOrEmpty()) return false;
+        if (logs.IsNullOrEmpty())
+        {
+            return false;
+        }
 
         var docs = new List<InstructionLogDocument>();
         foreach (var log in logs)
@@ -152,13 +155,21 @@ public partial class MongoRepository
             {
                 try
                 {
-                    var jsonStr = JsonSerializer.Serialize(new { Data = JsonDocument.Parse(pair.Value) }, _botSharpOptions.JsonSerializerOptions);
+                    var jsonStr = JsonSerializer.Serialize(new
+                    {
+                        Data = JsonDocument.Parse(pair.Value),
+                        StringfyData = pair.Value
+                    }, _botSharpOptions.JsonSerializerOptions);
                     var json = BsonDocument.Parse(jsonStr);
                     doc.States[pair.Key] = json;
                 }
                 catch
                 {
-                    var jsonStr = JsonSerializer.Serialize(new { Data = pair.Value }, _botSharpOptions.JsonSerializerOptions);
+                    var jsonStr = JsonSerializer.Serialize(new
+                    {
+                        Data = pair.Value,
+                        StringfyData = pair.Value
+                    }, _botSharpOptions.JsonSerializerOptions);
                     var json = BsonDocument.Parse(jsonStr);
                     doc.States[pair.Key] = json;
                 }
@@ -172,23 +183,39 @@ public partial class MongoRepository
 
     public async Task<bool> UpdateInstructionLogStates(UpdateInstructionLogStatesModel updateInstructionStates)
     {
-        var id = updateInstructionStates.LogId;
+        if (string.IsNullOrWhiteSpace(updateInstructionStates?.LogId)
+            || updateInstructionStates?.States?.Any() != true)
+        {
+            return false;
+        }
 
+        var id = updateInstructionStates?.LogId;
         var logDoc = await _dc.InstructionLogs.Find(p => p.Id == id).FirstOrDefaultAsync();
-        if (logDoc == null) return false;
+        if (logDoc == null)
+        {
+            return false;
+        }
 
         foreach (var pair in updateInstructionStates.States)
         {
             var key = updateInstructionStates.StateKeyPrefix + pair.Key;
             try
             {
-                var jsonStr = JsonSerializer.Serialize(new { Data = JsonDocument.Parse(pair.Value) }, _botSharpOptions.JsonSerializerOptions);
+                var jsonStr = JsonSerializer.Serialize(new
+                {
+                    Data = JsonDocument.Parse(pair.Value),
+                    StringfyData = pair.Value
+                }, _botSharpOptions.JsonSerializerOptions);
                 var json = BsonDocument.Parse(jsonStr);
                 logDoc.States[key] = json;
             }
             catch
             {
-                var jsonStr = JsonSerializer.Serialize(new { Data = pair.Value }, _botSharpOptions.JsonSerializerOptions);
+                var jsonStr = JsonSerializer.Serialize(new
+                {
+                    Data = pair.Value,
+                    StringfyData = pair.Value
+                }, _botSharpOptions.JsonSerializerOptions);
                 var json = BsonDocument.Parse(jsonStr);
                 logDoc.States[key] = json;
             }
