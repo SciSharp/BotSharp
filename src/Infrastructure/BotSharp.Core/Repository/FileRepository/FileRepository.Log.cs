@@ -1,440 +1,507 @@
 using BotSharp.Abstraction.Loggers.Models;
 using System.IO;
 using System.Text.RegularExpressions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace BotSharp.Core.Repository
+namespace BotSharp.Core.Repository;
+
+public partial class FileRepository
 {
-    public partial class FileRepository
+    #region LLM Completion Log
+    public void SaveLlmCompletionLog(LlmCompletionLog log)
     {
-        #region LLM Completion Log
-        public void SaveLlmCompletionLog(LlmCompletionLog log)
+        if (log == null)
         {
+            return;
+        }
+
+        log.ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+        log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+
+        var convDir = FindConversationDirectory(log.ConversationId);
+        if (string.IsNullOrEmpty(convDir))
+        {
+            convDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, log.ConversationId);
+            Directory.CreateDirectory(convDir);
+        }
+
+        var logDir = Path.Combine(convDir, "llm_prompt_log");
+        if (!Directory.Exists(logDir))
+        {
+            Directory.CreateDirectory(logDir);
+        }
+
+        var index = GetNextLogIndex(logDir, log.MessageId);
+        var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
+        File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
+    }
+    #endregion
+
+    #region Conversation Content Log
+    public void SaveConversationContentLog(ContentLogOutputModel log)
+    {
+        if (log == null)
+        {
+            return;
+        }
+
+        log.ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+        log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+
+        var convDir = FindConversationDirectory(log.ConversationId);
+        if (string.IsNullOrEmpty(convDir))
+        {
+            return;
+        }
+
+        var logDir = Path.Combine(convDir, "content_log");
+        if (!Directory.Exists(logDir))
+        {
+            Directory.CreateDirectory(logDir);
+        }
+
+        var index = GetNextLogIndex(logDir, log.MessageId);
+        var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
+        File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
+    }
+
+    public DateTimePagination<ContentLogOutputModel> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
+    {
+        if (string.IsNullOrEmpty(conversationId))
+        {
+            return new();
+        }
+
+        var convDir = FindConversationDirectory(conversationId);
+        if (string.IsNullOrEmpty(convDir))
+        {
+            return new();
+        }
+
+        var logDir = Path.Combine(convDir, "content_log");
+        if (!Directory.Exists(logDir))
+        {
+            return new();
+        }
+
+        var logs = new List<ContentLogOutputModel>();
+        foreach (var file in Directory.EnumerateFiles(logDir))
+        {
+            var text = File.ReadAllText(file);
+            var log = JsonSerializer.Deserialize<ContentLogOutputModel>(text);
+            if (log == null || log.CreatedTime >= filter.StartTime)
+            {
+                continue;
+            }
+
+            logs.Add(log);
+        }
+
+        logs = logs.OrderByDescending(x => x.CreatedTime).Take(filter.Size).ToList();
+        logs.Reverse();
+        return new DateTimePagination<ContentLogOutputModel>
+        {
+            Items = logs,
+            Count = logs.Count,
+            NextTime = logs.FirstOrDefault()?.CreatedTime
+        };
+    }
+    #endregion
+
+    #region Conversation State Log
+    public void SaveConversationStateLog(ConversationStateLogModel log)
+    {
+        if (log == null)
+        {
+            return;
+        }
+
+        log.ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+        log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+
+        var convDir = FindConversationDirectory(log.ConversationId);
+        if (string.IsNullOrEmpty(convDir))
+        {
+            return;
+        }
+
+        var logDir = Path.Combine(convDir, "state_log");
+        if (!Directory.Exists(logDir))
+        {
+            Directory.CreateDirectory(logDir);
+        }
+
+        var index = GetNextLogIndex(logDir, log.MessageId);
+        var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
+        File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
+    }
+
+    public DateTimePagination<ConversationStateLogModel> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
+    {
+        if (string.IsNullOrEmpty(conversationId))
+        {
+            return new();
+        }
+
+        var convDir = FindConversationDirectory(conversationId);
+        if (string.IsNullOrEmpty(convDir))
+        {
+            return new();
+        }
+
+        var logDir = Path.Combine(convDir, "state_log");
+        if (!Directory.Exists(logDir))
+        {
+            return new();
+        }
+
+        var logs = new List<ConversationStateLogModel>();
+        foreach (var file in Directory.EnumerateFiles(logDir))
+        {
+            var text = File.ReadAllText(file);
+            var log = JsonSerializer.Deserialize<ConversationStateLogModel>(text);
+            if (log == null || log.CreatedTime >= filter.StartTime)
+            {
+                continue;
+            }
+
+            logs.Add(log);
+        }
+
+        logs = logs.OrderByDescending(x => x.CreatedTime).Take(filter.Size).ToList();
+        logs.Reverse();
+        return new DateTimePagination<ConversationStateLogModel>
+        {
+            Items = logs,
+            Count = logs.Count,
+            NextTime = logs.FirstOrDefault()?.CreatedTime
+        };
+    }
+    #endregion
+
+    #region Instruction Log
+    public bool SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
+    {
+        if (logs.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
+        if (!Directory.Exists(baseDir))
+        {
+            Directory.CreateDirectory(baseDir);
+        }
+
+        foreach (var log in logs)
+        {
+            var file = Path.Combine(baseDir, $"{Guid.NewGuid()}.json");
+
+            var innerLog = InstructionFileLogModel.From(log);
+            innerLog.States = BuildLogStates(log.States);
+            var text = JsonSerializer.Serialize(innerLog, _options);
+            File.WriteAllText(file, text);
+        }
+        return true;
+    }
+
+    public async Task<bool> UpdateInstructionLogStates(UpdateInstructionLogStatesModel updateInstructionStates)
+    {
+        if (string.IsNullOrWhiteSpace(updateInstructionStates?.LogId)
+            || updateInstructionStates?.States?.Any() != true)
+        {
+            return false;
+        }
+
+        var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
+        if (!Directory.Exists(baseDir))
+        {
+            return false;
+        }
+
+        var logFile = Directory.EnumerateFiles(baseDir).FirstOrDefault(file =>
+        {
+            var json = File.ReadAllText(file);
+            var log = JsonSerializer.Deserialize<InstructionFileLogModel>(json, _options);
+            return log?.Id == updateInstructionStates.LogId;
+        });
+
+        if (logFile == null)
+        {
+            return false;
+        }
+
+        var log = JsonSerializer.Deserialize<InstructionFileLogModel>(File.ReadAllText(logFile), _options);
+        if (log == null)
+        {
+            return false;
+        }
+
+        foreach (var pair in updateInstructionStates.States)
+        {
+            var key = $"{updateInstructionStates.StateKeyPrefix}{pair.Key}";
+            try
+            {
+                var jsonStr = JsonSerializer.Serialize(new
+                {
+                    Data = JsonDocument.Parse(pair.Value),
+                    StringfyData = pair.Value
+                }, _options);
+                log.States[key] = JsonDocument.Parse(jsonStr);
+            }
+            catch
+            {
+                var jsonStr = JsonSerializer.Serialize(new
+                {
+                    Data = pair.Value,
+                    StringfyData = pair.Value
+                }, _options);
+                log.States[key] = JsonDocument.Parse(jsonStr);
+            }
+        }
+
+        File.WriteAllText(logFile, JsonSerializer.Serialize(log, _options));
+        return true;
+    }
+
+    public async ValueTask<PagedItems<InstructionLogModel>> GetInstructionLogs(InstructLogFilter filter)
+    {
+        if (filter == null)
+        {
+            filter = InstructLogFilter.Empty();
+        }
+
+        var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
+        if (!Directory.Exists(baseDir))
+        {
+            return new();
+        }
+
+        var innerLogs = new List<InstructionFileLogModel>();
+        foreach (var file in Directory.EnumerateFiles(baseDir))
+        {
+            var json = File.ReadAllText(file);
+            var log = JsonSerializer.Deserialize<InstructionFileLogModel>(json, _options);
             if (log == null)
             {
-                return;
+                continue;
             }
 
-            log.ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
-            log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
-
-            var convDir = FindConversationDirectory(log.ConversationId);
-            if (string.IsNullOrEmpty(convDir))
+            var matched = true;
+            if (!filter.AgentIds.IsNullOrEmpty())
             {
-                convDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, log.ConversationId);
-                Directory.CreateDirectory(convDir);
+                matched = matched && filter.AgentIds.Contains(log.AgentId);
+            }
+            if (!filter.Providers.IsNullOrEmpty())
+            {
+                matched = matched && filter.Providers.Contains(log.Provider);
+            }
+            if (!filter.Models.IsNullOrEmpty())
+            {
+                matched = matched && filter.Models.Contains(log.Model);
+            }
+            if (!filter.TemplateNames.IsNullOrEmpty())
+            {
+                matched = matched && filter.TemplateNames.Contains(log.TemplateName);
+            }
+            if (!string.IsNullOrEmpty(filter.SimilarTemplateName))
+            {
+                var regex = new Regex(filter.SimilarTemplateName, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                matched = matched && !string.IsNullOrEmpty(log.TemplateName) && regex.IsMatch(log.TemplateName);
+            }
+            if (!filter.UserIds.IsNullOrEmpty())
+            {
+                matched = matched && filter.UserIds.Contains(log.UserId);
+            }
+            if (filter.StartTime.HasValue)
+            {
+                matched = matched && log.CreatedTime >= filter.StartTime.Value;
+            }
+            if (filter.EndTime.HasValue)
+            {
+                matched = matched && log.CreatedTime <= filter.EndTime.Value;
             }
 
-            var logDir = Path.Combine(convDir, "llm_prompt_log");
-            if (!Directory.Exists(logDir))
+            // Check states
+            if (matched && filter != null && !filter.States.IsNullOrEmpty())
             {
-                Directory.CreateDirectory(logDir);
-            }
-
-            var index = GetNextLogIndex(logDir, log.MessageId);
-            var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
-            File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
-        }
-        #endregion
-
-        #region Conversation Content Log
-        public void SaveConversationContentLog(ContentLogOutputModel log)
-        {
-            if (log == null)
-            {
-                return;
-            }
-
-            log.ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
-            log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
-
-            var convDir = FindConversationDirectory(log.ConversationId);
-            if (string.IsNullOrEmpty(convDir))
-            {
-                return;
-            }
-
-            var logDir = Path.Combine(convDir, "content_log");
-            if (!Directory.Exists(logDir))
-            {
-                Directory.CreateDirectory(logDir);
-            }
-
-            var index = GetNextLogIndex(logDir, log.MessageId);
-            var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
-            File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
-        }
-
-        public DateTimePagination<ContentLogOutputModel> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
-        {
-            if (string.IsNullOrEmpty(conversationId))
-            {
-                return new();
-            }
-
-            var convDir = FindConversationDirectory(conversationId);
-            if (string.IsNullOrEmpty(convDir))
-            {
-                return new();
-            }
-
-            var logDir = Path.Combine(convDir, "content_log");
-            if (!Directory.Exists(logDir))
-            {
-                return new();
-            }
-
-            var logs = new List<ContentLogOutputModel>();
-            foreach (var file in Directory.EnumerateFiles(logDir))
-            {
-                var text = File.ReadAllText(file);
-                var log = JsonSerializer.Deserialize<ContentLogOutputModel>(text);
-                if (log == null || log.CreatedTime >= filter.StartTime)
+                var logStates = log.States;
+                if (logStates.IsNullOrEmpty())
                 {
-                    continue;
+                    matched = false;
                 }
-
-                logs.Add(log);
-            }
-
-            logs = logs.OrderByDescending(x => x.CreatedTime).Take(filter.Size).ToList();
-            logs.Reverse();
-            return new DateTimePagination<ContentLogOutputModel>
-            {
-                Items = logs,
-                Count = logs.Count,
-                NextTime = logs.FirstOrDefault()?.CreatedTime
-            };
-        }
-        #endregion
-
-        #region Conversation State Log
-        public void SaveConversationStateLog(ConversationStateLogModel log)
-        {
-            if (log == null)
-            {
-                return;
-            }
-
-            log.ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
-            log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
-
-            var convDir = FindConversationDirectory(log.ConversationId);
-            if (string.IsNullOrEmpty(convDir))
-            {
-                return;
-            }
-
-            var logDir = Path.Combine(convDir, "state_log");
-            if (!Directory.Exists(logDir))
-            {
-                Directory.CreateDirectory(logDir);
-            }
-
-            var index = GetNextLogIndex(logDir, log.MessageId);
-            var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
-            File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
-        }
-
-        public DateTimePagination<ConversationStateLogModel> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
-        {
-            if (string.IsNullOrEmpty(conversationId))
-            {
-                return new();
-            }
-
-            var convDir = FindConversationDirectory(conversationId);
-            if (string.IsNullOrEmpty(convDir))
-            {
-                return new();
-            }
-
-            var logDir = Path.Combine(convDir, "state_log");
-            if (!Directory.Exists(logDir))
-            {
-                return new();
-            }
-
-            var logs = new List<ConversationStateLogModel>();
-            foreach (var file in Directory.EnumerateFiles(logDir))
-            {
-                var text = File.ReadAllText(file);
-                var log = JsonSerializer.Deserialize<ConversationStateLogModel>(text);
-                if (log == null || log.CreatedTime >= filter.StartTime)
+                else
                 {
-                    continue;
-                }
-
-                logs.Add(log);
-            }
-
-            logs = logs.OrderByDescending(x => x.CreatedTime).Take(filter.Size).ToList();
-            logs.Reverse();
-            return new DateTimePagination<ConversationStateLogModel>
-            {
-                Items = logs,
-                Count = logs.Count,
-                NextTime = logs.FirstOrDefault()?.CreatedTime
-            };
-        }
-        #endregion
-
-        #region Instruction Log
-        public bool SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
-        {
-            if (logs.IsNullOrEmpty())
-            {
-                return false;
-            }
-
-            var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
-            if (!Directory.Exists(baseDir))
-            {
-                Directory.CreateDirectory(baseDir);
-            }
-
-            foreach (var log in logs)
-            {
-                var file = Path.Combine(baseDir, $"{Guid.NewGuid()}.json");
-                log.InnerStates = BuildLogStates(log.States);
-                var text = JsonSerializer.Serialize(log, _options);
-                File.WriteAllText(file, text);
-            }
-            return true;
-        }
-
-        public async ValueTask<PagedItems<InstructionLogModel>> GetInstructionLogs(InstructLogFilter filter)
-        {
-            if (filter == null)
-            {
-                filter = InstructLogFilter.Empty();
-            }
-
-            var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
-            if (!Directory.Exists(baseDir))
-            {
-                return new();
-            }
-
-            var logs = new List<InstructionLogModel>();
-            foreach (var file in Directory.EnumerateFiles(baseDir))
-            {
-                var json = File.ReadAllText(file);
-                var log = JsonSerializer.Deserialize<InstructionLogModel>(json, _options);
-                if (log == null)
-                {
-                    continue;
-                }
-
-                var matched = true;
-                if (!filter.AgentIds.IsNullOrEmpty())
-                {
-                    matched = matched && filter.AgentIds.Contains(log.AgentId);
-                }
-                if (!filter.Providers.IsNullOrEmpty())
-                {
-                    matched = matched && filter.Providers.Contains(log.Provider);
-                }
-                if (!filter.Models.IsNullOrEmpty())
-                {
-                    matched = matched && filter.Models.Contains(log.Model);
-                }
-                if (!filter.TemplateNames.IsNullOrEmpty())
-                {
-                    matched = matched && filter.TemplateNames.Contains(log.TemplateName);
-                }
-                if (!string.IsNullOrEmpty(filter.SimilarTemplateName))
-                {
-                    var regex = new Regex(filter.SimilarTemplateName, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                    matched = matched && !string.IsNullOrEmpty(log.TemplateName) && regex.IsMatch(log.TemplateName);
-                }
-                if (!filter.UserIds.IsNullOrEmpty())
-                {
-                    matched = matched && filter.UserIds.Contains(log.UserId);
-                }
-                if (filter.StartTime.HasValue)
-                {
-                    matched = matched && log.CreatedTime >= filter.StartTime.Value;
-                }
-                if (filter.EndTime.HasValue)
-                {
-                    matched = matched && log.CreatedTime <= filter.EndTime.Value;
-                }
-
-                // Check states
-                if (matched && filter != null && !filter.States.IsNullOrEmpty())
-                {
-                    var logStates = log.InnerStates;
-                    if (logStates.IsNullOrEmpty())
+                    foreach (var pair in filter.States)
                     {
-                        matched = false;
-                    }
-                    else
-                    {
-                        foreach (var pair in filter.States)
+                        if (pair == null || string.IsNullOrWhiteSpace(pair.Key))
                         {
-                            if (pair == null || string.IsNullOrWhiteSpace(pair.Key))
-                            {
-                                continue;
-                            }
+                            continue;
+                        }
 
-                            var components = pair.Key.Split(".").ToList();
-                            var primaryKey = components[0];
-                            if (logStates.TryGetValue(primaryKey, out var doc))
+                        var components = pair.Key.Split(".").ToList();
+                        var primaryKey = components[0];
+                        if (logStates.TryGetValue(primaryKey, out var doc))
+                        {
+                            var elem = doc.RootElement.GetProperty("data");
+                            if (components.Count < 2)
                             {
-                                var elem = doc.RootElement.GetProperty("data");
-                                if (components.Count < 2)
+                                if (!string.IsNullOrWhiteSpace(pair.Value))
                                 {
-                                    if (!string.IsNullOrWhiteSpace(pair.Value))
+                                    if (elem.ValueKind == JsonValueKind.Null)
                                     {
-                                        if (elem.ValueKind == JsonValueKind.Null)
-                                        {
-                                            matched = false;
-                                        }
-                                        else if (elem.ValueKind == JsonValueKind.Array)
-                                        {
-                                            matched = elem.EnumerateArray().Where(x => x.ValueKind != JsonValueKind.Null)
-                                                                           .Select(x => x.ToString())
-                                                                           .Any(x => x == pair.Value);
-                                        }
-                                        else if (elem.ValueKind == JsonValueKind.String)
-                                        {
-                                            matched = elem.GetString() == pair.Value;
-                                        }
-                                        else
-                                        {
-                                            matched = elem.GetRawText() == pair.Value;
-                                        }
+                                        matched = false;
                                     }
-                                }
-                                else
-                                {
-                                    var paths = components.Where((_, idx) => idx > 0);
-                                    var found = FindState(elem, paths, pair.Value);
-                                    matched = found != null;
+                                    else if (elem.ValueKind == JsonValueKind.Array)
+                                    {
+                                        matched = elem.EnumerateArray().Where(x => x.ValueKind != JsonValueKind.Null)
+                                                                       .Select(x => x.ToString())
+                                                                       .Any(x => x == pair.Value);
+                                    }
+                                    else if (elem.ValueKind == JsonValueKind.String)
+                                    {
+                                        matched = elem.GetString() == pair.Value;
+                                    }
+                                    else
+                                    {
+                                        matched = elem.GetRawText() == pair.Value;
+                                    }
                                 }
                             }
                             else
                             {
-                                matched = false;
+                                var paths = components.Where((_, idx) => idx > 0);
+                                var found = FindState(elem, paths, pair.Value);
+                                matched = found != null;
                             }
+                        }
+                        else
+                        {
+                            matched = false;
+                        }
 
-                            if (!matched)
-                            {
-                                break;
-                            }
+                        if (!matched)
+                        {
+                            break;
                         }
                     }
                 }
-
-                if (!matched)
-                {
-                    continue;
-                }
-
-                log.Id = Path.GetFileNameWithoutExtension(file);
-                logs.Add(log);
             }
 
-            var records = logs.OrderByDescending(x => x.CreatedTime).Skip(filter.Offset).Take(filter.Size);
-            records = records.Select(x =>
+            if (!matched)
             {
-                var states = x.InnerStates.ToDictionary(p => p.Key, p =>
-                {
-                    var data = p.Value.RootElement.GetProperty("data");
-                    return data.ValueKind != JsonValueKind.Null ? data.ToString() : null;
-                });
-                x.States = states ?? [];
-                return x;
-            }).ToList();
+                continue;
+            }
 
-            return new PagedItems<InstructionLogModel>
-            {
-                Items = records,
-                Count = logs.Count()
-            };
+            log.Id = Path.GetFileNameWithoutExtension(file);
+            innerLogs.Add(log);
         }
 
-        public List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
+        var records = innerLogs.OrderByDescending(x => x.CreatedTime).Skip(filter.Offset).Take(filter.Size);
+        var logs = records.Select(x =>
         {
-            var keys = new List<string>();
-            var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
-            if (!Directory.Exists(baseDir))
+            var item = InstructionLogModel.From(x);
+            item.States = x.States?.ToDictionary(p => p.Key, p =>
             {
-                return keys;
-            }
+                var data = p.Value.RootElement.GetProperty("data");
+                return data.ValueKind != JsonValueKind.Null ? data.ToString() : string.Empty;
+            }) ?? [];
+            return item;
+        }).ToList();
 
-            var count = 0;
-            foreach (var file in Directory.EnumerateFiles(baseDir))
-            {
-                var json = File.ReadAllText(file);
-                var log = JsonSerializer.Deserialize<InstructionLogModel>(json, _options);
-                if (log == null)
-                {
-                    continue;
-                }
-
-                if (log == null
-                    || log.InnerStates.IsNullOrEmpty()
-                    || (!filter.UserIds.IsNullOrEmpty() && !filter.UserIds.Contains(log.UserId))
-                    || (!filter.AgentIds.IsNullOrEmpty() && !filter.AgentIds.Contains(log.AgentId))
-                    || (filter.StartTime.HasValue && log.CreatedTime < filter.StartTime.Value)
-                    || (filter.EndTime.HasValue && log.CreatedTime > filter.EndTime.Value))
-                {
-                    continue;
-                }
-
-                var stateKeys = log.InnerStates.Select(x => x.Key)?.ToList() ?? [];
-                keys.AddRange(stateKeys);
-                count++;
-
-                if (count >= filter.LogLimit)
-                {
-                    break;
-                }
-            }
-
-            return keys.Distinct().ToList();
-        }
-        #endregion
-
-        #region Private methods
-        private int GetNextLogIndex(string logDir, string id)
+        return new PagedItems<InstructionLogModel>
         {
-            var logIndexes = Directory.EnumerateFiles(logDir).Where(file =>
-            {
-                var fileName = ParseFileNameByPath(file);
-                return fileName[0].IsEqualTo(id);
-            }).Select(file =>
-            {
-                var fileName = ParseFileNameByPath(file);
-                return int.Parse(fileName[1]);
-            }).ToList();
-
-            return logIndexes.IsNullOrEmpty() ? 0 : logIndexes.Max() + 1;
-        }
-
-        private Dictionary<string, JsonDocument> BuildLogStates(Dictionary<string, string> states)
-        {
-            var dic = new Dictionary<string, JsonDocument>();
-            foreach (var pair in states)
-            {
-                try
-                {
-                    var jsonStr = JsonSerializer.Serialize(new { Data = JsonDocument.Parse(pair.Value) }, _options);
-                    var json = JsonDocument.Parse(jsonStr);
-                    dic[pair.Key] = json;
-                }
-                catch
-                {
-                    var str = JsonSerializer.Serialize(new { Data = pair.Value }, _options);
-                    var json = JsonDocument.Parse(str);
-                    dic[pair.Key] = json;
-                }
-            }
-
-            return dic;
-        }
-        #endregion
+            Items = logs,
+            Count = innerLogs.Count()
+        };
     }
+
+    public List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
+    {
+        var keys = new List<string>();
+        var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
+        if (!Directory.Exists(baseDir))
+        {
+            return keys;
+        }
+
+        var count = 0;
+        foreach (var file in Directory.EnumerateFiles(baseDir))
+        {
+            var json = File.ReadAllText(file);
+            var log = JsonSerializer.Deserialize<InstructionFileLogModel>(json, _options);
+            if (log == null)
+            {
+                continue;
+            }
+
+            if (log == null
+                || log.States.IsNullOrEmpty()
+                || (!filter.UserIds.IsNullOrEmpty() && !filter.UserIds.Contains(log.UserId))
+                || (!filter.AgentIds.IsNullOrEmpty() && !filter.AgentIds.Contains(log.AgentId))
+                || (filter.StartTime.HasValue && log.CreatedTime < filter.StartTime.Value)
+                || (filter.EndTime.HasValue && log.CreatedTime > filter.EndTime.Value))
+            {
+                continue;
+            }
+
+            var stateKeys = log.States.Select(x => x.Key)?.ToList() ?? [];
+            keys.AddRange(stateKeys);
+            count++;
+
+            if (count >= filter.LogLimit)
+            {
+                break;
+            }
+        }
+
+        return keys.Distinct().ToList();
+    }
+    #endregion
+
+    #region Private methods
+    private int GetNextLogIndex(string logDir, string id)
+    {
+        var logIndexes = Directory.EnumerateFiles(logDir).Where(file =>
+        {
+            var fileName = ParseFileNameByPath(file);
+            return fileName[0].IsEqualTo(id);
+        }).Select(file =>
+        {
+            var fileName = ParseFileNameByPath(file);
+            return int.Parse(fileName[1]);
+        }).ToList();
+
+        return logIndexes.IsNullOrEmpty() ? 0 : logIndexes.Max() + 1;
+    }
+
+    private Dictionary<string, JsonDocument> BuildLogStates(Dictionary<string, string> states)
+    {
+        var dic = new Dictionary<string, JsonDocument>();
+        foreach (var pair in states)
+        {
+            try
+            {
+                var jsonStr = JsonSerializer.Serialize(new
+                {
+                    Data = JsonDocument.Parse(pair.Value),
+                    StringfyData = pair.Value
+                }, _options);
+                var json = JsonDocument.Parse(jsonStr);
+                dic[pair.Key] = json;
+            }
+            catch
+            {
+                var str = JsonSerializer.Serialize(new
+                {
+                    Data = pair.Value,
+                    StringfyData = pair.Value
+                }, _options);
+                var json = JsonDocument.Parse(str);
+                dic[pair.Key] = json;
+            }
+        }
+
+        return dic;
+    }
+    #endregion
 }
