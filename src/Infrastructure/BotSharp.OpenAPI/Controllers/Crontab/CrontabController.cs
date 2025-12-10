@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Crontab;
 using BotSharp.Abstraction.Crontab.Models;
 using BotSharp.Core.Crontab.Services;
+using BotSharp.OpenAPI.Controllers.Crontab.Models;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -50,8 +51,9 @@ public class CrontabController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpPost("/crontab/scheduling-per-minute")]
-    public async Task SchedulingCrontab()
+    public async Task<CrontabSchedulingResult> SchedulingCrontab()
     {
+        var result = new CrontabSchedulingResult();
         var allowedCrons = await GetCrontabItems();
 
         foreach (var item in allowedCrons)
@@ -60,8 +62,11 @@ public class CrontabController : ControllerBase
             {
                 _logger.LogInformation("Crontab: {0}, One occurrence was matched, Beginning execution...", item.Title);
                 Task.Run(() => ExecuteTimeArrivedItem(item));
+                result.OccurrenceMatchedItems.Add(item.Title);
             }
         }
+
+        return result;
     }
 
     private async Task<List<CrontabItem>> GetCrontabItems(string? title = null)
