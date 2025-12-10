@@ -58,7 +58,7 @@ public class CrontabWatcher : BackgroundService
     {
         var cron = services.GetRequiredService<ICrontabService>();
         var crons = await cron.GetCrontable();
-        var allowedCrons = crons.Where(cron => cron.TriggerByWatcher).ToList();
+        var allowedCrons = crons.Where(cron => cron.TriggerType == CronTabItemTriggerType.BackgroundWatcher).ToList();
         var settings = services.GetRequiredService<CrontabSettings>();
         var publisher = services.GetService<IEventPublisher>();
 

@@ -29,14 +29,17 @@ public class CrontabItem : ScheduleTaskArgs
     [JsonPropertyName("created_time")]
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 
-    [JsonPropertyName("trigger_by_watcher")]
-    public bool TriggerByWatcher { get; set; } = true;
-
-    [JsonPropertyName("trigger_by_openapi")]
-    public bool TriggerByOpenAPI { get; set; }
+    [JsonPropertyName("trigger_type")]
+    public CronTabItemTriggerType TriggerType { get; set; } = CronTabItemTriggerType.BackgroundWatcher;
 
     public override string ToString()
     {
         return $"{Title}: {Description} [AgentId: {AgentId}, UserId: {UserId}]";
     }
+}
+
+public enum CronTabItemTriggerType
+{
+    BackgroundWatcher,
+    OpenAPI
 }

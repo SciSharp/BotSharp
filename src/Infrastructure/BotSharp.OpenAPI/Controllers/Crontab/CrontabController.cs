@@ -61,11 +61,12 @@ public class CrontabController : ControllerBase
             if (item.CheckNextOccurrenceEveryOneMinute())
             {
                 _logger.LogInformation("Crontab: {0}, One occurrence was matched, Beginning execution...", item.Title);
-                Task.Run(() => ExecuteTimeArrivedItem(item));
+                Task.Run(() => ExecuteTimeArrivedItem(item, _services));
                 result.OccurrenceMatchedItems.Add(item.Title);
             }
         }
 
+        await Task.Delay(1000);
         return result;
     }
 
@@ -73,7 +74,7 @@ public class CrontabController : ControllerBase
     {
         var crontabService = _services.GetRequiredService<ICrontabService>();
         var crons = await crontabService.GetCrontable();
-        var allowedCrons = crons.Where(cron => cron.TriggerByOpenAPI).ToList();
+        var allowedCrons = crons.Where(cron => cron.TriggerType == CronTabItemTriggerType.OpenAPI).ToList();
 
         if (title is null)
         {
@@ -83,15 +84,15 @@ public class CrontabController : ControllerBase
         return allowedCrons.Where(cron => cron.Title.IsEqualTo(title)).ToList();
     }
 
-    private async Task<bool> ExecuteTimeArrivedItem(CrontabItem item)
+    private async Task<bool> ExecuteTimeArrivedItem(CrontabItem item, IServiceProvider services)
     {
         try
         {
-            using var scope = _services.CreateScope();
+            using var scope = services.CreateScope();
             var crontabService = scope.ServiceProvider.GetRequiredService<ICrontabService>();
-            _logger.LogWarning($"Start running crontab {item.Title}");
+            _logger.LogInformation($"Start running crontab {item.Title}");
             await crontabService.ScheduledTimeArrived(item);
-            _logger.LogWarning($"Complete running crontab {item.Title}");
+            _logger.LogInformation($"Complete running crontab {item.Title}");
             return true;
         }
         catch (Exception ex)
