@@ -4,7 +4,8 @@ public class NodeCreationModel
 {
     public string? Id { get; set; }
     public string[]? Labels { get; set; }
-    public Dictionary<string, object>? Properties { get; set; }
+    public object? Properties { get; set; }
+    public DateTime? Time { get; set; }
 
     public Node ToNode()
     {
@@ -12,8 +13,8 @@ public class NodeCreationModel
         {
             Id = Id,
             Labels = Labels?.ToList() ?? new List<string>(),
-            Properties = Properties ?? new Dictionary<string, object>(),
-            Time = DateTime.UtcNow
+            Properties = Properties ?? new(),
+            Time = Time ?? DateTime.UtcNow
         };
     }
 }

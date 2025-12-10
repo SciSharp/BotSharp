@@ -1,11 +1,4 @@
-using BotSharp.Abstraction.Plugins;
-using BotSharp.Abstraction.Settings;
-using BotSharp.Plugin.Membase.Services;
-using BotSharp.Plugin.Membase.Settings;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Refit;
-using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.Membase;
 
@@ -29,5 +22,7 @@ public class MembasePlugin : IBotSharpPlugin
                     Task.FromResult($"Bearer {dbSettings.ApiKey}")
             })
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(dbSettings.Host));
+
+        services.AddScoped<ICypherGraphService, MembaseService>();
     }
 }

@@ -1,13 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+namespace BotSharp.Abstraction.Knowledges.Models;
 
-namespace BotSharp.Plugin.Membase.Models;
+public class GraphQueryResult
+{
+    public string[] Columns { get; set; } = [];
+    public Dictionary<string, object?>[] Items { get; set; } = [];
+}
 
-public class Node
+public class GraphNode
 {
     public string Id { get; set; } = string.Empty;
 
