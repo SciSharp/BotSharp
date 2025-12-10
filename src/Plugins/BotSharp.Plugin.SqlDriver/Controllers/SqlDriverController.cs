@@ -32,7 +32,7 @@ public class SqlDriverController : ControllerBase
         msg.FunctionArgs = JsonSerializer.Serialize(new ExecuteQueryArgs
         {
             SqlStatements = [sqlQueryRequest.SqlStatement],
-            FormattingResult = sqlQueryRequest.FormattingResult
+            ResultFormat = sqlQueryRequest.ResultFormat
         });
         var result = await fn.InvokeFunction("execute_sql", msg);
         return Ok(msg.Content);

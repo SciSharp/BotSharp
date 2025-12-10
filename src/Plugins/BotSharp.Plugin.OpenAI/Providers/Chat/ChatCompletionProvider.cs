@@ -259,7 +259,7 @@ public class ChatCompletionProvider : IChatCompletion
                 textStream.Collect(text);
 
 #if DEBUG
-                _logger.LogCritical($"Stream Content update: {text}");
+                //_logger.LogCritical($"Stream Content update: {text}");
 #endif
 
                 var content = new RoleDialogModel(AgentRole.Assistant, text)
@@ -284,7 +284,7 @@ public class ChatCompletionProvider : IChatCompletion
                 var functionArguments = string.Join(string.Empty, args);
 
 #if DEBUG
-                _logger.LogCritical($"Tool Call (id: {toolCallId}) => {functionName}({functionArguments})");
+                // _logger.LogCritical($"Tool Call (id: {toolCallId}) => {functionName}({functionArguments})");
 #endif
 
                 responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)

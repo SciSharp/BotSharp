@@ -151,7 +151,7 @@ public class SqliteService : IDbService
 
         _excelRowSize = sheet.PhysicalNumberOfRows - 1;
         var headerRow = sheet.GetRow(0);
-        var headerColumn = headerRow.Cells.Select(x => x.StringCellValue.Replace(" ", "_")).ToList();
+        var headerColumn = headerRow.Cells.Select(x => x.StringCellValue.Replace(" ", "_").Replace("#", "_")).ToList();
         _excelColumnSize = headerColumn.Count;
         return headerColumn;
     }
@@ -161,7 +161,7 @@ public class SqliteService : IDbService
 
         _columnTypes = columnTypes.IsNullOrEmpty() ? headerColumns.Select(x => "TEXT").ToList() : columnTypes;
 
-        headerColumns = headerColumns.Select((x, i) => $"`{x.Replace(" ", "_")}`" + $" {_columnTypes[i]}").ToList();
+        headerColumns = headerColumns.Select((x, i) => $"`{x.Replace(" ", "_").Replace("#", "_")}`" + $" {_columnTypes[i]}").ToList();
         createTableSql += string.Join(", ", headerColumns);
         createTableSql += ");";
         return createTableSql;
