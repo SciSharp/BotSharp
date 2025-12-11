@@ -1,9 +1,7 @@
-using BotSharp.Plugin.FuzzySharp.FuzzSharp;
 using System.Text.RegularExpressions;
 using FuzzySharp;
 using FuzzySharp.SimilarityRatio;
 using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
-using BotSharp.Plugin.FuzzySharp.Constants;
 
 namespace BotSharp.Plugin.FuzzySharp.Services.Matching;
 
@@ -13,7 +11,7 @@ public class FuzzyMatcher : ITokenMatcher
 
     public MatchResult? TryMatch(MatchContext context)
     {
-        var match = CheckTypoCorrection(context.ContentSpan, context.Lookup, context.Cutoff);
+        var match = FuzzyMatch(context.ContentSpan, context.Lookup, context.Cutoff);
         if (match == null)
         {
             return null;
@@ -23,16 +21,16 @@ public class FuzzyMatcher : ITokenMatcher
         return new MatchResult(
             CanonicalForm: canonicalForm,
             Sources: sources,
-            MatchType: MatchReason.TypoCorrection,
+            MatchType: MatchReason.FuzzyMatch,
             Confidence: confidence);
     }
 
     /// <summary>
     /// Check typo correction using fuzzy matching
     /// </summary>
-    private (string CanonicalForm, List<string> Sources, double Confidence)? CheckTypoCorrection(
+    private (string CanonicalForm, List<string> Sources, double Confidence)? FuzzyMatch(
        string contentSpan,
-       Dictionary<string, (string CanonicalForm, List<string> Sources)> lookup,
+       Dictionary<string, (string CanonicalForm, HashSet<string> Sources)> lookup,
        double cutoff)
     {
         // Convert cutoff to 0-100 scale for FuzzySharp
@@ -46,19 +44,18 @@ public class FuzzyMatcher : ITokenMatcher
         var result = Process.ExtractOne(
             contentSpan,
             candidates,
-            candidate => Normalize(candidate),  // Preprocessor function
+            candidate => Normalize(candidate), // Preprocessor function
             scorer,
-            scoreCutoff  // Score cutoff
+            scoreCutoff // Score cutoff
         );
 
-        if (result == null)
+        // Get the canonical form and sources from lookup
+        if (result == null || !lookup.TryGetValue(result.Value, out var match))
         {
             return null;
         }
 
-        // Get the canonical form and sources from lookup
-        var match = lookup[result.Value];
-        return (match.CanonicalForm, match.Sources, Math.Round(result.Score / 100.0, 3));
+        return (match.CanonicalForm, match.Sources.ToList(), Math.Round(result.Score / 100.0, 3));
     }
 
     /// <summary>

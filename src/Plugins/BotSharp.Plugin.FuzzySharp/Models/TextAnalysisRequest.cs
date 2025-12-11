@@ -1,5 +1,4 @@
-
-namespace BotSharp.Plugin.FuzzySharp.FuzzSharp.Arguments;
+namespace BotSharp.Plugin.FuzzySharp.Models;
 
 public class TextAnalysisRequest
 {

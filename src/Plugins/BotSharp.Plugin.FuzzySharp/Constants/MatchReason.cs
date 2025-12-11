@@ -1,4 +1,3 @@
-
 namespace BotSharp.Plugin.FuzzySharp.Constants;
 
 public static class MatchReason
@@ -16,5 +15,5 @@ public static class MatchReason
     /// <summary>
     /// Token was flagged as a potential typo and a correction was suggested
     /// </summary>
-    public const string TypoCorrection = "typo_correction";
+    public const string FuzzyMatch = "fuzzy_match";
 }

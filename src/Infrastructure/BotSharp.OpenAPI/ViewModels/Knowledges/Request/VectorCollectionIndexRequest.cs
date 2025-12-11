@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.VectorStorage.Options;
 
-namespace BotSharp.OpenAPI.ViewModels.Knowledges.Request;
+namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
 public class CreateVectorCollectionIndexRequest
 {

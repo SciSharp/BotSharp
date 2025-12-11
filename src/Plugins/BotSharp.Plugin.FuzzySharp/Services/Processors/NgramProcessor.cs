@@ -1,6 +1,3 @@
-using BotSharp.Plugin.FuzzySharp.FuzzSharp;
-using BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
-
 namespace BotSharp.Plugin.FuzzySharp.Services.Processors;
 
 public class NgramProcessor : INgramProcessor
@@ -16,8 +13,8 @@ public class NgramProcessor : INgramProcessor
     public List<FlaggedItem> ProcessNgrams(
         List<string> tokens,
         Dictionary<string, HashSet<string>> vocabulary,
-        Dictionary<string, (string DbPath, string CanonicalForm)> synonymMapping,
-        Dictionary<string, (string CanonicalForm, List<string> Sources)> lookup,
+        Dictionary<string, (string DataSource, string CanonicalForm)> synonymMapping,
+        Dictionary<string, (string CanonicalForm, HashSet<string> Sources)> lookup,
         int maxNgram,
         double cutoff,
         int topK)
@@ -57,8 +54,8 @@ public class NgramProcessor : INgramProcessor
         int startIdx,
         int n,
         Dictionary<string, HashSet<string>> vocabulary,
-        Dictionary<string, (string DbPath, string CanonicalForm)> synonymMapping,
-        Dictionary<string, (string CanonicalForm, List<string> Sources)> lookup,
+        Dictionary<string, (string DataSource, string CanonicalForm)> synonymMapping,
+        Dictionary<string, (string CanonicalForm, HashSet<string> Sources)> lookup,
         double cutoff,
         int topK)
     {
@@ -73,14 +70,14 @@ public class NgramProcessor : INgramProcessor
 
         // Try matching in priority order using matchers
         var context = new MatchContext(
-            contentSpan, 
-            contentLow, 
-            startIdx, 
+            contentSpan,
+            contentLow,
+            startIdx,
             n,
             vocabulary,
-            synonymMapping, 
+            synonymMapping,
             lookup,
-            cutoff, 
+            cutoff,
             topK);
 
         foreach (var matcher in _matchers)

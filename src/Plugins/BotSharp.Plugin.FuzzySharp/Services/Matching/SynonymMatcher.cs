@@ -1,6 +1,3 @@
-using BotSharp.Plugin.FuzzySharp.FuzzSharp;
-using BotSharp.Plugin.FuzzySharp.Constants;
-
 namespace BotSharp.Plugin.FuzzySharp.Services.Matching;
 
 public class SynonymMatcher : ITokenMatcher
@@ -13,7 +10,7 @@ public class SynonymMatcher : ITokenMatcher
         {
             return new MatchResult(
                 CanonicalForm: match.CanonicalForm,
-                Sources: new List<string> { match.DbPath },
+                Sources: new List<string> { match.DataSource },
                 MatchType: MatchReason.SynonymMatch,
                 Confidence: 1.0);
         }

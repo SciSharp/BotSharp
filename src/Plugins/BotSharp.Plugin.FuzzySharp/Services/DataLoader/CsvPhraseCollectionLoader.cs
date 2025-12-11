@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Knowledges;
 using BotSharp.Core.Infrastructures;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -6,9 +5,9 @@ using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.IO;
 
-namespace BotSharp.Plugin.FuzzySharp.Services;
+namespace BotSharp.Plugin.FuzzySharp.Services.DataLoader;
 
-public class CsvPhraseCollectionLoader : IPhraseCollection
+public class CsvPhraseCollectionLoader : ITokenDataLoader
 {
     private readonly ILogger<CsvPhraseCollectionLoader> _logger;
 
@@ -17,7 +16,9 @@ public class CsvPhraseCollectionLoader : IPhraseCollection
         _logger = logger;
     }
 
+#if !DEBUG
     [SharpCache(60)]
+#endif
     public async Task<Dictionary<string, HashSet<string>>> LoadVocabularyAsync()
     {
         string foldername = "";
@@ -53,11 +54,13 @@ public class CsvPhraseCollectionLoader : IPhraseCollection
         return vocabulary;
     }
 
+#if !DEBUG
     [SharpCache(60)]
-    public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadSynonymMappingAsync()
+#endif
+    public async Task<Dictionary<string, (string DataSource, string CanonicalForm)>> LoadSynonymMappingAsync()
     {
         string filename = "";
-        var result = new Dictionary<string, (string DbPath, string CanonicalForm)>();
+        var result = new Dictionary<string, (string DataSource, string CanonicalForm)>();
         if (string.IsNullOrWhiteSpace(filename))
         {
             return result;
@@ -88,22 +91,22 @@ public class CsvPhraseCollectionLoader : IPhraseCollection
             while (await csv.ReadAsync())
             {
                 var term = csv.GetField<string>("term") ?? string.Empty;
-                var dbPath = csv.GetField<string>("dbPath") ?? string.Empty;
+                var dataSource = csv.GetField<string>("dbPath") ?? string.Empty;
                 var canonicalForm = csv.GetField<string>("canonical_form") ?? string.Empty;
 
-                if (term.Length == 0 || dbPath.Length == 0 || canonicalForm.Length == 0)
+                if (term.Length == 0 || dataSource.Length == 0 || canonicalForm.Length == 0)
                 {
                     _logger.LogWarning(
-                        "Missing column(s) in CSV at row {Row}: term={Term}, dbPath={DbPath}, canonical_form={CanonicalForm}",
+                        "Missing column(s) in CSV at row {Row}: term={Term}, dataSource={dataSource}, canonical_form={CanonicalForm}",
                         csv.Parser.RawRow,
                         term ?? "<null>",
-                        dbPath ?? "<null>",
+                        dataSource ?? "<null>",
                         canonicalForm ?? "<null>");
                     continue;
                 }
 
                 var key = term.ToLowerInvariant();
-                result[key] = (dbPath, canonicalForm);
+                result[key] = (dataSource, canonicalForm);
             }
 
             _logger.LogInformation("Loaded synonym mapping from {FilePath}: {Count} terms", filePath, result.Count);

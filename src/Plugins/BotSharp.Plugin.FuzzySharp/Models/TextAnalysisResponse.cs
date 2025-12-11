@@ -1,5 +1,4 @@
-
-namespace BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
+namespace BotSharp.Plugin.FuzzySharp.Models;
 
 public class TextAnalysisResponse
 {

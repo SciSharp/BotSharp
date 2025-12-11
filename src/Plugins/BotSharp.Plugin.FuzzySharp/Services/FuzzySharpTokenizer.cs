@@ -1,24 +1,18 @@
-using BotSharp.Plugin.FuzzySharp.FuzzSharp;
-using BotSharp.Plugin.FuzzySharp.FuzzSharp.Arguments;
-using BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
-using BotSharp.Abstraction.Knowledges;
-using BotSharp.Abstraction.Knowledges.Models;
-using BotSharp.Plugin.FuzzySharp.Utils;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace BotSharp.Plugin.FuzzySharp.Services;
 
-public class PhraseService : IPhraseService
+public class FuzzySharpTokenizer : ITokenizer
 {
-    private readonly ILogger<PhraseService> _logger;
-    private readonly IEnumerable<IPhraseCollection> _phraseLoaderServices;
+    private readonly ILogger<FuzzySharpTokenizer> _logger;
+    private readonly IEnumerable<ITokenDataLoader> _phraseLoaderServices;
     private readonly INgramProcessor _ngramProcessor;
     private readonly IResultProcessor _resultProcessor;
 
-    public PhraseService(
-        ILogger<PhraseService> logger,
-        IEnumerable<IPhraseCollection> phraseLoaderServices,
+    public FuzzySharpTokenizer(
+        ILogger<FuzzySharpTokenizer> logger,
+        IEnumerable<ITokenDataLoader> phraseLoaderServices,
         INgramProcessor ngramProcessor,
         IResultProcessor resultProcessor)
     {
@@ -28,22 +22,36 @@ public class PhraseService : IPhraseService
         _resultProcessor = resultProcessor;
     }
 
-    public Task<List<SearchPhrasesResult>> SearchPhrasesAsync(string term)
+    public string Provider => "fuzzy-sharp";
+
+    public async Task<TokenizeResponse> TokenizeAsync(string text, TokenizeOptions? options = null)
     {
-        var request = BuildTextAnalysisRequest(term);
-        var response = AnalyzeTextAsync(request);
-        return response.ContinueWith(t =>
+        var response = new TokenizeResponse();
+
+        try
         {
-            var results = t.Result.Flagged.Select(f => new SearchPhrasesResult
+            var request = BuildTextAnalysisRequest(text);
+            var temp = await AnalyzeTextAsync(request);
+            var results = temp.Flagged?.Select(f => new SearchPhrasesResult
             {
                 Token = f.Token,
                 Sources = f.Sources,
                 CanonicalForm = f.CanonicalForm,
                 MatchType = f.MatchType,
                 Confidence = f.Confidence
-            }).ToList();
-            return results;
-        });
+            })?.ToList() ?? [];
+
+            return new TokenizeResponse
+            {
+                Results = []
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when tokenize in {Provider}: {text}.");
+            response.ErrorMsg = ex.Message;
+            return response;
+        }
     }
 
     private TextAnalysisRequest BuildTextAnalysisRequest(string inputText)
@@ -63,7 +71,7 @@ public class PhraseService : IPhraseService
         try
         {
             // Tokenize the text
-            var tokens = TextTokenizer.Tokenize(request.Text);
+            var tokens = TokenHelper.Tokenize(request.Text);
 
             // Load vocabulary
             var vocabulary = await LoadAllVocabularyAsync();
@@ -79,14 +87,10 @@ public class PhraseService : IPhraseService
             var response = new TextAnalysisResponse
             {
                 Original = request.Text,
+                Tokens = request.IncludeTokens ? tokens : [],
                 Flagged = flagged,
                 ProcessingTimeMs = Math.Round(stopwatch.Elapsed.TotalMilliseconds, 2)
             };
-
-            if (request.IncludeTokens)
-            {
-                response.Tokens = tokens;
-            }
 
             _logger.LogInformation(
                 $"Text analysis completed in {response.ProcessingTimeMs}ms | " +
@@ -112,9 +116,13 @@ public class PhraseService : IPhraseService
             foreach (var kvp in dict)
             {
                 if (!merged.TryGetValue(kvp.Key, out var set))
+                {
                     merged[kvp.Key] = new HashSet<string>(kvp.Value);
+                }
                 else
+                {
                     set.UnionWith(kvp.Value);
+                }
             }
         }
 
@@ -129,7 +137,9 @@ public class PhraseService : IPhraseService
         foreach (var dict in results)
         {
             foreach (var kvp in dict)
+            {
                 merged[kvp.Key] = kvp.Value; // later entries override earlier ones
+            }
         }
 
         return merged;
@@ -141,7 +151,7 @@ public class PhraseService : IPhraseService
     private List<FlaggedItem> AnalyzeTokens(
         List<string> tokens,
         Dictionary<string, HashSet<string>> vocabulary,
-        Dictionary<string, (string DbPath, string CanonicalForm)> synonymMapping,
+        Dictionary<string, (string DataSource, string CanonicalForm)> synonymMapping,
         TextAnalysisRequest request)
     {
         // Build lookup table for O(1) exact match lookups (matching Python's build_lookup)
@@ -168,10 +178,10 @@ public class PhraseService : IPhraseService
     ///
     /// Matches Python's build_lookup() function.
     /// </summary>
-    private Dictionary<string, (string CanonicalForm, List<string> Sources)> BuildLookup(
+    private Dictionary<string, (string CanonicalForm, HashSet<string> Sources)> BuildLookup(
         Dictionary<string, HashSet<string>> vocabulary)
     {
-        var lookup = new Dictionary<string, (string CanonicalForm, List<string> Sources)>();
+        var lookup = new Dictionary<string, (string CanonicalForm, HashSet<string> Sources)>();
 
         foreach (var (source, terms) in vocabulary)
         {
@@ -189,7 +199,7 @@ public class PhraseService : IPhraseService
                 else
                 {
                     // New term - create entry with single source in list
-                    lookup[key] = (term, new List<string> { source });
+                    lookup[key] = (term, new HashSet<string> { source });
                 }
             }
         }

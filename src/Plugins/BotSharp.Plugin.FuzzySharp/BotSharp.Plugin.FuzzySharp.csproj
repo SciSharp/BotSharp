@@ -13,6 +13,7 @@
   <ItemGroup>
     <PackageReference Include="CsvHelper" />
     <PackageReference Include="FuzzySharp" />
+    <PackageReference Include="Rougamo.Fody" />
   </ItemGroup>
   
   <ItemGroup>

@@ -1,6 +1,4 @@
-using BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
-
-namespace BotSharp.Plugin.FuzzySharp.FuzzSharp;
+namespace BotSharp.Plugin.FuzzySharp.Interfaces;
 
 public interface INgramProcessor
 {
@@ -18,8 +16,8 @@ public interface INgramProcessor
     List<FlaggedItem> ProcessNgrams(
         List<string> tokens,
         Dictionary<string, HashSet<string>> vocabulary,
-        Dictionary<string, (string DbPath, string CanonicalForm)> synonymMapping,
-        Dictionary<string, (string CanonicalForm, List<string> Sources)> lookup,
+        Dictionary<string, (string DataSource, string CanonicalForm)> synonymMapping,
+        Dictionary<string, (string CanonicalForm, HashSet<string> Sources)> lookup,
         int maxNgram,
         double cutoff,
         int topK);

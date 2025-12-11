@@ -1,7 +1,3 @@
-using BotSharp.Plugin.FuzzySharp.FuzzSharp;
-using BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
-using BotSharp.Plugin.FuzzySharp.Constants;
-
 namespace BotSharp.Plugin.FuzzySharp.Services.Processors;
 
 public class ResultProcessor : IResultProcessor
@@ -85,10 +81,10 @@ public class ResultProcessor : IResultProcessor
     {
         return matchType switch
         {
-            MatchReason.SynonymMatch => 3,  // Highest priority
-            MatchReason.ExactMatch => 2,          // Second priority
-            MatchReason.TypoCorrection => 1,      // Lowest priority
-            _ => 0                                // Unknown types get lowest priority
+            MatchReason.SynonymMatch => 3,   // Highest priority
+            MatchReason.ExactMatch => 2,     // Second priority
+            MatchReason.FuzzyMatch => 1,     // Lowest priority
+            _ => 0                           // Unknown types get lowest priority
         };
     }
 
