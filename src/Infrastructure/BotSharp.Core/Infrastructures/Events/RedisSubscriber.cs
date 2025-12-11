@@ -108,8 +108,7 @@ public class RedisSubscriber : IEventSubscriber
         foreach (var entry in entries)
         {
             _logger.LogInformation($"Consumer {Environment.MachineName} received: {channel} {entry.Values[0].Value}");
-            var redisOperationContext = new Context { { "messageId", entry.Id.ToString() } };
-            await _redisRetryPolicy.RetryAsync(async () => await db.StreamAcknowledgeAsync(channel, group, entry.Id), "StreamAcknowledgeAsync", _logger, redisOperationContext);
+            await db.StreamAcknowledgeAsync(channel, group, entry.Id);
 
             try
             {
@@ -130,6 +129,7 @@ public class RedisSubscriber : IEventSubscriber
             }
             finally
             {
+                var redisOperationContext = new Context { { "messageId", entry.Id.ToString() } };
                 var isSuccess = await _redisRetryPolicy.RetryAsync(async () => await db.StreamDeleteAsync(channel, [entry.Id]), "StreamDeleteAsync", _logger, redisOperationContext);
                 _logger.LogInformation($"Handled message {entry.Id}: {isSuccess}");
             }
