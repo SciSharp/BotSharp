@@ -21,9 +21,8 @@ public class MongoStoragePlugin : IBotSharpPlugin
 
         if (dbSettings.Default == RepositoryEnum.MongoRepository)
         {
-            services.AddScoped((IServiceProvider x) =>
+            services.AddSingleton((IServiceProvider x) =>
             {
-                var dbSettings = x.GetRequiredService<BotSharpDatabaseSettings>();
                 return new MongoDbContext(dbSettings);
             });
 
