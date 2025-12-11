@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Infrastructures.Enums;
+using Polly;
+using Polly.Retry;
 using StackExchange.Redis;
 
 namespace BotSharp.Core.Infrastructures.Events;
@@ -8,12 +10,14 @@ public class RedisSubscriber : IEventSubscriber
     private readonly IConnectionMultiplexer _redis;
     private readonly ISubscriber _subscriber;
     private readonly ILogger _logger;
+    private readonly AsyncRetryPolicy _redisRetryPolicy;
 
     public RedisSubscriber(IConnectionMultiplexer redis, ILogger<RedisSubscriber> logger)
     {
         _redis = redis;
         _logger = logger;
         _subscriber = _redis.GetSubscriber();
+        _redisRetryPolicy = PollyExtensions.CreateRedisRetryPolicy(_logger);
     }
 
     public async Task SubscribeAsync(string channel, Func<string, string, Task> received)
@@ -52,7 +56,7 @@ public class RedisSubscriber : IEventSubscriber
 
         while (true)
         {
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             if (stoppingToken.HasValue && stoppingToken.Value.IsCancellationRequested)
             {
@@ -84,6 +88,7 @@ public class RedisSubscriber : IEventSubscriber
             catch (RedisTimeoutException)
             {
                 _logger.LogWarning($"Redis timeout for channel {channel}, will retry in next cycle");
+                await Task.Delay(1000 * 10);
             }
             catch (Exception ex)
             {
@@ -95,7 +100,11 @@ public class RedisSubscriber : IEventSubscriber
 
     private async Task<int> HandleGroupMessage(IDatabase db, string channel, string group, string consumer, Func<string, string, Task> received, string errorChannel)
     {
-        var entries = await db.StreamReadGroupAsync(channel, group, consumer, count: 1);
+        var entries = await db.StreamReadGroupAsync(channel, group, consumer, position: StreamPosition.NewMessages, count: 1);
+        if (entries.Length == 0)
+        {
+            entries = await db.StreamReadGroupAsync(channel, group, consumer, position: StreamPosition.Beginning, count: 1);
+        }
         foreach (var entry in entries)
         {
             _logger.LogInformation($"Consumer {Environment.MachineName} received: {channel} {entry.Values[0].Value}");
@@ -120,8 +129,9 @@ public class RedisSubscriber : IEventSubscriber
             }
             finally
             {
-                var deletedCount = await db.StreamDeleteAsync(channel, [entry.Id]);
-                _logger.LogInformation($"Handled message {entry.Id}: {deletedCount == 1}");
+                var redisOperationContext = new Context { { "messageId", entry.Id.ToString() } };
+                var isSuccess = await _redisRetryPolicy.RetryAsync(async () => await db.StreamDeleteAsync(channel, [entry.Id]), "StreamDeleteAsync", _logger, redisOperationContext);
+                _logger.LogInformation($"Handled message {entry.Id}: {isSuccess}");
             }
         }
 
