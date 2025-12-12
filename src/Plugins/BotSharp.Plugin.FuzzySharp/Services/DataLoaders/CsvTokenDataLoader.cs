@@ -5,23 +5,31 @@ using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.IO;
 
-namespace BotSharp.Plugin.FuzzySharp.Services.DataLoader;
+namespace BotSharp.Plugin.FuzzySharp.Services.DataLoaders;
 
-public class CsvPhraseCollectionLoader : ITokenDataLoader
+public class CsvTokenDataLoader : ITokenDataLoader
 {
-    private readonly ILogger<CsvPhraseCollectionLoader> _logger;
+    private readonly ILogger<CsvTokenDataLoader> _logger;
+    private readonly FuzzySharpSettings _settings;
+    private readonly string _basePath;
 
-    public CsvPhraseCollectionLoader(ILogger<CsvPhraseCollectionLoader> logger)
+    public CsvTokenDataLoader(
+        ILogger<CsvTokenDataLoader> logger,
+        FuzzySharpSettings settings)
     {
+        _settings = settings;
         _logger = logger;
+        _basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, settings.Data?.BaseDir ?? "data/tokens/fuzzy-sharp");
     }
 
-#if !DEBUG
+    public string Provider => "fuzzy-sharp-csv";
+
+#if DEBUG
     [SharpCache(60)]
 #endif
     public async Task<Dictionary<string, HashSet<string>>> LoadVocabularyAsync()
     {
-        string foldername = "";
+        var foldername = _settings.Data?.VocabularyFolder;
         var vocabulary = new Dictionary<string, HashSet<string>>();
 
         if (string.IsNullOrEmpty(foldername))
@@ -54,21 +62,19 @@ public class CsvPhraseCollectionLoader : ITokenDataLoader
         return vocabulary;
     }
 
-#if !DEBUG
+#if DEBUG
     [SharpCache(60)]
 #endif
     public async Task<Dictionary<string, (string DataSource, string CanonicalForm)>> LoadSynonymMappingAsync()
     {
-        string filename = "";
+        var filename = _settings.Data?.VocabularyFolder;
         var result = new Dictionary<string, (string DataSource, string CanonicalForm)>();
         if (string.IsNullOrWhiteSpace(filename))
         {
             return result;
         }
 
-        var searchFolder = Path.Combine(AppContext.BaseDirectory, "data", "plugins", "fuzzySharp");
-        var filePath = Path.Combine(searchFolder, filename);
-
+        var filePath = Path.Combine(_basePath, filename);
         if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
         {
             return result;
@@ -119,6 +125,39 @@ public class CsvPhraseCollectionLoader : ITokenDataLoader
         return result;
     }
 
+
+    #region Private methods
+    /// <summary>
+    /// Load [csv file name] => file path
+    /// </summary>
+    /// <param name="folderName"></param>
+    /// <returns></returns>
+    private async Task<Dictionary<string, string>> LoadCsvFilesFromFolderAsync(string folderName)
+    {
+        var csvFileDict = new Dictionary<string, string>();
+        var searchFolder = Path.Combine(_basePath, folderName);
+        if (!Directory.Exists(searchFolder))
+        {
+            _logger.LogWarning($"Folder does not exist: {searchFolder}");
+            return csvFileDict;
+        }
+
+        var csvFiles = Directory.GetFiles(searchFolder, "*.csv");
+        foreach (var file in csvFiles)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file);
+            csvFileDict[fileName] = file;
+        }
+
+        _logger.LogInformation($"Loaded {csvFileDict.Count} CSV files from {searchFolder}");
+        return await Task.FromResult(csvFileDict);
+    }
+
+    /// <summary>
+    /// Load the first column in the csv file
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
     private async Task<HashSet<string>> LoadCsvFileAsync(string filePath)
     {
         var terms = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -149,27 +188,6 @@ public class CsvPhraseCollectionLoader : ITokenDataLoader
         return terms;
     }
 
-    private async Task<Dictionary<string, string>> LoadCsvFilesFromFolderAsync(string folderName)
-    {
-        var csvFileDict = new Dictionary<string, string>();
-        var searchFolder = Path.Combine(AppContext.BaseDirectory, "data", "plugins", "fuzzySharp", folderName);
-        if (!Directory.Exists(searchFolder))
-        {
-            _logger.LogWarning($"Folder does not exist: {searchFolder}");
-            return csvFileDict;
-        }
-
-        var csvFiles = Directory.GetFiles(searchFolder, "*.csv");
-        foreach (var file in csvFiles)
-        {
-            var fileName = Path.GetFileNameWithoutExtension(file);
-            csvFileDict[fileName] = file;
-        }
-
-        _logger.LogInformation($"Loaded {csvFileDict.Count} CSV files from {searchFolder}");
-        return await Task.FromResult(csvFileDict);
-    }
-
     private static CsvConfiguration CreateCsvConfig()
     {
         return new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -187,4 +205,5 @@ public class CsvPhraseCollectionLoader : ITokenDataLoader
                && headers.Contains("dbPath")
                && headers.Contains("canonical_form");
     }
+    #endregion
 }

@@ -20,7 +20,7 @@ public class FuzzySharpPlugin : IBotSharpPlugin
         services.AddScoped<INgramProcessor, NgramProcessor>();
         services.AddScoped<IResultProcessor, ResultProcessor>();
         services.AddScoped<ITokenizer, FuzzySharpTokenizer>();
-        services.AddScoped<ITokenDataLoader, CsvPhraseCollectionLoader>();
+        services.AddScoped<ITokenDataLoader, CsvTokenDataLoader>();
 
         services.AddScoped<ITokenMatcher, ExactMatcher>();
         services.AddScoped<ITokenMatcher, SynonymMatcher>();

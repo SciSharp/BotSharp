@@ -3,6 +3,13 @@ namespace BotSharp.Abstraction.Tokenizers.Models;
 public class TokenizeOptions
 {
     /// <summary>
+    /// Token data providers
+    /// </summary>
+    [JsonPropertyName("data_providers")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? DataProviders { get; set; }
+
+    /// <summary>
     /// Maximum n-gram size
     /// </summary>
     [JsonPropertyName("max_ngram")]

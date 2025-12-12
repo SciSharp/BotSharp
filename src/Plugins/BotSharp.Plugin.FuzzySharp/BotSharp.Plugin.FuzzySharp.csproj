@@ -19,4 +19,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="data\tokens\fuzzy-sharp\" />
+  </ItemGroup>
 </Project>

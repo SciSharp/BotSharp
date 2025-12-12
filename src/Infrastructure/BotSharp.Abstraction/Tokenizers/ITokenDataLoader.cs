@@ -2,6 +2,8 @@ namespace BotSharp.Abstraction.Tokenizers;
 
 public interface ITokenDataLoader
 {
+    string Provider { get; }
+
     /// <summary>
     /// Load vocabulary data => return mapping: [data source] = a list of vocabularies
     /// </summary>

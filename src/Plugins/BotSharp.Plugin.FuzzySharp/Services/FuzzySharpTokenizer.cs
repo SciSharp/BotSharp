@@ -38,10 +38,13 @@ public class FuzzySharpTokenizer : ITokenizer
                 Results = result?.Flagged?.Select(f => new TokenizeResult
                 {
                     Token = f.Token,
-                    Sources = f.Sources,
-                    CanonicalForm = f.CanonicalForm,
-                    MatchType = f.MatchType.Name,
-                    Confidence = f.Confidence
+                    Data = new Dictionary<string, object>
+                    {
+                        ["sources"] = f.Sources,
+                        ["canonical_form"] = f.CanonicalForm,
+                        ["match_type"] = f.MatchType.Name,
+                        ["confidence"] = f.Confidence
+                    }
                 })?.ToList() ?? []
             };
         }
@@ -65,10 +68,10 @@ public class FuzzySharpTokenizer : ITokenizer
             var tokens = TokenHelper.Tokenize(text);
 
             // Load vocabulary
-            var vocabulary = await LoadAllVocabularyAsync();
+            var vocabulary = await LoadAllVocabularyAsync(options?.DataProviders);
 
             // Load synonym mapping
-            var synonymMapping = await LoadAllSynonymMappingAsync();
+            var synonymMapping = await LoadAllSynonymMappingAsync(options?.DataProviders);
 
             // Analyze text
             var flagged = AnalyzeTokens(tokens, vocabulary, synonymMapping, options);
@@ -97,9 +100,10 @@ public class FuzzySharpTokenizer : ITokenizer
         }
     }
 
-    public async Task<Dictionary<string, HashSet<string>>> LoadAllVocabularyAsync()
+    public async Task<Dictionary<string, HashSet<string>>> LoadAllVocabularyAsync(IEnumerable<string>? dataProviders = null)
     {
-        var results = await Task.WhenAll(_tokenDataLoaders.Select(c => c.LoadVocabularyAsync()));
+        var dataLoaders = _tokenDataLoaders.Where(x => dataProviders == null || dataProviders.Contains(x.Provider));
+        var results = await Task.WhenAll(dataLoaders.Select(c => c.LoadVocabularyAsync()));
         var merged = new Dictionary<string, HashSet<string>>();
 
         foreach (var dict in results)
@@ -120,9 +124,10 @@ public class FuzzySharpTokenizer : ITokenizer
         return merged;
     }
 
-    public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadAllSynonymMappingAsync()
+    public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadAllSynonymMappingAsync(IEnumerable<string>? dataProviders = null)
     {
-        var results = await Task.WhenAll(_tokenDataLoaders.Select(c => c.LoadSynonymMappingAsync()));
+        var dataLoaders = _tokenDataLoaders.Where(x => dataProviders == null || dataProviders.Contains(x.Provider));
+        var results = await Task.WhenAll(dataLoaders.Select(c => c.LoadSynonymMappingAsync()));
         var merged = new Dictionary<string, (string DbPath, string CanonicalForm)>();
 
         foreach (var dict in results)
