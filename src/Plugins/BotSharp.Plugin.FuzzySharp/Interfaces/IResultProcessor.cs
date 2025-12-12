@@ -11,5 +11,5 @@ public interface IResultProcessor
     /// </summary>
     /// <param name="flagged">List of flagged items to process</param>
     /// <returns>Processed list of flagged items (deduplicated and sorted)</returns>
-    List<FlaggedItem> ProcessResults(List<FlaggedItem> flagged);
+    List<FlaggedTokenItem> ProcessResults(List<FlaggedTokenItem> flagged);
 }

@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.FuzzySharp.Services.Matching;
 
 public class ExactMatcher : ITokenMatcher
 {
-    public int Priority => 2; // Second highest priority
+    public MatchPriority Priority => MatchReason.ExactMatch; // Second highest priority
 
     public MatchResult? TryMatch(MatchContext context)
     {
@@ -11,7 +11,7 @@ public class ExactMatcher : ITokenMatcher
             return new MatchResult(
                 CanonicalForm: match.CanonicalForm,
                 Sources: match.Sources.ToList(),
-                MatchType: MatchReason.ExactMatch,
+                MatchType: Priority,
                 Confidence: 1.0);
         }
 

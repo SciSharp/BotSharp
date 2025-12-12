@@ -7,7 +7,7 @@ namespace BotSharp.Plugin.FuzzySharp.Services.Matching;
 
 public class FuzzyMatcher : ITokenMatcher
 {
-    public int Priority => 1; // Lowest priority
+    public MatchPriority Priority => MatchReason.FuzzyMatch; // Lowest priority
 
     public MatchResult? TryMatch(MatchContext context)
     {
@@ -21,7 +21,7 @@ public class FuzzyMatcher : ITokenMatcher
         return new MatchResult(
             CanonicalForm: canonicalForm,
             Sources: sources,
-            MatchType: MatchReason.FuzzyMatch,
+            MatchType: Priority,
             Confidence: confidence);
     }
 

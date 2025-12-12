@@ -1,11 +1,11 @@
 namespace BotSharp.Plugin.FuzzySharp.Models;
 
-public class FlaggedItem
+public class FlaggedTokenItem
 {
     public int Index { get; set; }
     public string Token { get; set; } = string.Empty;
     public List<string> Sources { get; set; } = new();
-    public string MatchType { get; set; } = string.Empty;
+    public MatchPriority MatchType { get; set; } = new();
     public string CanonicalForm { get; set; } = string.Empty;
     public double Confidence { get; set; }
     public int NgramLength { get; set; }

@@ -13,7 +13,7 @@ public interface INgramProcessor
     /// <param name="cutoff">Minimum confidence threshold for fuzzy matching</param>
     /// <param name="topK">Maximum number of matches to return</param>
     /// <returns>List of flagged items</returns>
-    List<FlaggedItem> ProcessNgrams(
+    List<FlaggedTokenItem> ProcessNgrams(
         List<string> tokens,
         Dictionary<string, HashSet<string>> vocabulary,
         Dictionary<string, (string DataSource, string CanonicalForm)> synonymMapping,

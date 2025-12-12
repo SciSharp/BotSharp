@@ -6,18 +6,18 @@ namespace BotSharp.Plugin.FuzzySharp.Services;
 public class FuzzySharpTokenizer : ITokenizer
 {
     private readonly ILogger<FuzzySharpTokenizer> _logger;
-    private readonly IEnumerable<ITokenDataLoader> _phraseLoaderServices;
+    private readonly IEnumerable<ITokenDataLoader> _tokenDataLoaders;
     private readonly INgramProcessor _ngramProcessor;
     private readonly IResultProcessor _resultProcessor;
 
     public FuzzySharpTokenizer(
         ILogger<FuzzySharpTokenizer> logger,
-        IEnumerable<ITokenDataLoader> phraseLoaderServices,
+        IEnumerable<ITokenDataLoader> tokenDataLoaders,
         INgramProcessor ngramProcessor,
         IResultProcessor resultProcessor)
     {
         _logger = logger;
-        _phraseLoaderServices = phraseLoaderServices;
+        _tokenDataLoaders = tokenDataLoaders;
         _ngramProcessor = ngramProcessor;
         _resultProcessor = resultProcessor;
     }
@@ -30,20 +30,19 @@ public class FuzzySharpTokenizer : ITokenizer
 
         try
         {
-            var request = BuildTextAnalysisRequest(text);
-            var temp = await AnalyzeTextAsync(request);
-            var results = temp.Flagged?.Select(f => new SearchPhrasesResult
-            {
-                Token = f.Token,
-                Sources = f.Sources,
-                CanonicalForm = f.CanonicalForm,
-                MatchType = f.MatchType,
-                Confidence = f.Confidence
-            })?.ToList() ?? [];
+            var result = await AnalyzeTextAsync(text, options);
 
             return new TokenizeResponse
             {
-                Results = []
+                Success = true,
+                Results = result?.Flagged?.Select(f => new TokenizeResult
+                {
+                    Token = f.Token,
+                    Sources = f.Sources,
+                    CanonicalForm = f.CanonicalForm,
+                    MatchType = f.MatchType.Name,
+                    Confidence = f.Confidence
+                })?.ToList() ?? []
             };
         }
         catch (Exception ex)
@@ -54,24 +53,16 @@ public class FuzzySharpTokenizer : ITokenizer
         }
     }
 
-    private TextAnalysisRequest BuildTextAnalysisRequest(string inputText)
-    {
-        return new TextAnalysisRequest
-        {
-            Text = inputText
-        };
-    }
-
     /// <summary>
     /// Analyze text for typos and entities using domain-specific vocabulary
     /// </summary>
-    private async Task<TextAnalysisResponse> AnalyzeTextAsync(TextAnalysisRequest request)
+    private async Task<TokenAnalysisResponse> AnalyzeTextAsync(string text, TokenizeOptions? options = null)
     {
         var stopwatch = Stopwatch.StartNew();
         try
         {
             // Tokenize the text
-            var tokens = TokenHelper.Tokenize(request.Text);
+            var tokens = TokenHelper.Tokenize(text);
 
             // Load vocabulary
             var vocabulary = await LoadAllVocabularyAsync();
@@ -80,21 +71,21 @@ public class FuzzySharpTokenizer : ITokenizer
             var synonymMapping = await LoadAllSynonymMappingAsync();
 
             // Analyze text
-            var flagged = AnalyzeTokens(tokens, vocabulary, synonymMapping, request);
+            var flagged = AnalyzeTokens(tokens, vocabulary, synonymMapping, options);
 
             stopwatch.Stop();
 
-            var response = new TextAnalysisResponse
+            var response = new TokenAnalysisResponse
             {
-                Original = request.Text,
-                Tokens = request.IncludeTokens ? tokens : [],
+                Original = text,
+                Tokens = tokens,
                 Flagged = flagged,
                 ProcessingTimeMs = Math.Round(stopwatch.Elapsed.TotalMilliseconds, 2)
             };
 
             _logger.LogInformation(
                 $"Text analysis completed in {response.ProcessingTimeMs}ms | " +
-                $"Text length: {request.Text.Length} chars | " +
+                $"Text length: {text.Length} chars | " +
                 $"Flagged items: {flagged.Count}");
 
             return response;
@@ -108,7 +99,7 @@ public class FuzzySharpTokenizer : ITokenizer
 
     public async Task<Dictionary<string, HashSet<string>>> LoadAllVocabularyAsync()
     {
-        var results = await Task.WhenAll(_phraseLoaderServices.Select(c => c.LoadVocabularyAsync()));
+        var results = await Task.WhenAll(_tokenDataLoaders.Select(c => c.LoadVocabularyAsync()));
         var merged = new Dictionary<string, HashSet<string>>();
 
         foreach (var dict in results)
@@ -131,7 +122,7 @@ public class FuzzySharpTokenizer : ITokenizer
 
     public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadAllSynonymMappingAsync()
     {
-        var results = await Task.WhenAll(_phraseLoaderServices.Select(c => c.LoadSynonymMappingAsync()));
+        var results = await Task.WhenAll(_tokenDataLoaders.Select(c => c.LoadSynonymMappingAsync()));
         var merged = new Dictionary<string, (string DbPath, string CanonicalForm)>();
 
         foreach (var dict in results)
@@ -148,11 +139,11 @@ public class FuzzySharpTokenizer : ITokenizer
     /// <summary>
     /// Analyze tokens for typos and entities
     /// </summary>
-    private List<FlaggedItem> AnalyzeTokens(
+    private List<FlaggedTokenItem> AnalyzeTokens(
         List<string> tokens,
         Dictionary<string, HashSet<string>> vocabulary,
         Dictionary<string, (string DataSource, string CanonicalForm)> synonymMapping,
-        TextAnalysisRequest request)
+        TokenizeOptions? options)
     {
         // Build lookup table for O(1) exact match lookups (matching Python's build_lookup)
         var lookup = BuildLookup(vocabulary);
@@ -163,9 +154,9 @@ public class FuzzySharpTokenizer : ITokenizer
             vocabulary,
             synonymMapping,
             lookup,
-            request.MaxNgram,
-            request.Cutoff,
-            request.TopK);
+            options?.MaxNgram ?? 5,
+            options?.Cutoff ?? 0.82,
+            options?.TopK ?? 5);
 
         // Process results: deduplicate and sort
         return _resultProcessor.ProcessResults(flagged);

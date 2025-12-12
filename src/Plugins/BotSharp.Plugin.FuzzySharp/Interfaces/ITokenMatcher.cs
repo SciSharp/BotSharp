@@ -12,7 +12,7 @@ public interface ITokenMatcher
     /// <summary>
     /// Priority of this matcher (higher priority matchers are tried first)
     /// </summary>
-    int Priority { get; }
+    MatchPriority Priority { get; }
 }
 
 /// <summary>
@@ -35,5 +35,5 @@ public record MatchContext(
 public record MatchResult(
     string CanonicalForm,
     List<string> Sources,
-    string MatchType,
+    MatchPriority MatchType,
     double Confidence);
