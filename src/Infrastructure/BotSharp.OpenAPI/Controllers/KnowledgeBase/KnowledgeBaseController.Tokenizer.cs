@@ -28,7 +28,7 @@ public partial class KnowledgeBaseController
     /// Get tokenizer providers
     /// </summary>
     /// <returns></returns>
-    [HttpGet("knowledge/tokenizer/provider")]
+    [HttpGet("knowledge/tokenizer/providers")]
     public IEnumerable<string> GetTokenizerProviders()
     {
         var tokenizers = _services.GetServices<ITokenizer>();

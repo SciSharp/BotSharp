@@ -7,7 +7,14 @@ public class FuzzySharpSettings
 
 public class TokenDataSettings
 {
-    public string? BaseDir { get; set; }
-    public string? VocabularyFolder { get; set; }
-    public string? SynonymFileName { get; set; }
+    public string? BaseDir { get; set; } = "data/tokens";
+
+    public TokenFileSetting Vocabulary { get; set; }
+    public TokenFileSetting Synonym { get; set; }
+}
+
+public class TokenFileSetting
+{
+    public string Folder { get; set; }
+    public string[] FileNames { get; set; }
 }

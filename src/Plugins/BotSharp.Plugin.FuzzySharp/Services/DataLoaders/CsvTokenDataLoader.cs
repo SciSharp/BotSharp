@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Core.Infrastructures;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -19,27 +20,23 @@ public class CsvTokenDataLoader : ITokenDataLoader
     {
         _settings = settings;
         _logger = logger;
-        _basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, settings.Data?.BaseDir ?? "data/tokens/fuzzy-sharp");
+        _basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, settings.Data?.BaseDir ?? "data/tokens");
     }
 
     public string Provider => "fuzzy-sharp-csv";
 
-#if DEBUG
+#if !DEBUG
     [SharpCache(60)]
 #endif
     public async Task<Dictionary<string, HashSet<string>>> LoadVocabularyAsync()
     {
-        var foldername = _settings.Data?.VocabularyFolder;
         var vocabulary = new Dictionary<string, HashSet<string>>();
 
-        if (string.IsNullOrEmpty(foldername))
-        {
-            return vocabulary;
-        }
-
         // Load CSV files from the folder
-        var csvFileDict = await LoadCsvFilesFromFolderAsync(foldername);
-        if (csvFileDict.Count == 0)
+        var folderName = _settings.Data?.Vocabulary?.Folder ?? string.Empty;
+        var fileNames = _settings.Data?.Vocabulary?.FileNames?.Where(x => Path.GetFileName(x).EndsWith(".csv"));
+        var csvFileDict = GetCsvFilesMetaData(folderName, fileNames);
+        if (csvFileDict.IsNullOrEmpty())
         {
             return vocabulary;
         }
@@ -49,7 +46,7 @@ public class CsvTokenDataLoader : ITokenDataLoader
         {
             try
             {
-                var terms = await LoadCsvFileAsync(filePath);
+                var terms = await LoadVocabularyFileAsync(filePath);
                 vocabulary[source] = terms;
                 _logger.LogInformation($"Loaded {terms.Count} terms for source '{source}' from {filePath}");
             }
@@ -62,27 +59,132 @@ public class CsvTokenDataLoader : ITokenDataLoader
         return vocabulary;
     }
 
-#if DEBUG
+#if !DEBUG
     [SharpCache(60)]
 #endif
     public async Task<Dictionary<string, (string DataSource, string CanonicalForm)>> LoadSynonymMappingAsync()
     {
-        var filename = _settings.Data?.VocabularyFolder;
         var result = new Dictionary<string, (string DataSource, string CanonicalForm)>();
-        if (string.IsNullOrWhiteSpace(filename))
+
+        var folderName = _settings.Data?.Synonym?.Folder ?? string.Empty;
+        var fileNames = _settings.Data?.Synonym?.FileNames?.Where(x => Path.GetFileName(x).EndsWith(".csv"));
+        var csvFileDict = GetCsvFilesMetaData(folderName, fileNames);
+        if (csvFileDict.IsNullOrEmpty())
         {
             return result;
         }
 
-        var filePath = Path.Combine(_basePath, filename);
-        if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+        // Load each CSV file
+        foreach (var (source, filePath) in csvFileDict)
         {
+            try
+            {
+                var mapping = await LoadSynonymFileAsync(filePath);
+                foreach (var item in mapping)
+                {
+                    result[item.Key] = item.Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error loading CSV file for source '{source}': {filePath}");
+            }
+        }
+
+        return result;
+    }
+
+
+    #region Private methods
+    /// <summary>
+    /// Load [csv file name] => file path
+    /// </summary>
+    /// <param name="folderName"></param>
+    /// <returns></returns>
+    private Dictionary<string, string> GetCsvFilesMetaData(string folderName, IEnumerable<string>? fileNames = null)
+    {
+        var csvFileDict = new Dictionary<string, string>();
+        if (string.IsNullOrWhiteSpace(folderName))
+        {
+            return csvFileDict;
+        }
+
+        var searchFolder = Path.Combine(_basePath, folderName);
+        if (!Directory.Exists(searchFolder))
+        {
+            _logger.LogWarning($"Folder does not exist: {searchFolder}");
+            return csvFileDict;
+        }
+
+        IEnumerable<string> csvFiles = new List<string>();
+        if (!fileNames.IsNullOrEmpty())
+        {
+            csvFiles = fileNames!.Select(x => Path.Combine(searchFolder, x));
+        }
+        else
+        {
+            csvFiles = Directory.GetFiles(searchFolder, "*.csv");
+        }
+
+        foreach (var file in csvFiles)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file);
+            csvFileDict[fileName] = file;
+        }
+
+        _logger.LogInformation($"Loaded {csvFileDict.Count} CSV files from {searchFolder}");
+        return csvFileDict;
+    }
+
+    /// <summary>
+    /// Load the first column in the vocabulary file
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    private async Task<HashSet<string>> LoadVocabularyFileAsync(string filePath)
+    {
+        var terms = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        {
+            _logger.LogWarning($"CSV file does not exist: {filePath}");
+            return terms;
+        }
+
+        using var reader = new StreamReader(filePath);
+        using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            HasHeaderRecord = false  // No header in the CSV files
+        });
+
+        while (await csv.ReadAsync())
+        {
+            // Read the first column (assuming it contains the terms)
+            var term = csv.GetField(0);
+            if (!string.IsNullOrWhiteSpace(term))
+            {
+                terms.Add(term.Trim());
+            }
+        }
+
+        _logger.LogInformation($"Loaded {terms.Count} terms from {Path.GetFileName(filePath)}");
+        return terms;
+    }
+
+
+    private async Task<Dictionary<string, (string DataSource, string CanonicalForm)>> LoadSynonymFileAsync(string filePath)
+    {
+        var result = new Dictionary<string, (string DataSource, string CanonicalForm)>();
+
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        {
+            _logger.LogWarning($"CSV file does not exist: {filePath}");
             return result;
         }
 
         try
         {
-            using var reader = new StreamReader(filePath); 
+            using var reader = new StreamReader(filePath);
             using var csv = new CsvReader(reader, CreateCsvConfig());
 
             await csv.ReadAsync();
@@ -116,77 +218,15 @@ public class CsvTokenDataLoader : ITokenDataLoader
             }
 
             _logger.LogInformation("Loaded synonym mapping from {FilePath}: {Count} terms", filePath, result.Count);
+            return result;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading synonym mapping file: {FilePath}", filePath);
+            return result;
         }
-
-        return result;
     }
 
-
-    #region Private methods
-    /// <summary>
-    /// Load [csv file name] => file path
-    /// </summary>
-    /// <param name="folderName"></param>
-    /// <returns></returns>
-    private async Task<Dictionary<string, string>> LoadCsvFilesFromFolderAsync(string folderName)
-    {
-        var csvFileDict = new Dictionary<string, string>();
-        var searchFolder = Path.Combine(_basePath, folderName);
-        if (!Directory.Exists(searchFolder))
-        {
-            _logger.LogWarning($"Folder does not exist: {searchFolder}");
-            return csvFileDict;
-        }
-
-        var csvFiles = Directory.GetFiles(searchFolder, "*.csv");
-        foreach (var file in csvFiles)
-        {
-            var fileName = Path.GetFileNameWithoutExtension(file);
-            csvFileDict[fileName] = file;
-        }
-
-        _logger.LogInformation($"Loaded {csvFileDict.Count} CSV files from {searchFolder}");
-        return await Task.FromResult(csvFileDict);
-    }
-
-    /// <summary>
-    /// Load the first column in the csv file
-    /// </summary>
-    /// <param name="filePath"></param>
-    /// <returns></returns>
-    private async Task<HashSet<string>> LoadCsvFileAsync(string filePath)
-    {
-        var terms = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        if (!File.Exists(filePath))
-        {
-            _logger.LogWarning($"CSV file does not exist: {filePath}");
-            return terms;
-        }
-
-        using var reader = new StreamReader(filePath);
-        using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            HasHeaderRecord = false  // No header in the CSV files
-        });
-
-        while (await csv.ReadAsync())
-        {
-            // Read the first column (assuming it contains the terms)
-            var term = csv.GetField(0);
-            if (!string.IsNullOrWhiteSpace(term))
-            {
-                terms.Add(term.Trim());
-            }
-        }
-
-        _logger.LogInformation($"Loaded {terms.Count} terms from {Path.GetFileName(filePath)}");
-        return terms;
-    }
 
     private static CsvConfiguration CreateCsvConfig()
     {

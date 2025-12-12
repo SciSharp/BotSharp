@@ -21,6 +21,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="data\tokens\fuzzy-sharp\" />
+    <Folder Include="data\tokens\" />
   </ItemGroup>
 </Project>

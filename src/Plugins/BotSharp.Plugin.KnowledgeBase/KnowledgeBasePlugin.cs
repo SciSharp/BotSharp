@@ -40,7 +40,8 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
             {
                 new PluginMenuDef("Q & A", link: "page/knowledge-base/question-answer"),
                 new PluginMenuDef("Relationships", link: "page/knowledge-base/relationships"),
-                new PluginMenuDef("Documents", link: "page/knowledge-base/documents")
+                new PluginMenuDef("Documents", link: "page/knowledge-base/documents"),
+                new PluginMenuDef("Dictionary", link: "page/knowledge-base/dictionary")
             }
         });
         return true;

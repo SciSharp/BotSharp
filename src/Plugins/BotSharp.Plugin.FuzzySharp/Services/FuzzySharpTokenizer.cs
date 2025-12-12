@@ -38,10 +38,10 @@ public class FuzzySharpTokenizer : ITokenizer
                 Results = result?.Flagged?.Select(f => new TokenizeResult
                 {
                     Token = f.Token,
+                    CanonicalText = f.CanonicalForm,
                     Data = new Dictionary<string, object>
                     {
                         ["sources"] = f.Sources,
-                        ["canonical_form"] = f.CanonicalForm,
                         ["match_type"] = f.MatchType.Name,
                         ["confidence"] = f.Confidence
                     }
