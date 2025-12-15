@@ -41,5 +41,6 @@ public class CrontabItem : ScheduleTaskArgs
 public enum CronTabItemTriggerType
 {
     BackgroundWatcher,
-    OpenAPI
+    OpenAPI,
+    MessageQueue
 }
