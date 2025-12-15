@@ -156,15 +156,28 @@ public class ModelSettingBase
 /// </summary>
 public class LlmCostSetting
 {
-    // Input
+    #region Input
     public float TextInputCost { get; set; } = 0f;
     public float CachedTextInputCost { get; set; } = 0f;
     public float AudioInputCost { get; set; } = 0f;
     public float CachedAudioInputCost { get; set; } = 0f;
+    #endregion
 
-    // Output
+    #region Output
     public float TextOutputCost { get; set; } = 0f;
     public float AudioOutputCost { get; set; } = 0f;
+    #endregion
+
+    #region Image
+    public IEnumerable<LlmImageCost>? ImageCosts { get; set; }
+    #endregion
+}
+
+public class LlmImageCost
+{
+    public string Quality { get; set; }
+    public string Size { get; set; }
+    public float Cost { get; set; }
 }
 
 public enum LlmModelType

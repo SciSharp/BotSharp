@@ -18,7 +18,12 @@ public class CommonContentGeneratingHook : IContentGeneratingHook
     private void SaveLlmCompletionLog(RoleDialogModel message, TokenStatsModel tokenStats)
     {
         var convSettings = _services.GetRequiredService<ConversationSetting>();
-        if (!convSettings.EnableLlmCompletionLog) return;
+        if (!convSettings.EnableLlmCompletionLog
+            || string.IsNullOrWhiteSpace(tokenStats.Prompt)
+            || string.IsNullOrWhiteSpace(message.Content))
+        {
+            return;
+        }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var state = _services.GetRequiredService<IConversationStateService>();

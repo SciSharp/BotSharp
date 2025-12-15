@@ -201,5 +201,10 @@ public partial class ImageCompletionProvider : IImageCompletion
         }
         return retCount;
     }
+
+    private float GetImageGenerationUnitCost(string provider, string model, string quality, string size)
+    {
+        return 0f;
+    }
     #endregion
 }

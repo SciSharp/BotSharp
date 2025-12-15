@@ -18,6 +18,10 @@ public class TokenStatsModel
     public int AudioOutputTokens { get; set; }
     #endregion
 
+    #region Image
+    public int? ImageGenerationCount { get; set; }
+    public float? ImageGenerationUnitCost { get; set; }
+    #endregion
 
     public int TotalInputTokens => TextInputTokens + CachedTextInputTokens + AudioInputTokens + CachedAudioInputTokens;
     public int TotalOutputTokens => TextOutputTokens + AudioOutputTokens;

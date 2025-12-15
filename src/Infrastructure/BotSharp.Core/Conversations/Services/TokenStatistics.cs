@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.MLTasks;
 using System.Diagnostics;
 
@@ -52,7 +51,17 @@ public class TokenStatistics : ITokenStatistics
         var deltaPromptCost = deltaTextInputCost + deltaCachedTextInputCost + deltaAudioInputCost + deltaCachedAudioInputCost;
         var deltaCompletionCost = deltaTextOutputCost + deltaAudioOutputCost;
 
-        var deltaTotal = deltaPromptCost + deltaCompletionCost;
+        #region Image generation
+        var deltaImageGenerationCost = 0f;
+        var deltaImageGenerationCount = stats.ImageGenerationCount.GetValueOrDefault();
+        if (stats.ImageGenerationUnitCost.HasValue)
+        {
+            var imageGenerationUnitCost = stats.ImageGenerationUnitCost.GetValueOrDefault();
+            deltaImageGenerationCost = deltaImageGenerationCount * imageGenerationUnitCost;
+        }
+        #endregion
+
+        var deltaTotal = deltaPromptCost + deltaCompletionCost + deltaImageGenerationCost;
         _promptCost += deltaPromptCost;
         _completionCost += deltaCompletionCost;
 
@@ -78,12 +87,18 @@ public class TokenStatistics : ITokenStatistics
             AgentId = agentId,
             RecordTime = DateTime.UtcNow,
             IntervalType = StatsInterval.Day,
+            CountDelta = new()
+            {
+                AgentCallCountDelta = 1,
+                ImageGenerationTotalCountDelta = deltaImageGenerationCount,
+            },
             LlmCostDelta = new()
             {
                 PromptTokensDelta = stats.TotalInputTokens,
                 CompletionTokensDelta = stats.TotalOutputTokens,
                 PromptTotalCostDelta = deltaPromptCost,
-                CompletionTotalCostDelta = deltaCompletionCost
+                CompletionTotalCostDelta = deltaCompletionCost,
+                ImageGenerationTotalCostDelta = deltaImageGenerationCost
             }
         };
         globalStats.UpdateStats($"global-{metric}-{dim}-{agentId}", delta);

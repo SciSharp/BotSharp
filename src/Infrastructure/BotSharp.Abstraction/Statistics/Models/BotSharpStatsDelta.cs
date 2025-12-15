@@ -29,6 +29,7 @@ public class BotSharpStatsDelta
 public class StatsCountDelta
 {
     public int AgentCallCountDelta { get; set; }
+    public int ImageGenerationTotalCountDelta { get; set; }
 }
 
 public class StatsLlmCostDelta
@@ -37,4 +38,5 @@ public class StatsLlmCostDelta
     public int CompletionTokensDelta { get; set; }
     public float PromptTotalCostDelta { get; set; }
     public float CompletionTotalCostDelta { get; set; }
+    public float ImageGenerationTotalCostDelta { get; set; }
 }
