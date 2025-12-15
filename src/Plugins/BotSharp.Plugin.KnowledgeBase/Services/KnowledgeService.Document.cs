@@ -1,12 +1,3 @@
-using BotSharp.Abstraction.Files;
-using BotSharp.Abstraction.Files.Models;
-using BotSharp.Abstraction.Files.Proccessors;
-using BotSharp.Abstraction.Files.Utilities;
-using BotSharp.Abstraction.Knowledges.Filters;
-using BotSharp.Abstraction.Knowledges.Helpers;
-using BotSharp.Abstraction.Knowledges.Options;
-using BotSharp.Abstraction.Knowledges.Responses;
-using BotSharp.Abstraction.VectorStorage.Enums;
 using System.Net.Http;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
@@ -369,27 +360,14 @@ public partial class KnowledgeService
     #region Read doc content
     private async Task<IEnumerable<FileKnowledgeModel>> GetFileKnowledge(FileBinaryDataModel file, KnowledgeDocOptions? options)
     {
-        var processor = _services.GetServices<IFileProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(options?.Processor));
+        var processor = _services.GetServices<IKnowledgeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(options?.Processor));
         if (processor == null)
         {
             return Enumerable.Empty<FileKnowledgeModel>();
         }
 
         var response = await processor.GetFileKnowledgeAsync(file, options: options);
-        return response?.Knowledges ?? [];
-    }
-
-    private async Task<IEnumerable<string>> ReadTxt(BinaryData binary, ChunkOption option)
-    {
-        using var stream = binary.ToStream();
-        stream.Position = 0;
-        using var reader = new StreamReader(stream);
-        var content = await reader.ReadToEndAsync();
-        reader.Close();
-        stream.Close();
-
-        var lines = TextChopper.Chop(content, option);
-        return lines;
+        return response?.Success == true ? response.Knowledges ?? [] : [];
     }
     #endregion
 
