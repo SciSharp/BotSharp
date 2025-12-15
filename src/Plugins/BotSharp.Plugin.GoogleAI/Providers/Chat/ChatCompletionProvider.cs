@@ -1,10 +1,15 @@
+using Azure;
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Hooks;
+using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Core.Infrastructures.Streams;
+using BotSharp.Core.MessageHub;
 using GenerativeAI;
 using GenerativeAI.Core;
 using GenerativeAI.Types;
+using Microsoft.Extensions.AI;
 
 namespace BotSharp.Plugin.GoogleAi.Providers.Chat;
 
@@ -160,9 +165,136 @@ public class ChatCompletionProvider : IChatCompletion
         return true;
     }
 
-    public Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
+    public async Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
-        throw new NotImplementedException();
+        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
+        var chatClient = client.CreateGenerativeModel(_model.ToModelId());
+        var (prompt, request) = PrepareOptions(chatClient, agent, conversations);
+
+        var hub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
+        var conv = _services.GetRequiredService<IConversationService>();
+        var messageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
+
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
+        // Before chat completion hook
+        foreach (var hook in contentHooks)
+        {
+            await hook.BeforeGenerating(agent, conversations);
+        }
+
+        hub.Push(new()
+        {
+            EventName = ChatEvent.BeforeReceiveLlmStreamMessage,
+            RefId = conv.ConversationId,
+            Data = new RoleDialogModel(AgentRole.Assistant, string.Empty)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = messageId
+            }
+        });
+
+        using var textStream = new RealtimeTextStream();
+        UsageMetadata? tokenUsage = null;
+
+        var responseMessage = new RoleDialogModel(AgentRole.Assistant, string.Empty)
+        {
+            CurrentAgentId = agent.Id,
+            MessageId = messageId
+        };
+
+        await foreach (var response in chatClient.StreamContentAsync(request))
+        {
+            var candidate = response?.Candidates?.FirstOrDefault();
+            if (candidate == null)
+            {
+                continue;
+            }
+
+            var part = candidate?.Content?.Parts?.FirstOrDefault();
+            if (!string.IsNullOrEmpty(part?.Text))
+            {
+                var text = part.Text;
+                textStream.Collect(text);
+
+                var content = new RoleDialogModel(AgentRole.Assistant, text)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = messageId
+                };
+                hub.Push(new()
+                {
+                    EventName = ChatEvent.OnReceiveLlmStreamMessage,
+                    RefId = conv.ConversationId,
+                    Data = content
+                });
+            }
+
+            if (candidate.FinishReason == FinishReason.STOP)
+            {
+                if (part?.FunctionCall != null)
+                {
+                    var functionCall = part.FunctionCall;
+                    responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
+                    {
+                        CurrentAgentId = agent.Id,
+                        MessageId = messageId,
+                        ToolCallId = functionCall.Id,
+                        FunctionName = functionCall.Name,
+                        FunctionArgs = functionCall.Args?.ToString() ?? string.Empty
+                    };
+                }
+                else
+                {
+                    var allText = textStream.GetText();
+#if DEBUG
+                    _logger.LogInformation($"Stream text Content: {allText}");
+#endif
+
+                    responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
+                    {
+                        CurrentAgentId = agent.Id,
+                        MessageId = messageId,
+                        IsStreaming = true
+                    };
+                }
+
+                tokenUsage = response?.UsageMetadata;
+            }
+            else if (candidate.FinishReason.HasValue)
+            {
+                var text = candidate.FinishMessage ?? candidate.FinishReason.Value.ToString();
+                responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = messageId,
+                    IsStreaming = true
+                };
+
+                tokenUsage = response?.UsageMetadata;
+            }
+        }
+
+        hub.Push(new()
+        {
+            EventName = ChatEvent.AfterReceiveLlmStreamMessage,
+            RefId = conv.ConversationId,
+            Data = responseMessage
+        });
+
+        // After chat completion hook
+        foreach (var hook in contentHooks)
+        {
+            await hook.AfterGenerated(responseMessage, new TokenStatsModel
+            {
+                Prompt = prompt,
+                Provider = Provider,
+                Model = _model,
+                TextInputTokens = tokenUsage?.PromptTokenCount ?? 0,
+                TextOutputTokens = tokenUsage?.CandidatesTokenCount ?? 0
+            });
+        }
+
+        return responseMessage;
     }
 
     public void SetModelName(string model)
