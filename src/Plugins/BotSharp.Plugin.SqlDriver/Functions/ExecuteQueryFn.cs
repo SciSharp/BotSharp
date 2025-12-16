@@ -239,7 +239,7 @@ public class ExecuteQueryFn : IFunctionCallback
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         using var connection = new SqliteConnection(connectionString);
-        return connection.Query(sqlTexts[0]);
+        return connection.Query(string.Join("\r\n", sqlTexts));
     }
 
     private async Task<ExecuteQueryArgs> RefineSqlStatement(RoleDialogModel message, ExecuteQueryArgs args)

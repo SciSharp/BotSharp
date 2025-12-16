@@ -8,6 +8,7 @@ public class ConversationStorage : IConversationStorage
 {
     private readonly BotSharpOptions _options;
     private readonly IServiceProvider _services;
+    private static readonly object _lock = new object();
 
     public ConversationStorage(
         BotSharpOptions options,
@@ -19,7 +20,10 @@ public class ConversationStorage : IConversationStorage
 
     public void Append(string conversationId, RoleDialogModel dialog)
     {
-        Append(conversationId, [dialog]);
+        lock (_lock)
+        {
+            Append(conversationId, [dialog]);
+        }
     }
 
     public void Append(string conversationId, IEnumerable<RoleDialogModel> dialogs)

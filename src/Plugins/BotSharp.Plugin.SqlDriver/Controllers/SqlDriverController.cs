@@ -28,13 +28,34 @@ public class SqlDriverController : ControllerBase
         }
 
         var fn = _services.GetRequiredService<IRoutingService>();
-        var msg = new RoleDialogModel(AgentRole.User, sqlQueryRequest.SqlStatement);
+        var msg = new RoleDialogModel(AgentRole.User, sqlQueryRequest.SqlStatement)
+        {
+            CurrentAgentId = sqlQueryRequest.AgentId
+        };
+
         msg.FunctionArgs = JsonSerializer.Serialize(new ExecuteQueryArgs
         {
             SqlStatements = [sqlQueryRequest.SqlStatement],
             ResultFormat = sqlQueryRequest.ResultFormat
         });
         var result = await fn.InvokeFunction("execute_sql", msg);
+
+        // insert sql result to conversation dialogs as function response
+        if (!sqlQueryRequest.IsEphemeral)
+        {
+            var storage = _services.GetService<IConversationStorage>();
+            if (storage != null)
+            {
+                var dialog = new RoleDialogModel(AgentRole.Assistant, msg.Content)
+                {
+                    CurrentAgentId = msg.CurrentAgentId,
+                    MessageId = msg.MessageId,
+                    CreatedAt = DateTime.UtcNow
+                };
+                storage.Append(conversationId, dialog);
+            }
+        }
+
         return Ok(msg.Content);
     }
 }

@@ -6,6 +6,7 @@ using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
+using Fluid;
 using GenerativeAI;
 using GenerativeAI.Core;
 using GenerativeAI.Types;
@@ -242,12 +243,16 @@ public class ChatCompletionProvider : IChatCompletion
                         FunctionName = functionCall.Name,
                         FunctionArgs = functionCall.Args?.ToString() ?? string.Empty
                     };
+
+#if DEBUG
+                    _logger.LogDebug($"Tool Call (id: {functionCall.Id}) => {functionCall.Name}({functionCall.Args})");
+#endif
                 }
                 else
                 {
                     var allText = textStream.GetText();
 #if DEBUG
-                    _logger.LogInformation($"Stream text Content: {allText}");
+                    _logger.LogDebug($"Stream text Content: {allText}");
 #endif
 
                     responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)

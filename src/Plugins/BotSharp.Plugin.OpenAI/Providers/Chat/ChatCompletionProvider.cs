@@ -1,5 +1,4 @@
 #pragma warning disable OPENAI001
-using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
@@ -257,6 +256,9 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
                 textStream.Collect(text);
+#if DEBUG
+                _logger.LogDebug($"Stream Content update: {text}");
+#endif
 
                 var content = new RoleDialogModel(AgentRole.Assistant, text)
                 {
@@ -279,6 +281,10 @@ public class ChatCompletionProvider : IChatCompletion
                 var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
                 var functionArguments = string.Join(string.Empty, args);
 
+#if DEBUG
+                _logger.LogDebug($"Tool Call (id: {toolCallId}) => {functionName}({functionArguments})");
+#endif
+
                 responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
                 {
                     CurrentAgentId = agent.Id,
@@ -291,7 +297,9 @@ public class ChatCompletionProvider : IChatCompletion
             else if (choice.FinishReason == ChatFinishReason.Stop)
             {
                 var allText = textStream.GetText();
-                _logger.LogInformation($"Stream text Content: {allText}");
+#if DEBUG
+                _logger.LogDebug($"Stream text Content: {allText}");
+#endif
 
                 responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
                 {
