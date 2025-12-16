@@ -202,9 +202,24 @@ public partial class ImageCompletionProvider : IImageCompletion
         return retCount;
     }
 
-    private float GetImageGenerationUnitCost(string provider, string model, string quality, string size)
+    private float GetImageGenerationUnitCost(string model, string? quality, string? size)
     {
-        return 0f;
+        var unitCost = 0f;
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model)?.Cost?.ImageCosts;
+        if (settings.IsNullOrEmpty())
+        {
+            return unitCost;
+        }
+
+        if (string.IsNullOrEmpty(quality) || string.IsNullOrEmpty(size))
+        {
+            return unitCost;
+        }
+
+        var found = settings!.FirstOrDefault(x => x.Quality.IsEqualTo(quality) && x.Size.IsEqualTo(size));
+        unitCost = found?.Cost ?? unitCost;
+        return unitCost;
     }
     #endregion
 }

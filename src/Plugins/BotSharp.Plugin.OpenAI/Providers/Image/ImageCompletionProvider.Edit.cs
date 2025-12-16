@@ -7,11 +7,21 @@ public partial class ImageCompletionProvider
 {
     public async Task<RoleDialogModel> GetImageEdits(Agent agent, RoleDialogModel message, Stream image, string imageFileName)
     {
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
+
+        // Before generating hook
+        foreach (var hook in contentHooks)
+        {
+            await hook.BeforeGenerating(agent, [message]);
+        }
+
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var (prompt, imageCount, options) = PrepareEditOptions(message);
         var imageClient = client.GetImageClient(_model);
 
         var response = imageClient.GenerateImageEdits(image, imageFileName, prompt, imageCount, options);
+        var rawContent = response.GetRawResponse().Content.ToString();
+        var responseModel = JsonSerializer.Deserialize<ImageGenerationResponse>(rawContent, BotSharpOptions.defaultJsonOptions);
         var images = response.Value;
 
         var generatedImages = GetImageGenerations(images, options.ResponseFormat);
@@ -22,6 +32,23 @@ public partial class ImageCompletionProvider
             MessageId = message?.MessageId ?? string.Empty,
             GeneratedImages = generatedImages
         };
+
+        // After generating hook
+        var unitCost = GetImageGenerationUnitCost(_model, responseModel?.Quality, responseModel?.Size);
+        foreach (var hook in contentHooks)
+        {
+            await hook.AfterGenerated(responseMessage, new TokenStatsModel
+            {
+                Prompt = prompt,
+                Provider = Provider,
+                Model = _model,
+                TextInputTokens = images?.Usage?.InputTokenDetails?.TextTokenCount ?? 0,
+                ImageInputTokens = images?.Usage?.InputTokenDetails?.ImageTokenCount ?? 0,
+                ImageOutputTokens = images?.Usage?.OutputTokenCount ?? 0,
+                ImageGenerationCount = imageCount,
+                ImageGenerationUnitCost = unitCost
+            });
+        }
 
         return await Task.FromResult(responseMessage);
     }
@@ -29,11 +56,21 @@ public partial class ImageCompletionProvider
     public async Task<RoleDialogModel> GetImageEdits(Agent agent, RoleDialogModel message,
         Stream image, string imageFileName, Stream mask, string maskFileName)
     {
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
+
+        // Before generating hook
+        foreach (var hook in contentHooks)
+        {
+            await hook.BeforeGenerating(agent, [message]);
+        }
+
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var (prompt, imageCount, options) = PrepareEditOptions(message);
         var imageClient = client.GetImageClient(_model);
 
         var response = imageClient.GenerateImageEdits(image, imageFileName, prompt, mask, maskFileName, imageCount, options);
+        var rawContent = response.GetRawResponse().Content.ToString();
+        var responseModel = JsonSerializer.Deserialize<ImageGenerationResponse>(rawContent, BotSharpOptions.defaultJsonOptions);
         var images = response.Value;
 
         var generatedImages = GetImageGenerations(images, options.ResponseFormat);
@@ -44,6 +81,23 @@ public partial class ImageCompletionProvider
             MessageId = message?.MessageId ?? string.Empty,
             GeneratedImages = generatedImages
         };
+
+        // After generating hook
+        var unitCost = GetImageGenerationUnitCost(_model, responseModel?.Quality, responseModel?.Size);
+        foreach (var hook in contentHooks)
+        {
+            await hook.AfterGenerated(responseMessage, new TokenStatsModel
+            {
+                Prompt = prompt,
+                Provider = Provider,
+                Model = _model,
+                TextInputTokens = images?.Usage?.InputTokenDetails?.TextTokenCount ?? 0,
+                ImageInputTokens = images?.Usage?.InputTokenDetails?.ImageTokenCount ?? 0,
+                ImageOutputTokens = images?.Usage?.OutputTokenCount ?? 0,
+                ImageGenerationCount = imageCount,
+                ImageGenerationUnitCost = unitCost
+            });
+        }
 
         return await Task.FromResult(responseMessage);
     }

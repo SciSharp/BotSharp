@@ -156,16 +156,22 @@ public class ModelSettingBase
 /// </summary>
 public class LlmCostSetting
 {
-    #region Input
+    #region Text token
     public float TextInputCost { get; set; } = 0f;
     public float CachedTextInputCost { get; set; } = 0f;
-    public float AudioInputCost { get; set; } = 0f;
-    public float CachedAudioInputCost { get; set; } = 0f;
+    public float TextOutputCost { get; set; } = 0f;
     #endregion
 
-    #region Output
-    public float TextOutputCost { get; set; } = 0f;
+    #region Audio token
+    public float AudioInputCost { get; set; } = 0f;
+    public float CachedAudioInputCost { get; set; } = 0f;
     public float AudioOutputCost { get; set; } = 0f;
+    #endregion
+
+    #region Image token
+    public float ImageInputCost { get; set; } = 0f;
+    public float CachedImageInputCost { get; set; } = 0f;
+    public float ImageOutputCost { get; set; } = 0f;
     #endregion
 
     #region Image
@@ -177,7 +183,7 @@ public class LlmImageCost
 {
     public string Quality { get; set; }
     public string Size { get; set; }
-    public float Cost { get; set; }
+    public float Cost { get; set; } = 0f;
 }
 
 public enum LlmModelType

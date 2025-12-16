@@ -40,26 +40,33 @@ public class TokenStatistics : ITokenStatistics
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(stats.Provider, _model);
 
-        var deltaTextInputCost = stats.TextInputTokens / 1000f * (settings.Cost?.TextInputCost ?? 0f);
-        var deltaCachedTextInputCost = stats.CachedTextInputTokens / 1000f * (settings.Cost?.CachedTextInputCost ?? 0f);
-        var deltaAudioInputCost = stats.AudioInputTokens / 1000f * (settings.Cost?.AudioInputCost ?? 0f);
-        var deltaCachedAudioInputCost = stats.CachedAudioInputTokens / 1000f * (settings.Cost?.CachedAudioInputCost ?? 0f);
+        #region Text tokens
+        var deltaTextInputCost = GetDeltaCost(stats.TextInputTokens, settings?.Cost?.TextInputCost);
+        var deltaCachedTextInputCost = GetDeltaCost(stats.CachedTextInputTokens, settings?.Cost?.CachedTextInputCost);
+        var deltaTextOutputCost = GetDeltaCost(stats.TextOutputTokens, settings?.Cost?.TextOutputCost);
+        #endregion
 
-        var deltaTextOutputCost = stats.TextOutputTokens / 1000f * (settings.Cost?.TextOutputCost ?? 0f);
-        var deltaAudioOutputCost = stats.AudioOutputTokens / 1000f * (settings.Cost?.AudioOutputCost ?? 0f);
+        #region Audio tokens
+        var deltaAudioInputCost = GetDeltaCost(stats.AudioInputTokens, settings?.Cost?.AudioInputCost);
+        var deltaCachedAudioInputCost = GetDeltaCost(stats.CachedAudioInputTokens, settings?.Cost?.CachedAudioInputCost);
+        var deltaAudioOutputCost = GetDeltaCost(stats.AudioOutputTokens, settings?.Cost?.AudioOutputCost);
+        #endregion
 
-        var deltaPromptCost = deltaTextInputCost + deltaCachedTextInputCost + deltaAudioInputCost + deltaCachedAudioInputCost;
-        var deltaCompletionCost = deltaTextOutputCost + deltaAudioOutputCost;
+        #region Image tokens
+        var deltaImageInputCost = GetDeltaCost(stats.ImageInputTokens, settings?.Cost?.ImageInputCost);
+        var deltaCachedImageInputCost = GetDeltaCost(stats.CachedImageInputTokens, settings?.Cost?.CachedImageInputCost);
+        var deltaImageOutputCost = GetDeltaCost(stats.ImageOutputTokens, settings?.Cost?.ImageOutputCost);
+        #endregion
 
         #region Image generation
-        var deltaImageGenerationCost = 0f;
-        var deltaImageGenerationCount = stats.ImageGenerationCount.GetValueOrDefault();
-        if (stats.ImageGenerationUnitCost.HasValue)
-        {
-            var imageGenerationUnitCost = stats.ImageGenerationUnitCost.GetValueOrDefault();
-            deltaImageGenerationCost = deltaImageGenerationCount * imageGenerationUnitCost;
-        }
+        var deltaImageGenerationCost = stats.ImageGenerationCount * stats.ImageGenerationUnitCost;
         #endregion
+
+
+        var deltaPromptCost = deltaTextInputCost + deltaCachedTextInputCost 
+                            + deltaAudioInputCost + deltaCachedAudioInputCost
+                            + deltaImageInputCost + deltaCachedImageInputCost;
+        var deltaCompletionCost = deltaTextOutputCost + deltaAudioOutputCost + deltaImageOutputCost;
 
         var deltaTotal = deltaPromptCost + deltaCompletionCost + deltaImageGenerationCost;
         _promptCost += deltaPromptCost;
@@ -90,7 +97,7 @@ public class TokenStatistics : ITokenStatistics
             CountDelta = new()
             {
                 AgentCallCountDelta = 1,
-                ImageGenerationTotalCountDelta = deltaImageGenerationCount,
+                ImageGenerationTotalCountDelta = stats.ImageGenerationCount
             },
             LlmCostDelta = new()
             {
@@ -141,5 +148,10 @@ public class TokenStatistics : ITokenStatistics
             return;
         }
         _timer.Stop();
+    }
+
+    private float GetDeltaCost(int tokens, float? unitCost)
+    {
+        return tokens / 1000f * (unitCost ?? 0f);
     }
 }

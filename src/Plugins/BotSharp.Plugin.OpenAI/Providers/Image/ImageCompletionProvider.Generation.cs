@@ -1,5 +1,4 @@
 #pragma warning disable OPENAI001
-using BotSharp.Abstraction.Hooks;
 using OpenAI.Images;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Image;
@@ -21,6 +20,8 @@ public partial class ImageCompletionProvider
         var imageClient = client.GetImageClient(_model);
 
         var response = imageClient.GenerateImages(prompt, imageCount, options);
+        var rawContent = response.GetRawResponse().Content.ToString();
+        var responseModel = JsonSerializer.Deserialize<ImageGenerationResponse>(rawContent, BotSharpOptions.defaultJsonOptions);
         var images = response.Value;
 
         var generatedImages = GetImageGenerations(images, options.ResponseFormat);
@@ -33,6 +34,7 @@ public partial class ImageCompletionProvider
         };
 
         // After generating hook
+        var unitCost = GetImageGenerationUnitCost(_model, responseModel?.Quality, responseModel?.Size);
         foreach (var hook in contentHooks)
         {
             await hook.AfterGenerated(responseMessage, new TokenStatsModel
@@ -40,8 +42,11 @@ public partial class ImageCompletionProvider
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
+                TextInputTokens = images?.Usage?.InputTokenDetails?.TextTokenCount ?? 0,
+                ImageInputTokens = images?.Usage?.InputTokenDetails?.ImageTokenCount ?? 0,
+                ImageOutputTokens = images?.Usage?.OutputTokenCount ?? 0,
                 ImageGenerationCount = imageCount,
-                ImageGenerationUnitCost = GetImageGenerationUnitCost(Provider, _model, options.Quality?.ToString(), options.Size?.ToString())
+                ImageGenerationUnitCost = unitCost
             });
         }
 
