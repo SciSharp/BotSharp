@@ -5,6 +5,8 @@ namespace BotSharp.Core.Repository;
 
 public partial class FileRepository
 {
+    private static readonly object _dialogLock = new object();
+
     public void CreateNewConversation(Conversation conversation)
     {
         var utcNow = DateTime.UtcNow;
@@ -870,16 +872,19 @@ public partial class FileRepository
 
     private List<DialogElement> CollectDialogElements(string dialogDir)
     {
-        var dialogs = new List<DialogElement>();
-
-        if (!File.Exists(dialogDir))
+        lock (_dialogLock)
         {
+            var dialogs = new List<DialogElement>();
+
+            if (!File.Exists(dialogDir))
+            {
+                return dialogs;
+            }
+
+            var texts = File.ReadAllText(dialogDir);
+            dialogs = JsonSerializer.Deserialize<List<DialogElement>>(texts) ?? new List<DialogElement>();
             return dialogs;
         }
-
-        var texts = File.ReadAllText(dialogDir);
-        dialogs = JsonSerializer.Deserialize<List<DialogElement>>(texts) ?? new List<DialogElement>();
-        return dialogs;
     }
 
     private string ParseDialogElements(List<DialogElement> dialogs)

@@ -80,9 +80,7 @@ public class ChatStreamMiddleware
             var (eventType, data) = MapEvents(conn, receivedText, conversationId);
             if (eventType == "start")
             {
-#if DEBUG
-                _logger.LogCritical($"Start chat stream connection for conversation ({conversationId})");
-#endif
+                _logger.LogDebug($"Start chat stream connection for conversation ({conversationId})");
                 var request = InitRequest(data, conversationId);
                 await ConnectToModel(hub, session, request);
             }
@@ -95,9 +93,7 @@ public class ChatStreamMiddleware
             }
             else if (eventType == "disconnect")
             {
-#if DEBUG
-                _logger.LogCritical($"Disconnecting chat stream connection for conversation ({conversationId})");
-#endif
+                _logger.LogDebug($"Disconnecting chat stream connection for conversation ({conversationId})");
                 await hub.Completer.Disconnect();
                 break;
             }

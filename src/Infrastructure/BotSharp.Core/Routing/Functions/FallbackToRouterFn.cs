@@ -18,7 +18,7 @@ public class FallbackToRouterFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<FallbackArgs>(message.FunctionArgs);
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.PopTo(routing.Context.EntryAgentId, "pop to entry agent");
-        message.Content = args.Question;
+        message.Content = args.Reason;
 
         return true;
     }

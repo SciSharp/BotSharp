@@ -35,9 +35,9 @@ public class ConversationObserver : BotSharpObserverBase<HubObserveData<RoleDial
 
         if (value.EventName == ChatEvent.OnIndicationReceived)
         {
-#if DEBUG
-            _logger.LogCritical($"[{nameof(ConversationObserver)}]: Receive {value.EventName} => {value.Data.Indication} ({conv.ConversationId})");
-#endif
+
+            _logger.LogDebug($"[{nameof(ConversationObserver)}]: Receive {value.EventName} => {value.Data.Indication} ({conv.ConversationId})");
+
             if (_listeners.TryGetValue(value.EventName, out var func) && func != null)
             {
                 func(value).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -45,9 +45,8 @@ public class ConversationObserver : BotSharpObserverBase<HubObserveData<RoleDial
         }
         else if (value.EventName == ChatEvent.OnIntermediateMessageReceivedFromAssistant)
         {
-#if DEBUG
-            _logger.LogCritical($"[{nameof(ConversationObserver)}]: Receive {value.EventName} => {value.Data.Content} ({conv.ConversationId})");
-#endif
+            _logger.LogDebug($"[{nameof(ConversationObserver)}]: Receive {value.EventName} => {value.Data.Content} ({conv.ConversationId})");
+
             routingCtx.AddDialogs([value.Data]);
             if (value.SaveDataToDb)
             {
