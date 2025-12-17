@@ -1,12 +1,6 @@
-using BotSharp.Plugin.SqlDriver.Interfaces;
-using BotSharp.Plugin.SqlDriver.Models;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using Npgsql;
-using System.ComponentModel.DataAnnotations;
-using System.Data.Common;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
 

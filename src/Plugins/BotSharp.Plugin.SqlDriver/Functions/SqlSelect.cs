@@ -3,7 +3,6 @@ using MySqlConnector;
 using Npgsql;
 using MongoDB.Driver;
 using MongoDB.Bson;
-using System.Text.RegularExpressions;
 using static Dapper.SqlMapper;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
