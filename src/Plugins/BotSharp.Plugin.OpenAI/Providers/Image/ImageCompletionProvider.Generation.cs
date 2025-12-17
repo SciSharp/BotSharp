@@ -15,8 +15,11 @@ public partial class ImageCompletionProvider
             await hook.BeforeGenerating(agent, [message]);
         }
 
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model);
+
         var client = ProviderHelper.GetClient(Provider, _model, _services);
-        var (prompt, imageCount, options) = PrepareGenerationOptions(message);
+        var (prompt, imageCount, options) = PrepareGenerationOptions(message, settings?.Image?.Generation);
         var imageClient = client.GetImageClient(_model);
 
         var response = imageClient.GenerateImages(prompt, imageCount, options);
@@ -34,7 +37,7 @@ public partial class ImageCompletionProvider
         };
 
         // After generating hook
-        var unitCost = GetImageGenerationUnitCost(_model, responseModel?.Quality, responseModel?.Size);
+        var unitCost = GetImageGenerationUnitCost(settings?.Cost?.ImageCosts, responseModel?.Quality, responseModel?.Size);
         foreach (var hook in contentHooks)
         {
             await hook.AfterGenerated(responseMessage, new TokenStatsModel
@@ -53,26 +56,22 @@ public partial class ImageCompletionProvider
         return await Task.FromResult(responseMessage);
     }
 
-    private (string, int, ImageGenerationOptions) PrepareGenerationOptions(RoleDialogModel message)
+    private (string, int, ImageGenerationOptions) PrepareGenerationOptions(RoleDialogModel message, ImageGenerationSetting? settings)
     {
         var prompt = message?.Payload ?? message?.Content ?? string.Empty;
 
-        var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        
         var size = state.GetState("image_size");
         var quality = state.GetState("image_quality");
         var style = state.GetState("image_style");
         var responseFormat = state.GetState("image_response_format");
         var background = state.GetState("image_background");
 
-        var settings = settingsService.GetSetting(Provider, _model)?.Image?.Generation;
-
-        size = settings?.Size != null ? LlmUtility.VerifyModelParameter(size, settings.Size.Default, settings.Size.Options) : null;
-        quality = settings?.Quality != null ? LlmUtility.VerifyModelParameter(quality, settings.Quality.Default, settings.Quality.Options) : null;
-        style = settings?.Style != null ? LlmUtility.VerifyModelParameter(style, settings.Style.Default, settings.Style.Options) : null;
-        responseFormat = settings?.ResponseFormat != null ? LlmUtility.VerifyModelParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
-        background = settings?.Background != null ? LlmUtility.VerifyModelParameter(background, settings.Background.Default, settings.Background.Options) : null;
+        size = LlmUtility.GetModelParameter(settings?.Parameters, "Size", size);
+        quality = LlmUtility.GetModelParameter(settings?.Parameters, "Quality", quality);
+        style = LlmUtility.GetModelParameter(settings?.Parameters, "Style", style);
+        background = LlmUtility.GetModelParameter(settings?.Parameters, "Background", background);
+        responseFormat = LlmUtility.GetModelParameter(settings?.Parameters, "ResponseFormat", responseFormat);
 
         var options = new ImageGenerationOptions();
         if (!string.IsNullOrEmpty(size))

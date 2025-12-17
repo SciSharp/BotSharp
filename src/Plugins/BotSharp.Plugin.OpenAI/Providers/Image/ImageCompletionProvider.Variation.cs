@@ -15,8 +15,11 @@ public partial class ImageCompletionProvider
             await hook.BeforeGenerating(agent, [message]);
         }
 
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model);
+
         var client = ProviderHelper.GetClient(Provider, _model, _services);
-        var (imageCount, options) = PrepareVariationOptions();
+        var (imageCount, options) = PrepareVariationOptions(settings?.Image?.Variation);
         var imageClient = client.GetImageClient(_model);
 
         var response = imageClient.GenerateImageVariations(image, imageFileName, imageCount, options);
@@ -34,7 +37,7 @@ public partial class ImageCompletionProvider
         };
 
         // After generating hook
-        var unitCost = GetImageGenerationUnitCost(_model, responseModel?.Quality, responseModel?.Size);
+        var unitCost = GetImageGenerationUnitCost(settings?.Cost?.ImageCosts, responseModel?.Quality, responseModel?.Size);
         foreach (var hook in contentHooks)
         {
             await hook.AfterGenerated(responseMessage, new TokenStatsModel
@@ -53,18 +56,15 @@ public partial class ImageCompletionProvider
         return await Task.FromResult(responseMessage);
     }
 
-    private (int, ImageVariationOptions) PrepareVariationOptions()
+    private (int, ImageVariationOptions) PrepareVariationOptions(ImageVariationSetting? settings)
     {
-        var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var state = _services.GetRequiredService<IConversationStateService>();
 
         var size = state.GetState("image_size");
         var responseFormat = state.GetState("image_response_format");
 
-        var settings = settingsService.GetSetting(Provider, _model)?.Image?.Variation;
-
-        size = settings?.Size != null ? LlmUtility.VerifyModelParameter(size, settings.Size.Default, settings.Size.Options) : null;
-        responseFormat = settings?.ResponseFormat != null ? LlmUtility.VerifyModelParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
+        size = LlmUtility.GetModelParameter(settings?.Parameters, "Size", size);
+        responseFormat = LlmUtility.GetModelParameter(settings?.Parameters, "ResponseFormat", responseFormat);
 
         var options = new ImageVariationOptions();
         if (!string.IsNullOrEmpty(size))

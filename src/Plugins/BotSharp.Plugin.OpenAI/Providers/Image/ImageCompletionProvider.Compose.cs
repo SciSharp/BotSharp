@@ -21,8 +21,11 @@ public partial class ImageCompletionProvider
             await hook.BeforeGenerating(agent, [message]);
         }
 
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model);
+
         var client = ProviderHelper.GetClient(Provider, _model, _services);
-        var (prompt, imageCount, options) = PrepareEditOptions(message);
+        var (prompt, imageCount, options) = PrepareEditOptions(message, settings?.Image?.Edit);
         var imageClient = client.GetImageClient(_model);
 
         // Use the new extension method to support multiple images
@@ -41,7 +44,7 @@ public partial class ImageCompletionProvider
         };
 
         // After generating hook
-        var unitCost = GetImageGenerationUnitCost(_model, responseModel?.Quality, responseModel?.Size);
+        var unitCost = GetImageGenerationUnitCost(settings?.Cost?.ImageCosts, responseModel?.Quality, responseModel?.Size);
         foreach (var hook in contentHooks)
         {
             await hook.AfterGenerated(responseMessage, new TokenStatsModel

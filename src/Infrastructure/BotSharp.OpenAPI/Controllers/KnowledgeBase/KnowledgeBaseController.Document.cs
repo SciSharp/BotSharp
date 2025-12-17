@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Knowledges.Options;
+using BotSharp.Abstraction.Knowledges.Processors;
 using BotSharp.Abstraction.Knowledges.Responses;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
 
@@ -8,6 +9,12 @@ namespace BotSharp.OpenAPI.Controllers;
 public partial class KnowledgeBaseController
 {
     #region Document
+    [HttpGet("/knowledge/document/processors")]
+    public IEnumerable<string> GetKnowledgeDocumentProcessors()
+    {
+        return _services.GetServices<IKnowledgeProcessor>().Select(x => x.Provider);
+    }
+
     [HttpPost("/knowledge/document/{collection}/upload")]
     public async Task<UploadKnowledgeResponse> UploadKnowledgeDocuments([FromRoute] string collection, [FromBody] VectorKnowledgeUploadRequest request)
     {
