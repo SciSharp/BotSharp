@@ -1,6 +1,3 @@
-using BotSharp.Plugin.FuzzySharp.FuzzSharp;
-using BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
-
 namespace BotSharp.Plugin.FuzzySharp.Services.Processors;
 
 public class NgramProcessor : INgramProcessor
@@ -10,19 +7,19 @@ public class NgramProcessor : INgramProcessor
     public NgramProcessor(IEnumerable<ITokenMatcher> matchers)
     {
         // Sort matchers by priority (highest first)
-        _matchers = matchers.OrderByDescending(m => m.Priority).ToList();
+        _matchers = matchers.OrderByDescending(m => m.Priority.Order).ToList();
     }
 
-    public List<FlaggedItem> ProcessNgrams(
+    public List<FlaggedTokenItem> ProcessNgrams(
         List<string> tokens,
         Dictionary<string, HashSet<string>> vocabulary,
-        Dictionary<string, (string DbPath, string CanonicalForm)> synonymMapping,
-        Dictionary<string, (string CanonicalForm, List<string> Sources)> lookup,
+        Dictionary<string, (string DataSource, string CanonicalForm)> synonymMapping,
+        Dictionary<string, (string CanonicalForm, HashSet<string> Sources)> lookup,
         int maxNgram,
         double cutoff,
         int topK)
     {
-        var flagged = new List<FlaggedItem>();
+        var flagged = new List<FlaggedTokenItem>();
 
         // Process n-grams from largest to smallest
         for (int n = maxNgram; n >= 1; n--)
@@ -52,13 +49,13 @@ public class NgramProcessor : INgramProcessor
     /// <summary>
     /// Process a single n-gram at the specified position
     /// </summary>
-    private FlaggedItem? ProcessSingleNgram(
+    private FlaggedTokenItem? ProcessSingleNgram(
         List<string> tokens,
         int startIdx,
         int n,
         Dictionary<string, HashSet<string>> vocabulary,
-        Dictionary<string, (string DbPath, string CanonicalForm)> synonymMapping,
-        Dictionary<string, (string CanonicalForm, List<string> Sources)> lookup,
+        Dictionary<string, (string DataSource, string CanonicalForm)> synonymMapping,
+        Dictionary<string, (string CanonicalForm, HashSet<string> Sources)> lookup,
         double cutoff,
         int topK)
     {
@@ -73,14 +70,14 @@ public class NgramProcessor : INgramProcessor
 
         // Try matching in priority order using matchers
         var context = new MatchContext(
-            contentSpan, 
-            contentLow, 
-            startIdx, 
+            contentSpan,
+            contentLow,
+            startIdx,
             n,
             vocabulary,
-            synonymMapping, 
+            synonymMapping,
             lookup,
-            cutoff, 
+            cutoff,
             topK);
 
         foreach (var matcher in _matchers)
@@ -98,13 +95,13 @@ public class NgramProcessor : INgramProcessor
     /// <summary>
     /// Create a FlaggedItem from a MatchResult
     /// </summary>
-    private FlaggedItem CreateFlaggedItem(
+    private FlaggedTokenItem CreateFlaggedItem(
         MatchResult matchResult,
         int startIndex,
         string contentSpan,
         int ngramLength)
     {
-        return new FlaggedItem
+        return new FlaggedTokenItem
         {
             Index = startIndex,
             Token = contentSpan,

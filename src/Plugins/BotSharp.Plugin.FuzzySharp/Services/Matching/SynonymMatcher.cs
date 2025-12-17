@@ -1,11 +1,8 @@
-using BotSharp.Plugin.FuzzySharp.FuzzSharp;
-using BotSharp.Plugin.FuzzySharp.Constants;
-
 namespace BotSharp.Plugin.FuzzySharp.Services.Matching;
 
 public class SynonymMatcher : ITokenMatcher
 {
-    public int Priority => 3; // Highest priority
+    public MatchPriority Priority => MatchReason.SynonymMatch; // Highest priority
 
     public MatchResult? TryMatch(MatchContext context)
     {
@@ -13,8 +10,8 @@ public class SynonymMatcher : ITokenMatcher
         {
             return new MatchResult(
                 CanonicalForm: match.CanonicalForm,
-                Sources: new List<string> { match.DbPath },
-                MatchType: MatchReason.SynonymMatch,
+                Sources: new List<string> { match.DataSource },
+                MatchType: Priority,
                 Confidence: 1.0);
         }
 

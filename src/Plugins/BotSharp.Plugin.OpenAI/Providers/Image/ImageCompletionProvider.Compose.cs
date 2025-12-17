@@ -13,12 +13,25 @@ public partial class ImageCompletionProvider
     /// <returns>RoleDialogModel containing the composed image(s)</returns>
     public async Task<RoleDialogModel> GetImageComposition(Agent agent, RoleDialogModel message, Stream[] images, string[] imageFileNames)
     {
+        var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
+
+        // Before generating hook
+        foreach (var hook in contentHooks)
+        {
+            await hook.BeforeGenerating(agent, [message]);
+        }
+
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model);
+
         var client = ProviderHelper.GetClient(Provider, _model, _services);
-        var (prompt, imageCount, options) = PrepareEditOptions(message);
+        var (prompt, imageCount, options) = PrepareEditOptions(message, settings?.Image?.Edit);
         var imageClient = client.GetImageClient(_model);
 
         // Use the new extension method to support multiple images
         var response = imageClient.GenerateImageEdits(_model, images, imageFileNames, prompt, imageCount, options);
+        var rawContent = response.GetRawResponse().Content.ToString();
+        var responseModel = JsonSerializer.Deserialize<ImageGenerationResponse>(rawContent, BotSharpOptions.defaultJsonOptions);
         var generatedImageCollection = response.Value;
 
         var generatedImages = GetImageGenerations(generatedImageCollection, options.ResponseFormat);
@@ -29,6 +42,23 @@ public partial class ImageCompletionProvider
             MessageId = message?.MessageId ?? string.Empty,
             GeneratedImages = generatedImages
         };
+
+        // After generating hook
+        var unitCost = GetImageGenerationUnitCost(settings?.Cost?.ImageCosts, responseModel?.Quality, responseModel?.Size);
+        foreach (var hook in contentHooks)
+        {
+            await hook.AfterGenerated(responseMessage, new TokenStatsModel
+            {
+                Prompt = prompt,
+                Provider = Provider,
+                Model = _model,
+                TextInputTokens = generatedImageCollection?.Usage?.InputTokenDetails?.TextTokenCount ?? 0,
+                ImageInputTokens = generatedImageCollection?.Usage?.InputTokenDetails?.ImageTokenCount ?? 0,
+                ImageOutputTokens = generatedImageCollection?.Usage?.OutputTokenCount ?? 0,
+                ImageGenerationCount = imageCount,
+                ImageGenerationUnitCost = unitCost
+            });
+        }
 
         return await Task.FromResult(responseMessage);
     }

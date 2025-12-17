@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 using StackExchange.Redis;

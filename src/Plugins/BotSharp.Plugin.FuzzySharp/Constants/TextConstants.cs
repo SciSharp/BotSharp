@@ -1,4 +1,3 @@
-
 namespace BotSharp.Plugin.FuzzySharp.Constants;
 
 public static class TextConstants

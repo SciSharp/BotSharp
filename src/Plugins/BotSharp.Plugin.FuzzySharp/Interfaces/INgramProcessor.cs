@@ -1,6 +1,4 @@
-using BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
-
-namespace BotSharp.Plugin.FuzzySharp.FuzzSharp;
+namespace BotSharp.Plugin.FuzzySharp.Interfaces;
 
 public interface INgramProcessor
 {
@@ -15,11 +13,11 @@ public interface INgramProcessor
     /// <param name="cutoff">Minimum confidence threshold for fuzzy matching</param>
     /// <param name="topK">Maximum number of matches to return</param>
     /// <returns>List of flagged items</returns>
-    List<FlaggedItem> ProcessNgrams(
+    List<FlaggedTokenItem> ProcessNgrams(
         List<string> tokens,
         Dictionary<string, HashSet<string>> vocabulary,
-        Dictionary<string, (string DbPath, string CanonicalForm)> synonymMapping,
-        Dictionary<string, (string CanonicalForm, List<string> Sources)> lookup,
+        Dictionary<string, (string DataSource, string CanonicalForm)> synonymMapping,
+        Dictionary<string, (string CanonicalForm, HashSet<string> Sources)> lookup,
         int maxNgram,
         double cutoff,
         int topK);

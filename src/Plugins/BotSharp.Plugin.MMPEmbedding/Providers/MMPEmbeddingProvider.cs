@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using BotSharp.Plugin.MMPEmbedding;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using OpenAI.Embeddings;
 
 namespace BotSharp.Plugin.MMPEmbedding.Providers;
@@ -26,7 +22,7 @@ public class MMPEmbeddingProvider : ITextEmbedding
     public string Provider => "mmp-embedding";
     public string Model => _model;
 
-    private static readonly Regex WordRegex = new(@"\b\w+\b", RegexOptions.Compiled);
+    private static readonly Regex _wordRegex = new(@"\b\w+\b", RegexOptions.Compiled);
 
     public MMPEmbeddingProvider(IServiceProvider serviceProvider, ILogger<MMPEmbeddingProvider> logger)
     {
@@ -76,6 +72,31 @@ public class MMPEmbeddingProvider : ITextEmbedding
         return results;
     }
 
+    public void SetDimension(int dimension)
+    {
+        _dimension = dimension > 0 ? dimension : DEFAULT_DIMENSION;
+    }
+
+    public int GetDimension()
+    {
+        return _dimension;
+    }
+
+    public void SetModelName(string model)
+    {
+        _model = model;
+    }
+
+    #region Private methods
+    /// <summary>
+    /// Sets the underlying provider to use for getting token embeddings
+    /// </summary>
+    /// <param name="provider">Provider name (e.g., "openai", "azure-openai", "deepseek-ai")</param>
+    public void SetUnderlyingProvider(string provider)
+    {
+        _underlyingProvider = provider;
+    }
+
     /// <summary>
     /// Gets embeddings for individual tokens using the underlying provider
     /// </summary>
@@ -113,7 +134,7 @@ public class MMPEmbeddingProvider : ITextEmbedding
     /// Max pooling: element-wise maximum of all token embeddings
     /// Result: concatenation of mean and max pooled vectors
     /// </summary>
-    private float[] MeanMaxPooling(IReadOnlyList<float[]> vectors, double meanWeight = 0.5, double maxWeight = 0.5)
+    private float[] MeanMaxPooling(IReadOnlyList<float[]> vectors, float meanWeight = 0.5f, float maxWeight = 0.5f)
     {
         var numTokens = vectors.Count;
 
@@ -128,40 +149,17 @@ public class MMPEmbeddingProvider : ITextEmbedding
             .ToArray();
 
         return Enumerable.Range(0, _dimension)
-            .Select(i => (float)meanWeight * meanPooled[i] + (float)maxWeight * maxPooled[i])
+            .Select(i => meanWeight * meanPooled[i] + maxWeight * maxPooled[i])
             .ToArray();
-    }
-
-    public void SetDimension(int dimension)
-    {
-        _dimension = dimension > 0 ? dimension : DEFAULT_DIMENSION;
-    }
-
-    public int GetDimension()
-    {
-        return _dimension;
-    }
-
-    public void SetModelName(string model)
-    {
-        _model = model;
-    }
-
-    /// <summary>
-    /// Sets the underlying provider to use for getting token embeddings
-    /// </summary>
-    /// <param name="provider">Provider name (e.g., "openai", "azure-openai", "deepseek-ai")</param>
-    public void SetUnderlyingProvider(string provider)
-    {
-        _underlyingProvider = provider;
     }
 
     /// <summary>
     /// Tokenizes text into individual words
     /// </summary>
-    public static IEnumerable<string> Tokenize(string text, string? pattern = null)
+    private static IEnumerable<string> Tokenize(string text, string? pattern = null)
     {
-        var patternRegex = string.IsNullOrEmpty(pattern) ? WordRegex : new(pattern, RegexOptions.Compiled);
+        var patternRegex = !string.IsNullOrEmpty(pattern) ? new(pattern, RegexOptions.Compiled) : _wordRegex;
         return patternRegex.Matches(text).Cast<Match>().Select(m => m.Value);
     }
+    #endregion
 }

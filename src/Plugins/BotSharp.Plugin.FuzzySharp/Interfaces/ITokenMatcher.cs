@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.FuzzySharp.FuzzSharp;
+namespace BotSharp.Plugin.FuzzySharp.Interfaces;
 
 public interface ITokenMatcher
 {
@@ -12,7 +12,7 @@ public interface ITokenMatcher
     /// <summary>
     /// Priority of this matcher (higher priority matchers are tried first)
     /// </summary>
-    int Priority { get; }
+    MatchPriority Priority { get; }
 }
 
 /// <summary>
@@ -24,8 +24,8 @@ public record MatchContext(
     int StartIndex,
     int NgramLength,
     Dictionary<string, HashSet<string>> Vocabulary,
-    Dictionary<string, (string DbPath, string CanonicalForm)> SynonymMapping,
-    Dictionary<string, (string CanonicalForm, List<string> Sources)> Lookup,
+    Dictionary<string, (string DataSource, string CanonicalForm)> SynonymMapping,
+    Dictionary<string, (string CanonicalForm, HashSet<string> Sources)> Lookup,
     double Cutoff,
     int TopK);
 
@@ -35,5 +35,5 @@ public record MatchContext(
 public record MatchResult(
     string CanonicalForm,
     List<string> Sources,
-    string MatchType,
+    MatchPriority MatchType,
     double Confidence);

@@ -1,17 +1,27 @@
-using BotSharp.Plugin.FuzzySharp.Constants;
-
 namespace BotSharp.Plugin.FuzzySharp.Utils;
 
-public static class TextTokenizer
+public static class TokenHelper
 {
+    /// <summary>
+    /// Complete tokenization flow: preprocessing + tokenization
+    /// This is the recommended usage
+    /// </summary>
+    /// <param name="text">Text to tokenize</param>
+    /// <returns>List of tokens</returns>
+    public static List<string> Tokenize(string text)
+    {
+        var preprocessed = PreprocessText(text);
+        return SimpleTokenize(preprocessed);
+    }
+
     /// <summary>
     /// Preprocess text: add spaces before and after characters that need to be separated
     /// This allows subsequent simple whitespace tokenization to correctly separate these characters
-    /// Example: "(IH)" -> " ( IH ) " -> ["(", "IH", ")"]
+    /// Example: "(AB)" -> " ( AB ) " -> ["(", "AB", ")"]
     /// </summary>
     /// <param name="text">Text to preprocess</param>
     /// <returns>Preprocessed text</returns>
-    public static string PreprocessText(string text)
+    private static string PreprocessText(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -44,20 +54,8 @@ public static class TextTokenizer
     /// </summary>
     /// <param name="text">Text to tokenize</param>
     /// <returns>List of tokens</returns>
-    public static List<string> SimpleTokenize(string text)
+    private static List<string> SimpleTokenize(string text)
     {
         return text.Split(TextConstants.TokenSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
-    }
-
-    /// <summary>
-    /// Complete tokenization flow: preprocessing + tokenization
-    /// This is the recommended usage
-    /// </summary>
-    /// <param name="text">Text to tokenize</param>
-    /// <returns>List of tokens</returns>
-    public static List<string> Tokenize(string text)
-    {
-        var preprocessed = PreprocessText(text);
-        return SimpleTokenize(preprocessed);
     }
 }

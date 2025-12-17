@@ -1,5 +1,4 @@
 #pragma warning disable OPENAI001
-using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
@@ -257,8 +256,9 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
                 textStream.Collect(text);
-
+#if DEBUG
                 _logger.LogDebug($"Stream Content update: {text}");
+#endif
 
                 var content = new RoleDialogModel(AgentRole.Assistant, text)
                 {
@@ -281,7 +281,9 @@ public class ChatCompletionProvider : IChatCompletion
                 var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
                 var functionArguments = string.Join(string.Empty, args);
 
+#if DEBUG
                 _logger.LogDebug($"Tool Call (id: {toolCallId}) => {functionName}({functionArguments})");
+#endif
 
                 responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
                 {
@@ -292,12 +294,26 @@ public class ChatCompletionProvider : IChatCompletion
                     FunctionArgs = functionArguments
                 };
             }
-            else if (choice.FinishReason.HasValue)
+            else if (choice.FinishReason == ChatFinishReason.Stop)
             {
                 var allText = textStream.GetText();
+#if DEBUG
                 _logger.LogDebug($"Stream text Content: {allText}");
+#endif
 
                 responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = messageId,
+                    IsStreaming = true
+                };
+            }
+            else if (choice.FinishReason.HasValue)
+            {
+                var text = choice.FinishReason == ChatFinishReason.Length ? "Model reached the maximum number of tokens allowed."
+                    : choice.FinishReason == ChatFinishReason.ContentFilter ? "Content is omitted due to content filter rule."
+                    : choice.FinishReason.Value.ToString();
+                responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
                 {
                     CurrentAgentId = agent.Id,
                     MessageId = messageId,

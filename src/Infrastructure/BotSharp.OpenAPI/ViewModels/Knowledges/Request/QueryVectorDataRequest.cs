@@ -1,4 +1,4 @@
-namespace BotSharp.OpenAPI.ViewModels.Knowledges.Request;
+namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
 public class QueryVectorDataRequest
 {

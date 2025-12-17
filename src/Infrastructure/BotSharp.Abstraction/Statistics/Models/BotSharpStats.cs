@@ -80,6 +80,9 @@ public class StatsCount
 {
     [JsonPropertyName("agent_call_count")]
     public long AgentCallCount { get; set; }
+
+    [JsonPropertyName("image_generation_total_count")]
+    public int ImageGenerationTotalCount { get; set; }
 }
 
 public class StatsLlmCost
@@ -95,4 +98,7 @@ public class StatsLlmCost
 
     [JsonPropertyName("completion_total_cost")]
     public float CompletionTotalCost { get; set; }
+
+    [JsonPropertyName("image_generation_total_cost")]
+    public float ImageGenerationTotalCost { get; set; }
 }

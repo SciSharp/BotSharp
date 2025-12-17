@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Files;
-using BotSharp.Abstraction.VectorStorage.Enums;
 using BotSharp.Abstraction.VectorStorage.Filters;
 using BotSharp.Abstraction.VectorStorage.Options;
 

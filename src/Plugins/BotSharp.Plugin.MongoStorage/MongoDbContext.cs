@@ -92,8 +92,7 @@ public class MongoDbContext
     }
 
     #region Indexes
-
-    public void CreateIndexes()
+    private void CreateIndexes()
     {
         // Use Interlocked.CompareExchange to ensure the index is initialized only once, ensuring thread safety
         // 0 indicates uninitialized, 1 indicates initialized
@@ -111,6 +110,7 @@ public class MongoDbContext
         CreateAgentCodeScriptIndex();
         CreateAgentTaskIndex();
     }
+
     private IMongoCollection<AgentCodeScriptDocument> CreateAgentCodeScriptIndex()
     {
         var collection = GetCollectionOrCreate<AgentCodeScriptDocument>("AgentCodeScripts");

@@ -1,4 +1,5 @@
 using OpenAI.Audio;
+using System.Drawing;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Audio;
 
@@ -23,21 +24,20 @@ public class AudioTranscriptionProvider : IAudioTranscription
 
     public async Task<string> TranscriptTextAsync(Stream audio, string audioFileName, string? text = null)
     {
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model);
+
         var audioClient = ProviderHelper.GetClient(Provider, _model, _services)
                                         .GetAudioClient(_model);
 
-        var options = PrepareTranscriptionOptions(text);
+        var options = PrepareTranscriptionOptions(text, settings?.Audio?.Transcription);
         var result = await audioClient.TranscribeAudioAsync(audio, audioFileName, options);
         return result.Value.Text;
     }
 
-    private AudioTranscriptionOptions PrepareTranscriptionOptions(string? text)
+    private AudioTranscriptionOptions PrepareTranscriptionOptions(string? text, AudioTranscriptionSetting? settings)
     {
-        var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-
-        var settings = settingsService.GetSetting(Provider, _model)?.Audio?.Transcription;
-
         var temperature = state.GetState("audio_temperature");
         var responseFormat = state.GetState("audio_response_format");
         var granularity = state.GetState("audio_granularity");
@@ -46,9 +46,9 @@ public class AudioTranscriptionProvider : IAudioTranscription
         {
             temperature = $"{settings.Temperature}";
         }
-        
-        responseFormat = settings?.ResponseFormat != null ? LlmUtility.VerifyModelParameter(responseFormat, settings.ResponseFormat.Default, settings.ResponseFormat.Options) : null;
-        granularity = settings?.Granularity != null ? LlmUtility.VerifyModelParameter(granularity, settings.Granularity.Default, settings.Granularity.Options) : null;
+
+        responseFormat = LlmUtility.GetModelParameter(settings?.Parameters, "ResponseFormat", responseFormat);
+        granularity = LlmUtility.GetModelParameter(settings?.Parameters, "Granularity", granularity);
 
         var options = new AudioTranscriptionOptions
         {

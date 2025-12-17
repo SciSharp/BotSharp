@@ -1,6 +1,4 @@
-using BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
-
-namespace BotSharp.Plugin.FuzzySharp.FuzzSharp;
+namespace BotSharp.Plugin.FuzzySharp.Interfaces;
 
 /// <summary>
 /// Result processor interface
@@ -13,5 +11,5 @@ public interface IResultProcessor
     /// </summary>
     /// <param name="flagged">List of flagged items to process</param>
     /// <returns>Processed list of flagged items (deduplicated and sorted)</returns>
-    List<FlaggedItem> ProcessResults(List<FlaggedItem> flagged);
+    List<FlaggedTokenItem> ProcessResults(List<FlaggedTokenItem> flagged);
 }

@@ -1,9 +1,6 @@
+using BotSharp.Abstraction.Knowledges.Processors;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
-using BotSharp.Abstraction.Users.Enums;
-using BotSharp.Plugin.KnowledgeBase.Converters;
-using BotSharp.Plugin.KnowledgeBase.Hooks;
-using BotSharp.Plugin.KnowledgeBase.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Plugin.KnowledgeBase;
@@ -27,7 +24,7 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
         services.AddScoped<IAgentUtilityHook, KnowledgeBaseUtilityHook>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
         services.AddScoped<IKnowledgeHook, KnowledgeHook>();
-
+        services.AddScoped<IKnowledgeProcessor, TextFileKnowledgeProcessor>();
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)
@@ -40,7 +37,8 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
             {
                 new PluginMenuDef("Q & A", link: "page/knowledge-base/question-answer"),
                 new PluginMenuDef("Relationships", link: "page/knowledge-base/relationships"),
-                new PluginMenuDef("Documents", link: "page/knowledge-base/documents")
+                new PluginMenuDef("Documents", link: "page/knowledge-base/documents"),
+                new PluginMenuDef("Dictionary", link: "page/knowledge-base/dictionary")
             }
         });
         return true;

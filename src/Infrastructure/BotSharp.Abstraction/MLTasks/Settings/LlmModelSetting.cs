@@ -106,27 +106,37 @@ public class ImageSetting
     public ImageVariationSetting? Variation { get; set; }
 }
 
+/// <summary>
+/// Image generationg setting
+/// </summary>
 public class ImageGenerationSetting
 {
-    public ModelSettingBase? Style { get; set; }
-    public ModelSettingBase? Size { get; set; }
-    public ModelSettingBase? Quality { get; set; }
-    public ModelSettingBase? ResponseFormat { get; set; }
-    public ModelSettingBase? Background { get; set; }
+    /// <summary>
+    /// Parameters: quality, size, style, background, response format
+    /// </summary>
+    public Dictionary<string, ModelParamSetting>? Parameters { get; set; }
 }
 
+/// <summary>
+/// Image editing setting
+/// </summary>
 public class ImageEditSetting
 {
-    public ModelSettingBase? Size { get; set; }
-    public ModelSettingBase? Quality { get; set; }
-    public ModelSettingBase? ResponseFormat { get; set; }
-    public ModelSettingBase? Background { get; set; }
+    /// <summary>
+    /// Parameters: quality, size, background, response format
+    /// </summary>
+    public Dictionary<string, ModelParamSetting>? Parameters { get; set; }
 }
 
+/// <summary>
+/// Image variation setting
+/// </summary>
 public class ImageVariationSetting
 {
-    public ModelSettingBase? Size { get; set; }
-    public ModelSettingBase? ResponseFormat { get; set; }
+    /// <summary>
+    /// Parameters: size, response format
+    /// </summary>
+    public Dictionary<string, ModelParamSetting>? Parameters { get; set; }
 }
 #endregion
 
@@ -136,15 +146,21 @@ public class AudioSetting
     public AudioTranscriptionSetting? Transcription { get; set; }
 }
 
+/// <summary>
+/// Audio transcription setting
+/// </summary>
 public class AudioTranscriptionSetting
 {
     public float? Temperature { get; set; }
-    public ModelSettingBase? ResponseFormat { get; set; }
-    public ModelSettingBase? Granularity { get; set; }
+
+    /// <summary>
+    /// Parameters: granularity, response format
+    /// </summary>
+    public Dictionary<string, ModelParamSetting>? Parameters { get; set; }
 }
 #endregion
 
-public class ModelSettingBase
+public class ModelParamSetting
 {
     public string? Default { get; set; }
     public IEnumerable<string>? Options { get; set; }
@@ -156,15 +172,36 @@ public class ModelSettingBase
 /// </summary>
 public class LlmCostSetting
 {
-    // Input
+    #region Text token
     public float TextInputCost { get; set; } = 0f;
     public float CachedTextInputCost { get; set; } = 0f;
+    public float TextOutputCost { get; set; } = 0f;
+    #endregion
+
+    #region Audio token
     public float AudioInputCost { get; set; } = 0f;
     public float CachedAudioInputCost { get; set; } = 0f;
-
-    // Output
-    public float TextOutputCost { get; set; } = 0f;
     public float AudioOutputCost { get; set; } = 0f;
+    #endregion
+
+    #region Image token
+    public float ImageInputCost { get; set; } = 0f;
+    public float CachedImageInputCost { get; set; } = 0f;
+    public float ImageOutputCost { get; set; } = 0f;
+    #endregion
+
+    #region Image
+    public IList<LlmImageCost>? ImageCosts { get; set; }
+    #endregion
+}
+
+public class LlmImageCost
+{
+    /// <summary>
+    /// Attributes: e.g., [quality]: "medium", [size] = "1024x1024"
+    /// </summary>
+    public Dictionary<string, string> Attributes { get; set; } = [];
+    public float Cost { get; set; } = 0f;
 }
 
 public enum LlmModelType

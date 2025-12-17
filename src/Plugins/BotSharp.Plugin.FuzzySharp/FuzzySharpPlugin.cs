@@ -1,9 +1,4 @@
-using BotSharp.Plugin.FuzzySharp.FuzzSharp;
-using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.Plugins;
-using BotSharp.Plugin.FuzzySharp.Services;
-using BotSharp.Plugin.FuzzySharp.Services.Matching;
-using BotSharp.Plugin.FuzzySharp.Services.Processors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,10 +13,15 @@ public class FuzzySharpPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        var settings = new FuzzySharpSettings();
+        config.Bind("FuzzySharp", settings);
+        services.AddSingleton(provider => settings);
+
         services.AddScoped<INgramProcessor, NgramProcessor>();
         services.AddScoped<IResultProcessor, ResultProcessor>();
-        services.AddScoped<IPhraseService, PhraseService>();
-        services.AddScoped<IPhraseCollection, CsvPhraseCollectionLoader>();
+        services.AddScoped<ITokenizer, FuzzySharpTokenizer>();
+        services.AddScoped<ITokenDataLoader, CsvTokenDataLoader>();
+
         services.AddScoped<ITokenMatcher, ExactMatcher>();
         services.AddScoped<ITokenMatcher, SynonymMatcher>();
         services.AddScoped<ITokenMatcher, FuzzyMatcher>();
