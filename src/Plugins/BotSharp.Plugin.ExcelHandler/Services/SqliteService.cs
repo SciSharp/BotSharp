@@ -1,3 +1,4 @@
+using BotSharp.Plugin.ExcelHandler.Models;
 using Microsoft.Data.Sqlite;
 using NPOI.SS.UserModel;
 
@@ -88,11 +89,21 @@ public class SqliteService : IDbService
         {
             _tableName = sheet.SheetName;
             _headerColumns = ParseSheetColumn(sheet);
-            string createTableSql = CreateDBTableSqlString(_tableName, _headerColumns, null);
+
+            // Collect column distinct values for type inference
+            var columnAnalyses = CollectColumnDistinctValues(sheet);
+            var inferredTypes = InferColumnTypes(columnAnalyses);
+
+            // generate column summary
+            var analysisSummary = GenerateColumnAnalysisSummary(columnAnalyses);
+            _logger.LogInformation("Column Analysis:\n{Summary}", analysisSummary);
+
+            string createTableSql = CreateDBTableSqlString(_tableName, _headerColumns, inferredTypes);
             var rowCount = ExecuteSqlQueryForInsertion(createTableSql);
+
             // Get table schema using sqlite query
             var schema = GenerateTableSchema();
-            return (true, $"Table `{_tableName}` has been successfully created in {Provider}. Table schema:\r\n{schema}");
+            return (true, $"Table `{_tableName}` has been successfully created in {Provider}. Table schema:\r\n{schema}\r\n\r\nColumn Analysis:\r\n{analysisSummary}");
         }
         catch (Exception ex)
         {
@@ -111,32 +122,9 @@ public class SqliteService : IDbService
             for (int colIdx = 0; colIdx < _excelColumnSize; colIdx++)
             {
                 var cell = row.GetCell(colIdx, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-
-                switch (cell.CellType)
-                {
-                    case CellType.String:
-                        //if (cell.DateCellValue == null || cell.DateCellValue == DateTime.MinValue)
-                        //{
-                        //    sb.Append($"{cell.DateCellValue}");
-                        //    break;
-                        //}
-                        stringBuilder.Append($"'{cell.StringCellValue.Replace("'", "''")}'");
-                        break;
-                    case CellType.Numeric:
-                        stringBuilder.Append($"{cell.NumericCellValue}");
-                        break;
-                    case CellType.Blank:
-                        stringBuilder.Append($"null");
-                        break;
-                    default:
-                        stringBuilder.Append($"''");
-                        break;
-                }
-
+                stringBuilder.Append(FormatCellForSql(cell));
                 if (colIdx != (_excelColumnSize - 1))
-                {
                     stringBuilder.Append(", ");
-                }
             }
             stringBuilder.Append(')');
             stringBuilder.Append(rowIdx == _excelRowSize ? ';' : ", \r\n");
@@ -155,16 +143,151 @@ public class SqliteService : IDbService
         _excelColumnSize = headerColumn.Count;
         return headerColumn;
     }
+
+    private Dictionary<string, ColumnAnalysis> CollectColumnDistinctValues(ISheet sheet, int maxDistinctCount = 100)
+    {
+        var result = new Dictionary<string, ColumnAnalysis>();
+
+        for (int colIdx = 0; colIdx < _excelColumnSize; colIdx++)
+        {
+            var columnName = _headerColumns[colIdx];
+            var analysis = new ColumnAnalysis
+            {
+                ColumnName = columnName,
+                DistinctValues = new HashSet<string>(),
+                TotalCount = 0,
+                NullCount = 0,
+                NumericCount = 0,
+                DateCount = 0,
+                BooleanCount = 0,
+                IntegerCount = 0
+            };
+
+            for (int rowIdx = 1; rowIdx <= _excelRowSize; rowIdx++)
+            {
+                var row = sheet.GetRow(rowIdx);
+                if (row == null)
+                {
+                    analysis.NullCount++;
+                    analysis.TotalCount++;
+                    continue;
+                }
+
+                var cell = row.GetCell(colIdx, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                analysis.TotalCount++;
+
+                var (cellValue, cellType) = GetCellValueAndType(cell);
+
+                switch (cellType)
+                {
+                    case "NULL":
+                        analysis.NullCount++;
+                        break;
+                    case "NUMERIC":
+                        analysis.NumericCount++;
+                        if (IsInteger(cell)) analysis.IntegerCount++;
+                        break;
+                    case "DATE":
+                        analysis.DateCount++;
+                        break;
+                    case "BOOLEAN":
+                        analysis.BooleanCount++;
+                        break;
+                }
+
+                if (analysis.DistinctValues.Count < maxDistinctCount && !string.IsNullOrEmpty(cellValue))
+                {
+                    analysis.DistinctValues.Add(cellValue);
+                }
+            }
+
+            result[columnName] = analysis;
+        }
+
+        return result;
+    }
+
+    private string FormatCellForSql(ICell cell)
+    {
+        var (value, type) = GetCellValueAndType(cell);
+        return type == "NULL" ? "null"
+             : type == "NUMERIC" ? value
+             : type == "BOOLEAN" ? (value.ToLower() is "true" or "yes" or "1" ? "1" : "0")
+             : $"'{value.Replace("'", "''")}'";
+    }
+
+    private (string value, string type) GetCellValueAndType(ICell cell)
+        => cell.CellType switch
+        {
+            CellType.String => IsBooleanString(cell.StringCellValue?.Trim())
+                ? (cell.StringCellValue.Trim(), "BOOLEAN")
+                : (cell.StringCellValue?.Trim() ?? "", "TEXT"),
+            CellType.Numeric => DateUtil.IsCellDateFormatted(cell)
+                ? (cell.DateCellValue?.ToString("yyyy-MM-dd HH:mm:ss") ?? "", "DATE")
+                : (cell.NumericCellValue.ToString(), "NUMERIC"),
+            CellType.Boolean => (cell.BooleanCellValue.ToString(), "BOOLEAN"),
+            CellType.Blank => ("", "NULL"),
+            _ => (cell.ToString() ?? "", "TEXT")
+        };
+
+    private bool IsInteger(ICell cell)
+    {
+        if (cell.CellType != CellType.Numeric) return false;
+        var value = cell.NumericCellValue;
+        return Math.Abs(value - Math.Floor(value)) < 0.0001;
+    }
+
+    private bool IsBooleanString(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return false;
+        var lower = value.ToLower();
+        return lower == "true" || lower == "false" ||
+               lower == "yes" || lower == "no" ||
+               lower == "1" || lower == "0";
+    }
+
+    private List<string> InferColumnTypes(Dictionary<string, ColumnAnalysis> columnAnalyses)
+        => _headerColumns.Select(col =>
+        {
+            var a = columnAnalyses[col];
+            var n = a.TotalCount - a.NullCount;
+            return n == 0 ? "TEXT"
+                 : a.DateCount == n ? "DATE"
+                 : a.BooleanCount == n ? "BOOLEAN"
+                 : a.NumericCount == n ? (a.IntegerCount == a.NumericCount ? "INTEGER" : "REAL")
+                 : "TEXT";
+        }).ToList();
+
+    public string GenerateColumnAnalysisSummary(Dictionary<string, ColumnAnalysis> columnAnalyses)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Column Analysis Summary:");
+        sb.AppendLine("========================");
+
+        foreach (var kvp in columnAnalyses)
+        {
+            var col = kvp.Value;
+            sb.AppendLine($"\n[{col.ColumnName}]");
+            sb.AppendLine($"  Total: {col.TotalCount}, Null: {col.NullCount}");
+            sb.AppendLine($"  Numeric: {col.NumericCount}, Integer: {col.IntegerCount}, Date: {col.DateCount}, Boolean: {col.BooleanCount}");
+            sb.AppendLine($"  Distinct Values ({col.DistinctValues.Count}): {string.Join(", ", col.DistinctValues.Take(10))}{(col.DistinctValues.Count > 10 ? "..." : "")}");
+        }
+
+        return sb.ToString();
+    }
+
     private string CreateDBTableSqlString(string tableName, List<string> headerColumns, List<string>? columnTypes = null)
     {
-        var createTableSql = $"CREATE TABLE if not exists {tableName} ( Id INTEGER PRIMARY KEY AUTOINCREMENT, ";
-
         _columnTypes = columnTypes.IsNullOrEmpty() ? headerColumns.Select(x => "TEXT").ToList() : columnTypes;
 
-        headerColumns = headerColumns.Select((x, i) => $"`{x.Replace(" ", "_").Replace("#", "_")}`" + $" {_columnTypes[i]}").ToList();
-        createTableSql += string.Join(", ", headerColumns);
-        createTableSql += ");";
-        return createTableSql;
+        var sanitizedColumns = headerColumns.Select(x => x.Replace(" ", "_").Replace("#", "_")).ToList();
+        var columnDefs = sanitizedColumns.Select((col, i) => $"`{col}` {_columnTypes[i]}");
+        var createTableSql = $"CREATE TABLE IF NOT EXISTS {tableName} ( Id INTEGER PRIMARY KEY AUTOINCREMENT, {string.Join(", ", columnDefs)} );";
+
+        // Create index for each column
+        var indexSql = sanitizedColumns.Select(col => $"CREATE INDEX IF NOT EXISTS idx_{tableName}_{col} ON {tableName} (`{col}`);");
+
+        return createTableSql + "\n" + string.Join("\n", indexSql);
     }
 
     private string ProcessInsertSqlQuery(string dataSql)
