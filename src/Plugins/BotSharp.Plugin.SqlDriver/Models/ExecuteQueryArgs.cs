@@ -10,6 +10,8 @@ public class ExecuteQueryArgs
     [JsonPropertyName("tables")]
     public string[] Tables { get; set; } = [];
 
+    public string DbType { get; set; } = null!;
+
     /// <summary>
     /// Beautifying query result
     /// </summary>

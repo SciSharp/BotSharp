@@ -1,8 +1,6 @@
 using BotSharp.Plugin.SqlDriver.Controllers.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.RegularExpressions;
-using static Dapper.SqlMapper;
 
 namespace BotSharp.Plugin.SqlDriver.Controllers;
 
@@ -35,6 +33,7 @@ public class SqlDriverController : ControllerBase
 
         msg.FunctionArgs = JsonSerializer.Serialize(new ExecuteQueryArgs
         {
+            DbType = sqlQueryRequest.DbType,
             SqlStatements = [sqlQueryRequest.SqlStatement],
             ResultFormat = sqlQueryRequest.ResultFormat
         });

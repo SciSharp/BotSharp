@@ -40,7 +40,7 @@ public class ExecuteQueryFn : IFunctionCallback
             results = dbType.ToLower() switch
             {
                 "mysql" => RunQueryInMySql(args.SqlStatements),
-                "sqlserver" or "mssql" => RunQueryInSqlServer(args.SqlStatements),
+                "sqlserver" or "mssql" => RunQueryInSqlServer(dbConnectionString, args.SqlStatements),
                 "redshift" => RunQueryInRedshift(args.SqlStatements),
                 "sqlite" => RunQueryInSqlite(dbConnectionString, args.SqlStatements),
                 _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
@@ -221,10 +221,10 @@ public class ExecuteQueryFn : IFunctionCallback
         return connection.Query(string.Join(";\r\n", sqlTexts));
     }
 
-    private IEnumerable<dynamic> RunQueryInSqlServer(string[] sqlTexts)
+    private IEnumerable<dynamic> RunQueryInSqlServer(string connectionString, string[] sqlTexts)
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new SqlConnection(settings.SqlServerExecutionConnectionString ?? settings.SqlServerConnectionString);
+        using var connection = new SqlConnection(settings.SqlServerExecutionConnectionString ?? settings.SqlServerConnectionString ?? connectionString);
         return connection.Query(string.Join("\r\n", sqlTexts));
     }
 
