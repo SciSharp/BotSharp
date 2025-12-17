@@ -1,6 +1,6 @@
-namespace BotSharp.Abstraction.Tokenizers;
+namespace BotSharp.Abstraction.NER;
 
-public interface ITokenDataLoader
+public interface INERDataLoader
 {
     string Provider { get; }
 

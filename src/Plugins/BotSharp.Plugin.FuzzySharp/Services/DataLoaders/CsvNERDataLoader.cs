@@ -8,14 +8,14 @@ using System.IO;
 
 namespace BotSharp.Plugin.FuzzySharp.Services.DataLoaders;
 
-public class CsvTokenDataLoader : ITokenDataLoader
+public class CsvNERDataLoader : INERDataLoader
 {
-    private readonly ILogger<CsvTokenDataLoader> _logger;
+    private readonly ILogger<CsvNERDataLoader> _logger;
     private readonly FuzzySharpSettings _settings;
     private readonly string _basePath;
 
-    public CsvTokenDataLoader(
-        ILogger<CsvTokenDataLoader> logger,
+    public CsvNERDataLoader(
+        ILogger<CsvNERDataLoader> logger,
         FuzzySharpSettings settings)
     {
         _settings = settings;
