@@ -35,7 +35,7 @@ public class FuzzySharpTokenizer : ITokenizer
             return new TokenizeResponse
             {
                 Success = true,
-                Results = result?.Flagged?.Select(f => new TokenizeResult
+                Results = result?.FlaggedItems?.Select(f => new TokenizeResult
                 {
                     Token = f.Token,
                     CanonicalText = f.CanonicalForm,
@@ -74,7 +74,7 @@ public class FuzzySharpTokenizer : ITokenizer
             var synonymMapping = await LoadAllSynonymMappingAsync(options?.DataProviders);
 
             // Analyze text
-            var flagged = AnalyzeTokens(tokens, vocabulary, synonymMapping, options);
+            var flaggedItems = AnalyzeTokens(tokens, vocabulary, synonymMapping, options);
 
             stopwatch.Stop();
 
@@ -82,14 +82,14 @@ public class FuzzySharpTokenizer : ITokenizer
             {
                 Original = text,
                 Tokens = tokens,
-                Flagged = flagged,
+                FlaggedItems = flaggedItems,
                 ProcessingTimeMs = Math.Round(stopwatch.Elapsed.TotalMilliseconds, 2)
             };
 
             _logger.LogInformation(
                 $"Text analysis completed in {response.ProcessingTimeMs}ms | " +
                 $"Text length: {text.Length} chars | " +
-                $"Flagged items: {flagged.Count}");
+                $"Flagged items: {flaggedItems.Count}");
 
             return response;
         }
