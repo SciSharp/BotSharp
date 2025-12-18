@@ -50,6 +50,7 @@ public class DialogMetaDataMongoElement
     public string? FunctionName { get; set; }
     public string? FunctionArgs { get; set; }
     public string? ToolCallId { get; set; }
+    public string? ThoughtSignature { get; set; }
     public string? SenderId { get; set; }
     public DateTime CreateTime { get; set; }
 
@@ -65,6 +66,7 @@ public class DialogMetaDataMongoElement
             FunctionName = meta.FunctionName,
             FunctionArgs = meta.FunctionArgs,
             ToolCallId = meta.ToolCallId,
+            ThoughtSignature = meta.ThoughtSignature,
             SenderId = meta.SenderId,
             CreatedTime = meta.CreateTime,
         };
@@ -82,6 +84,7 @@ public class DialogMetaDataMongoElement
             FunctionName = meta.FunctionName,
             FunctionArgs = meta.FunctionArgs,
             ToolCallId = meta.ToolCallId,
+            ThoughtSignature = meta.ThoughtSignature,
             SenderId = meta.SenderId,
             CreateTime = meta.CreatedTime,
         };

@@ -56,6 +56,7 @@ public partial class RoutingService
             message.ToolCallId = response.ToolCallId;
             message.FunctionName = response.FunctionName;
             message.FunctionArgs = response.FunctionArgs;
+            message.ThoughtSignature = response.ThoughtSignature;
             message.Indication = response.Indication;
             message.CurrentAgentId = agent.Id;
             message.IsStreaming = response.IsStreaming;
@@ -74,6 +75,7 @@ public partial class RoutingService
 
             message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: response.Content);
             message.CurrentAgentId = agent.Id;
+            message.ThoughtSignature = response.ThoughtSignature;
             message.IsStreaming = response.IsStreaming;
             message.MessageLabel = response.MessageLabel;
             dialogs.Add(message);

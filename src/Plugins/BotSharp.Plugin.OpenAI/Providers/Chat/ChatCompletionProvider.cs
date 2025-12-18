@@ -260,16 +260,15 @@ public class ChatCompletionProvider : IChatCompletion
                 _logger.LogDebug($"Stream Content update: {text}");
 #endif
 
-                var content = new RoleDialogModel(AgentRole.Assistant, text)
-                {
-                    CurrentAgentId = agent.Id,
-                    MessageId = messageId
-                };
                 hub.Push(new()
                 {
                     EventName = ChatEvent.OnReceiveLlmStreamMessage,
                     RefId = conv.ConversationId,
-                    Data = content
+                    Data = new RoleDialogModel(AgentRole.Assistant, text)
+                    {
+                        CurrentAgentId = agent.Id,
+                        MessageId = messageId
+                    }
                 });
             }
 

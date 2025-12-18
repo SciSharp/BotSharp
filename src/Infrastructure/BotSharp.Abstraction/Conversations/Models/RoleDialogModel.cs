@@ -71,6 +71,9 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? FunctionArgs { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ThoughtSignature { get; set; }
+
     /// <summary>
     /// Set this flag is in OnFunctionExecuting, if true, it won't be executed by InvokeFunction.
     /// </summary>
@@ -200,7 +203,8 @@ public class RoleDialogModel : ITrackableMessage
             Instruction = source.Instruction,
             Data = source.Data,
             IsStreaming = source.IsStreaming,
-            Annotations = source.Annotations
+            Annotations = source.Annotations,
+            ThoughtSignature = source.ThoughtSignature
         };
     }
 }

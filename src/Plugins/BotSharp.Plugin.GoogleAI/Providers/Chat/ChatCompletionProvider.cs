@@ -1,4 +1,3 @@
-using Azure;
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
@@ -6,7 +5,6 @@ using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
-using Fluid;
 using GenerativeAI;
 using GenerativeAI.Core;
 using GenerativeAI.Types;
@@ -26,6 +24,7 @@ public class ChatCompletionProvider : IChatCompletion
     public string Model => _model;
 
     private GoogleAiSettings _settings;
+
     public ChatCompletionProvider(
         IServiceProvider services,
         GoogleAiSettings googleSettings,
@@ -58,13 +57,15 @@ public class ChatCompletionProvider : IChatCompletion
         RoleDialogModel responseMessage;
         if (response.GetFunction() != null)
         {
+            var toolCall = response.GetFunction();
             responseMessage = new RoleDialogModel(AgentRole.Function, text)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                ToolCallId = part.FunctionCall.Name,
-                FunctionName = part.FunctionCall.Name,
-                FunctionArgs = part.FunctionCall.Args?.ToJsonString(),
+                ToolCallId = toolCall?.Id,
+                FunctionName = toolCall?.Name,
+                FunctionArgs = toolCall?.Args?.ToJsonString(),
+                ThoughtSignature = part?.ThoughtSignature,
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
@@ -74,6 +75,7 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                ThoughtSignature = part?.ThoughtSignature,
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
@@ -117,6 +119,7 @@ public class ChatCompletionProvider : IChatCompletion
         var msg = new RoleDialogModel(AgentRole.Assistant, text)
         {
             CurrentAgentId = agent.Id,
+            ThoughtSignature = part?.ThoughtSignature,
             RenderedInstruction = string.Join("\r\n", renderedInstructions)
         };
 
@@ -145,6 +148,7 @@ public class ChatCompletionProvider : IChatCompletion
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.Name,
                 FunctionArgs = toolCall?.Args?.ToJsonString(),
+                ThoughtSignature = part?.ThoughtSignature,
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
 
@@ -195,6 +199,7 @@ public class ChatCompletionProvider : IChatCompletion
         });
 
         using var textStream = new RealtimeTextStream();
+        ChatThoughtModel? thoughtModel = null;
         UsageMetadata? tokenUsage = null;
 
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, string.Empty)
@@ -212,36 +217,44 @@ public class ChatCompletionProvider : IChatCompletion
             }
 
             var part = candidate?.Content?.Parts?.FirstOrDefault();
+            thoughtModel = part?.FunctionCall != null
+                ? new() { ToolCall = part.FunctionCall, ThoughtSignature = part.ThoughtSignature }
+                : thoughtModel;
+
             if (!string.IsNullOrEmpty(part?.Text))
             {
                 var text = part.Text;
                 textStream.Collect(text);
 
-                var content = new RoleDialogModel(AgentRole.Assistant, text)
-                {
-                    CurrentAgentId = agent.Id,
-                    MessageId = messageId
-                };
                 hub.Push(new()
                 {
                     EventName = ChatEvent.OnReceiveLlmStreamMessage,
                     RefId = conv.ConversationId,
-                    Data = content
+                    Data = new RoleDialogModel(AgentRole.Assistant, text)
+                    {
+                        CurrentAgentId = agent.Id,
+                        MessageId = messageId
+                    }
                 });
             }
 
-            if (candidate.FinishReason == FinishReason.STOP)
+            if (candidate!.FinishReason == FinishReason.STOP)
             {
-                if (part?.FunctionCall != null)
+                var thought = part?.FunctionCall != null
+                    ? new() { ToolCall = part.FunctionCall, ThoughtSignature = part.ThoughtSignature }
+                    : thoughtModel;
+                var functionCall = thought?.ToolCall;
+
+                if (functionCall != null)
                 {
-                    var functionCall = part.FunctionCall;
                     responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
                     {
                         CurrentAgentId = agent.Id,
                         MessageId = messageId,
                         ToolCallId = functionCall.Id,
                         FunctionName = functionCall.Name,
-                        FunctionArgs = functionCall.Args?.ToString() ?? string.Empty
+                        FunctionArgs = functionCall.Args?.ToJsonString(),
+                        ThoughtSignature = thought?.ThoughtSignature
                     };
 
 #if DEBUG
@@ -259,6 +272,7 @@ public class ChatCompletionProvider : IChatCompletion
                     {
                         CurrentAgentId = agent.Id,
                         MessageId = messageId,
+                        ThoughtSignature = part?.ThoughtSignature,
                         IsStreaming = true
                     };
                 }
@@ -272,6 +286,7 @@ public class ChatCompletionProvider : IChatCompletion
                 {
                     CurrentAgentId = agent.Id,
                     MessageId = messageId,
+                    ThoughtSignature = part?.ThoughtSignature,
                     IsStreaming = true
                 };
 
@@ -381,6 +396,7 @@ public class ChatCompletionProvider : IChatCompletion
                 contents.Add(new Content([
                     new Part()
                     {
+                        ThoughtSignature = message.ThoughtSignature,
                         FunctionCall = new FunctionCall
                         {
                             Id = message.ToolCallId,
@@ -393,6 +409,7 @@ public class ChatCompletionProvider : IChatCompletion
                 contents.Add(new Content([
                     new Part()
                     {
+                        ThoughtSignature = message.ThoughtSignature,
                         FunctionResponse = new FunctionResponse
                         {
                             Id = message.ToolCallId,
@@ -410,7 +427,10 @@ public class ChatCompletionProvider : IChatCompletion
             else if (message.Role == AgentRole.User)
             {
                 var text = message.LlmContent;
-                var contentParts = new List<Part> { new() { Text = text } };
+                var contentParts = new List<Part>
+                {
+                    new() { Text = text, ThoughtSignature = message.ThoughtSignature }
+                };
 
                 if (allowMultiModal && !message.Files.IsNullOrEmpty())
                 {
@@ -422,7 +442,10 @@ public class ChatCompletionProvider : IChatCompletion
             else if (message.Role == AgentRole.Assistant)
             {
                 var text = message.LlmContent;
-                var contentParts = new List<Part> { new() { Text = text } };
+                var contentParts = new List<Part>
+                {
+                    new() { Text = text, ThoughtSignature = message.ThoughtSignature }
+                };
 
                 if (allowMultiModal && !message.Files.IsNullOrEmpty())
                 {
