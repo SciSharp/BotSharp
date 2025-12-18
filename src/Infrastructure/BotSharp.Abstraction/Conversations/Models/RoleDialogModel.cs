@@ -72,7 +72,7 @@ public class RoleDialogModel : ITrackableMessage
     public string? ToolCallId { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, string?>? FunctionMetaData { get; set; }
+    public Dictionary<string, string?>? MetaData { get; set; }
 
     /// <summary>
     /// Set this flag is in OnFunctionExecuting, if true, it won't be executed by InvokeFunction.
@@ -195,7 +195,6 @@ public class RoleDialogModel : ITrackableMessage
             ToolCallId = source.ToolCallId,
             FunctionName = source.FunctionName,
             FunctionArgs = source.FunctionArgs,
-            FunctionMetaData = source.FunctionMetaData != null ? new(source.FunctionMetaData) : null,
             Indication = source.Indication,
             PostbackFunctionName = source.PostbackFunctionName,
             RichContent = source.RichContent,
@@ -204,7 +203,8 @@ public class RoleDialogModel : ITrackableMessage
             Instruction = source.Instruction,
             Data = source.Data,
             IsStreaming = source.IsStreaming,
-            Annotations = source.Annotations
+            Annotations = source.Annotations,
+            MetaData = source.MetaData != null ? new(source.MetaData) : null
         };
     }
 }

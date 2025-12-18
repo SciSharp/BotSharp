@@ -76,7 +76,7 @@ public class ConversationStorage : IConversationStorage
                 ToolCallId = meta?.ToolCallId,
                 FunctionName = meta?.FunctionName,
                 FunctionArgs = meta?.FunctionArgs,
-                FunctionMetaData = meta?.FunctionMetaData,
+                MetaData = meta?.MetaData,
                 RichContent = richContent,
                 SecondaryContent = secondaryContent,
                 SecondaryRichContent = secondaryRichContent,
@@ -114,7 +114,7 @@ public class ConversationStorage : IConversationStorage
                 ToolCallId = dialog.ToolCallId,
                 FunctionName = dialog.FunctionName,
                 FunctionArgs = dialog.FunctionArgs,
-                FunctionMetaData = dialog.FunctionMetaData,
+                MetaData = dialog.MetaData,
                 CreatedTime = dialog.CreatedAt
             };
 
@@ -141,7 +141,7 @@ public class ConversationStorage : IConversationStorage
                 MessageLabel = dialog.MessageLabel,
                 SenderId = dialog.SenderId,
                 FunctionName = dialog.FunctionName,
-                FunctionMetaData = dialog.FunctionMetaData,
+                MetaData = dialog.MetaData,
                 CreatedTime = dialog.CreatedAt
             };
 

@@ -114,9 +114,9 @@ public class DialogMetaData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ToolCallId { get; set; }
 
-    [JsonPropertyName("function_data")]
+    [JsonPropertyName("meta_data")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, string?>? FunctionMetaData { get; set; }
+    public Dictionary<string, string?>? MetaData { get; set; }
 
     [JsonPropertyName("sender_id")]
     public string? SenderId { get; set; }
