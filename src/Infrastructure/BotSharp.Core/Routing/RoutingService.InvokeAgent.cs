@@ -56,6 +56,7 @@ public partial class RoutingService
             message.ToolCallId = response.ToolCallId;
             message.FunctionName = response.FunctionName;
             message.FunctionArgs = response.FunctionArgs;
+            message.MetaData = response.MetaData != null ? new(response.MetaData) : null;
             message.Indication = response.Indication;
             message.CurrentAgentId = agent.Id;
             message.IsStreaming = response.IsStreaming;
@@ -74,6 +75,7 @@ public partial class RoutingService
 
             message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: response.Content);
             message.CurrentAgentId = agent.Id;
+            message.MetaData = response.MetaData != null ? new(response.MetaData) : null;
             message.IsStreaming = response.IsStreaming;
             message.MessageLabel = response.MessageLabel;
             dialogs.Add(message);
