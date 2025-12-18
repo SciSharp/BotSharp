@@ -9,8 +9,8 @@ namespace BotSharp.OpenAPI.Controllers;
 public partial class KnowledgeBaseController
 {
     #region Document
-    [HttpGet("/knowledge/document/processors")]
-    public IEnumerable<string> GetKnowledgeDocumentProcessors()
+    [HttpGet("/knowledge/processors")]
+    public IEnumerable<string> GetKnowledgeProcessors()
     {
         return _services.GetServices<IKnowledgeProcessor>().Select(x => x.Provider);
     }

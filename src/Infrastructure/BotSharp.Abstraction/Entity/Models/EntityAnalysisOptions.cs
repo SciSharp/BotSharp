@@ -1,6 +1,6 @@
-namespace BotSharp.Abstraction.Tokenizers.Models;
+namespace BotSharp.Abstraction.Entity.Models;
 
-public class TokenizeOptions
+public class EntityAnalysisOptions
 {
     /// <summary>
     /// Token data providers

@@ -4,9 +4,9 @@ global using System.Linq;
 global using System.Text;
 global using System.Threading.Tasks;
 
-global using BotSharp.Abstraction.Tokenizers;
-global using BotSharp.Abstraction.Tokenizers.Models;
-global using BotSharp.Abstraction.Tokenizers.Responses;
+global using BotSharp.Abstraction.Entity;
+global using BotSharp.Abstraction.Entity.Models;
+global using BotSharp.Abstraction.Entity.Responses;
 
 global using BotSharp.Plugin.FuzzySharp.Models;
 global using BotSharp.Plugin.FuzzySharp.Utils;

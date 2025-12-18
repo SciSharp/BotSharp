@@ -1,6 +1,6 @@
-namespace BotSharp.Abstraction.Tokenizers.Models;
+namespace BotSharp.Abstraction.Entity.Models;
 
-public class TokenizeResult
+public class EntityAnalysisResult
 {
     public string Token { get; set; } = string.Empty;
 

@@ -3,16 +3,16 @@ using System.Diagnostics;
 
 namespace BotSharp.Plugin.FuzzySharp.Services;
 
-public class FuzzySharpTokenizer : ITokenizer
+public class FuzzySharpEntityAnalyzer : IEntityAnalyzer
 {
-    private readonly ILogger<FuzzySharpTokenizer> _logger;
-    private readonly IEnumerable<ITokenDataLoader> _tokenDataLoaders;
+    private readonly ILogger<FuzzySharpEntityAnalyzer> _logger;
+    private readonly IEnumerable<IEntityDataLoader> _tokenDataLoaders;
     private readonly INgramProcessor _ngramProcessor;
     private readonly IResultProcessor _resultProcessor;
 
-    public FuzzySharpTokenizer(
-        ILogger<FuzzySharpTokenizer> logger,
-        IEnumerable<ITokenDataLoader> tokenDataLoaders,
+    public FuzzySharpEntityAnalyzer(
+        ILogger<FuzzySharpEntityAnalyzer> logger,
+        IEnumerable<IEntityDataLoader> tokenDataLoaders,
         INgramProcessor ngramProcessor,
         IResultProcessor resultProcessor)
     {
@@ -24,18 +24,17 @@ public class FuzzySharpTokenizer : ITokenizer
 
     public string Provider => "fuzzy-sharp";
 
-    public async Task<TokenizeResponse> TokenizeAsync(string text, TokenizeOptions? options = null)
+    public async Task<EntityAnalysisResponse> AnalyzeAsync(string text, EntityAnalysisOptions? options = null)
     {
-        var response = new TokenizeResponse();
+        var response = new EntityAnalysisResponse();
 
         try
         {
             var result = await AnalyzeTextAsync(text, options);
-
-            return new TokenizeResponse
+            return new EntityAnalysisResponse
             {
                 Success = true,
-                Results = result?.FlaggedItems?.Select(f => new TokenizeResult
+                Results = result?.FlaggedItems?.Select(f => new EntityAnalysisResult
                 {
                     Token = f.Token,
                     CanonicalText = f.CanonicalForm,
@@ -59,7 +58,7 @@ public class FuzzySharpTokenizer : ITokenizer
     /// <summary>
     /// Analyze text for typos and entities using domain-specific vocabulary
     /// </summary>
-    private async Task<TokenAnalysisResponse> AnalyzeTextAsync(string text, TokenizeOptions? options = null)
+    private async Task<TokenAnalysisResponse> AnalyzeTextAsync(string text, EntityAnalysisOptions? options = null)
     {
         var stopwatch = Stopwatch.StartNew();
         try
@@ -148,7 +147,7 @@ public class FuzzySharpTokenizer : ITokenizer
         List<string> tokens,
         Dictionary<string, HashSet<string>> vocabulary,
         Dictionary<string, (string DataSource, string CanonicalForm)> synonymMapping,
-        TokenizeOptions? options)
+        EntityAnalysisOptions? options)
     {
         // Build lookup table for O(1) exact match lookups (matching Python's build_lookup)
         var lookup = BuildLookup(vocabulary);
