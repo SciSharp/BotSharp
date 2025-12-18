@@ -65,7 +65,10 @@ public class ChatCompletionProvider : IChatCompletion
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.Name,
                 FunctionArgs = toolCall?.Args?.ToJsonString(),
-                ThoughtSignature = part?.ThoughtSignature,
+                FunctionMetaData = new Dictionary<string, string?>
+                {
+                    [Constants.ThoughtSignature] = part?.ThoughtSignature
+                },
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
@@ -75,7 +78,10 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                ThoughtSignature = part?.ThoughtSignature,
+                FunctionMetaData = new Dictionary<string, string?>
+                {
+                    [Constants.ThoughtSignature] = part?.ThoughtSignature
+                },
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
@@ -119,7 +125,10 @@ public class ChatCompletionProvider : IChatCompletion
         var msg = new RoleDialogModel(AgentRole.Assistant, text)
         {
             CurrentAgentId = agent.Id,
-            ThoughtSignature = part?.ThoughtSignature,
+            FunctionMetaData = new Dictionary<string, string?>
+            {
+                [Constants.ThoughtSignature] = part?.ThoughtSignature
+            },
             RenderedInstruction = string.Join("\r\n", renderedInstructions)
         };
 
@@ -148,7 +157,10 @@ public class ChatCompletionProvider : IChatCompletion
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.Name,
                 FunctionArgs = toolCall?.Args?.ToJsonString(),
-                ThoughtSignature = part?.ThoughtSignature,
+                FunctionMetaData = new Dictionary<string, string?>
+                {
+                    [Constants.ThoughtSignature] = part?.ThoughtSignature
+                },
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
 
@@ -254,7 +266,10 @@ public class ChatCompletionProvider : IChatCompletion
                         ToolCallId = functionCall.Id,
                         FunctionName = functionCall.Name,
                         FunctionArgs = functionCall.Args?.ToJsonString(),
-                        ThoughtSignature = thought?.ThoughtSignature
+                        FunctionMetaData = new Dictionary<string, string?>
+                        {
+                            [Constants.ThoughtSignature] = thought?.ThoughtSignature
+                        }
                     };
 
 #if DEBUG
@@ -272,8 +287,11 @@ public class ChatCompletionProvider : IChatCompletion
                     {
                         CurrentAgentId = agent.Id,
                         MessageId = messageId,
-                        ThoughtSignature = part?.ThoughtSignature,
-                        IsStreaming = true
+                        IsStreaming = true,
+                        FunctionMetaData = new Dictionary<string, string?>
+                        {
+                            [Constants.ThoughtSignature] = part?.ThoughtSignature
+                        }
                     };
                 }
 
@@ -286,8 +304,11 @@ public class ChatCompletionProvider : IChatCompletion
                 {
                     CurrentAgentId = agent.Id,
                     MessageId = messageId,
-                    ThoughtSignature = part?.ThoughtSignature,
-                    IsStreaming = true
+                    IsStreaming = true,
+                    FunctionMetaData = new Dictionary<string, string?>
+                    {
+                        [Constants.ThoughtSignature] = part?.ThoughtSignature
+                    }
                 };
 
                 tokenUsage = response?.UsageMetadata;
@@ -396,7 +417,7 @@ public class ChatCompletionProvider : IChatCompletion
                 contents.Add(new Content([
                     new Part()
                     {
-                        ThoughtSignature = message.ThoughtSignature,
+                        ThoughtSignature = message.FunctionMetaData?.GetValueOrDefault(Constants.ThoughtSignature, null),
                         FunctionCall = new FunctionCall
                         {
                             Id = message.ToolCallId,
@@ -409,7 +430,7 @@ public class ChatCompletionProvider : IChatCompletion
                 contents.Add(new Content([
                     new Part()
                     {
-                        ThoughtSignature = message.ThoughtSignature,
+                        ThoughtSignature = message.FunctionMetaData?.GetValueOrDefault(Constants.ThoughtSignature, null),
                         FunctionResponse = new FunctionResponse
                         {
                             Id = message.ToolCallId,
@@ -429,7 +450,11 @@ public class ChatCompletionProvider : IChatCompletion
                 var text = message.LlmContent;
                 var contentParts = new List<Part>
                 {
-                    new() { Text = text, ThoughtSignature = message.ThoughtSignature }
+                    new()
+                    {
+                        Text = text,
+                        ThoughtSignature = message.FunctionMetaData?.GetValueOrDefault(Constants.ThoughtSignature, null)
+                    }
                 };
 
                 if (allowMultiModal && !message.Files.IsNullOrEmpty())
@@ -444,7 +469,11 @@ public class ChatCompletionProvider : IChatCompletion
                 var text = message.LlmContent;
                 var contentParts = new List<Part>
                 {
-                    new() { Text = text, ThoughtSignature = message.ThoughtSignature }
+                    new()
+                    {
+                        Text = text,
+                        ThoughtSignature = message.FunctionMetaData?.GetValueOrDefault(Constants.ThoughtSignature, null)
+                    }
                 };
 
                 if (allowMultiModal && !message.Files.IsNullOrEmpty())

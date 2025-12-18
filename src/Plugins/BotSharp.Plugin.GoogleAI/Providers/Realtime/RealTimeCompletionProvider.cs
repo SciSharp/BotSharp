@@ -551,7 +551,6 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                 contents.Add(new Content([
                     new Part()
                     {
-                        ThoughtSignature = message.ThoughtSignature,
                         FunctionCall = new FunctionCall
                         {
                             Id = message.ToolCallId,
@@ -564,7 +563,6 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                 contents.Add(new Content([
                     new Part()
                     {
-                        ThoughtSignature = message.ThoughtSignature,
                         FunctionResponse = new FunctionResponse
                         {
                             Id = message.ToolCallId,

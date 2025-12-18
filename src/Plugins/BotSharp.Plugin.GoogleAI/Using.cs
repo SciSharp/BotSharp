@@ -26,6 +26,7 @@ global using BotSharp.Abstraction.Conversations.Enums;
 global using BotSharp.Abstraction.Functions.Models;
 global using BotSharp.Abstraction.Loggers;
 
+global using BotSharp.Plugin.GoogleAI.Constants;
 global using BotSharp.Plugin.GoogleAI.Models.Chat;
 global using BotSharp.Plugin.GoogleAi.Settings;
 global using BotSharp.Plugin.GoogleAi.Providers.Chat;
