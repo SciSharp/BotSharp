@@ -56,7 +56,7 @@ public partial class RoutingService
             message.ToolCallId = response.ToolCallId;
             message.FunctionName = response.FunctionName;
             message.FunctionArgs = response.FunctionArgs;
-            message.FunctionMetaData = response.FunctionMetaData;
+            message.FunctionMetaData = response.FunctionMetaData != null ? new(response.FunctionMetaData) : null;
             message.Indication = response.Indication;
             message.CurrentAgentId = agent.Id;
             message.IsStreaming = response.IsStreaming;

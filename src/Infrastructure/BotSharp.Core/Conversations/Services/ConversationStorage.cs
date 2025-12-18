@@ -113,6 +113,7 @@ public class ConversationStorage : IConversationStorage
                 MessageLabel = dialog.MessageLabel,
                 ToolCallId = dialog.ToolCallId,
                 FunctionName = dialog.FunctionName,
+                FunctionArgs = dialog.FunctionArgs,
                 FunctionMetaData = dialog.FunctionMetaData,
                 CreatedTime = dialog.CreatedAt
             };
