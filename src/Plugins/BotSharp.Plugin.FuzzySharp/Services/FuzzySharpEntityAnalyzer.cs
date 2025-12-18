@@ -3,16 +3,16 @@ using System.Diagnostics;
 
 namespace BotSharp.Plugin.FuzzySharp.Services;
 
-public class FuzzySharpNERAnalyzer : INERAnalyzer
+public class FuzzySharpEntityAnalyzer : IEntityAnalyzer
 {
-    private readonly ILogger<FuzzySharpNERAnalyzer> _logger;
-    private readonly IEnumerable<INERDataLoader> _tokenDataLoaders;
+    private readonly ILogger<FuzzySharpEntityAnalyzer> _logger;
+    private readonly IEnumerable<IEntityDataLoader> _tokenDataLoaders;
     private readonly INgramProcessor _ngramProcessor;
     private readonly IResultProcessor _resultProcessor;
 
-    public FuzzySharpNERAnalyzer(
-        ILogger<FuzzySharpNERAnalyzer> logger,
-        IEnumerable<INERDataLoader> tokenDataLoaders,
+    public FuzzySharpEntityAnalyzer(
+        ILogger<FuzzySharpEntityAnalyzer> logger,
+        IEnumerable<IEntityDataLoader> tokenDataLoaders,
         INgramProcessor ngramProcessor,
         IResultProcessor resultProcessor)
     {
@@ -24,17 +24,17 @@ public class FuzzySharpNERAnalyzer : INERAnalyzer
 
     public string Provider => "fuzzy-sharp";
 
-    public async Task<NERResponse> AnalyzeAsync(string text, NEROptions? options = null)
+    public async Task<EntityAnalysisResponse> AnalyzeAsync(string text, EntityAnalysisOptions? options = null)
     {
-        var response = new NERResponse();
+        var response = new EntityAnalysisResponse();
 
         try
         {
             var result = await AnalyzeTextAsync(text, options);
-            return new NERResponse
+            return new EntityAnalysisResponse
             {
                 Success = true,
-                Results = result?.FlaggedItems?.Select(f => new NERResult
+                Results = result?.FlaggedItems?.Select(f => new EntityAnalysisResult
                 {
                     Token = f.Token,
                     CanonicalText = f.CanonicalForm,
@@ -58,7 +58,7 @@ public class FuzzySharpNERAnalyzer : INERAnalyzer
     /// <summary>
     /// Analyze text for typos and entities using domain-specific vocabulary
     /// </summary>
-    private async Task<TokenAnalysisResponse> AnalyzeTextAsync(string text, NEROptions? options = null)
+    private async Task<TokenAnalysisResponse> AnalyzeTextAsync(string text, EntityAnalysisOptions? options = null)
     {
         var stopwatch = Stopwatch.StartNew();
         try
@@ -147,7 +147,7 @@ public class FuzzySharpNERAnalyzer : INERAnalyzer
         List<string> tokens,
         Dictionary<string, HashSet<string>> vocabulary,
         Dictionary<string, (string DataSource, string CanonicalForm)> synonymMapping,
-        NEROptions? options)
+        EntityAnalysisOptions? options)
     {
         // Build lookup table for O(1) exact match lookups (matching Python's build_lookup)
         var lookup = BuildLookup(vocabulary);

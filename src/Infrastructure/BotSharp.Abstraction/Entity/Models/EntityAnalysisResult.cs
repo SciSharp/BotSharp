@@ -1,6 +1,6 @@
-namespace BotSharp.Abstraction.NER.Models;
+namespace BotSharp.Abstraction.Entity.Models;
 
-public class NERResult
+public class EntityAnalysisResult
 {
     public string Token { get; set; } = string.Empty;
 

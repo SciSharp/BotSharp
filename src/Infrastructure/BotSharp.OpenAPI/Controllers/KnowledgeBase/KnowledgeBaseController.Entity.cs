@@ -5,14 +5,14 @@ namespace BotSharp.OpenAPI.Controllers;
 public partial class KnowledgeBaseController
 {
     /// <summary>
-    /// NER analyis with options
+    /// Entity analyis with options
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpPost("knowledge/NER/analyze")]
-    public async Task<NERResponse?> NERAnalyze([FromBody] NERAnalysisRequest request)
+    [HttpPost("knowledge/entity/analyze")]
+    public async Task<EntityAnalysisResponse?> EntityAnalyze([FromBody] EntityAnalysisRequest request)
     {
-        var analyzer = _services.GetServices<INERAnalyzer>()
+        var analyzer = _services.GetServices<IEntityAnalyzer>()
                                 .FirstOrDefault(x => x.Provider.IsEqualTo(request.Provider));
 
         if (analyzer == null)
@@ -23,24 +23,24 @@ public partial class KnowledgeBaseController
     }
 
     /// <summary>
-    /// Get NER analyzers
+    /// Get entity analyzers
     /// </summary>
     /// <returns></returns>
-    [HttpGet("knowledge/NER/analyzers")]
-    public IEnumerable<string> GetNERAnalyzers()
+    [HttpGet("knowledge/entity/analyzers")]
+    public IEnumerable<string> GetEntityAnalyzers()
     {
-        var analyzers = _services.GetServices<INERAnalyzer>();
+        var analyzers = _services.GetServices<IEntityAnalyzer>();
         return analyzers.Select(x => x.Provider);
     }
 
     /// <summary>
-    /// Get NER data providers
+    /// Get entity data providers
     /// </summary>
     /// <returns></returns>
-    [HttpGet("knowledge/NER/data-providers")]
-    public IEnumerable<string> GetNERDataProviders()
+    [HttpGet("knowledge/entity/data-providers")]
+    public IEnumerable<string> GetEntityDataProviders()
     {
-        var dataLoaders = _services.GetServices<INERDataLoader>();
+        var dataLoaders = _services.GetServices<IEntityDataLoader>();
         return dataLoaders.Select(x => x.Provider);
     }
 }

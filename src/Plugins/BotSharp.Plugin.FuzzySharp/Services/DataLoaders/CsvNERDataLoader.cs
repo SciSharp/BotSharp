@@ -8,7 +8,7 @@ using System.IO;
 
 namespace BotSharp.Plugin.FuzzySharp.Services.DataLoaders;
 
-public class CsvNERDataLoader : INERDataLoader
+public class CsvNERDataLoader : IEntityDataLoader
 {
     private readonly ILogger<CsvNERDataLoader> _logger;
     private readonly FuzzySharpSettings _settings;

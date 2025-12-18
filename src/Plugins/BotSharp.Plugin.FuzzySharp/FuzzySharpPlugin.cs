@@ -19,8 +19,8 @@ public class FuzzySharpPlugin : IBotSharpPlugin
 
         services.AddScoped<INgramProcessor, NgramProcessor>();
         services.AddScoped<IResultProcessor, ResultProcessor>();
-        services.AddScoped<INERAnalyzer, FuzzySharpNERAnalyzer>();
-        services.AddScoped<INERDataLoader, CsvNERDataLoader>();
+        services.AddScoped<IEntityAnalyzer, FuzzySharpEntityAnalyzer>();
+        services.AddScoped<IEntityDataLoader, CsvNERDataLoader>();
 
         services.AddScoped<ITokenMatcher, ExactMatcher>();
         services.AddScoped<ITokenMatcher, SynonymMatcher>();

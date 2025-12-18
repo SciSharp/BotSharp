@@ -1,6 +1,6 @@
-namespace BotSharp.Abstraction.NER;
+namespace BotSharp.Abstraction.Entity;
 
-public interface INERDataLoader
+public interface IEntityDataLoader
 {
     string Provider { get; }
 
