@@ -11,6 +11,7 @@ public class ChatCompletionProvider : IChatCompletion
     protected readonly OpenAiSettings _settings;
     protected readonly IServiceProvider _services;
     protected readonly ILogger<ChatCompletionProvider> _logger;
+    protected readonly IConversationStateService _state;
 
     protected string _model;
     private List<string> renderedInstructions = [];
@@ -21,11 +22,13 @@ public class ChatCompletionProvider : IChatCompletion
     public ChatCompletionProvider(
         OpenAiSettings settings,
         ILogger<ChatCompletionProvider> logger,
-        IServiceProvider services)
+        IServiceProvider services,
+        IConversationStateService state)
     {
         _settings = settings;
         _logger = logger;
         _services = services;
+        _state = state;
     }
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
@@ -351,7 +354,6 @@ public class ChatCompletionProvider : IChatCompletion
     protected (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var state = _services.GetRequiredService<IConversationStateService>();
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
         var allowMultiModal = settings != null && settings.MultiModal;
@@ -409,7 +411,7 @@ public class ChatCompletionProvider : IChatCompletion
         var imageDetailLevel = ChatImageDetailLevel.Auto;
         if (allowMultiModal)
         {
-            imageDetailLevel = ParseChatImageDetailLevel(state.GetState("chat_image_detail_level"));
+            imageDetailLevel = ParseChatImageDetailLevel(_state.GetState("chat_image_detail_level"));
         }
 
         foreach (var message in filteredMessages)
@@ -549,20 +551,15 @@ public class ChatCompletionProvider : IChatCompletion
 
     private ChatCompletionOptions InitChatCompletionOption(Agent agent)
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
 
-        // Reasoning effort
-        ChatReasoningEffortLevel? reasoningEffortLevel = null;
-        float? temperature = float.Parse(state.GetState("temperature", "0.0"));
-        if (settings?.Reasoning != null)
+        // Reasoning
+        float? temperature = float.Parse(_state.GetState("temperature", "0.0"));
+        var (reasoningTemp, reasoningEffortLevel) = ParseReasoning(settings?.Reasoning, agent);
+        if (reasoningTemp.HasValue)
         {
-            temperature = settings.Reasoning.Temperature;
-            var level = state.GetState("reasoning_effort_level")
-                         .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel)
-                         .IfNullOrEmptyAs(settings?.Reasoning?.EffortLevel);
-            reasoningEffortLevel = ParseReasoningEffortLevel(level);
+            temperature = reasoningTemp.Value;
         }
 
         // Web search
@@ -574,7 +571,7 @@ public class ChatCompletionProvider : IChatCompletion
             webSearchOptions = new();
         }
 
-        var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
+        var maxTokens = int.TryParse(_state.GetState("max_tokens"), out var tokens)
                         ? tokens
                         : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
@@ -587,6 +584,44 @@ public class ChatCompletionProvider : IChatCompletion
         };
     }
 
+    /// <summary>
+    /// Parse reasoning setting: returns (temperature, reasoning effort level)
+    /// </summary>
+    /// <param name="settings"></param>
+    /// <returns></returns>
+    private (float?, ChatReasoningEffortLevel?) ParseReasoning(
+        ReasoningSetting? settings,
+        Agent agent)
+    {
+        float? temperature = null;
+        ChatReasoningEffortLevel? reasoningEffortLevel = null;
+
+        if (settings == null)
+        {
+            return (temperature, reasoningEffortLevel);
+        }
+        
+        if (settings.Temperature.HasValue)
+        {
+            temperature = settings.Temperature;
+        }
+
+        var defaultLevel = settings?.EffortLevel;
+        if (settings?.Parameters != null
+            && settings.Parameters.TryGetValue("EffortLevel", out var value)
+            && !string.IsNullOrEmpty(value?.Default))
+        {
+            defaultLevel = value.Default;
+        }
+
+        var level = _state.GetState("reasoning_effort_level")
+                     .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel)
+                     .IfNullOrEmptyAs(defaultLevel);
+        reasoningEffortLevel = ParseReasoningEffortLevel(level);
+
+        return (temperature, reasoningEffortLevel);
+    }
+
     private ChatReasoningEffortLevel? ParseReasoningEffortLevel(string? level)
     {
         if (string.IsNullOrWhiteSpace(level))
@@ -594,9 +629,13 @@ public class ChatCompletionProvider : IChatCompletion
             return null;
         }
 
-        var effortLevel = new ChatReasoningEffortLevel("minimal");
-        switch (level.ToLower())
+        var effortLevel = new ChatReasoningEffortLevel("low");
+        level = level.ToLower();
+        switch (level)
         {
+            case "minimal":
+                effortLevel = ChatReasoningEffortLevel.Minimal;
+                break;
             case "low":
                 effortLevel = ChatReasoningEffortLevel.Low;
                 break;
@@ -606,7 +645,12 @@ public class ChatCompletionProvider : IChatCompletion
             case "high":
                 effortLevel = ChatReasoningEffortLevel.High;
                 break;
+            case "none":
+            case "xhigh":
+                effortLevel = new ChatReasoningEffortLevel(level);
+                break;
             default:
+                effortLevel = new ChatReasoningEffortLevel(level);
                 break;
         }
 
