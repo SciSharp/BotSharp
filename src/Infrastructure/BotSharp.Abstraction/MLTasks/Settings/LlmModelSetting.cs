@@ -85,8 +85,11 @@ public class EmbeddingSetting
 #region Reasoning model settings
 public class ReasoningSetting
 {
-    public float Temperature { get; set; } = 1.0f;
+    public float? Temperature { get; set; }
+
+    [Obsolete("Set EffortLevel in Parameters")]
     public string? EffortLevel { get; set; }
+    public Dictionary<string, ModelParamSetting>? Parameters { get; set; }
 }
 #endregion
 
