@@ -606,17 +606,20 @@ public class ChatCompletionProvider : IChatCompletion
             temperature = settings.Temperature;
         }
 
+
         var defaultLevel = settings?.EffortLevel;
+        
         if (settings?.Parameters != null
-            && settings.Parameters.TryGetValue("EffortLevel", out var value)
-            && !string.IsNullOrEmpty(value?.Default))
+            && settings.Parameters.TryGetValue("EffortLevel", out var settingValue)
+            && !string.IsNullOrEmpty(settingValue?.Default))
         {
-            defaultLevel = value.Default;
+            defaultLevel = settingValue.Default;
         }
 
         var level = _state.GetState("reasoning_effort_level")
                      .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel)
                      .IfNullOrEmptyAs(defaultLevel);
+
         reasoningEffortLevel = ParseReasoningEffortLevel(level);
 
         return (temperature, reasoningEffortLevel);

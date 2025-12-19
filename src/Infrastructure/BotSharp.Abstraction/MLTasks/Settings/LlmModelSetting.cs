@@ -86,6 +86,8 @@ public class EmbeddingSetting
 public class ReasoningSetting
 {
     public float? Temperature { get; set; }
+
+    [Obsolete("Set EffortLevel in Parameters")]
     public string? EffortLevel { get; set; }
     public Dictionary<string, ModelParamSetting>? Parameters { get; set; }
 }
