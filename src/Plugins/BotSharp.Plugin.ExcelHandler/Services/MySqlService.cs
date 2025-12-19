@@ -10,7 +10,6 @@ public class MySqlService : IDbService
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<MySqlService> _logger;
-    private readonly ExcelHandlerSettings _settings;
 
     private string _mysqlConnection = "";
     private double _excelRowSize = 0;
@@ -23,17 +22,15 @@ public class MySqlService : IDbService
 
     public MySqlService(
         IServiceProvider services,
-        ILogger<MySqlService> logger,
-        ExcelHandlerSettings settings)
+        ILogger<MySqlService> logger)
     {
         _services = services;
         _logger = logger;
-        _settings = settings;
     }
 
     public string Provider => "mysql";
 
-    public IEnumerable<SqlContextOut> WriteExcelDataToDB(IWorkbook workbook)
+    public IEnumerable<SqlContextOut> WriteExcelDataToDB(RoleDialogModel message, IWorkbook workbook)
     {
         var numTables = workbook.NumberOfSheets;
         var results = new List<SqlContextOut>();
@@ -43,14 +40,14 @@ public class MySqlService : IDbService
         {
             ISheet sheet = workbook.GetSheetAt(sheetIdx);
 
-            var (isCreateSuccess, message) = SqlCreateTableFn(sheet);
+            var (isCreateSuccess, msg) = SqlCreateTableFn(message, sheet);
 
             if (!isCreateSuccess)
             {
                 results.Add(new SqlContextOut
                 {
                     IsSuccessful = isCreateSuccess,
-                    Message = message
+                    Message = msg
                 });
                 continue;
             }
@@ -58,8 +55,8 @@ public class MySqlService : IDbService
             string table = $"{_database}.{_tableName}";
             state.SetState("tmp_table", table);
 
-            var (isInsertSuccess, insertMessage) = SqlInsertDataFn(sheet);
-            string exampleData = GetInsertExample(table);
+            var (isInsertSuccess, insertMessage) = SqlInsertDataFn(message, sheet);
+            string exampleData = GetInsertExample(message, table);
 
             results.Add(new SqlContextOut
             {
@@ -79,13 +76,13 @@ public class MySqlService : IDbService
         return insertSqlQuery;
     }
 
-    private (bool, string) SqlInsertDataFn(ISheet sheet)
+    private (bool, string) SqlInsertDataFn(RoleDialogModel message, ISheet sheet)
     {
         try
         {
             string dataSql = ParseSheetData(sheet);
             string insertDataSql = ProcessInsertSqlQuery(dataSql);
-            ExecuteSqlQueryForInsertion(insertDataSql);
+            ExecuteSqlQueryForInsertion(message, insertDataSql);
 
             return (true, $"{_currentFileName}: \r\n {_excelRowSize} records have been successfully inserted into `{_database}`.`{_tableName}` table");
         }
@@ -139,7 +136,7 @@ public class MySqlService : IDbService
         return stringBuilder.ToString();
     }
 
-    private (bool, string) SqlCreateTableFn(ISheet sheet)
+    private (bool, string) SqlCreateTableFn(RoleDialogModel message, ISheet sheet)
     {
         try
         {
@@ -147,7 +144,7 @@ public class MySqlService : IDbService
             _tableName = $"excel_{conv.ConversationId.Split('-').Last()}_{sheet.SheetName}";
             _headerColumns = ParseSheetColumn(sheet);
             string createTableSql = CreateDBTableSqlString(_tableName, _headerColumns, null ,true);
-            ExecuteSqlQueryForInsertion(createTableSql);
+            ExecuteSqlQueryForInsertion(message, createTableSql);
             createTableSql = createTableSql.Replace(_tableName, $"{_database}.{_tableName}");
             return (true, createTableSql);
         }
@@ -189,9 +186,9 @@ public class MySqlService : IDbService
         return createTableSql;
     }
 
-    private void ExecuteSqlQueryForInsertion(string sqlQuery)
+    private void ExecuteSqlQueryForInsertion(RoleDialogModel message, string sqlQuery)
     {
-        using var connection = GetDbConnection();
+        using var connection = GetDbConnection(message);
         _database = connection.Database;
         using (MySqlCommand cmd = new MySqlCommand(sqlQuery, connection))
         {
@@ -199,9 +196,9 @@ public class MySqlService : IDbService
         }
     }
 
-    private string GetInsertExample(string tableName)
+    private string GetInsertExample(RoleDialogModel message, string tableName)
     {
-        using var connection = GetDbConnection();
+        using var connection = GetDbConnection(message);
         _database = connection.Database;
         var sqlQuery = $"SELECT * FROM {tableName} LIMIT 2;";
         using var cmd = new MySqlCommand(sqlQuery, connection);
@@ -239,20 +236,21 @@ public class MySqlService : IDbService
     #endregion
 
     #region Db connection
-    private MySqlConnection GetDbConnection()
+    private MySqlConnection GetDbConnection(RoleDialogModel message)
     {
         if (string.IsNullOrEmpty(_mysqlConnection))
         {
-            InitializeDatabase();
+            InitializeDatabase(message);
         }
         var dbConnection = new MySqlConnection(_mysqlConnection);
         dbConnection.Open();
         return dbConnection;
     }
 
-    private void InitializeDatabase()
+    private void InitializeDatabase(RoleDialogModel message)
     {
-        _mysqlConnection = _settings.Database.ConnectionString;
+        var dbHook = _services.GetRequiredService<IText2SqlHook>();
+        _mysqlConnection = dbHook.GetConnectionString(message);
         var databaseName = GetDatabaseName(_mysqlConnection);
         _logger.LogInformation($"Connected to MySQL database {databaseName}");
     }

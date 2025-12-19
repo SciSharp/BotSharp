@@ -24,7 +24,7 @@ public class GetTableDefinitionFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<SqlStatement>(message.FunctionArgs);
         var tables = args.Tables;
         var agentService = _services.GetRequiredService<IAgentService>();
-        var dbHook = _services.GetRequiredService<ISqlDriverHook>();
+        var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbType = dbHook.GetDatabaseType(message);
 
         // Get table DDL from database

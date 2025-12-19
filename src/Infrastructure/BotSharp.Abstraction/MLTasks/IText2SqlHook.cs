@@ -1,8 +1,8 @@
 using BotSharp.Abstraction.Hooks;
 
-namespace BotSharp.Plugin.SqlDriver.Interfaces;
+namespace BotSharp.Abstraction.MLTasks;
 
-public interface ISqlDriverHook : IHookBase
+public interface IText2SqlHook : IHookBase
 {
     // Get database type
     string GetDatabaseType(RoleDialogModel message);

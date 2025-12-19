@@ -1,4 +1,3 @@
-using BotSharp.Plugin.ExcelHandler.Models;
 using Microsoft.Data.Sqlite;
 using NPOI.SS.UserModel;
 
@@ -8,7 +7,6 @@ public class SqliteService : IDbService
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
-    private readonly ExcelHandlerSettings _settings;
 
     private double _excelRowSize = 0;
     private double _excelColumnSize = 0;
@@ -18,17 +16,15 @@ public class SqliteService : IDbService
 
     public SqliteService(
         IServiceProvider services,
-        ILogger<SqliteService> logger,
-        ExcelHandlerSettings settings)
+        ILogger<SqliteService> logger)
     {
         _services = services;
         _logger = logger;
-        _settings = settings;
     }
 
     public string Provider => "sqlite";
 
-    public IEnumerable<SqlContextOut> WriteExcelDataToDB(IWorkbook workbook)
+    public IEnumerable<SqlContextOut> WriteExcelDataToDB(RoleDialogModel message, IWorkbook workbook)
     {
         var numTables = workbook.NumberOfSheets;
         var results = new List<SqlContextOut>();
@@ -38,19 +34,19 @@ public class SqliteService : IDbService
             ISheet sheet = workbook.GetSheetAt(sheetIdx);
 
             // clear existing data
-            DeleteTableSqlQuery();
+            DeleteTableSqlQuery(message);
 
             // create table
-            var (isCreateSuccess, message) = SqlCreateTableFn(sheet);
+            var (isCreateSuccess, msg) = SqlCreateTableFn(message, sheet);
 
             results.Add(new SqlContextOut
             {
                 IsSuccessful = isCreateSuccess,
-                Message = message
+                Message = msg
             });
 
             // insert data
-            var (isInsertSuccess, insertMessage) = SqlInsertDataFn(sheet);
+            var (isInsertSuccess, insertMessage) = SqlInsertDataFn(message, sheet);
 
             results.Add(new SqlContextOut
             {
@@ -63,13 +59,13 @@ public class SqliteService : IDbService
 
 
     #region Private methods
-    private (bool, string) SqlInsertDataFn(ISheet sheet)
+    private (bool, string) SqlInsertDataFn(RoleDialogModel message, ISheet sheet)
     {
         try
         {
             string dataSql = ParseSheetData(sheet);
             string insertDataSql = ProcessInsertSqlQuery(dataSql);
-            var insertedRowCount = ExecuteSqlQueryForInsertion(insertDataSql);
+            var insertedRowCount = ExecuteSqlQueryForInsertion(message, insertDataSql);
 
             // List top 3 rows
             var top3rows = dataSql.Split("\r").Take(3);
@@ -83,7 +79,7 @@ public class SqliteService : IDbService
         }
     }
 
-    private (bool, string) SqlCreateTableFn(ISheet sheet)
+    private (bool, string) SqlCreateTableFn(RoleDialogModel message, ISheet sheet)
     {
         try
         {
@@ -99,7 +95,7 @@ public class SqliteService : IDbService
             _logger.LogInformation("Column Analysis:\n{Summary}", analysisSummary);
 
             string createTableSql = CreateDBTableSqlString(_tableName, _headerColumns, inferredTypes);
-            var rowCount = ExecuteSqlQueryForInsertion(createTableSql);
+            var rowCount = ExecuteSqlQueryForInsertion(message, createTableSql);
 
             // Get table schema using sqlite query
             var schema = GenerateTableSchema();
@@ -298,9 +294,9 @@ public class SqliteService : IDbService
         return insertSqlQuery;
     }
 
-    private int ExecuteSqlQueryForInsertion(string query)
+    private int ExecuteSqlQueryForInsertion(RoleDialogModel message, string query)
     {
-        using var conn = GetDbConnection();
+        using var conn = GetDbConnection(message);
 
         using var command = new SqliteCommand();
         command.CommandText = query;
@@ -309,7 +305,7 @@ public class SqliteService : IDbService
         return command.ExecuteNonQuery();
     }
 
-    private void DeleteTableSqlQuery()
+    private void DeleteTableSqlQuery(RoleDialogModel message)
     {
         string deleteTableSql = @"
                 SELECT
@@ -320,7 +316,7 @@ public class SqliteService : IDbService
                     type = 'table' AND
                     name NOT LIKE 'sqlite_%'
             ";
-        using var conn = GetDbConnection();
+        using var conn = GetDbConnection(message);
         using var selectCmd = new SqliteCommand(deleteTableSql, conn);
         using var reader = selectCmd.ExecuteReader();
         if (reader.HasRows)
@@ -359,10 +355,11 @@ public class SqliteService : IDbService
     #endregion
 
     #region Db connection
-    private SqliteConnection GetDbConnection()
+    private SqliteConnection GetDbConnection(RoleDialogModel message)
     {
-        var connectionString = _settings.Database.ConnectionString;
-        
+        var sqlHook = _services.GetRequiredService<IText2SqlHook>();
+        var connectionString = sqlHook.GetConnectionString(message);
+
         // Extract the database file path from the connection string
         var builder = new SqliteConnectionStringBuilder(connectionString);
         var dbFilePath = builder.DataSource;

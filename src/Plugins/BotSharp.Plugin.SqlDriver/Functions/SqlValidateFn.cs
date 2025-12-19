@@ -31,7 +31,7 @@ public class SqlValidateFn : IFunctionCallback
         sql = Regex.Match(sql, pattern).Groups[1].Value;
         message.Content = sql;
 
-        var dbHook = _services.GetRequiredService<ISqlDriverHook>();
+        var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbType = dbHook.GetDatabaseType(message);
         var validateSql = dbType.ToLower() switch
         {

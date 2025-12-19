@@ -6,5 +6,5 @@ public interface IDbService
 {
     string Provider { get;  }
 
-    IEnumerable<SqlContextOut> WriteExcelDataToDB(IWorkbook workbook);
+    IEnumerable<SqlContextOut> WriteExcelDataToDB(RoleDialogModel message, IWorkbook workbook);
 }

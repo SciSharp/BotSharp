@@ -27,7 +27,7 @@ public class SqlSelect : IFunctionCallback
             return false;
         }
 
-        var dbHook = _services.GetRequiredService<ISqlDriverHook>();
+        var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbConnectionString = dbHook.GetConnectionString(message);
         var dbType = args.DBProvider.ToLowerInvariant();
 

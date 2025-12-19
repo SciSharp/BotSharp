@@ -5,6 +5,9 @@ global using System.Text;
 global using System.Text.Json;
 global using System.Threading.Tasks;
 
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.DependencyInjection;
+
 global using BotSharp.Abstraction.Agents;
 global using BotSharp.Abstraction.Conversations;
 global using BotSharp.Abstraction.Conversations.Models;
@@ -14,11 +17,7 @@ global using BotSharp.Abstraction.Files.Models;
 global using BotSharp.Abstraction.Files.Utilities;
 global using BotSharp.Abstraction.Functions;
 global using BotSharp.Abstraction.Options;
-global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Agents.Models;
-global using BotSharp.Abstraction.Agents.Settings;
-global using BotSharp.Abstraction.Functions.Models;
-global using BotSharp.Abstraction.Repositories;
 global using BotSharp.Abstraction.Utilities;
 global using BotSharp.Abstraction.Routing;
 
@@ -26,9 +25,8 @@ global using BotSharp.Plugin.ExcelHandler.Enums;
 global using BotSharp.Plugin.ExcelHandler.LlmContexts;
 global using BotSharp.Plugin.ExcelHandler.Models;
 global using BotSharp.Plugin.ExcelHandler.Services;
-global using BotSharp.Plugin.ExcelHandler.Settings;
 global using BotSharp.Plugin.ExcelHandler.Helpers;
+global using BotSharp.Abstraction.MLTasks;
 
-global using Microsoft.Extensions.Logging;
-global using Microsoft.Extensions.DependencyInjection;
+
 

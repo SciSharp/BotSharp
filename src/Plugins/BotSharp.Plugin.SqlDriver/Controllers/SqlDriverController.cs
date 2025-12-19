@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Models;
 using BotSharp.Plugin.SqlDriver.Controllers.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,9 @@ public class SqlDriverController : ControllerBase
         }
 
         var fn = _services.GetRequiredService<IRoutingService>();
+        var conv = _services.GetRequiredService<IConversationService>();
+        conv.SetConversationId(conversationId, [new MessageState("database_type", sqlQueryRequest.DbType)]);
+        
         var msg = new RoleDialogModel(AgentRole.User, sqlQueryRequest.SqlStatement)
         {
             CurrentAgentId = sqlQueryRequest.AgentId

@@ -27,7 +27,7 @@ public class ExecuteQueryFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<ExecuteQueryArgs>(message.FunctionArgs);
         //var refinedArgs = await RefineSqlStatement(message, args);
-        var dbHook = _services.GetRequiredService<ISqlDriverHook>();
+        var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbType = dbHook.GetDatabaseType(message);
         var dbConnectionString = dbHook.GetConnectionString(message);
 
