@@ -186,7 +186,7 @@ public partial class MongoRepository
         var candidates = dialogs.Where(x => x.MetaData.MessageId == request.Message.MetaData.MessageId
                                             && x.MetaData.Role == request.Message.MetaData.Role).ToList();
 
-        var found = candidates.Where((_, idx) => idx == request.InnderIndex).FirstOrDefault();
+        var found = candidates.Where((_, idx) => idx == request.InnerIndex).FirstOrDefault();
         if (found == null) return false;
 
         found.Content = request.Message.Content;
