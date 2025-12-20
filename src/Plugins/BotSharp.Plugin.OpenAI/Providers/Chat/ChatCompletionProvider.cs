@@ -588,16 +588,19 @@ public class ChatCompletionProvider : IChatCompletion
     /// Parse reasoning setting: returns (temperature, reasoning effort level)
     /// </summary>
     /// <param name="settings"></param>
+    /// <param name="agent"></param>
     /// <returns></returns>
-    private (float?, ChatReasoningEffortLevel?) ParseReasoning(
-        ReasoningSetting? settings,
-        Agent agent)
+    private (float?, ChatReasoningEffortLevel?) ParseReasoning(ReasoningSetting? settings, Agent agent)
     {
         float? temperature = null;
         ChatReasoningEffortLevel? reasoningEffortLevel = null;
 
+        var level = _state.GetState("reasoning_effort_level")
+                          .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel);
+
         if (settings == null)
         {
+            reasoningEffortLevel = ParseReasoningEffortLevel(level);
             return (temperature, reasoningEffortLevel);
         }
         
@@ -606,22 +609,18 @@ public class ChatCompletionProvider : IChatCompletion
             temperature = settings.Temperature;
         }
 
-
-        var defaultLevel = settings?.EffortLevel;
-        
-        if (settings?.Parameters != null
-            && settings.Parameters.TryGetValue("EffortLevel", out var settingValue)
-            && !string.IsNullOrEmpty(settingValue?.Default))
+        if (string.IsNullOrEmpty(level))
         {
-            defaultLevel = settingValue.Default;
+            level = settings?.EffortLevel;
+            if (settings?.Parameters != null
+                && settings.Parameters.TryGetValue("EffortLevel", out var settingValue)
+                && !string.IsNullOrEmpty(settingValue?.Default))
+            {
+                level = settingValue.Default;
+            }
         }
 
-        var level = _state.GetState("reasoning_effort_level")
-                     .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel)
-                     .IfNullOrEmptyAs(defaultLevel);
-
         reasoningEffortLevel = ParseReasoningEffortLevel(level);
-
         return (temperature, reasoningEffortLevel);
     }
 
