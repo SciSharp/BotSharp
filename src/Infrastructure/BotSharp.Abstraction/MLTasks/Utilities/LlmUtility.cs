@@ -14,6 +14,10 @@ public static class LlmUtility
         {
             res = VerifyModelParameter(curVal, value.Default, value.Options);
         }
+        else
+        {
+            res = curVal;
+        }
 
         return res;
     }
