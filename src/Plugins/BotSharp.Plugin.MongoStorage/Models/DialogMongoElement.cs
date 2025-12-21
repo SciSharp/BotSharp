@@ -47,9 +47,10 @@ public class DialogMetaDataMongoElement
     public string MessageId { get; set; } = default!;
     public string MessageType { get; set; } = default!;
     public string? MessageLabel { get; set; }
+    public string? ToolCallId { get; set; }
     public string? FunctionName { get; set; }
     public string? FunctionArgs { get; set; }
-    public string? ToolCallId { get; set; }
+    public Dictionary<string, string?>? MetaData { get; set; }
     public string? SenderId { get; set; }
     public DateTime CreateTime { get; set; }
 
@@ -62,11 +63,12 @@ public class DialogMetaDataMongoElement
             MessageId = meta.MessageId,
             MessageType = meta.MessageType,
             MessageLabel = meta.MessageLabel,
+            ToolCallId = meta.ToolCallId,
             FunctionName = meta.FunctionName,
             FunctionArgs = meta.FunctionArgs,
-            ToolCallId = meta.ToolCallId,
+            MetaData = meta.MetaData,
             SenderId = meta.SenderId,
-            CreatedTime = meta.CreateTime,
+            CreatedTime = meta.CreateTime
         };
     }
 
@@ -79,11 +81,12 @@ public class DialogMetaDataMongoElement
             MessageId = meta.MessageId,
             MessageType = meta.MessageType,
             MessageLabel = meta.MessageLabel,
+            ToolCallId = meta.ToolCallId,
             FunctionName = meta.FunctionName,
             FunctionArgs = meta.FunctionArgs,
-            ToolCallId = meta.ToolCallId,
+            MetaData = meta.MetaData,
             SenderId = meta.SenderId,
-            CreateTime = meta.CreatedTime,
+            CreateTime = meta.CreatedTime
         };
     }
 }

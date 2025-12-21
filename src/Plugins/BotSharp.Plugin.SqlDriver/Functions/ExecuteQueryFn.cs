@@ -1,8 +1,10 @@
 using BotSharp.Core.Infrastructures;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
 using MySqlConnector;
 using Npgsql;
+using System.Text;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
@@ -25,16 +27,22 @@ public class ExecuteQueryFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<ExecuteQueryArgs>(message.FunctionArgs);
         //var refinedArgs = await RefineSqlStatement(message, args);
-        var dbHook = _services.GetRequiredService<ISqlDriverHook>();
+        var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbType = dbHook.GetDatabaseType(message);
+        var dbConnectionString = dbHook.GetConnectionString(message);
 
+        // Print all the SQL statements for debugging
+        _logger.LogInformation("Executing SQL Statements: {SqlStatements}", string.Join("\r\n", args.SqlStatements));
+
+        IEnumerable<dynamic> results = [];
         try
         {
-            var results = dbType.ToLower() switch
+            results = dbType.ToLower() switch
             {
                 "mysql" => RunQueryInMySql(args.SqlStatements),
-                "sqlserver" or "mssql" => RunQueryInSqlServer(args.SqlStatements),
+                "sqlserver" or "mssql" => RunQueryInSqlServer(dbConnectionString, args.SqlStatements),
                 "redshift" => RunQueryInRedshift(args.SqlStatements),
+                "sqlite" => RunQueryInSqlite(dbConnectionString, args.SqlStatements),
                 _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
             };
 
@@ -50,7 +58,8 @@ public class ExecuteQueryFn : IFunctionCallback
                 return true;
             }
 
-            message.Content = JsonSerializer.Serialize(results);
+            message.Content = FormatResultsToCsv(results);
+            message.Data = results;
         }
         catch (DbException ex)
         {
@@ -68,30 +77,141 @@ public class ExecuteQueryFn : IFunctionCallback
             return false;
         }
 
-        if (args.FormattingResult)
+        /*var conv = _services.GetRequiredService<IConversationService>();
+        var sqlAgent = await _services.GetRequiredService<IAgentService>().LoadAgent(BuiltInAgentId.SqlDriver);
+        var prompt = sqlAgent.Templates.FirstOrDefault(x => x.Name == "query_result_formatting");
+
+        var completion = CompletionProvider.GetChatCompletion(_services,
+            provider: sqlAgent.LlmConfig.Provider,
+            model: sqlAgent.LlmConfig.Model);
+
+        var result = await completion.GetChatCompletions(new Agent
         {
-            var conv = _services.GetRequiredService<IConversationService>();
-            var sqlAgent = await _services.GetRequiredService<IAgentService>().LoadAgent(BuiltInAgentId.SqlDriver);
-            var prompt = sqlAgent.Templates.FirstOrDefault(x => x.Name == "query_result_formatting");
+            Id = sqlAgent.Id,
+            Instruction = prompt.Content,
+        }, new List<RoleDialogModel>
+        {
+            new RoleDialogModel(AgentRole.User, message.Content)
+        });
 
-            var completion = CompletionProvider.GetChatCompletion(_services,
-                provider: sqlAgent.LlmConfig.Provider,
-                model: sqlAgent.LlmConfig.Model);
+        message.Content = result.Content;*/
 
-            var result = await completion.GetChatCompletions(new Agent
-            {
-                Id = sqlAgent.Id,
-                Instruction = prompt.Content,
-            }, new List<RoleDialogModel>
-            {
-                new RoleDialogModel(AgentRole.User, message.Content)
-            });
-
-            message.Content = result.Content;
-            message.StopCompletion = true;
+        if (args.ResultFormat.ToLower() == "markdown")
+        {
+            message.Content = FormatResultsToMarkdown(results);
         }
+        else if (args.ResultFormat.ToLower() == "csv")
+        {
+            message.Content = FormatResultsToCsv(results);
+        }
+        message.StopCompletion = true;
 
         return true;
+    }
+
+    private string FormatResultsToCsv(IEnumerable<dynamic> results)
+    {
+        if (results == null || !results.Any())
+        {
+            return string.Empty;
+        }
+
+        var sb = new StringBuilder();
+        var firstRow = results.First() as IDictionary<string, object>;
+        
+        if (firstRow == null)
+        {
+            return string.Empty;
+        }
+
+        // Write CSV header
+        var headers = firstRow.Keys.ToList();
+        sb.AppendLine(string.Join(",", headers.Select(h => EscapeCsvField(h))));
+
+        // Write CSV rows
+        foreach (var row in results)
+        {
+            var rowDict = row as IDictionary<string, object>;
+            if (rowDict != null)
+            {
+                var values = headers.Select(h => 
+                {
+                    var value = rowDict.ContainsKey(h) ? rowDict[h] : null;
+                    return EscapeCsvField(value?.ToString() ?? string.Empty);
+                });
+                sb.AppendLine(string.Join(",", values));
+            }
+        }
+
+        return sb.ToString().TrimEnd();
+    }
+
+    private string EscapeCsvField(string field)
+    {
+        if (string.IsNullOrEmpty(field))
+        {
+            return string.Empty;
+        }
+
+        // If field contains comma, quote, or newline, wrap in quotes and escape quotes
+        if (field.Contains(',') || field.Contains('"') || field.Contains('\n') || field.Contains('\r'))
+        {
+            return $"\"{field.Replace("\"", "\"\"")}\"";
+        }
+
+        return field;
+    }
+
+    private string FormatResultsToMarkdown(IEnumerable<dynamic> results)
+    {
+        if (results == null || !results.Any())
+        {
+            return string.Empty;
+        }
+
+        var sb = new StringBuilder();
+        var firstRow = results.First() as IDictionary<string, object>;
+        
+        if (firstRow == null)
+        {
+            return string.Empty;
+        }
+
+        var headers = firstRow.Keys.ToList();
+
+        // Write Markdown table header
+        sb.AppendLine("| " + string.Join(" | ", headers) + " |");
+        
+        // Write separator row
+        sb.AppendLine("|" + string.Join("|", headers.Select(_ => "-------")) + "|");
+
+        // Write data rows
+        foreach (var row in results)
+        {
+            var rowDict = row as IDictionary<string, object>;
+            if (rowDict != null)
+            {
+                var values = headers.Select(h => 
+                {
+                    var value = rowDict.ContainsKey(h) ? rowDict[h] : null;
+                    return EscapeMarkdownField(value?.ToString() ?? string.Empty);
+                });
+                sb.AppendLine("| " + string.Join(" | ", values) + " |");
+            }
+        }
+
+        return sb.ToString().TrimEnd();
+    }
+
+    private string EscapeMarkdownField(string field)
+    {
+        if (string.IsNullOrEmpty(field))
+        {
+            return string.Empty;
+        }
+
+        // Escape pipe characters which are special in Markdown tables
+        return field.Replace("|", "\\|");
     }
 
     private IEnumerable<dynamic> RunQueryInMySql(string[] sqlTexts)
@@ -101,10 +221,10 @@ public class ExecuteQueryFn : IFunctionCallback
         return connection.Query(string.Join(";\r\n", sqlTexts));
     }
 
-    private IEnumerable<dynamic> RunQueryInSqlServer(string[] sqlTexts)
+    private IEnumerable<dynamic> RunQueryInSqlServer(string connectionString, string[] sqlTexts)
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new SqlConnection(settings.SqlServerExecutionConnectionString ?? settings.SqlServerConnectionString);
+        using var connection = new SqlConnection(settings.SqlServerExecutionConnectionString ?? settings.SqlServerConnectionString ?? connectionString);
         return connection.Query(string.Join("\r\n", sqlTexts));
     }
 
@@ -112,6 +232,13 @@ public class ExecuteQueryFn : IFunctionCallback
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         using var connection = new NpgsqlConnection(settings.RedshiftConnectionString);
+        return connection.Query(string.Join("\r\n", sqlTexts));
+    }
+
+    private IEnumerable<dynamic> RunQueryInSqlite(string connectionString, string[] sqlTexts)
+    {
+        var settings = _services.GetRequiredService<SqlDriverSetting>();
+        using var connection = new SqliteConnection(connectionString);
         return connection.Query(string.Join("\r\n", sqlTexts));
     }
 

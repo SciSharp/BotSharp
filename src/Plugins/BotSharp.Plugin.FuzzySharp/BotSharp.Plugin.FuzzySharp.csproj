@@ -13,9 +13,14 @@
   <ItemGroup>
     <PackageReference Include="CsvHelper" />
     <PackageReference Include="FuzzySharp" />
+    <PackageReference Include="Rougamo.Fody" />
   </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="data\tokens\" />
   </ItemGroup>
 </Project>

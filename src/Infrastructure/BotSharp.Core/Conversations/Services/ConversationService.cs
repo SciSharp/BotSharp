@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Conversations.Enums;
-using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -13,7 +11,6 @@ public partial class ConversationService : IConversationService
     private readonly IConversationStorage _storage;
     private readonly IConversationStateService _state;
     private string _conversationId;
-    private const string AIAssistant = BuiltInAgentId.AIAssistant;
 
     public string ConversationId => _conversationId;
 

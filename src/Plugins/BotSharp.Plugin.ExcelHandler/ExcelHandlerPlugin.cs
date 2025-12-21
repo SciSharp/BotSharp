@@ -1,8 +1,6 @@
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.ExcelHandler.Hooks;
-using BotSharp.Plugin.ExcelHandler.Services;
-using BotSharp.Plugin.ExcelHandler.Settings;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Plugin.ExcelHandler;
@@ -16,12 +14,6 @@ public class ExcelHandlerPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped(provider =>
-        {
-            var settingService = provider.GetRequiredService<ISettingService>();
-            return settingService.Bind<ExcelHandlerSettings>("ExcelHandler");
-        });
-
         services.AddScoped<IAgentUtilityHook, ExcelHandlerUtilityHook>();
         services.AddScoped<IDbService, SqliteService>();
         services.AddScoped<IDbService, MySqlService>();

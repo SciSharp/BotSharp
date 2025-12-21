@@ -262,7 +262,7 @@ public partial class ConversationController : ControllerBase
                 Content = model.Message.Text,
                 RichContent = JsonSerializer.Serialize(model.Message.RichContent, _jsonOptions),
             },
-            InnderIndex = model.InnerIndex
+            InnerIndex = model.InnerIndex
         };
 
         return await conversationService.UpdateConversationMessage(conversationId, request);

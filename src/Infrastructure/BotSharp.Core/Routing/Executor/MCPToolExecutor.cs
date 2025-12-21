@@ -7,7 +7,7 @@ using static BotSharp.Abstraction.Diagnostics.ModelDiagnostics;
 
 namespace BotSharp.Core.Routing.Executor;
 
-public class McpToolExecutor: IFunctionExecutor
+public class McpToolExecutor : IFunctionExecutor
 {
     private readonly IServiceProvider _services;
     private readonly string _mcpServerId;
@@ -21,7 +21,7 @@ public class McpToolExecutor: IFunctionExecutor
 
 
     public McpToolExecutor(IServiceProvider services, string mcpServerId, string functionName)
-    { 
+    {
         _services = services;
         _mcpServerId = mcpServerId;
         _functionName = functionName;
@@ -67,7 +67,7 @@ public class McpToolExecutor: IFunctionExecutor
     }
 
 
-    private static Dictionary<string, object> JsonToDictionary(string? json)
+    private static Dictionary<string, object?> JsonToDictionary(string? json)
     {
         if (string.IsNullOrEmpty(json))
         {
@@ -79,9 +79,9 @@ public class McpToolExecutor: IFunctionExecutor
         return JsonElementToDictionary(root);
     }
 
-    private static Dictionary<string, object> JsonElementToDictionary(JsonElement element)
+    private static Dictionary<string, object?> JsonElementToDictionary(JsonElement element)
     {
-        Dictionary<string, object> dictionary = [];
+        Dictionary<string, object?> dictionary = [];
 
         if (element.ValueKind == JsonValueKind.Object)
         {

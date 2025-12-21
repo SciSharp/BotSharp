@@ -45,9 +45,7 @@ public class ObserverService : IObserverService
             }
         }
 
-#if DEBUG
-        _logger.LogCritical($"Subscribe observers: {string.Join(",", observers.Select(x => x.Name))}");
-#endif
+        _logger.LogDebug($"Subscribe observers: {string.Join(",", observers.Select(x => x.Name))}");
 
         var subscriptions = new List<ObserverSubscription<T>>();
         var messageHub = _services.GetRequiredService<MessageHub<T>>();
@@ -71,9 +69,7 @@ public class ObserverService : IObserverService
         var container = _services.GetRequiredService<ObserverSubscriptionContainer<T>>();
         var subscriptions = container.GetSubscriptions(names);
 
-#if DEBUG
-        _logger.LogCritical($"UnSubscribe observers: {string.Join(",", subscriptions.Select(x => x.Observer.Name))}");
-#endif
+        _logger.LogDebug($"UnSubscribe observers: {string.Join(",", subscriptions.Select(x => x.Observer.Name))}");
 
         foreach (var sub in subscriptions)
         {

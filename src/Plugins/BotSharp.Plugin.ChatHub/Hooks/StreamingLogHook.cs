@@ -196,14 +196,14 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         var agent = await _agentService.GetAgent(message.CurrentAgentId);
 
-        var log = tokenStats.Prompt;
+        if (string.IsNullOrWhiteSpace(tokenStats.Prompt)) return;
 
         var input = new ContentLogInputModel(conversationId, message)
         {
             Name = agent?.Name,
             AgentId = agent?.Id,
             Source = ContentLogSource.Prompt,
-            Log = log
+            Log =  tokenStats.Prompt
         };
         await SendEvent(ChatEvent.OnConversationContentLogGenerated, conversationId, BuildContentLog(input));
     }

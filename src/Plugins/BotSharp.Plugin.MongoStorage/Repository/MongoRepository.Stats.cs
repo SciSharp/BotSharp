@@ -30,14 +30,16 @@ public partial class MongoRepository
             AgentId = agentId,
             Count = new()
             {
-                AgentCallCount = found.Count.AgentCallCount
+                AgentCallCount = found.Count.AgentCallCount,
+                ImageGenerationTotalCount = found.Count.ImageGenerationTotalCount,
             },
             LlmCost = new()
             {
                 PromptTokens = found.LlmCost.PromptTokens,
                 CompletionTokens = found.LlmCost.CompletionTokens,
                 PromptTotalCost = found.LlmCost.PromptTotalCost,
-                CompletionTotalCost = found.LlmCost.CompletionTotalCost
+                CompletionTotalCost = found.LlmCost.CompletionTotalCost,
+                ImageGenerationTotalCost = found.LlmCost.ImageGenerationTotalCost
             },
             RecordTime = found.RecordTime,
             StartTime = startTime,
@@ -68,10 +70,12 @@ public partial class MongoRepository
         var updateDef = Builders<GlobalStatisticsDocument>.Update
                             .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
                             .Inc(x => x.Count.AgentCallCount, delta.CountDelta.AgentCallCountDelta)
+                            .Inc(x => x.Count.ImageGenerationTotalCount, delta.CountDelta.ImageGenerationTotalCountDelta)
                             .Inc(x => x.LlmCost.PromptTokens, delta.LlmCostDelta.PromptTokensDelta)
                             .Inc(x => x.LlmCost.CompletionTokens, delta.LlmCostDelta.CompletionTokensDelta)
                             .Inc(x => x.LlmCost.PromptTotalCost, delta.LlmCostDelta.PromptTotalCostDelta)
                             .Inc(x => x.LlmCost.CompletionTotalCost, delta.LlmCostDelta.CompletionTotalCostDelta)
+                            .Inc(x => x.LlmCost.ImageGenerationTotalCost, delta.LlmCostDelta.ImageGenerationTotalCostDelta)
                             .Set(x => x.StartTime, startTime)
                             .Set(x => x.EndTime, endTime)
                             .Set(x => x.Interval, delta.Interval)

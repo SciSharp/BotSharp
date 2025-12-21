@@ -13,7 +13,7 @@
   "utilities": [],
   "llmConfig": {
     "provider": "openai",
-    "model": "gpt-4o-2024-11-20",
+    "model": "gpt-5-mini",
     "max_recursion_depth": 10
   }
 }

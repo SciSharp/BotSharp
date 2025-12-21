@@ -1,12 +1,6 @@
-using BotSharp.Plugin.SqlDriver.Interfaces;
-using BotSharp.Plugin.SqlDriver.Models;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using Npgsql;
-using System.ComponentModel.DataAnnotations;
-using System.Data.Common;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
@@ -30,7 +24,7 @@ public class GetTableDefinitionFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<SqlStatement>(message.FunctionArgs);
         var tables = args.Tables;
         var agentService = _services.GetRequiredService<IAgentService>();
-        var dbHook = _services.GetRequiredService<ISqlDriverHook>();
+        var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbType = dbHook.GetDatabaseType(message);
 
         // Get table DDL from database

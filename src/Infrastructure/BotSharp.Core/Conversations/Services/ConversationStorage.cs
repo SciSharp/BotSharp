@@ -8,6 +8,7 @@ public class ConversationStorage : IConversationStorage
 {
     private readonly BotSharpOptions _options;
     private readonly IServiceProvider _services;
+    private static readonly object _lock = new object();
 
     public ConversationStorage(
         BotSharpOptions options,
@@ -19,7 +20,10 @@ public class ConversationStorage : IConversationStorage
 
     public void Append(string conversationId, RoleDialogModel dialog)
     {
-        Append(conversationId, [dialog]);
+        lock (_lock)
+        {
+            Append(conversationId, [dialog]);
+        }
     }
 
     public void Append(string conversationId, IEnumerable<RoleDialogModel> dialogs)
@@ -69,9 +73,10 @@ public class ConversationStorage : IConversationStorage
                 MessageLabel = meta?.MessageLabel,
                 CreatedAt = meta?.CreatedTime ?? default,
                 SenderId = senderId,
+                ToolCallId = meta?.ToolCallId,
                 FunctionName = meta?.FunctionName,
                 FunctionArgs = meta?.FunctionArgs,
-                ToolCallId = meta?.ToolCallId,
+                MetaData = meta?.MetaData,
                 RichContent = richContent,
                 SecondaryContent = secondaryContent,
                 SecondaryRichContent = secondaryRichContent,
@@ -106,9 +111,10 @@ public class ConversationStorage : IConversationStorage
                 MessageId = dialog.MessageId,
                 MessageType = dialog.MessageType,
                 MessageLabel = dialog.MessageLabel,
+                ToolCallId = dialog.ToolCallId,
                 FunctionName = dialog.FunctionName,
                 FunctionArgs = dialog.FunctionArgs,
-                ToolCallId = dialog.ToolCallId,
+                MetaData = dialog.MetaData,
                 CreatedTime = dialog.CreatedAt
             };
 
@@ -135,6 +141,7 @@ public class ConversationStorage : IConversationStorage
                 MessageLabel = dialog.MessageLabel,
                 SenderId = dialog.SenderId,
                 FunctionName = dialog.FunctionName,
+                MetaData = dialog.MetaData,
                 CreatedTime = dialog.CreatedAt
             };
 

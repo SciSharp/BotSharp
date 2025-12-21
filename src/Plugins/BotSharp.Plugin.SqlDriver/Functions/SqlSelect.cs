@@ -3,7 +3,6 @@ using MySqlConnector;
 using Npgsql;
 using MongoDB.Driver;
 using MongoDB.Bson;
-using System.Text.RegularExpressions;
 using static Dapper.SqlMapper;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
@@ -29,7 +28,7 @@ public class SqlSelect : IFunctionCallback
         }
 
         // check if need to instantely
-        var dbHook = _services.GetRequiredService<ISqlDriverHook>();
+        var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbType = dbHook.GetDatabaseType(message);
 
         var result = dbType switch

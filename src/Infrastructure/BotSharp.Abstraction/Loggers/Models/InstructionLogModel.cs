@@ -2,7 +2,56 @@ using System.Text.Json;
 
 namespace BotSharp.Abstraction.Loggers.Models;
 
-public class InstructionLogModel
+public class InstructionLogModel : InstructionLogBaseModel
+{
+    public Dictionary<string, string> States { get; set; } = [];
+
+    public static InstructionLogModel From(InstructionFileLogModel log)
+    {
+        return new InstructionLogModel
+        {
+            Id = log.Id,
+            AgentId = log.AgentId,
+            AgentName = log.AgentName,
+            Provider = log.Provider,
+            Model = log.Model,
+            TemplateName = log.TemplateName,
+            UserMessage = log.UserMessage,
+            SystemInstruction = log.SystemInstruction,
+            CompletionText = log.CompletionText,
+            UserId = log.UserId,
+            UserName = log.UserName,
+            CreatedTime = log.CreatedTime
+        };
+    }
+}
+
+public class InstructionFileLogModel : InstructionLogBaseModel
+{
+    [JsonPropertyName("states")]
+    public Dictionary<string, JsonDocument> States { get; set; } = [];
+
+    public static InstructionFileLogModel From(InstructionLogModel log)
+    {
+        return new InstructionFileLogModel
+        {
+            Id = log.Id,
+            AgentId = log.AgentId,
+            AgentName = log.AgentName,
+            Provider = log.Provider,
+            Model = log.Model,
+            TemplateName = log.TemplateName,
+            UserMessage = log.UserMessage,
+            SystemInstruction = log.SystemInstruction,
+            CompletionText = log.CompletionText,
+            UserId = log.UserId,
+            UserName = log.UserName,
+            CreatedTime = log.CreatedTime
+        }; 
+    }
+}
+
+public class InstructionLogBaseModel
 {
     [JsonPropertyName("id")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -42,12 +91,6 @@ public class InstructionLogModel
 
     [JsonIgnore]
     public string? UserName { get; set; }
-
-    [JsonIgnore]
-    public Dictionary<string, string> States { get; set; } = [];
-
-    [JsonPropertyName("states")]
-    public Dictionary<string, JsonDocument> InnerStates { get; set; } = [];
 
     [JsonPropertyName("created_time")]
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;

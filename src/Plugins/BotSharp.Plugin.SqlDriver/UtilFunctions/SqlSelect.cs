@@ -1,4 +1,5 @@
 using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
 using MySqlConnector;
 using Npgsql;
 using static Dapper.SqlMapper;
@@ -26,6 +27,8 @@ public class SqlSelect : IFunctionCallback
             return false;
         }
 
+        var dbHook = _services.GetRequiredService<IText2SqlHook>();
+        var dbConnectionString = dbHook.GetConnectionString(message);
         var dbType = args.DBProvider.ToLowerInvariant();
 
         var result = dbType switch
@@ -33,6 +36,7 @@ public class SqlSelect : IFunctionCallback
             "mysql" => RunQueryInMySql(args),
             "sqlserver" or "mssql" => RunQueryInSqlServer(args),
             "redshift" => RunQueryInRedshift(args),
+            "sqlite" => RunQueryInSqlite(dbHook.GetConnectionString(message), [args.Statement]),
             _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
         };
 
@@ -71,6 +75,13 @@ public class SqlSelect : IFunctionCallback
             dictionary["@" + p.Name] = p.Value;
         }
         return connection.Query(args.Statement, dictionary);
+    }
+
+    private IEnumerable<dynamic> RunQueryInSqlite(string connectionString, string[] sqlTexts)
+    {
+        var settings = _services.GetRequiredService<SqlDriverSetting>();
+        using var connection = new SqliteConnection(connectionString);
+        return connection.Query(sqlTexts[0]);
     }
 
     private IEnumerable<dynamic> RunQueryInRedshift(SqlStatement args)

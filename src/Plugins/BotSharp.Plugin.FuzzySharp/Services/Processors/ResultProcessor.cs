@@ -1,21 +1,17 @@
-using BotSharp.Plugin.FuzzySharp.FuzzSharp;
-using BotSharp.Plugin.FuzzySharp.FuzzSharp.Models;
-using BotSharp.Plugin.FuzzySharp.Constants;
-
 namespace BotSharp.Plugin.FuzzySharp.Services.Processors;
 
 public class ResultProcessor : IResultProcessor
 {
-    public List<FlaggedItem> ProcessResults(List<FlaggedItem> flagged)
+    public List<FlaggedTokenItem> ProcessResults(List<FlaggedTokenItem> flagged)
     {
         // Remove overlapping duplicates 
-        var deduped = RemoveOverlappingDuplicates(flagged);
+        var items = RemoveOverlappingDuplicates(flagged);
 
         // Sort by confidence (descending), then match_type (alphabetically)
         // This matches Python's _sort_and_format_results function
-        return deduped
+        return items
             .OrderByDescending(f => f.Confidence)
-            .ThenBy(f => f.MatchType)
+            .ThenBy(f => f.MatchType.Order)
             .ToList();
     }
 
@@ -27,9 +23,9 @@ public class ResultProcessor : IResultProcessor
     /// 2. Highest confidence
     /// 3. Shortest n-gram length
     /// </summary>
-    private List<FlaggedItem> RemoveOverlappingDuplicates(List<FlaggedItem> flagged)
+    private List<FlaggedTokenItem> RemoveOverlappingDuplicates(List<FlaggedTokenItem> flagged)
     {
-        var deduped = new List<FlaggedItem>();
+        var deduped = new List<FlaggedTokenItem>();
         var skipIndices = new HashSet<int>();
 
         for (int i = 0; i < flagged.Count; i++)
@@ -43,7 +39,7 @@ public class ResultProcessor : IResultProcessor
             var itemRange = (item.Index, item.Index + item.NgramLength);
 
             // Find all overlapping items with same canonical_form (regardless of match_type)
-            var overlappingGroup = new List<FlaggedItem> { item };
+            var overlappingGroup = new List<FlaggedTokenItem> { item };
             for (int j = i + 1; j < flagged.Count; j++)
             {
                 if (skipIndices.Contains(j))
@@ -67,29 +63,18 @@ public class ResultProcessor : IResultProcessor
             // Priority: synonym_match (3) > exact_match (2) > typo_correction (1)
             // Then highest confidence, then shortest ngram
             var bestItem = overlappingGroup
-                .OrderByDescending(x => GetMatchTypePriority(x.MatchType))
+                .OrderByDescending(x => x.MatchType.Order)
                 .ThenByDescending(x => x.Confidence)
                 .ThenBy(x => x.NgramLength)
-                .First();
-            deduped.Add(bestItem);
+                .FirstOrDefault();
+
+            if (bestItem != null)
+            {
+                deduped.Add(bestItem);
+            }
         }
 
         return deduped;
-    }
-
-    /// <summary>
-    /// Get priority value for match type (higher is better)
-    /// Matches the priority order in matchers: synonym > exact > fuzzy
-    /// </summary>
-    private int GetMatchTypePriority(string matchType)
-    {
-        return matchType switch
-        {
-            MatchReason.SynonymMatch => 3,  // Highest priority
-            MatchReason.ExactMatch => 2,          // Second priority
-            MatchReason.TypoCorrection => 1,      // Lowest priority
-            _ => 0                                // Unknown types get lowest priority
-        };
     }
 
     /// <summary>

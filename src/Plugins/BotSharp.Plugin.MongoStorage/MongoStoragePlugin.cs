@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Abstraction.Repositories.Settings;
 using BotSharp.Plugin.MongoStorage.Repository;
+using MongoDB.Bson.Serialization.Conventions;
 
 namespace BotSharp.Plugin.MongoStorage;
 
@@ -21,9 +22,11 @@ public class MongoStoragePlugin : IBotSharpPlugin
 
         if (dbSettings.Default == RepositoryEnum.MongoRepository)
         {
-            services.AddScoped((IServiceProvider x) =>
+            var conventionPack = new ConventionPack { new IgnoreExtraElementsConvention(true) };
+            ConventionRegistry.Register("IgnoreExtraElements", conventionPack, type => true);
+
+            services.AddSingleton((IServiceProvider x) =>
             {
-                var dbSettings = x.GetRequiredService<BotSharpDatabaseSettings>();
                 return new MongoDbContext(dbSettings);
             });
 

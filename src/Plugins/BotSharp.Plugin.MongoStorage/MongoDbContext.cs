@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories.Settings;
+using System.Threading;
 
 namespace BotSharp.Plugin.MongoStorage;
 
@@ -7,6 +8,7 @@ public class MongoDbContext
     private readonly MongoClient _mongoClient;
     private readonly string _mongoDbDatabaseName;
     private readonly string _collectionPrefix;
+    private static int _indexesInitialized = 0;
 
     private const string DB_NAME_INDEX = "authSource";
 
@@ -16,6 +18,7 @@ public class MongoDbContext
         _mongoClient = new MongoClient(mongoDbConnectionString);
         _mongoDbDatabaseName = GetDatabaseName(mongoDbConnectionString);
         _collectionPrefix = dbSettings.TablePrefix.IfNullOrEmptyAs("BotSharp")!;
+        CreateIndexes();
     }
 
     private string GetDatabaseName(string mongoDbConnectionString)
@@ -58,6 +61,19 @@ public class MongoDbContext
         return collections.Any();
     }
 
+    private IMongoCollection<TDocument> GetCollection<TDocument>(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException($"The collection {name} cannot be empty.");
+        }
+
+        var collectionName = $"{_collectionPrefix}_{name}";
+
+        var collection = Database.GetCollection<TDocument>(collectionName);
+        return collection;
+    }
+
     private IMongoCollection<TDocument> GetCollectionOrCreate<TDocument>(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -76,6 +92,25 @@ public class MongoDbContext
     }
 
     #region Indexes
+    private void CreateIndexes()
+    {
+        // Use Interlocked.CompareExchange to ensure the index is initialized only once, ensuring thread safety
+        // 0 indicates uninitialized, 1 indicates initialized
+        if (Interlocked.CompareExchange(ref _indexesInitialized, 1, 0) != 0)
+        {
+            return;
+        }
+
+        // Perform index creation (only executed on the first call).
+        CreateConversationIndex();
+        CreateConversationStateIndex();
+        CreateContentLogIndex();
+        CreateStateLogIndex();
+        CreateInstructionLogIndex();
+        CreateAgentCodeScriptIndex();
+        CreateAgentTaskIndex();
+    }
+
     private IMongoCollection<AgentCodeScriptDocument> CreateAgentCodeScriptIndex()
     {
         var collection = GetCollectionOrCreate<AgentCodeScriptDocument>("AgentCodeScripts");
@@ -179,62 +214,62 @@ public class MongoDbContext
     #endregion
 
     public IMongoCollection<AgentDocument> Agents
-        => GetCollectionOrCreate<AgentDocument>("Agents");
+        => GetCollection<AgentDocument>("Agents");
 
     public IMongoCollection<AgentTaskDocument> AgentTasks
-        => CreateAgentTaskIndex();
+        => GetCollection<AgentTaskDocument>("AgentTasks");
 
     public IMongoCollection<AgentCodeScriptDocument> AgentCodeScripts
-        => CreateAgentCodeScriptIndex();
+        => GetCollection<AgentCodeScriptDocument>("AgentCodeScripts");
 
     public IMongoCollection<ConversationDocument> Conversations
-        => CreateConversationIndex();
+        => GetCollection<ConversationDocument>("Conversations");
 
     public IMongoCollection<ConversationDialogDocument> ConversationDialogs
-        => GetCollectionOrCreate<ConversationDialogDocument>("ConversationDialogs");
+        => GetCollection<ConversationDialogDocument>("ConversationDialogs");
 
     public IMongoCollection<ConversationStateDocument> ConversationStates
-        => CreateConversationStateIndex();
+        => GetCollection<ConversationStateDocument>("ConversationStates");
 
     public IMongoCollection<LlmCompletionLogDocument> LlmCompletionLogs
-        => GetCollectionOrCreate<LlmCompletionLogDocument>("LlmCompletionLogs");
+        => GetCollection<LlmCompletionLogDocument>("LlmCompletionLogs");
 
     public IMongoCollection<ConversationContentLogDocument> ContentLogs
-        => CreateContentLogIndex();
+        => GetCollection<ConversationContentLogDocument>("ConversationContentLogs");
 
     public IMongoCollection<ConversationStateLogDocument> StateLogs
-        => CreateStateLogIndex();
+        => GetCollection<ConversationStateLogDocument>("ConversationStateLogs");
 
     public IMongoCollection<UserDocument> Users
-        => GetCollectionOrCreate<UserDocument>("Users");
+        => GetCollection<UserDocument>("Users");
 
     public IMongoCollection<UserAgentDocument> UserAgents
-        => GetCollectionOrCreate<UserAgentDocument>("UserAgents");
+        => GetCollection<UserAgentDocument>("UserAgents");
 
     public IMongoCollection<PluginDocument> Plugins
-        => GetCollectionOrCreate<PluginDocument>("Plugins");
+        => GetCollection<PluginDocument>("Plugins");
 
     public IMongoCollection<TranslationMemoryDocument> TranslationMemories
-        => GetCollectionOrCreate<TranslationMemoryDocument>("TranslationMemories");
+        => GetCollection<TranslationMemoryDocument>("TranslationMemories");
 
     public IMongoCollection<KnowledgeCollectionConfigDocument> KnowledgeCollectionConfigs
-        => GetCollectionOrCreate<KnowledgeCollectionConfigDocument>("KnowledgeCollectionConfigs");
+        => GetCollection<KnowledgeCollectionConfigDocument>("KnowledgeCollectionConfigs");
 
     public IMongoCollection<KnowledgeCollectionFileMetaDocument> KnowledgeCollectionFileMeta
-        => GetCollectionOrCreate<KnowledgeCollectionFileMetaDocument>("KnowledgeCollectionFileMeta");
+        => GetCollection<KnowledgeCollectionFileMetaDocument>("KnowledgeCollectionFileMeta");
 
     public IMongoCollection<RoleDocument> Roles
-        => GetCollectionOrCreate<RoleDocument>("Roles");
+        => GetCollection<RoleDocument>("Roles");
 
     public IMongoCollection<RoleAgentDocument> RoleAgents
-        => GetCollectionOrCreate<RoleAgentDocument>("RoleAgents");
+        => GetCollection<RoleAgentDocument>("RoleAgents");
 
     public IMongoCollection<CrontabItemDocument> CrontabItems
-        => GetCollectionOrCreate<CrontabItemDocument>("CronTabItems");
+        => GetCollection<CrontabItemDocument>("CronTabItems");
 
     public IMongoCollection<GlobalStatisticsDocument> GlobalStats
-        => GetCollectionOrCreate<GlobalStatisticsDocument>("GlobalStats");
+        => GetCollection<GlobalStatisticsDocument>("GlobalStats");
 
     public IMongoCollection<InstructionLogDocument> InstructionLogs
-        => CreateInstructionLogIndex();
+        => GetCollection<InstructionLogDocument>("InstructionLogs");
 }

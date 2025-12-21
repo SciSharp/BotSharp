@@ -10,9 +10,11 @@ public class ExecuteQueryArgs
     [JsonPropertyName("tables")]
     public string[] Tables { get; set; } = [];
 
+    public string DbType { get; set; } = null!;
+
     /// <summary>
     /// Beautifying query result
     /// </summary>
-    [JsonPropertyName("formatting_result")]
-    public bool FormattingResult { get; set; }
+    [JsonPropertyName("result_format")]
+    public string ResultFormat { get; set; } = "markdown";
 }

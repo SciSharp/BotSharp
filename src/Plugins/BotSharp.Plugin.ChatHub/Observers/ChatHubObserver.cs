@@ -118,9 +118,8 @@ public class ChatHubObserver : BotSharpObserverBase<HubObserveData<RoleDialogMod
                     }
                 };
 
-#if DEBUG
-                _logger.LogCritical($"[{nameof(ChatHubObserver)}]: Receive {value.EventName} => {value.Data.Indication} ({conv.ConversationId})");
-#endif
+                _logger.LogDebug($"[{nameof(ChatHubObserver)}]: Receive {value.EventName} => {value.Data.Indication} ({conv.ConversationId})");
+
                 break;
             case ChatEvent.OnIntermediateMessageReceivedFromAssistant:
                 if (!AllowSendingMessage()) return;

@@ -17,9 +17,10 @@ public class DistributedLocker : IDistributedLocker
         _logger = logger;
     }
 
-    public async Task<bool> LockAsync(string resource, Func<Task> action, int timeoutInSeconds = 30)
+    public async Task<bool> LockAsync(string resource, Func<Task> action, int timeoutInSeconds = 30, int acquireTimeoutInSeconds = default)
     {
         var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
+        var acquireTimeout = TimeSpan.FromSeconds(acquireTimeoutInSeconds);
 
         var redis = _services.GetService<IConnectionMultiplexer>();
         if (redis == null)
@@ -31,12 +32,12 @@ public class DistributedLocker : IDistributedLocker
             return true;
         }
 
-        var @lock = new RedisDistributedLock(resource, redis.GetDatabase());
-        await using (var handle = await @lock.TryAcquireAsync(timeout))
+        var @lock = new RedisDistributedLock(resource, redis.GetDatabase(),option => option.Expiry(timeout));
+        await using (var handle = await @lock.TryAcquireAsync(acquireTimeout))
         {
             if (handle == null) 
             {
-                _logger.LogWarning($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
+                _logger.LogWarning($"Acquire lock for {resource} failed due to after {acquireTimeout}s timeout.");
                 return false;
             }
             
@@ -45,9 +46,10 @@ public class DistributedLocker : IDistributedLocker
         }
     }
 
-    public bool Lock(string resource, Action action, int timeoutInSeconds = 30)
+    public bool Lock(string resource, Action action, int timeoutInSeconds = 30, int acquireTimeoutInSeconds = default)
     {
         var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
+        var acquireTimeout = TimeSpan.FromSeconds(acquireTimeoutInSeconds);
 
         var redis = _services.GetRequiredService<IConnectionMultiplexer>();
         if (redis == null)
@@ -59,12 +61,12 @@ public class DistributedLocker : IDistributedLocker
             return false;
         }
 
-        var @lock = new RedisDistributedLock(resource, redis.GetDatabase());
-        using (var handle = @lock.TryAcquire(timeout))
+        var @lock = new RedisDistributedLock(resource, redis.GetDatabase(), option => option.Expiry(timeout));
+        using (var handle = @lock.TryAcquire(acquireTimeout))
         {
             if (handle == null)
             {
-                _logger.LogWarning($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
+                _logger.LogWarning($"Acquire lock for {resource} failed due to after {acquireTimeout}s timeout.");
                 return false;
             }
             else

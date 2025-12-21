@@ -82,7 +82,7 @@ public partial class ConversationService
             {
                 // Check the routing mode
                 var states = _services.GetRequiredService<IConversationStateService>();
-                var routingMode = states.GetState(StateConst.ROUTING_MODE, RoutingMode.Eager);
+                var routingMode = states.GetState(StateConst.ROUTING_MODE, agent.Mode ?? RoutingMode.Eager);
                 routing.Context.Push(agent.Id, reason: "request started", updateLazyRouting: false);
 
                 if (routingMode == RoutingMode.Lazy)

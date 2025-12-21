@@ -1,3 +1,4 @@
+using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System.Linq.Dynamic.Core;
@@ -7,14 +8,12 @@ namespace BotSharp.Plugin.ExcelHandler.Functions;
 public class ReadExcelFn : IFunctionCallback
 {
     public string Name => "util-excel-handle_excel_request";
-    public string Indication => "Reading excel";
+    public string Indication => "Importing data from file...";
 
     private readonly IServiceProvider _services;
     private readonly IFileStorageService _fileStorage;
     private readonly ILogger<ReadExcelFn> _logger;
     private readonly BotSharpOptions _options;
-    private readonly IDbService _dbService;
-    private readonly ExcelHandlerSettings _settings;
 
     private HashSet<string> _excelFileTypes;
 
@@ -22,16 +21,12 @@ public class ReadExcelFn : IFunctionCallback
         IServiceProvider services,
         ILogger<ReadExcelFn> logger,
         BotSharpOptions options,
-        ExcelHandlerSettings settings,
-        IFileStorageService fileStorage,
-        IEnumerable<IDbService> dbServices)
+        IFileStorageService fileStorage)
     {
         _services = services;
         _logger = logger;
         _options = options;
-        _settings = settings;
         _fileStorage = fileStorage;
-        _dbService = dbServices.FirstOrDefault(x => x.Provider == _settings.Database?.Provider);
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -56,9 +51,9 @@ public class ReadExcelFn : IFunctionCallback
             return true;
         }
 
-        var results = GetResponeFromDialogs(dialogs);
+        var results = ImportDataFromDialogs(message, dialogs);
         message.Content = GenerateSqlExecutionSummary(results);
-        states.SetState("excel_import_result",message.Content);
+        states.SetState("data_import_result", message.Content);
         dialogs.ForEach(x => x.Files = null);
         return true;
     }
@@ -69,7 +64,7 @@ public class ReadExcelFn : IFunctionCallback
     {
         if (_excelFileTypes.IsNullOrEmpty())
         {
-            _excelFileTypes = FileUtility.GetMimeFileTypes(["excel", "spreadsheet"]).ToHashSet();
+            _excelFileTypes = FileUtility.GetMimeFileTypes(["excel", "spreadsheet", "csv"]).ToHashSet();
         }
     }
 
@@ -114,8 +109,11 @@ public class ReadExcelFn : IFunctionCallback
         return true;
     }
 
-    private List<SqlContextOut> GetResponeFromDialogs(List<RoleDialogModel> dialogs)
+    private List<SqlContextOut> ImportDataFromDialogs(RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
+        var dbHook = _services.GetRequiredService<IText2SqlHook>();
+        var dbType = dbHook.GetDatabaseType(message);
+        var dbService = _services.GetServices<IDbService>().First(x => x.Provider == dbType);
         var sqlCommands = new List<SqlContextOut>();
         var dialog = dialogs.Last(x => !x.Files.IsNullOrEmpty());
         
@@ -133,9 +131,9 @@ public class ReadExcelFn : IFunctionCallback
             }
 
             var binary = _fileStorage.GetFileBytes(file.FileStorageUrl);
-            var workbook = ConvertToWorkBook(binary);
+            var workbook = ConvertToWorkbook(binary, extension);
 
-            var currentCommands = _dbService.WriteExcelDataToDB(workbook);
+            var currentCommands = dbService.WriteExcelDataToDB(message, workbook);
             sqlCommands.AddRange(currentCommands);
         }
         return sqlCommands;
@@ -144,34 +142,33 @@ public class ReadExcelFn : IFunctionCallback
     private string GenerateSqlExecutionSummary(List<SqlContextOut> results)
     {
         var stringBuilder = new StringBuilder();
-        if (results.Any(x => x.isSuccessful))
+
+        stringBuilder.Append("\r\n");
+        foreach (var result in results)
         {
-            stringBuilder.Append("---Success---");
-            stringBuilder.Append("\r\n");
-            foreach (var result in results.Where(x => x.isSuccessful))
-            {
-                stringBuilder.Append(result.Message);
-                stringBuilder.Append("\r\n\r\n");
-            }
+            stringBuilder.Append(result.Message);
+            stringBuilder.Append("\r\n\r\n");
         }
-        if (results.Any(x => !x.isSuccessful))
-        {
-            stringBuilder.Append("---Failed---");
-            stringBuilder.Append("\r\n");
-            foreach (var result in results.Where(x => !x.isSuccessful))
-            {
-                stringBuilder.Append(result.Message);
-                stringBuilder.Append("\r\n");
-            }
-        }
+
         return stringBuilder.ToString();
     }
 
-    private IWorkbook ConvertToWorkBook(BinaryData binary)
+    private IWorkbook ConvertToWorkbook(BinaryData binary, string extension)
     {
-        using var fileStream = new MemoryStream(binary.ToArray());
-        IWorkbook workbook = new XSSFWorkbook(fileStream);
-        return workbook;
+        var bytes = binary.ToArray();
+
+        if (extension.IsEqualTo(".csv"))
+        {
+            return ExcelHelper.ConvertCsvToWorkbook(bytes);
+        }
+
+        using var fileStream = new MemoryStream(bytes);
+        if (extension.IsEqualTo(".xls"))
+        {
+            return new HSSFWorkbook(fileStream);
+        }
+
+        return new XSSFWorkbook(fileStream);
     }
     #endregion
 }
