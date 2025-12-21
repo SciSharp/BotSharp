@@ -432,7 +432,7 @@ public partial class ConversationController : ControllerBase
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
                 response.States = state.GetStates();
-                
+
                 await OnChunkReceived(Response, response);
             });
 
