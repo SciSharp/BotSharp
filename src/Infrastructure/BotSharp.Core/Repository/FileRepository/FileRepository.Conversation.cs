@@ -6,6 +6,7 @@ namespace BotSharp.Core.Repository;
 public partial class FileRepository
 {
     private static readonly object _dialogLock = new object();
+    private static readonly object _stateLock = new object();
 
     public void CreateNewConversation(Conversation conversation)
     {
@@ -80,14 +81,22 @@ public partial class FileRepository
         if (!string.IsNullOrEmpty(convDir))
         {
             var dialogDir = Path.Combine(convDir, DIALOG_FILE);
-            var texts = File.ReadAllText(dialogDir);
-            try
+            lock (_dialogLock)
             {
-                dialogs = JsonSerializer.Deserialize<List<DialogElement>>(texts, _options) ?? new List<DialogElement>();
-            }
-            catch
-            {
-                dialogs = new List<DialogElement>();
+                if (!File.Exists(dialogDir))
+                {
+                    return dialogs;
+                }
+
+                var texts = File.ReadAllText(dialogDir);
+                try
+                {
+                    dialogs = JsonSerializer.Deserialize<List<DialogElement>>(texts, _options) ?? new List<DialogElement>();
+                }
+                catch
+                {
+                    dialogs = new List<DialogElement>();
+                }
             }
         }
 
@@ -100,33 +109,36 @@ public partial class FileRepository
         var convDir = FindConversationDirectory(conversationId);
         if (!string.IsNullOrEmpty(convDir))
         {
-            var dialogFile = Path.Combine(convDir, DIALOG_FILE);
-            if (File.Exists(dialogFile))
+            lock (_dialogLock)
             {
-                var prevDialogs = File.ReadAllText(dialogFile);
-                var elements = JsonSerializer.Deserialize<List<DialogElement>>(prevDialogs, _options);
-                if (elements != null)
+                var dialogFile = Path.Combine(convDir, DIALOG_FILE);
+                if (File.Exists(dialogFile))
                 {
-                    elements.AddRange(dialogs);
-                }
-                else
-                {
-                    elements = elements ?? new List<DialogElement>();
+                    var prevDialogs = File.ReadAllText(dialogFile);
+                    var elements = JsonSerializer.Deserialize<List<DialogElement>>(prevDialogs, _options);
+                    if (elements != null)
+                    {
+                        elements.AddRange(dialogs);
+                    }
+                    else
+                    {
+                        elements = elements ?? new List<DialogElement>();
+                    }
+
+                    File.WriteAllText(dialogFile, JsonSerializer.Serialize(elements, _options));
                 }
 
-                File.WriteAllText(dialogFile, JsonSerializer.Serialize(elements, _options));
-            }
-
-            var convFile = Path.Combine(convDir, CONVERSATION_FILE);
-            if (File.Exists(convFile))
-            {
-                var json = File.ReadAllText(convFile);
-                var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
-                if (conv != null)
+                var convFile = Path.Combine(convDir, CONVERSATION_FILE);
+                if (File.Exists(convFile))
                 {
-                    conv.DialogCount += dialogs.Count();
-                    conv.UpdatedTime = DateTime.UtcNow;
-                    File.WriteAllText(convFile, JsonSerializer.Serialize(conv, _options));
+                    var json = File.ReadAllText(convFile);
+                    var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
+                    if (conv != null)
+                    {
+                        conv.DialogCount += dialogs.Count();
+                        conv.UpdatedTime = DateTime.UtcNow;
+                        File.WriteAllText(convFile, JsonSerializer.Serialize(conv, _options));
+                    }
                 }
             }
         }
@@ -353,19 +365,22 @@ public partial class FileRepository
             return;
         }
 
-        var stateFile = Path.Combine(convDir, STATE_FILE);
-        if (File.Exists(stateFile))
+        lock (_stateLock)
         {
-            var stateStr = JsonSerializer.Serialize(states, _options);
-            File.WriteAllText(stateFile, stateStr);
-        }
+            var stateFile = Path.Combine(convDir, STATE_FILE);
+            if (File.Exists(stateFile))
+            {
+                var stateStr = JsonSerializer.Serialize(states, _options);
+                File.WriteAllText(stateFile, stateStr);
+            }
 
-        var latestStateFile = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
-        if (File.Exists(latestStateFile))
-        {
-            var latestStates = BuildLatestStates(states);
-            var stateStr = JsonSerializer.Serialize(latestStates, _options);
-            File.WriteAllText(latestStateFile, stateStr);
+            var latestStateFile = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
+            if (File.Exists(latestStateFile))
+            {
+                var latestStates = BuildLatestStates(states);
+                var stateStr = JsonSerializer.Serialize(latestStates, _options);
+                File.WriteAllText(latestStateFile, stateStr);
+            }
         }
     }
 
@@ -483,7 +498,7 @@ public partial class FileRepository
             {
                 matched = matched && record.Channel == filter.Channel;
             }
-            if(filter?.ChannelId != null)
+            if (filter?.ChannelId != null)
             {
                 matched = matched && record.ChannelId == filter.ChannelId;
             }
@@ -696,7 +711,7 @@ public partial class FileRepository
         }
 
         var dialogs = new List<DialogElement>();
-        
+
         var convDir = FindConversationDirectory(conversationId);
         if (string.IsNullOrEmpty(convDir))
         {
@@ -899,20 +914,23 @@ public partial class FileRepository
 
     private List<StateKeyValue> CollectConversationStates(string stateFile)
     {
-        var states = new List<StateKeyValue>();
-        if (!File.Exists(stateFile))
+        lock (_stateLock)
         {
-            return states;
-        }
+            var states = new List<StateKeyValue>();
+            if (!File.Exists(stateFile))
+            {
+                return states;
+            }
 
-        var stateStr = File.ReadAllText(stateFile);
-        if (string.IsNullOrEmpty(stateStr))
-        {
-            return states;
-        }
+            var stateStr = File.ReadAllText(stateFile);
+            if (string.IsNullOrEmpty(stateStr))
+            {
+                return states;
+            }
 
-        states = JsonSerializer.Deserialize<List<StateKeyValue>>(stateStr, _options);
-        return states ?? new List<StateKeyValue>();
+            states = JsonSerializer.Deserialize<List<StateKeyValue>>(stateStr, _options);
+            return states ?? new List<StateKeyValue>();
+        }
     }
 
     private List<ConversationBreakpoint> CollectConversationBreakpoints(string breakpointFile)

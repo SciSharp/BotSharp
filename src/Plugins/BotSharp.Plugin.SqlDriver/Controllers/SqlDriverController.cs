@@ -61,4 +61,22 @@ public class SqlDriverController : ControllerBase
 
         return Ok(msg.Content);
     }
+
+    [HttpPost]
+    [Route("/sql-driver/{conversationId}/result")]
+    public async Task<IActionResult> AddQueryExecutionResult([FromRoute] string conversationId, [FromBody] SqlQueryExecutionResult sqlQueryResult)
+    {
+        var conv = _services.GetRequiredService<IConversationService>();
+        conv.SetConversationId(conversationId, []);
+
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        var dialog = new RoleDialogModel(AgentRole.Assistant, sqlQueryResult.Results)
+        {
+            CurrentAgentId = sqlQueryResult.AgentId,
+            CreatedAt = DateTime.UtcNow
+        };
+        storage.Append(conversationId, dialog);
+
+        return Ok(dialog);
+    }
 }
