@@ -233,6 +233,8 @@ public interface IBotSharpRepository : IHaveServiceProvider
          => throw new NotImplementedException();
     IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter)
          => throw new NotImplementedException();
+    VectorCollectionConfig GetKnowledgeCollectionConfig(string collectionName, string vectorStroageProvider)
+         => throw new NotImplementedException();
     bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData)
          => throw new NotImplementedException();
 

@@ -49,9 +49,17 @@ public partial class MongoRepository
             UpdatedTime = utcNow
         };
 
-        _dc.Conversations.InsertOne(convDoc);
-        _dc.ConversationDialogs.InsertOne(dialogDoc);
-        _dc.ConversationStates.InsertOne(stateDoc);
+        var convFilter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, convDoc.Id);
+        var update = Builders<ConversationDocument>.Update
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .SetOnInsert(x => x, convDoc);
+
+        var updateResult = _dc.Conversations.UpdateOne(convFilter, update, new UpdateOptions { IsUpsert = true});
+        if (updateResult.UpsertedId != null)
+        {
+            _dc.ConversationDialogs.InsertOne(dialogDoc);
+            _dc.ConversationStates.InsertOne(stateDoc);
+        }        
     }
 
     public bool DeleteConversations(IEnumerable<string> conversationIds)

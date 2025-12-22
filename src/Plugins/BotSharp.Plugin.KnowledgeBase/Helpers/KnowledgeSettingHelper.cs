@@ -10,23 +10,12 @@ public static class KnowledgeSettingHelper
         var db = services.GetRequiredService<IBotSharpRepository>();
 
         // Get collection config from db
-        var configs = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
-        {
-            CollectionNames = [collectionName],
-            VectorStroageProviders = [settings.VectorDb.Provider]
-        });
+        var config = db.GetKnowledgeCollectionConfig(collectionName, settings.VectorDb.Provider);
 
-        var found = configs?.FirstOrDefault()?.TextEmbedding;
-        var provider = found?.Provider ?? string.Empty;
-        var model = found?.Model ?? string.Empty;
-        var dimension = found?.Dimension ?? 0;
-
-        if (found == null)
-        {
-            provider = settings.Default.TextEmbedding.Provider;
-            model = settings.Default.TextEmbedding.Model;
-            dimension = settings.Default.TextEmbedding.Dimension;
-        }
+        var textEmbeddingConfig = config?.TextEmbedding;
+        var provider = textEmbeddingConfig?.Provider ?? settings.Default.TextEmbedding.Provider;
+        var model = textEmbeddingConfig?.Model ?? settings.Default.TextEmbedding.Model;
+        var dimension = textEmbeddingConfig?.Dimension ?? settings.Default.TextEmbedding.Dimension;
 
         // Set up text embedding
         var embedding = services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == provider);

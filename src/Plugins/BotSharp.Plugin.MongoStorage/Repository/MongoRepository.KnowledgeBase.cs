@@ -115,6 +115,17 @@ public partial class MongoRepository
             TextEmbedding = KnowledgeEmbeddingConfigMongoModel.ToDomainModel(x.TextEmbedding)
         });
     }
+
+    [SharpCache(10)]
+    public VectorCollectionConfig GetKnowledgeCollectionConfig(string collectionName, string vectorStroageProvider)
+    {
+        var configs = GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+        {
+            CollectionNames = [collectionName],
+            VectorStroageProviders = [vectorStroageProvider]
+        });
+        return configs?.FirstOrDefault();
+    }
     #endregion
 
     #region Documents

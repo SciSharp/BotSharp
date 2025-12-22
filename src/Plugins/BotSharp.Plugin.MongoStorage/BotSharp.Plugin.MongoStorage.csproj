@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" />
+    <PackageReference Include="Rougamo.Fody" />
   </ItemGroup>
 
   <ItemGroup>
