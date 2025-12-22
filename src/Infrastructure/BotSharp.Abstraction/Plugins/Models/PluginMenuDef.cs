@@ -54,6 +54,12 @@ public class EmbeddingData
     public string? HtmlTag { get; set; }
 
     /// <summary>
+    /// Html element style
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? HtmlStyle { get; set; } = "justify-content: center; width: 100%; height: 100%;";
+
+    /// <summary>
     /// Javascript script src
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -64,4 +70,10 @@ public class EmbeddingData
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ScriptType { get; set; }
+
+    /// <summary>
+    /// Token name to append after url, e.g., url?tokenName={bearerToken}
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? AppendTokenName { get; set; }
 }
