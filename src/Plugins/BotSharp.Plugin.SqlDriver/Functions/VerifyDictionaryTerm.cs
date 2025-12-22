@@ -48,8 +48,9 @@ public class VerifyDictionaryTerm : IFunctionCallback
         IEnumerable<dynamic>? result = null;
         if (!string.IsNullOrWhiteSpace(args.SqlStatement))
         {
-            var settings = _services.GetRequiredService<SqlDriverSetting>();
-            using var connection = new MySqlConnection(settings.MySqlExecutionConnectionString);
+            var sqlHook = _services.GetRequiredService<IText2SqlHook>();
+            var connectionString = sqlHook.GetConnectionString(message);
+            using var connection = new MySqlConnection(connectionString);
             result = connection.Query(args.SqlStatement);
         }
 

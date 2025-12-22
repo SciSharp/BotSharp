@@ -25,11 +25,12 @@ public class ExecuteQueryFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<ExecuteQueryArgs>(message.FunctionArgs);
+        var args = JsonSerializer.Deserialize<ExecuteQueryArgs>(message.FunctionArgs) ?? new();
         //var refinedArgs = await RefineSqlStatement(message, args);
         var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbType = dbHook.GetDatabaseType(message);
-        var dbConnectionString = dbHook.GetConnectionString(message);
+        var connectionString = _setting.Connections.FirstOrDefault(x => x.Name.Equals(args.DataSource, StringComparison.OrdinalIgnoreCase))?.ConnectionString;
+        var dbConnectionString = dbHook.GetConnectionString(message) ?? connectionString ?? throw new Exception("database connection is not found");
 
         // Print all the SQL statements for debugging
         _logger.LogInformation("Executing SQL Statements: {SqlStatements}", string.Join("\r\n", args.SqlStatements));
@@ -39,9 +40,9 @@ public class ExecuteQueryFn : IFunctionCallback
         {
             results = dbType.ToLower() switch
             {
-                "mysql" => RunQueryInMySql(args.SqlStatements),
+                "mysql" => RunQueryInMySql(dbConnectionString, args.SqlStatements),
                 "sqlserver" or "mssql" => RunQueryInSqlServer(dbConnectionString, args.SqlStatements),
-                "redshift" => RunQueryInRedshift(args.SqlStatements),
+                "redshift" => RunQueryInRedshift(dbConnectionString, args.SqlStatements),
                 "sqlite" => RunQueryInSqlite(dbConnectionString, args.SqlStatements),
                 _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
             };
@@ -214,24 +215,24 @@ public class ExecuteQueryFn : IFunctionCallback
         return field.Replace("|", "\\|");
     }
 
-    private IEnumerable<dynamic> RunQueryInMySql(string[] sqlTexts)
+    private IEnumerable<dynamic> RunQueryInMySql(string connectionString, string[] sqlTexts)
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new MySqlConnection(settings.MySqlExecutionConnectionString ?? settings.MySqlConnectionString);
+        using var connection = new MySqlConnection(connectionString);
         return connection.Query(string.Join(";\r\n", sqlTexts));
     }
 
     private IEnumerable<dynamic> RunQueryInSqlServer(string connectionString, string[] sqlTexts)
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new SqlConnection(settings.SqlServerExecutionConnectionString ?? settings.SqlServerConnectionString ?? connectionString);
+        using var connection = new SqlConnection(connectionString);
         return connection.Query(string.Join("\r\n", sqlTexts));
     }
 
-    private IEnumerable<dynamic> RunQueryInRedshift(string[] sqlTexts)
+    private IEnumerable<dynamic> RunQueryInRedshift(string connectionString, string[] sqlTexts)
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new NpgsqlConnection(settings.RedshiftConnectionString);
+        using var connection = new NpgsqlConnection(connectionString);
         return connection.Query(string.Join("\r\n", sqlTexts));
     }
 

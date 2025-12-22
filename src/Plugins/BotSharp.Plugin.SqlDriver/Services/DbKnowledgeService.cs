@@ -32,7 +32,8 @@ public class DbKnowledgeService
         var collectionName = request.KnowledgebaseCollection;
 
         var tables = new HashSet<string>();
-        using var connection = new MySqlConnection(sqlDriverSettings.MySqlConnectionString);
+
+        using var connection = new MySqlConnection(string.Empty);
 
         var sql = $"select table_name from information_schema.tables where table_schema = @tableSchema";
         var results = connection.Query(sql, new
@@ -98,7 +99,7 @@ public class DbKnowledgeService
         var escapedTableName = MySqlHelper.EscapeString(table);
         var sql = $"SHOW CREATE TABLE `{escapedTableName}`";
 
-        using var connection = new MySqlConnection(settings.MySqlConnectionString);
+        using var connection = new MySqlConnection(string.Empty);
         connection.Open();
         using var command = new MySqlCommand(sql, connection);
         using var reader = command.ExecuteReader();

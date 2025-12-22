@@ -58,10 +58,10 @@ public class SqlDriverPlanningHook : IPlanningHook
     public async Task<string> GetSummaryAdditionalRequirements(string planner, RoleDialogModel message)
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
-        var sqlHooks = _services.GetServices<IText2SqlHook>();
+        var sqlHook = _services.GetRequiredService<IText2SqlHook>();
         var agentService = _services.GetRequiredService<IAgentService>();
 
-        var dbType = !sqlHooks.IsNullOrEmpty() ? sqlHooks.First().GetDatabaseType(message) : settings.DatabaseType;
+        var dbType = sqlHook.GetDatabaseType(message);
         var agent = await agentService.LoadAgent(BuiltInAgentId.SqlDriver);
 
         return agent.Templates.FirstOrDefault(x => x.Name == $"database.summarize.{dbType}")?.Content ?? string.Empty;
