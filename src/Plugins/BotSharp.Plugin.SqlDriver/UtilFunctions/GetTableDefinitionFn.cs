@@ -44,7 +44,7 @@ public class GetTableDefinitionFn : IFunctionCallback
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         var tableDdls = new List<string>();
-        using var connection = new MySqlConnection(settings.MySqlMetaConnectionString ?? settings.MySqlConnectionString);
+        using var connection = new MySqlConnection(string.Empty);
         connection.Open();
 
         foreach (var table in tables)
@@ -79,7 +79,7 @@ public class GetTableDefinitionFn : IFunctionCallback
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         var tableDdls = new List<string>();
-        using var connection = new SqlConnection(settings.SqlServerExecutionConnectionString ?? settings.SqlServerConnectionString);
+        using var connection = new SqlConnection(string.Empty);
         connection.Open();
 
         foreach (var table in tables)
@@ -132,7 +132,7 @@ public class GetTableDefinitionFn : IFunctionCallback
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         var tableDdls = new List<string>();
         var schemas = "'onebi_hour','onebi_day'";
-        using var connection = new NpgsqlConnection(settings.RedshiftConnectionString);
+        using var connection = new NpgsqlConnection(string.Empty);
         connection.Open();
 
         foreach (var table in tables)

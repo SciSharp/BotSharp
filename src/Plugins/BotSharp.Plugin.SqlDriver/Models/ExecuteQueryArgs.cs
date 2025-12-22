@@ -12,6 +12,10 @@ public class ExecuteQueryArgs
 
     public string DbType { get; set; } = null!;
 
+    public string DataSource { get;set; } = null!;
+
+    public string? ConnectionString { get; set; }
+
     /// <summary>
     /// Beautifying query result
     /// </summary>

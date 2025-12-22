@@ -28,7 +28,11 @@ public class SqlDriverController : ControllerBase
 
         var fn = _services.GetRequiredService<IRoutingService>();
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(conversationId, [new MessageState("database_type", sqlQueryRequest.DbType)]);
+        conv.SetConversationId(conversationId, 
+            [
+                new MessageState("database_type", sqlQueryRequest.DbType),
+                new MessageState("data_source_name", sqlQueryRequest.DataSource),
+            ]);
         
         var msg = new RoleDialogModel(AgentRole.User, sqlQueryRequest.SqlStatement)
         {
@@ -38,6 +42,7 @@ public class SqlDriverController : ControllerBase
         msg.FunctionArgs = JsonSerializer.Serialize(new ExecuteQueryArgs
         {
             DbType = sqlQueryRequest.DbType,
+            DataSource = sqlQueryRequest.DataSource,
             SqlStatements = [sqlQueryRequest.SqlStatement],
             ResultFormat = sqlQueryRequest.ResultFormat
         });
@@ -78,5 +83,21 @@ public class SqlDriverController : ControllerBase
         storage.Append(conversationId, dialog);
 
         return Ok(dialog);
+    }
+
+    [HttpGet]
+    [Route("/sql-driver/connections")]
+    public IActionResult GetConnectionSettings()
+    {
+        var settings = _services.GetRequiredService<SqlDriverSetting>();
+
+        var connections = settings.Connections.Select(x => new DataSourceSetting
+        {
+            DbType = x.DbType,
+            Name = x.Name,
+            ConnectionString = "**********"
+        }).ToArray();
+
+        return Ok(connections);
     }
 }

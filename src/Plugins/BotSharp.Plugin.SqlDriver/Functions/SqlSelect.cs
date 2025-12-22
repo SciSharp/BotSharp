@@ -11,9 +11,11 @@ public class SqlSelect : IFunctionCallback
 {
     public string Name => "sql_select";
     private readonly IServiceProvider _services;
+    private readonly SqlDriverSetting _settings;
 
-    public SqlSelect(IServiceProvider services)
+    public SqlSelect(IServiceProvider services, SqlDriverSetting settings)
     {
+        _settings = settings;
         _services = services;
     }
 
@@ -30,13 +32,16 @@ public class SqlSelect : IFunctionCallback
         // check if need to instantely
         var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbType = dbHook.GetDatabaseType(message);
+        var dbConnectionString = dbHook.GetConnectionString(message) ?? 
+            _settings.Connections.FirstOrDefault(c => c.DbType == dbType)?.ConnectionString ??
+            throw new Exception("database connectdion is not found");
 
         var result = dbType switch
         {
-            "mysql" => RunQueryInMySql(args),
-            "sqlserver" or "mssql" => RunQueryInSqlServer(args),
-            "redshift" => RunQueryInRedshift(args),
-            "mongodb" => RunQueryInMongoDb(args),
+            "mysql" => RunQueryInMySql(dbConnectionString, args),
+            "sqlserver" or "mssql" => RunQueryInSqlServer(dbConnectionString, args),
+            "redshift" => RunQueryInRedshift(dbConnectionString, args),
+            "mongodb" => RunQueryInMongoDb(dbConnectionString, args),
             _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
         };
 
@@ -54,10 +59,9 @@ public class SqlSelect : IFunctionCallback
         return true;
     }
 
-    private IEnumerable<dynamic> RunQueryInMySql(SqlStatement args)
+    private IEnumerable<dynamic> RunQueryInMySql(string connectionString, SqlStatement args)
     {
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new MySqlConnection(settings.MySqlExecutionConnectionString);
+        using var connection = new MySqlConnection(connectionString);
         var dictionary = new Dictionary<string, object>();
         foreach (var p in args.Parameters)
         {
@@ -66,10 +70,9 @@ public class SqlSelect : IFunctionCallback
         return connection.Query(args.Statement, dictionary);
     }
 
-    private IEnumerable<dynamic> RunQueryInSqlServer(SqlStatement args)
+    private IEnumerable<dynamic> RunQueryInSqlServer(string connectionString, SqlStatement args)
     {
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new SqlConnection(settings.SqlServerExecutionConnectionString ?? settings.SqlServerConnectionString);
+        using var connection = new SqlConnection(connectionString);
         var dictionary = new Dictionary<string, object>();
         foreach (var p in args.Parameters)
         {
@@ -78,10 +81,9 @@ public class SqlSelect : IFunctionCallback
         return connection.Query(args.Statement, dictionary);
     }
 
-    private IEnumerable<dynamic> RunQueryInRedshift(SqlStatement args)
+    private IEnumerable<dynamic> RunQueryInRedshift(string connectionString, SqlStatement args)
     {
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new NpgsqlConnection(settings.RedshiftConnectionString);
+        using var connection = new NpgsqlConnection(connectionString);
         var dictionary = new Dictionary<string, object>();
         foreach (var p in args.Parameters)
         {
@@ -90,10 +92,9 @@ public class SqlSelect : IFunctionCallback
         return connection.Query(args.Statement, dictionary);
     }
 
-    private IEnumerable<dynamic> RunQueryInMongoDb(SqlStatement args)
+    private IEnumerable<dynamic> RunQueryInMongoDb(string connectionString, SqlStatement args)
     {
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
-        var client = new MongoClient(settings.MongoDbConnectionString);
+        var client = new MongoClient(connectionString);
         
         // Normalize multi-line query to single line
         var statement = Regex.Replace(args.Statement.Trim(), @"\s+", " ");
