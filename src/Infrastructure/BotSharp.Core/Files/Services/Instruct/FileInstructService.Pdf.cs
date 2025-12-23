@@ -1,7 +1,8 @@
-using BotSharp.Abstraction.Instructs.Models;
-using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Files.Converters;
+using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Options;
+using BotSharp.Abstraction.MLTasks;
 
 namespace BotSharp.Core.Files.Services;
 
@@ -23,11 +24,16 @@ public partial class FileInstructService
         try
         {
             var provider = options?.Provider ?? "openai";
+            var model = options?.Model ?? "gpt-5-mini";
+
             var pdfFiles = await DownloadAndSaveFiles(sessionDir, files);
             var targetFiles = pdfFiles;
 
+            var settingsService = _services.GetRequiredService<ILlmProviderService>();
+            var modelSettings = settingsService.GetSetting(provider, model);
             var converter = GetImageConverter(options?.ImageConverter);
-            if (converter == null && provider == "openai")
+            
+            if (converter == null && modelSettings?.AllowPdfReading != true)
             {
                 var fileCoreSettings = _services.GetRequiredService<FileCoreSettings>();
                 converter = GetImageConverter(fileCoreSettings?.ImageConverter?.Provider);
@@ -44,7 +50,7 @@ public partial class FileInstructService
             text = RenderText(text, options?.Data);
 
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider,
-                model: options?.Model ?? "gpt-5-mini", multiModal: true);
+                model: model, multiModal: true);
             var message = await completion.GetChatCompletions(new Agent()
             {
                 Id = innerAgentId,

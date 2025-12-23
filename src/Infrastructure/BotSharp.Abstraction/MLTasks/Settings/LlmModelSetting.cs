@@ -68,6 +68,8 @@ public class LlmModelSetting
     /// </summary>
     public LlmCostSetting Cost { get; set; } = new();
 
+    public bool AllowPdfReading => Capabilities?.Contains(LlmModelCapability.PdfReading) == true;
+
     public override string ToString()
     {
         return $"[{Type}] {Name} {Endpoint}";
