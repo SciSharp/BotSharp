@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using BotSharp.OpenAPI.BackgroundServices;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.OpenApi.Models;
 
 namespace BotSharp.OpenAPI;
 
@@ -160,6 +161,28 @@ public static class BotSharpOpenApiExtensions
         services.AddSwaggerGen(
             c =>
             {
+#if NET8_0
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please insert JWT with Bearer into field",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                   {
+                     new OpenApiSecurityScheme
+                     {
+                       Reference = new OpenApiReference
+                       {
+                         Type = ReferenceType.SecurityScheme,
+                         Id = "Bearer"
+                       }
+                      },
+                      Array.Empty<string>()
+                   }
+                });
+#endif
             }
         );
 

@@ -388,7 +388,7 @@ public partial class KnowledgeService
 
         var dataIds = new List<string>();
         var vectorDb = GetVectorDb();
-        var textEmbedding = GetTextEmbedding(collectionName);
+        var textEmbedding = await GetTextEmbedding(collectionName);
 
         for (int i = 0; i < contents.Count(); i++)
         {

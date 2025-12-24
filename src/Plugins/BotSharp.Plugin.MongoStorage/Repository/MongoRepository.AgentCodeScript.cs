@@ -35,7 +35,7 @@ public partial class MongoRepository
         return found.Select(x => AgentCodeScriptDocument.ToDomainModel(x)).ToList();
     }
 
-    public AgentCodeScript? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+    public async Task<AgentCodeScript?> GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
     {
         if (string.IsNullOrWhiteSpace(agentId)
             || string.IsNullOrWhiteSpace(scriptName)
@@ -52,7 +52,7 @@ public partial class MongoRepository
             builder.Eq(x => x.ScriptType, scriptType)
         };
 
-        var found = _dc.AgentCodeScripts.Find(builder.And(filters)).FirstOrDefault();
+        var found = await _dc.AgentCodeScripts.Find(builder.And(filters)).FirstOrDefaultAsync();
         return found != null ? AgentCodeScriptDocument.ToDomainModel(found) : null;
     }
 

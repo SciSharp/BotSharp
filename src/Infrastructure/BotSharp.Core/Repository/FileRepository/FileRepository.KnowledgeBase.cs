@@ -74,7 +74,7 @@ public partial class FileRepository
         return true;
     }
 
-    public IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter)
+    public async Task<IEnumerable<VectorCollectionConfig>> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter)
     {
         if (filter == null)
         {
@@ -89,7 +89,7 @@ public partial class FileRepository
         }
 
         // Get data
-        var content = File.ReadAllText(configFile);
+        var content = await File.ReadAllTextAsync(configFile);
         var configs = JsonSerializer.Deserialize<List<VectorCollectionConfig>>(content, _options) ?? new();
 
         // Apply filters
@@ -112,9 +112,9 @@ public partial class FileRepository
     }
 
     [SharpCache(10)]
-    public VectorCollectionConfig GetKnowledgeCollectionConfig(string collectionName, string vectorStroageProvider)
+    public async Task<VectorCollectionConfig> GetKnowledgeCollectionConfig(string collectionName, string vectorStroageProvider)
     {
-        var configs = GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+        var configs = await GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
         {
             CollectionNames = [collectionName],
             VectorStroageProviders = [vectorStroageProvider]
