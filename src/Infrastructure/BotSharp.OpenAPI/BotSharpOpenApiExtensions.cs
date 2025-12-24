@@ -161,6 +161,7 @@ public static class BotSharpOpenApiExtensions
         services.AddSwaggerGen(
             c =>
             {
+#if NET8_0
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     In = ParameterLocation.Header,
@@ -181,6 +182,7 @@ public static class BotSharpOpenApiExtensions
                       Array.Empty<string>()
                    }
                 });
+#endif
             }
         );
 
