@@ -4,13 +4,13 @@ namespace BotSharp.Plugin.KnowledgeBase.Helpers;
 
 public static class KnowledgeSettingHelper
 {
-    public static ITextEmbedding GetTextEmbeddingSetting(IServiceProvider services, string collectionName)
+    public static async Task<ITextEmbedding> GetTextEmbeddingSetting(IServiceProvider services, string collectionName)
     {
         var settings = services.GetRequiredService<KnowledgeBaseSettings>();
         var db = services.GetRequiredService<IBotSharpRepository>();
 
         // Get collection config from db
-        var config = db.GetKnowledgeCollectionConfig(collectionName, settings.VectorDb.Provider);
+        var config = await db.GetKnowledgeCollectionConfig(collectionName, settings.VectorDb.Provider);
 
         var textEmbeddingConfig = config?.TextEmbedding;
         var provider = textEmbeddingConfig?.Provider ?? settings.Default.TextEmbedding.Provider;

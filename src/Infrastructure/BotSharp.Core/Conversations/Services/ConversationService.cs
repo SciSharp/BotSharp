@@ -45,7 +45,7 @@ public partial class ConversationService : IConversationService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         db.UpdateConversationTitle(id, title);
-        var conversation = db.GetConversation(id);
+        var conversation = await db.GetConversation(id);
         return conversation;
     }
 
@@ -53,7 +53,7 @@ public partial class ConversationService : IConversationService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         db.UpdateConversationTitleAlias(id, titleAlias);
-        var conversation = db.GetConversation(id);
+        var conversation = await db.GetConversation(id);
         return conversation;
     }
 
@@ -72,7 +72,7 @@ public partial class ConversationService : IConversationService
     public async Task<Conversation> GetConversation(string id, bool isLoadStates = false)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var conversation = db.GetConversation(id);
+        var conversation = await db.GetConversation(id);
         return conversation;
     }
 

@@ -72,6 +72,8 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     Agent? GetAgent(string agentId, bool basicsOnly = false)
         => throw new NotImplementedException();
+    Task<Agent?> GetAgentAsync(string agentId, bool basicsOnly = false)
+        => throw new NotImplementedException();
     List<Agent> GetAgents(AgentFilter filter)
         => throw new NotImplementedException();
     List<UserAgent> GetUserAgents(string userId)
@@ -114,7 +116,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #region Agent Code
     List<AgentCodeScript> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
         => throw new NotImplementedException();
-    AgentCodeScript? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+    Task<AgentCodeScript?> GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
         => throw new NotImplementedException();
     bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
         => throw new NotImplementedException();
@@ -139,7 +141,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     void UpdateConversationStatus(string conversationId, string status)
         => throw new NotImplementedException();
-    Conversation GetConversation(string conversationId, bool isLoadStates = false)
+    Task<Conversation> GetConversation(string conversationId, bool isLoadStates = false)
         => throw new NotImplementedException();
     ValueTask<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
         => throw new NotImplementedException();
@@ -231,9 +233,9 @@ public interface IBotSharpRepository : IHaveServiceProvider
          => throw new NotImplementedException();
     bool DeleteKnowledgeCollectionConfig(string collectionName)
          => throw new NotImplementedException();
-    IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter)
+    Task<IEnumerable<VectorCollectionConfig>> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter)
          => throw new NotImplementedException();
-    VectorCollectionConfig GetKnowledgeCollectionConfig(string collectionName, string vectorStroageProvider)
+    Task<VectorCollectionConfig> GetKnowledgeCollectionConfig(string collectionName, string vectorStroageProvider)
          => throw new NotImplementedException();
     bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData)
          => throw new NotImplementedException();

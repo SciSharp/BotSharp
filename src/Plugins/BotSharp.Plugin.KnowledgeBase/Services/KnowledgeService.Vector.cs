@@ -14,7 +14,7 @@ public partial class KnowledgeService
         var exist = await vectorDb.DoesCollectionExist(collectionName);
         if (exist) return true;
 
-        var configs = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+        var configs = await db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
         {
             CollectionNames = [collectionName],
             VectorStroageProviders = [_settings.VectorDb.Provider]
@@ -72,11 +72,11 @@ public partial class KnowledgeService
         try
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var configs = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+            var configs = await db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
             {
                 CollectionTypes = !string.IsNullOrEmpty(type) ? [type] : null,
                 VectorStroageProviders = [_settings.VectorDb.Provider]
-            }).ToList();
+            });
 
             var vectorDb = GetVectorDb();
             if (vectorDb == null)
@@ -100,10 +100,10 @@ public partial class KnowledgeService
             if (string.IsNullOrWhiteSpace(collectionName)) return null;
 
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var configs = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+            var configs = await db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
             {
                 CollectionNames = [collectionName]
-            }).ToList();
+            });
 
             var vectorDb = GetVectorDb();
             var details = await vectorDb.GetCollectionDetails(collectionName);
@@ -163,7 +163,7 @@ public partial class KnowledgeService
                 return false;
             }
 
-            var textEmbedding = GetTextEmbedding(collectionName);
+            var textEmbedding = await GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(create.Text);
 
             var db = GetVectorDb();
@@ -202,7 +202,7 @@ public partial class KnowledgeService
                 return false;
             }
 
-            var textEmbedding = GetTextEmbedding(collectionName);
+            var textEmbedding = await GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(update.Text);
             var payload = update.Payload ?? new();
 
@@ -243,7 +243,7 @@ public partial class KnowledgeService
                 }
             }
 
-            var textEmbedding = GetTextEmbedding(collectionName);
+            var textEmbedding = await GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(update.Text);
             var payload = update.Payload ?? new();
 
@@ -344,7 +344,7 @@ public partial class KnowledgeService
     {
         try
         {
-            var textEmbedding = GetTextEmbedding(collectionName);
+            var textEmbedding = await GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(query);
 
             // Vector search

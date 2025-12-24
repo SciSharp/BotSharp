@@ -18,7 +18,7 @@ public partial class AgentService
             return;
         }
 
-        var record = _db.GetAgent(agent.Id);
+        var record = await _db.GetAgentAsync(agent.Id);
         if (record == null) return;
 
         record.Name = agent.Name ?? string.Empty;
@@ -65,7 +65,7 @@ public partial class AgentService
             return patchResult;
         }
 
-        var record = _db.GetAgent(agent.Id);
+        var record = await _db.GetAgentAsync(agent.Id);
         if (record == null)
         {
             patchResult = $"Cannot find agent {agent.Id}";

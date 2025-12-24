@@ -50,7 +50,7 @@ public partial class FileRepository
         return results;
     }
 
-    public AgentCodeScript? GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
+    public async Task<AgentCodeScript?> GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
     {
         if (string.IsNullOrWhiteSpace(agentId)
             || string.IsNullOrWhiteSpace(scriptName)
@@ -76,7 +76,7 @@ public partial class FileRepository
             AgentId = agentId,
             Name = scriptName,
             ScriptType = scriptType,
-            Content = File.ReadAllText(foundFile),
+            Content = await File.ReadAllTextAsync(foundFile),
             CreatedTime = File.GetCreationTimeUtc(foundFile),
             UpdatedTime = File.GetLastWriteTimeUtc(foundFile)
         };

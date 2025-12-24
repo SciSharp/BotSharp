@@ -401,7 +401,7 @@ public partial class FileRepository
         }
     }
 
-    public Conversation GetConversation(string conversationId, bool isLoadStates = false)
+    public async Task<Conversation> GetConversation(string conversationId, bool isLoadStates = false)
     {
         var convDir = FindConversationDirectory(conversationId);
         if (string.IsNullOrEmpty(convDir))
@@ -410,7 +410,7 @@ public partial class FileRepository
         }
 
         var convFile = Path.Combine(convDir, CONVERSATION_FILE);
-        var content = File.ReadAllText(convFile);
+        var content = await File.ReadAllTextAsync(convFile);
         var record = JsonSerializer.Deserialize<Conversation>(content, _options);
 
         var dialogFile = Path.Combine(convDir, DIALOG_FILE);
@@ -424,7 +424,7 @@ public partial class FileRepository
             var latestStateFile = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
             if (record != null && File.Exists(latestStateFile))
             {
-                var stateJson = File.ReadAllText(latestStateFile);
+                var stateJson = await File.ReadAllTextAsync(latestStateFile);
                 var states = JsonSerializer.Deserialize<Dictionary<string, JsonDocument>>(stateJson, _options) ?? [];
                 record.States = states.ToDictionary(x => x.Key, x =>
                 {

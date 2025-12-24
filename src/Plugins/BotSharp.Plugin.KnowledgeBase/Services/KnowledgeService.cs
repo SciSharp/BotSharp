@@ -31,9 +31,9 @@ public partial class KnowledgeService : IKnowledgeService
         return db;
     }
 
-    private ITextEmbedding GetTextEmbedding(string collectionName)
+    private async Task<ITextEmbedding> GetTextEmbedding(string collectionName)
     {
-        return KnowledgeSettingHelper.GetTextEmbeddingSetting(_services, collectionName);
+        return await KnowledgeSettingHelper.GetTextEmbeddingSetting(_services, collectionName);
     }
 
     private async Task<string> GetUserId()

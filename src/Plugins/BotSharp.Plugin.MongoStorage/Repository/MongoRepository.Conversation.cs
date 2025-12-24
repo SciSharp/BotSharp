@@ -307,15 +307,15 @@ public partial class MongoRepository
         _dc.Conversations.UpdateOne(filter, update);
     }
 
-    public Conversation GetConversation(string conversationId, bool isLoadStates = false)
+    public async Task<Conversation> GetConversation(string conversationId, bool isLoadStates = false)
     {
         if (string.IsNullOrEmpty(conversationId)) return null;
 
         var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
         var filterDialog = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
 
-        var conv = _dc.Conversations.Find(filterConv).FirstOrDefault();
-        var dialog = _dc.ConversationDialogs.Find(filterDialog).FirstOrDefault();
+        var conv = await _dc.Conversations.Find(filterConv).FirstOrDefaultAsync();
+        var dialog = await _dc.ConversationDialogs.Find(filterDialog).FirstOrDefaultAsync();
 
         if (conv == null) return null;
 
