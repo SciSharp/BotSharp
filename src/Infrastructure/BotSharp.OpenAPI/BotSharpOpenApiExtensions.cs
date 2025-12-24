@@ -12,6 +12,9 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using BotSharp.OpenAPI.BackgroundServices;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
+#if NET8_0
+using Microsoft.OpenApi;
+#endif
 
 namespace BotSharp.OpenAPI;
 
