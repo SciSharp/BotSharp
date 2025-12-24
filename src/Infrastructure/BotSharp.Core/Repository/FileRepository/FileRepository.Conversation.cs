@@ -8,7 +8,7 @@ public partial class FileRepository
     private static readonly object _dialogLock = new object();
     private static readonly object _stateLock = new object();
 
-    public void CreateNewConversation(Conversation conversation)
+    public async Task CreateNewConversation(Conversation conversation)
     {
         var utcNow = DateTime.UtcNow;
         conversation.CreatedTime = utcNow;
@@ -24,31 +24,31 @@ public partial class FileRepository
         var convFile = Path.Combine(dir, CONVERSATION_FILE);
         if (!File.Exists(convFile))
         {
-            File.WriteAllText(convFile, JsonSerializer.Serialize(conversation, _options));
+            await File.WriteAllTextAsync(convFile, JsonSerializer.Serialize(conversation, _options));
         }
 
         var dialogFile = Path.Combine(dir, DIALOG_FILE);
         if (!File.Exists(dialogFile))
         {
-            File.WriteAllText(dialogFile, "[]");
+            await File.WriteAllTextAsync(dialogFile, "[]");
         }
 
         var stateFile = Path.Combine(dir, STATE_FILE);
         if (!File.Exists(stateFile))
         {
-            File.WriteAllText(stateFile, "[]");
+            await File.WriteAllTextAsync(stateFile, "[]");
         }
 
         var latestStateFile = Path.Combine(dir, CONV_LATEST_STATE_FILE);
         if (!File.Exists(latestStateFile))
         {
-            File.WriteAllText(latestStateFile, "{}");
+            await File.WriteAllTextAsync(latestStateFile, "{}");
         }
 
         var breakpointFile = Path.Combine(dir, BREAKPOINT_FILE);
         if (!File.Exists(breakpointFile))
         {
-            File.WriteAllText(breakpointFile, "[]");
+            await File.WriteAllTextAsync(breakpointFile, "[]");
         }
     }
 

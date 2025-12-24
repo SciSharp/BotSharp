@@ -112,7 +112,7 @@ public partial class ConversationService : IConversationService
         record.Tags = sess.Tags;
         record.Title = string.IsNullOrEmpty(record.Title) ? "New Conversation" : record.Title;
 
-        db.CreateNewConversation(record);
+        await db.CreateNewConversation(record);
 
         var hooks = _services.GetHooks<IConversationHook>(record.AgentId);
 
