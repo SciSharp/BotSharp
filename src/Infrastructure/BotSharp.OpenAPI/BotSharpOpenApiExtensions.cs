@@ -13,7 +13,7 @@ using BotSharp.OpenAPI.BackgroundServices;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 #if NET8_0
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 #endif
 
 namespace BotSharp.OpenAPI;
