@@ -6,7 +6,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
-    public void CreateNewConversation(Conversation conversation)
+    public async Task CreateNewConversation(Conversation conversation)
     {
         if (conversation == null) return;
 
@@ -49,9 +49,17 @@ public partial class MongoRepository
             UpdatedTime = utcNow
         };
 
-        _dc.Conversations.InsertOne(convDoc);
-        _dc.ConversationDialogs.InsertOne(dialogDoc);
-        _dc.ConversationStates.InsertOne(stateDoc);
+        try
+        {
+            await _dc.Conversations.InsertOneAsync(convDoc);
+            await _dc.ConversationDialogs.InsertOneAsync(dialogDoc);
+            await _dc.ConversationStates.InsertOneAsync(stateDoc);
+        }
+        catch (MongoWriteException ex) when (ex.WriteError?.Code == 11000)
+        {
+            //11000  duplicate key error
+            return;
+        }
     }
 
     public bool DeleteConversations(IEnumerable<string> conversationIds)

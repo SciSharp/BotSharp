@@ -127,7 +127,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #endregion
 
     #region Conversation
-    void CreateNewConversation(Conversation conversation)
+    Task CreateNewConversation(Conversation conversation)
         => throw new NotImplementedException();
     bool DeleteConversations(IEnumerable<string> conversationIds)
         => throw new NotImplementedException();
