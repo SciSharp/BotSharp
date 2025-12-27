@@ -15,7 +15,8 @@ public class PizzaBotPlugin : IBotSharpPlugin
         "b284db86-e9c2-4c25-a59e-4649797dd130",
         "c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd",
         "dfd9b46d-d00c-40af-8a75-3fbdc2b89869",
-        "fe8c60aa-b114-4ef3-93cb-a8efeac80f75"
+        "fe8c60aa-b114-4ef3-93cb-a8efeac80f75",
+        "cdd9023f-a371-407a-43bf-f36ddccce340"
     };
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)

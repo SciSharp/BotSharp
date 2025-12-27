@@ -1,11 +1,10 @@
+using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Core;
 using BotSharp.Core.MCP;
-using BotSharp.OpenAPI;
 using BotSharp.Logger;
+using BotSharp.OpenAPI;
 using BotSharp.Plugin.ChatHub;
 using Serilog;
-using BotSharp.Abstraction.Messaging.JsonConverters;
-using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -23,5 +23,10 @@ public static class AgentType
     /// Agent that cannot use external tools
     /// </summary>
     public const string Static = "static";
+
+    /// <summary>
+    /// A2A remote agent for Microsoft Agent Framework integration
+    /// </summary>
+    public const string A2ARemote = "a2a-remote";
 }
 
