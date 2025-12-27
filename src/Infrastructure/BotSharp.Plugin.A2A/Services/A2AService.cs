@@ -31,7 +31,7 @@ public class A2AService : IA2AService
 
         if (!_clientCache.TryGetValue(agentEndpoint, out var client))
         {
-            HttpClient httpclient = new HttpClient() {  Timeout = TimeSpan.FromSeconds(100) };
+            HttpClient httpclient = _httpClientFactory.CreateClient();
 
             client = new A2AClient(new Uri(agentEndpoint), httpclient);
             _clientCache[agentEndpoint] = client;
