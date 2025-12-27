@@ -46,7 +46,9 @@ public class McpToolExecutor : IFunctionExecutor
                 var result = await client.CallToolAsync(_functionName, !argDict.IsNullOrEmpty() ? argDict : []);
 
                 // Extract the text content from the result
-                var json = string.Join("\n", result.Content.Where(c => c.Type == "text").Select(c => c.Text));
+                var json = string.Join("\n", result.Content
+                    .Where(c => c.Type == "text")
+                    .Select(c => c.ToString()));
 
                 message.Content = json;
                 message.Data = json.JsonContent();

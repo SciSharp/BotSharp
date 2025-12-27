@@ -35,6 +35,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
     <ProjectReference Include="..\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Infrastructure\BotSharp.Plugin.A2A\BotSharp.Plugin.A2A.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ExcelHandler\BotSharp.Plugin.ExcelHandler.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.GiteeAI\BotSharp.Plugin.GiteeAI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.FuzzySharp\BotSharp.Plugin.FuzzySharp.csproj" />

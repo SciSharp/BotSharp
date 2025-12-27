@@ -16,6 +16,8 @@ namespace BotSharp.Plugin.A2A.Hooks;
 
 public class A2AAgentHook : AgentHookBase
 {
+    public override string SelfId => string.Empty;
+
     private readonly A2ASettings _settings;
     private readonly IA2AService _iA2AService;
 
@@ -56,12 +58,17 @@ public class A2AAgentHook : AgentHookBase
                                 $"You must use the function 'delegate_to_a2a' to communicate with it. " +
                                 $"Do not attempt to answer the question yourself.";
 
-            var funcParameters = new ParameterPropertyDef(name: "user_query", description: "The exact user request or task description to be forwarded.", type: "string", true);
-
-            var properties = new Dictionary<string, ParameterPropertyDef>
+            var properties = new Dictionary<string, object>
+            {
+                {
+                    "user_query",
+                    new
                     {
-                        { "user_query",new ParameterPropertyDef(name: "user_query", description: "The exact user request or task description to be forwarded.", type: "string", true)} 
-                    };
+                        type = "string",
+                        description = "The exact user request or task description to be forwarded."
+                    }
+                }
+            };
 
             var propertiesJson = JsonSerializer.Serialize(properties);
             var propertiesDocument = JsonDocument.Parse(propertiesJson);

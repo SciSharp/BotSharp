@@ -38,25 +38,17 @@ public class A2AService : IA2AService
     {
 
         if (!_clientCache.TryGetValue(agentEndpoint, out var client))
-        {     
-            client = new A2AClient(new Uri(agentEndpoint));
+        {
+            HttpClient httpclient = new HttpClient() {  Timeout = TimeSpan.FromSeconds(100) };
+
+            client = new A2AClient(new Uri(agentEndpoint), httpclient);
             _clientCache[agentEndpoint] = client;
         }
-
-        //var agentService = _services.GetRequiredService<IAgentService>();
-        //var conv = _services.GetRequiredService<IConversationService>();
-        //var routingCtx = _services.GetRequiredService<IRoutingContext>();
-
-        //var wholeDialogs = routingCtx.GetDialogs();
-        //if (wholeDialogs.IsNullOrEmpty())
-        //{
-        //    wholeDialogs = conv.GetDialogHistory();
-        //}
 
         var messagePayload = new AgentMessage
         {
             Role = MessageRole.User, 
-            ContextId = contextId, 
+            ContextId = contextId,           
             Parts = new List<Part>
             {
                 new TextPart { Text = text }
