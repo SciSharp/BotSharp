@@ -54,9 +54,7 @@ public class A2AService : IA2AService
 
         try
         {
-            _logger.LogInformation($"Sending A2A message to {agentEndpoint}. ContextId: {contextId}");
-
-          
+            _logger.LogInformation($"Sending A2A message to {agentEndpoint}. ContextId: {contextId}");          
             var responseBase = await client.SendMessageAsync(sendParams, cancellationToken);
 
             if (responseBase is AgentMessage responseMsg)
