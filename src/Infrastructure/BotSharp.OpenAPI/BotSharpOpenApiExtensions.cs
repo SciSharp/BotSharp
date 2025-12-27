@@ -12,9 +12,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using BotSharp.OpenAPI.BackgroundServices;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
-#if NET8_0
-using Microsoft.OpenApi.Models;
-#endif
+using Microsoft.OpenApi;
 
 namespace BotSharp.OpenAPI;
 
@@ -163,7 +161,6 @@ public static class BotSharpOpenApiExtensions
         services.AddSwaggerGen(
             c =>
             {
-#if NET8_0
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     In = ParameterLocation.Header,
@@ -171,20 +168,13 @@ public static class BotSharpOpenApiExtensions
                     Name = "Authorization",
                     Type = SecuritySchemeType.ApiKey
                 });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                c.AddSecurityRequirement(x => new OpenApiSecurityRequirement
+                {
                    {
-                     new OpenApiSecurityScheme
-                     {
-                       Reference = new OpenApiReference
-                       {
-                         Type = ReferenceType.SecurityScheme,
-                         Id = "Bearer"
-                       }
-                      },
-                      Array.Empty<string>()
+                     new OpenApiSecuritySchemeReference("Bearer"),
+                     []
                    }
                 });
-#endif
             }
         );
 
