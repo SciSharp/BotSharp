@@ -200,7 +200,7 @@ public partial class FileRepository
                 continue;
             }
 
-            var content = File.ReadAllText(metaFile);
+            var content = await File.ReadAllTextAsync(metaFile);
             var metaData = JsonSerializer.Deserialize<KnowledgeDocMetaData>(content, _options);
             if (metaData == null)
             {

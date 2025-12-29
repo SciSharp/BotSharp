@@ -466,7 +466,7 @@ public partial class FileRepository
                 continue;
             }
 
-            var json = File.ReadAllText(convFile);
+            var json = await File.ReadAllTextAsync(convFile);
             var record = JsonSerializer.Deserialize<Conversation>(json, _options);
             if (record == null)
             {

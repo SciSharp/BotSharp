@@ -105,7 +105,7 @@ public partial class MongoRepository
         }
 
         // Get data
-        var configs = _dc.KnowledgeCollectionConfigs.Find(Builders<KnowledgeCollectionConfigDocument>.Filter.And(filters)).ToList();
+        var configs = await _dc.KnowledgeCollectionConfigs.Find(Builders<KnowledgeCollectionConfigDocument>.Filter.And(filters)).ToListAsync();
 
         return configs.Select(x => new VectorCollectionConfig
         {
