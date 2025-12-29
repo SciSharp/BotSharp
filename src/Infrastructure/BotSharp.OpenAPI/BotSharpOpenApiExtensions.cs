@@ -13,6 +13,9 @@ using BotSharp.OpenAPI.BackgroundServices;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.OpenApi;
+#if NET8_0
+using Microsoft.OpenApi.Models;
+#endif
 
 namespace BotSharp.OpenAPI;
 
@@ -168,6 +171,21 @@ public static class BotSharpOpenApiExtensions
                     Name = "Authorization",
                     Type = SecuritySchemeType.ApiKey
                 });
+#if NET8_0
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                   {
+                     new OpenApiSecurityScheme
+                     {
+                       Reference = new OpenApiReference
+                       {
+                         Type = ReferenceType.SecurityScheme,
+                         Id = "Bearer"
+                       }
+                      },
+                      Array.Empty<string>()
+                   }
+                });
+#elif NET10_0
                 c.AddSecurityRequirement(x => new OpenApiSecurityRequirement
                 {
                    {
@@ -175,8 +193,10 @@ public static class BotSharpOpenApiExtensions
                      []
                    }
                 });
+#endif
             }
         );
+
 
         services.AddHttpContextAccessor();
 
