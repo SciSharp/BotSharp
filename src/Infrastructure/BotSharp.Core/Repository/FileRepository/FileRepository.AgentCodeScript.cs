@@ -5,7 +5,7 @@ namespace BotSharp.Core.Repository;
 public partial class FileRepository
 {
     #region Code script
-    public List<AgentCodeScript> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
+    public async Task<List<AgentCodeScript>> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
     {
         if (string.IsNullOrWhiteSpace(agentId))
         {
@@ -42,7 +42,7 @@ public partial class FileRepository
                     AgentId = agentId,
                     Name = fileName,
                     ScriptType = scriptType,
-                    Content = File.ReadAllText(file)
+                    Content = await File.ReadAllTextAsync(file)
                 });
             }
         }

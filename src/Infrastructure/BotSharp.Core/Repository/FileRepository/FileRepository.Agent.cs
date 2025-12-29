@@ -604,7 +604,7 @@ namespace BotSharp.Core.Repository
             return null;
         }
 
-        public async Task<List<Agent>> GetAgents(AgentFilter filter)
+        public Task<List<Agent>> GetAgents(AgentFilter filter)
         {
             if (filter == null)
             {
@@ -648,7 +648,7 @@ namespace BotSharp.Core.Repository
                 query = query.Where(x => x.IsPublic == filter.IsPublic);
             }
 
-            return await Task.FromResult(query.ToList());
+            return Task.FromResult(query.ToList());
         }
 
         public async Task<List<UserAgent>> GetUserAgents(string userId)
@@ -676,7 +676,7 @@ namespace BotSharp.Core.Repository
                 item.Agent = agent;
             }
 
-            return await Task.FromResult(found);
+            return found;
         }
 
 
@@ -837,9 +837,9 @@ namespace BotSharp.Core.Repository
             ResetInnerAgents();
         }
 
-        public async Task<bool> DeleteAgents()
+        public Task<bool> DeleteAgents()
         {
-            return await Task.FromResult(false);
+            return Task.FromResult(false);
         }
 
         public async Task<bool> DeleteAgent(string agentId, AgentDeleteOptions? options = null)

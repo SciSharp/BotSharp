@@ -7,7 +7,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 public partial class MongoRepository
 {
     #region Code script
-    public List<AgentCodeScript> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
+    public async Task<List<AgentCodeScript>> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
     {
         if (string.IsNullOrWhiteSpace(agentId))
         {
@@ -31,7 +31,7 @@ public partial class MongoRepository
             filters.Add(builder.In(x => x.ScriptType, filter.ScriptTypes));
         }
 
-        var found = _dc.AgentCodeScripts.Find(builder.And(filters)).ToList();
+        var found = await _dc.AgentCodeScripts.Find(builder.And(filters)).ToListAsync();
         return found.Select(x => AgentCodeScriptDocument.ToDomainModel(x)).ToList();
     }
 

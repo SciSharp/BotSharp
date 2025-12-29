@@ -111,7 +111,7 @@ public partial class FileRepository
         }
 
         role.AgentActions = agentActions;
-        return await Task.FromResult(role);
+        return role;
     }
 
     public async Task<bool> UpdateRole(Role role, bool updateRoleAgents = false)

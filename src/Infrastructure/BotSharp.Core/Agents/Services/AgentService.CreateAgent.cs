@@ -47,7 +47,7 @@ public partial class AgentService
         }
 
         Utilities.ClearCache();
-        return await Task.FromResult(agentRecord);
+        return agentRecord;
     }
 
     private (string, List<ChannelInstruction>) GetInstructionsFromFile(string fileDir)

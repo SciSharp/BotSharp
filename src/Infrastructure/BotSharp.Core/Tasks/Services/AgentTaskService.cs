@@ -40,7 +40,7 @@ public class AgentTaskService : IAgentTaskService
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
             var pagedTasks = await db.GetAgentTasks(filter);
-            return await Task.FromResult(pagedTasks);
+            return pagedTasks;
         }
     }
 

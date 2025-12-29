@@ -10,8 +10,8 @@ public partial class AgentService
     public async Task<List<AgentCodeScript>> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var scripts = db.GetAgentCodeScripts(agentId, filter);
-        return await Task.FromResult(scripts);
+        var scripts = await db.GetAgentCodeScripts(agentId, filter);
+        return scripts;
     }
 
     public async Task<AgentCodeScript?> GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)

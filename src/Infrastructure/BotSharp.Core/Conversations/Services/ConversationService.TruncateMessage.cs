@@ -14,6 +14,6 @@ public partial class ConversationService
         {
             await hook.OnMessageDeleted(conversationId, messageId);
         }
-        return await Task.FromResult(true);
+        return true;
     }
 }
