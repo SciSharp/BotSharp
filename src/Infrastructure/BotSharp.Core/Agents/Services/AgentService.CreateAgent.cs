@@ -26,7 +26,7 @@ public partial class AgentService
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var agentSettings = _services.GetRequiredService<AgentSettings>();
 
-        var user = _db.GetUserById(userIdentity.Id);
+        var user = await _db.GetUserById(userIdentity.Id);
         var userService = _services.GetRequiredService<IUserService>();
         var auth = await userService.GetUserAuthorizations();
 

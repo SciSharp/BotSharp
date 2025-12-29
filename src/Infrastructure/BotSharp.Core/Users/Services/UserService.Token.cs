@@ -17,10 +17,10 @@ public partial class UserService
         var (id, password, regionCode) = base64.SplitAsTuple(":");
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
+        var record = id.Contains("@") ? await db.GetUserByEmail(id) : await db.GetUserByUserName(id);
         if (record == null)
         {
-            record = db.GetUserByPhone(id, regionCode: regionCode);
+            record = await db.GetUserByPhone(id, regionCode: regionCode);
         }
 
         if (record != null && record.Type == UserType.Affiliate)
@@ -191,16 +191,16 @@ public partial class UserService
     {
         var id = model.UserName;
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
+        var record = id.Contains("@") ? await db.GetUserByEmail(id) : await db.GetUserByUserName(id);
 
         if (record == null)
         {
-            record = db.GetUserByPhone(id, regionCode: (string.IsNullOrWhiteSpace(model.RegionCode) ? "CN" : model.RegionCode));
+            record = await db.GetUserByPhone(id, regionCode: (string.IsNullOrWhiteSpace(model.RegionCode) ? "CN" : model.RegionCode));
         }
 
         //if (record == null)
         //{
-        //    record = db.GetUserByPhoneV2(id, regionCode: (string.IsNullOrWhiteSpace(model.RegionCode) ? "CN" : model.RegionCode));
+        //    record = await db.GetUserByPhoneV2(id, regionCode: (string.IsNullOrWhiteSpace(model.RegionCode) ? "CN" : model.RegionCode));
         //}
 
         if (record == null)
@@ -218,7 +218,7 @@ public partial class UserService
             return default;
         }
 
-        db.UpdateUserVerified(record.Id);
+        await db.UpdateUserVerified(record.Id);
 
         var accessToken = GenerateJwtToken(record);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
@@ -251,7 +251,7 @@ public partial class UserService
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password, regionCode) = base64.SplitAsTuple(":");
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetAffiliateUserByPhone(id);
+        var record = await db.GetAffiliateUserByPhone(id);
         var isCanLogin = record != null && !record.IsDisabled && record.Type == UserType.Affiliate;
         if (!isCanLogin)
         {
@@ -265,7 +265,7 @@ public partial class UserService
 
         var (token, jwt) = BuildToken(record);
 
-        return await Task.FromResult(token);
+        return token;
     }
 
     public async Task<Token?> GetAdminToken(string authorization)
@@ -273,7 +273,7 @@ public partial class UserService
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password, regionCode) = base64.SplitAsTuple(":");
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserByPhone(id, type: UserType.Internal);
+        var record = await db.GetUserByPhone(id, type: UserType.Internal);
         var isCanLogin = record != null && !record.IsDisabled
             && record.Type == UserType.Internal && new List<string>
             {
@@ -291,7 +291,7 @@ public partial class UserService
 
         var (token, jwt) = BuildToken(record);
 
-        return await Task.FromResult(token);
+        return token;
     }
 
     public async Task<DateTime> GetUserTokenExpires()

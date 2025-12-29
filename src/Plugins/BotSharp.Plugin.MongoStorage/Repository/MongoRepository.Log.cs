@@ -140,7 +140,7 @@ public partial class MongoRepository
     #endregion
 
     #region Instruction Log
-    public bool SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
+    public async Task<bool> SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
     {
         if (logs.IsNullOrEmpty())
         {
@@ -177,7 +177,7 @@ public partial class MongoRepository
             docs.Add(doc);
         }
 
-        _dc.InstructionLogs.InsertMany(docs);
+        await _dc.InstructionLogs.InsertManyAsync(docs);
         return true;
     }
 
@@ -343,7 +343,7 @@ public partial class MongoRepository
         };
     }
 
-    public List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
+    public async Task<List<string>> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
     {
         var builder = Builders<InstructionLogDocument>.Filter;
         var sortDef = Builders<InstructionLogDocument>.Sort.Descending(x => x.CreatedTime);
@@ -370,10 +370,10 @@ public partial class MongoRepository
             filters.Add(builder.Lte(x => x.CreatedTime, filter.EndTime.Value));
         }
 
-        var convDocs = _dc.InstructionLogs.Find(builder.And(filters))
+        var convDocs = await _dc.InstructionLogs.Find(builder.And(filters))
                                           .Sort(sortDef)
                                           .Limit(filter.LogLimit)
-                                          .ToList();
+                                          .ToListAsync();
         var keys = convDocs.SelectMany(x => x.States.Select(x => x.Key)).Distinct().ToList();
         return keys;
     }

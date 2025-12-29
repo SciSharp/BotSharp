@@ -179,7 +179,7 @@ public partial class FileRepository
     #endregion
 
     #region Instruction Log
-    public bool SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
+    public async Task<bool> SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
     {
         if (logs.IsNullOrEmpty())
         {
@@ -199,7 +199,7 @@ public partial class FileRepository
             var innerLog = InstructionFileLogModel.From(log);
             innerLog.States = BuildLogStates(log.States);
             var text = JsonSerializer.Serialize(innerLog, _options);
-            File.WriteAllText(file, text);
+            await File.WriteAllTextAsync(file, text);
         }
         return true;
     }
@@ -259,7 +259,7 @@ public partial class FileRepository
             }
         }
 
-        File.WriteAllText(logFile, JsonSerializer.Serialize(log, _options));
+        await File.WriteAllTextAsync(logFile, JsonSerializer.Serialize(log, _options));
         return true;
     }
 
@@ -279,7 +279,7 @@ public partial class FileRepository
         var innerLogs = new List<InstructionFileLogModel>();
         foreach (var file in Directory.EnumerateFiles(baseDir))
         {
-            var json = File.ReadAllText(file);
+            var json = await File.ReadAllTextAsync(file);
             var log = JsonSerializer.Deserialize<InstructionFileLogModel>(json, _options);
             if (log == null)
             {
@@ -415,7 +415,7 @@ public partial class FileRepository
         };
     }
 
-    public List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
+    public async Task<List<string>> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
     {
         var keys = new List<string>();
         var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
@@ -427,7 +427,7 @@ public partial class FileRepository
         var count = 0;
         foreach (var file in Directory.EnumerateFiles(baseDir))
         {
-            var json = File.ReadAllText(file);
+            var json = await File.ReadAllTextAsync(file);
             var log = JsonSerializer.Deserialize<InstructionFileLogModel>(json, _options);
             if (log == null)
             {

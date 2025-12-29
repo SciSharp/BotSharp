@@ -39,32 +39,32 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #endregion
 
     #region User
-    User? GetUserByEmail(string email) => throw new NotImplementedException();
-    User? GetUserByPhone(string phone, string type = UserType.Client, string regionCode = "CN") => throw new NotImplementedException();
-    User? GetUserByPhoneV2(string phone, string source = UserType.Internal, string regionCode = "CN") => throw new NotImplementedException();
-    User? GetAffiliateUserByPhone(string phone) => throw new NotImplementedException();
-    User? GetUserById(string id) => throw new NotImplementedException();
-    List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
-    List<User> GetUsersByAffiliateId(string affiliateId) => throw new NotImplementedException();
-    User? GetUserByUserName(string userName) => throw new NotImplementedException();
-    void UpdateUserName(string userId, string userName) => throw new NotImplementedException();
-    Dashboard? GetDashboard(string id = null) => throw new NotImplementedException();
-    void CreateUser(User user) => throw new NotImplementedException();
-    void UpdateExistUser(string userId, User user) => throw new NotImplementedException();
-    void UpdateUserVerified(string userId) => throw new NotImplementedException();
-    void AddDashboardConversation(string userId, string conversationId) => throw new NotImplementedException();
-    void RemoveDashboardConversation(string userId, string conversationId) => throw new NotImplementedException();
-    void UpdateDashboardConversation(string userId, DashboardConversation dashConv) => throw new NotImplementedException();
-    void UpdateUserVerificationCode(string userId, string verficationCode) => throw new NotImplementedException();
-    void UpdateUserPassword(string userId, string password) => throw new NotImplementedException();
-    void UpdateUserEmail(string userId, string email) => throw new NotImplementedException();
-    void UpdateUserPhone(string userId, string Iphone, string regionCode) => throw new NotImplementedException();
-    void UpdateUserIsDisable(string userId, bool isDisable) => throw new NotImplementedException();
-    void UpdateUsersIsDisable(List<string> userIds, bool isDisable) => throw new NotImplementedException();
+    Task<User?> GetUserByEmail(string email) => throw new NotImplementedException();
+    Task<User?> GetUserByPhone(string phone, string type = UserType.Client, string regionCode = "CN") => throw new NotImplementedException();
+    Task<User?> GetUserByPhoneV2(string phone, string source = UserType.Internal, string regionCode = "CN") => throw new NotImplementedException();
+    Task<User?> GetAffiliateUserByPhone(string phone) => throw new NotImplementedException();
+    Task<User?> GetUserById(string id) => throw new NotImplementedException();
+    Task<List<User>> GetUserByIds(List<string> ids) => throw new NotImplementedException();
+    Task<List<User>> GetUsersByAffiliateId(string affiliateId) => throw new NotImplementedException();
+    Task<User?> GetUserByUserName(string userName) => throw new NotImplementedException();
+    Task UpdateUserName(string userId, string userName) => throw new NotImplementedException();
+    Task<Dashboard?> GetDashboard(string id = null) => throw new NotImplementedException();
+    Task CreateUser(User user) => throw new NotImplementedException();
+    Task UpdateExistUser(string userId, User user) => throw new NotImplementedException();
+    Task UpdateUserVerified(string userId) => throw new NotImplementedException();
+    Task AddDashboardConversation(string userId, string conversationId) => throw new NotImplementedException();
+    Task RemoveDashboardConversation(string userId, string conversationId) => throw new NotImplementedException();
+    Task UpdateDashboardConversation(string userId, DashboardConversation dashConv) => throw new NotImplementedException();
+    Task UpdateUserVerificationCode(string userId, string verficationCode) => throw new NotImplementedException();
+    Task UpdateUserPassword(string userId, string password) => throw new NotImplementedException();
+    Task UpdateUserEmail(string userId, string email) => throw new NotImplementedException();
+    Task UpdateUserPhone(string userId, string Iphone, string regionCode) => throw new NotImplementedException();
+    Task UpdateUserIsDisable(string userId, bool isDisable) => throw new NotImplementedException();
+    Task UpdateUsersIsDisable(List<string> userIds, bool isDisable) => throw new NotImplementedException();
     ValueTask<PagedItems<User>> GetUsers(UserFilter filter) => throw new NotImplementedException();
-    List<User> SearchLoginUsers(User filter, string source = UserSource.Internal) =>throw new NotImplementedException();
-    User? GetUserDetails(string userId, bool includeAgent = false) => throw new NotImplementedException();
-    bool UpdateUser(User user, bool updateUserAgents = false) => throw new NotImplementedException();
+    Task<List<User>> SearchLoginUsers(User filter, string source = UserSource.Internal) =>throw new NotImplementedException();
+    Task<User?> GetUserDetails(string userId, bool includeAgent = false) => throw new NotImplementedException();
+    Task<bool> UpdateUser(User user, bool updateUserAgents = false) => throw new NotImplementedException();
     #endregion
 
     #region Agent
@@ -193,13 +193,13 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #endregion
 
     #region Instruction Log
-    bool SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
+    Task<bool> SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
         => throw new NotImplementedException();
 
     ValueTask<PagedItems<InstructionLogModel>> GetInstructionLogs(InstructLogFilter filter)
         => throw new NotImplementedException();
 
-    List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
+    Task<List<string>> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
          => throw new NotImplementedException();
 
     Task<bool> UpdateInstructionLogStates(UpdateInstructionLogStatesModel updateInstructionStates)

@@ -55,6 +55,7 @@ public class UserDocument : MongoBase
             Permissions = Permissions,
             CreatedTime = CreatedTime,
             UpdatedTime = UpdatedTime,
+            Dashboard = Dashboard
         };
     }
 }

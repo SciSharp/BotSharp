@@ -2,18 +2,19 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
+using MongoDB.Driver.Linq;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
-    public User? GetUserByEmail(string email)
+    public async Task<User?> GetUserByEmail(string email)
     {
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Email == email.ToLower());
+        var user = await _dc.Users.AsQueryable().FirstOrDefaultAsync(x => x.Email == email.ToLower());
         return user != null ? user.ToUser() : null;
     }
 
-    public User? GetUserByPhone(string phone, string type = UserType.Client, string regionCode = "CN")
+    public async Task<User?> GetUserByPhone(string phone, string type = UserType.Client, string regionCode = "CN")
     {
         string phoneSecond = string.Empty;
         // if phone number length is less than 4, return null
@@ -31,13 +32,13 @@ public partial class MongoRepository
             phoneSecond = (phone ?? "").Substring(regionCode == "US" ? 2 : 3);
         }
 
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond)
+        var user = await _dc.Users.AsQueryable().FirstOrDefaultAsync(x => (x.Phone == phone || x.Phone == phoneSecond)
         && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode))
         && (x.Type == type));
         return user != null ? user.ToUser() : null;
     }
 
-    public User? GetUserByPhoneV2(string phone, string source = UserType.Internal, string regionCode = "CN")
+    public async Task<User?> GetUserByPhoneV2(string phone, string source = UserType.Internal, string regionCode = "CN")
     {
         string phoneSecond = string.Empty;
         // if phone number length is less than 4, return null
@@ -55,43 +56,43 @@ public partial class MongoRepository
             phoneSecond = (phone ?? "").Substring(regionCode == "US" ? 2 : 3);
         }
 
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond)
-        && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode))
-        && (x.Source == source));
+        var user = await _dc.Users.AsQueryable().FirstOrDefaultAsync(x => (x.Phone == phone || x.Phone == phoneSecond)
+            && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode))
+            && (x.Source == source));
         return user != null ? user.ToUser() : null;
     }
 
-    public User? GetAffiliateUserByPhone(string phone)
+    public async Task<User?> GetAffiliateUserByPhone(string phone)
     {
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Phone == phone && x.Type == UserType.Affiliate);
+        var user = await _dc.Users.AsQueryable().FirstOrDefaultAsync(x => x.Phone == phone && x.Type == UserType.Affiliate);
         return user != null ? user.ToUser() : null;
     }
 
-    public User? GetUserById(string id)
+    public async Task<User?> GetUserById(string id)
     {
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
+        var user = await _dc.Users.AsQueryable().FirstOrDefaultAsync(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
         return user != null ? user.ToUser() : null;
     }
 
-    public List<User> GetUserByIds(List<string> ids)
+    public async Task<List<User>> GetUserByIds(List<string> ids)
     {
-        var users = _dc.Users.AsQueryable().Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId))).ToList();
+        var users = await _dc.Users.AsQueryable().Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId))).ToListAsync();
         return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : [];
     }
 
-    public List<User> GetUsersByAffiliateId(string affiliateId)
+    public async Task<List<User>> GetUsersByAffiliateId(string affiliateId)
     {
-        var users = _dc.Users.AsQueryable().Where(x => x.AffiliateId == affiliateId).ToList();
+        var users = await _dc.Users.AsQueryable().Where(x => x.AffiliateId == affiliateId).ToListAsync();
         return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : [];
     }
 
-    public User? GetUserByUserName(string userName)
+    public async Task<User?> GetUserByUserName(string userName)
     {
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.UserName == userName.ToLower());
+        var user = await _dc.Users.AsQueryable().FirstOrDefaultAsync(x => x.UserName == userName.ToLower());
         return user != null ? user.ToUser() : null;
     }
 
-    public void CreateUser(User user)
+    public async Task CreateUser(User user)
     {
         if (user == null) return;
 
@@ -119,10 +120,10 @@ public partial class MongoRepository
             UpdatedTime = DateTime.UtcNow
         };
 
-        _dc.Users.InsertOne(userCollection);
+        await _dc.Users.InsertOneAsync(userCollection);
     }
 
-    public void UpdateExistUser(string userId, User user)
+    public async Task UpdateExistUser(string userId, User user)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update
@@ -133,52 +134,52 @@ public partial class MongoRepository
             .Set(x => x.VerificationCode, user.VerificationCode)
             .Set(x => x.UpdatedTime, DateTime.UtcNow)
             .Set(x => x.RegionCode, user.RegionCode);
-        _dc.Users.UpdateOne(filter, update);
+        await _dc.Users.UpdateOneAsync(filter, update);
     }
 
-    public void UpdateUserName(string userId, string userName)
+    public async Task UpdateUserName(string userId, string userName)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update
             .Set(x => x.UserName, userName);
-        _dc.Users.UpdateOne(filter, update);
+        await _dc.Users.UpdateOneAsync(filter, update);
     }
 
-    public void UpdateUserVerified(string userId)
+    public async Task UpdateUserVerified(string userId)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.Verified, true)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
-        _dc.Users.UpdateOne(filter, update);
+        await _dc.Users.UpdateOneAsync(filter, update);
     }
 
-    public void UpdateUserVerificationCode(string userId, string verficationCode)
+    public async Task UpdateUserVerificationCode(string userId, string verficationCode)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.VerificationCode, verficationCode)
             .Set(x => x.VerificationCodeExpireAt, DateTime.UtcNow.AddMinutes(5))
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
-        _dc.Users.UpdateOne(filter, update);
+        await _dc.Users.UpdateOneAsync(filter, update);
     }
 
-    public void UpdateUserPassword(string userId, string password)
+    public async Task UpdateUserPassword(string userId, string password)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.Password, password)
             .Set(x => x.UpdatedTime, DateTime.UtcNow)
             .Set(x => x.Verified, true);
-        _dc.Users.UpdateOne(filter, update);
+        await _dc.Users.UpdateOneAsync(filter, update);
     }
 
-    public void UpdateUserEmail(string userId, string email)
+    public async Task UpdateUserEmail(string userId, string email)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.Email, email)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
-        _dc.Users.UpdateOne(filter, update);
+        await _dc.Users.UpdateOneAsync(filter, update);
     }
 
-    public void UpdateUserPhone(string userId, string phone, string regionCode)
+    public async Task UpdateUserPhone(string userId, string phone, string regionCode)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.Phone, phone)
@@ -186,22 +187,22 @@ public partial class MongoRepository
             .Set(x => x.RegionCode, regionCode)
             //.Set(x => x.UserName, phone)
             .Set(x => x.FirstName, phone);
-        _dc.Users.UpdateOne(filter, update);
+        await _dc.Users.UpdateOneAsync(filter, update);
     }
 
-    public void UpdateUserIsDisable(string userId, bool isDisable)
+    public async Task UpdateUserIsDisable(string userId, bool isDisable)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.IsDisabled, isDisable)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
-        _dc.Users.UpdateOne(filter, update);
+        await _dc.Users.UpdateOneAsync(filter, update);
     }
 
-    public void UpdateUsersIsDisable(List<string> userIds, bool isDisable)
+    public async Task UpdateUsersIsDisable(List<string> userIds, bool isDisable)
     {
         foreach (var userId in userIds)
         {
-            UpdateUserIsDisable(userId, isDisable);
+            await UpdateUserIsDisable(userId, isDisable);
         }
     }
 
@@ -255,8 +256,8 @@ public partial class MongoRepository
         var countTask = _dc.Users.CountDocumentsAsync(filterDef);
         await Task.WhenAll([docsTask, countTask]);
 
-        var docs = docsTask.Result.ToList();
-        var count = countTask.Result;
+        var docs = (await docsTask).ToList();
+        var count = await countTask;
 
         var users = docs.Select(x => x.ToUser()).ToList();
         return new PagedItems<User>
@@ -266,14 +267,14 @@ public partial class MongoRepository
         };
     }
 
-    public List<User> SearchLoginUsers(User filter, string source = UserSource.Internal)
+    public async Task<List<User>> SearchLoginUsers(User filter, string source = UserSource.Internal)
     {
         List<User> searchResult = [];
 
         // search by filters
         if (!string.IsNullOrWhiteSpace(filter.Id))
         {
-            var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.Id == filter.Id.ToLower());
+            var curUser = await _dc.Users.AsQueryable().FirstOrDefaultAsync(x => x.Source == source && x.Id == filter.Id.ToLower());
             User? user = curUser != null ? curUser.ToUser() : null;
             if (user != null)
             {
@@ -296,9 +297,9 @@ public partial class MongoRepository
                 {
                     phoneNoCallingCode = filter.Phone.Replace(regionCodeData[1], "");
                 }
-                var phoneUsers = _dc.Users.AsQueryable()
+                var phoneUsers = await _dc.Users.AsQueryable()
                                           .Where(x => x.Source == source && (x.Phone == phoneNoCallingCode || x.Phone == phoneWithCallingCode) && x.RegionCode == regionCodeData[0])
-                                          .ToList();
+                                          .ToListAsync();
 
                 if (phoneUsers != null && phoneUsers.Count > 0)
                 {
@@ -315,7 +316,7 @@ public partial class MongoRepository
         }
         else if (!string.IsNullOrWhiteSpace(filter.Email))
         {
-            var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.Email == filter.Email.ToLower());
+            var curUser = await _dc.Users.AsQueryable().FirstOrDefaultAsync(x => x.Source == source && x.Email == filter.Email.ToLower());
             User? user = curUser != null ? curUser.ToUser() : null;
             if (user != null)
             {
@@ -326,7 +327,7 @@ public partial class MongoRepository
 
         if (searchResult.Count == 0 && !string.IsNullOrWhiteSpace(filter.UserName))
         {
-            var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.UserName == filter.UserName);
+            var curUser = await _dc.Users.AsQueryable().FirstOrDefaultAsync(x => x.Source == source && x.UserName == filter.UserName);
             User? user = curUser != null ? curUser.ToUser() : null;
             if (user != null)
             {
@@ -337,22 +338,22 @@ public partial class MongoRepository
         return searchResult;
     }
 
-    public User? GetUserDetails(string userId, bool includeAgent = false)
+    public async Task<User?> GetUserDetails(string userId, bool includeAgent = false)
     {
         if (string.IsNullOrWhiteSpace(userId)) return null;
 
-        var userDoc = _dc.Users.AsQueryable().FirstOrDefault(x => x.Id == userId || x.ExternalId == userId);
+        var userDoc = await _dc.Users.AsQueryable().FirstOrDefaultAsync(x => x.Id == userId || x.ExternalId == userId);
         if (userDoc == null) return null;
 
         var agentActions = new List<UserAgentAction>();
         var user = userDoc.ToUser();
-        var userAgents = _dc.UserAgents.AsQueryable().Where(x => x.UserId == userId).Select(x => new UserAgent
+        var userAgents = await _dc.UserAgents.AsQueryable().Where(x => x.UserId == userId).Select(x => new UserAgent
         {
             Id = x.Id,
             UserId = x.UserId,
             AgentId = x.AgentId,
             Actions = x.Actions ?? Enumerable.Empty<string>()
-        }).ToList();
+        }).ToListAsync();
 
         if (!includeAgent)
         {
@@ -390,7 +391,7 @@ public partial class MongoRepository
         return user;
     }
 
-    public bool UpdateUser(User user, bool updateUserAgents = false)
+    public async Task<bool> UpdateUser(User user, bool updateUserAgents = false)
     {
         if (string.IsNullOrEmpty(user?.Id)) return false;
 
@@ -401,7 +402,7 @@ public partial class MongoRepository
             .Set(x => x.Permissions, user.Permissions)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Users.UpdateOne(userFilter, userUpdate);
+        await _dc.Users.UpdateOneAsync(userFilter, userUpdate);
 
         if (updateUserAgents)
         {
@@ -415,12 +416,12 @@ public partial class MongoRepository
                 UpdatedTime = DateTime.UtcNow
             })?.ToList() ?? [];
 
-            var toDelete = _dc.UserAgents.Find(Builders<UserAgentDocument>.Filter.And(
+            var toDelete = await _dc.UserAgents.Find(Builders<UserAgentDocument>.Filter.And(
                     Builders<UserAgentDocument>.Filter.Eq(x => x.UserId, user.Id),
                     Builders<UserAgentDocument>.Filter.Nin(x => x.Id, userAgentDocs.Select(x => x.Id))
-                )).ToList();
+                )).ToListAsync();
 
-            _dc.UserAgents.DeleteMany(Builders<UserAgentDocument>.Filter.In(x => x.Id, toDelete.Select(x => x.Id)));
+            await _dc.UserAgents.DeleteManyAsync(Builders<UserAgentDocument>.Filter.In(x => x.Id, toDelete.Select(x => x.Id)));
             foreach (var doc in userAgentDocs)
             {
                 var userAgentFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.Id, doc.Id);
@@ -431,22 +432,21 @@ public partial class MongoRepository
                     .Set(x => x.Actions, doc.Actions)
                     .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-                _dc.UserAgents.UpdateOne(userAgentFilter, userAgentUpdate, _options);
+                await _dc.UserAgents.UpdateOneAsync(userAgentFilter, userAgentUpdate, _options);
             }
         }
 
         return true;
     }
 
-    public Dashboard? GetDashboard(string? userId = null)
+    public Task<Dashboard?> GetDashboard(string? userId = null)
     {
-        return null;
+        return Task.FromResult<Dashboard?>(null);
     }
 
-    public void AddDashboardConversation(string userId, string conversationId)
+    public async Task AddDashboardConversation(string userId, string conversationId)
     {
-        var user = _dc.Users.AsQueryable()
-            .FirstOrDefault(x => x.Id == userId || (x.ExternalId != null && x.ExternalId == userId));
+        var user = await GetUserById(userId);
         if (user == null) return;
         var curDash = user.Dashboard ?? new Dashboard();
         curDash.ConversationList.Add(new DashboardConversation
@@ -460,10 +460,9 @@ public partial class MongoRepository
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
     }
 
-    public void RemoveDashboardConversation(string userId, string conversationId)
+    public async Task RemoveDashboardConversation(string userId, string conversationId)
     {
-        var user = _dc.Users.AsQueryable()
-            .FirstOrDefault(x => x.Id == userId || (x.ExternalId != null && x.ExternalId == userId));
+        var user = await GetUserById(userId);
         if (user == null || user.Dashboard == null || user.Dashboard.ConversationList.IsNullOrEmpty()) return;
         var curDash = user.Dashboard;
         var unpinConv = user.Dashboard.ConversationList.FirstOrDefault(
@@ -476,10 +475,9 @@ public partial class MongoRepository
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
     }
 
-    public void UpdateDashboardConversation(string userId, DashboardConversation dashConv)
+    public async Task UpdateDashboardConversation(string userId, DashboardConversation dashConv)
     {
-        var user = _dc.Users.AsQueryable()
-            .FirstOrDefault(x => x.Id == userId || (x.ExternalId != null && x.ExternalId == userId));
+        var user = await GetUserById(userId);
         if (user == null || user.Dashboard == null || user.Dashboard.ConversationList.IsNullOrEmpty()) return;
         var curIdx = user.Dashboard.ConversationList.ToList().FindIndex(
             x => string.Equals(x.ConversationId, dashConv.ConversationId, StringComparison.OrdinalIgnoreCase));
