@@ -52,8 +52,8 @@ public interface IFileStorageService
 
 
     #region User
-    string GetUserAvatar();
-    bool SaveUserAvatar(FileDataModel file);
+    Task<string> GetUserAvatar();
+    Task<bool> SaveUserAvatar(FileDataModel file);
     #endregion
 
     #region Speech

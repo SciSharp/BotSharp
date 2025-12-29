@@ -74,7 +74,7 @@ public partial class LoggerService
 
         var (isAdmin, user) = await userService.IsAdminUser(_user.Id);
         filter.UserIds = !isAdmin && user?.Id != null ? [user.Id] : null;
-        keys = db.GetInstructionLogSearchKeys(filter);
+        keys = await db.GetInstructionLogSearchKeys(filter);
         keys = filter.PreLoad ? keys : keys.Where(x => x.Contains(filter.Query ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList();
         return keys.OrderBy(x => x).Take(filter.KeyLimit).ToList();
     }

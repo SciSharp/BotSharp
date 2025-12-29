@@ -36,12 +36,12 @@ public class InstructionLogHook : InstructHookBase
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var state = _services.GetRequiredService<IConversationStateService>();
 
-        var user = db.GetUserById(_user.Id);
+        var user = await db.GetUserById(_user.Id);
         var templateName = response.TemplateName
                                    .IfNullOrEmptyAs(state.GetState("instruct_template_name"))
                                    .IfNullOrEmptyAs(null);
 
-        db.SaveInstructionLogs(new List<InstructionLogModel>
+        await db.SaveInstructionLogs(new List<InstructionLogModel>
         {
             new InstructionLogModel
             {
@@ -70,9 +70,9 @@ public class InstructionLogHook : InstructHookBase
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var codeScriptVersion = response.CodeScript?.UpdatedTime ?? DateTime.UtcNow;
-        var user = db.GetUserById(_user.Id);
+        var user = await db.GetUserById(_user.Id);
 
-        db.SaveInstructionLogs(new List<InstructionLogModel>
+        await db.SaveInstructionLogs(new List<InstructionLogModel>
         {
             new InstructionLogModel
             {

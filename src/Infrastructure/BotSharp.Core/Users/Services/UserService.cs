@@ -50,22 +50,22 @@ public partial class UserService : IUserService
 
         if (!string.IsNullOrWhiteSpace(user.UserName))
         {
-            record = db.GetUserByUserName(user.UserName);
+            record = await db.GetUserByUserName(user.UserName);
         }
 
         if (record == null && !string.IsNullOrWhiteSpace(user.Phone))
         {
             //if (user.Type != "internal")
             //{
-            //    record = db.GetUserByPhoneV2(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
+            //    record = await db.GetUserByPhoneV2(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
             //}
 
-            record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
+            record = await db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
         }
 
         if (record == null && !string.IsNullOrWhiteSpace(user.Email))
         {
-            record = db.GetUserByEmail(user.Email);
+            record = await db.GetUserByEmail(user.Email);
         }
 
         if (record != null && record.Verified)
@@ -115,11 +115,11 @@ public partial class UserService : IUserService
 
         if (hasRegisterId == null)
         {
-            db.CreateUser(record);
+            await db.CreateUser(record);
         }
         else
         {
-            db.UpdateExistUser(hasRegisterId, record);
+            await db.UpdateExistUser(hasRegisterId, record);
         }
 
         _logger.LogWarning($"Created new user account: {record.Id} {record.UserName}, RegionCode: {record.RegionCode}");
@@ -138,7 +138,7 @@ public partial class UserService : IUserService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        var record = db.GetUserById(_user.Id);
+        var record = await db.GetUserById(_user.Id);
 
         if (record == null)
         {
@@ -152,7 +152,7 @@ public partial class UserService : IUserService
 
         var newPassword = Utilities.HashTextMd5($"{password}{record.Salt}");
 
-        db.UpdateUserPassword(record.Id, newPassword);
+        await db.UpdateUserPassword(record.Id, newPassword);
         return true;
     }
 
@@ -164,15 +164,15 @@ public partial class UserService : IUserService
 
         if (_user.Id != null)
         {
-            user = db.GetUserById(_user.Id);
+            user = await db.GetUserById(_user.Id);
         }
         else if (_user.UserName != null)
         {
-            user = db.GetUserByUserName(_user.UserName);
+            user = await db.GetUserByUserName(_user.UserName);
         }
         else if (_user.Email != null)
         {
-            user = db.GetUserByEmail(_user.Email);
+            user = await db.GetUserByEmail(_user.Email);
         }
         return user;
     }
@@ -181,7 +181,7 @@ public partial class UserService : IUserService
     public async Task<User> GetUser(string id)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = db.GetUserById(id);
+        var user = await db.GetUserById(id);
         return user;
     }
 
@@ -189,7 +189,7 @@ public partial class UserService : IUserService
     public async Task<List<User>> GetUsers(List<string> ids)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var users = db.GetUserByIds(ids);
+        var users = await db.GetUserByIds(ids);
         return users;
     }
 
@@ -204,7 +204,7 @@ public partial class UserService : IUserService
     public async Task<(bool, User?)> IsAdminUser(string userId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = db.GetUserById(userId);
+        var user = await db.GetUserById(userId);
         var isAdmin = user != null && UserConstant.AdminRoles.Contains(user.Role);
         return (isAdmin, user);
     }
@@ -227,7 +227,7 @@ public partial class UserService : IUserService
             return auth;
         }
 
-        var userAgents = db.GetUserDetails(user.Id)?.AgentActions?
+        var userAgents = (await db.GetUserDetails(user.Id))?.AgentActions?
             .Where(x => agentIds.Contains(x.AgentId) && x.Actions.Any())?.Select(x => new UserAgent
             {
                 AgentId = x.AgentId,
@@ -249,7 +249,7 @@ public partial class UserService : IUserService
     public async Task<User?> GetUserDetails(string userId, bool includeAgent = false)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.GetUserDetails(userId, includeAgent);
+        return await db.GetUserDetails(userId, includeAgent);
     }
 
     public async Task<bool> UpdateUser(User user, bool isUpdateUserAgents = false)
@@ -257,7 +257,7 @@ public partial class UserService : IUserService
         if (user == null) return false;
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.UpdateUser(user, isUpdateUserAgents);
+        return await db.UpdateUser(user, isUpdateUserAgents);
     }
 
     public async Task<bool> VerifyUserNameExisting(string userName)
@@ -269,7 +269,7 @@ public partial class UserService : IUserService
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        var user = db.GetUserByUserName(userName);
+        var user = await db.GetUserByUserName(userName);
         if (user != null && user.Verified)
         {
             return true;
@@ -286,7 +286,7 @@ public partial class UserService : IUserService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var emailName = db.GetUserByEmail(email);
+        var emailName = await db.GetUserByEmail(email);
         if (emailName != null && emailName.Verified)
         {
             return true;
@@ -304,7 +304,7 @@ public partial class UserService : IUserService
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        return db.SearchLoginUsers(filter);
+        return await db.SearchLoginUsers(filter);
     }
 
     public async Task<bool> VerifyPhoneExisting(string phone, string regionCode)
@@ -315,7 +315,7 @@ public partial class UserService : IUserService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var UserByphone = db.GetUserByPhone(phone, regionCode: regionCode);
+        var UserByphone = await db.GetUserByPhone(phone, regionCode: regionCode);
         if (UserByphone != null && UserByphone.Verified)
         {
             return true;
@@ -351,7 +351,7 @@ public partial class UserService : IUserService
             return null;
         }
 
-        User? record = GetLoginUserByUniqueFilter(user, db);
+        User? record = await GetLoginUserByUniqueFilter(user, db);
 
         if (record == null)
         {
@@ -361,36 +361,36 @@ public partial class UserService : IUserService
         record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
 
         //update current verification code.
-        db.UpdateUserVerificationCode(record.Id, record.VerificationCode);
+        await db.UpdateUserVerificationCode(record.Id, record.VerificationCode);
 
         return record;
     }
 
-    private static User? GetLoginUserByUniqueFilter(User user, IBotSharpRepository db)
+    private static async Task<User?> GetLoginUserByUniqueFilter(User user, IBotSharpRepository db)
     {
         User? record = null;
         if (!string.IsNullOrWhiteSpace(user.Id))
         {
-            record = db.GetUserById(user.Id);
+            record = await db.GetUserById(user.Id);
         }
 
         if (record == null && !string.IsNullOrWhiteSpace(user.Phone))
         {
-            record = db.GetUserByPhone(user.Phone, regionCode: string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode);
+            record = await db.GetUserByPhone(user.Phone, regionCode: string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode);
             //if (record == null)
             //{
-            //    record = db.GetUserByPhoneV2(user.Phone, regionCode: string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode);
+            //    record = await db.GetUserByPhoneV2(user.Phone, regionCode: string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode);
             //}
         }
 
         if (record == null && !string.IsNullOrWhiteSpace(user.Email))
         {
-            record = db.GetUserByEmail(user.Email);
+            record = await db.GetUserByEmail(user.Email);
         }
 
         if (record == null && !string.IsNullOrWhiteSpace(user.UserName))
         {
-            record = db.GetUserByUserName(user.UserName);
+            record = await db.GetUserByUserName(user.UserName);
         }
 
         return record;
@@ -404,7 +404,7 @@ public partial class UserService : IUserService
 
         if (!string.IsNullOrWhiteSpace(_user.Id))
         {
-            record = db.GetUserById(_user.Id);
+            record = await db.GetUserById(_user.Id);
         }
 
         if (record == null)
@@ -415,7 +415,7 @@ public partial class UserService : IUserService
         record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
 
         //update current verification code.
-        db.UpdateUserVerificationCode(record.Id, record.VerificationCode);
+        await db.UpdateUserVerificationCode(record.Id, record.VerificationCode);
 
         //send code to user Email.
         var hooks = _services.GetServices<IAuthenticationHook>();
@@ -435,7 +435,7 @@ public partial class UserService : IUserService
         }
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        User? record = GetLoginUserByUniqueFilter(user, db);
+        User? record = await GetLoginUserByUniqueFilter(user, db);
 
         if (record == null)
         {
@@ -448,7 +448,7 @@ public partial class UserService : IUserService
         }
 
         var newPassword = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
-        db.UpdateUserPassword(record.Id, newPassword);
+        await db.UpdateUserPassword(record.Id, newPassword);
         return true;
     }
 
@@ -460,7 +460,7 @@ public partial class UserService : IUserService
         }
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        User? record = GetLoginUserByUniqueFilter(user, db);
+        User? record = await GetLoginUserByUniqueFilter(user, db);
 
         if (record == null)
         {
@@ -468,7 +468,7 @@ public partial class UserService : IUserService
         }
 
         var newPassword = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
-        db.UpdateUserPassword(record.Id, newPassword);
+        await db.UpdateUserPassword(record.Id, newPassword);
         return true;
     }
 
@@ -476,8 +476,8 @@ public partial class UserService : IUserService
     {
         var curUser = await GetMyProfile();
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserById(curUser.Id);
-        var existEmail = db.GetUserByEmail(email);
+        var record = await db.GetUserById(curUser.Id);
+        var existEmail = await db.GetUserByEmail(email);
         if (record == null || existEmail != null)
         {
             return false;
@@ -490,7 +490,7 @@ public partial class UserService : IUserService
             await hook.UserUpdating(record);
         }
 
-        db.UpdateUserEmail(record.Id, record.Email);
+        await db.UpdateUserEmail(record.Id, record.Email);
         return true;
     }
 
@@ -502,8 +502,8 @@ public partial class UserService : IUserService
         }
         var curUser = await GetMyProfile();
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserById(curUser.Id);
-        var existPhone = db.GetUserByPhone(phone, regionCode: regionCode);
+        var record = await db.GetUserById(curUser.Id);
+        var existPhone = await db.GetUserByPhone(phone, regionCode: regionCode);
 
         if (record == null || (existPhone != null && existPhone.RegionCode == regionCode))
         {
@@ -521,7 +521,7 @@ public partial class UserService : IUserService
             await hook.UserUpdating(record);
         }
 
-        db.UpdateUserPhone(record.Id, record.Phone, regionCode);
+        await db.UpdateUserPhone(record.Id, record.Phone, regionCode);
 
         return true;
     }
@@ -529,7 +529,7 @@ public partial class UserService : IUserService
     public async Task<bool> UpdateUsersIsDisable(List<string> userIds, bool isDisable)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        db.UpdateUsersIsDisable(userIds, isDisable);
+        await db.UpdateUsersIsDisable(userIds, isDisable);
 
         if (!isDisable)
         {
@@ -549,8 +549,7 @@ public partial class UserService : IUserService
     {
         var user = await GetUser(_user.Id);
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        db.AddDashboardConversation(user?.Id, conversationId);
-        await Task.CompletedTask;
+        await db.AddDashboardConversation(user?.Id, conversationId);
         return true;
     }
 
@@ -558,8 +557,7 @@ public partial class UserService : IUserService
     {
         var user = await GetUser(_user.Id);
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        db.RemoveDashboardConversation(user?.Id, conversationId);
-        await Task.CompletedTask;
+        await db.RemoveDashboardConversation(user?.Id, conversationId);
         return true;
     }
 
@@ -568,15 +566,14 @@ public partial class UserService : IUserService
         var db = _services.GetRequiredService<IBotSharpRepository>();
         
         var user = await GetUser(_user.Id);
-        var dashConv = db.GetDashboard(user?.Id)?
+        var dashConv = (await db.GetDashboard(user?.Id))?
                          .ConversationList
                          .FirstOrDefault(x => string.Equals(x.ConversationId, newDashConv.ConversationId));
         if (dashConv == null) return;
 
         dashConv.Name = newDashConv.Name ?? dashConv.Name;
         dashConv.Instruction = newDashConv.Instruction ?? dashConv.Instruction;
-        db.UpdateDashboardConversation(user?.Id, dashConv);
-        await Task.CompletedTask;
+        await db.UpdateDashboardConversation(user?.Id, dashConv);
         return;
     }
 
@@ -585,8 +582,7 @@ public partial class UserService : IUserService
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
         var user = await GetUser(_user.Id);
-        var dash = db.GetDashboard(user?.Id);
-        await Task.CompletedTask;
+        var dash = await db.GetDashboard(user?.Id);
         return dash;
     }
 }

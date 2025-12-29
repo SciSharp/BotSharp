@@ -32,4 +32,6 @@ public class User
     public IEnumerable<UserAgentAction> AgentActions { get; set; } = [];
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
+
+    public Dashboard? Dashboard { get; set; }
 }

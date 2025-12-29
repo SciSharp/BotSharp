@@ -246,7 +246,7 @@ public class UserController : ControllerBase
 
     #region Avatar
     [HttpPost("/user/avatar")]
-    public bool UploadUserAvatar([FromBody] UserAvatarModel input)
+    public async Task<bool> UploadUserAvatar([FromBody] UserAvatarModel input)
     {
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var file = new FileDataModel
@@ -254,14 +254,14 @@ public class UserController : ControllerBase
             FileName = input.FileName,
             FileData = input.FileData,
         };
-        return fileStorage.SaveUserAvatar(file);
+        return await fileStorage.SaveUserAvatar(file);
     }
 
     [HttpGet("/user/avatar")]
-    public IActionResult GetUserAvatar()
+    public async Task<IActionResult> GetUserAvatar()
     {
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var file = fileStorage.GetUserAvatar();
+        var file = await fileStorage.GetUserAvatar();
         if (string.IsNullOrEmpty(file))
         {
             return NoContent();

@@ -6,12 +6,13 @@ namespace BotSharp.Core.Repository;
 
 public partial class FileRepository
 {
-    public User? GetUserByEmail(string email)
+    public Task<User?> GetUserByEmail(string email)
     {
-        return Users.FirstOrDefault(x => x.Email == email.ToLower());
+        var user = Users.FirstOrDefault(x => x.Email == email.ToLower());
+        return Task.FromResult(user);
     }
 
-    public User? GetUserByPhone(string phone, string? type = UserType.Client, string regionCode = "CN")
+    public Task<User?> GetUserByPhone(string phone, string? type = UserType.Client, string regionCode = "CN")
     {
         var query = Users.Where(x => x.Phone == phone);
 
@@ -25,10 +26,10 @@ public partial class FileRepository
             query = query.Where(x => x.RegionCode == regionCode);
         }
 
-        return query.FirstOrDefault();
+        return Task.FromResult(query.FirstOrDefault());
     }
 
-    public User? GetUserByPhoneV2(string phone, string? source = UserType.Internal, string regionCode = "CN")
+    public Task<User?> GetUserByPhoneV2(string phone, string? source = UserType.Internal, string regionCode = "CN")
     {
         var query = Users.Where(x => x.Phone == phone);
 
@@ -42,40 +43,45 @@ public partial class FileRepository
             query = query.Where(x => x.RegionCode == regionCode);
         }
 
-        return query.FirstOrDefault();
+        return Task.FromResult(query.FirstOrDefault());
     }
 
-    public User? GetAffiliateUserByPhone(string phone)
+    public Task<User?> GetAffiliateUserByPhone(string phone)
     {
-        return Users.FirstOrDefault(x => x.Phone == phone && x.Type == UserType.Affiliate);
+        var user = Users.FirstOrDefault(x => x.Phone == phone && x.Type == UserType.Affiliate);
+        return Task.FromResult(user);
     }
 
-    public User? GetUserById(string? id = null)
+    public Task<User?> GetUserById(string? id = null)
     {
-        return Users.FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
+        var user = Users.FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
+        return Task.FromResult(user);
     }
 
-    public List<User> GetUserByIds(List<string> ids)
+    public Task<List<User>> GetUserByIds(List<string> ids)
     {
-        return Users.Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId)))?.ToList() ?? new List<User>();
+        var users = Users.Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId)))?.ToList() ?? new List<User>();
+        return Task.FromResult(users);
     }
 
-    public List<User> GetUsersByAffiliateId(string affiliateId)
+    public Task<List<User>> GetUsersByAffiliateId(string affiliateId)
     {
-        return Users.Where(x => x.AffiliateId == affiliateId).ToList();
+        var users = Users.Where(x => x.AffiliateId == affiliateId).ToList();
+        return Task.FromResult(users);
     }
 
-    public User? GetUserByUserName(string? userName = null)
+    public Task<User?> GetUserByUserName(string? userName = null)
     {
-        return Users.FirstOrDefault(x => x.UserName == userName.ToLower());
+        var user = Users.FirstOrDefault(x => x.UserName == userName.ToLower());
+        return Task.FromResult(user);
     }
 
-    public Dashboard? GetDashboard(string? userId = null)
+    public Task<Dashboard?> GetDashboard(string? userId = null)
     {
-        return Dashboards.FirstOrDefault();
+        return Task.FromResult(Dashboards.FirstOrDefault());
     }
 
-    public void CreateUser(User user)
+    public async Task CreateUser(User user)
     {
         var userId = Guid.NewGuid().ToString();
         user.Id = userId;
@@ -85,24 +91,24 @@ public partial class FileRepository
             Directory.CreateDirectory(dir);
         }
         var path = Path.Combine(dir, USER_FILE);
-        File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
+        await File.WriteAllTextAsync(path, JsonSerializer.Serialize(user, _options));
     }
 
-    public void UpdateExistUser(string userId, User user)
+    public async Task UpdateExistUser(string userId, User user)
     {
         user.Id = userId;
-        CreateUser(user);
+        await CreateUser(user);
     }
 
-    public void UpdateUserVerified(string userId)
+    public async Task UpdateUserVerified(string userId)
     {
-        var user = GetUserById(userId);
+        var user = await GetUserById(userId);
         if (user == null) return;
 
         user.Verified = true;
         var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, user.Id);
         var path = Path.Combine(dir, USER_FILE);
-        File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
+        await File.WriteAllTextAsync(path, JsonSerializer.Serialize(user, _options));
     }
 
     public async ValueTask<PagedItems<User>> GetUsers(UserFilter filter)
@@ -147,7 +153,7 @@ public partial class FileRepository
         };
     }
 
-    public List<User> SearchLoginUsers(User filter, string source = UserSource.Internal)
+    public Task<List<User>> SearchLoginUsers(User filter, string source = UserSource.Internal)
     {
         List<User> searchResult = [];
 
@@ -203,10 +209,10 @@ public partial class FileRepository
             }
         }
 
-        return searchResult;
+        return Task.FromResult(searchResult);
     }
 
-    public User? GetUserDetails(string userId, bool includeAgent = false)
+    public Task<User?> GetUserDetails(string userId, bool includeAgent = false)
     {
         if (string.IsNullOrWhiteSpace(userId)) return null;
 
@@ -225,7 +231,7 @@ public partial class FileRepository
                 Actions = x.Actions
             }).ToList();
             user.AgentActions = agentActions;
-            return user;
+            return Task.FromResult(user);
         }
 
         var agentIds = userAgents.Select(x => x.AgentId)?.Distinct().ToList();
@@ -249,10 +255,10 @@ public partial class FileRepository
         }
 
         user.AgentActions = agentActions;
-        return user;
+        return Task.FromResult(user);
     }
 
-    public bool UpdateUser(User user, bool updateUserAgents = false)
+    public async Task<bool> UpdateUser(User user, bool updateUserAgents = false)
     {
         if (string.IsNullOrEmpty(user?.Id))
         {
@@ -277,7 +283,7 @@ public partial class FileRepository
         curUser.Role = user.Role;
         curUser.Permissions = user.Permissions;
         curUser.UpdatedTime = DateTime.UtcNow;
-        File.WriteAllText(userFile, JsonSerializer.Serialize(curUser, _options));
+        await File.WriteAllTextAsync(userFile, JsonSerializer.Serialize(curUser, _options));
 
         if (updateUserAgents)
         {
@@ -292,7 +298,7 @@ public partial class FileRepository
             })?.ToList() ?? [];
 
             var userAgentFile = Path.Combine(dir, USER_AGENT_FILE);
-            File.WriteAllText(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
+            await File.WriteAllTextAsync(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
             _userAgents = [];
         }
 
@@ -300,9 +306,9 @@ public partial class FileRepository
         return true;
     }
 
-    public void AddDashboardConversation(string userId, string conversationId)
+    public async Task AddDashboardConversation(string userId, string conversationId)
     {
-        var user = GetUserById(userId);
+        var user = await GetUserById(userId);
         if (user == null)
         {
             return;
@@ -327,12 +333,12 @@ public partial class FileRepository
 
         var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, userId);
         var path = Path.Combine(dir, DASHBOARD_FILE);
-        File.WriteAllText(path, JsonSerializer.Serialize(dash, _options));
+        await File.WriteAllTextAsync(path, JsonSerializer.Serialize(dash, _options));
     }
 
-    public void RemoveDashboardConversation(string userId, string conversationId)
+    public async Task RemoveDashboardConversation(string userId, string conversationId)
     {
-        var user = GetUserById(userId);
+        var user = await GetUserById(userId);
         if (user == null)
         {
             return;
@@ -356,12 +362,12 @@ public partial class FileRepository
 
         var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, userId);
         var path = Path.Combine(dir, DASHBOARD_FILE);
-        File.WriteAllText(path, JsonSerializer.Serialize(dash, _options));
+        await File.WriteAllTextAsync(path, JsonSerializer.Serialize(dash, _options));
     }
 
-    public void UpdateDashboardConversation(string userId, DashboardConversation dashConv)
+    public async Task UpdateDashboardConversation(string userId, DashboardConversation dashConv)
     {
-        var user = GetUserById(userId);
+        var user = await GetUserById(userId);
         if (user == null)
         {
             return;
@@ -385,6 +391,6 @@ public partial class FileRepository
 
         var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, userId);
         var path = Path.Combine(dir, DASHBOARD_FILE);
-        File.WriteAllText(path, JsonSerializer.Serialize(dash, _options));
+        await File.WriteAllTextAsync(path, JsonSerializer.Serialize(dash, _options));
     }
 }

@@ -103,7 +103,7 @@ public partial class ConversationService : IConversationService
     public async Task<Conversation> NewConversation(Conversation sess)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = db.GetUserById(_user.Id);
+        var user = await db.GetUserById(_user.Id);
         var foundUserId = user?.Id ?? string.Empty;
 
         var record = sess;
