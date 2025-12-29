@@ -82,7 +82,7 @@ public partial class FileRepository
         };
     }
 
-    public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
+    public async Task<bool> UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
         {
@@ -113,19 +113,19 @@ public partial class FileRepository
             var file = Path.Combine(dir, script.Name);
             if (options?.IsUpsert == true || File.Exists(file))
             {
-                File.WriteAllText(file, script.Content);
+                await File.WriteAllTextAsync(file, script.Content);
             }
         }
 
         return true;
     }
 
-    public bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
+    public async Task<bool> BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
     {
-        return UpdateAgentCodeScripts(agentId, scripts, options: new() { IsUpsert = true });
+        return await UpdateAgentCodeScripts(agentId, scripts, options: new() { IsUpsert = true });
     }
 
-    public bool DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? scripts = null)
+    public async Task<bool> DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? scripts = null)
     {
         if (string.IsNullOrWhiteSpace(agentId))
         {
@@ -161,7 +161,7 @@ public partial class FileRepository
             }
         }
 
-        return true;
+        return await Task.FromResult(true);
     }
     #endregion
 

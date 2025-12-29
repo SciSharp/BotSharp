@@ -16,7 +16,7 @@ public partial class AgentService
             return false;
         }
 
-        var deleted = _db.DeleteAgent(id, options);
-        return await Task.FromResult(deleted);
+        var deleted = await _db.DeleteAgent(id, options);
+        return deleted;
     }
 }

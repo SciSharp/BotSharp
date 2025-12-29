@@ -53,7 +53,7 @@ public class TwilioConversationHook : ConversationHookBase, IConversationHook
                 }
 
                 // Save all states before reconnect
-                states.Save();
+                await states.Save();
 
                 CallResource.Update(
                     pathSid: sid,

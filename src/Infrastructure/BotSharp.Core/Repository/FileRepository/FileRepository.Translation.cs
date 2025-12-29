@@ -5,7 +5,7 @@ namespace BotSharp.Core.Repository;
 
 public partial class FileRepository
 {
-    public IEnumerable<TranslationMemoryOutput> GetTranslationMemories(IEnumerable<TranslationMemoryQuery> queries)
+    public async Task<IEnumerable<TranslationMemoryOutput>> GetTranslationMemories(IEnumerable<TranslationMemoryQuery> queries)
     {
         var list = new List<TranslationMemoryOutput>();
         if (queries.IsNullOrEmpty())
@@ -20,7 +20,7 @@ public partial class FileRepository
             return list;
         }
 
-        var content = File.ReadAllText(file);
+        var content = await File.ReadAllTextAsync(file);
         if (string.IsNullOrWhiteSpace(content))
         {
             return list;
@@ -52,7 +52,7 @@ public partial class FileRepository
         return list;
     }
 
-    public bool SaveTranslationMemories(IEnumerable<TranslationMemoryInput> inputs)
+    public async Task<bool> SaveTranslationMemories(IEnumerable<TranslationMemoryInput> inputs)
     {
         if (inputs.IsNullOrEmpty()) return false;
 
@@ -68,7 +68,7 @@ public partial class FileRepository
             var content = string.Empty;
             if (File.Exists(file))
             {
-                content = File.ReadAllText(file);
+                content = await File.ReadAllTextAsync(file);
             }
             
             var memories = ReadTranslationMemoryContent(content);
@@ -129,7 +129,7 @@ public partial class FileRepository
             }
 
             var json = JsonSerializer.Serialize(memories, _options);
-            File.WriteAllText(file, json);
+            await File.WriteAllTextAsync(file, json);
             return true;
         }
         catch (Exception ex)

@@ -66,7 +66,7 @@ public class HFReasoner : IRoutingReasoner
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
             var filter = new AgentFilter { AgentNames = [inst.AgentName] };
-            var agent = db.GetAgents(filter).FirstOrDefault();
+            var agent = (await db.GetAgents(filter)).FirstOrDefault();
 
             var context = _services.GetRequiredService<IRoutingContext>();
             context.Push(agent.Id, reason: inst.NextActionReason);

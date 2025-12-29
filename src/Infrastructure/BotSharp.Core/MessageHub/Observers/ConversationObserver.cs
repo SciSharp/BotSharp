@@ -50,7 +50,7 @@ public class ConversationObserver : BotSharpObserverBase<HubObserveData<RoleDial
             routingCtx.AddDialogs([value.Data]);
             if (value.SaveDataToDb)
             {
-                storage.Append(conv.ConversationId, value.Data);
+                storage.Append(conv.ConversationId, value.Data).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
     }

@@ -41,7 +41,7 @@ public class WebIntelligentSearchFn : IFunctionCallback
         var dialogs = routingCtx.GetDialogs();
         if (dialogs.IsNullOrEmpty())
         {
-            dialogs = conv.GetDialogHistory();
+            dialogs = await conv.GetDialogHistory();
         }
 
         var response = await GetChatCompletion(agent, dialogs);

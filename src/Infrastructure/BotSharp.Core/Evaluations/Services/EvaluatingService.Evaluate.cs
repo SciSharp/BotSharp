@@ -16,7 +16,7 @@ public partial class EvaluatingService
         }
 
         var storage = _services.GetRequiredService<IConversationStorage>();
-        var refDialogs = storage.GetDialogs(conversationId);
+        var refDialogs = await storage.GetDialogs(conversationId);
 
         if (refDialogs.IsNullOrEmpty())
         {
@@ -32,7 +32,7 @@ public partial class EvaluatingService
             return result;
         }
 
-        var initialStates = GetInitialStates(conversationId);
+        var initialStates = await GetInitialStates(conversationId);
         var generatedConvId = await SimulateConversation(initMessage, refDialogContents, request, initialStates);
         var metricResult = await EvaluateMetrics(generatedConvId, refDialogContents, request);
 
@@ -118,7 +118,7 @@ public partial class EvaluatingService
         var agentService = _services.GetRequiredService<IAgentService>();
         var instructService = _services.GetRequiredService<IInstructService>();
 
-        var curDialogs = storage.GetDialogs(curConversationId);
+        var curDialogs = await storage.GetDialogs(curConversationId);
         var curDialogContents = GetConversationContent(curDialogs);
 
         var query = "Please follow the instruction for evaluation.";
@@ -161,7 +161,7 @@ public partial class EvaluatingService
         return contents;
     }
 
-    private IEnumerable<MessageState> GetInitialStates(string conversationId)
+    private async Task<IEnumerable<MessageState>> GetInitialStates(string conversationId)
     {
         if (string.IsNullOrWhiteSpace(conversationId))
         {
@@ -169,7 +169,7 @@ public partial class EvaluatingService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var states = db.GetConversationStates(conversationId);
+        var states = await db.GetConversationStates(conversationId);
         var initialStates = new List<MessageState>();
 
         foreach (var state in states)

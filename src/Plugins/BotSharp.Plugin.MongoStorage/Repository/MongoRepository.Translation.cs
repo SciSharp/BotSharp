@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
-    public IEnumerable<TranslationMemoryOutput> GetTranslationMemories(IEnumerable<TranslationMemoryQuery> queries)
+    public async Task<IEnumerable<TranslationMemoryOutput>> GetTranslationMemories(IEnumerable<TranslationMemoryQuery> queries)
     {
         var list = new List<TranslationMemoryOutput>();
         if (queries.IsNullOrEmpty())
@@ -15,7 +15,7 @@ public partial class MongoRepository
 
         var hashTexts = queries.Where(x => !string.IsNullOrEmpty(x.HashText)).Select(x => x.HashText).ToList();
         var filter = Builders<TranslationMemoryDocument>.Filter.In(x => x.HashText, hashTexts);
-        var memories = _dc.TranslationMemories.Find(filter).ToList();
+        var memories = await _dc.TranslationMemories.Find(filter).ToListAsync();
         if (memories.IsNullOrEmpty()) return list;
 
         foreach (var query in queries)
@@ -43,13 +43,13 @@ public partial class MongoRepository
         return list;
     }
 
-    public bool SaveTranslationMemories(IEnumerable<TranslationMemoryInput> inputs)
+    public async Task<bool> SaveTranslationMemories(IEnumerable<TranslationMemoryInput> inputs)
     {
         if (inputs.IsNullOrEmpty()) return false;
 
         var hashTexts = inputs.Where(x => !string.IsNullOrEmpty(x.HashText)).Select(x => x.HashText).ToList();
         var filter = Builders<TranslationMemoryDocument>.Filter.In(x => x.HashText, hashTexts);
-        var memories = _dc.TranslationMemories.Find(filter)?.ToList() ?? [];
+        var memories = await _dc.TranslationMemories.Find(filter).ToListAsync() ?? [];
 
         var newMemories = new List<TranslationMemoryDocument>();
         var updateMemories = new List<TranslationMemoryDocument>();
@@ -102,7 +102,7 @@ public partial class MongoRepository
 
             if (!newMemories.IsNullOrEmpty())
             {
-                _dc.TranslationMemories.InsertMany(newMemories);
+                await _dc.TranslationMemories.InsertManyAsync(newMemories);
             }
 
             if (!updateMemories.IsNullOrEmpty())
@@ -110,8 +110,8 @@ public partial class MongoRepository
                 foreach (var mem in updateMemories)
                 {
                     var updateFilter = Builders<TranslationMemoryDocument>.Filter.Eq(x => x.Id, mem.Id);
-                    _dc.TranslationMemories.ReplaceOne(updateFilter, mem);
-                    Thread.Sleep(50);
+                    await _dc.TranslationMemories.ReplaceOneAsync(updateFilter, mem);
+                    await Task.Delay(50);
                 }
             }
             return true;

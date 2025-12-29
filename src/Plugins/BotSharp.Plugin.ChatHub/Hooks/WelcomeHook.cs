@@ -78,7 +78,7 @@ public class WelcomeHook : ConversationHookBase
                 };
 
                 await Task.Delay(300);
-                _storage.Append(conversation.Id, dialog);
+                await _storage.Append(conversation.Id, dialog);
                 await SendEvent(ChatEvent.OnMessageReceivedFromAssistant, conversation.Id, data);
             }
         }

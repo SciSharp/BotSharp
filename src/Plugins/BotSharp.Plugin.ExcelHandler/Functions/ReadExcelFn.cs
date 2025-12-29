@@ -41,7 +41,7 @@ public class ReadExcelFn : IFunctionCallback
         var dialogs = routingCtx.GetDialogs();
         if (dialogs.IsNullOrEmpty())
         {
-            dialogs = conv.GetDialogHistory();
+            dialogs = await conv.GetDialogHistory();
         }
 
         var isExcelExist = AssembleFiles(conv.ConversationId, dialogs);

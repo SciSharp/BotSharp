@@ -31,7 +31,7 @@ public class TokenStatistics : ITokenStatistics
         _logger = logger;
     }
 
-    public void AddToken(TokenStatsModel stats, RoleDialogModel message)
+    public async Task AddToken(TokenStatsModel stats, RoleDialogModel message)
     {
         _model = stats.Model;
         _promptTokenCount += stats.TotalInputTokens;
@@ -108,7 +108,7 @@ public class TokenStatistics : ITokenStatistics
                 ImageGenerationTotalCostDelta = deltaImageGenerationCost
             }
         };
-        globalStats.UpdateStats($"global-{metric}-{dim}-{agentId}", delta);
+        await globalStats.UpdateStats($"global-{metric}-{dim}-{agentId}", delta);
     }
 
     public void PrintStatistics()

@@ -212,7 +212,7 @@ public partial class FileRepository
         return Task.FromResult(searchResult);
     }
 
-    public Task<User?> GetUserDetails(string userId, bool includeAgent = false)
+    public async Task<User?> GetUserDetails(string userId, bool includeAgent = false)
     {
         if (string.IsNullOrWhiteSpace(userId)) return null;
 
@@ -231,13 +231,13 @@ public partial class FileRepository
                 Actions = x.Actions
             }).ToList();
             user.AgentActions = agentActions;
-            return Task.FromResult(user);
+            return user;
         }
 
         var agentIds = userAgents.Select(x => x.AgentId)?.Distinct().ToList();
         if (!agentIds.IsNullOrEmpty())
         {
-            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+            var agents = await GetAgents(new AgentFilter { AgentIds = agentIds });
 
             foreach (var item in userAgents)
             {
@@ -255,7 +255,7 @@ public partial class FileRepository
         }
 
         user.AgentActions = agentActions;
-        return Task.FromResult(user);
+        return user;
     }
 
     public async Task<bool> UpdateUser(User user, bool updateUserAgents = false)

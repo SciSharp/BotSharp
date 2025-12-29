@@ -6,7 +6,7 @@ public partial class KnowledgeService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var collections = configs.Collections ?? new();
-        var saved = db.AddKnowledgeCollectionConfigs(collections, reset: true);
-        return await Task.FromResult(saved);
+        var saved = await db.AddKnowledgeCollectionConfigs(collections, reset: true);
+        return saved;
     }
 }

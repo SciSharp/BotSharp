@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
-    public bool RefreshRoles(IEnumerable<Role> roles)
+    public async Task<bool> RefreshRoles(IEnumerable<Role> roles)
     {
         if (roles.IsNullOrEmpty()) return false;
 
@@ -15,8 +15,8 @@ public partial class MongoRepository
 
 
         // Clear data
-        _dc.RoleAgents.DeleteMany(Builders<RoleAgentDocument>.Filter.Empty);
-        _dc.Roles.DeleteMany(Builders<RoleDocument>.Filter.Empty);
+        await _dc.RoleAgents.DeleteManyAsync(Builders<RoleAgentDocument>.Filter.Empty);
+        await _dc.Roles.DeleteManyAsync(Builders<RoleDocument>.Filter.Empty);
 
         var roleDocs = validRoles.Select(x => new RoleDocument
         {
@@ -26,13 +26,13 @@ public partial class MongoRepository
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow
         });
-        _dc.Roles.InsertMany(roleDocs);
+        await _dc.Roles.InsertManyAsync(roleDocs);
 
         return true;
     }
 
 
-    public IEnumerable<Role> GetRoles(RoleFilter filter)
+    public async Task<IEnumerable<Role>> GetRoles(RoleFilter filter)
     {
         if (filter == null)
         {
@@ -54,22 +54,22 @@ public partial class MongoRepository
         }
 
         // Search
-        var roleDocs = _dc.Roles.Find(roleBuilder.And(roleFilters)).ToList();
+        var roleDocs = await _dc.Roles.Find(roleBuilder.And(roleFilters)).ToListAsync();
         var roles = roleDocs.Select(x => x.ToRole()).ToList();
 
         return roles;
     }
 
-    public Role? GetRoleDetails(string roleId, bool includeAgent = false)
+    public async Task<Role?> GetRoleDetails(string roleId, bool includeAgent = false)
     {
         if (string.IsNullOrWhiteSpace(roleId)) return null;
 
-        var roleDoc = _dc.Roles.Find(Builders<RoleDocument>.Filter.Eq(x => x.Id, roleId)).FirstOrDefault();
+        var roleDoc = await _dc.Roles.Find(Builders<RoleDocument>.Filter.Eq(x => x.Id, roleId)).FirstOrDefaultAsync();
         if (roleDoc == null) return null;
 
         var agentActions = new List<RoleAgentAction>();
         var role = roleDoc.ToRole();
-        var roleAgentDocs = _dc.RoleAgents.Find(Builders<RoleAgentDocument>.Filter.Eq(x => x.RoleId, roleId)).ToList();
+        var roleAgentDocs = await _dc.RoleAgents.Find(Builders<RoleAgentDocument>.Filter.Eq(x => x.RoleId, roleId)).ToListAsync();
 
         if (!includeAgent)
         {
@@ -86,7 +86,7 @@ public partial class MongoRepository
         var agentIds = roleAgentDocs.Select(x => x.AgentId).Distinct().ToList();
         if (!agentIds.IsNullOrEmpty())
         {
-            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+            var agents = await GetAgents(new AgentFilter { AgentIds = agentIds });
 
             foreach (var item in roleAgentDocs)
             {
@@ -107,7 +107,7 @@ public partial class MongoRepository
         return role;
     }
 
-    public bool UpdateRole(Role role, bool updateRoleAgents = false)
+    public async Task<bool> UpdateRole(Role role, bool updateRoleAgents = false)
     {
         if (string.IsNullOrEmpty(role?.Id)) return false;
 
@@ -118,7 +118,7 @@ public partial class MongoRepository
                                                .Set(x => x.CreatedTime, DateTime.UtcNow)
                                                .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Roles.UpdateOne(roleFilter, roleUpdate, _options);
+        await _dc.Roles.UpdateOneAsync(roleFilter, roleUpdate, _options);
 
         if (updateRoleAgents)
         {
@@ -132,12 +132,12 @@ public partial class MongoRepository
                 UpdatedTime = DateTime.UtcNow
             })?.ToList() ?? [];
 
-            var toDelete = _dc.RoleAgents.Find(Builders<RoleAgentDocument>.Filter.And(
+            var toDelete = await _dc.RoleAgents.Find(Builders<RoleAgentDocument>.Filter.And(
                     Builders<RoleAgentDocument>.Filter.Eq(x => x.RoleId, role.Id),
                     Builders<RoleAgentDocument>.Filter.Nin(x => x.Id, roleAgentDocs.Select(x => x.Id))
-                )).ToList();
+                )).ToListAsync();
 
-            _dc.RoleAgents.DeleteMany(Builders<RoleAgentDocument>.Filter.In(x => x.Id, toDelete.Select(x => x.Id)));
+            await _dc.RoleAgents.DeleteManyAsync(Builders<RoleAgentDocument>.Filter.In(x => x.Id, toDelete.Select(x => x.Id)));
             foreach (var doc in roleAgentDocs)
             {
                 var roleAgentFilter = Builders<RoleAgentDocument>.Filter.Eq(x => x.Id, doc.Id);
@@ -148,7 +148,7 @@ public partial class MongoRepository
                     .Set(x => x.Actions, doc.Actions)
                     .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-                _dc.RoleAgents.UpdateOne(roleAgentFilter, roleAgentUpdate, _options);
+                await _dc.RoleAgents.UpdateOneAsync(roleAgentFilter, roleAgentUpdate, _options);
             }
         }
 

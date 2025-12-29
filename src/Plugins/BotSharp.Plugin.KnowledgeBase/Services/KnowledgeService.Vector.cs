@@ -33,7 +33,7 @@ public partial class KnowledgeService
             }
 
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var created = db.AddKnowledgeCollectionConfigs(new List<VectorCollectionConfig>
+            var created = await db.AddKnowledgeCollectionConfigs(new List<VectorCollectionConfig>
             {
                 new VectorCollectionConfig
                 {
@@ -138,9 +138,9 @@ public partial class KnowledgeService
                 var fileStorage = _services.GetRequiredService<IFileStorageService>();
                 var vectorStoreProvider = _settings.VectorDb.Provider;
 
-                db.DeleteKnowledgeCollectionConfig(collectionName);
+                await db.DeleteKnowledgeCollectionConfig(collectionName);
                 fileStorage.DeleteKnowledgeFile(collectionName, vectorStoreProvider);
-                db.DeleteKnolwedgeBaseFileMeta(collectionName, vectorStoreProvider);
+                await db.DeleteKnolwedgeBaseFileMeta(collectionName, vectorStoreProvider);
             }
 
             return deleted;

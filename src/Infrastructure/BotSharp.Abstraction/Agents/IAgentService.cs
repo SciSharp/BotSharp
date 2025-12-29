@@ -67,7 +67,7 @@ public interface IAgentService
 
     Task<List<UserAgent>> GetUserAgents(string userId);
 
-    PluginDef GetPlugin(string agentId);
+    Task<PluginDef> GetPlugin(string agentId);
 
     Task<List<AgentCodeScript>> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
         => Task.FromResult(new List<AgentCodeScript>());

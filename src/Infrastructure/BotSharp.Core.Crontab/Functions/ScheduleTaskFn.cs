@@ -30,7 +30,7 @@ public class ScheduleTaskFn : IFunctionCallback
 
         if (string.IsNullOrEmpty(args.Cron))
         {
-            var ret = db.DeleteCrontabItem(routing.ConversationId);
+            var ret = await db.DeleteCrontabItem(routing.ConversationId);
             message.Content = $"Task schedule canceled result: {ret}";
         }
         else
@@ -46,7 +46,7 @@ public class ScheduleTaskFn : IFunctionCallback
                 Tasks = args.Tasks,
             };
 
-            var ret = db.UpsertCrontabItem(crontabItem);
+            var ret = await db.UpsertCrontabItem(crontabItem);
             message.Content = $"Task scheduled result: {ret}";
         }
 

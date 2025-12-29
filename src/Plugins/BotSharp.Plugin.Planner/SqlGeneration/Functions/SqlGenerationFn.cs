@@ -113,7 +113,7 @@ public class SqlGenerationFn : IFunctionCallback
     private async Task<RoleDialogModel> GetAiResponse(Agent plannerAgent)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        var wholeDialogs = conv.GetDialogHistory();
+        var wholeDialogs = await conv.GetDialogHistory();
 
         // Append text
         wholeDialogs.Last().Content += "\n\nIf the table structure didn't mention auto incremental, the data field id needs to insert id manually and you need to use max(id).\nFor example, you should use SET @id = select max(id) from table;";

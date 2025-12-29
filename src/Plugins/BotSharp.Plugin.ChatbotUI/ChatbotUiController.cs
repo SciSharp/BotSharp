@@ -76,7 +76,7 @@ public class ChatbotUiController : ControllerBase
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(input.ConversationId, message.MessageId);
 
-        conv.SetConversationId(input.ConversationId, input.States);
+        await conv.SetConversationId(input.ConversationId, input.States);
         conv.States.SetState("channel", input.Channel)
                    .SetState("provider", "azure-openai")
                    .SetState("model", model)

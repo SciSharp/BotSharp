@@ -6,7 +6,7 @@ public partial class ConversationService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var deleteMessageIds = db.TruncateConversation(conversationId, messageId, cleanLog: true);
+        var deleteMessageIds = await db.TruncateConversation(conversationId, messageId, cleanLog: true);
         fileStorage.DeleteMessageFiles(conversationId, deleteMessageIds, messageId, newMessageId);
 
         var hooks = _services.GetServices<IConversationHook>();

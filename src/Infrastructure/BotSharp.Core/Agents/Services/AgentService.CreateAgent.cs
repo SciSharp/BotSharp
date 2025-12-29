@@ -11,7 +11,7 @@ public partial class AgentService
     public async Task<Agent> CreateAgent(Agent agent)
     {
         var userIdentity = _services.GetRequiredService<IUserIdentity>();
-        var userAgents = _db.GetUserAgents(userIdentity.Id);
+        var userAgents = await _db.GetUserAgents(userIdentity.Id);
         var found = userAgents?.FirstOrDefault(x => x.Agent != null && x.Agent.Name.IsEqualTo(agent.Name));
         if (found != null)
         {
@@ -30,10 +30,10 @@ public partial class AgentService
         var userService = _services.GetRequiredService<IUserService>();
         var auth = await userService.GetUserAuthorizations();
 
-        _db.BulkInsertAgents(new List<Agent> { agentRecord });
+        await _db.BulkInsertAgents(new List<Agent> { agentRecord });
         if (auth.IsAdmin || auth.Permissions.Contains(UserPermission.CreateAgent))
         {
-            _db.BulkInsertUserAgents(new List<UserAgent>
+            await _db.BulkInsertUserAgents(new List<UserAgent>
             {
                 new UserAgent
                 {

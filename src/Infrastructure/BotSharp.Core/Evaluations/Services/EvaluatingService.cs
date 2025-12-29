@@ -98,7 +98,7 @@ public partial class EvaluatingService : IEvaluatingService
 
         var inputMsg = new RoleDialogModel(AgentRole.User, text);
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
-        conv.SetConversationId(conversationId, states ?? []);
+        await conv.SetConversationId(conversationId, states ?? []);
 
         RoleDialogModel response = default;
 

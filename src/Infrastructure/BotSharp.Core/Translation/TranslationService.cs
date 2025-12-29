@@ -92,7 +92,7 @@ public class TranslationService : ITranslationService
 
         if (_convSettings.EnableTranslationMemory)
         {
-            var memories = _db.GetTranslationMemories(queries);
+            var memories = await _db.GetTranslationMemories(queries);
             var memoryHashes = memories.Select(x => x.HashText).ToList();
 
             foreach (var memory in memories)
@@ -149,7 +149,7 @@ public class TranslationService : ITranslationService
 
                 if (_convSettings.EnableTranslationMemory)
                 {
-                    _db.SaveTranslationMemories(memoryInputs);
+                    await _db.SaveTranslationMemories(memoryInputs);
                 }
             }
             

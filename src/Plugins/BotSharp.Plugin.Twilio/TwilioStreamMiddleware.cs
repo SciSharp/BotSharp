@@ -77,7 +77,7 @@ public class TwilioStreamMiddleware
 
         // load conversation and state
         var convService = services.GetRequiredService<IConversationService>();
-        convService.SetConversationId(conversationId, []);
+        await convService.SetConversationId(conversationId, []);
 
         var hooks = services.GetHooks<ITwilioSessionHook>(agentId);
         foreach (var hook in hooks)
@@ -85,7 +85,7 @@ public class TwilioStreamMiddleware
             await hook.OnStreamingStarted(conn);
         }
 
-        convService.States.Save();
+        await convService.States.Save();
 
         var routing = services.GetRequiredService<IRoutingService>();
         routing.Context.Push(agentId);
@@ -141,7 +141,7 @@ public class TwilioStreamMiddleware
             }
         }
 
-        convService.SaveStates();
+        await convService.SaveStates();
         await session.DisconnectAsync();
     }
 
@@ -275,7 +275,7 @@ public class TwilioStreamMiddleware
         dialogs.Add(message);
 
         var storage = _services.GetRequiredService<IConversationStorage>();
-        storage.Append(conn.ConversationId, message);
+        await storage.Append(conn.ConversationId, message);
 
         var hooks = _services.GetHooksOrderByPriority<IConversationHook>(conn.CurrentAgentId);
         foreach (var hook in hooks)

@@ -8,12 +8,12 @@ public partial class AgentService
     [SharpCache(10)]
     public async Task<PagedItems<Agent>> GetAgents(AgentFilter filter)
     {
-        var agents = _db.GetAgents(filter);
+        var agents = await _db.GetAgents(filter);
 
         var routeSetting = _services.GetRequiredService<RoutingSettings>();
         foreach (var agent in agents)
         {
-            agent.Plugin = GetPlugin(agent.Id);
+            agent.Plugin = await GetPlugin(agent.Id);
         }
 
         agents = agents.Where(x => x.Installed).ToList();
@@ -29,11 +29,11 @@ public partial class AgentService
     public async Task<List<IdName>> GetAgentOptions(List<string>? agentIdsOrNames, bool byName = false)
     {
         var agents = byName ? 
-            _db.GetAgents(new AgentFilter
+            await _db.GetAgents(new AgentFilter
             {
                 AgentNames = !agentIdsOrNames.IsNullOrEmpty() ? agentIdsOrNames : null
             }) :
-            _db.GetAgents(new AgentFilter
+            await _db.GetAgents(new AgentFilter
             {
                 AgentIds = !agentIdsOrNames.IsNullOrEmpty() ? agentIdsOrNames : null
             });
@@ -70,7 +70,7 @@ public partial class AgentService
             profile.LlmConfig.Model = agentSetting.LlmConfig.Model;
         }
 
-        profile.Plugin = GetPlugin(profile.Id);
+        profile.Plugin = await GetPlugin(profile.Id);
 
         AddDefaultInstruction(profile, profile.Instruction);
 

@@ -48,7 +48,7 @@ public partial class AgentService
             record.LlmConfig = agent.LlmConfig;
         }
 
-        _db.UpdateAgent(record, updateField);
+        await _db.UpdateAgent(record, updateField);
 
         Utilities.ClearCache();
         await Task.CompletedTask;
@@ -79,7 +79,7 @@ public partial class AgentService
         {
             if (template == null) continue;
 
-            var result = _db.PatchAgentTemplate(agent.Id, template);
+            var result = await _db.PatchAgentTemplate(agent.Id, template);
             if (result)
             {
                 successTemplates.Add(template.Name);

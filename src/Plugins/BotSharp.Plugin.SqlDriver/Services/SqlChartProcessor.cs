@@ -28,7 +28,7 @@ public class SqlChartProcessor : IChartProcessor
         if (!string.IsNullOrWhiteSpace(options?.TargetStateName))
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var states = db.GetConversationStates(conversationId);
+            var states = await db.GetConversationStates(conversationId);
             var value = states?.GetValueOrDefault(options?.TargetStateName)?.Values?.LastOrDefault()?.Data;
 
             // To do

@@ -5,10 +5,10 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    public PluginDef GetPlugin(string agentId)
+    public async Task<PluginDef> GetPlugin(string agentId)
     {
         var loader = _services.GetRequiredService<PluginLoader>();
-        var plugins = loader.GetPlugins(_services);
+        var plugins = await loader.GetPlugins(_services);
         return plugins.FirstOrDefault(x => x.AgentIds.Contains(agentId)) ??
             new PluginDef
             {

@@ -12,8 +12,8 @@ public partial class LoggerService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var logs = db.GetConversationContentLogs(conversationId, filter);
-        return await Task.FromResult(logs);
+        var logs = await db.GetConversationContentLogs(conversationId, filter);
+        return logs;
     }
 
 
@@ -25,7 +25,7 @@ public partial class LoggerService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var logs = db.GetConversationStateLogs(conversationId, filter);
-        return await Task.FromResult(logs);
+        var logs = await db.GetConversationStateLogs(conversationId, filter);
+        return logs;
     }
 }

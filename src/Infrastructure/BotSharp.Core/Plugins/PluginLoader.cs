@@ -99,11 +99,11 @@ public class PluginLoader(IServiceCollection services,
         }
     }
 
-    public List<PluginDef> GetPlugins(IServiceProvider services)
+    public async Task<List<PluginDef>> GetPlugins(IServiceProvider services)
     {
         // Apply user configurations
         var db = services.GetRequiredService<IBotSharpRepository>();
-        var config = db.GetPluginConfig();
+        var config = await db.GetPluginConfig();
         foreach (var plugin in _plugins)
         {
             plugin.Enabled = plugin.IsCore || config.EnabledPlugins.Contains(plugin.Id);
@@ -111,9 +111,9 @@ public class PluginLoader(IServiceCollection services,
         return _plugins;
     }
 
-    public PagedItems<PluginDef> GetPagedPlugins(IServiceProvider services, PluginFilter filter)
+    public async Task<PagedItems<PluginDef>> GetPagedPlugins(IServiceProvider services, PluginFilter filter)
     {
-        var plugins = GetPlugins(services);
+        var plugins = await GetPlugins(services);
         var pager = filter?.Pager ?? new Pagination();
 
         // Apply filter
@@ -135,14 +135,14 @@ public class PluginLoader(IServiceCollection services,
         };
     }
 
-    public PluginDef UpdatePluginStatus(IServiceProvider services, string id, bool enable)
+    public async Task<PluginDef> UpdatePluginStatus(IServiceProvider services, string id, bool enable)
     {
         var plugin = _plugins.First(x => x.Id == id);
         plugin.Enabled = enable;
 
         // save to config
         var db = services.GetRequiredService<IBotSharpRepository>();
-        var config = db.GetPluginConfig();
+        var config = await db.GetPluginConfig();
         if (enable)
         {
             var dependentPlugins = new HashSet<string>();
@@ -152,27 +152,27 @@ public class PluginLoader(IServiceCollection services,
             if (!missingPlugins.IsNullOrEmpty())
             {
                 config.EnabledPlugins.AddRange(missingPlugins);
-                db.SavePluginConfig(config);
+                await db.SavePluginConfig(config);
             }
 
             // enable agents
             var agentService = services.GetRequiredService<IAgentService>();
             foreach (var agentId in dependentAgentIds) 
             {
-                var agent = agentService.LoadAgent(agentId).ConfigureAwait(false).GetAwaiter().GetResult();
+                var agent = await agentService.LoadAgent(agentId);
                 if (agent == null)
                 {
                     continue;
                 }
 
                 agent.Disabled = false;
-                agentService.UpdateAgent(agent, AgentField.Disabled);
+                await agentService.UpdateAgent(agent, AgentField.Disabled);
 
                 if (agent.InheritAgentId != null)
                 {
-                    agent = agentService.LoadAgent(agent.InheritAgentId).ConfigureAwait(false).GetAwaiter().GetResult();
+                    agent = await agentService.LoadAgent(agent.InheritAgentId);
                     agent.Disabled = false;
-                    agentService.UpdateAgent(agent, AgentField.Disabled);
+                    await agentService.UpdateAgent(agent, AgentField.Disabled);
                 }
             } 
         }
@@ -181,21 +181,21 @@ public class PluginLoader(IServiceCollection services,
             if (config.EnabledPlugins.Exists(x => x == id))
             {
                 config.EnabledPlugins.Remove(id);
-                db.SavePluginConfig(config);
+                await db.SavePluginConfig(config);
             }
 
             // disable agents
             var agentService = services.GetRequiredService<IAgentService>();
             foreach (var agentId in plugin.AgentIds)
             {
-                var agent = agentService.LoadAgent(agentId).ConfigureAwait(false).GetAwaiter().GetResult();
+                var agent = await agentService.LoadAgent(agentId);
                 if (agent == null)
                 {
                     continue;
                 }
 
                 agent.Disabled = true;
-                agentService.UpdateAgent(agent, AgentField.Disabled);
+                await agentService.UpdateAgent(agent, AgentField.Disabled);
             }
         }
         return plugin;

@@ -71,7 +71,7 @@ public class HandleEmailReaderFn : IFunctionCallback
                     var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model?.Name);
                     var convService = _services.GetRequiredService<IConversationService>();
                     var conversationId = convService.ConversationId;
-                    var dialogs = convService.GetDialogHistory(fromBreakpoint: false);
+                    var dialogs = await convService.GetDialogHistory(fromBreakpoint: false);
                     var response = await completion.GetChatCompletions(agent, dialogs);
                     var content = response?.Content ?? string.Empty;
                     message.Content = content;

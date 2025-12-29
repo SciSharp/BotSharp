@@ -93,7 +93,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
     private async Task<RoleDialogModel> GetAiResponse(Agent plannerAgent)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        var wholeDialogs = conv.GetDialogHistory();
+        var wholeDialogs = await conv.GetDialogHistory();
 
         var completion = CompletionProvider.GetChatCompletion(_services, 
             provider: plannerAgent.LlmConfig.Provider, 

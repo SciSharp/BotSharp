@@ -80,14 +80,14 @@ public class RuleEngine : IRuleEngine
                 allStates.AddRange(states);
             }
 
-            convService.SetConversationId(conv.Id, allStates);
+            await convService.SetConversationId(conv.Id, allStates);
 
             await convService.SendMessage(agent.Id,
                 message,
                 null,
                 msg => Task.CompletedTask);
 
-            convService.SaveStates();
+            await convService.SaveStates();
             newConversationIds.Add(conv.Id);
         }
 

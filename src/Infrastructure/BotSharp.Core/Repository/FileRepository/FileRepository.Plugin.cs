@@ -5,7 +5,7 @@ namespace BotSharp.Core.Repository;
 
 public partial class FileRepository
 {
-    public PluginConfig GetPluginConfig()
+    public async Task<PluginConfig> GetPluginConfig()
     {
         if (_pluginConfig != null)
         {
@@ -24,16 +24,16 @@ public partial class FileRepository
             return _pluginConfig;
         }
 
-        var json = File.ReadAllText(configFile);
+        var json = await File.ReadAllTextAsync(configFile);
         _pluginConfig = JsonSerializer.Deserialize<PluginConfig>(json, _options);
 
         return _pluginConfig;
     }
 
-    public void SavePluginConfig(PluginConfig config)
+    public async Task SavePluginConfig(PluginConfig config)
     {
         var configFile = Path.Combine(_dbSettings.FileRepository, "plugins", "config.json");
-        File.WriteAllText(configFile, JsonSerializer.Serialize(config, _options));
+        await File.WriteAllTextAsync(configFile, JsonSerializer.Serialize(config, _options));
         _pluginConfig = null;
     }
 }

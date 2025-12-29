@@ -90,7 +90,7 @@ public class TwilioMessageQueueService : BackgroundService
         {
             { ChatEvent.OnIndicationReceived, async data => await OnReceiveToolCallIndication(data.Data, message, sessionManager) }
         });
-        InitConversation(message, inputMsg, conv, routing);
+        await InitConversation(message, inputMsg, conv, routing);
 
         // Need to consider Inbound and Outbound call
         var conversation = await conv.GetConversation(message.ConversationId);
@@ -98,7 +98,7 @@ public class TwilioMessageQueueService : BackgroundService
 
         var result = await conv.SendMessage(agentId,
             inputMsg,
-            replyMessage: BuildPostbackMessageModel(conv, message),
+            replyMessage: await BuildPostbackMessageModel(conv, message),
             async msg =>
             {
                 reply = new AssistantMessage()
@@ -121,9 +121,9 @@ public class TwilioMessageQueueService : BackgroundService
         await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
     }
 
-    private PostbackMessageModel BuildPostbackMessageModel(IConversationService conv, CallerMessage message)
+    private async Task<PostbackMessageModel?> BuildPostbackMessageModel(IConversationService conv, CallerMessage message)
     {
-        var messages = conv.GetDialogHistory(1);
+        var messages = await conv.GetDialogHistory(1);
         if (!messages.Any()) return null;
         var lastMessage = messages[0];
         if (string.IsNullOrEmpty(lastMessage.PostbackFunctionName)) return null;
@@ -135,7 +135,7 @@ public class TwilioMessageQueueService : BackgroundService
         };
     }
 
-    private static void InitConversation(CallerMessage message, RoleDialogModel inputMsg, IConversationService conv, IRoutingService routing)
+    private static async Task InitConversation(CallerMessage message, RoleDialogModel inputMsg, IConversationService conv, IRoutingService routing)
     {
         routing.Context.SetMessageId(message.ConversationId, inputMsg.MessageId);
         var states = new List<MessageState>
@@ -145,7 +145,7 @@ public class TwilioMessageQueueService : BackgroundService
             new("calling_phone", message.From)
         };
         states.AddRange(message.States.Select(kvp => new MessageState(kvp.Key, kvp.Value)));
-        conv.SetConversationId(message.ConversationId, states);
+        await conv.SetConversationId(message.ConversationId, states);
     }
 
     private static async Task<string> GetReplySpeechFileName(string conversationId, AssistantMessage reply, IServiceProvider sp)

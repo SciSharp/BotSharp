@@ -232,7 +232,7 @@ public partial class UserService
         return token;
     }
 
-    public async Task<Token> CreateTokenByUser(User user)
+    public Task<Token> CreateTokenByUser(User user)
     {
         var accessToken = GenerateJwtToken(user);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
@@ -243,7 +243,7 @@ public partial class UserService
             TokenType = "Bearer",
             Scope = "api"
         };
-        return token;
+        return Task.FromResult(token);
     }
 
     public async Task<Token?> GetAffiliateToken(string authorization)

@@ -18,10 +18,10 @@ public class SettingController : ControllerBase
     }
 
     [HttpGet("/settings")]
-    public List<string> GetSettings()
+    public async Task<List<string>> GetSettings()
     {
         var pluginService = _services.GetRequiredService<PluginLoader>();
-        var plugins = pluginService.GetPlugins(_services);
+        var plugins = await pluginService.GetPlugins(_services);
 
         return plugins.Where(x => x.Module.Settings != null && !string.IsNullOrEmpty(x.Module.Settings.Name))
             .Select(x => x.Module.Settings.Name)
@@ -30,8 +30,8 @@ public class SettingController : ControllerBase
     }
 
     [HttpGet("/setting/{id}")]
-    public object GetSettingDetail([FromRoute] string id)
+    public async Task<object> GetSettingDetail([FromRoute] string id)
     {
-        return _settingService.GetDetail(id, mask: true);
+        return await _settingService.GetDetail(id, mask: true);
     }
 }

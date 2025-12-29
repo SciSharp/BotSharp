@@ -19,7 +19,7 @@ public class SqlDriverCrontabHook : ICrontabHook
     public async Task OnCronTriggered(CrontabItem item)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(item.ConversationId, []);
+        await conv.SetConversationId(item.ConversationId, []);
 
         _logger.LogWarning($"Crontab item triggered: {item.Title}. {item.Description}");
 

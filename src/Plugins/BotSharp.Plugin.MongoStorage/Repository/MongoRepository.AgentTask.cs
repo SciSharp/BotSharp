@@ -48,7 +48,7 @@ public partial class MongoRepository
         var count = countTask.Result;
 
         var agentIds = docs.Select(x => x.AgentId).Distinct().ToList();
-        var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+        var agents = await GetAgents(new AgentFilter { AgentIds = agentIds });
 
         var tasks = docs.Select(x =>
         {
@@ -64,20 +64,22 @@ public partial class MongoRepository
         };
     }
 
-    public AgentTask? GetAgentTask(string agentId, string taskId)
+    public async Task<AgentTask?> GetAgentTask(string agentId, string taskId)
     {
         if (string.IsNullOrEmpty(taskId))
         {
             return null;
         }
 
-        var taskDoc = _dc.AgentTasks.AsQueryable().FirstOrDefault(x => x.Id == taskId);
+        var taskFilter = Builders<AgentTaskDocument>.Filter.Eq(x => x.Id, taskId);
+        var taskDoc = await _dc.AgentTasks.Find(taskFilter).FirstOrDefaultAsync();
         if (taskDoc == null)
         {
             return null;
         }
 
-        var agentDoc = _dc.Agents.AsQueryable().FirstOrDefault(x => x.Id == taskDoc.AgentId);
+        var agentFilter = Builders<AgentDocument>.Filter.Eq(x => x.Id, taskDoc.AgentId);
+        var agentDoc = await _dc.Agents.Find(agentFilter).FirstOrDefaultAsync();
         var agent = TransformAgentDocument(agentDoc);
 
         var task = AgentTaskDocument.ToDomainModel(taskDoc);
@@ -85,14 +87,14 @@ public partial class MongoRepository
         return task;
     }
 
-    public void InsertAgentTask(AgentTask task)
+    public async Task InsertAgentTask(AgentTask task)
     {
         var taskDoc = AgentTaskDocument.ToMongoModel(task);
         taskDoc.Id = Guid.NewGuid().ToString();
-        _dc.AgentTasks.InsertOne(taskDoc);
+        await _dc.AgentTasks.InsertOneAsync(taskDoc);
     }
 
-    public void BulkInsertAgentTasks(string agentId, List<AgentTask> tasks)
+    public async Task BulkInsertAgentTasks(string agentId, List<AgentTask> tasks)
     {
         if (string.IsNullOrWhiteSpace(agentId) || tasks.IsNullOrEmpty())
         {
@@ -107,10 +109,10 @@ public partial class MongoRepository
             return task;
         }).ToList();
 
-        _dc.AgentTasks.InsertMany(taskDocs);
+        await _dc.AgentTasks.InsertManyAsync(taskDocs);
     }
 
-    public void UpdateAgentTask(AgentTask task, AgentTaskField field)
+    public async Task UpdateAgentTask(AgentTask task, AgentTaskField field)
     {
         if (task == null || string.IsNullOrEmpty(task.Id))
         {
@@ -118,7 +120,7 @@ public partial class MongoRepository
         }
 
         var filter = Builders<AgentTaskDocument>.Filter.Eq(x => x.Id, task.Id);
-        var taskDoc = _dc.AgentTasks.Find(filter).FirstOrDefault();
+        var taskDoc = await _dc.AgentTasks.Find(filter).FirstOrDefaultAsync();
         if (taskDoc == null)
         {
             return;
@@ -151,10 +153,10 @@ public partial class MongoRepository
         }
 
         taskDoc.UpdatedTime = DateTime.UtcNow;
-        _dc.AgentTasks.ReplaceOne(filter, taskDoc);
+        await _dc.AgentTasks.ReplaceOneAsync(filter, taskDoc);
     }
 
-    public bool DeleteAgentTasks(string agentId, List<string>? taskIds = null)
+    public async Task<bool> DeleteAgentTasks(string agentId, List<string>? taskIds = null)
     {
         var filterDef = Builders<AgentTaskDocument>.Filter.Empty;
         if (taskIds != null)
@@ -167,7 +169,7 @@ public partial class MongoRepository
             filterDef = builder.And(filters);
         }
 
-        var taskDeleted = _dc.AgentTasks.DeleteMany(filterDef);
+        var taskDeleted = await _dc.AgentTasks.DeleteManyAsync(filterDef);
         return taskDeleted.DeletedCount > 0;
     }
     #endregion

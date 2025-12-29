@@ -5,10 +5,10 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 public partial class MongoRepository
 {
     #region Plugin
-    public PluginConfig GetPluginConfig()
+    public async Task<PluginConfig> GetPluginConfig()
     {
         var config = new PluginConfig();
-        var found = _dc.Plugins.AsQueryable().FirstOrDefault();
+        var found = await _dc.Plugins.Find(Builders<PluginDocument>.Filter.Empty).FirstOrDefaultAsync();
         if (found != null)
         {
             config = new PluginConfig()
@@ -19,7 +19,7 @@ public partial class MongoRepository
         return config;
     }
 
-    public void SavePluginConfig(PluginConfig config)
+    public async Task SavePluginConfig(PluginConfig config)
     {
         if (config == null || config.EnabledPlugins == null) return;
 
@@ -28,7 +28,7 @@ public partial class MongoRepository
             .Set(x => x.EnabledPlugins, config.EnabledPlugins)
             .SetOnInsert(x => x.Id, Guid.NewGuid().ToString());
 
-        _dc.Plugins.UpdateOne(filter, update, _options);
+        await _dc.Plugins.UpdateOneAsync(filter, update, _options);
     }
     #endregion
 }

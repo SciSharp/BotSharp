@@ -8,7 +8,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 public partial class MongoRepository
 {
     #region Configs
-    public bool AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false)
+    public async Task<bool> AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false)
     {
         var filter = Builders<KnowledgeCollectionConfigDocument>.Filter.Empty;
         var docs = configs?.Where(x => !string.IsNullOrWhiteSpace(x.Name))
@@ -23,8 +23,8 @@ public partial class MongoRepository
 
         if (reset)
         {
-            _dc.KnowledgeCollectionConfigs.DeleteMany(filter);
-            _dc.KnowledgeCollectionConfigs.InsertMany(docs);
+            await _dc.KnowledgeCollectionConfigs.DeleteManyAsync(filter);
+            await _dc.KnowledgeCollectionConfigs.InsertManyAsync(docs);
             return true;
         }
 
@@ -34,7 +34,7 @@ public partial class MongoRepository
 
         var names = docs.Select(x => x.Name).ToList();
         filter = Builders<KnowledgeCollectionConfigDocument>.Filter.In(x => x.Name, names);
-        var savedConfigs = _dc.KnowledgeCollectionConfigs.Find(filter).ToList();
+        var savedConfigs = await _dc.KnowledgeCollectionConfigs.Find(filter).ToListAsync();
         
         foreach (var doc in docs)
         {
@@ -54,7 +54,7 @@ public partial class MongoRepository
 
         if (!insertDocs.IsNullOrEmpty())
         {
-            _dc.KnowledgeCollectionConfigs.InsertMany(docs);
+            await _dc.KnowledgeCollectionConfigs.InsertManyAsync(docs);
         }
 
         if (!updateDocs.IsNullOrEmpty())
@@ -62,19 +62,19 @@ public partial class MongoRepository
             foreach (var doc in updateDocs)
             {
                 filter = Builders<KnowledgeCollectionConfigDocument>.Filter.Eq(x => x.Id, doc.Id);
-                _dc.KnowledgeCollectionConfigs.ReplaceOne(filter, doc);
+                await _dc.KnowledgeCollectionConfigs.ReplaceOneAsync(filter, doc);
             }
         }
         
         return true;
     }
 
-    public bool DeleteKnowledgeCollectionConfig(string collectionName)
+    public async Task<bool> DeleteKnowledgeCollectionConfig(string collectionName)
     {
         if (string.IsNullOrWhiteSpace(collectionName)) return false;
 
         var filter = Builders<KnowledgeCollectionConfigDocument>.Filter.Eq(x => x.Name, collectionName);
-        var deleted = _dc.KnowledgeCollectionConfigs.DeleteMany(filter);
+        var deleted = await _dc.KnowledgeCollectionConfigs.DeleteManyAsync(filter);
         return deleted.DeletedCount > 0;
     }
 
@@ -129,7 +129,7 @@ public partial class MongoRepository
     #endregion
 
     #region Documents
-    public bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData)
+    public async Task<bool> SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData)
     {
         if (metaData == null
             || string.IsNullOrWhiteSpace(metaData.Collection)
@@ -153,11 +153,11 @@ public partial class MongoRepository
             CreateUserId = metaData.CreateUserId
         };
 
-        _dc.KnowledgeCollectionFileMeta.InsertOne(doc);
+        await _dc.KnowledgeCollectionFileMeta.InsertOneAsync(doc);
         return true;
     }
 
-    public bool DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null)
+    public async Task<bool> DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(vectorStoreProvider))
@@ -177,7 +177,7 @@ public partial class MongoRepository
             filters.Add(builder.Eq(x => x.FileId, fileId));
         }
 
-        var res = _dc.KnowledgeCollectionFileMeta.DeleteMany(builder.And(filters));
+        var res = await _dc.KnowledgeCollectionFileMeta.DeleteManyAsync(builder.And(filters));
         return res.DeletedCount > 0;
     }
 

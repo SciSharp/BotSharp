@@ -86,21 +86,21 @@ public partial class InstructService
 
     private async Task<RoleDialogModel> GetAiResponse(string text, Agent agent, InstructOptions? options)
     {
-        var dialogs = BuildDialogs(text, options);
+        var dialogs = await BuildDialogs(text, options);
         var provider = options?.Provider ?? agent?.LlmConfig?.Provider ?? "openai";
         var model = options?.Model ?? agent?.LlmConfig?.Model ?? "gpt-4o";
         var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
         return await completion.GetChatCompletions(agent, dialogs);
     }
 
-    private List<RoleDialogModel> BuildDialogs(string text, InstructOptions? options)
+    private async Task<List<RoleDialogModel>> BuildDialogs(string text, InstructOptions? options)
     {
         var messages = new List<RoleDialogModel>();
 
         if (!string.IsNullOrWhiteSpace(options?.ConversationId))
         {
             var conv = _services.GetRequiredService<IConversationService>();
-            var dialogs = conv.GetDialogHistory();
+            var dialogs = await conv.GetDialogHistory();
             messages.AddRange(dialogs);
         }
 

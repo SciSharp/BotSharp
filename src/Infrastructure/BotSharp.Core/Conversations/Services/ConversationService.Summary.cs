@@ -19,7 +19,7 @@ public partial class ConversationService
         {
             if (string.IsNullOrEmpty(conversationId)) continue;
 
-            var dialogs = _storage.GetDialogs(conversationId);
+            var dialogs = await _storage.GetDialogs(conversationId);
 
             if (dialogs.IsNullOrEmpty()) continue;
 

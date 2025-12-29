@@ -9,7 +9,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 public partial class MongoRepository
 {
     #region LLM Completion Log
-    public void SaveLlmCompletionLog(LlmCompletionLog log)
+    public async Task SaveLlmCompletionLog(LlmCompletionLog log)
     {
         if (log == null) return;
 
@@ -26,18 +26,18 @@ public partial class MongoRepository
             Response = log.Response,
             CreatedTime = log.CreatedTime
         };
-        _dc.LlmCompletionLogs.InsertOne(data);
+        await _dc.LlmCompletionLogs.InsertOneAsync(data);
     }
 
     #endregion
 
     #region Conversation Content Log
-    public void SaveConversationContentLog(ContentLogOutputModel log)
+    public async Task SaveConversationContentLog(ContentLogOutputModel log)
     {
         if (log == null) return;
 
         var filter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, log.ConversationId);
-        var found = _dc.Conversations.Find(filter).FirstOrDefault();
+        var found = await _dc.Conversations.Find(filter).FirstOrDefaultAsync();
         if (found == null) return;
 
         var logDoc = new ConversationContentLogDocument
@@ -52,10 +52,10 @@ public partial class MongoRepository
             CreatedTime = log.CreatedTime
         };
 
-        _dc.ContentLogs.InsertOne(logDoc);
+        await _dc.ContentLogs.InsertOneAsync(logDoc);
     }
 
-    public DateTimePagination<ContentLogOutputModel> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
+    public async Task<DateTimePagination<ContentLogOutputModel>> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
     {
         var builder = Builders<ConversationContentLogDocument>.Filter;
         var logFilters = new List<FilterDefinition<ConversationContentLogDocument>>
@@ -65,7 +65,7 @@ public partial class MongoRepository
         };
         var logSortDef = Builders<ConversationContentLogDocument>.Sort.Descending(x => x.CreatedTime);
 
-        var docs = _dc.ContentLogs.Find(builder.And(logFilters)).Sort(logSortDef).Limit(filter.Size).ToList();
+        var docs = await _dc.ContentLogs.Find(builder.And(logFilters)).Sort(logSortDef).Limit(filter.Size).ToListAsync();
         var logs = docs.Select(x => new ContentLogOutputModel
         {
             ConversationId = x.ConversationId,
@@ -89,12 +89,12 @@ public partial class MongoRepository
     #endregion
 
     #region Conversation State Log
-    public void SaveConversationStateLog(ConversationStateLogModel log)
+    public async Task SaveConversationStateLog(ConversationStateLogModel log)
     {
         if (log == null) return;
 
         var filter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, log.ConversationId);
-        var found = _dc.Conversations.Find(filter).FirstOrDefault();
+        var found = await _dc.Conversations.Find(filter).FirstOrDefaultAsync();
         if (found == null) return;
 
         var logDoc = new ConversationStateLogDocument
@@ -106,10 +106,10 @@ public partial class MongoRepository
             CreatedTime = log.CreatedTime
         };
 
-        _dc.StateLogs.InsertOne(logDoc);
+        await _dc.StateLogs.InsertOneAsync(logDoc);
     }
 
-    public DateTimePagination<ConversationStateLogModel> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
+    public async Task<DateTimePagination<ConversationStateLogModel>> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
     {
         var builder = Builders<ConversationStateLogDocument>.Filter;
         var logFilters = new List<FilterDefinition<ConversationStateLogDocument>>
@@ -119,7 +119,7 @@ public partial class MongoRepository
         };
         var logSortDef = Builders<ConversationStateLogDocument>.Sort.Descending(x => x.CreatedTime);
 
-        var docs = _dc.StateLogs.Find(builder.And(logFilters)).Sort(logSortDef).Limit(filter.Size).ToList();
+        var docs = await _dc.StateLogs.Find(builder.And(logFilters)).Sort(logSortDef).Limit(filter.Size).ToListAsync();
         var logs = docs.Select(x => new ConversationStateLogModel
         {
             ConversationId = x.ConversationId,

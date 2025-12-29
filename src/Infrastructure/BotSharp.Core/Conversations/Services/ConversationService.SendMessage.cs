@@ -26,7 +26,7 @@ public partial class ConversationService
         }
 
         var conv = _services.GetRequiredService<IConversationService>();
-        var dialogs = conv.GetDialogHistory();
+        var dialogs = await conv.GetDialogHistory();
 
         var statistics = _services.GetRequiredService<ITokenStatistics>();
 
@@ -170,6 +170,6 @@ public partial class ConversationService
         await onResponseReceived(response);
 
         // Add to dialog history
-        _storage.Append(_conversationId, response);
+        await _storage.Append(_conversationId, response);
     }
 }
