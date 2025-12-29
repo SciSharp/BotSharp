@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using MongoDB.Driver.Linq;
 using System.Text.Json;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
@@ -560,45 +561,14 @@ public partial class MongoRepository
         while (true)
         {
             var skip = (page - 1) * batchSize;
-            var builder = Builders<ConversationDocument>.Filter;
-            var filters = new List<FilterDefinition<ConversationDocument>>();
-
-            // Build the OR condition: (!excludeAgentIds.Contains(AgentId) && DialogCount <= messageLimit) 
-            //                        || (excludeAgentIds.Contains(AgentId) && DialogCount == 0)
-            var orFilters = new List<FilterDefinition<ConversationDocument>>();
-            
-            // First condition: !excludeAgentIds.Contains(AgentId) && DialogCount <= messageLimit
-            if (excludeAgentIdsList.Any())
-            {
-                orFilters.Add(builder.And(
-                    builder.Nin(x => x.AgentId, excludeAgentIdsList),
-                    builder.Lte(x => x.DialogCount, messageLimit)
-                ));
-            }
-            else
-            {
-                // If excludeAgentIds is empty, all agents match the first condition
-                orFilters.Add(builder.Lte(x => x.DialogCount, messageLimit));
-            }
-
-            // Second condition: excludeAgentIds.Contains(AgentId) && DialogCount == 0
-            if (excludeAgentIdsList.Any())
-            {
-                orFilters.Add(builder.And(
-                    builder.In(x => x.AgentId, excludeAgentIdsList),
-                    builder.Eq(x => x.DialogCount, 0)
-                ));
-            }
-
-            filters.Add(builder.Or(orFilters));
-            filters.Add(builder.Lte(x => x.UpdatedTime, utcNow.AddHours(-bufferHours)));
-
-            var filter = builder.And(filters);
-            var candidates = await _dc.Conversations.Find(filter)
-                                                    .Skip(skip)
-                                                    .Limit(batchSize)
-                                                    .Project(x => x.Id)
-                                                    .ToListAsync();
+            var candidates = await _dc.Conversations.AsQueryable()
+                                              .Where(x => ((!excludeAgentIds.Contains(x.AgentId) && x.DialogCount <= messageLimit)
+                                                       || (excludeAgentIds.Contains(x.AgentId) && x.DialogCount == 0))
+                                                        && x.UpdatedTime <= utcNow.AddHours(-bufferHours))
+                                              .Skip(skip)
+                                              .Take(batchSize)
+                                              .Select(x => x.Id)
+                                              .ToListAsync();
 
             if (candidates.IsNullOrEmpty())
             {
