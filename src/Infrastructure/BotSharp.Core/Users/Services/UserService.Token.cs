@@ -97,7 +97,7 @@ public partial class UserService
             return default;
         }
 
-        var (token, jwt) = await BuildToken(record);
+        var (token, jwt) = BuildToken(record);
         foreach (var hook in hooks)
         {
             hook.UserAuthenticated(record, token);
@@ -165,7 +165,7 @@ public partial class UserService
             }
 
             // Issue a new access token
-            var (newToken, _) = await BuildToken(user);
+            var (newToken, _) = BuildToken(user);
 
             // Notify hooks for token issuance
             foreach (var hook in hooks)
@@ -220,7 +220,7 @@ public partial class UserService
 
         await db.UpdateUserVerified(record.Id);
 
-        var accessToken = await GenerateJwtToken(record);
+        var accessToken = GenerateJwtToken(record);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
         var token = new Token
         {
@@ -232,9 +232,9 @@ public partial class UserService
         return token;
     }
 
-    public async Task<Token> CreateTokenByUser(User user)
+    public Task<Token> CreateTokenByUser(User user)
     {
-        var accessToken = await GenerateJwtToken(user);
+        var accessToken = GenerateJwtToken(user);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
         var token = new Token
         {
@@ -243,7 +243,7 @@ public partial class UserService
             TokenType = "Bearer",
             Scope = "api"
         };
-        return token;
+        return Task.FromResult(token);
     }
 
     public async Task<Token?> GetAffiliateToken(string authorization)
@@ -263,7 +263,7 @@ public partial class UserService
             return default;
         }
 
-        var (token, jwt) = await BuildToken(record);
+        var (token, jwt) = BuildToken(record);
 
         return token;
     }
@@ -289,7 +289,7 @@ public partial class UserService
             return default;
         }
 
-        var (token, jwt) = await BuildToken(record);
+        var (token, jwt) = BuildToken(record);
 
         return token;
     }
@@ -301,9 +301,9 @@ public partial class UserService
     }
 
     #region Private methods
-    private async Task<(Token, JwtSecurityToken)> BuildToken(User record)
+    private (Token, JwtSecurityToken) BuildToken(User record)
     {
-        var accessToken = await GenerateJwtToken(record);
+        var accessToken = GenerateJwtToken(record);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
         var token = new Token
         {
@@ -315,7 +315,7 @@ public partial class UserService
         return (token, jwt);
     }
 
-    private async Task<string> GenerateJwtToken(User user)
+    private string GenerateJwtToken(User user)
     {
         var claims = new List<Claim>
         {
@@ -358,7 +358,7 @@ public partial class UserService
         };
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        await SaveUserTokenExpiresCache(user.Id, expires, expireInMinutes);
+        SaveUserTokenExpiresCache(user.Id, expires, expireInMinutes).GetAwaiter().GetResult();
         return tokenHandler.WriteToken(token);
     }
 

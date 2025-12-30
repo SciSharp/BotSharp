@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Tasks.Models;
+using MongoDB.Driver.Linq;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
