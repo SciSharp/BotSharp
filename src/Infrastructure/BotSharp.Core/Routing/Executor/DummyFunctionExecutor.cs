@@ -30,8 +30,8 @@ public class DummyFunctionExecutor: IFunctionExecutor
         return true;
     }
 
-    public async Task<string> GetIndicatorAsync(RoleDialogModel message)
+    public Task<string> GetIndicatorAsync(RoleDialogModel message)
     {
-        return "Running";
+        return Task.FromResult("Running");
     }
 }

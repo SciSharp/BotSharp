@@ -7,7 +7,7 @@ namespace BotSharp.Core.Repository;
 public partial class FileRepository
 {
     #region LLM Completion Log
-    public void SaveLlmCompletionLog(LlmCompletionLog log)
+    public async Task SaveLlmCompletionLog(LlmCompletionLog log)
     {
         if (log == null)
         {
@@ -32,12 +32,12 @@ public partial class FileRepository
 
         var index = GetNextLogIndex(logDir, log.MessageId);
         var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
-        File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
+        await File.WriteAllTextAsync(file, JsonSerializer.Serialize(log, _options));
     }
     #endregion
 
     #region Conversation Content Log
-    public void SaveConversationContentLog(ContentLogOutputModel log)
+    public async Task SaveConversationContentLog(ContentLogOutputModel log)
     {
         if (log == null)
         {
@@ -61,10 +61,10 @@ public partial class FileRepository
 
         var index = GetNextLogIndex(logDir, log.MessageId);
         var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
-        File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
+        await File.WriteAllTextAsync(file, JsonSerializer.Serialize(log, _options));
     }
 
-    public DateTimePagination<ContentLogOutputModel> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
+    public async Task<DateTimePagination<ContentLogOutputModel>> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
     {
         if (string.IsNullOrEmpty(conversationId))
         {
@@ -86,7 +86,7 @@ public partial class FileRepository
         var logs = new List<ContentLogOutputModel>();
         foreach (var file in Directory.EnumerateFiles(logDir))
         {
-            var text = File.ReadAllText(file);
+            var text = await File.ReadAllTextAsync(file);
             var log = JsonSerializer.Deserialize<ContentLogOutputModel>(text);
             if (log == null || log.CreatedTime >= filter.StartTime)
             {
@@ -108,7 +108,7 @@ public partial class FileRepository
     #endregion
 
     #region Conversation State Log
-    public void SaveConversationStateLog(ConversationStateLogModel log)
+    public async Task SaveConversationStateLog(ConversationStateLogModel log)
     {
         if (log == null)
         {
@@ -132,10 +132,10 @@ public partial class FileRepository
 
         var index = GetNextLogIndex(logDir, log.MessageId);
         var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
-        File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
+        await File.WriteAllTextAsync(file, JsonSerializer.Serialize(log, _options));
     }
 
-    public DateTimePagination<ConversationStateLogModel> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
+    public async Task<DateTimePagination<ConversationStateLogModel>> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
     {
         if (string.IsNullOrEmpty(conversationId))
         {
@@ -157,7 +157,7 @@ public partial class FileRepository
         var logs = new List<ConversationStateLogModel>();
         foreach (var file in Directory.EnumerateFiles(logDir))
         {
-            var text = File.ReadAllText(file);
+            var text = await File.ReadAllTextAsync(file);
             var log = JsonSerializer.Deserialize<ConversationStateLogModel>(text);
             if (log == null || log.CreatedTime >= filter.StartTime)
             {

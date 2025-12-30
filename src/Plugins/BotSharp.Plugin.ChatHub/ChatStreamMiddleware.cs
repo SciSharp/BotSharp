@@ -66,7 +66,7 @@ public class ChatStreamMiddleware
         // load conversation and state
         var convService = services.GetRequiredService<IConversationService>();
         var state = services.GetRequiredService<IConversationStateService>();
-        convService.SetConversationId(conversationId, []);
+        await convService.SetConversationId(conversationId, []);
         await convService.GetConversationRecordOrCreateNew(agentId);
 
         await foreach (ChatSessionUpdate update in session.ReceiveUpdatesAsync(CancellationToken.None))
@@ -99,7 +99,7 @@ public class ChatStreamMiddleware
             }
         }
 
-        convService.SaveStates();
+        await convService.SaveStates();
         await session.DisconnectAsync();
     }
 

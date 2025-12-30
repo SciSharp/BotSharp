@@ -43,7 +43,7 @@ public class ReadAudioFn : IFunctionCallback
         var wholeDialogs = routingCtx.GetDialogs();
         if (wholeDialogs.IsNullOrEmpty())
         {
-            wholeDialogs = conv.GetDialogHistory();
+            wholeDialogs = await conv.GetDialogHistory();
         }
 
         var dialogs = AssembleFiles(conv.ConversationId, wholeDialogs);

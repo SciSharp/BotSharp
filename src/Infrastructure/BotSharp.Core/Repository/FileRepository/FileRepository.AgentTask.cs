@@ -50,7 +50,7 @@ public partial class FileRepository
             var curTasks = new List<AgentTask>();
             foreach (var taskFile in Directory.EnumerateFiles(taskDir))
             {
-                var task = ParseAgentTask(taskFile);
+                var task = await ParseAgentTask(taskFile);
                 if (task == null)
                 {
                     continue;
@@ -94,7 +94,7 @@ public partial class FileRepository
                 continue;
             }
 
-            var agent = ParseAgent(agentDir);
+            var agent = await ParseAgent(agentDir);
             curTasks.ForEach(t =>
             {
                 t.AgentId = agentId;
@@ -110,7 +110,7 @@ public partial class FileRepository
         };
     }
 
-    public AgentTask? GetAgentTask(string agentId, string taskId)
+    public async Task<AgentTask?> GetAgentTask(string agentId, string taskId)
     {
         var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
         if (!Directory.Exists(agentDir))
@@ -130,19 +130,19 @@ public partial class FileRepository
             return null;
         }
 
-        var task = ParseAgentTask(taskFile);
+        var task = await ParseAgentTask(taskFile);
         if (task == null)
         {
             return null;
         }
 
-        var agent = ParseAgent(agentDir);
+        var agent = await ParseAgent(agentDir);
         task.AgentId = agentId;
         task.Agent = agent;
         return task;
     }
 
-    public void InsertAgentTask(AgentTask task)
+    public async Task InsertAgentTask(AgentTask task)
     {
         if (task == null || string.IsNullOrEmpty(task.AgentId))
         {
@@ -173,15 +173,24 @@ public partial class FileRepository
         };
 
         var fileContent = BuildAgentTaskFileContent(metaData, task.Content);
-        File.WriteAllText(taskFile, fileContent);
+        await File.WriteAllTextAsync(taskFile, fileContent);
     }
 
-    public void BulkInsertAgentTasks(string agentId, List<AgentTask> tasks)
+    public async Task BulkInsertAgentTasks(string agentId, List<AgentTask> tasks)
     {
-        
+        if (tasks.IsNullOrEmpty())
+        {
+            return;
+        }
+
+        foreach (var task in tasks)
+        {
+            task.AgentId = agentId;
+            await InsertAgentTask(task);
+        }
     }
 
-    public void UpdateAgentTask(AgentTask task, AgentTaskField field)
+    public async Task UpdateAgentTask(AgentTask task, AgentTaskField field)
     {
         if (task == null || string.IsNullOrEmpty(task.Id))
         {
@@ -206,7 +215,7 @@ public partial class FileRepository
             return;
         }
 
-        var parsedTask = ParseAgentTask(taskFile);
+        var parsedTask = await ParseAgentTask(taskFile);
         if (parsedTask == null)
         {
             return;
@@ -245,10 +254,10 @@ public partial class FileRepository
         }
 
         var fileContent = BuildAgentTaskFileContent(metaData, content);
-        File.WriteAllText(taskFile, fileContent);
+        await File.WriteAllTextAsync(taskFile, fileContent);
     }
 
-    public bool DeleteAgentTasks(string agentId, List<string>? taskIds = null)
+    public async Task<bool> DeleteAgentTasks(string agentId, List<string>? taskIds = null)
     {
         var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
         if (!Directory.Exists(agentDir))
@@ -281,7 +290,7 @@ public partial class FileRepository
             deletedTasks.Add(taskId);
         }
         
-        return deletedTasks.Any();
+        return await Task.FromResult(deletedTasks.Any());
     }
 
     private string? FindTaskFileById(string taskDir, string taskId)

@@ -39,7 +39,7 @@ public class RealtimeHub : IRealtimeHub
         RealtimeOptions? options = null)
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        convService.SetConversationId(_conn.ConversationId, initStates ?? []);
+        await convService.SetConversationId(_conn.ConversationId, initStates ?? []);
         var conversation = await convService.GetConversation(_conn.ConversationId);
 
         var routing = _services.GetRequiredService<IRoutingService>();
@@ -47,7 +47,7 @@ public class RealtimeHub : IRealtimeHub
         var agent = await agentService.GetAgent(_conn.CurrentAgentId);
 
         var storage = _services.GetRequiredService<IConversationStorage>();
-        var dialogs = convService.GetDialogHistory();
+        var dialogs = await convService.GetDialogHistory();
         routing.Context.SetDialogs(dialogs);
         routing.Context.SetMessageId(_conn.ConversationId, Guid.Empty.ToString());
 
@@ -129,7 +129,7 @@ public class RealtimeHub : IRealtimeHub
                     {
                         // append output audio transcript to conversation
                         dialogs.Add(message);
-                        storage.Append(_conn.ConversationId, message);
+                        await storage.Append(_conn.ConversationId, message);
 
                         var convHooks = _services.GetHooksOrderByPriority<IConversationHook>(_conn.CurrentAgentId);
                         foreach (var hook in convHooks)
@@ -150,7 +150,7 @@ public class RealtimeHub : IRealtimeHub
             {
                 // append input audio transcript to conversation
                 dialogs.Add(message);
-                storage.Append(_conn.ConversationId, message);
+                await storage.Append(_conn.ConversationId, message);
                 routing.Context.SetMessageId(_conn.ConversationId, message.MessageId);
 
                 var hooks = _services.GetHooksOrderByPriority<IConversationHook>(_conn.CurrentAgentId);

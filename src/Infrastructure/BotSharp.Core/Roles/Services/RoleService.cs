@@ -22,30 +22,31 @@ public class RoleService : IRoleService
         var roles = allRoles.Select(x => new Role { Id = Guid.NewGuid().ToString(), Name = x }).ToList();
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.RefreshRoles(roles);
+        return await db.RefreshRoles(roles);
     }
 
-    public async Task<IEnumerable<string>> GetRoleOptions()
+    public Task<IEnumerable<string>> GetRoleOptions()
     {
         var fields = typeof(UserRole).GetFields(BindingFlags.Public | BindingFlags.Static)
                                      .Where(x => x.IsLiteral && !x.IsInitOnly).ToList();
 
-        return fields.Select(x => x.GetValue(null)?.ToString())
+        var roleOptions = fields.Select(x => x.GetValue(null)?.ToString())
                      .Where(x => !string.IsNullOrWhiteSpace(x))
-                     .Distinct()
-                     .ToList();
+                     .Distinct();
+
+        return Task.FromResult(roleOptions);
     }
 
     public async Task<IEnumerable<Role>> GetRoles(RoleFilter filter)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        var roles = db.GetRoles(filter);
+        var roles = await db.GetRoles(filter);
         if (filter.IsInit() && roles.IsNullOrEmpty())
         {
             await RefreshRoles();
             await Task.Delay(100);
-            roles = db.GetRoles(filter);
+            roles = await db.GetRoles(filter);
         }
 
         return roles;
@@ -54,7 +55,7 @@ public class RoleService : IRoleService
     public async Task<Role?> GetRoleDetails(string roleId, bool includeAgent = false)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var role = db.GetRoleDetails(roleId, includeAgent);
+        var role = await db.GetRoleDetails(roleId, includeAgent);
         return role;
     }
 
@@ -68,6 +69,6 @@ public class RoleService : IRoleService
         }
         
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.UpdateRole(role, isUpdateRoleAgents);
+        return await db.UpdateRole(role, isUpdateRoleAgents);
     }
 }

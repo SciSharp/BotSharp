@@ -9,7 +9,7 @@ namespace BotSharp.Abstraction.Conversations;
 public interface IConversationStateService : IDisposable
 {
     string GetConversationId();
-    Dictionary<string, string> Load(string conversationId, bool isReadOnly = false);
+    Task<Dictionary<string, string>> Load(string conversationId, bool isReadOnly = false);
     string GetState(string name, string defaultValue = "");
     bool ContainsState(string name);
     Dictionary<string, string> GetStates();
@@ -18,7 +18,7 @@ public interface IConversationStateService : IDisposable
     void SaveStateByArgs(JsonDocument args);
     bool RemoveState(string name);
     void CleanStates(params string[] excludedStates);
-    void Save();
+    Task Save();
 
     ConversationState GetCurrentState();
     void SetCurrentState(ConversationState state);

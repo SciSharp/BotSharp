@@ -162,7 +162,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
         });
 
         var messageId = Guid.NewGuid().ToString();
-        convStorage.Append(newConversationId, new List<RoleDialogModel>
+        await convStorage.Append(newConversationId, new List<RoleDialogModel>
         {
             new RoleDialogModel(AgentRole.User, "Hi")
             {
@@ -203,7 +203,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
         var mappedSubConvStates = MapStates(subConvStates, messageId, utcNow);
         var allStates = mappedCurConvStates.Concat(mappedSubConvStates).ToList();
 
-        db.UpdateConversationStates(newConversationId, allStates);
+        await db.UpdateConversationStates(newConversationId, allStates);
     }
 
     private IEnumerable<StateKeyValue> MapStates(IEnumerable<MessageState> states, string messageId, DateTime updateTime)

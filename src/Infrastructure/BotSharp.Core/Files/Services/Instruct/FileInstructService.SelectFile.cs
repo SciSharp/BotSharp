@@ -21,7 +21,7 @@ public partial class FileInstructService
         var dialogs = routingCtx.GetDialogs();
         if (dialogs.IsNullOrEmpty())
         {
-            dialogs = convService.GetDialogHistory(fromBreakpoint: options.FromBreakpoint);
+            dialogs = await convService.GetDialogHistory(fromBreakpoint: options.FromBreakpoint);
         }
 
         if (options.MessageLimit > 0)
@@ -122,7 +122,7 @@ public partial class FileInstructService
 
             var agentId = !string.IsNullOrWhiteSpace(options.AgentId) ? options.AgentId : BuiltInAgentId.FileAssistant;
             var template = !string.IsNullOrWhiteSpace(options.TemplateName) ? options.TemplateName : "select-chat-file_instruction";
-            var prompt = db.GetAgentTemplate(agentId, template);
+            var prompt = await db.GetAgentTemplate(agentId, template);
 
             var data = new Dictionary<string, object>
             {

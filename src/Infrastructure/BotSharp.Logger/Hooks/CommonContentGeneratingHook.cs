@@ -11,11 +11,10 @@ public class CommonContentGeneratingHook : IContentGeneratingHook
 
     public async Task AfterGenerated(RoleDialogModel message, TokenStatsModel tokenStats)
     {
-        SaveLlmCompletionLog(message, tokenStats);
-        await Task.CompletedTask;
+        await SaveLlmCompletionLog(message, tokenStats);
     }
 
-    private void SaveLlmCompletionLog(RoleDialogModel message, TokenStatsModel tokenStats)
+    private async Task SaveLlmCompletionLog(RoleDialogModel message, TokenStatsModel tokenStats)
     {
         var convSettings = _services.GetRequiredService<ConversationSetting>();
         var conv = _services.GetRequiredService<IConversationService>();
@@ -39,6 +38,6 @@ public class CommonContentGeneratingHook : IContentGeneratingHook
             CreatedTime = DateTime.UtcNow
         };
 
-        db.SaveLlmCompletionLog(completionLog);
+        await db.SaveLlmCompletionLog(completionLog);
     }
 }

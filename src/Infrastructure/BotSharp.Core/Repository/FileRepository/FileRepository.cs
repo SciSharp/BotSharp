@@ -402,7 +402,7 @@ public partial class FileRepository : IBotSharpRepository
         return templates;
     }
 
-    private List<AgentTask> FetchTasks(string fileDir)
+    private async Task<List<AgentTask>> FetchTasks(string fileDir)
     {
         var tasks = new List<AgentTask>();
         var taskDir = Path.Combine(fileDir, AGENT_TASKS_FOLDER);
@@ -410,7 +410,7 @@ public partial class FileRepository : IBotSharpRepository
 
         foreach (var file in Directory.GetFiles(taskDir))
         {
-            var task = ParseAgentTask(file);
+            var task = await ParseAgentTask(file);
             if (task == null) continue;
 
             tasks.Add(task);
@@ -438,11 +438,11 @@ public partial class FileRepository : IBotSharpRepository
         return responses;
     }
 
-    private Agent? ParseAgent(string agentDir)
+    private async Task<Agent?> ParseAgent(string agentDir)
     {
         if (string.IsNullOrEmpty(agentDir)) return null;
 
-        var agentJson = File.ReadAllText(Path.Combine(agentDir, AGENT_FILE));
+        var agentJson = await File.ReadAllTextAsync(Path.Combine(agentDir, AGENT_FILE));
         if (string.IsNullOrEmpty(agentJson)) return null;
 
         var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options);
@@ -462,13 +462,13 @@ public partial class FileRepository : IBotSharpRepository
                     .SetResponses(responses);
     }
 
-    private AgentTask? ParseAgentTask(string taskFile)
+    private async Task<AgentTask?> ParseAgentTask(string taskFile)
     {
         if (string.IsNullOrWhiteSpace(taskFile)) return null;
 
         var fileName = taskFile.Split(Path.DirectorySeparatorChar).Last();
         var id = fileName.Split('.').First();
-        var data = File.ReadAllText(taskFile);
+        var data = await File.ReadAllTextAsync(taskFile);
         var pattern = $@"{AGENT_TASK_PREFIX}.+{AGENT_TASK_SUFFIX}";
         var metaData = Regex.Match(data, pattern, RegexOptions.Singleline);
 

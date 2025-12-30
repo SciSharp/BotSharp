@@ -370,7 +370,7 @@ public partial class MongoRepository
         var agentIds = userAgents.Select(x => x.AgentId)?.Distinct().ToList();
         if (!agentIds.IsNullOrEmpty())
         {
-            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+            var agents = await GetAgents(new AgentFilter { AgentIds = agentIds });
 
             foreach (var item in userAgents)
             {

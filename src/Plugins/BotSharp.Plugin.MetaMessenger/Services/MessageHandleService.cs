@@ -59,7 +59,7 @@ public class MessageHandleService
         var conv = _services.GetRequiredService<IConversationService>();
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(sender, inputMsg.MessageId);
-        conv.SetConversationId(sender, new List<MessageState>
+        await conv.SetConversationId(sender, new List<MessageState>
         {
             new MessageState("channel", ConversationChannel.Messenger)
         });

@@ -92,7 +92,7 @@ public class SqlSecondaryStageFn : IFunctionCallback
     private async Task<RoleDialogModel> GetAiResponse(Agent plannerAgent)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        var wholeDialogs = conv.GetDialogHistory();
+        var wholeDialogs = await conv.GetDialogHistory();
 
         wholeDialogs.Last().Content += "\r\nOutput in JSON format.";
 

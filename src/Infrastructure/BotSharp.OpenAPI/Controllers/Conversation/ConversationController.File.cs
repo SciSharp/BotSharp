@@ -66,7 +66,7 @@ public partial class ConversationController
     public async Task<IActionResult> UploadConversationMessageFiles([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] InputMessageFiles input)
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        convService.SetConversationId(conversationId, input.States);
+        await convService.SetConversationId(conversationId, input.States);
         var conv = await convService.GetConversationRecordOrCreateNew(agentId);
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var messageId = Guid.NewGuid().ToString();

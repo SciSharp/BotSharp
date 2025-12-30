@@ -41,7 +41,7 @@ public partial class ConversationController : ControllerBase
             TaskId = config.TaskId
         };
         conv = await service.NewConversation(conv);
-        service.SetConversationId(conv.Id, config.States);
+        await service.SetConversationId(conv.Id, config.States);
 
         return ConversationViewModel.FromSession(conv);
     }
@@ -87,8 +87,8 @@ public partial class ConversationController : ControllerBase
     public async Task<IEnumerable<ChatResponseModel>> GetDialogs([FromRoute] string conversationId, [FromQuery] int count = 100)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(conversationId, [], isReadOnly: true);
-        var history = conv.GetDialogHistory(lastCount: count, fromBreakpoint: false);
+        await conv.SetConversationId(conversationId, [], isReadOnly: true);
+        var history = await conv.GetDialogHistory(lastCount: count, fromBreakpoint: false);
 
         var userService = _services.GetRequiredService<IUserService>();
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -309,7 +309,7 @@ public partial class ConversationController : ControllerBase
         var routing = _services.GetRequiredService<IRoutingService>();
         var userService = _services.GetRequiredService<IUserService>();
 
-        conv.SetConversationId(conversationId, new List<MessageState>(), isReadOnly: true);
+        await conv.SetConversationId(conversationId, new List<MessageState>(), isReadOnly: true);
 
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
         {
@@ -360,7 +360,7 @@ public partial class ConversationController : ControllerBase
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
-        conv.SetConversationId(conversationId, input.States);
+        await conv.SetConversationId(conversationId, input.States);
         SetStates(conv, input);
 
         var response = new ChatResponseModel();
@@ -406,7 +406,7 @@ public partial class ConversationController : ControllerBase
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
-        conv.SetConversationId(conversationId, input.States);
+        await conv.SetConversationId(conversationId, input.States);
         SetStates(conv, input);
 
         var response = new ChatResponseModel

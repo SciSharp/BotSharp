@@ -62,7 +62,7 @@ public partial class AgentService
                 var tasks = GetTasksFromFile(dir);
                 var codeScripts = GetCodeScriptsFromFile(dir);
 
-                var isAgentDeleted = _db.DeleteAgent(agent.Id, options: new()
+                var isAgentDeleted = await _db.DeleteAgent(agent.Id, options: new()
                 {
                     DeleteRoleAgents = false,
                     DeleteUserAgents = false,
@@ -72,9 +72,9 @@ public partial class AgentService
                 if (isAgentDeleted)
                 {
                     await Task.Delay(100);
-                    _db.BulkInsertAgents([agent]);
-                    _db.BulkInsertAgentTasks(agent.Id, tasks);
-                    _db.BulkInsertAgentCodeScripts(agent.Id, codeScripts);
+                    await _db.BulkInsertAgents([agent]);
+                    await _db.BulkInsertAgentTasks(agent.Id, tasks);
+                    await _db.BulkInsertAgentCodeScripts(agent.Id, codeScripts);
 
                     refreshedAgents.Add(agent.Name);
                     _logger.LogInformation($"Agent {agent.Name} has been migrated.");

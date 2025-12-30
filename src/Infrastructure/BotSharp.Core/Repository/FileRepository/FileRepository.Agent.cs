@@ -7,80 +7,80 @@ namespace BotSharp.Core.Repository
 {
     public partial class FileRepository
     {
-        public void UpdateAgent(Agent agent, AgentField field)
+        public async Task UpdateAgent(Agent agent, AgentField field)
         {
             if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
 
             switch (field)
             {
                 case AgentField.Name:
-                    UpdateAgentName(agent.Id, agent.Name);
+                    await UpdateAgentName(agent.Id, agent.Name);
                     break;
                 case AgentField.Description:
-                    UpdateAgentDescription(agent.Id, agent.Description);
+                    await UpdateAgentDescription(agent.Id, agent.Description);
                     break;
                 case AgentField.IsPublic:
-                    UpdateAgentIsPublic(agent.Id, agent.IsPublic);
+                    await UpdateAgentIsPublic(agent.Id, agent.IsPublic);
                     break;
                 case AgentField.Disabled:
-                    UpdateAgentDisabled(agent.Id, agent.Disabled);
+                    await UpdateAgentDisabled(agent.Id, agent.Disabled);
                     break;
                 case AgentField.Type:
-                    UpdateAgentType(agent.Id, agent.Type);
+                    await UpdateAgentType(agent.Id, agent.Type);
                     break;
                 case AgentField.RoutingMode:
-                    UpdateAgentRoutingMode(agent.Id, agent.Mode);
+                    await UpdateAgentRoutingMode(agent.Id, agent.Mode);
                     break;
                 case AgentField.FuncVisMode:
-                    UpdateAgentFuncVisMode(agent.Id, agent.FuncVisMode);
+                    await UpdateAgentFuncVisMode(agent.Id, agent.FuncVisMode);
                     break;
                 case AgentField.InheritAgentId:
-                    UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
+                    await UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
                     break;
                 case AgentField.Profile:
-                    UpdateAgentProfiles(agent.Id, agent.Profiles);
+                    await UpdateAgentProfiles(agent.Id, agent.Profiles);
                     break;
                 case AgentField.Label:
-                    UpdateAgentLabels(agent.Id, agent.Labels);
+                    await UpdateAgentLabels(agent.Id, agent.Labels);
                     break;
                 case AgentField.RoutingRule:
-                    UpdateAgentRoutingRules(agent.Id, agent.RoutingRules);
+                    await UpdateAgentRoutingRules(agent.Id, agent.RoutingRules);
                     break;
                 case AgentField.Instruction:
-                    UpdateAgentInstructions(agent.Id, agent.Instruction, agent.ChannelInstructions);
+                    await UpdateAgentInstructions(agent.Id, agent.Instruction, agent.ChannelInstructions);
                     break;
                 case AgentField.Function:
-                    UpdateAgentFunctions(agent.Id, agent.Functions);
+                    await UpdateAgentFunctions(agent.Id, agent.Functions);
                     break;
                 case AgentField.Template:
-                    UpdateAgentTemplates(agent.Id, agent.Templates);
+                    await UpdateAgentTemplates(agent.Id, agent.Templates);
                     break;
                 case AgentField.Response:
-                    UpdateAgentResponses(agent.Id, agent.Responses);
+                    await UpdateAgentResponses(agent.Id, agent.Responses);
                     break;
                 case AgentField.Sample:
-                    UpdateAgentSamples(agent.Id, agent.Samples);
+                    await UpdateAgentSamples(agent.Id, agent.Samples);
                     break;
                 case AgentField.LlmConfig:
-                    UpdateAgentLlmConfig(agent.Id, agent.LlmConfig);
+                    await UpdateAgentLlmConfig(agent.Id, agent.LlmConfig);
                     break;
                 case AgentField.Utility:
-                    UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
+                    await UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
                     break;
                 case AgentField.McpTool:
-                    UpdateAgentMcpTools(agent.Id, agent.McpTools);
+                    await UpdateAgentMcpTools(agent.Id, agent.McpTools);
                     break;
                 case AgentField.KnowledgeBase:
-                    UpdateAgentKnowledgeBases(agent.Id, agent.KnowledgeBases);
+                    await UpdateAgentKnowledgeBases(agent.Id, agent.KnowledgeBases);
                     break;
                 case AgentField.Rule:
-                    UpdateAgentRules(agent.Id, agent.Rules);
+                    await UpdateAgentRules(agent.Id, agent.Rules);
                     break;
                 case AgentField.MaxMessageCount:
-                    UpdateAgentMaxMessageCount(agent.Id, agent.MaxMessageCount);
+                    await UpdateAgentMaxMessageCount(agent.Id, agent.MaxMessageCount);
                     break;
                 case AgentField.All:
-                    UpdateAgentAllFields(agent);
+                    await UpdateAgentAllFields(agent);
                     break;
                 default:
                     break;
@@ -90,7 +90,7 @@ namespace BotSharp.Core.Repository
         }
 
         #region Update Agent Fields
-        private void UpdateAgentName(string agentId, string name)
+        private async Task UpdateAgentName(string agentId, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -106,10 +106,10 @@ namespace BotSharp.Core.Repository
             agent.Name = name;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentDescription(string agentId, string description)
+        private async Task UpdateAgentDescription(string agentId, string description)
         {
             if (string.IsNullOrWhiteSpace(description))
             {
@@ -125,10 +125,10 @@ namespace BotSharp.Core.Repository
             agent.Description = description;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentIsPublic(string agentId, bool isPublic)
+        private async Task UpdateAgentIsPublic(string agentId, bool isPublic)
         {
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null)
@@ -139,10 +139,10 @@ namespace BotSharp.Core.Repository
             agent.IsPublic = isPublic;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentDisabled(string agentId, bool disabled)
+        private async Task UpdateAgentDisabled(string agentId, bool disabled)
         {
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null)
@@ -153,10 +153,10 @@ namespace BotSharp.Core.Repository
             agent.Disabled = disabled;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentType(string agentId, string type)
+        private async Task UpdateAgentType(string agentId, string type)
         {
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null)
@@ -167,10 +167,10 @@ namespace BotSharp.Core.Repository
             agent.Type = type;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentRoutingMode(string agentId, string? mode)
+        private async Task UpdateAgentRoutingMode(string agentId, string? mode)
         {
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null)
@@ -181,10 +181,10 @@ namespace BotSharp.Core.Repository
             agent.Mode = mode;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentFuncVisMode(string agentId, string? visMode)
+        private async Task UpdateAgentFuncVisMode(string agentId, string? visMode)
         {
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null)
@@ -195,10 +195,10 @@ namespace BotSharp.Core.Repository
             agent.FuncVisMode = visMode;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentInheritAgentId(string agentId, string? inheritAgentId)
+        private async Task UpdateAgentInheritAgentId(string agentId, string? inheritAgentId)
         {
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null)
@@ -209,10 +209,10 @@ namespace BotSharp.Core.Repository
             agent.InheritAgentId = inheritAgentId;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentProfiles(string agentId, List<string> profiles)
+        private async Task UpdateAgentProfiles(string agentId, List<string> profiles)
         {
             if (profiles == null)
             {
@@ -228,10 +228,10 @@ namespace BotSharp.Core.Repository
             agent.Profiles = profiles;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        public bool UpdateAgentLabels(string agentId, List<string> labels)
+        public async Task<bool> UpdateAgentLabels(string agentId, List<string> labels)
         {
             if (labels == null)
             {
@@ -247,11 +247,11 @@ namespace BotSharp.Core.Repository
             agent.Labels = labels;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
             return true;
         }
 
-        private void UpdateAgentUtilities(string agentId, bool mergeUtility, List<AgentUtility> utilities)
+        private async Task UpdateAgentUtilities(string agentId, bool mergeUtility, List<AgentUtility> utilities)
         {
             if (utilities == null)
             {
@@ -268,10 +268,10 @@ namespace BotSharp.Core.Repository
             agent.Utilities = utilities;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentMcpTools(string agentId, List<McpTool> mcptools)
+        private async Task UpdateAgentMcpTools(string agentId, List<McpTool> mcptools)
         {
             if (mcptools == null)
             {
@@ -287,10 +287,10 @@ namespace BotSharp.Core.Repository
             agent.McpTools = mcptools;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentKnowledgeBases(string agentId, List<AgentKnowledgeBase> knowledgeBases)
+        private async Task UpdateAgentKnowledgeBases(string agentId, List<AgentKnowledgeBase> knowledgeBases)
         {
             if (knowledgeBases == null)
             {
@@ -306,10 +306,10 @@ namespace BotSharp.Core.Repository
             agent.KnowledgeBases = knowledgeBases;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentRules(string agentId, List<AgentRule> rules)
+        private async Task UpdateAgentRules(string agentId, List<AgentRule> rules)
         {
             if (rules == null)
             {
@@ -325,10 +325,10 @@ namespace BotSharp.Core.Repository
             agent.Rules = rules;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentRoutingRules(string agentId, List<RoutingRule> rules)
+        private async Task UpdateAgentRoutingRules(string agentId, List<RoutingRule> rules)
         {
             if (rules == null)
             {
@@ -344,10 +344,10 @@ namespace BotSharp.Core.Repository
             agent.RoutingRules = rules;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentInstructions(string agentId, string instruction, List<ChannelInstruction> channelInstructions)
+        private async Task UpdateAgentInstructions(string agentId, string instruction, List<ChannelInstruction> channelInstructions)
         {
             if (string.IsNullOrWhiteSpace(instruction))
             {
@@ -365,8 +365,8 @@ namespace BotSharp.Core.Repository
 
             // Save default instructions
             var instructionFile = Path.Combine(instructionDir, $"{AGENT_INSTRUCTION_FILE}.{_agentSettings.TemplateFormat}");
-            File.WriteAllText(instructionFile, instruction ?? string.Empty);
-            Thread.Sleep(50);
+            await File.WriteAllTextAsync(instructionFile, instruction ?? string.Empty);
+            await Task.Delay(50);
 
             // Save channel instructions
             foreach (var ci in channelInstructions)
@@ -377,12 +377,12 @@ namespace BotSharp.Core.Repository
                 }
 
                 var file = Path.Combine(instructionDir, $"{AGENT_INSTRUCTION_FILE}.{ci.Channel}.{_agentSettings.TemplateFormat}");
-                File.WriteAllText(file, ci.Instruction ?? string.Empty);
-                Thread.Sleep(50);
+                await File.WriteAllTextAsync(file, ci.Instruction ?? string.Empty);
+                await Task.Delay(50);
             }
         }
 
-        private void UpdateAgentFunctions(string agentId, List<FunctionDef> inputFunctions)
+        private async Task UpdateAgentFunctions(string agentId, List<FunctionDef> inputFunctions)
         {
             if (inputFunctions == null)
             {
@@ -407,12 +407,12 @@ namespace BotSharp.Core.Repository
 
                 var text = JsonSerializer.Serialize(func, _options);
                 var file = Path.Combine(functionDir, $"{func.Name}.json");
-                File.WriteAllText(file, text);
-                Thread.Sleep(50);
+                await File.WriteAllTextAsync(file, text);
+                await Task.Delay(50);
             }
         }
 
-        private void UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)
+        private async Task UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)
         {
             if (templates == null)
             {
@@ -431,11 +431,11 @@ namespace BotSharp.Core.Repository
             foreach (var template in templates)
             {
                 var file = Path.Combine(templateDir, $"{template.Name}.{_agentSettings.TemplateFormat}");
-                File.WriteAllText(file, template.Content);
+                await File.WriteAllTextAsync(file, template.Content);
             }
         }
 
-        private void UpdateAgentResponses(string agentId, List<AgentResponse> responses)
+        private async Task UpdateAgentResponses(string agentId, List<AgentResponse> responses)
         {
             if (responses == null)
             {
@@ -456,11 +456,11 @@ namespace BotSharp.Core.Repository
                 var response = responses[i];
                 var fileName = $"{response.Prefix}.{response.Intent}.{i}.{_agentSettings.TemplateFormat}";
                 var file = Path.Combine(responseDir, fileName);
-                File.WriteAllText(file, response.Content);
+                await File.WriteAllTextAsync(file, response.Content);
             }
         }
 
-        private void UpdateAgentSamples(string agentId, List<string> samples)
+        private async Task UpdateAgentSamples(string agentId, List<string> samples)
         {
             if (samples == null)
             {
@@ -474,10 +474,10 @@ namespace BotSharp.Core.Repository
             }
 
             var file = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_SAMPLES_FILE);
-            File.WriteAllLines(file, samples);
+            await File.WriteAllLinesAsync(file, samples);
         }
 
-        private void UpdateAgentLlmConfig(string agentId, AgentLlmConfig? config)
+        private async Task UpdateAgentLlmConfig(string agentId, AgentLlmConfig? config)
         {
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null)
@@ -488,10 +488,10 @@ namespace BotSharp.Core.Repository
             agent.LlmConfig = config;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentMaxMessageCount(string agentId, int? maxMessageCount)
+        private async Task UpdateAgentMaxMessageCount(string agentId, int? maxMessageCount)
         {
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null)
@@ -502,10 +502,10 @@ namespace BotSharp.Core.Repository
             agent.MaxMessageCount = maxMessageCount;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
         }
 
-        private void UpdateAgentAllFields(Agent inputAgent)
+        private async Task UpdateAgentAllFields(Agent inputAgent)
         {
             var (agent, agentFile) = GetAgentFromFile(inputAgent.Id);
             if (agent == null)
@@ -532,17 +532,17 @@ namespace BotSharp.Core.Repository
             agent.MaxMessageCount = inputAgent.MaxMessageCount;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
 
-            UpdateAgentInstructions(inputAgent.Id, inputAgent.Instruction, inputAgent.ChannelInstructions);
-            UpdateAgentResponses(inputAgent.Id, inputAgent.Responses);
-            UpdateAgentTemplates(inputAgent.Id, inputAgent.Templates);
-            UpdateAgentFunctions(inputAgent.Id, inputAgent.Functions);
-            UpdateAgentSamples(inputAgent.Id, inputAgent.Samples);
+            await UpdateAgentInstructions(inputAgent.Id, inputAgent.Instruction, inputAgent.ChannelInstructions);
+            await UpdateAgentResponses(inputAgent.Id, inputAgent.Responses);
+            await UpdateAgentTemplates(inputAgent.Id, inputAgent.Templates);
+            await UpdateAgentFunctions(inputAgent.Id, inputAgent.Functions);
+            await UpdateAgentSamples(inputAgent.Id, inputAgent.Samples);
         }
         #endregion
 
-        public List<string> GetAgentResponses(string agentId, string prefix, string intent)
+        public async Task<List<string>> GetAgentResponses(string agentId, string prefix, string intent)
         {
             var responses = new List<string>();
             var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_RESPONSES_FOLDER);
@@ -557,7 +557,7 @@ namespace BotSharp.Core.Repository
                     .Last()
                     .StartsWith(prefix + "." + intent))
                 {
-                    responses.Add(File.ReadAllText(file));
+                    responses.Add(await File.ReadAllTextAsync(file));
                 }
             }
 
@@ -604,7 +604,13 @@ namespace BotSharp.Core.Repository
             return null;
         }
 
-        public List<Agent> GetAgents(AgentFilter filter)
+        public Task<Agent?> GetAgentAsync(string agentId, bool basicsOnly = false)
+        { 
+            var agent = GetAgent(agentId, basicsOnly);
+            return Task.FromResult(agent);
+        }
+
+        public Task<List<Agent>> GetAgents(AgentFilter filter)
         {
             if (filter == null)
             {
@@ -648,10 +654,10 @@ namespace BotSharp.Core.Repository
                 query = query.Where(x => x.IsPublic == filter.IsPublic);
             }
 
-            return query.ToList();
+            return Task.FromResult(query.ToList());
         }
 
-        public List<UserAgent> GetUserAgents(string userId)
+        public async Task<List<UserAgent>> GetUserAgents(string userId)
         {
             var found = (from ua in UserAgents
                          join u in Users on ua.UserId equals u.Id
@@ -664,7 +670,7 @@ namespace BotSharp.Core.Repository
             }
 
             var agentIds = found.Select(x => x.AgentId).Distinct().ToList();
-            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+            var agents = await GetAgents(new AgentFilter { AgentIds = agentIds });
             foreach (var item in found)
             {
                 var agent = agents.FirstOrDefault(x => x.Id == item.AgentId);
@@ -680,7 +686,7 @@ namespace BotSharp.Core.Repository
         }
 
 
-        public string GetAgentTemplate(string agentId, string templateName)
+        public async Task<string> GetAgentTemplate(string agentId, string templateName)
         {
             if (string.IsNullOrWhiteSpace(agentId)
             || string.IsNullOrWhiteSpace(templateName))
@@ -702,14 +708,14 @@ namespace BotSharp.Core.Repository
                 var extension = fileName.Substring(splitIdx + 1);
                 if (name.IsEqualTo(templateName) && extension.IsEqualTo(_agentSettings.TemplateFormat))
                 {
-                    return File.ReadAllText(file);
+                    return await File.ReadAllTextAsync(file);
                 }
             }
 
             return string.Empty;
         }
 
-        public bool PatchAgentTemplate(string agentId, AgentTemplate template)
+        public async Task<bool> PatchAgentTemplate(string agentId, AgentTemplate template)
         {
             if (string.IsNullOrEmpty(agentId) || template == null)
             {
@@ -734,11 +740,11 @@ namespace BotSharp.Core.Repository
                 return false;
             }
 
-            File.WriteAllText(foundTemplate, template.Content);
+            await File.WriteAllTextAsync(foundTemplate, template.Content);
             return true;
         }
 
-        public bool AppendAgentLabels(string agentId, List<string> labels)
+        public async Task<bool> AppendAgentLabels(string agentId, List<string> labels)
         {
             if (labels.IsNullOrEmpty())
             {
@@ -756,11 +762,11 @@ namespace BotSharp.Core.Repository
             agent.Labels = curLabels;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
-            File.WriteAllText(agentFile, json);
+            await File.WriteAllTextAsync(agentFile, json);
             return true;
         }
 
-        public void BulkInsertAgents(List<Agent> agents)
+        public async Task BulkInsertAgents(List<Agent> agents)
         {
             if (agents.IsNullOrEmpty())
             {
@@ -777,25 +783,25 @@ namespace BotSharp.Core.Repository
                 }
 
                 Directory.CreateDirectory(dir);
-                Thread.Sleep(50);
+                await Task.Delay(50);
 
                 var agentFile = Path.Combine(dir, AGENT_FILE);
                 var json = JsonSerializer.Serialize(agent, _options);
-                File.WriteAllText(agentFile, json);
+                await File.WriteAllTextAsync(agentFile, json);
 
                 if (!string.IsNullOrWhiteSpace(agent.Instruction))
                 {
                     var instDir = Path.Combine(dir, AGENT_INSTRUCTIONS_FOLDER);
                     Directory.CreateDirectory(instDir);
                     var instFile = Path.Combine(instDir, $"{AGENT_INSTRUCTION_FILE}.{_agentSettings.TemplateFormat}");
-                    File.WriteAllText(instFile, agent.Instruction);
+                    await File.WriteAllTextAsync(instFile, agent.Instruction);
                 }
             }
 
             ResetInnerAgents();
         }
 
-        public void BulkInsertUserAgents(List<UserAgent> userAgents)
+        public async Task BulkInsertUserAgents(List<UserAgent> userAgents)
         {
             if (userAgents.IsNullOrEmpty())
             {
@@ -825,24 +831,24 @@ namespace BotSharp.Core.Repository
                 var list = new List<UserAgent>();
                 if (File.Exists(userAgentFile))
                 {
-                    var str = File.ReadAllText(userAgentFile);
+                    var str = await File.ReadAllTextAsync(userAgentFile);
                     list = JsonSerializer.Deserialize<List<UserAgent>>(str, _options);
                 }
 
                 list.AddRange(filtered);
-                File.WriteAllText(userAgentFile, JsonSerializer.Serialize(list, _options));
-                Thread.Sleep(50);
+                await File.WriteAllTextAsync(userAgentFile, JsonSerializer.Serialize(list, _options));
+                await Task.Delay(50);
             }
 
             ResetInnerAgents();
         }
 
-        public bool DeleteAgents()
+        public Task<bool> DeleteAgents()
         {
-            return false;
+            return Task.FromResult(false);
         }
 
-        public bool DeleteAgent(string agentId, AgentDeleteOptions? options = null)
+        public async Task<bool> DeleteAgent(string agentId, AgentDeleteOptions? options = null)
         {
             if (string.IsNullOrEmpty(agentId))
             {
@@ -871,7 +877,7 @@ namespace BotSharp.Core.Repository
                                 continue;
                             }
 
-                            var text = File.ReadAllText(userAgentFile);
+                            var text = await File.ReadAllTextAsync(userAgentFile);
                             var userAgents = JsonSerializer.Deserialize<List<UserAgent>>(text, _options);
                             if (userAgents.IsNullOrEmpty())
                             {
@@ -879,7 +885,7 @@ namespace BotSharp.Core.Repository
                             }
 
                             userAgents = userAgents?.Where(x => x.AgentId != agentId)?.ToList() ?? [];
-                            File.WriteAllText(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
+                            await File.WriteAllTextAsync(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
                         }
                     }
                 }
@@ -898,7 +904,7 @@ namespace BotSharp.Core.Repository
                                 continue;
                             }
 
-                            var text = File.ReadAllText(roleAgentFile);
+                            var text = await File.ReadAllTextAsync(roleAgentFile);
                             var roleAgents = JsonSerializer.Deserialize<List<RoleAgent>>(text, _options);
                             if (roleAgents.IsNullOrEmpty())
                             {
@@ -906,7 +912,7 @@ namespace BotSharp.Core.Repository
                             }
 
                             roleAgents = roleAgents?.Where(x => x.AgentId != agentId)?.ToList() ?? [];
-                            File.WriteAllText(roleAgentFile, JsonSerializer.Serialize(roleAgents, _options));
+                            await File.WriteAllTextAsync(roleAgentFile, JsonSerializer.Serialize(roleAgents, _options));
                         }
                     }
                 }

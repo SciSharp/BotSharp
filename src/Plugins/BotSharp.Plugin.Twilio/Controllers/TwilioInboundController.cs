@@ -200,20 +200,20 @@ public class TwilioInboundController : TwilioController
             states.Add(new(StateConst.ROUTING_MODE, agent.Mode));
         }
 
-        convService.SetConversationId(conversation.Id, states);
+        await convService.SetConversationId(conversation.Id, states);
 
         if (!string.IsNullOrEmpty(request.Intent))
         {
             var storage = _services.GetRequiredService<IConversationStorage>();
 
-            storage.Append(conversation.Id, new RoleDialogModel(AgentRole.User, request.Intent)
+            await storage.Append(conversation.Id, new RoleDialogModel(AgentRole.User, request.Intent)
             {
                 CurrentAgentId = agent.Id,
                 CreatedAt = DateTime.UtcNow
             });
         }
 
-        convService.SaveStates();
+        await convService.SaveStates();
         
         // reload agent rendering with states
         agent = await agentService.LoadAgent(request.AgentId);

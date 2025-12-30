@@ -8,7 +8,7 @@ public class ConversationStorage : IConversationStorage
 {
     private readonly BotSharpOptions _options;
     private readonly IServiceProvider _services;
-    private static readonly object _lock = new object();
+    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
     public ConversationStorage(
         BotSharpOptions options,
@@ -18,15 +18,20 @@ public class ConversationStorage : IConversationStorage
         _options = options;
     }
 
-    public void Append(string conversationId, RoleDialogModel dialog)
+    public async Task Append(string conversationId, RoleDialogModel dialog)
     {
-        lock (_lock)
+        await _semaphore.WaitAsync();
+        try
         {
-            Append(conversationId, [dialog]);
+            await Append(conversationId, [dialog]);
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
 
-    public void Append(string conversationId, IEnumerable<RoleDialogModel> dialogs)
+    public async Task Append(string conversationId, IEnumerable<RoleDialogModel> dialogs)
     {
         if (dialogs.IsNullOrEmpty()) return;
 
@@ -42,13 +47,13 @@ public class ConversationStorage : IConversationStorage
             }
         }
 
-        db.AppendConversationDialogs(conversationId, dialogElements);
+        await db.AppendConversationDialogs(conversationId, dialogElements);
     }
 
-    public List<RoleDialogModel> GetDialogs(string conversationId)
+    public async Task<List<RoleDialogModel>> GetDialogs(string conversationId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var dialogs = db.GetConversationDialogs(conversationId);
+        var dialogs = await db.GetConversationDialogs(conversationId);
         var hooks = _services.GetServices<IConversationHook>();
 
         var results = new List<RoleDialogModel>();
@@ -86,13 +91,13 @@ public class ConversationStorage : IConversationStorage
 
             foreach(var hook in hooks)
             {
-                hook.OnDialogRecordLoaded(record).Wait();
+                await hook.OnDialogRecordLoaded(record);
             }
         }
 
         foreach (var hook in hooks)
         {
-            hook.OnDialogsLoaded(results).Wait();
+            await hook.OnDialogsLoaded(results);
         }
 
         return results;

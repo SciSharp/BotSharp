@@ -36,15 +36,15 @@ public partial class ConversationService : IConversationService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var isDeleted = db.DeleteConversations(ids);
+        var isDeleted = await db.DeleteConversations(ids);
         fileStorage.DeleteConversationFiles(ids);
-        return await Task.FromResult(isDeleted);
+        return isDeleted;
     }
 
     public async Task<Conversation> UpdateConversationTitle(string id, string title)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        db.UpdateConversationTitle(id, title);
+        await db.UpdateConversationTitle(id, title);
         var conversation = await db.GetConversation(id);
         return conversation;
     }
@@ -52,7 +52,7 @@ public partial class ConversationService : IConversationService
     public async Task<Conversation> UpdateConversationTitleAlias(string id, string titleAlias)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        db.UpdateConversationTitleAlias(id, titleAlias);
+        await db.UpdateConversationTitleAlias(id, titleAlias);
         var conversation = await db.GetConversation(id);
         return conversation;
     }
@@ -60,13 +60,13 @@ public partial class ConversationService : IConversationService
     public async Task<bool> UpdateConversationTags(string conversationId, List<string> toAddTags, List<string> toDeleteTags)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.UpdateConversationTags(conversationId, toAddTags, toDeleteTags);
+        return await db.UpdateConversationTags(conversationId, toAddTags, toDeleteTags);
     }
 
     public async Task<bool> UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.UpdateConversationMessage(conversationId, request);
+        return await db.UpdateConversationMessage(conversationId, request);
     }
 
     public async Task<Conversation> GetConversation(string id, bool isLoadStates = false)
@@ -91,13 +91,13 @@ public partial class ConversationService : IConversationService
     public async Task<List<Conversation>> GetLastConversations()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.GetLastConversations();
+        return await db.GetLastConversations();
     }
 
     public async Task<List<string>> GetIdleConversations(int batchSize, int messageLimit, int bufferHours, IEnumerable<string> excludeAgentIds)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.GetIdleConversations(batchSize, messageLimit, bufferHours, excludeAgentIds ?? new List<string>());
+        return await db.GetIdleConversations(batchSize, messageLimit, bufferHours, excludeAgentIds ?? new List<string>());
     }
 
     public async Task<Conversation> NewConversation(Conversation sess)
@@ -132,14 +132,14 @@ public partial class ConversationService : IConversationService
         throw new NotImplementedException();
     }
 
-    public List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true, IEnumerable<string>? includeMessageTypes = null)
+    public async Task<List<RoleDialogModel>> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true, IEnumerable<string>? includeMessageTypes = null)
     {
         if (string.IsNullOrEmpty(_conversationId))
         {
             throw new ArgumentNullException("ConversationId is null.");
         }
 
-        var dialogs = _storage.GetDialogs(_conversationId);
+        var dialogs = await _storage.GetDialogs(_conversationId);
 
         if (!includeMessageTypes.IsNullOrEmpty())
         {
@@ -153,7 +153,7 @@ public partial class ConversationService : IConversationService
         if (fromBreakpoint)
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var breakpoint = db.GetConversationBreakpoint(_conversationId);
+            var breakpoint = await db.GetConversationBreakpoint(_conversationId);
 
             if (breakpoint != null)
             {
@@ -165,16 +165,16 @@ public partial class ConversationService : IConversationService
             }
         }
 
-        var agentMsgCount = GetAgentMessageCount();
+        var agentMsgCount = await GetAgentMessageCount();
         var count = agentMsgCount.HasValue && agentMsgCount.Value > 0 ? agentMsgCount.Value : lastCount;
 
         return dialogs.TakeLast(count).ToList();
     }
 
-    public void SetConversationId(string conversationId, List<MessageState> states, bool isReadOnly = false)
+    public async Task SetConversationId(string conversationId, List<MessageState> states, bool isReadOnly = false)
     {
         _conversationId = conversationId;
-        _state.Load(_conversationId, isReadOnly);
+        await _state.Load(_conversationId, isReadOnly);
         states.ForEach(x => _state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, isNeedVersion: !x.Global, source: StateSource.External));
     }
 
@@ -209,20 +209,20 @@ public partial class ConversationService : IConversationService
     }
 
 
-    private int? GetAgentMessageCount()
+    private async Task<int?> GetAgentMessageCount()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
 
         if (string.IsNullOrEmpty(routingCtx.EntryAgentId)) return null;
 
-        var agent = db.GetAgent(routingCtx.EntryAgentId, basicsOnly: true);
+        var agent = await db.GetAgentAsync(routingCtx.EntryAgentId, basicsOnly: true);
         return agent?.MaxMessageCount;
     }
 
-    public void SaveStates()
+    public async Task SaveStates()
     {
-        _state.Save();
+        await _state.Save();
     }
 
     public async Task<List<string>> GetConversationStateSearhKeys(ConversationStateKeysFilter filter)
@@ -243,7 +243,7 @@ public partial class ConversationService : IConversationService
 
         var (isAdmin, user) = await userService.IsAdminUser(_user.Id);
         filter.UserIds = !isAdmin && user?.Id != null ? [user.Id] : [];
-        keys = db.GetConversationStateSearchKeys(filter);
+        keys = await db.GetConversationStateSearchKeys(filter);
         keys = filter.PreLoad ? keys : keys.Where(x => x.Contains(filter.Query ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList();
         return keys.OrderBy(x => x).Take(filter.KeyLimit).ToList();
     }

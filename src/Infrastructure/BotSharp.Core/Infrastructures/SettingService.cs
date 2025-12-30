@@ -25,10 +25,10 @@ public class SettingService : ISettingService
         return settings;
     }
 
-    public object GetDetail(string settingName, bool mask = false)
+    public async Task<object> GetDetail(string settingName, bool mask = false)
     {
         var pluginService = _services.GetRequiredService<PluginLoader>();
-        var plugins = pluginService.GetPlugins(_services);
+        var plugins = await pluginService.GetPlugins(_services);
         var plugin = plugins.First(x => x.Module.Settings.Name == settingName);
         var instance = plugin.Module.GetNewSettingsInstance();
 

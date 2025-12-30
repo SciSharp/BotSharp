@@ -199,7 +199,7 @@ public partial class KnowledgeService
                 await vectorDb.DeleteCollectionData(collectionName, guids);
             }
 
-            db.DeleteKnolwedgeBaseFileMeta(collectionName, vectorStoreProvider, fileId);
+            await db.DeleteKnolwedgeBaseFileMeta(collectionName, vectorStoreProvider, fileId);
             return true;
         }
         catch (Exception ex)
@@ -458,7 +458,7 @@ public partial class KnowledgeService
 
             if (!dataIds.IsNullOrEmpty())
             {
-                db.SaveKnolwedgeBaseFileMeta(new KnowledgeDocMetaData
+                await db.SaveKnolwedgeBaseFileMeta(new KnowledgeDocMetaData
                 {
                     Collection = collectionName,
                     FileId = item.FileId,

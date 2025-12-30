@@ -40,7 +40,7 @@ public class AgentTaskService : IAgentTaskService
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
             var pagedTasks = await db.GetAgentTasks(filter);
-            return await Task.FromResult(pagedTasks);
+            return pagedTasks;
         }
     }
 
@@ -53,8 +53,8 @@ public class AgentTaskService : IAgentTaskService
     public async Task<AgentTask?> GetTask(string agentId, string taskId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var task = db.GetAgentTask(agentId, taskId);
-        return await Task.FromResult(task);
+        var task = await db.GetAgentTask(agentId, taskId);
+        return task;
     }
 
     /// <summary>
@@ -65,8 +65,7 @@ public class AgentTaskService : IAgentTaskService
     public async Task CreateTask(AgentTask task)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        db.InsertAgentTask(task);
-        await Task.CompletedTask;
+        await db.InsertAgentTask(task);
     }
 
     /// <summary>
@@ -78,8 +77,7 @@ public class AgentTaskService : IAgentTaskService
     public async Task UpdateTask(AgentTask task, AgentTaskField field)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        db.UpdateAgentTask(task, field);
-        await Task.CompletedTask;
+        await db.UpdateAgentTask(task, field);
     }
 
     /// <summary>
@@ -91,7 +89,7 @@ public class AgentTaskService : IAgentTaskService
     public async Task<bool> DeleteTask(string agentId, string taskId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var isDeleted = db.DeleteAgentTasks(agentId, new List<string> { taskId });
-        return await Task.FromResult(isDeleted);
+        var isDeleted = await db.DeleteAgentTasks(agentId, new List<string> { taskId });
+        return isDeleted;
     }
 }

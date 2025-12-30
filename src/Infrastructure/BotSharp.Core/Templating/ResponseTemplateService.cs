@@ -18,7 +18,7 @@ public class ResponseTemplateService : IResponseTemplateService
     {
         // Find response template
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var responses = db.GetAgentResponses(agentId, "func", message.FunctionName);
+        var responses = await db.GetAgentResponses(agentId, "func", message.FunctionName);
 
         if (responses.Count == 0)
         {
@@ -67,7 +67,7 @@ public class ResponseTemplateService : IResponseTemplateService
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var routing = _services.GetRequiredService<IRoutingContext>();
-        var responses = db.GetAgentResponses(agentId, "intent", routing.IntentName);
+        var responses = await db.GetAgentResponses(agentId, "intent", routing.IntentName);
 
         if (responses.Count == 0)
         {

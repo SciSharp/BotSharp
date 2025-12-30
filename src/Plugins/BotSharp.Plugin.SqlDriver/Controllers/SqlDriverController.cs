@@ -28,7 +28,7 @@ public class SqlDriverController : ControllerBase
 
         var fn = _services.GetRequiredService<IRoutingService>();
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(conversationId, 
+        await conv.SetConversationId(conversationId, 
             [
                 new MessageState("database_type", sqlQueryRequest.DbType),
                 new MessageState("data_source_name", sqlQueryRequest.DataSource),
@@ -60,7 +60,7 @@ public class SqlDriverController : ControllerBase
                     MessageId = msg.MessageId,
                     CreatedAt = DateTime.UtcNow
                 };
-                storage.Append(conversationId, dialog);
+                await storage.Append(conversationId, dialog);
             }
         }
 
@@ -72,7 +72,7 @@ public class SqlDriverController : ControllerBase
     public async Task<IActionResult> AddQueryExecutionResult([FromRoute] string conversationId, [FromBody] SqlQueryExecutionResult sqlQueryResult)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(conversationId, []);
+        await conv.SetConversationId(conversationId, []);
 
         var storage = _services.GetRequiredService<IConversationStorage>();
         var dialog = new RoleDialogModel(AgentRole.Assistant, sqlQueryResult.Results)
@@ -80,7 +80,7 @@ public class SqlDriverController : ControllerBase
             CurrentAgentId = sqlQueryResult.AgentId,
             CreatedAt = DateTime.UtcNow
         };
-        storage.Append(conversationId, dialog);
+        await storage.Append(conversationId, dialog);
 
         return Ok(dialog);
     }

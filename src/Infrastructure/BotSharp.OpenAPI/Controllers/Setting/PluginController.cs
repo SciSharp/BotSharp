@@ -16,7 +16,7 @@ public class PluginController(IServiceProvider services, IUserIdentity user, Plu
     public async Task<PagedItems<PluginDef>> GetPlugins([FromQuery] PluginFilter filter)
     {
         var loader = services.GetRequiredService<PluginLoader>();
-        return loader.GetPagedPlugins(services, filter);
+        return await loader.GetPagedPlugins(services, filter);
     }
 
     [HttpGet("/plugin/menu")]
@@ -52,7 +52,8 @@ public class PluginController(IServiceProvider services, IUserIdentity user, Plu
         ];
 
         var loader = services.GetRequiredService<PluginLoader>();
-        foreach (var plugin in loader.GetPlugins(services))
+        var plugins = await loader.GetPlugins(services);
+        foreach (var plugin in plugins)
         {
             if (!plugin.Enabled)
             {
@@ -70,17 +71,17 @@ public class PluginController(IServiceProvider services, IUserIdentity user, Plu
 
     [BotSharpAuth]
     [HttpPost("/plugin/{id}/install")]
-    public PluginDef InstallPlugin([FromRoute] string id)
+    public async Task<PluginDef> InstallPlugin([FromRoute] string id)
     {
         var loader = services.GetRequiredService<PluginLoader>();
-        return loader.UpdatePluginStatus(services, id, true);
+        return await loader.UpdatePluginStatus(services, id, true);
     }
 
     [BotSharpAuth]
     [HttpPost("/plugin/{id}/remove")]
-    public PluginDef RemovePluginStats([FromRoute] string id)
+    public async Task<PluginDef> RemovePluginStats([FromRoute] string id)
     {
         var loader = services.GetRequiredService<PluginLoader>();
-        return loader.UpdatePluginStatus(services, id, false);
+        return await loader.UpdatePluginStatus(services, id, false);
     }
 }

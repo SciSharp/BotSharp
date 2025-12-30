@@ -10,8 +10,8 @@ public partial class AgentService
     public async Task<List<AgentCodeScript>> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var scripts = db.GetAgentCodeScripts(agentId, filter);
-        return await Task.FromResult(scripts);
+        var scripts = await db.GetAgentCodeScripts(agentId, filter);
+        return scripts;
     }
 
     public async Task<AgentCodeScript?> GetAgentCodeScript(string agentId, string scriptName, string scriptType = AgentCodeScriptType.Src)
@@ -34,7 +34,7 @@ public partial class AgentService
         if (options?.DeleteIfNotIncluded == true && codeScripts.IsNullOrEmpty())
         {
             // Delete all code scripts in this agent
-            db.DeleteAgentCodeScripts(agentId);
+            await db.DeleteAgentCodeScripts(agentId);
             return true;
         }
 
@@ -46,10 +46,10 @@ public partial class AgentService
             toDeleteScripts = curDbScripts.Where(x => !codePaths.Contains(x.CodePath)).ToList();
         }
 
-        var updateResult = db.UpdateAgentCodeScripts(agentId, codeScripts, options);
+        var updateResult = await db.UpdateAgentCodeScripts(agentId, codeScripts, options);
         if (!toDeleteScripts.IsNullOrEmpty())
         {
-            db.DeleteAgentCodeScripts(agentId, toDeleteScripts);
+            await db.DeleteAgentCodeScripts(agentId, toDeleteScripts);
         }
 
         return updateResult;
@@ -63,8 +63,8 @@ public partial class AgentService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var deleted = db.DeleteAgentCodeScripts(agentId, codeScripts);
-        return await Task.FromResult(deleted);
+        var deleted = await db.DeleteAgentCodeScripts(agentId, codeScripts);
+        return deleted;
     }
 
     public async Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeGenHandleOptions? options = null)
@@ -104,7 +104,7 @@ public partial class AgentService
                     ScriptType = options?.ScriptType ?? AgentCodeScriptType.Src
                 }
             };
-            var saved = db.UpdateAgentCodeScripts(agentId, scripts, new() { IsUpsert = true });
+            var saved = await db.UpdateAgentCodeScripts(agentId, scripts, new() { IsUpsert = true });
             result.Success = saved;
         }
 

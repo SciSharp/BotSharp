@@ -49,7 +49,7 @@ public partial class AgentService : IAgentService
             return [];
         }
 
-        var userAgents = _db.GetUserAgents(userId);
+        var userAgents = await _db.GetUserAgents(userId);
         return userAgents;
     }
 }

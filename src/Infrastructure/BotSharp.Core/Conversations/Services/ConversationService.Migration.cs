@@ -21,7 +21,7 @@ public partial class ConversationService
 #endif
         var sw = Stopwatch.StartNew();
 
-        var convIds = db.GetConversationsToMigrate(batchSize);
+        var convIds = await db.GetConversationsToMigrate(batchSize);
         
         while (!convIds.IsNullOrEmpty())
         {
@@ -38,7 +38,7 @@ public partial class ConversationService
                 var convId = convIds.ElementAt(i);
                 try
                 {
-                    var done = db.MigrateConvsersationLatestStates(convId);
+                    var done = await db.MigrateConvsersationLatestStates(convId);
                     info = $"Conversation {convId} latest states have been migrated ({i + 1}/{convIds.Count})!";
 #if DEBUG
                     Console.WriteLine($"\r\n{info}\r\n");
@@ -81,7 +81,7 @@ public partial class ConversationService
 #endif
 
             await Task.Delay(100);
-            convIds = db.GetConversationsToMigrate(batchSize);
+            convIds = await db.GetConversationsToMigrate(batchSize);
         }
 
         sw.Stop();

@@ -66,7 +66,7 @@ public class HFReasoner : IRoutingReasoner
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
             var filter = new AgentFilter { AgentNames = [inst.AgentName] };
-            var agent = db.GetAgents(filter).FirstOrDefault();
+            var agent = (await db.GetAgents(filter)).FirstOrDefault();
 
             var context = _services.GetRequiredService<IRoutingContext>();
             context.Push(agent.Id, reason: inst.NextActionReason);
@@ -79,11 +79,11 @@ public class HFReasoner : IRoutingReasoner
         return true;
     }
 
-    public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         var context = _services.GetRequiredService<IRoutingContext>();
         context.Empty(reason: $"Agent queue is cleared by {nameof(HFReasoner)}");
-        return true;
+        return Task.FromResult(true);
     }
 
     private string GetNextStepPrompt(Agent router)

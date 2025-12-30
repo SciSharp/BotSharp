@@ -7,7 +7,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 public partial class MongoRepository
 {
     #region Code script
-    public List<AgentCodeScript> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
+    public async Task<List<AgentCodeScript>> GetAgentCodeScripts(string agentId, AgentCodeScriptFilter? filter = null)
     {
         if (string.IsNullOrWhiteSpace(agentId))
         {
@@ -31,7 +31,7 @@ public partial class MongoRepository
             filters.Add(builder.In(x => x.ScriptType, filter.ScriptTypes));
         }
 
-        var found = _dc.AgentCodeScripts.Find(builder.And(filters)).ToList();
+        var found = await _dc.AgentCodeScripts.Find(builder.And(filters)).ToListAsync();
         return found.Select(x => AgentCodeScriptDocument.ToDomainModel(x)).ToList();
     }
 
@@ -56,7 +56,7 @@ public partial class MongoRepository
         return found != null ? AgentCodeScriptDocument.ToDomainModel(found) : null;
     }
 
-    public bool UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
+    public async Task<bool> UpdateAgentCodeScripts(string agentId, List<AgentCodeScript> scripts, AgentCodeScriptDbUpdateOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
         {
@@ -88,11 +88,11 @@ public partial class MongoRepository
                          })
                          .ToList();
 
-        var result = _dc.AgentCodeScripts.BulkWrite(ops, new BulkWriteOptions { IsOrdered = false });
+        await _dc.AgentCodeScripts.BulkWriteAsync(ops, new BulkWriteOptions { IsOrdered = false });
         return true;
     }
 
-    public bool BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
+    public async Task<bool> BulkInsertAgentCodeScripts(string agentId, List<AgentCodeScript> scripts)
     {
         if (string.IsNullOrWhiteSpace(agentId) || scripts.IsNullOrEmpty())
         {
@@ -109,11 +109,11 @@ public partial class MongoRepository
             return script;
         }).ToList();
 
-        _dc.AgentCodeScripts.InsertMany(docs);
+        await _dc.AgentCodeScripts.InsertManyAsync(docs);
         return true;
     }
 
-    public bool DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? scripts = null)
+    public async Task<bool> DeleteAgentCodeScripts(string agentId, List<AgentCodeScript>? scripts = null)
     {
         if (string.IsNullOrWhiteSpace(agentId))
         {
@@ -136,11 +136,11 @@ public partial class MongoRepository
                 builder.Eq(x => x.AgentId, agentId),
                 new BsonDocumentFilterDefinition<AgentCodeScriptDocument>(exprFilter)
             );
-            deleted = _dc.AgentCodeScripts.DeleteMany(filterDef);
+            deleted = await _dc.AgentCodeScripts.DeleteManyAsync(filterDef);
         }
         else
         {
-            deleted = _dc.AgentCodeScripts.DeleteMany(builder.Eq(x => x.AgentId, agentId));
+            deleted = await _dc.AgentCodeScripts.DeleteManyAsync(builder.Eq(x => x.AgentId, agentId));
         }
 
         return deleted.DeletedCount > 0;

@@ -39,13 +39,13 @@ public class TwilioTranscribeController : TwilioController
                 {
                     CurrentAgentId = request.AgentId
                 };
-                storage.Append(request.ConversationId, message);
+                await storage.Append(request.ConversationId, message);
 
                 var routing = _services.GetRequiredService<IRoutingService>();
                 routing.Context.SetMessageId(request.ConversationId, message.MessageId);
 
                 var convService = _services.GetRequiredService<IConversationService>();
-                convService.SetConversationId(request.ConversationId, []);
+                await convService.SetConversationId(request.ConversationId, []);
 
                 // transcription completed
                 transcript.Language = request.LanguageCode;

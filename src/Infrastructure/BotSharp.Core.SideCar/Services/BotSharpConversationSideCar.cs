@@ -41,7 +41,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         _logger = logger;
     }
 
-    public void AppendConversationDialogs(string conversationId, List<DialogElement> messages)
+    public async Task AppendConversationDialogs(string conversationId, List<DialogElement> messages)
     {
         if (!IsValid(conversationId))
         {
@@ -50,19 +50,23 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
         var top = _contextStack.Peek();
         top.Dialogs.AddRange(messages);
+
+        await Task.CompletedTask;
     }
 
-    public List<DialogElement> GetConversationDialogs(string conversationId)
+    public async Task<List<DialogElement>> GetConversationDialogs(string conversationId)
     {
         if (!IsValid(conversationId))
         {
             return new List<DialogElement>();
         }
 
+        await Task.CompletedTask;
+
         return _contextStack.Peek().Dialogs;
     }
 
-    public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
+    public async Task UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
     {
         if (!IsValid(conversationId))
         {
@@ -71,9 +75,11 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
         var top = _contextStack.Peek().Breakpoints;
         top.Add(breakpoint);
+
+        await Task.CompletedTask;
     }
 
-    public ConversationBreakpoint? GetConversationBreakpoint(string conversationId)
+    public async Task<ConversationBreakpoint?> GetConversationBreakpoint(string conversationId)
     {
         if (!IsValid(conversationId))
         {
@@ -81,10 +87,12 @@ public class BotSharpConversationSideCar : IConversationSideCar
         }
 
         var top = _contextStack.Peek().Breakpoints;
+
+        await Task.CompletedTask;
         return top.LastOrDefault();
     }
 
-    public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
+    public async Task UpdateConversationStates(string conversationId, List<StateKeyValue> states)
     {
         if (!IsValid(conversationId))
         {
@@ -93,6 +101,8 @@ public class BotSharpConversationSideCar : IConversationSideCar
 
         var top = _contextStack.Peek();
         top.State = new ConversationState(states);
+
+        await Task.CompletedTask;
     }
 
     public async Task<RoleDialogModel> SendMessage(

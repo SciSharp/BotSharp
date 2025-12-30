@@ -121,23 +121,23 @@ public class SequentialPlanner : ITaskPlanner
         return true;
     }
 
-    public async Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         // Set user content as Planner's question
         message.FunctionName = inst.Function;
         message.FunctionArgs = inst.Arguments == null ? "{}" : JsonSerializer.Serialize(inst.Arguments);
 
-        return true;
+        return Task.FromResult(true);
     }
 
-    public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         var context = _services.GetRequiredService<IRoutingContext>();
 
         if (message.StopCompletion)
         {
             context.Empty(reason: $"Agent queue is cleared by {nameof(SequentialPlanner)}");
-            return false;
+            return Task.FromResult(false);
         }
 
         // Handover to Router;
@@ -146,7 +146,7 @@ public class SequentialPlanner : ITaskPlanner
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.ResetRecursiveCounter();
 
-        return true;
+        return Task.FromResult(true);
     }
 
     private string GetNextStepPrompt(Agent router)

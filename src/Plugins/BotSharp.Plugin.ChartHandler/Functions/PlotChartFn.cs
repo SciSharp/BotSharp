@@ -31,7 +31,7 @@ public class PlotChartFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
 
         var agent = await agentService.GetAgent(message.CurrentAgentId);
-        var inst = GetChartPlotInstruction(message.CurrentAgentId);
+        var inst = await GetChartPlotInstruction(message.CurrentAgentId);
         var innerAgent = new Agent
         {
             Id = agent?.Id ?? BuiltInAgentId.AIProgrammer,
@@ -48,7 +48,7 @@ public class PlotChartFn : IFunctionCallback
         var dialogs = routingCtx.GetDialogs();
         if (dialogs.IsNullOrEmpty())
         {
-            dialogs = convService.GetDialogHistory();
+            dialogs = await convService.GetDialogHistory();
         }
 
         var messageLimit = _settings.ChartPlot?.MessageLimit > 0 ? _settings.ChartPlot.MessageLimit.Value : 50;
@@ -109,7 +109,7 @@ public class PlotChartFn : IFunctionCallback
         }
     }
 
-    private string GetChartPlotInstruction(string agentId)
+    private async Task<string> GetChartPlotInstruction(string agentId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -119,12 +119,12 @@ public class PlotChartFn : IFunctionCallback
 
         if (!string.IsNullOrEmpty(templateName))
         {
-            templateContent = db.GetAgentTemplate(agentId, templateName);
+            templateContent = await db.GetAgentTemplate(agentId, templateName);
         }
         else
         {
             templateName = "chart-js-generate_instruction";
-            templateContent = db.GetAgentTemplate(BuiltInAgentId.AIProgrammer, templateName);
+            templateContent = await db.GetAgentTemplate(BuiltInAgentId.AIProgrammer, templateName);
         }
 
         return templateContent;

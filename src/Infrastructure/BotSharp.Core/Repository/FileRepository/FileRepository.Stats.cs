@@ -4,7 +4,7 @@ namespace BotSharp.Core.Repository;
 
 public partial class FileRepository
 {
-    public BotSharpStats? GetGlobalStats(string agentId, DateTime recordTime, StatsInterval interval)
+    public async Task<BotSharpStats?> GetGlobalStats(string agentId, DateTime recordTime, StatsInterval interval)
     {
         if (string.IsNullOrWhiteSpace(agentId))
         {
@@ -25,7 +25,7 @@ public partial class FileRepository
             return null;
         }
 
-        var text = File.ReadAllText(file);
+        var text = await File.ReadAllTextAsync(file);
         var list = JsonSerializer.Deserialize<List<BotSharpStats>>(text, _options);
         var found = list?.FirstOrDefault(x => x.AgentId.IsEqualTo(agentId)
                                             && x.StartTime == startTime
@@ -34,7 +34,7 @@ public partial class FileRepository
         return found;
     }
 
-    public bool SaveGlobalStats(BotSharpStatsDelta delta)
+    public async Task<bool> SaveGlobalStats(BotSharpStatsDelta delta)
     {
         if (delta == null || string.IsNullOrWhiteSpace(delta.AgentId))
         {
@@ -74,11 +74,11 @@ public partial class FileRepository
         if (!File.Exists(file))
         {
             var list = new List<BotSharpStats> { newItem };
-            File.WriteAllText(file, JsonSerializer.Serialize(list, _options));
+            await File.WriteAllTextAsync(file, JsonSerializer.Serialize(list, _options));
         }
         else
         {
-            var text = File.ReadAllText(file);
+            var text = await File.ReadAllTextAsync(file);
             var list = JsonSerializer.Deserialize<List<BotSharpStats>>(text, _options);
             var found = list?.FirstOrDefault(x => x.AgentId.IsEqualTo(delta.AgentId)
                                                 && x.StartTime == startTime
@@ -106,7 +106,7 @@ public partial class FileRepository
                 list = [newItem];
             }
 
-            File.WriteAllText(file, JsonSerializer.Serialize(list, _options));
+            await File.WriteAllTextAsync(file, JsonSerializer.Serialize(list, _options));
         }
 
         return true;

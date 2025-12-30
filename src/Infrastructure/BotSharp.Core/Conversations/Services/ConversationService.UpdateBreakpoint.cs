@@ -11,7 +11,7 @@ public partial class ConversationService
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
         var messageId = routingCtx.MessageId;
 
-        db.UpdateConversationBreakpoint(_conversationId, new ConversationBreakpoint
+        await db.UpdateConversationBreakpoint(_conversationId, new ConversationBreakpoint
         {
             MessageId = messageId,
             Breakpoint = DateTime.UtcNow,

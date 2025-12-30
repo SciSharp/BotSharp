@@ -218,7 +218,8 @@ public partial class UserService : IUserService
         if (user == null) return auth;
 
         auth.IsAdmin = isAdmin;
-        var role = db.GetRoles(new RoleFilter { Names = [user.Role] }).FirstOrDefault();
+        var roles = await db.GetRoles(new RoleFilter { Names = [user.Role] });
+        var role = roles.FirstOrDefault();
         var permissions = user.Permissions?.Any() == true ? user.Permissions : role?.Permissions ?? [];
         auth.Permissions = permissions;
 
@@ -235,7 +236,8 @@ public partial class UserService : IUserService
             }).ToList() ?? [];
 
         var userAgentIds = userAgents.Select(x => x.AgentId).ToList();
-        var roleAgents = db.GetRoleDetails(role?.Id)?.AgentActions?
+        var roleDetails = role?.Id != null ? await db.GetRoleDetails(role.Id) : null;
+        var roleAgents = roleDetails?.AgentActions?
             .Where(x => !userAgentIds.Contains(x.AgentId))?.Select(x => new UserAgent
             {
                 AgentId = x.AgentId,

@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
-    public bool UpsertCrontabItem(CrontabItem item)
+    public async Task<bool> UpsertCrontabItem(CrontabItem item)
     {
         if (item == null || string.IsNullOrWhiteSpace(item.ConversationId))
         {
@@ -18,7 +18,7 @@ public partial class MongoRepository
             cronDoc.Id = Guid.NewGuid().ToString();
 
             var filter = Builders<CrontabItemDocument>.Filter.Eq(x => x.ConversationId, item.ConversationId);
-            var result = _dc.CrontabItems.ReplaceOne(filter, cronDoc, new ReplaceOptions
+            await _dc.CrontabItems.ReplaceOneAsync(filter, cronDoc, new ReplaceOptions
             {
                 IsUpsert = true
             });
@@ -32,7 +32,7 @@ public partial class MongoRepository
     }
 
 
-    public bool DeleteCrontabItem(string conversationId)
+    public async Task<bool> DeleteCrontabItem(string conversationId)
     {
         if (string.IsNullOrWhiteSpace(conversationId))
         {
@@ -40,7 +40,7 @@ public partial class MongoRepository
         }
 
         var filter = Builders<CrontabItemDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var result = _dc.CrontabItems.DeleteMany(filter);
+        var result = await _dc.CrontabItems.DeleteManyAsync(filter);
         return result.DeletedCount > 0;
     }
 

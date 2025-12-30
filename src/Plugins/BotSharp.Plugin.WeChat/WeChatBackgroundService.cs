@@ -57,7 +57,7 @@ namespace BotSharp.Plugin.WeChat
             var routing = _service.GetRequiredService<IRoutingService>();
             routing.Context.SetMessageId(latestConversationId, inputMsg.MessageId);
 
-            conversationService.SetConversationId(latestConversationId, new List<MessageState>
+            await conversationService.SetConversationId(latestConversationId, new List<MessageState>
             {
                 new MessageState("channel", "wechat")
             });

@@ -9,5 +9,5 @@ public interface ISettingService
 {
     T Bind<T>(string path) where T : new();
 
-    object GetDetail(string settingName, bool mask = false);
+    Task<object> GetDetail(string settingName, bool mask = false);
 }

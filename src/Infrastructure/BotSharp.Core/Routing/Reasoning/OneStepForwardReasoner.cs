@@ -71,16 +71,16 @@ public class OneStepForwardReasoner : IRoutingReasoner
         return inst;
     }
 
-    public async Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         // Set user content as Planner's question
         message.FunctionName = inst.Function;
         message.FunctionArgs = inst.Arguments == null ? "{}" : JsonSerializer.Serialize(inst.Arguments);
 
-        return true;
+        return Task.FromResult(true);
     }
 
-    public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         var context = _services.GetRequiredService<IRoutingContext>();
         if (inst.UnmatchedAgent)
@@ -99,7 +99,7 @@ public class OneStepForwardReasoner : IRoutingReasoner
             context.Empty(reason: $"Agent queue is cleared by {nameof(OneStepForwardReasoner)}");
             // context.Push(inst.OriginalAgent, "Push user goal agent");
         }
-        return true;
+        return Task.FromResult(true);
     }
 
     private string GetNextStepPrompt(Agent router)

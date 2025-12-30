@@ -116,7 +116,7 @@ public class ConversationStateService : IConversationStateService
                     DataType = valueType,
                     Source = source,
                     Readonly = readOnly
-                }).Wait();
+                }).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
@@ -151,7 +151,7 @@ public class ConversationStateService : IConversationStateService
         return this;
     }
 
-    public Dictionary<string, string> Load(string conversationId, bool isReadOnly = false)
+    public async Task<Dictionary<string, string>> Load(string conversationId, bool isReadOnly = false)
     {
         _conversationId = !isReadOnly ? conversationId : null;
         Reset();
@@ -162,14 +162,14 @@ public class ConversationStateService : IConversationStateService
             return endNodes;
         }
 
-        _historyStates = _db.GetConversationStates(conversationId);
+        _historyStates = await _db.GetConversationStates(conversationId);
         if (_historyStates.IsNullOrEmpty())
         {
             return endNodes;
         }
 
         var curMsgId = _routingContext.MessageId;
-        var dialogs = _db.GetConversationDialogs(conversationId);
+        var dialogs = await _db.GetConversationDialogs(conversationId);
         var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User)
                                  .GroupBy(x => x.MetaData?.MessageId)
                                  .Select(g => g.First())
@@ -224,13 +224,13 @@ public class ConversationStateService : IConversationStateService
         var hooks = _services.GetHooks<IConversationHook>(_routingContext.GetCurrentAgentId());
         foreach (var hook in hooks)
         {
-            hook.OnStateLoaded(_curStates).Wait();
+            await hook.OnStateLoaded(_curStates);
         }
 
         return endNodes;
     }
 
-    public void Save()
+    public async Task Save()
     {
         if (_conversationId == null || _sidecar?.IsEnabled == true)
         {
@@ -265,7 +265,7 @@ public class ConversationStateService : IConversationStateService
             }
         }
 
-        _db.UpdateConversationStates(_conversationId, states);
+        await _db.UpdateConversationStates(_conversationId, states);
         _logger.LogInformation($"Saved states of conversation {_conversationId}");
     }
 
@@ -303,7 +303,7 @@ public class ConversationStateService : IConversationStateService
                 DataType = leafNode.DataType,
                 Source = leafNode.Source,
                 Readonly = value.Readonly
-            }).Wait();
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         return true;
@@ -366,7 +366,7 @@ public class ConversationStateService : IConversationStateService
 
     public void Dispose()
     {
-        Save();
+        Save().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
     public bool ContainsState(string name)

@@ -30,7 +30,7 @@ public partial class RoutingService : IRoutingService
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var storage = _services.GetRequiredService<IConversationStorage>();
-        storage.Append(conv.ConversationId, message);
+        await storage.Append(conv.ConversationId, message);
 
         dialogs.Add(message);
         Context.SetDialogs(dialogs);
@@ -78,7 +78,7 @@ public partial class RoutingService : IRoutingService
         {
             Disabled = false
         };
-        var agents = db.GetAgents(filter);
+        var agents = db.GetAgents(filter).ConfigureAwait(false).GetAwaiter().GetResult();
         var records = agents.Where(x => x.Type == AgentType.Task || x.Type == AgentType.Planning).SelectMany(x =>
         {
             x.RoutingRules.ForEach(r =>
@@ -104,7 +104,7 @@ public partial class RoutingService : IRoutingService
             Disabled = false
         };
 
-        var agents = db.GetAgents(filter);
+        var agents = db.GetAgents(filter).ConfigureAwait(false).GetAwaiter().GetResult();
         var routableAgents = agents.Where(x => x.Type == AgentType.Task || x.Type == AgentType.Planning).Select(x => new RoutableAgent
         {
             AgentId = x.Id,

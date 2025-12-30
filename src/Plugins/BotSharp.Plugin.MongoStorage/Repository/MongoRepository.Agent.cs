@@ -9,7 +9,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
-    public void UpdateAgent(Agent agent, AgentField field)
+    public async Task UpdateAgent(Agent agent, AgentField field)
     {
         if (agent == null || string.IsNullOrWhiteSpace(agent.Id))
         {
@@ -19,73 +19,73 @@ public partial class MongoRepository
         switch (field)
         {
             case AgentField.Name:
-                UpdateAgentName(agent.Id, agent.Name);
+                await UpdateAgentName(agent.Id, agent.Name);
                 break;
             case AgentField.Description:
-                UpdateAgentDescription(agent.Id, agent.Description);
+                await UpdateAgentDescription(agent.Id, agent.Description);
                 break;
             case AgentField.IsPublic:
-                UpdateAgentIsPublic(agent.Id, agent.IsPublic);
+                await UpdateAgentIsPublic(agent.Id, agent.IsPublic);
                 break;
             case AgentField.Disabled:
-                UpdateAgentDisabled(agent.Id, agent.Disabled);
+                await UpdateAgentDisabled(agent.Id, agent.Disabled);
                 break;
             case AgentField.Type:
-                UpdateAgentType(agent.Id, agent.Type);
+                await UpdateAgentType(agent.Id, agent.Type);
                 break;
             case AgentField.RoutingMode:
-                UpdateAgentRoutingMode(agent.Id, agent.Mode);
+                await UpdateAgentRoutingMode(agent.Id, agent.Mode);
                 break;
             case AgentField.FuncVisMode:
-                UpdateAgentFuncVisMode(agent.Id, agent.FuncVisMode);
+                await UpdateAgentFuncVisMode(agent.Id, agent.FuncVisMode);
                 break;
             case AgentField.InheritAgentId:
-                UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
+                await UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
                 break;
             case AgentField.Profile:
-                UpdateAgentProfiles(agent.Id, agent.Profiles);
+                await UpdateAgentProfiles(agent.Id, agent.Profiles);
                 break;
             case AgentField.Label:
-                UpdateAgentLabels(agent.Id, agent.Labels);
+                await UpdateAgentLabels(agent.Id, agent.Labels);
                 break;
             case AgentField.RoutingRule:
-                UpdateAgentRoutingRules(agent.Id, agent.RoutingRules);
+                await UpdateAgentRoutingRules(agent.Id, agent.RoutingRules);
                 break;
             case AgentField.Instruction:
-                UpdateAgentInstructions(agent.Id, agent.Instruction, agent.ChannelInstructions);
+                await UpdateAgentInstructions(agent.Id, agent.Instruction, agent.ChannelInstructions);
                 break;
             case AgentField.Function:
-                UpdateAgentFunctions(agent.Id, agent.Functions);
+                await UpdateAgentFunctions(agent.Id, agent.Functions);
                 break;
             case AgentField.Template:
-                UpdateAgentTemplates(agent.Id, agent.Templates);
+                await UpdateAgentTemplates(agent.Id, agent.Templates);
                 break;
             case AgentField.Response:
-                UpdateAgentResponses(agent.Id, agent.Responses);
+                await UpdateAgentResponses(agent.Id, agent.Responses);
                 break;
             case AgentField.Sample:
-                UpdateAgentSamples(agent.Id, agent.Samples);
+                await UpdateAgentSamples(agent.Id, agent.Samples);
                 break;
             case AgentField.LlmConfig:
-                UpdateAgentLlmConfig(agent.Id, agent.LlmConfig);
+                await UpdateAgentLlmConfig(agent.Id, agent.LlmConfig);
                 break;
             case AgentField.Utility:
-                UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
+                await UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
                 break;
             case AgentField.McpTool:
-                UpdateAgentMcpTools(agent.Id, agent.McpTools);
+                await UpdateAgentMcpTools(agent.Id, agent.McpTools);
                 break;
             case AgentField.KnowledgeBase:
-                UpdateAgentKnowledgeBases(agent.Id, agent.KnowledgeBases);
+                await UpdateAgentKnowledgeBases(agent.Id, agent.KnowledgeBases);
                 break;
             case AgentField.Rule:
-                UpdateAgentRules(agent.Id, agent.Rules);
+                await UpdateAgentRules(agent.Id, agent.Rules);
                 break;
             case AgentField.MaxMessageCount:
-                UpdateAgentMaxMessageCount(agent.Id, agent.MaxMessageCount);
+                await UpdateAgentMaxMessageCount(agent.Id, agent.MaxMessageCount);
                 break;
             case AgentField.All:
-                UpdateAgentAllFields(agent);
+                await UpdateAgentAllFields(agent);
                 break;
             default:
                 break;
@@ -93,7 +93,7 @@ public partial class MongoRepository
     }
 
     #region Update Agent Fields
-    private void UpdateAgentName(string agentId, string name)
+    private async Task UpdateAgentName(string agentId, string name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -105,10 +105,10 @@ public partial class MongoRepository
             .Set(x => x.Name, name)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentDescription(string agentId, string description)
+    private async Task UpdateAgentDescription(string agentId, string description)
     {
         if (string.IsNullOrWhiteSpace(description))
         {
@@ -120,70 +120,70 @@ public partial class MongoRepository
             .Set(x => x.Description, description)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentIsPublic(string agentId, bool isPublic)
+    private async Task UpdateAgentIsPublic(string agentId, bool isPublic)
     {
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
             .Set(x => x.IsPublic, isPublic)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentDisabled(string agentId, bool disabled)
+    private async Task UpdateAgentDisabled(string agentId, bool disabled)
     {
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
             .Set(x => x.Disabled, disabled)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentType(string agentId, string type)
+    private async Task UpdateAgentType(string agentId, string type)
     {
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
             .Set(x => x.Type, type)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentRoutingMode(string agentId, string? mode)
+    private async Task UpdateAgentRoutingMode(string agentId, string? mode)
     {
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
             .Set(x => x.Mode, mode)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentFuncVisMode(string agentId, string? visMode)
+    private async Task UpdateAgentFuncVisMode(string agentId, string? visMode)
     {
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
             .Set(x => x.FunctionVisibilityMode, visMode)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentInheritAgentId(string agentId, string? inheritAgentId)
+    private async Task UpdateAgentInheritAgentId(string agentId, string? inheritAgentId)
     {
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
             .Set(x => x.InheritAgentId, inheritAgentId)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentProfiles(string agentId, List<string> profiles)
+    private async Task UpdateAgentProfiles(string agentId, List<string> profiles)
     {
         if (profiles == null)
         {
@@ -195,10 +195,10 @@ public partial class MongoRepository
             .Set(x => x.Profiles, profiles)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    public bool UpdateAgentLabels(string agentId, List<string> labels)
+    public async Task<bool> UpdateAgentLabels(string agentId, List<string> labels)
     {
         if (labels == null)
         {
@@ -210,11 +210,11 @@ public partial class MongoRepository
             .Set(x => x.Labels, labels)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        var result = _dc.Agents.UpdateOne(filter, update);
+        var result = await _dc.Agents.UpdateOneAsync(filter, update);
         return result.ModifiedCount > 0;
     }
 
-    private void UpdateAgentRoutingRules(string agentId, List<RoutingRule> rules)
+    private async Task UpdateAgentRoutingRules(string agentId, List<RoutingRule> rules)
     {
         if (rules == null)
         {
@@ -227,10 +227,10 @@ public partial class MongoRepository
             .Set(x => x.RoutingRules, ruleElements)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentInstructions(string agentId, string instruction, List<ChannelInstruction>? channelInstructions)
+    private async Task UpdateAgentInstructions(string agentId, string instruction, List<ChannelInstruction>? channelInstructions)
     {
         var instructionElements = channelInstructions?.Select(x => ChannelInstructionMongoElement.ToMongoElement(x))?
                                                       .ToList() ?? [];
@@ -241,10 +241,10 @@ public partial class MongoRepository
             .Set(x => x.ChannelInstructions, instructionElements)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentFunctions(string agentId, List<FunctionDef> functions)
+    private async Task UpdateAgentFunctions(string agentId, List<FunctionDef> functions)
     {
         if (functions == null)
         {
@@ -257,10 +257,10 @@ public partial class MongoRepository
             .Set(x => x.Functions, functionsToUpdate)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)
+    private async Task UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)
     {
         if (templates == null)
         {
@@ -273,10 +273,10 @@ public partial class MongoRepository
             .Set(x => x.Templates, templatesToUpdate)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentResponses(string agentId, List<AgentResponse> responses)
+    private async Task UpdateAgentResponses(string agentId, List<AgentResponse> responses)
     {
         if (responses == null || string.IsNullOrWhiteSpace(agentId))
         {
@@ -289,10 +289,10 @@ public partial class MongoRepository
             .Set(x => x.Responses, responsesToUpdate)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentSamples(string agentId, List<string> samples)
+    private async Task UpdateAgentSamples(string agentId, List<string> samples)
     {
         if (samples == null)
         {
@@ -304,10 +304,10 @@ public partial class MongoRepository
             .Set(x => x.Samples, samples)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentUtilities(string agentId, bool mergeUtility, List<AgentUtility> utilities)
+    private async Task UpdateAgentUtilities(string agentId, bool mergeUtility, List<AgentUtility> utilities)
     {
         if (utilities == null)
         {
@@ -322,10 +322,10 @@ public partial class MongoRepository
             .Set(x => x.Utilities, elements)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentMcpTools(string agentId, List<McpTool> mcps)
+    private async Task UpdateAgentMcpTools(string agentId, List<McpTool> mcps)
     {
         if (mcps == null)
         {
@@ -339,9 +339,9 @@ public partial class MongoRepository
             .Set(x => x.McpTools, elements)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
-    private void UpdateAgentKnowledgeBases(string agentId, List<AgentKnowledgeBase> knowledgeBases)
+    private async Task UpdateAgentKnowledgeBases(string agentId, List<AgentKnowledgeBase> knowledgeBases)
     {
         if (knowledgeBases == null)
         {
@@ -355,10 +355,10 @@ public partial class MongoRepository
             .Set(x => x.KnowledgeBases, elements)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentRules(string agentId, List<AgentRule> rules)
+    private async Task UpdateAgentRules(string agentId, List<AgentRule> rules)
     {
         if (rules == null)
         {
@@ -372,10 +372,10 @@ public partial class MongoRepository
             .Set(x => x.Rules, elements)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentLlmConfig(string agentId, AgentLlmConfig? config)
+    private async Task UpdateAgentLlmConfig(string agentId, AgentLlmConfig? config)
     {
         var llmConfig = AgentLlmConfigMongoModel.ToMongoElement(config);
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
@@ -383,20 +383,20 @@ public partial class MongoRepository
             .Set(x => x.LlmConfig, llmConfig)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentMaxMessageCount(string agentId, int? maxMessageCount)
+    private async Task UpdateAgentMaxMessageCount(string agentId, int? maxMessageCount)
     {
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
             .Set(x => x.MaxMessageCount, maxMessageCount)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
-    private void UpdateAgentAllFields(Agent agent)
+    private async Task UpdateAgentAllFields(Agent agent)
     {
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agent.Id);
         var update = Builders<AgentDocument>.Update
@@ -425,7 +425,7 @@ public partial class MongoRepository
             .Set(x => x.IsPublic, agent.IsPublic)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        var res = _dc.Agents.UpdateOne(filter, update);
+        var res = await _dc.Agents.UpdateOneAsync(filter, update);
     }
     #endregion
 
@@ -452,7 +452,7 @@ public partial class MongoRepository
         return TransformAgentDocument(agent);
     }
 
-    public List<Agent> GetAgents(AgentFilter filter)
+    public async Task<List<Agent>> GetAgents(AgentFilter filter)
     {
         if (filter == null)
         {
@@ -498,16 +498,16 @@ public partial class MongoRepository
             filters.Add(builder.Eq(x => x.IsPublic, filter.IsPublic.Value));
         }
 
-        var agentDocs = _dc.Agents.Find(builder.And(filters)).ToList();
+        var agentDocs = await _dc.Agents.Find(builder.And(filters)).ToListAsync();
         return agentDocs.Select(x => TransformAgentDocument(x)).ToList();
     }
 
-    public List<UserAgent> GetUserAgents(string userId)
+    public async Task<List<UserAgent>> GetUserAgents(string userId)
     {
-        var found = (from ua in _dc.UserAgents.AsQueryable()
-                    join u in _dc.Users.AsQueryable() on ua.UserId equals u.Id
-                    where ua.UserId == userId || u.ExternalId == userId
-                    select ua).ToList();
+        var found = await (from ua in _dc.UserAgents.AsQueryable()
+                     join u in _dc.Users.AsQueryable() on ua.UserId equals u.Id
+                     where ua.UserId == userId || u.ExternalId == userId
+                     select ua).ToListAsync();
 
         if (found.IsNullOrEmpty())
         {
@@ -525,7 +525,7 @@ public partial class MongoRepository
         }).ToList();
 
         var agentIds = found.Select(x => x.AgentId).Distinct().ToList();
-        var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+        var agents = await GetAgents(new AgentFilter { AgentIds = agentIds });
         foreach (var item in res)
         {
             var agent = agents.FirstOrDefault(x => x.Id == item.AgentId);
@@ -540,21 +540,23 @@ public partial class MongoRepository
         return res;
     }
 
-    public List<string> GetAgentResponses(string agentId, string prefix, string intent)
+    public async Task<List<string>> GetAgentResponses(string agentId, string prefix, string intent)
     {
         var responses = new List<string>();
-        var agent = _dc.Agents.AsQueryable().FirstOrDefault(x => x.Id == agentId);
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var agent = await _dc.Agents.Find(filter).FirstOrDefaultAsync();
         if (agent == null)
         {
             return responses;
         }
 
-        return agent.Responses.Where(x => x.Prefix == prefix && x.Intent == intent).Select(x => x.Content).ToList();
+        return agent.Responses?.Where(x => x.Prefix == prefix && x.Intent == intent).Select(x => x.Content).ToList() ?? [];
     }
 
-    public string GetAgentTemplate(string agentId, string templateName)
+    public async Task<string> GetAgentTemplate(string agentId, string templateName)
     {
-        var agent = _dc.Agents.AsQueryable().FirstOrDefault(x => x.Id == agentId);
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var agent = await _dc.Agents.Find(filter).FirstOrDefaultAsync();
         if (agent == null)
         {
             return string.Empty;
@@ -563,7 +565,7 @@ public partial class MongoRepository
         return agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName))?.Content ?? string.Empty;
     }
 
-    public bool PatchAgentTemplate(string agentId, AgentTemplate template)
+    public async Task<bool> PatchAgentTemplate(string agentId, AgentTemplate template)
     {
         if (string.IsNullOrEmpty(agentId) || template == null)
         {
@@ -571,7 +573,7 @@ public partial class MongoRepository
         }
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
-        var agent = _dc.Agents.Find(filter).FirstOrDefault();
+        var agent = await _dc.Agents.Find(filter).FirstOrDefaultAsync();
         if (agent == null || agent.Templates.IsNullOrEmpty())
         {
             return false;
@@ -585,11 +587,11 @@ public partial class MongoRepository
 
         foundTemplate.Content = template.Content;
         var update = Builders<AgentDocument>.Update.Set(x => x.Templates, agent.Templates);
-        _dc.Agents.UpdateOne(filter, update);
+        await _dc.Agents.UpdateOneAsync(filter, update);
         return true;
     }
 
-    public bool AppendAgentLabels(string agentId, List<string> labels)
+    public async Task<bool> AppendAgentLabels(string agentId, List<string> labels)
     {
         if (labels.IsNullOrEmpty())
         {
@@ -597,7 +599,7 @@ public partial class MongoRepository
         }
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
-        var agent = _dc.Agents.Find(filter).FirstOrDefault();
+        var agent = await _dc.Agents.Find(filter).FirstOrDefaultAsync();
         if (agent == null)
         {
             return false;
@@ -609,11 +611,11 @@ public partial class MongoRepository
             .Set(x => x.Labels, curLabels)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
-        var result = _dc.Agents.UpdateOne(filter, update);
+        var result = await _dc.Agents.UpdateOneAsync(filter, update);
         return result.ModifiedCount > 0;
     }
 
-    public void BulkInsertAgents(List<Agent> agents)
+    public async Task BulkInsertAgents(List<Agent> agents)
     {
         if (agents.IsNullOrEmpty())
         {
@@ -652,10 +654,10 @@ public partial class MongoRepository
             UpdatedTime = x.UpdatedDateTime
         }).ToList();
 
-        _dc.Agents.InsertMany(agentDocs);
+        await _dc.Agents.InsertManyAsync(agentDocs);
     }
 
-    public void BulkInsertUserAgents(List<UserAgent> userAgents)
+    public async Task BulkInsertUserAgents(List<UserAgent> userAgents)
     {
         if (userAgents.IsNullOrEmpty())
         {
@@ -678,18 +680,18 @@ public partial class MongoRepository
             UpdatedTime = x.UpdatedTime
         }).ToList();
 
-        _dc.UserAgents.InsertMany(userAgentDocs);
+        await _dc.UserAgents.InsertManyAsync(userAgentDocs);
     }
 
-    public bool DeleteAgents()
+    public async Task<bool> DeleteAgents()
     {
         try
         {
-            _dc.UserAgents.DeleteMany(Builders<UserAgentDocument>.Filter.Empty);
-            _dc.RoleAgents.DeleteMany(Builders<RoleAgentDocument>.Filter.Empty);
-            _dc.AgentTasks.DeleteMany(Builders<AgentTaskDocument>.Filter.Empty);
-            _dc.AgentCodeScripts.DeleteMany(Builders<AgentCodeScriptDocument>.Filter.Empty);
-            _dc.Agents.DeleteMany(Builders<AgentDocument>.Filter.Empty);
+            await _dc.UserAgents.DeleteManyAsync(Builders<UserAgentDocument>.Filter.Empty);
+            await _dc.RoleAgents.DeleteManyAsync(Builders<RoleAgentDocument>.Filter.Empty);
+            await _dc.AgentTasks.DeleteManyAsync(Builders<AgentTaskDocument>.Filter.Empty);
+            await _dc.AgentCodeScripts.DeleteManyAsync(Builders<AgentCodeScriptDocument>.Filter.Empty);
+            await _dc.Agents.DeleteManyAsync(Builders<AgentDocument>.Filter.Empty);
             return true;
         }
         catch
@@ -698,7 +700,7 @@ public partial class MongoRepository
         }
     }
 
-    public bool DeleteAgent(string agentId, AgentDeleteOptions? options = null)
+    public async Task<bool> DeleteAgent(string agentId, AgentDeleteOptions? options = null)
     {
         try
         {
@@ -710,22 +712,22 @@ public partial class MongoRepository
             if (options == null || options.DeleteUserAgents)
             {
                 var userAgentFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
-                _dc.UserAgents.DeleteMany(userAgentFilter);
+                await _dc.UserAgents.DeleteManyAsync(userAgentFilter);
             }
             
             if (options == null || options.DeleteRoleAgents)
             {
                 var roleAgentFilter = Builders<RoleAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
-                _dc.RoleAgents.DeleteMany(roleAgentFilter);
+                await _dc.RoleAgents.DeleteManyAsync(roleAgentFilter);
             }
 
-            DeleteAgentCodeScripts(agentId, options?.ToDeleteCodeScripts);
+            await DeleteAgentCodeScripts(agentId, options?.ToDeleteCodeScripts);
 
             var agentTaskFilter = Builders<AgentTaskDocument>.Filter.Eq(x => x.AgentId, agentId);
-            _dc.AgentTasks.DeleteMany(agentTaskFilter);
+            await _dc.AgentTasks.DeleteManyAsync(agentTaskFilter);
 
             var agentFilter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
-            _dc.Agents.DeleteOne(agentFilter);
+            await _dc.Agents.DeleteOneAsync(agentFilter);
             return true;
         }
         catch

@@ -45,7 +45,7 @@ public class ReadPdfFn : IFunctionCallback
         var wholeDialogs = routingCtx.GetDialogs();
         if (wholeDialogs.IsNullOrEmpty())
         {
-            wholeDialogs = conv.GetDialogHistory();
+            wholeDialogs = await conv.GetDialogHistory();
         }
 
         var dialogs = await AssembleFiles(conv.ConversationId, wholeDialogs);

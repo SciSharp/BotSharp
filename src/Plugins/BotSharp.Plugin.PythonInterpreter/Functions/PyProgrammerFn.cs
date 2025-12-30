@@ -38,7 +38,7 @@ public class PyProgrammerFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
 
         var agent = await agentService.GetAgent(message.CurrentAgentId);
-        var inst = GetPyCodeInterpreterInstruction(message.CurrentAgentId);
+        var inst = await GetPyCodeInterpreterInstruction(message.CurrentAgentId);
         var innerAgent = new Agent
         {
             Id = agent.Id,
@@ -55,7 +55,7 @@ public class PyProgrammerFn : IFunctionCallback
         var dialogs = routingCtx.GetDialogs();
         if (dialogs.IsNullOrEmpty())
         {
-            dialogs = convService.GetDialogHistory();
+            dialogs = await convService.GetDialogHistory();
         }
 
         var messageLimit = _codingSettings.CodeGeneration?.MessageLimit > 0 ? _codingSettings.CodeGeneration.MessageLimit.Value : 50;
@@ -153,7 +153,7 @@ public class PyProgrammerFn : IFunctionCallback
         }
     }
 
-    private string GetPyCodeInterpreterInstruction(string agentId)
+    private async Task<string> GetPyCodeInterpreterInstruction(string agentId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -163,12 +163,12 @@ public class PyProgrammerFn : IFunctionCallback
 
         if (!string.IsNullOrEmpty(templateName))
         {
-            templateContent = db.GetAgentTemplate(agentId, templateName);
+            templateContent = await db.GetAgentTemplate(agentId, templateName);
         }
         else
         {
             templateName = "py-code_generate_instruction";
-            templateContent = db.GetAgentTemplate(BuiltInAgentId.AIProgrammer, templateName);
+            templateContent = await db.GetAgentTemplate(BuiltInAgentId.AIProgrammer, templateName);
         }
 
         return templateContent;

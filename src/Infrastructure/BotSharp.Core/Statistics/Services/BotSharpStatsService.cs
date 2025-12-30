@@ -19,7 +19,7 @@ public class BotSharpStatsService : IBotSharpStatsService
     }
 
 
-    public bool UpdateStats(string @event, BotSharpStatsDelta delta)
+    public async Task<bool> UpdateStats(string @event, BotSharpStatsDelta delta)
     {
         try
         {
@@ -31,7 +31,7 @@ public class BotSharpStatsService : IBotSharpStatsService
             }
 
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var isSaved = db.SaveGlobalStats(delta);
+            var isSaved = await db.SaveGlobalStats(delta);
             return isSaved;
         }
         catch (Exception ex)

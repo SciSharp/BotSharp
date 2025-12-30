@@ -46,7 +46,7 @@ public class ReadImageFn : IFunctionCallback
         var wholeDialogs = routingCtx.GetDialogs();
         if (wholeDialogs.IsNullOrEmpty())
         {
-            wholeDialogs = conv.GetDialogHistory();
+            wholeDialogs = await conv.GetDialogHistory();
         }
 
         var dialogs = AssembleFiles(conv.ConversationId, args?.ImageUrls, wholeDialogs);
