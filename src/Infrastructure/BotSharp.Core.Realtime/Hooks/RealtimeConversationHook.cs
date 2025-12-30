@@ -30,6 +30,8 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
             var states = _services.GetRequiredService<IConversationStateService>();
             states.SaveStateByArgs(message.FunctionArgs?.JsonContent<JsonDocument>());
         }
+
+        await Task.CompletedTask;
     }
 
     public async Task OnFunctionExecuted(RoleDialogModel message, InvokeFunctionOptions? options = null)
@@ -83,5 +85,6 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
                 await hub.Completer.TriggerModelInference(instruction);
             }
         }
+        await Task.CompletedTask;
     }
 }

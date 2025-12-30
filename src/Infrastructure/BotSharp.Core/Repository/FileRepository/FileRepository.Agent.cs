@@ -604,6 +604,12 @@ namespace BotSharp.Core.Repository
             return null;
         }
 
+        public Task<Agent?> GetAgentAsync(string agentId, bool basicsOnly = false)
+        { 
+            var agent = GetAgent(agentId, basicsOnly);
+            return Task.FromResult(agent);
+        }
+
         public Task<List<Agent>> GetAgents(AgentFilter filter)
         {
             if (filter == null)

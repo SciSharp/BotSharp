@@ -19,7 +19,7 @@ public class WaveStreamChannel : IStreamChannel
         _logger = logger;
     }
 
-    public async Task ConnectAsync(string conversationId)
+    public Task ConnectAsync(string conversationId)
     {
         // Initialize the WaveInEvent
         _waveIn = new WaveInEvent
@@ -48,6 +48,8 @@ public class WaveStreamChannel : IStreamChannel
         };
         _waveOut.Init(_bufferedWaveProvider);
         _waveOut.Play();
+
+        return Task.CompletedTask;
     }
 
     public async Task<StreamReceiveResult> ReceiveAsync(ArraySegment<byte> buffer, CancellationToken cancellation)
@@ -98,7 +100,7 @@ public class WaveStreamChannel : IStreamChannel
         _audioBufferQueue.Enqueue(e.Buffer);
     }
 
-    public async Task CloseAsync(StreamChannelStatus status, string description, CancellationToken cancellation)
+    public Task CloseAsync(StreamChannelStatus status, string description, CancellationToken cancellation)
     {
         // Stop recording and clean up
         _waveIn?.StopRecording();
@@ -109,5 +111,7 @@ public class WaveStreamChannel : IStreamChannel
         _waveOut?.Stop();
         _waveOut?.Dispose();
         _waveOut = null;
+
+        return Task.CompletedTask;
     }
 }

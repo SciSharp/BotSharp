@@ -50,7 +50,7 @@ public partial class FileRepository
             var curTasks = new List<AgentTask>();
             foreach (var taskFile in Directory.EnumerateFiles(taskDir))
             {
-                var task = ParseAgentTask(taskFile);
+                var task = await ParseAgentTask(taskFile);
                 if (task == null)
                 {
                     continue;
@@ -94,7 +94,7 @@ public partial class FileRepository
                 continue;
             }
 
-            var agent = ParseAgent(agentDir);
+            var agent = await ParseAgent(agentDir);
             curTasks.ForEach(t =>
             {
                 t.AgentId = agentId;
@@ -130,16 +130,16 @@ public partial class FileRepository
             return null;
         }
 
-        var task = ParseAgentTask(taskFile);
+        var task = await ParseAgentTask(taskFile);
         if (task == null)
         {
             return null;
         }
 
-        var agent = ParseAgent(agentDir);
+        var agent = await ParseAgent(agentDir);
         task.AgentId = agentId;
         task.Agent = agent;
-        return await Task.FromResult(task);
+        return task;
     }
 
     public async Task InsertAgentTask(AgentTask task)
@@ -215,7 +215,7 @@ public partial class FileRepository
             return;
         }
 
-        var parsedTask = ParseAgentTask(taskFile);
+        var parsedTask = await ParseAgentTask(taskFile);
         if (parsedTask == null)
         {
             return;

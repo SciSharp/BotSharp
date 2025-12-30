@@ -50,9 +50,9 @@ public class McpToolExecutor : IFunctionExecutor
         }
     }
 
-    public async Task<string> GetIndicatorAsync(RoleDialogModel message)
+    public Task<string> GetIndicatorAsync(RoleDialogModel message)
     {
-        return message.Indication ?? string.Empty;
+        return Task.FromResult(message.Indication ?? string.Empty);
     }
 
 
