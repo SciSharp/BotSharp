@@ -94,14 +94,14 @@ namespace BotSharp.Plugin.Google.Core
             return true;
         }
 
-        public string GetUserAvatar()
+        public Task<string> GetUserAvatar()
         {
-            return "FakeUserAvatar.png";
+            return Task.FromResult("FakeUserAvatar.png");
         }
 
-        public bool SaveUserAvatar(FileDataModel file)
+        public Task<bool> SaveUserAvatar(FileDataModel file)
         {
-            return true;
+            return Task.FromResult(true);
         }
 
         public bool SaveSpeechFile(string conversationId, string fileName, BinaryData data)

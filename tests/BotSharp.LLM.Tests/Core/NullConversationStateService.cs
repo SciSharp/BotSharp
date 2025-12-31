@@ -17,9 +17,9 @@ namespace BotSharp.Plugin.Google.Core
             return "fake-conversation-id";
         }
 
-        public Dictionary<string, string> Load(string conversationId, bool isReadOnly = false)
+        public Task<Dictionary<string, string>> Load(string conversationId, bool isReadOnly = false)
         {
-            return new Dictionary<string, string> { { "Key", "Value" } };
+            return Task.FromResult(new Dictionary<string, string> { { "Key", "Value" } });
         }
 
         public string GetState(string name, string defaultValue = "")
@@ -61,9 +61,9 @@ namespace BotSharp.Plugin.Google.Core
            
         }
 
-        public void Save()
+        public Task Save()
         {
-           
+            return Task.CompletedTask;
         }
 
         public ConversationState GetCurrentState()
