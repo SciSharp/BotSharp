@@ -112,9 +112,9 @@ namespace BotSharp.Plugin.Google.Core
             return Task.FromResult(new List<UserAgent> { new UserAgent() });
         }
 
-        public PluginDef GetPlugin(string agentId)
+        public Task<PluginDef> GetPlugin(string agentId)
         {
-            return new PluginDef();
+            return Task.FromResult(new PluginDef());
         }
 
         public Task<IEnumerable<AgentUtility>> GetAgentUtilityOptions()
