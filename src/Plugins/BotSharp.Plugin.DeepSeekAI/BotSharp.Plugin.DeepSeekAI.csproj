@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Ater.DeepSeek.Core" />
     <PackageReference Include="OpenAI" />
   </ItemGroup>
 

@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Hooks;
 using Microsoft.Extensions.Logging;
-using OpenAI.Chat;
+using DeepSeek.Core;
+using DeepSeek.Core.Models;
+using System.Threading;
 
 namespace BotSharp.Plugin.DeepSeek.Providers.Text;
 
@@ -26,7 +28,6 @@ public class TextCompletionProvider : ITextCompletion
         var contentHooks = _services.GetHooks<IContentGeneratingHook>(agentId);
         var state = _services.GetRequiredService<IConversationStateService>();
 
-        // Before chat completion hook
         var agent = new Agent()
         {
             Id = agentId,
@@ -43,27 +44,26 @@ public class TextCompletionProvider : ITextCompletion
         }
         
         var client = ProviderHelper.GetClient(Provider, _model, _services);
-        var chatClient = client.GetChatClient(_model);
-        var options = PrepareOptions();
-        var response = chatClient.CompleteChat([ new UserChatMessage(text) ], options);
+        var temperature = float.Parse(state.GetState("temperature", "0.0"));
+        var maxTokens = int.Parse(state.GetState("max_tokens", "1024"));
 
-        // AI response
-        var content = response.Value?.Content ?? [];
-        var completion = string.Empty;
-        foreach (var t in content)
+        var request = new ChatRequest
         {
-            completion += t?.Text ?? string.Empty;
+            Model = string.IsNullOrWhiteSpace(_model) ? DeepSeekModels.ChatModel : _model,
+            Messages = new List<Message> { Message.NewUserMessage(text) },
+            Temperature = temperature,
+            MaxTokens = maxTokens
         };
 
-        // After chat completion hook
+        var response = await client.ChatAsync(request, CancellationToken.None);
+
+        var completion = ExtractText(response);
+
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, completion)
         {
             CurrentAgentId = agentId,
             MessageId = messageId
         };
-
-        var tokenUsage = response?.Value?.Usage;
-        var inputTokenDetails = response?.Value?.Usage?.InputTokenDetails;
 
         foreach (var hook in contentHooks)
         {
@@ -71,10 +71,7 @@ public class TextCompletionProvider : ITextCompletion
             {
                 Prompt = text,
                 Provider = Provider,
-                Model = _model,
-                TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
-                CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
-                TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
+                Model = _model
             });
         }
 
@@ -86,16 +83,16 @@ public class TextCompletionProvider : ITextCompletion
         _model = model;
     }
 
-    private ChatCompletionOptions PrepareOptions()
+    private string ExtractText(ChatResponse? response)
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var temperature = float.Parse(state.GetState("temperature", "0.0"));
-        var maxTokens = int.Parse(state.GetState("max_tokens", "1024"));
-
-        return new ChatCompletionOptions
+        if (response?.Choices?.Count > 0)
         {
-            Temperature = temperature,
-            MaxOutputTokenCount = maxTokens
-        };
+            var msg = response.Choices[0].Message;
+            if (!string.IsNullOrEmpty(msg?.Content))
+            {
+                return msg.Content;
+            }
+        }
+        return string.Empty;
     }
 }

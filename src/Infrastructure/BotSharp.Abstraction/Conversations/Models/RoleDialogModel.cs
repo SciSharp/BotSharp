@@ -39,6 +39,10 @@ public class RoleDialogModel : ITrackableMessage
 
     public string Content { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("reasoning_content")]
+    public string? ReasoningContent { get; set; }
+
     public string? SecondaryContent { get; set; }
 
     /// <summary>
@@ -204,7 +208,8 @@ public class RoleDialogModel : ITrackableMessage
             Data = source.Data,
             IsStreaming = source.IsStreaming,
             Annotations = source.Annotations,
-            MetaData = source.MetaData != null ? new(source.MetaData) : null
+            MetaData = source.MetaData != null ? new(source.MetaData) : null,
+            ReasoningContent = source.ReasoningContent
         };
     }
 }
