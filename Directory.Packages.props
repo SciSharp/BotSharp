@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="A2A" Version="0.3.3-preview" />
-    <PackageVersion Include="Ater.DeepSeek.Core" Version="1.3.0" />
+    <PackageVersion Include="Ater.DeepSeek.Core" Version="1.3.1" />
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="FuzzySharp" Version="2.0.2" />
     <PackageVersion Include="Google_GenerativeAI" Version="3.4.1" />
