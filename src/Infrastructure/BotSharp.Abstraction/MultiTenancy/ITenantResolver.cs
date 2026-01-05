@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.MultiTenancy.Models;
-using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.MultiTenancy.MultiTenancy;
+namespace BotSharp.Abstraction.MultiTenancy;
 
 public interface ITenantResolver
 {

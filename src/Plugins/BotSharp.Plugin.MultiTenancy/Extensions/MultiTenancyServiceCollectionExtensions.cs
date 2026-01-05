@@ -5,6 +5,7 @@ using BotSharp.Plugin.MultiTenancy.MultiTenancy;
 using BotSharp.Plugin.MultiTenancy.MultiTenancy.Resolvers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace BotSharp.Plugin.MultiTenancy.Extensions;
 
@@ -27,6 +28,8 @@ public static class MultiTenancyServiceCollectionExtensions
         services.AddScoped<ITenantConnectionProvider, TenantConnectionProvider>();
         services.AddSingleton<ITenantFeature, TenantFeature>();
         services.AddScoped<MultiTenancyMiddleware>();
+
+        services.TryAddScoped<ITenantOptionProvider, ConfigTenantOptionProvider>();
 
         return services;
     }

@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.MultiTenancy.MultiTenancy;
+namespace BotSharp.Abstraction.MultiTenancy;
 
 public interface IConnectionStringResolver
 {

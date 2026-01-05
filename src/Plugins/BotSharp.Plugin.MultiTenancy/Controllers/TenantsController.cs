@@ -1,42 +1,28 @@
 using BotSharp.Abstraction.MultiTenancy;
-using BotSharp.Abstraction.MultiTenancy.Options;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.MultiTenancy.Controllers;
 
 [ApiController]
-public class TenantsController: ControllerBase
+public class TenantsController : ControllerBase
 {
-    private readonly IOptionsMonitor<TenantStoreOptions> _tenantStoreOptions;
-    private readonly ITenantFeature _tenantFeature;
+    private readonly ITenantOptionProvider _tenantOptionProvider;
 
-    public TenantsController(
-        IOptionsMonitor<TenantStoreOptions> tenantStoreOptions,
-        ITenantFeature tenantFeature)
+    public TenantsController(ITenantOptionProvider tenantOptionProvider)
     {
-        _tenantStoreOptions = tenantStoreOptions;
-        _tenantFeature = tenantFeature;
+        _tenantOptionProvider = tenantOptionProvider;
     }
 
     [AllowAnonymous]
     [HttpGet]
     [Route("/tenants/options")]
-    public IActionResult Options()
+    public async Task<IActionResult> Options()
     {
-        if (!_tenantFeature.Enabled)
-        {
-            return Ok(Array.Empty<object>());
-        }
-
-        var tenants = _tenantStoreOptions.CurrentValue.Tenants
-            .Select(t => new { tenantId = t.Id, name = t.Name })
-            .Distinct()
-            .ToArray();
-
-        return Ok(tenants);
+        var tenants = await _tenantOptionProvider.GetOptionsAsync();
+        var payload = tenants.Select(t => new { tenantId = t.TenantId, name = t.Name }).ToArray();
+        return Ok(payload);
     }
 }
