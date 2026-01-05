@@ -26,21 +26,32 @@ public class MongoStoragePlugin : IBotSharpPlugin
             var conventionPack = new ConventionPack { new IgnoreExtraElementsConvention(true) };
             ConventionRegistry.Register("IgnoreExtraElements", conventionPack, type => true);
 
-            services.AddScoped((IServiceProvider x) =>
-            { 
-                var tenantEnabled = x.GetService<ITenantFeature>()?.Enabled ?? false;
-                if (tenantEnabled)
+            var tenantEnabled = config.GetValue("TenantStore:Enabled", false);
+            if (tenantEnabled) 
+            {
+                services.AddScoped((IServiceProvider x) =>
                 {
-                    var provider = x.GetService<ITenantConnectionProvider>();
-                    if (provider != null)
+                    var tenantEnabled = x.GetService<ITenantFeature>()?.Enabled ?? false;
+                    if (tenantEnabled)
                     {
-                        var cs = provider.GetConnectionString("BotSharpMongoDb");
-                        if (!string.IsNullOrWhiteSpace(cs)) dbSettings.BotSharpMongoDb = cs;
+                        var provider = x.GetService<ITenantConnectionProvider>();
+                        if (provider != null)
+                        {
+                            var cs = provider.GetConnectionString("BotSharpMongoDb");
+                            if (!string.IsNullOrWhiteSpace(cs)) dbSettings.BotSharpMongoDb = cs;
+                        }
                     }
-                }
 
-                return new MongoDbContext(dbSettings);
-            });
+                    return new MongoDbContext(dbSettings);
+                });
+            }
+            else
+            {
+                services.AddSingleton((IServiceProvider x) =>
+                {
+                    return new MongoDbContext(dbSettings);
+                });
+            }
 
             services.AddScoped<IBotSharpRepository, MongoRepository>();
         }
