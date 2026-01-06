@@ -1,6 +1,4 @@
-using BotSharp.Plugin.Membase.Models;
 using Refit;
-using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.Membase.Services;
 
@@ -10,8 +8,11 @@ namespace BotSharp.Plugin.Membase.Services;
 /// </summary>
 public interface IMembaseApi
 {
-    [Post("/cypher/execute?graphId={graphId}")]
-    Task<CypherQueryResponse> CypherQueryAsync(string graphId, CypherQueryRequest request);
+    [Get("/graph/{graphId}")]
+    Task<GraphInfo> GetGraphInfoAsync(string graphId);
+
+    [Post("/cypher/execute")]
+    Task<CypherQueryResponse> CypherQueryAsync([Query] string graphId, CypherQueryRequest request);
 
     [Post("/graph/{graphId}/node")]
     Task<Node> CreateNodeAsync(string graphId, [Body] NodeCreationModel node);
