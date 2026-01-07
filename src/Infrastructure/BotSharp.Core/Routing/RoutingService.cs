@@ -105,7 +105,7 @@ public partial class RoutingService : IRoutingService
         };
 
         var agents = db.GetAgents(filter).ConfigureAwait(false).GetAwaiter().GetResult();
-        var routableAgents = agents.Where(x => x.Type == AgentType.Task || x.Type == AgentType.Planning).Select(x => new RoutableAgent
+        var routableAgents = agents.Where(x => x.Type == AgentType.Task || x.Type == AgentType.Planning || x.Type == AgentType.A2ARemote).Select(x => new RoutableAgent
         {
             AgentId = x.Id,
             Description = x.Description,
