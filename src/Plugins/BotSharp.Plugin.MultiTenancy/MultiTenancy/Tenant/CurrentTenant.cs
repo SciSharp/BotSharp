@@ -1,8 +1,9 @@
 using BotSharp.Abstraction.MultiTenancy;
+using BotSharp.Plugin.MultiTenancy.Interfaces;
 using BotSharp.Plugin.MultiTenancy.Models;
 using System;
 
-namespace BotSharp.Plugin.MultiTenancy.MultiTenancy;
+namespace BotSharp.Plugin.MultiTenancy.MultiTenancy.Tenant;
 
 public class CurrentTenant : ICurrentTenant
 {

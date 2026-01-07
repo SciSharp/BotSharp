@@ -38,7 +38,10 @@ public class MongoStoragePlugin : IBotSharpPlugin
                         if (provider != null)
                         {
                             var cs = provider.GetConnectionString("BotSharpMongoDb");
-                            if (!string.IsNullOrWhiteSpace(cs)) dbSettings.BotSharpMongoDb = cs;
+                            if (!string.IsNullOrWhiteSpace(cs))
+                            {
+                                dbSettings.BotSharpMongoDb = cs;
+                            }
                         }
                     }
 
