@@ -1,7 +1,8 @@
+using BotSharp.Plugin.MultiTenancy.Interfaces;
 using BotSharp.Plugin.MultiTenancy.Models;
 using System.Threading;
 
-namespace BotSharp.Plugin.MultiTenancy.MultiTenancy;
+namespace BotSharp.Plugin.MultiTenancy.MultiTenancy.Tenant;
 
 public class AsyncLocalCurrentTenantAccessor : ICurrentTenantAccessor
 {

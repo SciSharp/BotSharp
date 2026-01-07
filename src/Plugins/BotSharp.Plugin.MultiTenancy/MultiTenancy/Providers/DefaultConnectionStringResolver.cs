@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BotSharp.Plugin.MultiTenancy.MultiTenancy
+namespace BotSharp.Plugin.MultiTenancy.MultiTenancy.Providers
 {
     public class DefaultConnectionStringResolver : IConnectionStringResolver
     {
@@ -19,7 +19,11 @@ namespace BotSharp.Plugin.MultiTenancy.MultiTenancy
 
         public string? GetConnectionString(string connectionStringName)
         {
-            if (!_tenantStoreOptions.Enabled || !_tenantStoreOptions.Tenants.Any()) return null;
+            if (!_tenantStoreOptions.Enabled || !_tenantStoreOptions.Tenants.Any())
+            {
+                return null;
+            }
+
             if (_currentTenant.Id.HasValue)
             {
                 var tenant = _tenantStoreOptions.Tenants.FirstOrDefault(t => t.Id == _currentTenant.Id.Value);

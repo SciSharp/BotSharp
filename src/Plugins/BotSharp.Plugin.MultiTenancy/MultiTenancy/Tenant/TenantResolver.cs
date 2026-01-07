@@ -3,7 +3,7 @@ using BotSharp.Abstraction.MultiTenancy.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.MultiTenancy.MultiTenancy;
+namespace BotSharp.Plugin.MultiTenancy.MultiTenancy.Tenant;
 
 public class TenantResolver : ITenantResolver
 {
@@ -19,7 +19,10 @@ public class TenantResolver : ITenantResolver
         foreach (var c in _contributors)
         {
             var result = await c.ResolveAsync(context);
-            if (result.Succeeded) return result;
+            if (result.Succeeded)
+            {
+                return result;
+            }
         }
 
         return new TenantResolveResult();
