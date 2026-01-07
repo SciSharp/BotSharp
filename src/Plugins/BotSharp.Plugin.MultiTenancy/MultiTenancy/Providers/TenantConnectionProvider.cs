@@ -1,7 +1,7 @@
 using BotSharp.Abstraction.MultiTenancy;
 using Microsoft.Extensions.Configuration;
 
-namespace BotSharp.Plugin.MultiTenancy.MultiTenancy;
+namespace BotSharp.Plugin.MultiTenancy.MultiTenancy.Providers;
 
 public class TenantConnectionProvider : ITenantConnectionProvider
 {
@@ -17,7 +17,10 @@ public class TenantConnectionProvider : ITenantConnectionProvider
     public string GetConnectionString(string name)
     {
         var cs = _resolver.GetConnectionString(name);
-        if (!string.IsNullOrWhiteSpace(cs)) return cs;
+        if (!string.IsNullOrWhiteSpace(cs))
+        {
+            return cs;
+        }
         return _configuration.GetConnectionString(name) ?? string.Empty;
     }
 

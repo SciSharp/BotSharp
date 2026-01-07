@@ -1,8 +1,11 @@
 using BotSharp.Abstraction.MultiTenancy;
 using BotSharp.Abstraction.MultiTenancy.Options;
+using BotSharp.Plugin.MultiTenancy.Interfaces;
 using BotSharp.Plugin.MultiTenancy.Models;
 using BotSharp.Plugin.MultiTenancy.MultiTenancy;
+using BotSharp.Plugin.MultiTenancy.MultiTenancy.Providers;
 using BotSharp.Plugin.MultiTenancy.MultiTenancy.Resolvers;
+using BotSharp.Plugin.MultiTenancy.MultiTenancy.Tenant;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

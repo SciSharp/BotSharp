@@ -2,7 +2,7 @@ using BotSharp.Abstraction.MultiTenancy;
 using BotSharp.Abstraction.MultiTenancy.Options;
 using Microsoft.Extensions.Options;
 
-namespace BotSharp.Plugin.MultiTenancy.MultiTenancy;
+namespace BotSharp.Plugin.MultiTenancy.MultiTenancy.Tenant;
 
 public class TenantFeature : ITenantFeature
 {
