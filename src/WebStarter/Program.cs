@@ -6,6 +6,7 @@ using BotSharp.Plugin.ChatHub;
 using Serilog;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using StackExchange.Redis;
+using BotSharp.Plugin.MultiTenancy.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,7 +43,6 @@ builder.Services.AddSignalR()
     {
         o.Configuration.ChannelPrefix = RedisChannel.Literal("botsharp");
     })*/;
-
 var app = builder.Build();
 
 app.UseWebSockets();
@@ -51,6 +51,9 @@ app.UseWebSockets();
 app.MapHub<SignalRHub>("/chatHub");
 app.UseMiddleware<ChatHubMiddleware>();
 app.UseMiddleware<ChatStreamMiddleware>();
+
+// Enable Multi-Tenancy
+app.UseMultiTenancy();
 
 // Use BotSharp
 app.UseBotSharp()
