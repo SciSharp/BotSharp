@@ -14,11 +14,12 @@ public interface IMembaseApi
     [Post("/cypher/execute")]
     Task<CypherQueryResponse> CypherQueryAsync([Query] string graphId, CypherQueryRequest request);
 
-    [Post("/graph/{graphId}/node")]
-    Task<Node> CreateNodeAsync(string graphId, [Body] NodeCreationModel node);
-
+    #region Node
     [Get("/graph/{graphId}/node/{nodeId}")]
     Task<Node> GetNodeAsync(string graphId, string nodeId);
+
+    [Post("/graph/{graphId}/node")]
+    Task<Node> CreateNodeAsync(string graphId, [Body] NodeCreationModel node);
 
     [Put("/graph/{graphId}/node/{nodeId}")]
     Task<Node> UpdateNodeAsync(string graphId, string nodeId, [Body] NodeUpdateModel node);
@@ -27,5 +28,20 @@ public interface IMembaseApi
     Task<Node> MergeNodeAsync(string graphId, string nodeId, [Body] NodeUpdateModel node);
 
     [Delete("/graph/{graphId}/node/{nodeId}")]
-    Task<IActionResult> DeleteNodeAsync(string graphId, string nodeId);
+    Task<NodeDeleteResponse?> DeleteNodeAsync(string graphId, string nodeId);
+    #endregion
+
+    #region Edge
+    [Get("/graph/{graphId}/edge/{edgeId}")]
+    Task<Edge> GetEdgeAsync(string graphId, string edgeId);
+
+    [Post("/graph/{graphId}/edge")]
+    Task<Edge> CreateEdgeAsync(string graphId, [Body] EdgeCreationModel edge);
+
+    [Put("/graph/{graphId}/edge/{edgeId}")]
+    Task<Edge> UpdateEdgeAsync(string graphId, string edgeId, [Body] EdgeUpdateModel edge);
+
+    [Delete("/graph/{graphId}/edge/{edgeId}")]
+    Task<EdgeDeleteResponse> DeleteEdgeAsync(string graphId, string edgeId);
+    #endregion
 }
