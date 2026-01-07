@@ -35,11 +35,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
     <ProjectReference Include="..\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\Infrastructure\BotSharp.Core.A2A\BotSharp.Core.A2A.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ExcelHandler\BotSharp.Plugin.ExcelHandler.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.FuzzySharp\BotSharp.Plugin.FuzzySharp.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ImageHandler\BotSharp.Plugin.ImageHandler.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Membase\BotSharp.Plugin.Membase.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.MMPEmbedding\BotSharp.Plugin.MMPEmbedding.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MultiTenancy\BotSharp.Plugin.MultiTenancy.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.PythonInterpreter\BotSharp.Plugin.PythonInterpreter.csproj" />
   </ItemGroup>
@@ -50,6 +50,7 @@
     <ProjectReference Include="..\Infrastructure\BotSharp.Core.Rules\BotSharp.Core.Rules.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Core.Crontab\BotSharp.Core.Crontab.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Core.SideCar\BotSharp.Core.SideCar.csproj" />
+    <ProjectReference Include="..\Infrastructure\BotSharp.Core.A2A\BotSharp.Core.A2A.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Logger\BotSharp.Logger.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
     <ProjectReference Include="..\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj" />
