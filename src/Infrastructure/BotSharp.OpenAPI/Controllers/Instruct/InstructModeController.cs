@@ -24,6 +24,7 @@ public partial class InstructModeController : ControllerBase
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+
         state.SetState("provider", input.Provider, source: StateSource.External)
             .SetState("model", input.Model, source: StateSource.External)
             .SetState("model_id", input.ModelId, source: StateSource.External)
@@ -33,7 +34,8 @@ public partial class InstructModeController : ControllerBase
             .SetState("channel", input.Channel, source: StateSource.External)
             .SetState("code_options", input.CodeOptions, source: StateSource.External)
             .SetState("file_options", input.FileOptions, source: StateSource.External)
-            .SetState("file_count", !input.Files.IsNullOrEmpty() ? input.Files.Count : (int?)null, source: StateSource.External);
+            .SetState("file_count", input.Files?.Count, source: StateSource.External)
+            .SetState("file_urls", input.Files?.Select(p => p.ToString()), source: StateSource.External);
 
         var instructor = _services.GetRequiredService<IInstructService>();
         var result = await instructor.Execute(agentId,
