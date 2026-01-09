@@ -35,7 +35,7 @@ public partial class InstructModeController : ControllerBase
             .SetState("code_options", input.CodeOptions, source: StateSource.External)
             .SetState("file_options", input.FileOptions, source: StateSource.External)
             .SetState("file_count", input.Files?.Count, source: StateSource.External)
-            .SetState("file_urls", input.Files?.Where(p => !p.FileUrl.IsNullOrEmpty()).Select(p => p.FileUrl), source: StateSource.External);
+            .SetState("file_urls", input.Files?.Select(p => p.ToString()), source: StateSource.External);
 
         var instructor = _services.GetRequiredService<IInstructService>();
         var result = await instructor.Execute(agentId,
