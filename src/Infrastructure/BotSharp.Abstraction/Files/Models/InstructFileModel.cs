@@ -22,4 +22,17 @@ public class InstructFileModel : FileBase
     [JsonPropertyName("content_type")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ContentType { get; set; }
+
+    public override string ToString()
+    {
+        if (!string.IsNullOrEmpty(FileUrl))
+        {
+            return FileUrl;
+        }
+        else if (!string.IsNullOrEmpty(FileData))
+        {
+            return FileData.SubstringMax(20);
+        }
+        return string.Empty; 
+    }
 }
