@@ -1,3 +1,7 @@
+using BotSharp.Plugin.MessageQueue.Connections;
+using BotSharp.Plugin.MessageQueue.Interfaces;
+using BotSharp.Plugin.MessageQueue.Services;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Plugin.MessageQueue;
@@ -14,5 +18,13 @@ public class MessageQueuePlugin : IBotSharpPlugin
         var settings = new MessageQueueSettings();
         config.Bind("MessageQueue", settings);
         services.AddSingleton(settings);
+
+        services.AddSingleton<IMQConnection, MQConnection>();
+        services.AddSingleton<IMQService, MQService>();
+    }
+
+    public void Configure(IApplicationBuilder app)
+    {
+
     }
 }
