@@ -31,7 +31,7 @@ public class InstructFileModel : FileBase
         }
         else if (!string.IsNullOrEmpty(FileData))
         {
-            return FileData.SubstringMax(20);
+            return FileData.SubstringMax(50);
         }
         return string.Empty; 
     }
