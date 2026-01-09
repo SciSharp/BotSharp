@@ -340,12 +340,13 @@ public partial class MongoRepository
             States = curStates,
             DialogCount = conv.DialogCount,
             Tags = conv.Tags,
+            Access = ConversationAccessMongoModel.ToDomainModel(conv.Access),
             CreatedTime = conv.CreatedTime,
             UpdatedTime = conv.UpdatedTime
         };
     }
 
-    public async ValueTask<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
+    public async Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
     {
         if (filter == null)
         {
@@ -512,6 +513,7 @@ public partial class MongoRepository
                 DialogCount = x.DialogCount,
                 Tags = x.Tags ?? [],
                 States = states,
+                Access = ConversationAccessMongoModel.ToDomainModel(x.Access),
                 CreatedTime = x.CreatedTime,
                 UpdatedTime = x.UpdatedTime
             };
@@ -540,6 +542,7 @@ public partial class MongoRepository
             Status = c.Status,
             DialogCount = c.DialogCount,
             Tags = c.Tags ?? new(),
+            Access = ConversationAccessMongoModel.ToDomainModel(c.Access),
             CreatedTime = c.CreatedTime,
             UpdatedTime = c.UpdatedTime
         }).ToList();

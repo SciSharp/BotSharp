@@ -34,6 +34,9 @@ public class ConversationDto
 
     public List<string> Tags { get; set; } = new();
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? Accessible { get; set; }
+
     [JsonPropertyName("updated_time")]
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
 

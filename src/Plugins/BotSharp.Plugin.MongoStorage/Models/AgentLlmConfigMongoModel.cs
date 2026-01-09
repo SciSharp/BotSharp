@@ -18,7 +18,7 @@ public class AgentLlmConfigMongoModel
 
 
 
-    public static AgentLlmConfigMongoModel? ToMongoElement(AgentLlmConfig? config)
+    public static AgentLlmConfigMongoModel? ToMongoModel(AgentLlmConfig? config)
     {
         if (config == null)
         {
@@ -39,7 +39,7 @@ public class AgentLlmConfigMongoModel
         };
     }
 
-    public static AgentLlmConfig? ToDomainElement(AgentLlmConfigMongoModel? config)
+    public static AgentLlmConfig? ToDomainModel(AgentLlmConfigMongoModel? config)
     {
         if (config == null)
         {

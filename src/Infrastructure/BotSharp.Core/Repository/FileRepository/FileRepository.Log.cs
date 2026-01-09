@@ -263,7 +263,7 @@ public partial class FileRepository
         return true;
     }
 
-    public async ValueTask<PagedItems<InstructionLogModel>> GetInstructionLogs(InstructLogFilter filter)
+    public async Task<PagedItems<InstructionLogModel>> GetInstructionLogs(InstructLogFilter filter)
     {
         if (filter == null)
         {

@@ -34,6 +34,11 @@ public class Conversation
 
     public List<string> Tags { get; set; } = [];
 
+    /// <summary>
+    /// Conversation access
+    /// </summary>
+    public ConversationAccess Access { get; set; } = new();
+
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 }
@@ -123,4 +128,11 @@ public class DialogMetaData
 
     [JsonPropertyName("create_at")]
     public DateTime CreatedTime { get; set; }
+}
+
+public class ConversationAccess
+{
+    public string AccessLevel { get; set; } = ConversationAccessLevel.Private;
+    public string AccessBy { get; set; } = ConversationAccessBy.User;
+    public IEnumerable<string> Accessors { get; set; } = new List<string>();
 }
