@@ -39,6 +39,7 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.FuzzySharp\BotSharp.Plugin.FuzzySharp.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ImageHandler\BotSharp.Plugin.ImageHandler.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Membase\BotSharp.Plugin.Membase.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.MessageQueue\BotSharp.Plugin.MessageQueue.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MMPEmbedding\BotSharp.Plugin.MMPEmbedding.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MultiTenancy\BotSharp.Plugin.MultiTenancy.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.PythonInterpreter\BotSharp.Plugin.PythonInterpreter.csproj" />
