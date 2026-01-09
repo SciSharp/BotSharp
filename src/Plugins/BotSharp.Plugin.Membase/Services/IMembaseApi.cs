@@ -12,7 +12,7 @@ public interface IMembaseApi
     Task<GraphInfo> GetGraphInfoAsync(string graphId);
 
     [Post("/cypher/execute")]
-    Task<CypherQueryResponse> CypherQueryAsync([Query] string graphId, CypherQueryRequest request);
+    Task<CypherQueryResponse> CypherQueryAsync([Query] string graphId, [Body] CypherQueryRequest request);
 
     #region Node
     [Get("/graph/{graphId}/node/{nodeId}")]
