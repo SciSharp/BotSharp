@@ -5,7 +5,6 @@ using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users.Dtos;
-using BotSharp.Abstraction.Conversations.Extensions;
 using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -149,9 +148,12 @@ public partial class ConversationController : ControllerBase
         var userService = _services.GetRequiredService<IUserService>();
         var settings = _services.GetRequiredService<PluginSettings>();
 
+        var (isAdmin, user) = await userService.IsAdminUser(_user.Id);
+
         var filter = new ConversationFilter
         {
             Id = conversationId,
+            UserId = !isAdmin ? user?.Id : null,
             IsLoadLatestStates = isLoadStates
         };
 
@@ -159,17 +161,28 @@ public partial class ConversationController : ControllerBase
         var conversation = conversations.Items?.FirstOrDefault();
         if (conversation == null)
         {
-            return null;
+            return new();
         }
 
-        var users = await userService.GetUsers([conversation.UserId, _user.Id]);
-        var currentUser = users.FirstOrDefault(x => x.Id == _user.Id || x.ExternalId == _user.Id);
-        var conversationUser = users.FirstOrDefault(x => x.Id == conversation.UserId || x.ExternalId == conversation.UserId);
-        conversationUser = conversationUser == null ? currentUser : conversationUser;
+        user = !string.IsNullOrEmpty(conversation.UserId)
+                ? await userService.GetUser(conversation.UserId)
+                : null;
+
+        if (user == null)
+        {
+            user = new User
+            {
+                Id = _user.Id,
+                UserName = _user.UserName,
+                FirstName = _user.FirstName,
+                LastName = _user.LastName,
+                Email = _user.Email,
+                Source = "Unknown"
+            };
+        }
 
         var conversationView = ConversationViewModel.FromSession(conversation);
-        conversationView.User = UserViewModel.FromUser(conversationUser);
-        conversationView.Accessible = conversation.IsConversationAccessible(conversationUser, currentUser);
+        conversationView.User = UserViewModel.FromUser(user);
         conversationView.IsRealtimeEnabled = settings?.Assemblies?.Contains("BotSharp.Core.Realtime") ?? false;
         return conversationView;
     }

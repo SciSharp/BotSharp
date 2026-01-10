@@ -12,7 +12,6 @@ public class ConversationDocument : MongoBase
     public string Status { get; set; } = default!;
     public int DialogCount { get; set; }
     public List<string> Tags { get; set; } = [];
-    public ConversationAccessMongoModel Access { get; set; } = new();
 
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }
