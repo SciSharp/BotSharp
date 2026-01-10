@@ -48,7 +48,7 @@ public class MQConnection : IMQConnection
     {
         if (!IsConnected)
         {
-            throw new InvalidOperationException("RabbitMQ not connectioned.");
+            throw new InvalidOperationException("Rabbit MQ is not connectioned.");
         }
         return await _connection.CreateChannelAsync();
     }
@@ -68,10 +68,10 @@ public class MQConnection : IMQConnection
             _connection.ConnectionShutdownAsync += OnConnectionShutdownAsync;
             _connection.CallbackExceptionAsync += OnCallbackExceptionAsync;
             _connection.ConnectionBlockedAsync += OnConnectionBlockedAsync;
-            _logger.LogInformation($"RabbitMQ client connection success. host: {_connection.Endpoint.HostName}  port: {_connection.Endpoint.Port} localPort:{_connection.LocalPort}");
+            _logger.LogInformation($"Rabbit MQ client connection success. host: {_connection.Endpoint.HostName}, port: {_connection.Endpoint.Port}, localPort:{_connection.LocalPort}");
             return true;
         }
-        _logger.LogError("RabbitMQ client connection error.");
+        _logger.LogError("Rabbit MQ client connection error.");
         return false;
     }
 
@@ -82,7 +82,7 @@ public class MQConnection : IMQConnection
             return Task.CompletedTask;
         }
 
-        _logger.LogError($"RabbitMQ connection is on shutdown. Trying to re connect,{e.ReplyCode}:{e.ReplyText}");
+        _logger.LogError($"Rabbit MQ connection is on shutdown. Trying to reconnect, {e.ReplyCode}:{e.ReplyText}.");
         return Task.CompletedTask;
     }
 
@@ -93,7 +93,7 @@ public class MQConnection : IMQConnection
             return Task.CompletedTask;
         }
 
-        _logger.LogError($"RabbitMQ connection throw exception. Trying to re connect, {e.Exception}");
+        _logger.LogError($"Rabbit MQ connection throw exception. Trying to reconnect, {e.Exception}.");
         return Task.CompletedTask;
     }
 
@@ -104,7 +104,7 @@ public class MQConnection : IMQConnection
             return Task.CompletedTask;
         }
 
-        _logger.LogError($"RabbitMQ connection is shutdown. Trying to re connect, {e.Reason}");
+        _logger.LogError($"Rabbit MQ connection is shutdown. Trying to reconnect, {e.Reason}.");
         return Task.CompletedTask;
     }
 
@@ -117,21 +117,26 @@ public class MQConnection : IMQConnection
 
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
+        if (!disposing)
         {
-            _logger.LogWarning("RabbitMQConnection Dispose().");
-            if (_disposed) return;
+            return;
+        }
 
-            _disposed = true;
-            try
-            {
-                _connection.Dispose();
-                _logger.LogWarning("RabbitMQConnection Disposed.");
-            }
-            catch (IOException ex)
-            {
-                _logger.LogError(ex.ToString());
-            }
+        _logger.LogWarning("Disposing Rabbit MQ connection.");
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        try
+        {
+            _connection.Dispose();
+            _logger.LogWarning("Disposed Rabbit MQ connection.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, ex.Message);
         }
     }
 }
