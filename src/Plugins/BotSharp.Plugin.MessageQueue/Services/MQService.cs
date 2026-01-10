@@ -30,12 +30,17 @@ public class MQService : IMQService
         }
 
         await using var channel = await _mqConnection.CreateChannelAsync();
-        var args = new Dictionary<string, object>
+        var args = new Dictionary<string, object?>
         {
-            {"x-delayed-type", "direct"}
+            ["x-delayed-type"] = "direct"
         };
 
-        await channel.ExchangeDeclareAsync(exchange, "x-delayed-message", true, false, args);
+        await channel.ExchangeDeclareAsync(
+            exchange: exchange,
+            type: "x-delayed-message",
+            durable: true,
+            autoDelete: false,
+            arguments: args);
 
         var message = new MQMessage<T>(payload, messageId);
         var body = ConvertToBinary(message);
@@ -45,11 +50,16 @@ public class MQService : IMQService
             DeliveryMode = DeliveryModes.Persistent,
             Headers = new Dictionary<string, object?>
             {
-                { "x-delay", milliseconds }
+                ["x-delay"] = milliseconds
             }
         };
 
-        await channel.BasicPublishAsync(exchange: exchange, routingKey: routingkey, mandatory: true, basicProperties: properties, body: body);
+        await channel.BasicPublishAsync(
+            exchange: exchange,
+            routingKey: routingkey,
+            mandatory: true,
+            basicProperties: properties,
+            body: body);
         return true;
     }
 
