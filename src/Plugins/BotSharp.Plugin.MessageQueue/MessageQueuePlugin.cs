@@ -6,9 +6,9 @@ using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Plugin.MessageQueue;
 
-public class MessageQueuePlugin : IBotSharpPlugin
+public class MessageQueuePlugin : IBotSharpAppPlugin
 {
-    public string Id => "bac8bbf3-da91-4c92-98d8-db14d68e75ae";
+    public string Id => "3f93407f-3c37-4e25-be28-142a2da9b514";
     public string Name => "Message Queue";
     public string Description => "Handle AI messages in RabbitMQ.";
     public string IconUrl => "https://icon-library.com/images/message-queue-icon/message-queue-icon-13.jpg";
@@ -25,6 +25,11 @@ public class MessageQueuePlugin : IBotSharpPlugin
 
     public void Configure(IApplicationBuilder app)
     {
+        var sp = app.ApplicationServices;
+        var mqConnection = sp.GetRequiredService<IMQConnection>();
+        var mqService = sp.GetRequiredService<IMQService>();
+        var logger = sp.GetRequiredService<ILogger<ScheduledMessageConsumer>>();
 
+        mqService.Subscribe(nameof(ScheduledMessageConsumer), new ScheduledMessageConsumer(sp, mqConnection, logger));
     }
 }

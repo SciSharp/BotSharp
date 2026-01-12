@@ -27,5 +27,9 @@ global using BotSharp.Abstraction.Settings;
 global using BotSharp.Abstraction.Messaging;
 global using BotSharp.Abstraction.Messaging.Models.RichContent;
 global using BotSharp.Abstraction.Options;
+global using BotSharp.Abstraction.Models;
 
 global using BotSharp.Plugin.MessageQueue.Settings;
+global using BotSharp.Plugin.MessageQueue.Consumers;
+global using BotSharp.Plugin.MessageQueue.Models;
+global using BotSharp.Plugin.MessageQueue.Controllers;

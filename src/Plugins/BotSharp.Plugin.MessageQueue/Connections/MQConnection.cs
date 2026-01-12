@@ -9,11 +9,11 @@ namespace BotSharp.Plugin.MessageQueue.Connections;
 public class MQConnection : IMQConnection
 {
     private readonly IConnectionFactory _connectionFactory;
-    private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly SemaphoreSlim _lock = new(initialCount: 1, maxCount: 1);
     private readonly ILogger<MQConnection> _logger;
 
     private IConnection _connection;
-    private bool _disposed;
+    private bool _disposed = false;
 
     public MQConnection(
         MessageQueueSettings settings,
@@ -28,21 +28,12 @@ public class MQConnection : IMQConnection
             Password = settings.Password,
             VirtualHost = settings.VirtualHost,
             ConsumerDispatchConcurrency = 1,
-            //DispatchConsumersAsync = true,
             AutomaticRecoveryEnabled = true,
             HandshakeContinuationTimeout = TimeSpan.FromSeconds(20)
         };
     }
 
-    public bool IsConnected
-    {
-        get
-        {
-            return _connection != null && _connection.IsOpen && !_disposed;
-        }
-    }
-
-    public IConnection Connection => _connection;
+    public bool IsConnected => _connection != null && _connection.IsOpen && !_disposed;
 
     public async Task<IChannel> CreateChannelAsync()
     {
@@ -53,26 +44,34 @@ public class MQConnection : IMQConnection
         return await _connection.CreateChannelAsync();
     }
 
-    public async Task<bool> TryConnectAsync()
+    public async Task<bool> ConnectAsync()
     {
-        _lock.Wait();
+        await _lock.WaitAsync();
 
-        if (IsConnected)
+        try
         {
-            return true;
-        }
+            if (IsConnected)
+            {
+                return true;
+            }
 
-        _connection = await _connectionFactory.CreateConnectionAsync();
-        if (IsConnected)
-        {
-            _connection.ConnectionShutdownAsync += OnConnectionShutdownAsync;
-            _connection.CallbackExceptionAsync += OnCallbackExceptionAsync;
-            _connection.ConnectionBlockedAsync += OnConnectionBlockedAsync;
-            _logger.LogInformation($"Rabbit MQ client connection success. host: {_connection.Endpoint.HostName}, port: {_connection.Endpoint.Port}, localPort:{_connection.LocalPort}");
-            return true;
+            _connection = await _connectionFactory.CreateConnectionAsync();
+            if (IsConnected)
+            {
+                _connection.ConnectionShutdownAsync += OnConnectionShutdownAsync;
+                _connection.CallbackExceptionAsync += OnCallbackExceptionAsync;
+                _connection.ConnectionBlockedAsync += OnConnectionBlockedAsync;
+                _logger.LogInformation($"Rabbit MQ client connection success. host: {_connection.Endpoint.HostName}, port: {_connection.Endpoint.Port}, localPort:{_connection.LocalPort}");
+                return true;
+            }
+            _logger.LogError("Rabbit MQ client connection error.");
+            return false;
         }
-        _logger.LogError("Rabbit MQ client connection error.");
-        return false;
+        finally
+        {
+            _lock.Release();
+        }
+        
     }
 
     private Task OnConnectionShutdownAsync(object sender, ShutdownEventArgs e)
@@ -82,7 +81,7 @@ public class MQConnection : IMQConnection
             return Task.CompletedTask;
         }
 
-        _logger.LogError($"Rabbit MQ connection is on shutdown. Trying to reconnect, {e.ReplyCode}:{e.ReplyText}.");
+        _logger.LogError($"Rabbit MQ connection is shutdown. {e}.");
         return Task.CompletedTask;
     }
 
@@ -117,26 +116,22 @@ public class MQConnection : IMQConnection
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!disposing)
+        if (!disposing || _disposed)
         {
             return;
         }
 
-        _logger.LogWarning("Disposing Rabbit MQ connection.");
-        if (_disposed)
-        {
-            return;
-        }
+        _logger.LogWarning("Start disposing Rabbit MQ connection.");
 
-        _disposed = true;
         try
         {
             _connection.Dispose();
+            _disposed = true;
             _logger.LogWarning("Disposed Rabbit MQ connection.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ex.Message);
+            _logger.LogError(ex, $"Error when disposing Rabbit MQ connection");
         }
     }
 }

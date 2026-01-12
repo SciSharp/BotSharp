@@ -1,6 +1,6 @@
 using BotSharp.Plugin.MessageQueue.Interfaces;
-using BotSharp.Plugin.MessageQueue.Models;
 using RabbitMQ.Client;
+using System.Collections.Concurrent;
 
 namespace BotSharp.Plugin.MessageQueue.Services;
 
@@ -8,6 +8,8 @@ public class MQService : IMQService
 {
     private IMQConnection _mqConnection;
     private readonly ILogger<MQService> _logger;
+
+    private static readonly ConcurrentDictionary<string, MQConsumerBase> _consumers = [];
 
     public MQService(
         IMQConnection mqConnection,
@@ -17,16 +19,20 @@ public class MQService : IMQService
         _logger = logger;
     }
 
-    public Task SubscribeAsync(string key, object consumer)
+    public void Subscribe(string key, object consumer)
     {
-        throw new NotImplementedException();
+        var baseConsumer = consumer as MQConsumerBase;
+        if (baseConsumer != null)
+        {
+            _consumers.TryAdd(key, baseConsumer);
+        }
     }
 
     public async Task<bool> PublishAsync<T>(T payload, string exchange, string routingkey, long milliseconds = 0, string messageId = "")
     {
         if (!_mqConnection.IsConnected)
         {
-            await _mqConnection.TryConnectAsync();
+            await _mqConnection.ConnectAsync();
         }
 
         await using var channel = await _mqConnection.CreateChannelAsync();
