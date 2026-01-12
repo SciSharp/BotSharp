@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Core.Infrastructures;
 using BotSharp.OpenAPI.ViewModels.Instructs;
+using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -12,6 +13,13 @@ public partial class InstructModeController : ControllerBase
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<InstructModeController> _logger;
+
+    private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles
+    };
 
     public InstructModeController(IServiceProvider services, ILogger<InstructModeController> logger)
     {
@@ -23,19 +31,7 @@ public partial class InstructModeController : ControllerBase
     public async Task<InstructResult> InstructCompletion([FromRoute] string agentId, [FromBody] InstructMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
-
-        state.SetState("provider", input.Provider, source: StateSource.External)
-            .SetState("model", input.Model, source: StateSource.External)
-            .SetState("model_id", input.ModelId, source: StateSource.External)
-            .SetState("instruction", input.Instruction, source: StateSource.External)
-            .SetState("input_text", input.Text, source: StateSource.External)
-            .SetState("template_name", input.Template, source: StateSource.External)
-            .SetState("channel", input.Channel, source: StateSource.External)
-            .SetState("code_options", input.CodeOptions, source: StateSource.External)
-            .SetState("file_options", input.FileOptions, source: StateSource.External)
-            .SetState("file_count", input.Files?.Count, source: StateSource.External)
-            .SetState("file_urls", input.Files?.Select(p => p.ToString()), source: StateSource.External);
+        SetStates(state, input);
 
         var instructor = _services.GetRequiredService<IInstructService>();
         var result = await instructor.Execute(agentId,
@@ -49,6 +45,32 @@ public partial class InstructModeController : ControllerBase
         result.States = state.GetStates();
         return result; 
     }
+
+    [HttpPost("/instruct/{agentId}/sse")]
+    public async Task InstructCompletionSse([FromRoute] string agentId, [FromBody] InstructMessageModel input)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        SetStates(state, input);
+
+        Response.StatusCode = 200;
+        Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.ContentType, "text/event-stream");
+        Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.CacheControl, "no-cache");
+        Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.Connection, "keep-alive");
+
+        var instructor = _services.GetRequiredService<IInstructService>();
+        var result = await instructor.Execute(agentId,
+            new RoleDialogModel(AgentRole.User, input.Text),
+            instruction: input.Instruction,
+            templateName: input.Template,
+            files: input.Files,
+            codeOptions: input.CodeOptions,
+            fileOptions: input.FileOptions);
+
+        result.States = state.GetStates();
+
+        await OnChunkReceived(Response, result);
+    }
+
 
     [HttpPost("/instruct/text-completion")]
     public async Task<string> TextCompletion([FromBody] IncomingInstructRequest input)
@@ -119,6 +141,33 @@ public partial class InstructModeController : ControllerBase
             }), agentId);
 
         return message.Content;
+    }
+    #endregion
+
+    #region Private methods
+    private void SetStates(IConversationStateService state, InstructMessageModel input)
+    {
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+
+        state.SetState("provider", input.Provider, source: StateSource.External)
+            .SetState("model", input.Model, source: StateSource.External)
+            .SetState("model_id", input.ModelId, source: StateSource.External)
+            .SetState("instruction", input.Instruction, source: StateSource.External)
+            .SetState("input_text", input.Text, source: StateSource.External)
+            .SetState("template_name", input.Template, source: StateSource.External)
+            .SetState("channel", input.Channel, source: StateSource.External)
+            .SetState("code_options", input.CodeOptions, source: StateSource.External)
+            .SetState("file_options", input.FileOptions, source: StateSource.External)
+            .SetState("file_count", input.Files?.Count, source: StateSource.External)
+            .SetState("file_urls", input.Files?.Select(p => p.ToString()), source: StateSource.External);
+    }
+
+    private async Task OnChunkReceived(HttpResponse response, InstructResult result)
+    {
+        var json = JsonSerializer.Serialize(result, _jsonOptions);
+        var buffer = Encoding.UTF8.GetBytes($"data:{json}\n\n");
+        await response.Body.WriteAsync(buffer);
+        await response.Body.FlushAsync();
     }
     #endregion
 }

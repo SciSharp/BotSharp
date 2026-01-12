@@ -4,7 +4,6 @@ public class CypherQueryResponse
 {
     public string[] Columns { get; set; } = [];
     public Dictionary<string, object?>[] Data { get; set; } = [];
-
     public CypherNotification[] Notifications { get; set; } = [];
     public int RowCount { get; set; }
 }

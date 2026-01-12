@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Users.Models;
+using System.Threading.Tasks;
 
 namespace BotSharp.Core.Conversations.Services;
 

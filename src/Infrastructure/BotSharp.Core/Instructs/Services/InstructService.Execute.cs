@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Coding;
 using BotSharp.Abstraction.Coding.Contexts;
 using BotSharp.Abstraction.Coding.Enums;
+using BotSharp.Abstraction.Coding.Utils;
 using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
@@ -156,7 +157,7 @@ public partial class InstructService
         }
 
         // Run code script
-        var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig(codingSettings);
+        var (useLock, useProcess, timeoutSeconds) = CodingUtil.GetCodeExecutionConfig(codingSettings);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
         var codeResponse = codeProcessor.Run(context.CodeScript?.Content ?? string.Empty, options: new()
         {
@@ -349,21 +350,5 @@ public partial class InstructService
         });
 
         return result.Content;
-    }
-
-    /// <summary>
-    /// Returns (useLock, useProcess, timeoutSeconds)
-    /// </summary>
-    /// <returns></returns>
-    private (bool, bool, int) GetCodeExecutionConfig(CodingSettings settings)
-    {
-        var codeExecution = settings.CodeExecution;
-        var defaultTimeoutSeconds = 3;
-
-        var useLock = codeExecution?.UseLock ?? false;
-        var useProcess = codeExecution?.UseProcess ?? false;
-        var timeoutSeconds = codeExecution?.TimeoutSeconds > 0 ? codeExecution.TimeoutSeconds : defaultTimeoutSeconds;
-
-        return (useLock, useProcess, timeoutSeconds);
     }
 }

@@ -7,7 +7,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 public partial class MongoRepository
 {
     #region Task
-    public async ValueTask<PagedItems<AgentTask>> GetAgentTasks(AgentTaskFilter filter)
+    public async Task<PagedItems<AgentTask>> GetAgentTasks(AgentTaskFilter filter)
     {
         if (filter == null)
         {

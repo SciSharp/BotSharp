@@ -1,6 +1,5 @@
-using BotSharp.Abstraction.Coding.Settings;
+using BotSharp.Abstraction.Coding.Utils;
 using Microsoft.Extensions.Logging;
-using Python.Runtime;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -119,7 +118,7 @@ public class PyProgrammerFn : IFunctionCallback
             return (false, "Unable to execute python code script.");
         }
 
-        var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig();
+        var (useLock, useProcess, timeoutSeconds) = CodingUtil.GetCodeExecutionConfig(_codingSettings, defaultTimeoutSeconds: 10);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
 
         var response = processor.Run(codeScript, options: new()
@@ -200,17 +199,5 @@ public class PyProgrammerFn : IFunctionCallback
             MaxOutputTokens = maxOutputTokens,
             ReasoningEffortLevel = reasoningEffortLevel
         };
-    }
-
-    private (bool, bool, int) GetCodeExecutionConfig()
-    {
-        var codeExecution = _codingSettings.CodeExecution;
-        var defaultTimeoutSeconds = 10;
-
-        var useLock = codeExecution?.UseLock ?? false;
-        var useProcess = codeExecution?.UseProcess ?? false;
-        var timeoutSeconds = codeExecution?.TimeoutSeconds > 0 ? codeExecution.TimeoutSeconds : defaultTimeoutSeconds;
-
-        return (useLock, useProcess, timeoutSeconds);
     }
 }

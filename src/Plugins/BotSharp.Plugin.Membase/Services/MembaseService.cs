@@ -1,7 +1,4 @@
-using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.Knowledges.Models;
-using BotSharp.Plugin.Membase.Models;
-using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.Membase.Services;
 
