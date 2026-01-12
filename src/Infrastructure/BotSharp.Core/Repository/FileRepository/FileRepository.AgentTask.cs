@@ -6,7 +6,7 @@ namespace BotSharp.Core.Repository;
 public partial class FileRepository
 {
     #region Task
-    public async ValueTask<PagedItems<AgentTask>> GetAgentTasks(AgentTaskFilter filter)
+    public async Task<PagedItems<AgentTask>> GetAgentTasks(AgentTaskFilter filter)
     {
         if (filter == null)
         {

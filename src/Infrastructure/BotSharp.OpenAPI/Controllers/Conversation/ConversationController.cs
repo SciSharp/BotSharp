@@ -25,7 +25,6 @@ public partial class ConversationController : ControllerBase
         _services = services;
         _user = user;
         _jsonOptions = InitJsonOptions(options);
-
     }
 
     [HttpPost("/conversation/{agentId}")]
@@ -145,7 +144,7 @@ public partial class ConversationController : ControllerBase
     [HttpGet("/conversation/{conversationId}")]
     public async Task<ConversationViewModel?> GetConversation([FromRoute] string conversationId, [FromQuery] bool isLoadStates = false)
     {
-        var service = _services.GetRequiredService<IConversationService>();
+        var convService = _services.GetRequiredService<IConversationService>();
         var userService = _services.GetRequiredService<IUserService>();
         var settings = _services.GetRequiredService<PluginSettings>();
 
@@ -158,13 +157,15 @@ public partial class ConversationController : ControllerBase
             IsLoadLatestStates = isLoadStates
         };
 
-        var conversations = await service.GetConversations(filter);
-        var conv = !conversations.Items.IsNullOrEmpty()
-                ? ConversationViewModel.FromSession(conversations.Items.First())
-                : new();
+        var conversations = await convService.GetConversations(filter);
+        var conversation = conversations.Items?.FirstOrDefault();
+        if (conversation == null)
+        {
+            return new();
+        }
 
-        user = !string.IsNullOrEmpty(conv?.User?.Id)
-                ? await userService.GetUser(conv.User.Id)
+        user = !string.IsNullOrEmpty(conversation.UserId)
+                ? await userService.GetUser(conversation.UserId)
                 : null;
 
         if (user == null)
@@ -180,9 +181,10 @@ public partial class ConversationController : ControllerBase
             };
         }
 
-        conv.User = UserViewModel.FromUser(user);
-        conv.IsRealtimeEnabled = settings?.Assemblies?.Contains("BotSharp.Core.Realtime") ?? false;
-        return conv;
+        var conversationView = ConversationViewModel.FromSession(conversation);
+        conversationView.User = UserViewModel.FromUser(user);
+        conversationView.IsRealtimeEnabled = settings?.Assemblies?.Contains("BotSharp.Core.Realtime") ?? false;
+        return conversationView;
     }
 
     [HttpPost("/conversation/summary")]

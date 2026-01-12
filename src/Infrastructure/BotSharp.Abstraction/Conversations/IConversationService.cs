@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Abstraction.Conversations;
 
@@ -61,6 +62,4 @@ public interface IConversationService
     Task SaveStates();
 
     Task<List<string>> GetConversationStateSearhKeys(ConversationStateKeysFilter filter);
-
-    Task<bool> MigrateLatestStates(int batchSize = 100, int errorLimit = 10);
 }

@@ -1,4 +1,3 @@
-using BotSharp.Plugin.Membase.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace BotSharp.Plugin.Membase.Controllers;
