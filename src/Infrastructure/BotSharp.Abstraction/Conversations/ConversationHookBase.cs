@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Repositories.Filters;
+
 namespace BotSharp.Abstraction.Conversations;
 
 public abstract class ConversationHookBase : IConversationHook
@@ -36,6 +38,12 @@ public abstract class ConversationHookBase : IConversationHook
         Dialogs = dialogs;
         return Task.CompletedTask;
     }
+
+    public virtual Task<string> OnConversationsListing(ConversationFilter filter)
+        => Task.FromResult(string.Empty);
+
+    public virtual Task OnConversationCreating(Conversation conversation)
+        => Task.CompletedTask;
 
     public virtual Task OnConversationEnding(RoleDialogModel message)
         => Task.CompletedTask;
