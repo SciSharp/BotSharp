@@ -84,6 +84,13 @@ public partial class ConversationService : IConversationService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        var hooks = _services.GetHooks<IConversationHook>(filter.AgentId);
+        foreach (var hook in hooks)
+        {
+            await hook.OnConversationsListing(filter);
+        }
+
         var conversations = await db.GetConversations(filter);
         return conversations;
     }
@@ -112,9 +119,14 @@ public partial class ConversationService : IConversationService
         record.Tags = sess.Tags;
         record.Title = string.IsNullOrEmpty(record.Title) ? "New Conversation" : record.Title;
 
-        await db.CreateNewConversation(record);
+        var hooks = _services.GetHooks<IConversationHook>(sess.AgentId);
+        foreach (var hook in hooks)
+        {
+            // If user connect agent first time
+            await hook.OnConversationCreating(record);
+        }
 
-        var hooks = _services.GetHooks<IConversationHook>(record.AgentId);
+        await db.CreateNewConversation(record);
 
         foreach (var hook in hooks)
         {
