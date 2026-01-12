@@ -115,24 +115,28 @@ public abstract class MQConsumerBase : IDisposable
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposing || _disposed)
+        if (! _disposed)
         {
             return;
         }
 
-        _logger.LogWarning($"Start disposing consumer channel: {QueueName}");
+        var consumerName = GetType().Name;
+        _logger.LogWarning($"Start disposing consumer: {consumerName}");
         if (_channel != null)
         {
-            _channel.Dispose();
-            _disposed = true;
-            _logger.LogWarning($"Disposed consumer channel: {QueueName}");
+            try
+            {
+                _channel.Dispose();
+                _disposed = true;
+                _logger.LogWarning($"Disposed consumer: {consumerName}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error when disposing consumer: {consumerName}");
+            }
         }
+
+        GC.SuppressFinalize(this);
     }
 }
 

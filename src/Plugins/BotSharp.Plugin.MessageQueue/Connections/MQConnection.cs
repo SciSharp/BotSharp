@@ -110,13 +110,7 @@ public class MQConnection : IMQConnection
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposing || _disposed)
+        if (_disposed)
         {
             return;
         }
@@ -133,5 +127,7 @@ public class MQConnection : IMQConnection
         {
             _logger.LogError(ex, $"Error when disposing Rabbit MQ connection");
         }
+
+        GC.SuppressFinalize(this);
     }
 }
