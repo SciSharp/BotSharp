@@ -1,0 +1,30 @@
+# Implementation Tasks - Anthropic Agent Skills
+
+- [x] **Infrastructure - Create Plugin Project**: Create `BotSharp.Plugin.AgentSkills` project and register it in `BotSharp.csproj`.
+- [x] **Infrastructure - Define Data Models**: Create `AgentSkill` and `SkillFrontmatter` models to map `SKILL.md` structure.
+- [x] **Core Service - Implement AgentSkillService**:
+    - [x] Create `IAgentSkillService` and `AgentSkillService`.
+    - [x] Implement directory scanning and `SKILL.md` YAML parsing using `YamlDotNet`.
+    - [x] Implement `GetAvailableSkills` and `GetSkill` methods.
+    - [x] Implement `FileSystemWatcher` for hot reload support.
+- [x] **Hooks - Implement AgentSkillHook**:
+    - [x] Create `AgentSkillHook` inheriting `AgentHookBase`.
+    - [x] Implement `OnInstructionLoaded` for "Discovery" phase (inject available skills list).
+    - [x] Implement logic to inject active skill instructions for "Activation" phase.
+- [x] **Functions - Implement LoadSkillFn**:
+    - [x] Create `LoadSkillFn` implementing `IFunctionCallback`.
+    - [x] Implement logic to add skill to `active_skills` in conversation state.
+    - [x] Return appropriate message to prompt LLM for next step.
+- [x] **Execution - Extend Python Interpreter**:
+    - [x] Define `IPyScriptRunner` interface in `BotSharp.Plugin.PythonInterpreter`.
+    - [x] Implement `PyScriptRunner` to execute local `.py` files using `Process.Start`.
+    - [x] Register the new service in `PythonInterpreterPlugin`.
+- [x] **Functions - Implement RunSkillScriptFn**:
+    - [x] Create `RunSkillScriptFn` implementing `IFunctionCallback`.
+    - [x] Implement parameter validation (path security).
+    - [x] Use `IPyScriptRunner` to execute the requested script.
+- [x] **Testing - Integration**:
+    - [x] Create a sample `skills/demo-skill` structure.
+    - [x] Verify discovery (System Prompt injection).
+    - [x] Verify loading (Context injection).
+    - [x] Verify execution (Script result).

@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    "aaron-bond.better-comments",
+    "codezombiech.gitignore",
+    "cpylua.language-postcss",
+    "editorconfig.editorconfig",
+    "esbenp.prettier-vscode",
+    "foxundermoon.shell-format",
+    "jasonnutter.search-node-modules",
+    "jock.svg",
+    "mikestead.dotenv",
+    "streetsidesoftware.code-spell-checker",
+    "stylelint.vscode-stylelint"
+  ],
+  "unwantedRecommendations": [
+    "nucllear.vscode-extension-auto-import",
+    "steoates.autoimport"
+  ]
+}

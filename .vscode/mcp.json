@@ -1,0 +1,13 @@
+{
+  "servers": {
+    "SpecCodingMcpServer": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "C:\\workshop\\ai4c\\speccodingmcpserver\\src\\SpecCodingMcpServer\\SpecCodingMcpServer.csproj"
+      ]
+    }
+  }
+}
