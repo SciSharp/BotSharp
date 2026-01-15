@@ -1,11 +1,9 @@
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Graph.Options;
 
-namespace BotSharp.Abstraction.Graph;
+namespace BotSharp.Abstraction.Knowledges;
 
-public interface IGraphDb
+public interface IGraphKnowledgeService
 {
-    public string Provider { get; }
-
     Task<GraphSearchResult> SearchAsync(string query, GraphSearchOptions? options = null);
 }

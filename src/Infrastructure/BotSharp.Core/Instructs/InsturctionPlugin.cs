@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Instructs.Settings;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
+using BotSharp.Abstraction.Shared;
 using BotSharp.Core.Instructs.Hooks;
+using BotSharp.Core.Shared;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Instructs;
@@ -20,6 +22,7 @@ public class InsturctionPlugin : IBotSharpPlugin
             return settingService.Bind<InstructionSettings>("Instruction");
         });
 
+        services.AddScoped<IJsonRepairService, JsonRepairService>();
         services.AddScoped<IAgentUtilityHook, InstructUtilityHook>();
     }
 

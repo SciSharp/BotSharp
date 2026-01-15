@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
@@ -295,6 +295,10 @@
     <None Update="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\json_repair.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="JsonRepair\" />
   </ItemGroup>
 
 </Project>

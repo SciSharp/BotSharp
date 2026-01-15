@@ -11,13 +11,16 @@ namespace BotSharp.OpenAPI.Controllers;
 public partial class KnowledgeBaseController : ControllerBase
 {
     private readonly IKnowledgeService _knowledgeService;
+    private readonly IGraphKnowledgeService _graphKnowledgeService;
     private readonly IServiceProvider _services;
 
     public KnowledgeBaseController(
         IKnowledgeService knowledgeService,
+        IGraphKnowledgeService graphKnowledgeService,
         IServiceProvider services)
     {
         _knowledgeService = knowledgeService;
+        _graphKnowledgeService = graphKnowledgeService;
         _services = services;
     }
 
@@ -206,10 +209,13 @@ public partial class KnowledgeBaseController : ControllerBase
     {
         var options = new GraphSearchOptions
         {
+            Provider = request.Provider,
+            GraphId = request.GraphId,
+            Arguments = request.Arguments,
             Method = request.Method
         };
 
-        var result = await _knowledgeService.SearchGraphKnowledge(request.Query, options);
+        var result = await _graphKnowledgeService.SearchAsync(request.Query, options);
         return new GraphKnowledgeViewModel
         {
             Result = result.Result
