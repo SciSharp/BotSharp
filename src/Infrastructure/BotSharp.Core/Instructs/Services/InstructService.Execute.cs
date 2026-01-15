@@ -295,7 +295,7 @@ public partial class InstructService
                 result = await GetChatCompletion(chatCompleter, agent, instruction, prompt, message.MessageId, files);
             }
             // Repair JSON format if needed
-            responseFormat = responseFormat ?? agentService.GetTemplateResponseFormat(agent, templateName);
+            responseFormat ??= agentService.GetTemplateResponseFormat(agent, templateName);
             if (responseFormat == ResponseFormatType.Json)
             {
                 var jsonRepairService = _services.GetRequiredService<IJsonRepairService>();
