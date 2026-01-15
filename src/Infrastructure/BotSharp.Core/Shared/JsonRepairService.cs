@@ -90,7 +90,7 @@ public class JsonRepairService : IJsonRepairService
         }
 
         var render = _services.GetRequiredService<ITemplateRender>();
-        var data = options?.Data ?? [];
+        var data = options?.Data ?? new Dictionary<string, object>();
         data["input"] = malformedJson;
         var prompt = render.Render(template, data);
 

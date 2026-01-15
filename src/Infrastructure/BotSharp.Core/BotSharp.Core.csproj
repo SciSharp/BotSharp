@@ -297,8 +297,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="JsonRepair\" />
-  </ItemGroup>
-
 </Project>

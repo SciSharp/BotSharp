@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Knowledges.Models;
 
 namespace BotSharp.Plugin.Membase.Services;
 
-public class MembaseService : ICypherGraphService
+public class MembaseService
 {
     private readonly IServiceProvider _services;
     private readonly IMembaseApi _membase;

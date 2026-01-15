@@ -36,7 +36,7 @@ public class MembaseGraphDb : IGraphDb
             var response = await _membaseApi.CypherQueryAsync(options.GraphId, new CypherQueryRequest
             {
                 Query = query,
-                Parameters = options.Arguments ?? []
+                Parameters = options.Arguments ?? new Dictionary<string, object>()
             });
 
             return new GraphSearchResult
