@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Files.Utilities;
+using BotSharp.Abstraction.Graph;
 using BotSharp.Abstraction.Graph.Options;
 using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.Abstraction.VectorStorage.Options;

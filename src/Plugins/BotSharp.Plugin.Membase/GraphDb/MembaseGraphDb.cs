@@ -4,9 +4,9 @@ using BotSharp.Abstraction.Graph.Options;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
-namespace BotSharp.Plugin.Membase.Services;
+namespace BotSharp.Plugin.Membase.GraphDb;
 
-public class MembaseGraphDb : IGraphDb
+public partial class MembaseGraphDb : IGraphDb
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<MembaseGraphDb> _logger;

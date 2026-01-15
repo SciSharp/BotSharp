@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Knowledges.Processors;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.KnowledgeBase.Graph;

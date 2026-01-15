@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Graph.Options;
 
 namespace BotSharp.Plugin.KnowledgeBase.Graph;
 
-public class GraphKnowledgeService : IGraphKnowledgeService
+public partial class GraphKnowledgeService : IGraphKnowledgeService
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<GraphKnowledgeService> _logger;
