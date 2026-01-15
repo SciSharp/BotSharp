@@ -6,7 +6,7 @@ namespace BotSharp.Plugin.AgentSkills.Hooks;
 
 public class AgentSkillHook : AgentHookBase
 {
-    public override string SelfId => string.Empty;
+    public override string SelfId => "471ca181-375f-b16f-7134-5f868ecd31c6";
 
     private readonly SkillLoader _skillLoader;
     private readonly AgentSkillsSettings _options;
