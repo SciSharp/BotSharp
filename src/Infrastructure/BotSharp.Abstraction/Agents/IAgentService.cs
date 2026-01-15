@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Coding.Models;
 using BotSharp.Abstraction.Coding.Options;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Instructs.Enums;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 
@@ -83,4 +84,5 @@ public interface IAgentService
 
     Task<CodeGenerationResult> GenerateCodeScript(string agentId, string text, CodeGenHandleOptions? options = null)
         => Task.FromResult(new CodeGenerationResult());
+    ResponseFormatType GetTemplateResponseFormat(Agent agent, string templateName);
 }

@@ -4,6 +4,7 @@ using BotSharp.Abstraction.Coding.Enums;
 using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.Instructs.Enums;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Abstraction.MLTasks;
@@ -21,7 +22,7 @@ public partial class InstructService
         IEnumerable<InstructFileModel>? files = null,
         CodeInstructOptions? codeOptions = null,
         FileInstructOptions? fileOptions = null,
-        ResponseFormatType responseFormat = ResponseFormatType.Text)
+        ResponseFormatType? responseFormat = null)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
@@ -52,7 +53,7 @@ public partial class InstructService
             return codeResponse;
         }
 
-        response = await RunLlm(agent, message, instruction, templateName, files, fileOptions);
+        response = await RunLlm(agent, message, instruction, templateName, files, fileOptions, responseFormat);
         
         return response;
     }
@@ -207,7 +208,7 @@ public partial class InstructService
         string? templateName,
         IEnumerable<InstructFileModel>? files = null,
         FileInstructOptions? fileOptions = null,
-        ResponseFormatType responseFormat = ResponseFormatType.Text)
+        ResponseFormatType? responseFormat = null)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -293,6 +294,7 @@ public partial class InstructService
                 result = await GetChatCompletion(chatCompleter, agent, instruction, prompt, message.MessageId, files);
             }
             // Repair JSON format if needed
+            responseFormat = responseFormat ?? agentService.GetTemplateResponseFormat(agent, templateName);
             if (responseFormat == ResponseFormatType.Json)
             {
                 var jsonRepairService = _services.GetRequiredService<IJsonRepairService>();

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotSharp.Abstraction.Conversations.Enums
+namespace BotSharp.Abstraction.Instructs.Enums
 {
     public enum ResponseFormatType
     {
