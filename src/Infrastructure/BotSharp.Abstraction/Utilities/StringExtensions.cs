@@ -64,16 +64,11 @@ public static partial class StringExtensions
         return str.Replace(" ", "").Replace("\t", "").Replace("\n", "").Replace("\r", "");
     }
 
-    [GeneratedRegex(@"[^\u0000-\u007F]")]
-    private static partial Regex NonAsciiCharactersRegex();
-
     public static string CleanJsonStr(this string? str)
     {
         if (string.IsNullOrWhiteSpace(str)) return string.Empty;
 
-        str = str.Replace("```json", string.Empty).Replace("```", string.Empty).Trim();
-
-        return NonAsciiCharactersRegex().Replace(str, "");
+        return str.Replace("```json", string.Empty).Replace("```", string.Empty).Trim();
     }
 
     public static T? Json<T>(this string text)
