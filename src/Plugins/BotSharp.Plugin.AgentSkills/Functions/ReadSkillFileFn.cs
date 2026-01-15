@@ -71,6 +71,7 @@ public class ReadSkillFileFn : IFunctionCallback
 
             // Truncate if necessary
             var maxSize = settings.MaxOutputSizeBytes;
+            var originalLength = content.Length;
             var truncated = content.Length > maxSize;
             if (truncated)
             {
@@ -84,7 +85,7 @@ public class ReadSkillFileFn : IFunctionCallback
                 file_path = filePath,
                 content,
                 truncated,
-                total_length = content.Length
+                total_length = originalLength
             }, _options.JsonSerializerOptions);
 
             return true;
