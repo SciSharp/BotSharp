@@ -62,6 +62,7 @@
     <PackageVersion Include="Qdrant.Client" Version="1.15.1" />
     <PackageVersion Include="Selenium.WebDriver" Version="4.27.0" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
+    <PackageVersion Include="YamlDotNet" Version="16.3.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="1.67.1" />
     <PackageVersion Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.16.0-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.13.22" />
