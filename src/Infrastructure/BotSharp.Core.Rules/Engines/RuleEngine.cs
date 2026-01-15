@@ -4,6 +4,7 @@ using BotSharp.Abstraction.Coding.Contexts;
 using BotSharp.Abstraction.Coding.Enums;
 using BotSharp.Abstraction.Coding.Models;
 using BotSharp.Abstraction.Coding.Settings;
+using BotSharp.Abstraction.Coding.Utils;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Models;
@@ -138,7 +139,7 @@ public class RuleEngine : IRuleEngine
                 await hook.BeforeCodeExecution(agent, context);
             }
 
-            var (useLock, useProcess, timeoutSeconds) = GetCodeExecutionConfig();
+            var (useLock, useProcess, timeoutSeconds) = CodingUtil.GetCodeExecutionConfig(_codingSettings);
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
             var response = processor.Run(codeScript.Content, options: new()
             {
@@ -198,18 +199,6 @@ public class RuleEngine : IRuleEngine
             keyValues.Add(new KeyValue(name ?? "trigger_args", args.RootElement.GetRawText()));
         }
         return keyValues;
-    }
-
-    private (bool, bool, int) GetCodeExecutionConfig()
-    {
-        var codeExecution = _codingSettings.CodeExecution;
-        var defaultTimeoutSeconds = 3;
-
-        var useLock = codeExecution?.UseLock ?? false;
-        var useProcess = codeExecution?.UseProcess ?? false;
-        var timeoutSeconds = codeExecution?.TimeoutSeconds > 0 ? codeExecution.TimeoutSeconds : defaultTimeoutSeconds;
-
-        return (useLock, useProcess, timeoutSeconds);
     }
     #endregion
 }

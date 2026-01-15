@@ -345,7 +345,7 @@ public partial class MongoRepository
         };
     }
 
-    public async ValueTask<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
+    public async Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
     {
         if (filter == null)
         {

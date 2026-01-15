@@ -9,7 +9,7 @@ public class UserViewModel : UserDto
     [JsonPropertyName("agent_actions")]
     public IEnumerable<UserAgentActionViewModel> AgentActions { get; set; } = [];
 
-    public static UserViewModel FromUser(User user)
+    public static UserViewModel FromUser(User? user)
     {
         if (user == null)
         {

@@ -13,10 +13,10 @@ public class A2AService : IA2AService
 
     private readonly Dictionary<string, A2AClient> _clientCache = new Dictionary<string, A2AClient>();
 
-    public A2AService(IHttpClientFactory httpClientFactory, IServiceProvider serviceProvider, ILogger<A2AService> logger)
+    public A2AService(IHttpClientFactory httpClientFactory, IServiceProvider services, ILogger<A2AService> logger)
     {
         _httpClientFactory = httpClientFactory;
-        _services = serviceProvider;
+        _services = services;
         _logger = logger;
     }
 

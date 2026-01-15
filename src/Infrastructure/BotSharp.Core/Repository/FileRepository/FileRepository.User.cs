@@ -111,7 +111,7 @@ public partial class FileRepository
         await File.WriteAllTextAsync(path, JsonSerializer.Serialize(user, _options));
     }
 
-    public async ValueTask<PagedItems<User>> GetUsers(UserFilter filter)
+    public async Task<PagedItems<User>> GetUsers(UserFilter filter)
     {
         if (filter == null)
         {

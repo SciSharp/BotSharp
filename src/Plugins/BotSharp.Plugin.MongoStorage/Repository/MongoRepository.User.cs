@@ -206,7 +206,7 @@ public partial class MongoRepository
         }
     }
 
-    public async ValueTask<PagedItems<User>> GetUsers(UserFilter filter)
+    public async Task<PagedItems<User>> GetUsers(UserFilter filter)
     {
         if (filter == null)
         {

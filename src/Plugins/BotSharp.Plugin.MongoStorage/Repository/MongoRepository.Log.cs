@@ -224,7 +224,7 @@ public partial class MongoRepository
         return true;
     }
 
-    public async ValueTask<PagedItems<InstructionLogModel>> GetInstructionLogs(InstructLogFilter filter)
+    public async Task<PagedItems<InstructionLogModel>> GetInstructionLogs(InstructLogFilter filter)
     {
         if (filter == null)
         {

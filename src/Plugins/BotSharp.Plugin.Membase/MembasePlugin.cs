@@ -11,17 +11,17 @@ public class MembasePlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        var dbSettings = new MembaseSettings();
-        config.Bind("Membase", dbSettings);
-        services.AddSingleton(sp => dbSettings);
+        var settings = new MembaseSettings();
+        config.Bind("Membase", settings);
+        services.AddSingleton(sp => settings);
 
-        services
-            .AddRefitClient<IMembaseApi>(new RefitSettings
-            {
-                AuthorizationHeaderValueGetter = (message, cancellation) => 
-                    Task.FromResult($"Bearer {dbSettings.ApiKey}")
-            })
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri(dbSettings.Host));
+        services.AddTransient<MembaseAuthHandler>();
+        services.AddRefitClient<IMembaseApi>(new RefitSettings
+                {
+                    CollectionFormat = CollectionFormat.Multi
+                })
+                .AddHttpMessageHandler<MembaseAuthHandler>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(settings.Host));
 
         services.AddScoped<ICypherGraphService, MembaseService>();
     }
