@@ -38,25 +38,27 @@ public class GraphDb : IGraphDb
 
     public string Provider => "Remote";
 
-    public async Task<GraphSearchData> Search(string query, GraphSearchOptions options)
+    public async Task<GraphSearchResult> SearchAsync(string query, GraphSearchOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(_settings.BaseUrl))
         {
-            return new GraphSearchData();
+            return new GraphSearchResult();
         }
 
         var url = $"{_settings.BaseUrl}{_settings.SearchPath}";
         var request = new GraphQueryRequest
         {
             Query = query,
-            Method = options.Method
+            Method = options?.Method
         };
         return await SendRequest(url, request);
     }
 
-    private async Task<GraphSearchData> SendRequest(string url, GraphQueryRequest request)
+
+    #region Private methods
+    private async Task<GraphSearchResult> SendRequest(string url, GraphQueryRequest request)
     {
-        var result = new GraphSearchData();
+        var result = new GraphSearchResult();
         var http = _services.GetRequiredService<IHttpClientFactory>();
 
         using (var client = http.CreateClient())
@@ -77,7 +79,7 @@ public class GraphDb : IGraphDb
                 rawResponse.EnsureSuccessStatusCode();
 
                 var responseStr = await rawResponse.Content.ReadAsStringAsync();
-                result = JsonSerializer.Deserialize<GraphSearchData>(responseStr, _jsonOptions);
+                result = JsonSerializer.Deserialize<GraphSearchResult>(responseStr, _jsonOptions);
                 return result;
             }
             catch (Exception ex)
@@ -93,4 +95,5 @@ public class GraphDb : IGraphDb
         client.DefaultRequestHeaders.Add("Authorization", $"{_context.HttpContext.Request.Headers["Authorization"]}");
         client.DefaultRequestHeaders.Add("Origin", $"{_context.HttpContext.Request.Headers["Origin"]}");
     }
+    #endregion
 }

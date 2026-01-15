@@ -152,7 +152,10 @@ public partial class AgentService
 
     public ResponseFormatType GetTemplateResponseFormat(Agent agent, string templateName)
     { 
-        if(string.IsNullOrEmpty(templateName)) return ResponseFormatType.Text;
+        if (string.IsNullOrEmpty(templateName))
+        {
+            return ResponseFormatType.Text;
+        }
 
         var template = agent.Templates.FirstOrDefault(x => x.Name == templateName)?.Content ?? string.Empty;
         return template.Contains(JsonFormat) ? ResponseFormatType.Json : ResponseFormatType.Text;

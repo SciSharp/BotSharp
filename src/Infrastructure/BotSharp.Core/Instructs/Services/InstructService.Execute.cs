@@ -10,6 +10,7 @@ using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Shared;
 
 namespace BotSharp.Core.Instructs;
 
@@ -55,7 +56,6 @@ public partial class InstructService
         }
 
         response = await RunLlm(agent, message, instruction, templateName, files, fileOptions, responseFormat);
-        
         return response;
     }
 
@@ -294,12 +294,13 @@ public partial class InstructService
             {
                 result = await GetChatCompletion(chatCompleter, agent, instruction, prompt, message.MessageId, files);
             }
+
             // Repair JSON format if needed
-            responseFormat = responseFormat ?? agentService.GetTemplateResponseFormat(agent, templateName);
+            responseFormat ??= agentService.GetTemplateResponseFormat(agent, templateName);
             if (responseFormat == ResponseFormatType.Json)
             {
                 var jsonRepairService = _services.GetRequiredService<IJsonRepairService>();
-                result = await jsonRepairService.Repair(result);
+                result = await jsonRepairService.RepairAsync(result);
             }
             response.Text = result;
         }

@@ -1,4 +1,6 @@
-namespace BotSharp.Abstraction.Utilities;
+using BotSharp.Abstraction.Shared.Options;
+
+namespace BotSharp.Abstraction.Shared;
 
 /// <summary>
 /// Service for repairing malformed JSON using LLM.
@@ -10,14 +12,16 @@ public interface IJsonRepairService
     /// </summary>
     /// <typeparam name="T">Target type</typeparam>
     /// <param name="malformedJson">The malformed JSON string</param>
+    /// <param name="options">The options to fix malformed JSON string</param>
     /// <returns>Deserialized object or default if repair fails</returns>
-    Task<T?> RepairAndDeserialize<T>(string malformedJson);
+    Task<T?> RepairAndDeserializeAsync<T>(string malformedJson, JsonRepairOptions? options = null);
 
     /// <summary>
     /// Repair malformed JSON string.
     /// </summary>
     /// <param name="malformedJson">The malformed JSON string</param>
+    /// <param name="options">The options to fix malformed JSON string</param>
     /// <returns>Repaired JSON string</returns>
-    Task<string> Repair(string malformedJson);
+    Task<string> RepairAsync(string malformedJson, JsonRepairOptions? options = null);
 }
 
