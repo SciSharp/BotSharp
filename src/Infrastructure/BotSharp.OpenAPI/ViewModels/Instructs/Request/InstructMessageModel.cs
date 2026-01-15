@@ -13,6 +13,7 @@ public class InstructMessageModel : IncomingMessageModel
     public List<InstructFileModel> Files { get; set; } = [];
     public CodeInstructOptions? CodeOptions { get; set; }
     public FileInstructOptions? FileOptions { get; set; }
+    public ResponseFormatType ResponseFormat { get; set; } = ResponseFormatType.Text;
 }
 
 

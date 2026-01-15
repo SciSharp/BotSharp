@@ -20,7 +20,8 @@ public partial class InstructService
         string? templateName = null,
         IEnumerable<InstructFileModel>? files = null,
         CodeInstructOptions? codeOptions = null,
-        FileInstructOptions? fileOptions = null)
+        FileInstructOptions? fileOptions = null,
+        ResponseFormatType responseFormat = ResponseFormatType.Text)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
@@ -52,6 +53,7 @@ public partial class InstructService
         }
 
         response = await RunLlm(agent, message, instruction, templateName, files, fileOptions);
+        
         return response;
     }
 
@@ -204,7 +206,8 @@ public partial class InstructService
         string? instruction,
         string? templateName,
         IEnumerable<InstructFileModel>? files = null,
-        FileInstructOptions? fileOptions = null)
+        FileInstructOptions? fileOptions = null,
+        ResponseFormatType responseFormat = ResponseFormatType.Text)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -288,6 +291,12 @@ public partial class InstructService
             else
             {
                 result = await GetChatCompletion(chatCompleter, agent, instruction, prompt, message.MessageId, files);
+            }
+            // Repair JSON format if needed
+            if (responseFormat == ResponseFormatType.Json)
+            {
+                var jsonRepairService = _services.GetRequiredService<IJsonRepairService>();
+                result = await jsonRepairService.Repair(result);
             }
             response.Text = result;
         }

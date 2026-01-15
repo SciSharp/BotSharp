@@ -1,10 +1,4 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Agents;
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Templating;
-using BotSharp.Abstraction.Utilities;
-using System.Text.Json;
 
 namespace BotSharp.Core.JsonRepair;
 
@@ -27,33 +21,45 @@ public class JsonRepairService : IJsonRepairService
         _logger = logger;
     }
 
-    public async Task<T?> RepairAndDeserialize<T>(string malformedJson)
+    public async Task<string> Repair(string malformedJson)
     {
-        
-        try
-        {
-            // First try direct deserialization
-            return malformedJson.JsonContent<T>();
-        }
-        catch
-        {
-            // Continue to repair
-        }
+        var json = malformedJson.CleanJsonStr();
+        if (IsValidJson(json)) return json;
 
-        
+        var repairedJson = await RepairByLLM(json);
+        if(IsValidJson(repairedJson)) return repairedJson;
+
+        // Try repairing again if still invalid
+        repairedJson = await RepairByLLM(json);
+
+        return IsValidJson(repairedJson) ? repairedJson : json;
+    }
+
+    public async Task<T?> RepairAndDeserialize<T>(string malformedJson)
+    {        
+        var json = await Repair(malformedJson);
+
+        return json.Json<T>();
+    }
+
+
+    private static bool IsValidJson(string malformedJson)
+    {
+        if (string.IsNullOrWhiteSpace(malformedJson))
+            return false;
+
         try
         {
-            var repairedJson = await Repair(malformedJson);
-            return  repairedJson.JsonContent<T>();
+            JsonDocument.Parse(malformedJson);
+            return true;
         }
-        catch (Exception ex)
+        catch (JsonException)
         {
-            _logger.LogError(ex, "Failed to repair and deserialize JSON");
-            return default;
+            return false;
         }
     }
 
-    public async Task<string> Repair(string malformedJson)
+    private async Task<string> RepairByLLM(string malformedJson)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var router = await agentService.GetAgent(ROUTER_AGENT_ID);
@@ -71,18 +77,20 @@ public class JsonRepairService : IJsonRepairService
             { "input", malformedJson }
         });
 
-        var completion = CompletionProvider.GetChatCompletion(_services,
+        try
+        {
+            var completion = CompletionProvider.GetChatCompletion(_services,
             provider: router?.LlmConfig?.Provider,
             model: router?.LlmConfig?.Model);
 
-        var agent = new Agent
-        {
-            Id = Guid.Empty.ToString(),
-            Name = "JsonRepair",
-            Instruction = "You are a JSON repair expert."
-        };
+            var agent = new Agent
+            {
+                Id = Guid.Empty.ToString(),
+                Name = "JsonRepair",
+                Instruction = "You are a JSON repair expert."
+            };
 
-        var dialogs = new List<RoleDialogModel>
+            var dialogs = new List<RoleDialogModel>
         {
             new RoleDialogModel(AgentRole.User, prompt)
             {
@@ -90,10 +98,16 @@ public class JsonRepairService : IJsonRepairService
             }
         };
 
-        var response = await completion.GetChatCompletions(agent, dialogs);
+            var response = await completion.GetChatCompletions(agent, dialogs);
 
-        _logger.LogInformation($"JSON repair result: {response.Content}");
-        return response.Content;
+            _logger.LogInformation($"JSON repair result: {response.Content}");
+            return response.Content.CleanJsonStr();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to repair and deserialize JSON");
+            return malformedJson;
+        }        
     }
 }
 

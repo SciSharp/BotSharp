@@ -1,9 +1,10 @@
+using BotSharp.Abstraction.Options;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace BotSharp.Abstraction.Utilities;
 
-public static class StringExtensions
+public static partial class StringExtensions
 {
     public static string? IfNullOrEmptyAs(this string? str, string? defaultValue)
         => string.IsNullOrEmpty(str) ? defaultValue : str;
@@ -63,6 +64,23 @@ public static class StringExtensions
         return str.Replace(" ", "").Replace("\t", "").Replace("\n", "").Replace("\r", "");
     }
 
+    [GeneratedRegex(@"[^\u0000-\u007F]")]
+    private static partial Regex NonAsciiCharactersRegex();
+
+    public static string CleanJsonStr(this string? str)
+    {
+        if (string.IsNullOrWhiteSpace(str)) return string.Empty;
+
+        str = str.Replace("```json", string.Empty).Replace("```", string.Empty).Trim();
+
+        return NonAsciiCharactersRegex().Replace(str, "");
+    }
+
+    public static T? Json<T>(this string text)
+    {
+        return JsonSerializer.Deserialize<T>(text, BotSharpOptions.defaultJsonOptions);
+    }
+
     public static string JsonContent(this string text)
     {
         var m = Regex.Match(text, @"\{(?:[^{}]|(?<open>\{)|(?<-open>\}))+(?(open)(?!))\}");
@@ -73,15 +91,7 @@ public static class StringExtensions
     {
         text = JsonContent(text);
 
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true,
-            AllowTrailingCommas = true
-        };
-
-        return JsonSerializer.Deserialize<T>(text, options);
+        return JsonSerializer.Deserialize<T>(text, BotSharpOptions.defaultJsonOptions);
     }
 
     public static string JsonArrayContent(this string text)
@@ -94,15 +104,7 @@ public static class StringExtensions
     {
         text = JsonArrayContent(text);
 
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true,
-            AllowTrailingCommas = true
-        };
-
-        return JsonSerializer.Deserialize<T[]>(text, options);
+        return JsonSerializer.Deserialize<T[]>(text, BotSharpOptions.defaultJsonOptions);
     }
 
     public static bool IsPrimitiveValue(this string value)
