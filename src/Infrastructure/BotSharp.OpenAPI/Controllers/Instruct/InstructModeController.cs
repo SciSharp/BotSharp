@@ -40,7 +40,8 @@ public partial class InstructModeController : ControllerBase
             templateName: input.Template,
             files: input.Files,
             codeOptions: input.CodeOptions,
-            fileOptions: input.FileOptions);
+            fileOptions: input.FileOptions,
+            responseFormat: input.ResponseFormat);
 
         result.States = state.GetStates();
         return result; 

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Instructs.Enums;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Options;
 
@@ -20,7 +21,8 @@ public interface IInstructService
         string? instruction = null, string? templateName = null,
         IEnumerable<InstructFileModel>? files = null,
         CodeInstructOptions? codeOptions = null,
-        FileInstructOptions? fileOptions = null);
+        FileInstructOptions? fileOptions = null,
+        ResponseFormatType? responseFormat = null);
 
     /// <summary>
     /// A generic way to execute completion by using specified instruction or template
