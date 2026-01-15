@@ -1,0 +1,35 @@
+{
+  "id": "471ca181-375f-b16f-7134-5f868ecd31c6",
+  "name": "Agent Skill",
+  "description": "You have access to a skills library that provides specialized capabilities and domain knowledge.",
+  "iconUrl": "https://cdn-icons-png.flaticon.com/512/3161/3161158.png",
+  "type": "task",
+  "createdDateTime": "2025-11-15T13:49:00Z",
+  "updatedDateTime": "2025-11-15T13:49:00Z",
+  "disabled": false,
+  "isPublic": true,
+  "profiles": [ "skill" ],
+  "utilities": [
+    {
+      "Category": "skill",
+      "Name": "agent-skills",
+      "Items": [
+        {
+          "FunctionName": "READ_SKILL_FN",
+          "TemplateName": "READ_SKILL_FN.fn",
+          "Description": "Reads the full content of a skill's SKILL.md file to get detailed instructions."
+        },
+        {
+          "FunctionName": "READ_SKILL_FILE_FN",
+          "TemplateName": "READ_SKILL_FILE_FN.fn",
+          "Description": "Reads a file within a skill's directory."
+        },
+        {
+          "FunctionName": "LIST_SKILL_DIRECTORY_FN",
+          "TemplateName": "LIST_SKILL_DIRECTORY_FN.fn",
+          "Description": "Lists the contents of a skill's directory."
+        }
+      ]      
+    }
+  ]
+}
