@@ -1,3 +1,4 @@
+using BotSharp.Plugin.Membase.Models.Graph;
 using Refit;
 
 namespace BotSharp.Plugin.Membase.Services;

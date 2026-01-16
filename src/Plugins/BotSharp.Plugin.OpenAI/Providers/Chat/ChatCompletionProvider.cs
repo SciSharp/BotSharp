@@ -595,8 +595,12 @@ public class ChatCompletionProvider : IChatCompletion
         float? temperature = null;
         ChatReasoningEffortLevel? reasoningEffortLevel = null;
 
-        var level = _state.GetState("reasoning_effort_level")
-                          .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel);
+        var level = _state.GetState("reasoning_effort_level");
+
+        if (string.IsNullOrEmpty(level) && _model == agent?.LlmConfig?.Model)
+        {
+            level = agent?.LlmConfig?.ReasoningEffortLevel;
+        }
 
         if (settings == null)
         {

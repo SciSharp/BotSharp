@@ -1,12 +1,11 @@
-namespace BotSharp.Plugin.Membase.Models;
+namespace BotSharp.Abstraction.Graph.Models;
 
-public class Node
+public class GraphNode
 {
     public string Id { get; set; } = string.Empty;
     public List<string> Labels { get; set; } = new();
     public object Properties { get; set; } = new();
-    public EmbeddingInfo? Embedding { get; set; }
-    public DateTime Time { get; set; } = DateTime.UtcNow;
+    public DateTime? Time { get; set; } = DateTime.UtcNow;
 
     public override string ToString()
     {

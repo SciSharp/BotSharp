@@ -5,10 +5,12 @@ using BotSharp.Abstraction.Coding.Utils;
 using BotSharp.Abstraction.Files.Options;
 using BotSharp.Abstraction.Files.Proccessors;
 using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.Instructs.Enums;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Shared;
 
 namespace BotSharp.Core.Instructs;
 
@@ -21,7 +23,8 @@ public partial class InstructService
         string? templateName = null,
         IEnumerable<InstructFileModel>? files = null,
         CodeInstructOptions? codeOptions = null,
-        FileInstructOptions? fileOptions = null)
+        FileInstructOptions? fileOptions = null,
+        ResponseFormatType? responseFormat = null)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
@@ -52,7 +55,7 @@ public partial class InstructService
             return codeResponse;
         }
 
-        response = await RunLlm(agent, message, instruction, templateName, files, fileOptions);
+        response = await RunLlm(agent, message, instruction, templateName, files, fileOptions, responseFormat);
         return response;
     }
 
@@ -205,7 +208,8 @@ public partial class InstructService
         string? instruction,
         string? templateName,
         IEnumerable<InstructFileModel>? files = null,
-        FileInstructOptions? fileOptions = null)
+        FileInstructOptions? fileOptions = null,
+        ResponseFormatType? responseFormat = null)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -289,6 +293,14 @@ public partial class InstructService
             else
             {
                 result = await GetChatCompletion(chatCompleter, agent, instruction, prompt, message.MessageId, files);
+            }
+
+            // Repair JSON format if needed
+            responseFormat ??= agentService.GetTemplateResponseFormat(agent, templateName);
+            if (responseFormat == ResponseFormatType.Json)
+            {
+                var jsonRepairService = _services.GetRequiredService<IJsonRepairService>();
+                result = await jsonRepairService.RepairAsync(result);
             }
             response.Text = result;
         }

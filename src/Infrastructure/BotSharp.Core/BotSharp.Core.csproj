@@ -290,4 +290,11 @@
       <Pack>true</Pack>
     </Content>
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\json_repair.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

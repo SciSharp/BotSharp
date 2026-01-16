@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Instructs.Enums;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Templating;
 using Newtonsoft.Json.Linq;
@@ -7,6 +8,8 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
+    private const string JsonFormat = "Output Format (JSON only):";
+
     public string RenderInstruction(Agent agent, IDictionary<string, object>? renderData = null)
     {
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -145,6 +148,17 @@ public partial class AgentService
             agent.Id).Wait();
 
         return content;
+    }
+
+    public ResponseFormatType GetTemplateResponseFormat(Agent agent, string templateName)
+    { 
+        if (string.IsNullOrEmpty(templateName))
+        {
+            return ResponseFormatType.Text;
+        }
+
+        var template = agent.Templates.FirstOrDefault(x => x.Name == templateName)?.Content ?? string.Empty;
+        return template.Contains(JsonFormat) ? ResponseFormatType.Json : ResponseFormatType.Text;
     }
 
     public bool RenderVisibility(string? visibilityExpression, IDictionary<string, object> dict)

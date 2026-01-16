@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.Membase.Models;
+namespace BotSharp.Plugin.Membase.Models.Graph;
 
 public class GraphInfo
 {

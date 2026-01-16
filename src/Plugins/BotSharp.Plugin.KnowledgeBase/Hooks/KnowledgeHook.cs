@@ -6,16 +6,16 @@ namespace BotSharp.Plugin.KnowledgeBase.Hooks;
 public class KnowledgeHook : IKnowledgeHook
 {
     private readonly IKnowledgeService _knowledgeService;
-    private readonly ITextEmbedding _textEmbedding;
+    private readonly IGraphKnowledgeService _graphKnowledgeService;
     private readonly IServiceProvider _services;
 
     public KnowledgeHook(
         IKnowledgeService knowledgeService,
-        ITextEmbedding textEmbedding,
+        IGraphKnowledgeService graphKnowledgeService,
         IServiceProvider services)
     {
         _knowledgeService = knowledgeService;
-        _textEmbedding = textEmbedding;
+        _graphKnowledgeService = graphKnowledgeService;
         _services = services;
     }
 
@@ -40,7 +40,7 @@ public class KnowledgeHook : IKnowledgeHook
                 {
                     Method = "local"
                 };
-                var result = await _knowledgeService.SearchGraphKnowledge(text, options);
+                var result = await _graphKnowledgeService.SearchAsync(text, options);
                 results.Add(result.Result);
             }
             else if (knowledgeBase.Type == "document")
@@ -93,7 +93,7 @@ public class KnowledgeHook : IKnowledgeHook
                 {
                     Method = "local"
                 };
-                var result = await _knowledgeService.SearchGraphKnowledge(text, options);
+                var result = await _graphKnowledgeService.SearchAsync(text, options);
                 results.Add(result.Result);
             }
             else

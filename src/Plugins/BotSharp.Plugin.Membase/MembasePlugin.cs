@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Graph;
+using BotSharp.Plugin.Membase.GraphDb;
 using Refit;
 
 namespace BotSharp.Plugin.Membase;
@@ -23,6 +25,6 @@ public class MembasePlugin : IBotSharpPlugin
                 .AddHttpMessageHandler<MembaseAuthHandler>()
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri(settings.Host));
 
-        services.AddScoped<ICypherGraphService, MembaseService>();
+        services.AddScoped<IGraphDb, MembaseGraphDb>();
     }
 }

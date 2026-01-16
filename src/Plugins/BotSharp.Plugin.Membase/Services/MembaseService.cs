@@ -1,8 +1,9 @@
-using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.Graph.Models;
 
 namespace BotSharp.Plugin.Membase.Services;
 
-public class MembaseService : ICypherGraphService
+[Obsolete]
+public class MembaseService
 {
     private readonly IServiceProvider _services;
     private readonly IMembaseApi _membase;
@@ -13,7 +14,7 @@ public class MembaseService : ICypherGraphService
         _membase = membase;
     }
 
-    public async Task<GraphQueryResult> Execute(string graphId, string query, Dictionary<string, object>? args = null)
+    public async Task<GraphSearchResult> Execute(string graphId, string query, Dictionary<string, object>? args = null)
     {
         var response = await _membase.CypherQueryAsync(graphId, new CypherQueryRequest
         {
@@ -21,10 +22,10 @@ public class MembaseService : ICypherGraphService
             Parameters = args ?? []
         });
 
-        return new GraphQueryResult
+        return new GraphSearchResult
         {
-            Columns = response.Columns,
-            Items = response.Data
+            Keys = response.Columns,
+            Values = response.Data
         };
     }
 

@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Instructs.Enums;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
@@ -125,6 +126,11 @@ namespace BotSharp.Plugin.Google.Core
         public IDictionary<string, object> CollectRenderData(Agent agent)
         {
             return new Dictionary<string, object>();
+        }
+
+        public ResponseFormatType GetTemplateResponseFormat(Agent agent, string templateName)
+        {
+            return ResponseFormatType.Text;
         }
     }
 }
