@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.MessageQueue.Models;
+namespace BotSharp.Abstraction.Infrastructures.MessageQueues.Models;
 
 public class MQMessage<T>
 {

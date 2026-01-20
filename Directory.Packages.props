@@ -9,7 +9,7 @@
     <PackageVersion Include="Google_GenerativeAI" Version="3.4.1" />
     <PackageVersion Include="Google_GenerativeAI.Live" Version="3.4.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="Polly" Version="8.4.2" />
+    <PackageVersion Include="Polly" Version="8.6.5" />
     <PackageVersion Include="RabbitMQ.Client" Version="7.2.0" />
     <PackageVersion Include="SharpFuzz" Version="2.2.0" />
     <PackageVersion Include="SharpHook" Version="5.3.9" />

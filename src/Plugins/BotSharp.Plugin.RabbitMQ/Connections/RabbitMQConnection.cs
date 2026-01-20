@@ -1,24 +1,27 @@
-using BotSharp.Plugin.MessageQueue.Interfaces;
+using Polly;
+using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.IO;
+using System.Runtime;
 using System.Threading;
 
-namespace BotSharp.Plugin.MessageQueue.Connections;
+namespace BotSharp.Plugin.RabbitMQ.Connections;
 
-public class MQConnection : IMQConnection
+public class RabbitMQConnection : IRabbitMQConnection
 {
+    private readonly RabbitMQSettings _settings;
     private readonly IConnectionFactory _connectionFactory;
     private readonly SemaphoreSlim _lock = new(initialCount: 1, maxCount: 1);
-    private readonly ILogger<MQConnection> _logger;
+    private readonly ILogger<RabbitMQConnection> _logger;
 
     private IConnection _connection;
     private bool _disposed = false;
 
-    public MQConnection(
-        MessageQueueSettings settings,
-        ILogger<MQConnection> logger)
+    public RabbitMQConnection(
+        RabbitMQSettings settings,
+        ILogger<RabbitMQConnection> logger)
     {
+        _settings = settings;
         _logger = logger;
         _connectionFactory = new ConnectionFactory
         {
@@ -55,7 +58,12 @@ public class MQConnection : IMQConnection
                 return true;
             }
 
-            _connection = await _connectionFactory.CreateConnectionAsync();
+            var policy = BuildRegryPolicy();
+            await policy.Execute(async () =>
+            {
+                _connection = await _connectionFactory.CreateConnectionAsync();
+            });
+
             if (IsConnected)
             {
                 _connection.ConnectionShutdownAsync += OnConnectionShutdownAsync;
@@ -72,6 +80,17 @@ public class MQConnection : IMQConnection
             _lock.Release();
         }
         
+    }
+
+    private RetryPolicy BuildRegryPolicy()
+    {
+        return Policy.Handle<Exception>().WaitAndRetry(
+            _settings.RetryCount,
+            retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+            (ex, time) =>
+            {
+                _logger.LogError(ex, $"RabbitMQ cannot build connection: after {time.TotalSeconds:n1}s");
+            });
     }
 
     private Task OnConnectionShutdownAsync(object sender, ShutdownEventArgs e)

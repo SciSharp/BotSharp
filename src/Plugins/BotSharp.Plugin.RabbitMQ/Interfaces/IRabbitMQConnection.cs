@@ -1,8 +1,8 @@
 using RabbitMQ.Client;
 
-namespace BotSharp.Plugin.MessageQueue.Interfaces;
+namespace BotSharp.Plugin.RabbitMQ.Interfaces;
 
-public interface IMQConnection : IDisposable
+public interface IRabbitMQConnection : IDisposable
 {
     bool IsConnected { get; }
     Task<IChannel> CreateChannelAsync();

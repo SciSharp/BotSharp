@@ -1,25 +1,24 @@
-using BotSharp.Plugin.MessageQueue.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BotSharp.Plugin.MessageQueue.Controllers;
+namespace BotSharp.Plugin.RabbitMQ.Controllers;
 
 /// <summary>
 /// Controller for publishing delayed messages to the message queue
 /// </summary>
 [Authorize]
 [ApiController]
-public class MessageQueueController : ControllerBase
+public class RabbitMQController : ControllerBase
 {
     private readonly IServiceProvider _services;
     private readonly IMQService _mqService;
-    private readonly ILogger<MessageQueueController> _logger;
+    private readonly ILogger<RabbitMQController> _logger;
 
-    public MessageQueueController(
+    public RabbitMQController(
         IServiceProvider services,
         IMQService mqService,
-        ILogger<MessageQueueController> logger)
+        ILogger<RabbitMQController> logger)
     {
         _services = services;
         _mqService = mqService;
@@ -48,11 +47,13 @@ public class MessageQueueController : ControllerBase
 
             var success = await _mqService.PublishAsync(
                 payload,
-                exchange: "scheduled.exchange",
-                routingkey: "scheduled.routing",
-                milliseconds: request.DelayMilliseconds ?? 10000,
-                messageId: request.MessageId ?? Guid.NewGuid().ToString());
-
+                options: new()
+                {
+                    Exchange = "scheduled.exchange",
+                    RoutingKey = "scheduled.routing",
+                    MilliSeconds = request.DelayMilliseconds ?? 10000,
+                    MessageId = request.MessageId
+                });
             return Ok();
         }
         catch (Exception ex)

@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.MessageQueue.Models;
+namespace BotSharp.Plugin.RabbitMQ.Models;
 
 /// <summary>
 /// Request model for publishing a scheduled message
