@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Graph.Models;
+using BotSharp.Plugin.Membase.Models.Graph;
 
 namespace BotSharp.Plugin.Membase.Services;
 
@@ -29,7 +30,7 @@ public class MembaseService
         };
     }
 
-    public async Task<GraphNode> MergeNode(string graphId, GraphNode node)
+    public async Task<Node> MergeNode(string graphId, Node node)
     {
         var newNode = await _membase.MergeNodeAsync(graphId, node.Id, new NodeUpdateModel
         {
