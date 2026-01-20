@@ -38,11 +38,11 @@ public class GraphDb : IGraphDb
 
     public string Provider => "Remote";
 
-    public async Task<GraphSearchResult> SearchAsync(string query, GraphSearchOptions? options = null)
+    public async Task<GraphQueryResult> ExecuteQueryAsync(string query, GraphQueryExecuteOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(_settings.BaseUrl))
         {
-            return new GraphSearchResult();
+            return new GraphQueryResult();
         }
 
         var url = $"{_settings.BaseUrl}{_settings.SearchPath}";
@@ -56,9 +56,9 @@ public class GraphDb : IGraphDb
 
 
     #region Private methods
-    private async Task<GraphSearchResult> SendRequest(string url, GraphQueryRequest request)
+    private async Task<GraphQueryResult> SendRequest(string url, GraphQueryRequest request)
     {
-        var result = new GraphSearchResult();
+        var result = new GraphQueryResult();
         var http = _services.GetRequiredService<IHttpClientFactory>();
 
         using (var client = http.CreateClient())
@@ -79,7 +79,7 @@ public class GraphDb : IGraphDb
                 rawResponse.EnsureSuccessStatusCode();
 
                 var responseStr = await rawResponse.Content.ReadAsStringAsync();
-                result = JsonSerializer.Deserialize<GraphSearchResult>(responseStr, _jsonOptions);
+                result = JsonSerializer.Deserialize<GraphQueryResult>(responseStr, _jsonOptions);
                 return result;
             }
             catch (Exception ex)

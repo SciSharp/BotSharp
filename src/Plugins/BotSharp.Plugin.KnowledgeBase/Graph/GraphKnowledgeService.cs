@@ -18,18 +18,18 @@ public partial class GraphKnowledgeService : IGraphKnowledgeService
         _settings = settings;
     }
 
-    public async Task<GraphSearchResult> SearchAsync(string query, GraphSearchOptions? options = null)
+    public async Task<GraphQueryResult> ExecuteQueryAsync(string query, GraphQueryOptions? options = null)
     {
         try
         {
             var db = GetGraphDb(options?.Provider);
-            var result = await db.SearchAsync(query, options);
+            var result = await db.ExecuteQueryAsync(query, options);
             return result;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error when searching graph knowledge (Query: {query}).");
-            return new GraphSearchResult();
+            return new GraphQueryResult();
         }
     }
 

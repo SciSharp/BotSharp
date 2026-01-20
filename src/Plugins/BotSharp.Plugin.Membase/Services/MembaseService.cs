@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Graph.Models;
+using BotSharp.Plugin.Membase.Models.Graph;
 
 namespace BotSharp.Plugin.Membase.Services;
 
@@ -14,7 +15,7 @@ public class MembaseService
         _membase = membase;
     }
 
-    public async Task<GraphSearchResult> Execute(string graphId, string query, Dictionary<string, object>? args = null)
+    public async Task<GraphQueryResult> Execute(string graphId, string query, Dictionary<string, object>? args = null)
     {
         var response = await _membase.CypherQueryAsync(graphId, new CypherQueryRequest
         {
@@ -22,14 +23,14 @@ public class MembaseService
             Parameters = args ?? []
         });
 
-        return new GraphSearchResult
+        return new GraphQueryResult
         {
             Keys = response.Columns,
             Values = response.Data
         };
     }
 
-    public async Task<GraphNode> MergeNode(string graphId, GraphNode node)
+    public async Task<Node> MergeNode(string graphId, Node node)
     {
         var newNode = await _membase.MergeNodeAsync(graphId, node.Id, new NodeUpdateModel
         {
