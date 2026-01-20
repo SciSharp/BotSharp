@@ -2,7 +2,6 @@ using Polly;
 using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Runtime;
 using System.Threading;
 
 namespace BotSharp.Plugin.RabbitMQ.Connections;

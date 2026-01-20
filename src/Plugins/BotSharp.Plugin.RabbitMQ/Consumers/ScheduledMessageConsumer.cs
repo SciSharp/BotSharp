@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Infrastructures.MessageQueues.Models;
-
 namespace BotSharp.Plugin.RabbitMQ.Consumers;
 
 public class ScheduledMessageConsumer : MQConsumerBase

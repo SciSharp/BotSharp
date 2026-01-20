@@ -33,7 +33,7 @@ public class RabbitMQService : IMQService
         }
 
         var registration = await CreateConsumerRegistrationAsync(consumer);
-        if (_consumers.TryAdd(key, registration))
+        if (registration != null && _consumers.TryAdd(key, registration))
         {
             _logger.LogInformation($"Consumer '{key}' subscribed to queue '{consumer.Options.QueueName}'.");
         }
@@ -59,26 +59,34 @@ public class RabbitMQService : IMQService
         }
     }
 
-    private async Task<ConsumerRegistration> CreateConsumerRegistrationAsync(IMQConsumer consumer)
+    private async Task<ConsumerRegistration?> CreateConsumerRegistrationAsync(IMQConsumer consumer)
     {
-        var channel = await CreateChannelAsync(consumer);
-
-        var options = consumer.Options;
-        var registration = new ConsumerRegistration(consumer, channel);
-
-        var asyncConsumer = new AsyncEventingBasicConsumer(channel);
-        asyncConsumer.ReceivedAsync += async (sender, eventArgs) =>
+        try
         {
-            await ConsumeEventAsync(registration, eventArgs);
-        };
+            var channel = await CreateChannelAsync(consumer);
 
-        await channel.BasicConsumeAsync(
-            queue: options.QueueName,
-            autoAck: options.AutoAck,
-            consumer: asyncConsumer);
+            var options = consumer.Options;
+            var registration = new ConsumerRegistration(consumer, channel);
 
-        _logger.LogWarning($"RabbitMQ consuming queue '{options.QueueName}'.");
-        return registration;
+            var asyncConsumer = new AsyncEventingBasicConsumer(channel);
+            asyncConsumer.ReceivedAsync += async (sender, eventArgs) =>
+            {
+                await ConsumeEventAsync(registration, eventArgs);
+            };
+
+            await channel.BasicConsumeAsync(
+                queue: options.QueueName,
+                autoAck: options.AutoAck,
+                consumer: asyncConsumer);
+
+            _logger.LogWarning($"RabbitMQ consuming queue '{options.QueueName}'.");
+            return registration;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when register consumer in RabbitMQ.");
+            return null;
+        }
     }
 
     private async Task<IChannel> CreateChannelAsync(IMQConsumer consumer)
@@ -155,57 +163,65 @@ public class RabbitMQService : IMQService
 
     public async Task<bool> PublishAsync<T>(T payload, MQPublishOptions options)
     {
-        if (!_mqConnection.IsConnected)
+        try
         {
-            await _mqConnection.ConnectAsync();
-        }
-
-        var policy = BuildRegryPolicy();
-        await policy.Execute(async () =>
-        {
-            await using var channel = await _mqConnection.CreateChannelAsync();
-            var args = new Dictionary<string, object?>
+            if (!_mqConnection.IsConnected)
             {
-                ["x-delayed-type"] = "direct"
-            };
-
-            if (options.Arguments != null)
-            {
-                foreach (var kvp in options.Arguments)
-                {
-                    args[kvp.Key] = kvp.Value;
-                }
+                await _mqConnection.ConnectAsync();
             }
 
-            await channel.ExchangeDeclareAsync(
-                exchange: options.Exchange,
-                type: "x-delayed-message",
-                durable: true,
-                autoDelete: false,
-                arguments: args);
-
-            var messageId = options.MessageId ?? Guid.NewGuid().ToString();
-            var message = new MQMessage<T>(payload, messageId);
-            var body = ConvertToBinary(message);
-            var properties = new BasicProperties
+            var policy = BuildRegryPolicy();
+            await policy.Execute(async () =>
             {
-                MessageId = messageId,
-                DeliveryMode = DeliveryModes.Persistent,
-                Headers = new Dictionary<string, object?>
+                await using var channel = await _mqConnection.CreateChannelAsync();
+                var args = new Dictionary<string, object?>
                 {
-                    ["x-delay"] = options.MilliSeconds
-                }
-            };
+                    ["x-delayed-type"] = "direct"
+                };
 
-            await channel.BasicPublishAsync(
-                exchange: options.Exchange,
-                routingKey: options.RoutingKey,
-                mandatory: true,
-                basicProperties: properties,
-                body: body);
-        });
-        
-        return true;
+                if (options.Arguments != null)
+                {
+                    foreach (var kvp in options.Arguments)
+                    {
+                        args[kvp.Key] = kvp.Value;
+                    }
+                }
+
+                await channel.ExchangeDeclareAsync(
+                    exchange: options.Exchange,
+                    type: "x-delayed-message",
+                    durable: true,
+                    autoDelete: false,
+                    arguments: args);
+
+                var messageId = options.MessageId ?? Guid.NewGuid().ToString();
+                var message = new MQMessage<T>(payload, messageId);
+                var body = ConvertToBinary(message);
+                var properties = new BasicProperties
+                {
+                    MessageId = messageId,
+                    DeliveryMode = DeliveryModes.Persistent,
+                    Headers = new Dictionary<string, object?>
+                    {
+                        ["x-delay"] = options.MilliSeconds
+                    }
+                };
+
+                await channel.BasicPublishAsync(
+                    exchange: options.Exchange,
+                    routingKey: options.RoutingKey,
+                    mandatory: true,
+                    basicProperties: properties,
+                    body: body);
+            });
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when RabbitMQ publish message.");
+            return false;
+        }
     }
 
     private RetryPolicy BuildRegryPolicy()
