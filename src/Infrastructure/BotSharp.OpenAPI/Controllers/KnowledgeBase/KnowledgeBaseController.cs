@@ -208,7 +208,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpPost("/knowledge/graph/search")]
     public async Task<GraphKnowledgeViewModel> SearchGraphKnowledge([FromBody] SearchGraphKnowledgeRequest request)
     {
-        var options = new GraphSearchOptions
+        var options = new GraphQueryOptions
         {
             Provider = request.Provider,
             GraphId = request.GraphId,
@@ -216,7 +216,7 @@ public partial class KnowledgeBaseController : ControllerBase
             Method = request.Method
         };
 
-        var result = await _graphKnowledgeService.SearchAsync(request.Query, options);
+        var result = await _graphKnowledgeService.ExecuteQueryAsync(request.Query, options);
         return new GraphKnowledgeViewModel
         {
             Result = result.Result

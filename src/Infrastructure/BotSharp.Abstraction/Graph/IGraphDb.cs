@@ -9,7 +9,7 @@ public interface IGraphDb
 {
     public string Provider { get; }
 
-    Task<GraphSearchResult> SearchAsync(string query, GraphSearchOptions? options = null)
+    Task<GraphQueryResult> ExecuteQueryAsync(string query, GraphQueryExecuteOptions? options = null)
         => throw new NotImplementedException();
 
     #region Node

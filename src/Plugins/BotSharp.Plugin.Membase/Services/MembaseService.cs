@@ -14,7 +14,7 @@ public class MembaseService
         _membase = membase;
     }
 
-    public async Task<GraphSearchResult> Execute(string graphId, string query, Dictionary<string, object>? args = null)
+    public async Task<GraphQueryResult> Execute(string graphId, string query, Dictionary<string, object>? args = null)
     {
         var response = await _membase.CypherQueryAsync(graphId, new CypherQueryRequest
         {
@@ -22,7 +22,7 @@ public class MembaseService
             Parameters = args ?? []
         });
 
-        return new GraphSearchResult
+        return new GraphQueryResult
         {
             Keys = response.Columns,
             Values = response.Data

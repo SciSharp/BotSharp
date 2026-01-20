@@ -24,7 +24,7 @@ public partial class MembaseGraphDb : IGraphDb
 
     public string Provider => "membase";
 
-    public async Task<GraphSearchResult> SearchAsync(string query, GraphSearchOptions? options = null)
+    public async Task<GraphQueryResult> ExecuteQueryAsync(string query, GraphQueryExecuteOptions? options = null)
     {
         if (string.IsNullOrEmpty(options?.GraphId))
         {
@@ -39,7 +39,7 @@ public partial class MembaseGraphDb : IGraphDb
                 Parameters = options.Arguments ?? new Dictionary<string, object>()
             });
 
-            return new GraphSearchResult
+            return new GraphQueryResult
             {
                 Keys = response.Columns,
                 Values = response.Data,

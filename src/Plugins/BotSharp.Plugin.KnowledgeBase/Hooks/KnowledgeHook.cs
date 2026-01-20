@@ -36,11 +36,12 @@ public class KnowledgeHook : IKnowledgeHook
         {
             if (knowledgeBase.Type == "relationships")
             {
-                var options = new GraphSearchOptions
+                var options = new GraphQueryOptions
                 {
+                    Provider = "Remote",
                     Method = "local"
                 };
-                var result = await _graphKnowledgeService.SearchAsync(text, options);
+                var result = await _graphKnowledgeService.ExecuteQueryAsync(text, options);
                 results.Add(result.Result);
             }
             else if (knowledgeBase.Type == "document")
@@ -89,11 +90,12 @@ public class KnowledgeHook : IKnowledgeHook
         {
             if (knowledgeBase.Type == "relationships")
             {
-                var options = new GraphSearchOptions
+                var options = new GraphQueryOptions
                 {
+                    Provider = "Remote",
                     Method = "local"
                 };
-                var result = await _graphKnowledgeService.SearchAsync(text, options);
+                var result = await _graphKnowledgeService.ExecuteQueryAsync(text, options);
                 results.Add(result.Result);
             }
             else
