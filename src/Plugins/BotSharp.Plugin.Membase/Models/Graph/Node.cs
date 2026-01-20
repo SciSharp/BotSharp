@@ -10,17 +10,6 @@ public class Node
     public NodeEmbedding? Embedding { get; set; }
     public DateTime? Time { get; set; } = DateTime.UtcNow;
 
-    public GraphNode ToGraphNode()
-    {
-        return new GraphNode
-        {
-            Id = Id,
-            Labels = Labels ?? [],
-            Properties = Properties ?? new(),
-            Time = Time
-        };
-    }
-
     public override string ToString()
     {
         var labelsString = Labels.Count > 0 ? string.Join(", ", Labels) : "No Labels";
