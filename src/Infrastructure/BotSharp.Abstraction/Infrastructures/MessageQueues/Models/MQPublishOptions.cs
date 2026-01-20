@@ -6,4 +6,5 @@ public class MQPublishOptions
     public string RoutingKey { get; set; }
     public long MilliSeconds { get; set; }
     public string? MessageId { get; set; }
+    public Dictionary<string, object?> Arguments { get; set; } = new();
 }

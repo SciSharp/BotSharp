@@ -169,6 +169,14 @@ public class RabbitMQService : IMQService
                 ["x-delayed-type"] = "direct"
             };
 
+            if (options.Arguments != null)
+            {
+                foreach (var kvp in options.Arguments)
+                {
+                    args[kvp.Key] = kvp.Value;
+                }
+            }
+
             await channel.ExchangeDeclareAsync(
                 exchange: options.Exchange,
                 type: "x-delayed-message",
