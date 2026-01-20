@@ -40,7 +40,7 @@ public class MembaseController : ControllerBase
         try
         {
             var graph = _services.GetServices<IGraphDb>().First(x => x.Provider == "membase");
-            var result = await graph.SearchAsync(query: request.Query, options: new()
+            var result = await graph.ExecuteQueryAsync(query: request.Query, options: new()
             {
                 GraphId = graphId,
                 Arguments = request.Parameters

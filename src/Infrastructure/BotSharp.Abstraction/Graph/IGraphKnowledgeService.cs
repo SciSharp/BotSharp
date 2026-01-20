@@ -7,7 +7,7 @@ namespace BotSharp.Abstraction.Graph;
 
 public interface IGraphKnowledgeService
 {
-    Task<GraphSearchResult> SearchAsync(string query, GraphSearchOptions? options = null);
+    Task<GraphQueryResult> ExecuteQueryAsync(string query, GraphQueryOptions? options = null);
 
     #region Node
     Task<GraphNode?> GetNodeAsync(string graphId, string nodeId, GraphNodeOptions? options = null);
