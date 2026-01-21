@@ -57,7 +57,7 @@ public class RabbitMQConnection : IRabbitMQConnection
                 return true;
             }
 
-            var policy = BuildRegryPolicy();
+            var policy = BuildRetryPolicy();
             await policy.Execute(async () =>
             {
                 _connection = await _connectionFactory.CreateConnectionAsync();
@@ -81,7 +81,7 @@ public class RabbitMQConnection : IRabbitMQConnection
         
     }
 
-    private RetryPolicy BuildRegryPolicy()
+    private RetryPolicy BuildRetryPolicy()
     {
         return Policy.Handle<Exception>().WaitAndRetry(
             _settings.RetryCount,

@@ -10,4 +10,38 @@ public class AgentRule
 
     [JsonPropertyName("criteria")]
     public string Criteria { get; set; } = string.Empty;
+
+    [JsonPropertyName("delay")]
+    public RuleDelay? Delay { get; set; }
+
+
+}
+
+public class RuleDelay
+{
+    public int Quantity { get; set; }
+    public string Unit { get; set; }
+
+    public TimeSpan? Parse()
+    {
+        TimeSpan? ts = null;
+
+        switch (Unit)
+        {
+            case "seconds":
+                ts = TimeSpan.FromSeconds(Quantity);
+                break;
+            case "minutes":
+                ts = TimeSpan.FromMinutes(Quantity);
+                break;
+            case "hours":
+                ts = TimeSpan.FromHours(Quantity);
+                break;
+            case "days":
+                ts = TimeSpan.FromDays(Quantity);
+                break;
+        }
+
+        return ts;
+    }
 }

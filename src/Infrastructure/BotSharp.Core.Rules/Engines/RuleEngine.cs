@@ -7,6 +7,7 @@ using BotSharp.Abstraction.Coding.Settings;
 using BotSharp.Abstraction.Coding.Utils;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Hooks;
+using BotSharp.Abstraction.Infrastructures.MessageQueues;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Rules.Options;
@@ -52,51 +53,42 @@ public class RuleEngine : IRuleEngine
         foreach (var agent in filteredAgents)
         {
             // Code trigger
-            if (options != null)
+            if (options?.Criteria != null)
             {
-                var isTriggered = await TriggerCodeScript(agent, trigger.Name, options);
+                var isTriggered = await TriggerCodeScript(agent, trigger.Name, options.Criteria);
                 if (!isTriggered)
                 {
                     continue;
                 }
             }
 
-            var convService = _services.GetRequiredService<IConversationService>();
-            var conv = await convService.NewConversation(new Conversation
+            var foundTrigger = agent.Rules.FirstOrDefault(x => x.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled);
+            if (foundTrigger == null)
             {
-                Channel = trigger.Channel,
-                Title = text,
-                AgentId = agent.Id
-            });
-
-            var message = new RoleDialogModel(AgentRole.User, text);
-
-            var allStates = new List<MessageState>
-            {
-                new("channel", trigger.Channel)
-            };
-
-            if (states != null)
-            {
-                allStates.AddRange(states);
+                continue;
             }
 
-            await convService.SetConversationId(conv.Id, allStates);
+            if (options?.DelayMessage != null)
+            {
+                var mqResponse = await SendDelayedMessage(foundTrigger.Delay, options.DelayMessage);
+                if (mqResponse.HasValue)
+                {
+                    continue;
+                }
+            }
 
-            await convService.SendMessage(agent.Id,
-                message,
-                null,
-                msg => Task.CompletedTask);
+            // chat, http request
 
-            await convService.SaveStates();
-            newConversationIds.Add(conv.Id);
+
+            var conversationId = await RunChat(agent, trigger, text, states);
+            newConversationIds.Add(conversationId);
         }
 
         return newConversationIds;
     }
 
     #region Private methods
-    private async Task<bool> TriggerCodeScript(Agent agent, string triggerName, RuleTriggerOptions options)
+    private async Task<bool> TriggerCodeScript(Agent agent, string triggerName, CriteriaOptions options)
     {
         if (string.IsNullOrWhiteSpace(agent?.Id))
         {
@@ -199,6 +191,73 @@ public class RuleEngine : IRuleEngine
             keyValues.Add(new KeyValue(name ?? "trigger_args", args.RootElement.GetRawText()));
         }
         return keyValues;
+    }
+
+    private async Task<bool?> SendDelayedMessage(RuleDelay? delay, DelayMessageOptions options)
+    {
+        var mqService = _services.GetService<IMQService>();
+        if (mqService == null)
+        {
+            return null;
+        }
+
+        if (delay == null || delay.Quantity <= 0)
+        {
+            return null;
+        }
+
+        var ts = delay.Parse();
+        if (!ts.HasValue)
+        {
+            return null;
+        }
+
+        _logger.LogWarning($"Start sending delay message {options}");
+        var isSent = await mqService.PublishAsync(options.Payload, options: new()
+        {
+            Exchange = options.Exchange,
+            RoutingKey = options.RoutingKey,
+            MessageId = options.MessageId,
+            MilliSeconds = (long)ts.Value.TotalMilliseconds,
+            Arguments = options.Arguments
+        });
+        _logger.LogWarning($"Complete sending delay message: {(isSent ? "Success" : "Failed")}");
+
+        return isSent;
+    }
+
+    public async Task<string> RunChat(Agent agent, IRuleTrigger trigger, string text, IEnumerable<MessageState>? states)
+    {
+        var convService = _services.GetRequiredService<IConversationService>();
+        var conv = await convService.NewConversation(new Conversation
+        {
+            Channel = trigger.Channel,
+            Title = text,
+            AgentId = agent.Id
+        });
+
+        var message = new RoleDialogModel(AgentRole.User, text);
+
+        var allStates = new List<MessageState>
+            {
+                new("channel", trigger.Channel)
+            };
+
+        if (states != null)
+        {
+            allStates.AddRange(states);
+        }
+
+        await convService.SetConversationId(conv.Id, allStates);
+
+        await convService.SendMessage(agent.Id,
+            message,
+            null,
+            msg => Task.CompletedTask);
+
+        await convService.SaveStates();
+
+        return conv.Id;
     }
     #endregion
 }

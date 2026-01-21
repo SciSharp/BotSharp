@@ -170,7 +170,7 @@ public class RabbitMQService : IMQService
                 await _mqConnection.ConnectAsync();
             }
 
-            var policy = BuildRegryPolicy();
+            var policy = BuildRetryPolicy();
             await policy.Execute(async () =>
             {
                 await using var channel = await _mqConnection.CreateChannelAsync();
@@ -224,7 +224,7 @@ public class RabbitMQService : IMQService
         }
     }
 
-    private RetryPolicy BuildRegryPolicy()
+    private RetryPolicy BuildRetryPolicy()
     {
         return Policy.Handle<Exception>().WaitAndRetry(
             _settings.RetryCount,
