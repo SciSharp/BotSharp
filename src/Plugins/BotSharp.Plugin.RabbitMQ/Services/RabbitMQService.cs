@@ -9,53 +9,59 @@ namespace BotSharp.Plugin.RabbitMQ.Services;
 public class RabbitMQService : IMQService
 {
     private readonly IRabbitMQConnection _mqConnection;
-    private readonly RabbitMQSettings _settings;
     private readonly ILogger<RabbitMQService> _logger;
 
+    private readonly int _retryCount = 5;
+    private bool _disposed = false;
     private static readonly ConcurrentDictionary<string, ConsumerRegistration> _consumers = [];
 
     public RabbitMQService(
         IRabbitMQConnection mqConnection,
-        RabbitMQSettings settings,
         ILogger<RabbitMQService> logger)
     {
         _mqConnection = mqConnection;
-        _settings = settings;
         _logger = logger;
     }
 
-    public async Task SubscribeAsync(string key, IMQConsumer consumer)
+    public async Task<bool> SubscribeAsync(string key, IMQConsumer consumer)
     {
         if (_consumers.ContainsKey(key))
         {
             _logger.LogWarning($"Consumer with key '{key}' is already subscribed.");
-            return;
+            return false;
         }
 
         var registration = await CreateConsumerRegistrationAsync(consumer);
         if (registration != null && _consumers.TryAdd(key, registration))
         {
             _logger.LogInformation($"Consumer '{key}' subscribed to queue '{consumer.Options.QueueName}'.");
+            return true;
         }
+
+        return false;
     }
 
-    public async Task UnsubscribeAsync(string key)
+    public async Task<bool> UnsubscribeAsync(string key)
     {
-        if (_consumers.TryRemove(key, out var registration))
+        if (!_consumers.TryRemove(key, out var registration))
         {
-            try
+            return false;
+        }
+
+        try
+        {
+            if (registration.Channel != null)
             {
-                if (registration.Channel != null)
-                {
-                    registration.Channel.Dispose();
-                }
-                registration.Consumer.Dispose();
-                _logger.LogInformation($"Consumer '{key}' unsubscribed.");
+                registration.Channel.Dispose();
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error unsubscribing consumer '{key}'.");
-            }
+            registration.Consumer.Dispose();
+            _logger.LogInformation($"Consumer '{key}' unsubscribed.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error unsubscribing consumer '{key}'.");
+            return false;
         }
     }
 
@@ -130,6 +136,17 @@ public class RabbitMQService : IMQService
             queue: options.QueueName,
             exchange: options.ExchangeName,
             routingKey: options.RoutingKey);
+
+        channel.ChannelShutdownAsync += async (sender, eventArgs) =>
+        {
+            _logger.LogWarning($"RabbitMQ channel shutdown: {eventArgs}");
+
+            if (!_disposed && _mqConnection.IsConnected)
+            {
+                channel.Dispose();
+                channel = await CreateChannelAsync(consumer);
+            }
+        };
 
         return channel;
     }
@@ -227,7 +244,7 @@ public class RabbitMQService : IMQService
     private RetryPolicy BuildRetryPolicy()
     {
         return Policy.Handle<Exception>().WaitAndRetry(
-            _settings.RetryCount,
+            _retryCount,
             retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
             (ex, time) =>
             {
@@ -240,6 +257,25 @@ public class RabbitMQService : IMQService
         var jsonStr = JsonSerializer.Serialize(data);
         var body = Encoding.UTF8.GetBytes(jsonStr);
         return body;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _logger.LogWarning($"Disposing {nameof(RabbitMQService)}");
+
+        foreach (var item in _consumers)
+        {
+            item.Value.Consumer?.Dispose();
+            item.Value.Channel?.Dispose();
+        }
+
+        _disposed = true;
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

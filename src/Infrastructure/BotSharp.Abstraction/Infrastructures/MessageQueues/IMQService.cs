@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Infrastructures.MessageQueues.Models;
 
 namespace BotSharp.Abstraction.Infrastructures.MessageQueues;
 
-public interface IMQService
+public interface IMQService : IDisposable
 {
     /// <summary>
     /// Subscribe a consumer to the message queue.
@@ -10,15 +10,15 @@ public interface IMQService
     /// </summary>
     /// <param name="key">Unique identifier for the consumer</param>
     /// <param name="consumer">The consumer implementing IMQConsumer interface</param>
-    /// <returns>Task representing the async subscription operation</returns>
-    Task SubscribeAsync(string key, IMQConsumer consumer);
+    /// <returns>Task<bool> representing the async subscription operation</returns>
+    Task<bool> SubscribeAsync(string key, IMQConsumer consumer);
 
     /// <summary>
     /// Unsubscribe a consumer from the message queue.
     /// </summary>
     /// <param name="key">Unique identifier for the consumer</param>
-    /// <returns>Task representing the async unsubscription operation</returns>
-    Task UnsubscribeAsync(string key);
+    /// <returns>Task<bool> representing the async unsubscription operation</returns>
+    Task<bool> UnsubscribeAsync(string key);
 
     /// <summary>
     /// Publish payload to message queue

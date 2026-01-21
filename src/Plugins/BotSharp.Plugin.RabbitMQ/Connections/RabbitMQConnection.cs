@@ -12,6 +12,7 @@ public class RabbitMQConnection : IRabbitMQConnection
     private readonly IConnectionFactory _connectionFactory;
     private readonly SemaphoreSlim _lock = new(initialCount: 1, maxCount: 1);
     private readonly ILogger<RabbitMQConnection> _logger;
+    private readonly int _retryCount = 5;
 
     private IConnection _connection;
     private bool _disposed = false;
@@ -84,7 +85,7 @@ public class RabbitMQConnection : IRabbitMQConnection
     private RetryPolicy BuildRetryPolicy()
     {
         return Policy.Handle<Exception>().WaitAndRetry(
-            _settings.RetryCount,
+            _retryCount,
             retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
             (ex, time) =>
             {

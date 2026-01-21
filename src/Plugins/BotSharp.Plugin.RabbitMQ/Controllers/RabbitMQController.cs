@@ -4,9 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BotSharp.Plugin.RabbitMQ.Controllers;
 
-/// <summary>
-/// Controller for publishing delayed messages to the message queue
-/// </summary>
 [Authorize]
 [ApiController]
 public class RabbitMQController : ControllerBase
@@ -29,8 +26,7 @@ public class RabbitMQController : ControllerBase
     /// Publish a scheduled message to be delivered after a delay
     /// </summary>
     /// <param name="request">The scheduled message request</param>
-    /// <returns>Publish result with message ID and expected delivery time</returns>
-    [HttpPost("/message-queue/scheduled")]
+    [HttpPost("/message-queue/publish")]
     public async Task<IActionResult> PublishScheduledMessage([FromBody] PublishScheduledMessageRequest request)
     {
         if (request == null)
@@ -49,18 +45,44 @@ public class RabbitMQController : ControllerBase
                 payload,
                 options: new()
                 {
-                    Exchange = "scheduled.exchange",
-                    RoutingKey = "scheduled.routing",
+                    Exchange = "my.exchange",
+                    RoutingKey = "my.routing",
                     MilliSeconds = request.DelayMilliseconds ?? 10000,
                     MessageId = request.MessageId
                 });
-            return Ok();
+            return Ok(new { Success = success });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to publish scheduled message");
             return StatusCode(StatusCodes.Status500InternalServerError,
                 new PublishMessageResponse { Success = false, Error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Unsubscribe a consumer
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPost("/message-queue/unsubscribe/consumer")]
+    public async Task<IActionResult> UnSubscribeConsuer([FromBody] UnsubscribeConsumerRequest request)
+    {
+        if (request == null)
+        {
+            return BadRequest(new { Success = false, Error = "Request body is required." });
+        }
+
+        try
+        {
+            var success = await _mqService.UnsubscribeAsync(request.Name);
+            return Ok(new { Success = success });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to unsubscribe consumer {request.Name}");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { Success = false, Error = ex.Message });
         }
     }
 }

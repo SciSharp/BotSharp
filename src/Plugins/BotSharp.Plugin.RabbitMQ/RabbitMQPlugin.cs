@@ -2,6 +2,7 @@ using BotSharp.Plugin.RabbitMQ.Connections;
 using BotSharp.Plugin.RabbitMQ.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BotSharp.Plugin.RabbitMQ;
 
@@ -37,11 +38,17 @@ public class RabbitMQPlugin : IBotSharpAppPlugin
         if (mqSettings.Enabled && mqSettings.Provider.IsEqualTo("RabbitMQ"))
         {
             var mqService = sp.GetRequiredService<IMQService>();
-            var logger = sp.GetRequiredService<ILogger<ScheduledMessageConsumer>>();
+            var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
             // Create and subscribe the consumer using the abstract interface
-            var consumer = new ScheduledMessageConsumer(sp, logger);
-            mqService.SubscribeAsync(nameof(ScheduledMessageConsumer), consumer)
+            var scheduledConsumer = new ScheduledMessageConsumer(sp, loggerFactory.CreateLogger<ScheduledMessageConsumer>());
+            mqService.SubscribeAsync(nameof(ScheduledMessageConsumer), scheduledConsumer)
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
+
+            var dummyConsumer = new DummyMessageConsumer(sp, loggerFactory.CreateLogger<DummyMessageConsumer>());
+            mqService.SubscribeAsync(nameof(DummyMessageConsumer), dummyConsumer)
                 .ConfigureAwait(false)
                 .GetAwaiter()
                 .GetResult();
