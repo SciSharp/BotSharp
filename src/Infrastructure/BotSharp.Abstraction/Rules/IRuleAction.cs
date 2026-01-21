@@ -1,6 +1,17 @@
+using BotSharp.Abstraction.Rules.Models;
+
 namespace BotSharp.Abstraction.Rules;
 
 public interface IRuleAction
 {
-    Task ExecuteAsync();
+    string Provider { get; }
+
+    Task<string> SendChatAsync(Agent agent, RuleChatActionPayload payload)
+        => throw new NotImplementedException();
+
+    Task<bool> SendHttpRequestAsync()
+        => throw new NotImplementedException();
+
+    Task<bool> SendDelayedMessageAsync(RuleDelay delay, RuleDelayMessageOptions options)
+        => throw new NotImplementedException();
 }

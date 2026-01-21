@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Rules.Enums;
+
 namespace BotSharp.Abstraction.Agents.Models;
 
 public class AgentRule
@@ -14,7 +16,8 @@ public class AgentRule
     [JsonPropertyName("delay")]
     public RuleDelay? Delay { get; set; }
 
-
+    [JsonPropertyName("action")]
+    public string? Action { get; set; }
 }
 
 public class RuleDelay
@@ -28,16 +31,16 @@ public class RuleDelay
 
         switch (Unit)
         {
-            case "seconds":
+            case RuleDelayUnit.Second:
                 ts = TimeSpan.FromSeconds(Quantity);
                 break;
-            case "minutes":
+            case RuleDelayUnit.Minute:
                 ts = TimeSpan.FromMinutes(Quantity);
                 break;
-            case "hours":
+            case RuleDelayUnit.Hour:
                 ts = TimeSpan.FromHours(Quantity);
                 break;
-            case "days":
+            case RuleDelayUnit.Day:
                 ts = TimeSpan.FromDays(Quantity);
                 break;
         }

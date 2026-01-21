@@ -1,4 +1,5 @@
 using BotSharp.Core.Rules.Engines;
+using BotSharp.Core.Rules.Services;
 
 namespace BotSharp.Core.Rules;
 
@@ -17,5 +18,7 @@ public class RulesPlugin : IBotSharpPlugin
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         services.AddScoped<IRuleEngine, RuleEngine>();
+        services.AddScoped<IRuleCriteria, RuleCriteria>();
+        services.AddScoped<IRuleAction, RuleAction>();
     }
 }

@@ -137,17 +137,6 @@ public class RabbitMQService : IMQService
             exchange: options.ExchangeName,
             routingKey: options.RoutingKey);
 
-        channel.ChannelShutdownAsync += async (sender, eventArgs) =>
-        {
-            _logger.LogWarning($"RabbitMQ channel shutdown: {eventArgs}");
-
-            if (!_disposed && _mqConnection.IsConnected)
-            {
-                channel.Dispose();
-                channel = await CreateChannelAsync(consumer);
-            }
-        };
-
         return channel;
     }
 

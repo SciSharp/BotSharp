@@ -1,20 +1,4 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Coding;
-using BotSharp.Abstraction.Coding.Contexts;
-using BotSharp.Abstraction.Coding.Enums;
-using BotSharp.Abstraction.Coding.Models;
-using BotSharp.Abstraction.Coding.Settings;
-using BotSharp.Abstraction.Coding.Utils;
-using BotSharp.Abstraction.Conversations;
-using BotSharp.Abstraction.Hooks;
-using BotSharp.Abstraction.Infrastructures.MessageQueues;
-using BotSharp.Abstraction.Models;
-using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Rules.Options;
-using BotSharp.Abstraction.Utilities;
-using Microsoft.Extensions.Logging;
 using System.Data;
-using System.Text.Json;
 
 namespace BotSharp.Core.Rules.Engines;
 
@@ -22,16 +6,13 @@ public class RuleEngine : IRuleEngine
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<RuleEngine> _logger;
-    private readonly CodingSettings _codingSettings;
 
     public RuleEngine(
         IServiceProvider services,
-        ILogger<RuleEngine> logger,
-        CodingSettings codingSettings)
+        ILogger<RuleEngine> logger)
     {
         _services = services;
         _logger = logger;
-        _codingSettings = codingSettings;
     }
 
     public async Task<IEnumerable<string>> Triggered(IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null, RuleTriggerOptions? options = null)
@@ -52,10 +33,18 @@ public class RuleEngine : IRuleEngine
         var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled)).ToList();
         foreach (var agent in filteredAgents)
         {
-            // Code trigger
+            // Criteria
             if (options?.Criteria != null)
             {
-                var isTriggered = await TriggerCodeScript(agent, trigger.Name, options.Criteria);
+                var criteria = _services.GetServices<IRuleCriteria>()
+                                        .FirstOrDefault(x => x.Provider == (options?.Criteria?.Provider ?? RuleHandler.DefaultProvider));
+
+                if (criteria == null)
+                {
+                    continue;
+                }
+
+                var isTriggered = await criteria.ExecuteCriteriaAsync(agent, trigger.Name, options.Criteria);
                 if (!isTriggered)
                 {
                     continue;
@@ -68,196 +57,40 @@ public class RuleEngine : IRuleEngine
                 continue;
             }
 
-            if (options?.DelayMessage != null)
+            var action = _services.GetServices<IRuleAction>()
+                                  .FirstOrDefault(x => x.Provider == (options?.Action?.Provider ?? RuleHandler.DefaultProvider));
+            if (action == null)
             {
-                var mqResponse = await SendDelayedMessage(foundTrigger.Delay, options.DelayMessage);
-                if (mqResponse.HasValue)
-                {
-                    continue;
-                }
+                continue;
             }
 
-            // chat, http request
+            if (options?.Action?.DelayMessage != null)
+            {
+                var isSent = await action.SendDelayedMessageAsync(foundTrigger.Delay, options.Action.DelayMessage);
+                continue;
+            }
 
+            // Execute action
+            if (foundTrigger.Action.IsEqualTo(RuleActionType.Http))
+            {
 
-            var conversationId = await RunChat(agent, trigger, text, states);
-            newConversationIds.Add(conversationId);
+            }
+            else
+            {
+                var conversationId = await action.SendChatAsync(agent, payload: new()
+                {
+                    Text = text,
+                    Channel = trigger.Channel,
+                    States = states
+                });
+
+                if (!string.IsNullOrEmpty(conversationId))
+                {
+                    newConversationIds.Add(conversationId);
+                }
+            }
         }
 
         return newConversationIds;
     }
-
-    #region Private methods
-    private async Task<bool> TriggerCodeScript(Agent agent, string triggerName, CriteriaOptions options)
-    {
-        if (string.IsNullOrWhiteSpace(agent?.Id))
-        {
-            return false;
-        }
-
-        var provider = options.CodeProcessor ?? BuiltInCodeProcessor.PyInterpreter;
-        var processor = _services.GetServices<ICodeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
-        if (processor == null)
-        {
-            _logger.LogWarning($"Unable to find code processor: {provider}.");
-            return false;
-        }
-
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var scriptName = options.CodeScriptName ?? $"{triggerName}_rule.py";
-        var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
-
-        var msg = $"rule trigger ({triggerName}) code script ({scriptName}) in agent ({agent.Name}) => args: {options.ArgumentContent?.RootElement.GetRawText()}.";
-
-        if (codeScript == null || string.IsNullOrWhiteSpace(codeScript.Content))
-        {
-            _logger.LogWarning($"Unable to find {msg}.");
-            return false;
-        }
-
-        try
-        {
-            var hooks = _services.GetHooks<IInstructHook>(agent.Id);
-
-            var arguments = BuildArguments(options.ArgumentName, options.ArgumentContent);
-            var context = new CodeExecutionContext
-            {
-                CodeScript = codeScript,
-                Arguments = arguments
-            };
-
-            foreach (var hook in hooks)
-            {
-                await hook.BeforeCodeExecution(agent, context);
-            }
-
-            var (useLock, useProcess, timeoutSeconds) = CodingUtil.GetCodeExecutionConfig(_codingSettings);
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-            var response = processor.Run(codeScript.Content, options: new()
-            {
-                ScriptName = scriptName,
-                Arguments = arguments,
-                UseLock = useLock,
-                UseProcess = useProcess
-            }, cancellationToken: cts.Token);
-
-            var codeResponse = new CodeExecutionResponseModel
-            {
-                CodeProcessor = processor.Provider,
-                CodeScript = codeScript,
-                Arguments = arguments.DistinctBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value ?? string.Empty),
-                ExecutionResult = response
-            };
-
-            foreach (var hook in hooks)
-            {
-                await hook.AfterCodeExecution(agent, codeResponse);
-            }
-
-            if (response == null || !response.Success)
-            {
-                _logger.LogWarning($"Failed to handle {msg}");
-                return false;
-            }
-
-            bool result;
-            LogLevel logLevel;
-            if (response.Result.IsEqualTo("true"))
-            {
-                logLevel = LogLevel.Information;
-                result = true;
-            }
-            else
-            {
-                logLevel = LogLevel.Warning;
-                result = false;
-            }
-
-            _logger.Log(logLevel, $"Code script execution result ({response}) from {msg}");
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error when handling {msg}");
-            return false;
-        }
-    }
-
-    private List<KeyValue> BuildArguments(string? name, JsonDocument? args)
-    {
-        var keyValues = new List<KeyValue>();
-        if (args != null)
-        {
-            keyValues.Add(new KeyValue(name ?? "trigger_args", args.RootElement.GetRawText()));
-        }
-        return keyValues;
-    }
-
-    private async Task<bool?> SendDelayedMessage(RuleDelay? delay, DelayMessageOptions options)
-    {
-        var mqService = _services.GetService<IMQService>();
-        if (mqService == null)
-        {
-            return null;
-        }
-
-        if (delay == null || delay.Quantity <= 0)
-        {
-            return null;
-        }
-
-        var ts = delay.Parse();
-        if (!ts.HasValue)
-        {
-            return null;
-        }
-
-        _logger.LogWarning($"Start sending delay message {options}");
-        var isSent = await mqService.PublishAsync(options.Payload, options: new()
-        {
-            Exchange = options.Exchange,
-            RoutingKey = options.RoutingKey,
-            MessageId = options.MessageId,
-            MilliSeconds = (long)ts.Value.TotalMilliseconds,
-            Arguments = options.Arguments
-        });
-        _logger.LogWarning($"Complete sending delay message: {(isSent ? "Success" : "Failed")}");
-
-        return isSent;
-    }
-
-    public async Task<string> RunChat(Agent agent, IRuleTrigger trigger, string text, IEnumerable<MessageState>? states)
-    {
-        var convService = _services.GetRequiredService<IConversationService>();
-        var conv = await convService.NewConversation(new Conversation
-        {
-            Channel = trigger.Channel,
-            Title = text,
-            AgentId = agent.Id
-        });
-
-        var message = new RoleDialogModel(AgentRole.User, text);
-
-        var allStates = new List<MessageState>
-            {
-                new("channel", trigger.Channel)
-            };
-
-        if (states != null)
-        {
-            allStates.AddRange(states);
-        }
-
-        await convService.SetConversationId(conv.Id, allStates);
-
-        await convService.SendMessage(agent.Id,
-            message,
-            null,
-            msg => Task.CompletedTask);
-
-        await convService.SaveStates();
-
-        return conv.Id;
-    }
-    #endregion
 }

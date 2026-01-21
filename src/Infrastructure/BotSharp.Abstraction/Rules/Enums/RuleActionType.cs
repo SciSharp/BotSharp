@@ -1,0 +1,7 @@
+namespace BotSharp.Abstraction.Rules.Enums;
+
+public static class RuleActionType
+{
+    public const string Chat = "chat";
+    public const string Http = "http";
+}
