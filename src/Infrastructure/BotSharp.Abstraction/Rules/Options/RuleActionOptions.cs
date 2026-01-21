@@ -10,5 +10,5 @@ public class RuleActionOptions
     /// <summary>
     /// Delay message options
     /// </summary>
-    public RuleDelayMessageOptions? DelayMessage { get; set; }
+    public RuleMessagingOptions? Messaging { get; set; }
 }

@@ -64,9 +64,9 @@ public class RuleEngine : IRuleEngine
                 continue;
             }
 
-            if (options?.Action?.DelayMessage != null)
+            if (options?.Action?.Messaging != null)
             {
-                var isSent = await action.SendDelayedMessageAsync(foundTrigger.Delay, options.Action.DelayMessage);
+                var isSent = await action.SendDelayedMessageAsync(foundTrigger.Delay, options.Action.Messaging);
                 continue;
             }
 

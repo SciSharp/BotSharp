@@ -12,6 +12,6 @@ public interface IRuleAction
     Task<bool> SendHttpRequestAsync()
         => throw new NotImplementedException();
 
-    Task<bool> SendDelayedMessageAsync(RuleDelay delay, RuleDelayMessageOptions options)
+    Task<bool> SendDelayedMessageAsync(RuleDelay delay, RuleMessagingOptions options)
         => throw new NotImplementedException();
 }
