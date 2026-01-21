@@ -66,7 +66,7 @@ public class RuleEngine : IRuleEngine
 
             if (options?.Action?.Messaging != null)
             {
-                var isSent = await action.SendDelayedMessageAsync(foundTrigger.Delay, options.Action.Messaging);
+                var isSent = await action.SendMessageAsync(foundTrigger.Delay, options.Action.Messaging);
                 continue;
             }
 
