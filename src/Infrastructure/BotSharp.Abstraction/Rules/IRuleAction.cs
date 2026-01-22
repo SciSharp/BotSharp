@@ -1,20 +1,29 @@
+using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Rules.Models;
+using BotSharp.Abstraction.Rules.Options;
 
 namespace BotSharp.Abstraction.Rules;
 
+/// <summary>
+/// Base interface for rule actions that can be executed by the RuleEngine
+/// </summary>
 public interface IRuleAction
 {
-    string Provider { get; }
+    /// <summary>
+    /// The unique name of the rule action provider
+    /// </summary>
+    string Name { get; }
 
-    Task<string> SendChatAsync(Agent agent, RuleChatActionPayload payload)
-        => throw new NotImplementedException();
-
-    Task<bool> SendHttpRequestAsync()
-        => throw new NotImplementedException();
-
-    Task<bool> SendEventMessageAsync(RuleDelay delay, RuleEventMessageOptions? options)
-        => throw new NotImplementedException();
-
-    Task<bool> ExecuteMethodAsync(Agent agent, Func<Agent, Task> func)
-        => throw new NotImplementedException();
+    /// <summary>
+    /// Execute the rule action
+    /// </summary>
+    /// <param name="agent">The agent that triggered the rule</param>
+    /// <param name="trigger">The rule trigger</param>
+    /// <param name="context">The action context</param>
+    /// <returns>The action execution result</returns>
+    Task<RuleActionResult> ExecuteAsync(
+        Agent agent,
+        IRuleTrigger trigger,
+        RuleActionContext context);
 }

@@ -1,3 +1,4 @@
+using BotSharp.Plugin.RabbitMQ.Connections;
 using Polly;
 using Polly.Retry;
 using RabbitMQ.Client;
@@ -9,6 +10,7 @@ namespace BotSharp.Plugin.RabbitMQ.Services;
 public class RabbitMQService : IMQService
 {
     private readonly IRabbitMQConnection _mqConnection;
+    private readonly IServiceProvider _services;
     private readonly ILogger<RabbitMQService> _logger;
 
     private readonly int _retryCount = 5;
@@ -17,9 +19,11 @@ public class RabbitMQService : IMQService
 
     public RabbitMQService(
         IRabbitMQConnection mqConnection,
+        IServiceProvider services,
         ILogger<RabbitMQService> logger)
     {
         _mqConnection = mqConnection;
+        _services = services;
         _logger = logger;
     }
 
@@ -150,11 +154,17 @@ public class RabbitMQService : IMQService
             data = Encoding.UTF8.GetString(eventArgs.Body.Span);
             _logger.LogInformation($"Message received on '{options.QueueName}', id: {eventArgs.BasicProperties?.MessageId}, data: {data}");
 
-            await registration.Consumer.HandleMessageAsync(options.QueueName, data);
-
+            var isDone = await registration.Consumer.HandleMessageAsync(options.QueueName, data);
             if (!options.AutoAck && registration.Channel != null)
             {
-                await registration.Channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
+                if (isDone)
+                {
+                    await registration.Channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
+                }
+                else
+                {
+                    await registration.Channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: false);
+                }
             }
         }
         catch (Exception ex)
@@ -176,52 +186,68 @@ public class RabbitMQService : IMQService
                 await _mqConnection.ConnectAsync();
             }
 
+            var isPublished = false;
             var policy = BuildRetryPolicy();
             await policy.Execute(async () =>
             {
-                await using var channel = await _mqConnection.CreateChannelAsync();
-                var args = new Dictionary<string, object?>
-                {
-                    ["x-delayed-type"] = "direct"
-                };
+                var channelPool = RabbitMQChannelPoolFactory.GetChannelPool(_services, _mqConnection);
+                var channel = channelPool.Get();
 
-                if (options.Arguments != null)
+                try
                 {
-                    foreach (var kvp in options.Arguments)
+                    var args = new Dictionary<string, object?>
                     {
-                        args[kvp.Key] = kvp.Value;
+                        ["x-delayed-type"] = "direct"
+                    };
+
+                    if (options.Arguments != null)
+                    {
+                        foreach (var kvp in options.Arguments)
+                        {
+                            args[kvp.Key] = kvp.Value;
+                        }
                     }
+
+                    await channel.ExchangeDeclareAsync(
+                        exchange: options.Exchange,
+                        type: "x-delayed-message",
+                        durable: true,
+                        autoDelete: false,
+                        arguments: args);
+
+                    var messageId = options.MessageId ?? Guid.NewGuid().ToString();
+                    var message = new MQMessage<T>(payload, messageId);
+                    var body = ConvertToBinary(message);
+                    var properties = new BasicProperties
+                    {
+                        MessageId = messageId,
+                        DeliveryMode = DeliveryModes.Persistent,
+                        Headers = new Dictionary<string, object?>
+                        {
+                            ["x-delay"] = options.MilliSeconds
+                        }
+                    };
+
+                    await channel.BasicPublishAsync(
+                        exchange: options.Exchange,
+                        routingKey: options.RoutingKey,
+                        mandatory: true,
+                        basicProperties: properties,
+                        body: body);
+
+                    isPublished = true;
                 }
-
-                await channel.ExchangeDeclareAsync(
-                    exchange: options.Exchange,
-                    type: "x-delayed-message",
-                    durable: true,
-                    autoDelete: false,
-                    arguments: args);
-
-                var messageId = options.MessageId ?? Guid.NewGuid().ToString();
-                var message = new MQMessage<T>(payload, messageId);
-                var body = ConvertToBinary(message);
-                var properties = new BasicProperties
+                catch (Exception)
                 {
-                    MessageId = messageId,
-                    DeliveryMode = DeliveryModes.Persistent,
-                    Headers = new Dictionary<string, object?>
-                    {
-                        ["x-delay"] = options.MilliSeconds
-                    }
-                };
-
-                await channel.BasicPublishAsync(
-                    exchange: options.Exchange,
-                    routingKey: options.RoutingKey,
-                    mandatory: true,
-                    basicProperties: properties,
-                    body: body);
+                    throw;
+                }
+                finally
+                {
+                    channelPool.Return(channel);
+                }
             });
 
-            return true;
+            return isPublished;
         }
         catch (Exception ex)
         {

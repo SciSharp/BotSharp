@@ -16,7 +16,6 @@ global using BotSharp.Abstraction.Infrastructures.MessageQueues;
 global using BotSharp.Abstraction.Models;
 global using BotSharp.Abstraction.Repositories.Filters;
 global using BotSharp.Abstraction.Rules;
-global using BotSharp.Abstraction.Rules.Enums;
 global using BotSharp.Abstraction.Rules.Options;
 global using BotSharp.Abstraction.Rules.Models;
 global using BotSharp.Abstraction.Utilities;
@@ -27,5 +26,3 @@ global using BotSharp.Abstraction.Coding.Models;
 global using BotSharp.Abstraction.Coding.Utils;
 global using BotSharp.Abstraction.Coding.Settings;
 global using BotSharp.Abstraction.Hooks;
-
-global using BotSharp.Core.Rules.Constants;

@@ -38,6 +38,8 @@ public class RabbitMQConnection : IRabbitMQConnection
 
     public bool IsConnected => _connection != null && _connection.IsOpen && !_disposed;
 
+    public IConnection Connection => _connection;
+
     public async Task<IChannel> CreateChannelAsync()
     {
         if (!IsConnected)

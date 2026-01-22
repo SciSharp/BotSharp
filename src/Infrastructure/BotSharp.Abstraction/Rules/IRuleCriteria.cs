@@ -4,6 +4,6 @@ public interface IRuleCriteria
 {
     string Provider { get; }
 
-    Task<bool> ExecuteCriteriaAsync(Agent agent, string triggerName, CriteriaExecuteOptions options)
-        => throw new NotImplementedException();
+    Task<bool> ValidateAsync(Agent agent, IRuleTrigger trigger, CriteriaExecuteOptions options)
+        => Task.FromResult(false);
 }

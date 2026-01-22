@@ -16,7 +16,7 @@ public class RabbitMQPlugin : IBotSharpAppPlugin
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var settings = new RabbitMQSettings();
-        config.Bind("RabbitMQ", settings);
+        config.Bind("RabbitMessageQueue", settings);
         services.AddSingleton(settings);
 
         var mqSettings = new MessageQueueSettings();

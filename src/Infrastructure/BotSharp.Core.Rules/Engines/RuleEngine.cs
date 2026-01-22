@@ -1,5 +1,3 @@
-using System.Data;
-
 namespace BotSharp.Core.Rules.Engines;
 
 public class RuleEngine : IRuleEngine
@@ -33,69 +31,77 @@ public class RuleEngine : IRuleEngine
         var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled)).ToList();
         foreach (var agent in filteredAgents)
         {
-            // Criteria
+            // Criteria validation
             if (options?.Criteria != null)
             {
                 var criteria = _services.GetServices<IRuleCriteria>()
-                                        .FirstOrDefault(x => x.Provider == (options?.Criteria?.Provider ?? RuleHandler.DefaultProvider));
+                                        .FirstOrDefault(x => x.Provider == (options?.Criteria?.Provider ?? "botsharp-rule-criteria"));
 
                 if (criteria == null)
                 {
+                    _logger.LogWarning("No criteria provider found for {Provider}, skipping agent {AgentId}", options.Criteria.Provider, agent.Id);
                     continue;
                 }
 
-                var isTriggered = await criteria.ExecuteCriteriaAsync(agent, trigger.Name, options.Criteria);
-                if (!isTriggered)
+                var isValid = await criteria.ValidateAsync(agent, trigger, options.Criteria);
+                if (!isValid)
                 {
+                    _logger.LogDebug("Criteria validation failed for agent {AgentId} with trigger {TriggerName}", agent.Id, trigger.Name);
                     continue;
                 }
             }
 
-            var foundTrigger = agent.Rules.FirstOrDefault(x => x.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled);
-            if (foundTrigger == null)
+            var foundRule = agent.Rules.FirstOrDefault(x => x.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled);
+            if (foundRule == null)
             {
                 continue;
             }
 
-            var action = _services.GetServices<IRuleAction>()
-                                  .FirstOrDefault(x => x.Provider == (options?.Action?.Provider ?? RuleHandler.DefaultProvider));
-            if (action == null)
+            var context = new RuleActionContext
             {
-                continue;
-            }
-
-            // Execute action
-            if (foundTrigger.Action.IsEqualTo(RuleActionType.Method))
+                Text = text,
+                States = states
+            };
+            var result = await ExecuteActionAsync(agent, trigger, foundRule.Action.IfNullOrEmptyAs("Chat")!, context);
+            if (result.Success && !string.IsNullOrEmpty(result.ConversationId))
             {
-                if (options?.Action?.Method?.Func != null)
-                {
-                    await action.ExecuteMethodAsync(agent, options.Action.Method.Func);
-                }
-            }
-            else if (foundTrigger.Action.IsEqualTo(RuleActionType.EventMessage))
-            {
-                await action.SendEventMessageAsync(foundTrigger.Delay, options?.Action?.EventMessage);
-            }
-            else if (foundTrigger.Action.IsEqualTo(RuleActionType.Http))
-            {
-                
-            }
-            else
-            {
-                var conversationId = await action.SendChatAsync(agent, payload: new()
-                {
-                    Text = text,
-                    Channel = trigger.Channel,
-                    States = states
-                });
-
-                if (!string.IsNullOrEmpty(conversationId))
-                {
-                    newConversationIds.Add(conversationId);
-                }
+                newConversationIds.Add(result.ConversationId);
             }
         }
 
         return newConversationIds;
+    }
+
+    private async Task<RuleActionResult> ExecuteActionAsync(
+        Agent agent,
+        IRuleTrigger trigger,
+        string actionName,
+        RuleActionContext context)
+    {
+        try
+        {
+            // Get all registered rule actions
+            var actions = _services.GetServices<IRuleAction>();
+
+            // Find the matching action
+            var action = actions.FirstOrDefault(x => x.Name.IsEqualTo(actionName));
+
+            if (action == null)
+            {
+                var errorMsg = $"No rule action {actionName} is found";
+                _logger.LogWarning(errorMsg);
+                return RuleActionResult.Failed(errorMsg);
+            }
+
+            _logger.LogInformation("Start execution rule action {ActionName} for agent {AgentId} with trigger {TriggerName}",
+                action.Name, agent.Id, trigger.Name);
+
+            return await action.ExecuteAsync(agent, trigger, context);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing rule action {ActionName} for agent {AgentId}", actionName, agent.Id);
+            return RuleActionResult.Failed(ex.Message);
+        }
     }
 }

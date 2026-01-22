@@ -18,9 +18,9 @@ public class RuleCriteria : IRuleCriteria
         _codingSettings = codingSettings;
     }
 
-    public string Provider => RuleHandler.DefaultProvider;
+    public string Provider => "botsharp-rule-criteria";
 
-    public async Task<bool> ExecuteCriteriaAsync(Agent agent, string triggerName, CriteriaExecuteOptions options)
+    public async Task<bool> ValidateAsync(Agent agent, IRuleTrigger trigger, CriteriaExecuteOptions options)
     {
         if (string.IsNullOrWhiteSpace(agent?.Id))
         {
@@ -36,10 +36,10 @@ public class RuleCriteria : IRuleCriteria
         }
 
         var agentService = _services.GetRequiredService<IAgentService>();
-        var scriptName = options.CodeScriptName ?? $"{triggerName}_rule.py";
+        var scriptName = options.CodeScriptName ?? $"{trigger.Name}_rule.py";
         var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
 
-        var msg = $"rule trigger ({triggerName}) code script ({scriptName}) in agent ({agent.Name}) => args: {options.ArgumentContent?.RootElement.GetRawText()}.";
+        var msg = $"rule trigger ({trigger.Name}) code script ({scriptName}) in agent ({agent.Name}) => args: {options.ArgumentContent?.RootElement.GetRawText()}.";
 
         if (codeScript == null || string.IsNullOrWhiteSpace(codeScript.Content))
         {
