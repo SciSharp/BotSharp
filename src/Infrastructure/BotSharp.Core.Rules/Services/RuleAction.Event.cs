@@ -2,15 +2,15 @@ namespace BotSharp.Core.Rules.Services;
 
 public partial class RuleAction
 {
-    public async Task<bool> SendMessageAsync(RuleDelay delay, RuleMessagingOptions options)
+    public async Task<bool> SendEventMessageAsync(RuleDelay delay, RuleEventMessageOptions? options)
     {
-        var mqService = _services.GetService<IMQService>();
-        if (mqService == null)
+        if (options == null || delay == null || delay.Quantity < 0)
         {
             return false;
         }
 
-        if (delay == null || delay.Quantity < 0)
+        var mqService = _services.GetService<IMQService>();
+        if (mqService == null)
         {
             return false;
         }

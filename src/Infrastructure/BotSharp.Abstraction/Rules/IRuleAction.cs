@@ -12,6 +12,9 @@ public interface IRuleAction
     Task<bool> SendHttpRequestAsync()
         => throw new NotImplementedException();
 
-    Task<bool> SendMessageAsync(RuleDelay delay, RuleMessagingOptions options)
+    Task<bool> SendEventMessageAsync(RuleDelay delay, RuleEventMessageOptions? options)
+        => throw new NotImplementedException();
+
+    Task<bool> ExecuteMethodAsync(Agent agent, Func<Agent, Task> func)
         => throw new NotImplementedException();
 }

@@ -13,11 +13,11 @@ public class AgentRule
     [JsonPropertyName("criteria")]
     public string Criteria { get; set; } = string.Empty;
 
-    [JsonPropertyName("delay")]
-    public RuleDelay? Delay { get; set; }
-
     [JsonPropertyName("action")]
     public string? Action { get; set; }
+
+    [JsonPropertyName("delay")]
+    public RuleDelay? Delay { get; set; }
 }
 
 public class RuleDelay

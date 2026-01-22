@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Rules.Options;
 
-public class RuleMessagingOptions
+public class RuleEventMessageOptions
 {
     /// <summary>
     /// Message payload

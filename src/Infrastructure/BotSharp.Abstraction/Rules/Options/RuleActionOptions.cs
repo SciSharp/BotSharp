@@ -8,7 +8,12 @@ public class RuleActionOptions
     public string Provider { get; set; } = "botsharp-rule";
 
     /// <summary>
-    /// Delay message options
+    /// Event message options
     /// </summary>
-    public RuleMessagingOptions? Messaging { get; set; }
+    public RuleEventMessageOptions? EventMessage { get; set; }
+
+    /// <summary>
+    /// Custom method options
+    /// </summary>
+    public RuleMethodOptions? Method { get; set; }
 }

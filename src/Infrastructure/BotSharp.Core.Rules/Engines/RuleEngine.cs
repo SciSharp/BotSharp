@@ -64,16 +64,21 @@ public class RuleEngine : IRuleEngine
                 continue;
             }
 
-            if (options?.Action?.Messaging != null)
-            {
-                var isSent = await action.SendMessageAsync(foundTrigger.Delay, options.Action.Messaging);
-                continue;
-            }
-
             // Execute action
-            if (foundTrigger.Action.IsEqualTo(RuleActionType.Http))
+            if (foundTrigger.Action.IsEqualTo(RuleActionType.Method))
             {
-
+                if (options?.Action?.Method?.Func != null)
+                {
+                    await action.ExecuteMethodAsync(agent, options.Action.Method.Func);
+                }
+            }
+            else if (foundTrigger.Action.IsEqualTo(RuleActionType.EventMessage))
+            {
+                await action.SendEventMessageAsync(foundTrigger.Delay, options?.Action?.EventMessage);
+            }
+            else if (foundTrigger.Action.IsEqualTo(RuleActionType.Http))
+            {
+                
             }
             else
             {

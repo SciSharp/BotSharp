@@ -259,8 +259,11 @@ public class RabbitMQService : IMQService
 
         foreach (var item in _consumers)
         {
-            item.Value.Consumer?.Dispose();
-            item.Value.Channel?.Dispose();
+            if (item.Value.Channel != null)
+            {
+                item.Value.Channel.Dispose();
+            }
+            item.Value.Consumer.Dispose();
         }
 
         _disposed = true;
