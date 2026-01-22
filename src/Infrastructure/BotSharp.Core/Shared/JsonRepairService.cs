@@ -69,7 +69,7 @@ public class JsonRepairService : IJsonRepairService
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, $"Error when parse json {malformedJson}");
+            _logger.LogWarning(ex, $"Error when parse json {malformedJson}");
             return false;
         }
     }
