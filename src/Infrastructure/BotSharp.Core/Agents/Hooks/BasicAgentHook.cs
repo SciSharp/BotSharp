@@ -11,11 +11,11 @@ public class BasicAgentHook : AgentHookBase
     {
     }
 
-    public override void OnAgentUtilityLoaded(Agent agent)
+    public override Task OnAgentUtilityLoaded(Agent agent)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
-        if (!isConvMode) return;
+        if (!isConvMode) return Task.CompletedTask;
 
         agent.Utilities ??= [];
         agent.SecondaryFunctions ??= [];
@@ -26,6 +26,8 @@ public class BasicAgentHook : AgentHookBase
         agent.SecondaryFunctions = agent.SecondaryFunctions.Concat(functions).DistinctBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList();
         var contents = templates.Select(x => x.Content);
         agent.SecondaryInstructions = agent.SecondaryInstructions.Concat(contents).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        
+        return Task.CompletedTask;
     }
      
 

@@ -13,11 +13,11 @@ public class RoutingAgentHook : AgentHookBase
         _routingSetting = routingSetting;
     }
 
-    public override bool OnInstructionLoaded(string template, IDictionary<string, object> dict)
+    public override async Task<bool> OnInstructionLoaded(string template, IDictionary<string, object> dict)
     {
         if (_agent.Type != AgentType.Routing)
         {
-            return base.OnInstructionLoaded(template, dict);
+            return await base.OnInstructionLoaded(template, dict);
         }
         dict["router"] = _agent;
 
@@ -59,10 +59,10 @@ public class RoutingAgentHook : AgentHookBase
 
         dict["routing_agents"] = agents;
 
-        return base.OnInstructionLoaded(template, dict);
+        return await base.OnInstructionLoaded(template, dict);
     }
 
-    public override bool OnFunctionsLoaded(List<FunctionDef> functions)
+    public override async Task<bool> OnFunctionsLoaded(List<FunctionDef> functions)
     {
         if (_agent.Type == AgentType.Task)
         {
@@ -73,7 +73,7 @@ public class RoutingAgentHook : AgentHookBase
             if (rule != null)
             {
                 var agentService = _services.GetRequiredService<IAgentService>();
-                var redirectAgent = agentService.GetAgent(rule.RedirectTo).ConfigureAwait(false).GetAwaiter().GetResult();
+                var redirectAgent = await agentService.GetAgent(rule.RedirectTo);
 
                 var json = JsonSerializer.Serialize(new
                 {
@@ -111,6 +111,6 @@ public class RoutingAgentHook : AgentHookBase
             }
         }
 
-        return base.OnFunctionsLoaded(functions);
+        return await base.OnFunctionsLoaded(functions);
     }
 }
