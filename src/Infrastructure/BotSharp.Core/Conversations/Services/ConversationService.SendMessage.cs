@@ -62,7 +62,7 @@ public partial class ConversationService
             if (message.StopCompletion)
             {
                 stopCompletion = true;
-                routing.Context.Pop();
+                await routing.Context.Pop();
                 break;
             }
         }
@@ -83,12 +83,12 @@ public partial class ConversationService
                 // Check the routing mode
                 var states = _services.GetRequiredService<IConversationStateService>();
                 var routingMode = states.GetState(StateConst.ROUTING_MODE, agent.Mode ?? RoutingMode.Eager);
-                routing.Context.Push(agent.Id, reason: "request started", updateLazyRouting: false);
+                await routing.Context.Push(agent.Id, reason: "request started", updateLazyRouting: false);
 
                 if (routingMode == RoutingMode.Lazy)
                 {
                     message.CurrentAgentId = states.GetState(StateConst.LAZY_ROUTING_AGENT_ID, message.CurrentAgentId);
-                    routing.Context.Push(message.CurrentAgentId, reason: "lazy routing", updateLazyRouting: false);
+                    await routing.Context.Push(message.CurrentAgentId, reason: "lazy routing", updateLazyRouting: false);
                 }
 
                 response = await routing.InstructLoop(agent, message, dialogs);

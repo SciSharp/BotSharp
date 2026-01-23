@@ -69,7 +69,7 @@ public class HFReasoner : IRoutingReasoner
             var agent = (await db.GetAgents(filter)).FirstOrDefault();
 
             var context = _services.GetRequiredService<IRoutingContext>();
-            context.Push(agent.Id, reason: inst.NextActionReason);
+            await context.Push(agent.Id, reason: inst.NextActionReason);
 
             // Set user content as Planner's question
             message.FunctionName = inst.Function;
@@ -79,11 +79,11 @@ public class HFReasoner : IRoutingReasoner
         return true;
     }
 
-    public Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         var context = _services.GetRequiredService<IRoutingContext>();
-        context.Empty(reason: $"Agent queue is cleared by {nameof(HFReasoner)}");
-        return Task.FromResult(true);
+        await context.Empty(reason: $"Agent queue is cleared by {nameof(HFReasoner)}");
+        return true;
     }
 
     private string GetNextStepPrompt(Agent router)

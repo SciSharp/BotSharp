@@ -51,14 +51,14 @@ public partial class RouteToAgentFn : IFunctionCallback
             var originalAgent = (await db.GetAgents(filter)).FirstOrDefault();
             if (originalAgent != null)
             {
-                _context.Push(originalAgent.Id, $"user goal agent{(correctToOriginalAgent ? " " + originalAgent.Name + " & is corrected" : "")}");
+                await _context.Push(originalAgent.Id, $"user goal agent{(correctToOriginalAgent ? " " + originalAgent.Name + " & is corrected" : "")}");
             }
         }
 
         // Push next action agent
         if (!string.IsNullOrEmpty(args.AgentName) && args.AgentName.Length < 32)
         {
-            _context.Push(args.AgentName, args.NextActionReason);
+            await _context.Push(args.AgentName, args.NextActionReason);
             states.SetState(StateConst.NEXT_ACTION_AGENT, args.AgentName, isNeedVersion: true);
         }
 
@@ -83,11 +83,11 @@ public partial class RouteToAgentFn : IFunctionCallback
             }
 
             var routing = _services.GetRequiredService<IRoutingService>();
-            var (missingfield, reason) = routing.HasMissingRequiredField(message, out var agentId);
+            var (missingfield, reason, agentId) = await routing.HasMissingRequiredField(message);
             if (missingfield && message.CurrentAgentId != agentId)
             {
                 // Stack redirection agent
-                _context.Push(agentId, reason: $"REDIRECTION {reason}");
+                await _context.Push(agentId, reason: $"REDIRECTION {reason}");
                 message.Content = reason;
                 states.SetState(StateConst.AGENT_REDIRECTION_REASON, reason, isNeedVersion: false);
             }

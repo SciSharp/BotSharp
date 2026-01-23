@@ -104,13 +104,13 @@ public partial class TwoStageTaskPlanner : ITaskPlanner
 
         if (message.StopCompletion)
         {
-            context.Empty(reason: $"Agent queue is cleared by {nameof(TwoStageTaskPlanner)}");
+            await context.Empty(reason: $"Agent queue is cleared by {nameof(TwoStageTaskPlanner)}");
             return false;
         }
 
         if (dialogs.Last().Role == AgentRole.Assistant)
         {
-            context.Empty();
+            await context.Empty();
             return false;
         }
 

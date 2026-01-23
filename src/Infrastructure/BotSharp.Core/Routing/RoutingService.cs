@@ -36,7 +36,7 @@ public partial class RoutingService : IRoutingService
         Context.SetDialogs(dialogs);
 
         var routing = _services.GetRequiredService<IRoutingService>();
-        routing.Context.Push(agent.Id, "instruct directly");
+        await routing.Context.Push(agent.Id, "instruct directly");
         var agentId = routing.Context.GetCurrentAgentId();
 
         // Update next action agent's name
