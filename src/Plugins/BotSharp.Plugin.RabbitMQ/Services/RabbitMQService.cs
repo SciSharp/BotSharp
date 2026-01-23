@@ -1,4 +1,3 @@
-using BotSharp.Plugin.RabbitMQ.Connections;
 using Polly;
 using Polly.Retry;
 using RabbitMQ.Client;
@@ -38,7 +37,8 @@ public class RabbitMQService : IMQService
         var registration = await CreateConsumerRegistrationAsync(consumer);
         if (registration != null && _consumers.TryAdd(key, registration))
         {
-            _logger.LogInformation($"Consumer '{key}' subscribed to queue '{consumer.Options.QueueName}'.");
+            var config = consumer.Config as RabbitMQConsumerConfig ?? new();
+            _logger.LogInformation($"Consumer '{key}' subscribed to queue '{config.QueueName}'.");
             return true;
         }
 
@@ -75,7 +75,7 @@ public class RabbitMQService : IMQService
         {
             var channel = await CreateChannelAsync(consumer);
 
-            var options = consumer.Options;
+            var config = consumer.Config as RabbitMQConsumerConfig ?? new();
             var registration = new ConsumerRegistration(consumer, channel);
 
             var asyncConsumer = new AsyncEventingBasicConsumer(channel);
@@ -85,11 +85,11 @@ public class RabbitMQService : IMQService
             };
 
             await channel.BasicConsumeAsync(
-                queue: options.QueueName,
-                autoAck: options.AutoAck,
+                queue: config.QueueName,
+                autoAck: config.AutoAck,
                 consumer: asyncConsumer);
 
-            _logger.LogWarning($"RabbitMQ consuming queue '{options.QueueName}'.");
+            _logger.LogWarning($"RabbitMQ consuming queue '{config.QueueName}'.");
             return registration;
         }
         catch (Exception ex)
@@ -106,40 +106,40 @@ public class RabbitMQService : IMQService
             await _mqConnection.ConnectAsync();
         }
 
-        var options = consumer.Options;
+        var config = consumer.Config as RabbitMQConsumerConfig ?? new();
         var channel = await _mqConnection.CreateChannelAsync();
-        _logger.LogWarning($"Created RabbitMQ channel {channel.ChannelNumber} for queue '{options.QueueName}'");
+        _logger.LogWarning($"Created RabbitMQ channel {channel.ChannelNumber} for queue '{config.QueueName}'");
 
         var args = new Dictionary<string, object?>
         {
             ["x-delayed-type"] = "direct"
         };
 
-        if (options.Arguments != null)
+        if (config.Arguments != null)
         {
-            foreach (var kvp in options.Arguments)
+            foreach (var kvp in config.Arguments)
             {
                 args[kvp.Key] = kvp.Value;
             }
         }
 
         await channel.ExchangeDeclareAsync(
-            exchange: options.ExchangeName,
+            exchange: config.ExchangeName,
             type: "x-delayed-message",
             durable: true,
             autoDelete: false,
             arguments: args);
 
         await channel.QueueDeclareAsync(
-            queue: options.QueueName,
+            queue: config.QueueName,
             durable: true,
             exclusive: false,
             autoDelete: false);
 
         await channel.QueueBindAsync(
-            queue: options.QueueName,
-            exchange: options.ExchangeName,
-            routingKey: options.RoutingKey);
+            queue: config.QueueName,
+            exchange: config.ExchangeName,
+            routingKey: config.RoutingKey);
 
         return channel;
     }
@@ -147,15 +147,15 @@ public class RabbitMQService : IMQService
     private async Task ConsumeEventAsync(ConsumerRegistration registration, BasicDeliverEventArgs eventArgs)
     {
         var data = string.Empty;
-        var options = registration.Consumer.Options;
+        var config = registration.Consumer.Config as RabbitMQConsumerConfig ?? new();
 
         try
         {
             data = Encoding.UTF8.GetString(eventArgs.Body.Span);
-            _logger.LogInformation($"Message received on '{options.QueueName}', id: {eventArgs.BasicProperties?.MessageId}, data: {data}");
+            _logger.LogInformation($"Message received on '{config.QueueName}', id: {eventArgs.BasicProperties?.MessageId}, data: {data}");
 
-            var isDone = await registration.Consumer.HandleMessageAsync(options.QueueName, data);
-            if (!options.AutoAck && registration.Channel != null)
+            var isDone = await registration.Consumer.HandleMessageAsync(config.QueueName, data);
+            if (!config.AutoAck && registration.Channel != null)
             {
                 if (isDone)
                 {
@@ -169,8 +169,8 @@ public class RabbitMQService : IMQService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error consuming message on queue '{options.QueueName}': {data}");
-            if (!options.AutoAck && registration.Channel != null)
+            _logger.LogError(ex, $"Error consuming message on queue '{config.QueueName}': {data}");
+            if (!config.AutoAck && registration.Channel != null)
             {
                 await registration.Channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: false);
             }
@@ -209,7 +209,7 @@ public class RabbitMQService : IMQService
                     }
 
                     await channel.ExchangeDeclareAsync(
-                        exchange: options.Exchange,
+                        exchange: options.TopicName,
                         type: "x-delayed-message",
                         durable: true,
                         autoDelete: false,
@@ -224,12 +224,12 @@ public class RabbitMQService : IMQService
                         DeliveryMode = DeliveryModes.Persistent,
                         Headers = new Dictionary<string, object?>
                         {
-                            ["x-delay"] = options.MilliSeconds
+                            ["x-delay"] = options.DelayMilliseconds
                         }
                     };
 
                     await channel.BasicPublishAsync(
-                        exchange: options.Exchange,
+                        exchange: options.TopicName,
                         routingKey: options.RoutingKey,
                         mandatory: true,
                         basicProperties: properties,

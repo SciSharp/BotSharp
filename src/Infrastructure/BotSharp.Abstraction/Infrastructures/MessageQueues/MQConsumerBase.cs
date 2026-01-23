@@ -16,10 +16,10 @@ public abstract class MQConsumerBase : IMQConsumer
     private bool _disposed = false;
 
     /// <summary>
-    /// Gets the consumer options for this consumer.
+    /// Gets the consumer config for this consumer.
     /// Override this property to customize exchange, queue and routing configuration.
     /// </summary>
-    public abstract MQConsumerOptions Options { get; }
+    public abstract object Config { get; }
 
     protected MQConsumerBase(
         IServiceProvider services,

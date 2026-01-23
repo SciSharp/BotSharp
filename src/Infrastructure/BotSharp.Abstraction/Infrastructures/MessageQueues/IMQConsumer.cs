@@ -9,9 +9,9 @@ namespace BotSharp.Abstraction.Infrastructures.MessageQueues;
 public interface IMQConsumer : IDisposable
 {
     /// <summary>
-    /// Gets the consumer options containing exchange, queue and routing configuration.
+    /// Gets the consumer config
     /// </summary>
-    MQConsumerOptions Options { get; }
+    object Config { get; }
 
     /// <summary>
     /// Handles the received message from the queue.

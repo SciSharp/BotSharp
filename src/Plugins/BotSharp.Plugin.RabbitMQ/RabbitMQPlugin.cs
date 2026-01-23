@@ -1,8 +1,6 @@
-using BotSharp.Plugin.RabbitMQ.Connections;
 using BotSharp.Plugin.RabbitMQ.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace BotSharp.Plugin.RabbitMQ;
 

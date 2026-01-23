@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.RabbitMQ.Consumers;
 
 public class DummyMessageConsumer : MQConsumerBase
 {
-    public override MQConsumerOptions Options => new()
+    public override MQConsumerConfig Config => new()
     {
         ExchangeName = "my.exchange",
         QueueName = "dummy.queue",

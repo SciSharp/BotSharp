@@ -1,25 +1,21 @@
-namespace BotSharp.Abstraction.Infrastructures.MessageQueues.Models;
+namespace BotSharp.Plugin.RabbitMQ.Models;
 
-/// <summary>
-/// Configuration options for message queue consumers.
-/// These options are MQ-product agnostic and can be adapted by different implementations.
-/// </summary>
-public class MQConsumerOptions
+internal class RabbitMQConsumerConfig
 {
     /// <summary>
     /// The exchange name (topic in some MQ systems).
     /// </summary>
-    public string ExchangeName { get; set; } = string.Empty;
+    public string ExchangeName { get; set; } = "rabbitmq.exchange";
 
     /// <summary>
     /// The queue name (subscription in some MQ systems).
     /// </summary>
-    public string QueueName { get; set; } = string.Empty;
+    public string QueueName { get; set; } = "rabbitmq.queue";
 
     /// <summary>
     /// The routing key (filter in some MQ systems).
     /// </summary>
-    public string RoutingKey { get; set; } = string.Empty;
+    public string RoutingKey { get; set; } = "rabbitmq.routing";
 
     /// <summary>
     /// Whether to automatically acknowledge messages.
@@ -31,4 +27,3 @@ public class MQConsumerOptions
     /// </summary>
     public Dictionary<string, object?> Arguments { get; set; } = new();
 }
-

@@ -35,3 +35,4 @@ global using BotSharp.Plugin.RabbitMQ.Settings;
 global using BotSharp.Plugin.RabbitMQ.Models;
 global using BotSharp.Plugin.RabbitMQ.Interfaces;
 global using BotSharp.Plugin.RabbitMQ.Consumers;
+global using BotSharp.Plugin.RabbitMQ.Connections;

@@ -45,9 +45,9 @@ public class RabbitMQController : ControllerBase
                 payload,
                 options: new()
                 {
-                    Exchange = "my.exchange",
+                    TopicName = "my.exchange",
                     RoutingKey = "my.routing",
-                    MilliSeconds = request.DelayMilliseconds ?? 10000,
+                    DelayMilliseconds = request.DelayMilliseconds ?? 10000,
                     MessageId = request.MessageId
                 });
             return Ok(new { Success = success });
