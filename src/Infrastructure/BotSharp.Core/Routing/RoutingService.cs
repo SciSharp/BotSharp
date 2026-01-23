@@ -70,7 +70,7 @@ public partial class RoutingService : IRoutingService
 #if !DEBUG
     [SharpCache(10)]
 #endif
-    protected RoutingRule[] GetRoutingRecords()
+    protected async Task<RoutingRule[]> GetRoutingRecords()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
@@ -78,7 +78,7 @@ public partial class RoutingService : IRoutingService
         {
             Disabled = false
         };
-        var agents = db.GetAgents(filter).ConfigureAwait(false).GetAwaiter().GetResult();
+        var agents = await db.GetAgents(filter);
         var records = agents.Where(x => x.Type == AgentType.Task || x.Type == AgentType.Planning).SelectMany(x =>
         {
             x.RoutingRules.ForEach(r =>
@@ -95,7 +95,7 @@ public partial class RoutingService : IRoutingService
 #if !DEBUG
     [SharpCache(10)]
 #endif
-    public RoutableAgent[] GetRoutableAgents(List<string> profiles)
+    public async Task<RoutableAgent[]> GetRoutableAgents(List<string> profiles)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
@@ -104,7 +104,7 @@ public partial class RoutingService : IRoutingService
             Disabled = false
         };
 
-        var agents = db.GetAgents(filter).ConfigureAwait(false).GetAwaiter().GetResult();
+        var agents = await db.GetAgents(filter);
         var routableAgents = agents.Where(x => x.Type == AgentType.Task || x.Type == AgentType.Planning || x.Type == AgentType.A2ARemote).Select(x => new RoutableAgent
         {
             AgentId = x.Id,
@@ -144,16 +144,18 @@ public partial class RoutingService : IRoutingService
         return routableAgents;
     }
 
-    public RoutingRule[] GetRulesByAgentName(string name)
+    public async Task<RoutingRule[]> GetRulesByAgentName(string name)
     {
-        return GetRoutingRecords()
+        var records = await GetRoutingRecords();
+        return records
             .Where(x => x.AgentName.ToLower() == name.ToLower())
             .ToArray();
     }
 
-    public RoutingRule[] GetRulesByAgentId(string id)
+    public async Task<RoutingRule[]> GetRulesByAgentId(string id)
     {
-        return GetRoutingRecords()
+        var records = await GetRoutingRecords();
+        return records
             .Where(x => x.AgentId == id)
             .ToArray();
     }

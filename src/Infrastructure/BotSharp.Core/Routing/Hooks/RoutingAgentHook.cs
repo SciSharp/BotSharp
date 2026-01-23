@@ -22,9 +22,9 @@ public class RoutingAgentHook : AgentHookBase
         dict["router"] = _agent;
 
         var routing = _services.GetRequiredService<IRoutingService>();
-        var agents = routing.GetRoutableAgents(_agent.Profiles);
+        var agents = await routing.GetRoutableAgents(_agent.Profiles);
 
-        // 过滤 Planner
+        // filter Planner
         var planningRule = _agent.RoutingRules.FirstOrDefault(x => x.Type == "planner");
         if (planningRule != null)
         {
@@ -68,8 +68,8 @@ public class RoutingAgentHook : AgentHookBase
         {
             // check if enabled the routing rule
             var routing = _services.GetRequiredService<IRoutingService>();
-            var rule = routing.GetRulesByAgentId(_agent.Id)
-                .FirstOrDefault(x => x.Type == RuleType.Fallback);
+            var rules = await routing.GetRulesByAgentId(_agent.Id);
+            var rule = rules.FirstOrDefault(x => x.Type == RuleType.Fallback);
             if (rule != null)
             {
                 var agentService = _services.GetRequiredService<IAgentService>();

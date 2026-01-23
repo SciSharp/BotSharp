@@ -117,7 +117,7 @@ public class TwilioMessageQueueService : BackgroundService
             reply.SpeechFileName = await GetReplySpeechFileName(message.ConversationId, reply, sp);
         }
         
-        reply.Hints = GetHints(agentId, reply, sp);
+        reply.Hints = await GetHints(agentId, reply, sp);
         await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
     }
 
@@ -158,10 +158,10 @@ public class TwilioMessageQueueService : BackgroundService
         return fileName;
     }
 
-    private static string GetHints(string agentId, AssistantMessage reply, IServiceProvider sp)
+    private static async Task<string> GetHints(string agentId, AssistantMessage reply, IServiceProvider sp)
     {
         var agentService = sp.GetRequiredService<IAgentService>();
-        var agent = agentService.GetAgent(agentId).ConfigureAwait(false).GetAwaiter().GetResult();
+        var agent = await agentService.GetAgent(agentId);
         var extraWords = new List<string>();
         HookEmitter.Emit<IRealtimeHook>(sp, hook => extraWords.AddRange(hook.OnModelTranscriptPrompt(agent)),
             agentId);

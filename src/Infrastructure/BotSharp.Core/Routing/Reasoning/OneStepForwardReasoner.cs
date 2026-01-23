@@ -66,7 +66,7 @@ public class OneStepForwardReasoner : IRoutingReasoner
         var inst = response.Content.JsonContent<FunctionCallFromLlm>();
 
         // Fix LLM malformed response
-        ReasonerHelper.FixMalformedResponse(_services, inst);
+        await ReasonerHelper.FixMalformedResponse(_services, inst);
 
         return inst;
     }

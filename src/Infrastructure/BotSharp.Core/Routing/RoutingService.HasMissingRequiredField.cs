@@ -16,7 +16,7 @@ public partial class RoutingService
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
         var routing = _services.GetRequiredService<IRoutingService>();
 
-        var routingRules = routing.GetRulesByAgentName(args.AgentName);
+        var routingRules = await routing.GetRulesByAgentName(args.AgentName);
 
         if (routingRules == null || !routingRules.Any())
         {
