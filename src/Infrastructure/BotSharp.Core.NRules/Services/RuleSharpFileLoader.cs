@@ -1,7 +1,6 @@
-using BotSharp.Abstraction.Rules;
 using NRules.RuleSharp;
 
-namespace BotSharp.Core.NRules;
+namespace BotSharp.Core.NRules.Services;
 
 public class RuleSharpFileLoader : IRuleLoader
 {

@@ -1,8 +1,6 @@
 using BotSharp.Abstraction.Conversations.Models;
-using System;
-using System.Collections.Generic;
 
-namespace BotSharp.Core.NRules
+namespace BotSharp.Core.NRules.Services
 {
     public class FactMapper
     {

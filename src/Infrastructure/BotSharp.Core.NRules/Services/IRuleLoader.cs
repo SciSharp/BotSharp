@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotSharp.Abstraction.Rules;
+namespace BotSharp.Core.NRules.Services;
 
 public interface IRuleLoader
 {

@@ -1,4 +1,4 @@
-﻿namespace BotSharp.Core.NRules
+namespace BotSharp.Core.NRules.Models
 {
     internal class UserInputFact
     {

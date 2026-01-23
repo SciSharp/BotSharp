@@ -1,6 +1,9 @@
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Rules;
+using BotSharp.Core.NRules.Hooks;
+using BotSharp.Core.NRules.Services;
+using BotSharp.Core.Rules.Engines;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NRules;
@@ -10,38 +13,43 @@ namespace BotSharp.Core.NRules;
 
 public class NRulesPlugin : IBotSharpPlugin
 {
-    public string Id => throw new NotImplementedException();
+    public string Id => "d21c29e0-7f04-9885-fa0e-aca1f021011f";
+    public string Name => "BotSharp Universal Parsing Engine";
+    public string Description => "";
+
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        // 1. 注册规则库（单例）
+        // 1. Register rule repository (singleton)
         services.AddSingleton<RuleRepository>(provider =>
         {
             var repo = new RuleRepository();
-            // 关键：注入 BotSharp 核心与抽象层的程序集引用
+            // Key: Inject references to BotSharp core and abstraction layer assemblies
             repo.AddReference(typeof(BotSharp.Abstraction.Rules.IRuleEngine).Assembly);
-            //repo.AddReference(typeof(BotSharp.Core..RuleEngine).Assembly);
-            // 注入常用系统库
+            repo.AddReference(typeof(BotSharp.Core.NRules.Services.UniversalParsingEngine).Assembly);
+            // Inject commonly used system libraries
             repo.AddNamespace("System");
             repo.AddNamespace("System.Linq");
             return repo;
         });
 
-        // 2. 注册规则加载器服务
+        // 2. Register rule loader service
         services.AddSingleton<IRuleLoader, RuleSharpFileLoader>();
 
-        // 3. 注册编译后的会话工厂（单例）
+        // 3. Register compiled session factory (singleton)
         services.AddSingleton<ISessionFactory>(provider =>
         {
             var repo = provider.GetRequiredService<RuleRepository>();
             var loader = provider.GetRequiredService<IRuleLoader>();
-            // 从指定目录加载所有.rs 文件
+            // Load all .rs files from the specified directory
             loader.LoadFromDirectory(repo, "Settings/Rules");
             return repo.Compile();
         });
 
-        // 5. 注册 Hook 以拦截对话
+        // 5. Register Hook to intercept conversation
         services.AddScoped<IConversationHook, RuleInjectionHook>();
-        services.AddSingleton<INRulesEngineService, NRulesEngineService>();
+
+        services.AddScoped<IRuleExecutor, NRulesExecutor>();
+        services.AddScoped<IUniversalParsingEngine, UniversalParsingEngine>();
     }
 }

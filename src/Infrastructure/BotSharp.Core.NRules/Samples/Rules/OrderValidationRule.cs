@@ -13,10 +13,12 @@ public class OrderValidationRule : Rule
             .Match<Order>(() => order, o => o.Amount > 1000);
 
         Then()
-            .Do(ctx => 
-            {
-                order.Status = "ReviewNeeded";
-                order.Reason = "Amount too high";
-            });
+            .Do(ctx => SetOrderReviewNeeded(order));
+    }
+
+    private void SetOrderReviewNeeded(Order order)
+    {
+        order.Status = "ReviewNeeded";
+        order.Reason = "Amount too high";
     }
 }
