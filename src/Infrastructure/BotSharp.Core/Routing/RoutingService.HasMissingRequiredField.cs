@@ -82,7 +82,7 @@ public partial class RoutingService
             if (!string.IsNullOrEmpty(routingRule?.RedirectTo))
             {
                 var db = _services.GetRequiredService<IBotSharpRepository>();
-                var record = await db.GetAgentAsync(routingRule.RedirectTo);
+                var record = await db.GetAgent(routingRule.RedirectTo);
 
                 if (record != null)
                 {

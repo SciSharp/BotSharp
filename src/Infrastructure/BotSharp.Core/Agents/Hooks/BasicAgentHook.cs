@@ -40,14 +40,14 @@ public class BasicAgentHook : AgentHookBase
             var entryAgentId = routing.EntryAgentId;
             if (!string.IsNullOrEmpty(entryAgentId))
             {
-                var entryAgent = await db.GetAgentAsync(entryAgentId, basicsOnly: true);
+                var entryAgent = await db.GetAgent(entryAgentId, basicsOnly: true);
                 var (fns, tps) = FilterUtilityContent(entryAgent?.Utilities, agent);
                 functionNames = functionNames.Concat(fns).Distinct().ToList();
                 templateNames = templateNames.Concat(tps).Distinct().ToList();
             }
         }
 
-        var ua = await db.GetAgentAsync(BuiltInAgentId.UtilityAssistant);
+        var ua = await db.GetAgent(BuiltInAgentId.UtilityAssistant);
         var functions = ua?.Functions?.Where(x => functionNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.ToList() ?? [];
         var templates = ua?.Templates?.Where(x => templateNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.ToList() ?? [];
         return (functions, templates);

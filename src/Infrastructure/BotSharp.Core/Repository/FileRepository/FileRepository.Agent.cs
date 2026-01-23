@@ -564,14 +564,14 @@ namespace BotSharp.Core.Repository
             return responses;
         }
 
-        public Agent? GetAgent(string agentId, bool basicsOnly = false)
+        public async Task<Agent?> GetAgent(string agentId, bool basicsOnly = false)
         {
             var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir);
             var dir = Directory.EnumerateDirectories(agentDir).FirstOrDefault(x => x.Split(Path.DirectorySeparatorChar).Last() == agentId);
 
             if (!string.IsNullOrEmpty(dir))
             {
-                var json = File.ReadAllText(Path.Combine(dir, AGENT_FILE));
+                var json = await File.ReadAllTextAsync(Path.Combine(dir, AGENT_FILE));
                 if (string.IsNullOrEmpty(json))
                 {
                     return null;
@@ -593,21 +593,16 @@ namespace BotSharp.Core.Repository
                 var samples = FetchSamples(dir);
                 var templates = FetchTemplates(dir);
                 var responses = FetchResponses(dir);
-                return record.SetInstruction(defaultInstruction)
+                var result = record.SetInstruction(defaultInstruction)
                              .SetChannelInstructions(channelInstructions)
                              .SetFunctions(functions)
                              .SetTemplates(templates)
                              .SetSamples(samples)
                              .SetResponses(responses);
+                return result;
             }
 
             return null;
-        }
-
-        public Task<Agent?> GetAgentAsync(string agentId, bool basicsOnly = false)
-        { 
-            var agent = GetAgent(agentId, basicsOnly);
-            return Task.FromResult(agent);
         }
 
         public Task<List<Agent>> GetAgents(AgentFilter filter)
