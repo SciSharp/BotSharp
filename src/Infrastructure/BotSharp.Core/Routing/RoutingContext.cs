@@ -194,13 +194,13 @@ public class RoutingContext : IRoutingContext
 
         if (_stack.Count == 0)
         {
-            await Push(agentId);
+            _stack.Push(agentId);
         }
         else if (_stack.Peek() != agentId)
         {
             fromAgent = _stack.Peek();
             _stack.Pop();
-            await Push(agentId);
+            _stack.Push(agentId);
 
             await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnAgentReplaced(fromAgent, toAgent, reason: reason),
                 agentId);
