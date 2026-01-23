@@ -14,22 +14,22 @@ public interface IAgentHook : IHookBase
     /// </summary>
     /// <param name="id">Agent Id</param>
     /// <returns></returns>
-    bool OnAgentLoading(ref string id);
+    Task<bool> OnAgentLoading(ref string id);
 
-    bool OnInstructionLoaded(string template, IDictionary<string, object> dict);
+    Task<bool> OnInstructionLoaded(string template, IDictionary<string, object> dict);
 
-    bool OnFunctionsLoaded(List<FunctionDef> functions);
+    Task<bool> OnFunctionsLoaded(List<FunctionDef> functions);
 
-    bool OnSamplesLoaded(List<string> samples);
+    Task<bool> OnSamplesLoaded(List<string> samples);
 
-    void OnAgentUtilityLoaded(Agent agent);
+    Task OnAgentUtilityLoaded(Agent agent);
 
-    void OnAgentMcpToolLoaded(Agent agent);
+    Task OnAgentMcpToolLoaded(Agent agent);
 
     /// <summary>
     /// Triggered when agent is loaded completely.
     /// </summary>
     /// <param name="agent"></param>
     /// <returns></returns>
-    void OnAgentLoaded(Agent agent);
+    Task OnAgentLoaded(Agent agent);
 }

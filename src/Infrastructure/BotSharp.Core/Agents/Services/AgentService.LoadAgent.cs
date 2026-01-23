@@ -15,7 +15,7 @@ public partial class AgentService
             return null;
         }
 
-        HookEmitter.Emit<IAgentHook>(_services, hook => hook.OnAgentLoading(ref id), id);
+        await HookEmitter.Emit<IAgentHook>(_services, async hook => await hook.OnAgentLoading(ref id), id);
 
         var agent = await GetAgent(id);
         if (agent == null)
@@ -35,35 +35,35 @@ public partial class AgentService
         PopulateState(agent);
 
         // After agent is loaded
-        HookEmitter.Emit<IAgentHook>(_services, hook => {
+        await HookEmitter.Emit<IAgentHook>(_services, async hook => {
             hook.SetAgent(agent);
 
             if (!string.IsNullOrEmpty(agent.Instruction))
             {
-                hook.OnInstructionLoaded(agent.Instruction, agent.TemplateDict);
+                await hook.OnInstructionLoaded(agent.Instruction, agent.TemplateDict);
             }
 
             if (agent.Functions != null)
             {
-                hook.OnFunctionsLoaded(agent.Functions);
+                await hook.OnFunctionsLoaded(agent.Functions);
             }
 
             if (agent.Samples != null)
             {
-                hook.OnSamplesLoaded(agent.Samples);
+                await hook.OnSamplesLoaded(agent.Samples);
             }
 
             if (loadUtility && !agent.Utilities.IsNullOrEmpty())
             {
-                hook.OnAgentUtilityLoaded(agent);
+                await hook.OnAgentUtilityLoaded(agent);
             }
 
             if (!agent.McpTools.IsNullOrEmpty())
             {
-                hook.OnAgentMcpToolLoaded(agent);
+                await hook.OnAgentMcpToolLoaded(agent);
             }
 
-            hook.OnAgentLoaded(agent);
+            await hook.OnAgentLoaded(agent);
 
         }, id);
 

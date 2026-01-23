@@ -23,7 +23,7 @@ public class A2AAgentHook : AgentHookBase
         _a2aSettings = a2aSettings;
     }
 
-    public override bool OnAgentLoading(ref string id)
+    public override async Task<bool> OnAgentLoading(ref string id)
     {
         var agentId = id;
         var remoteConfig = _a2aSettings.Agents?.FirstOrDefault(x => x.Id == agentId);
@@ -31,21 +31,22 @@ public class A2AAgentHook : AgentHookBase
         {
             return true;
         }
-        return base.OnAgentLoading(ref id);
+        return await base.OnAgentLoading(ref id);
     }
 
-    public override void OnAgentLoaded(Agent agent)
+    public override async Task OnAgentLoaded(Agent agent)
     {
         // Check if this is an A2A remote agent
         if (agent.Type != AgentType.A2ARemote)
         {
+            await base.OnAgentLoaded(agent);
             return;
         }
 
         var remoteConfig = _a2aSettings.Agents?.FirstOrDefault(x => x.Id == agent.Id);
         if (remoteConfig != null)
         {
-            var agentCard = _a2aService.GetCapabilitiesAsync(remoteConfig.Endpoint).GetAwaiter().GetResult();
+            var agentCard = await _a2aService.GetCapabilitiesAsync(remoteConfig.Endpoint);
             if (agentCard != null)
             {
                 agent.Name = agentCard.Name;
@@ -83,6 +84,6 @@ public class A2AAgentHook : AgentHookBase
                 });
             }
         }
-        base.OnAgentLoaded(agent);
+        await base.OnAgentLoaded(agent);
     }
 }
