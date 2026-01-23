@@ -1,4 +1,8 @@
+using BotSharp.Abstraction.Rules;
 using BotSharp.Core.Rules.Engines;
+using BotSharp.Core.Rules.Services;
+using NRules;
+using NRules.Fluent;
 
 namespace BotSharp.Core.Rules;
 
@@ -17,5 +21,15 @@ public class RulesPlugin : IBotSharpPlugin
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         services.AddScoped<IRuleEngine, RuleEngine>();
+
+        services.AddSingleton<ISessionFactory>(sp =>
+        {
+            var repository = new RuleRepository();
+            repository.Load(x => x.From(AppDomain.CurrentDomain.GetAssemblies()));
+            return repository.Compile();
+        });
+
+        services.AddScoped<IRuleExecutor, NRulesExecutor>();
+        services.AddScoped<IUniversalParsingEngine, UniversalParsingEngine>();
     }
 }

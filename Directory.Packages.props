@@ -9,6 +9,8 @@
     <PackageVersion Include="Google_GenerativeAI" Version="3.4.1" />
     <PackageVersion Include="Google_GenerativeAI.Live" Version="3.4.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="NRules.Json" Version="1.0.3" />
+    <PackageVersion Include="NRules.RuleSharp" Version="0.1.2" />
     <PackageVersion Include="Polly" Version="8.4.2" />
     <PackageVersion Include="SharpFuzz" Version="2.2.0" />
     <PackageVersion Include="SharpHook" Version="5.3.9" />
@@ -99,6 +101,7 @@
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="ModelContextProtocol" Version="0.4.0-preview.3" />
     <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.4.0-preview.3" />
+    <PackageVersion Include="NRules" Version="1.0.3" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="BotSharp.Core" Version="$(BotSharpVersion)" />
