@@ -150,7 +150,7 @@ public class RoutingContext : IRoutingContext
         {
             if (currentAgentId != redirectedAgentId)
             {
-                await Push(redirectedAgentId);
+                _stack.Push(redirectedAgentId);
             }
         }
 
