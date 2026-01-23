@@ -154,10 +154,10 @@ public class RabbitMQService : IMQService
             data = Encoding.UTF8.GetString(eventArgs.Body.Span);
             _logger.LogInformation($"Message received on '{config.QueueName}', id: {eventArgs.BasicProperties?.MessageId}, data: {data}");
 
-            var isDone = await registration.Consumer.HandleMessageAsync(config.QueueName, data);
+            var isHandled = await registration.Consumer.HandleMessageAsync(config.QueueName, data);
             if (!config.AutoAck && registration.Channel != null)
             {
-                if (isDone)
+                if (isHandled)
                 {
                     await registration.Channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
                 }
@@ -181,6 +181,11 @@ public class RabbitMQService : IMQService
     {
         try
         {
+            if (options == null)
+            {
+                return false;
+            }
+
             if (!_mqConnection.IsConnected)
             {
                 await _mqConnection.ConnectAsync();
@@ -200,7 +205,7 @@ public class RabbitMQService : IMQService
                         ["x-delayed-type"] = "direct"
                     };
 
-                    if (options.Arguments != null)
+                    if (!options.Arguments.IsNullOrEmpty())
                     {
                         foreach (var kvp in options.Arguments)
                         {

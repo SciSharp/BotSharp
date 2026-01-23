@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.RabbitMQ.Consumers;
 
 public class ScheduledMessageConsumer : MQConsumerBase
 {
-    public override object Config => new
+    public override object Config => new RabbitMQConsumerConfig
     {
         ExchangeName = "my.exchange",
         QueueName = "scheduled.queue",

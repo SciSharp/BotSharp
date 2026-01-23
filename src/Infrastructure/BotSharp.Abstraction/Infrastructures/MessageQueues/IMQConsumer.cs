@@ -21,4 +21,3 @@ public interface IMQConsumer : IDisposable
     /// <returns>True if the message was handled successfully, false otherwise</returns>
     Task<bool> HandleMessageAsync(string channel, string data);
 }
-

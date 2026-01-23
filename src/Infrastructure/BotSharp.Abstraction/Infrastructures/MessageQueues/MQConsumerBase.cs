@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Infrastructures.MessageQueues;
-using BotSharp.Abstraction.Infrastructures.MessageQueues.Models;
 using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.RabbitMQ.Consumers;
