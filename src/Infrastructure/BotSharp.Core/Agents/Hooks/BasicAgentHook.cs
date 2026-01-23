@@ -11,27 +11,25 @@ public class BasicAgentHook : AgentHookBase
     {
     }
 
-    public override Task OnAgentUtilityLoaded(Agent agent)
+    public override async Task OnAgentUtilityLoaded(Agent agent)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
-        if (!isConvMode) return Task.CompletedTask;
+        if (!isConvMode) return;
 
         agent.Utilities ??= [];
         agent.SecondaryFunctions ??= [];
         agent.SecondaryInstructions ??= [];
 
-        var (functions, templates) = GetUtilityContent(agent);
+        var (functions, templates) = await GetUtilityContent(agent);
 
         agent.SecondaryFunctions = agent.SecondaryFunctions.Concat(functions).DistinctBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList();
         var contents = templates.Select(x => x.Content);
         agent.SecondaryInstructions = agent.SecondaryInstructions.Concat(contents).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        
-        return Task.CompletedTask;
     }
-     
+    
 
-    private (IEnumerable<FunctionDef>, IEnumerable<AgentTemplate>) GetUtilityContent(Agent agent)
+    private async Task<(IEnumerable<FunctionDef>, IEnumerable<AgentTemplate>)> GetUtilityContent(Agent agent)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var (functionNames, templateNames) = FilterUtilityContent(agent.Utilities, agent);
@@ -42,14 +40,14 @@ public class BasicAgentHook : AgentHookBase
             var entryAgentId = routing.EntryAgentId;
             if (!string.IsNullOrEmpty(entryAgentId))
             {
-                var entryAgent = db.GetAgent(entryAgentId, basicsOnly: true);
+                var entryAgent = await db.GetAgent(entryAgentId, basicsOnly: true);
                 var (fns, tps) = FilterUtilityContent(entryAgent?.Utilities, agent);
                 functionNames = functionNames.Concat(fns).Distinct().ToList();
                 templateNames = templateNames.Concat(tps).Distinct().ToList();
             }
         }
 
-        var ua = db.GetAgent(BuiltInAgentId.UtilityAssistant);
+        var ua = await db.GetAgent(BuiltInAgentId.UtilityAssistant);
         var functions = ua?.Functions?.Where(x => functionNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.ToList() ?? [];
         var templates = ua?.Templates?.Where(x => templateNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.ToList() ?? [];
         return (functions, templates);

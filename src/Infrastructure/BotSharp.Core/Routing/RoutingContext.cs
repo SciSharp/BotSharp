@@ -81,13 +81,13 @@ public class RoutingContext : IRoutingContext
     /// </summary>
     /// <param name="agentId">Id or Name</param>
     /// <param name="reason"></param>
-    public void Push(string agentId, string? reason = null, bool updateLazyRouting = true)
+    public async Task Push(string agentId, string? reason = null, bool updateLazyRouting = true)
     {
         // Convert id to name
         if (!Guid.TryParse(agentId, out _))
         {
             var agentService = _services.GetRequiredService<IAgentService>();
-            var agents = agentService.GetAgentOptions([agentId], byName: true).ConfigureAwait(false).GetAwaiter().GetResult();
+            var agents = await agentService.GetAgentOptions([agentId], byName: true);
 
             if (agents.Count > 0)
             {
@@ -100,8 +100,8 @@ public class RoutingContext : IRoutingContext
             var preAgentId = _stack.Count == 0 ? agentId : _stack.Peek();
             _stack.Push(agentId);
 
-            HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnAgentEnqueued(agentId, preAgentId, reason: reason),
-                agentId).Wait();
+            await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnAgentEnqueued(agentId, preAgentId, reason: reason),
+                agentId);
 
             UpdateLazyRoutingAgent(updateLazyRouting);
         }
@@ -110,7 +110,7 @@ public class RoutingContext : IRoutingContext
     /// <summary>
     /// Pop current agent
     /// </summary>
-    public void Pop(string? reason = null, bool updateLazyRouting = true)
+    public async Task Pop(string? reason = null, bool updateLazyRouting = true)
     {
         if (_stack.Count == 0)
         {
@@ -120,8 +120,8 @@ public class RoutingContext : IRoutingContext
         var agentId = _stack.Pop();
         var currentAgentId = GetCurrentAgentId();
 
-        HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnAgentDequeued(agentId, currentAgentId, reason: reason),
-            agentId).Wait();
+        await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnAgentDequeued(agentId, currentAgentId, reason: reason),
+            agentId);
 
         if (string.IsNullOrEmpty(currentAgentId))
         {
@@ -130,7 +130,7 @@ public class RoutingContext : IRoutingContext
 
         // Run the routing rule
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = agentService.GetAgent(currentAgentId).ConfigureAwait(false).GetAwaiter().GetResult();
+        var agent = await agentService.GetAgent(currentAgentId);
 
         var message = new RoleDialogModel(AgentRole.User, $"Try to route to agent {agent.Name}")
         {
@@ -145,25 +145,25 @@ public class RoutingContext : IRoutingContext
         };
 
         var routing = _services.GetRequiredService<IRoutingService>();
-        var (missingfield, _) = routing.HasMissingRequiredField(message, out agentId);
+        var (missingfield, _, redirectedAgentId) = await routing.HasMissingRequiredField(message);
         if (missingfield)
         {
-            if (currentAgentId != agentId)
+            if (currentAgentId != redirectedAgentId)
             {
-                _stack.Push(agentId);
+                _stack.Push(redirectedAgentId);
             }
         }
 
         UpdateLazyRoutingAgent(updateLazyRouting);
     }
 
-    public void PopTo(string agentId, string reason, bool updateLazyRouting = true)
+    public async Task PopTo(string agentId, string reason, bool updateLazyRouting = true)
     {
         var currentAgentId = GetCurrentAgentId();
         while (!string.IsNullOrEmpty(currentAgentId) && 
             currentAgentId != agentId)
         {
-            Pop(reason, updateLazyRouting: updateLazyRouting);
+            await Pop(reason, updateLazyRouting: updateLazyRouting);
             currentAgentId = GetCurrentAgentId();
         }
     }
@@ -187,7 +187,7 @@ public class RoutingContext : IRoutingContext
         return _stack.ToArray().Contains(agentId);
     }
 
-    public void Replace(string agentId, string? reason = null, bool updateLazyRouting = true)
+    public async Task Replace(string agentId, string? reason = null, bool updateLazyRouting = true)
     {
         var fromAgent = agentId;
         var toAgent = agentId;
@@ -202,14 +202,14 @@ public class RoutingContext : IRoutingContext
             _stack.Pop();
             _stack.Push(agentId);
 
-            HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnAgentReplaced(fromAgent, toAgent, reason: reason),
-                agentId).Wait();
+            await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnAgentReplaced(fromAgent, toAgent, reason: reason),
+                agentId);
         }
 
         UpdateLazyRoutingAgent(updateLazyRouting);
     }
 
-    public void Empty(string? reason = null)
+    public async Task Empty(string? reason = null)
     {
         if (_stack.Count == 0)
         {
@@ -218,8 +218,8 @@ public class RoutingContext : IRoutingContext
 
         var agentId = GetCurrentAgentId();
         _stack.Clear();
-        HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnAgentQueueEmptied(agentId, reason: reason),
-            agentId).Wait();
+        await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnAgentQueueEmptied(agentId, reason: reason),
+            agentId);
     }
 
     public void SetMessageId(string conversationId, string messageId)

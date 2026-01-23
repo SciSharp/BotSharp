@@ -59,7 +59,7 @@ public class NaiveReasoner : IRoutingReasoner
         var inst = (response.FunctionArgs ?? response.Content).JsonContent<FunctionCallFromLlm>();
 
         // Fix LLM malformed response
-        ReasonerHelper.FixMalformedResponse(_services, inst);
+        await ReasonerHelper.FixMalformedResponse(_services, inst);
 
         return inst;
     }
@@ -73,7 +73,7 @@ public class NaiveReasoner : IRoutingReasoner
         return Task.FromResult(true);
     }
 
-    public Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         var context = _services.GetRequiredService<IRoutingContext>();
         if (inst.UnmatchedAgent)
@@ -85,14 +85,14 @@ public class NaiveReasoner : IRoutingReasoner
             router.TemplateDict["routing_agents"] = agents.Where(x => x.AgentId != unmatchedAgentId).ToArray();
 
             // Handover to Router;
-            context.Pop();
+            await context.Pop();
         }
         else
         {
-            context.Empty(reason: $"Agent queue is cleared by {nameof(NaiveReasoner)}");
+            await context.Empty(reason: $"Agent queue is cleared by {nameof(NaiveReasoner)}");
             // context.Push(inst.OriginalAgent, "Push user goal agent");
         }
-        return Task.FromResult(true);
+        return true;
     }
 
     private string GetNextStepPrompt(Agent router)

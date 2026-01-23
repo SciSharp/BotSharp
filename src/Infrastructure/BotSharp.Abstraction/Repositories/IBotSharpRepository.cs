@@ -70,9 +70,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #region Agent
     Task UpdateAgent(Agent agent, AgentField field)
         => throw new NotImplementedException();
-    Agent? GetAgent(string agentId, bool basicsOnly = false)
-        => throw new NotImplementedException();
-    Task<Agent?> GetAgentAsync(string agentId, bool basicsOnly = false)
+    Task<Agent?> GetAgent(string agentId, bool basicsOnly = false)
         => throw new NotImplementedException();
     Task<List<Agent>> GetAgents(AgentFilter filter)
         => throw new NotImplementedException();

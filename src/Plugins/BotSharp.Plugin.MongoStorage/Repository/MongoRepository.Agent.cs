@@ -429,19 +429,7 @@ public partial class MongoRepository
     }
     #endregion
 
-
-    public Agent? GetAgent(string agentId, bool basicsOnly = false)
-    {
-        var agent = _dc.Agents.AsQueryable().FirstOrDefault(x => x.Id == agentId);
-        if (agent == null)
-        {
-            return null;
-        }
-
-        return TransformAgentDocument(agent);
-    }
-
-    public async Task<Agent?> GetAgentAsync(string agentId, bool basicsOnly = false)
+    public async Task<Agent?> GetAgent(string agentId, bool basicsOnly = false)
     {
         var agent = await _dc.Agents.AsQueryable().FirstOrDefaultAsync(x => x.Id == agentId);
         if (agent == null)

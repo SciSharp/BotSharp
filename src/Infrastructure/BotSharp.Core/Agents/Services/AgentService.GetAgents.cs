@@ -50,7 +50,7 @@ public partial class AgentService
             return null;
         }
 
-        var profile = await _db.GetAgentAsync(id);
+        var profile = await _db.GetAgent(id);
         if (profile == null)
         {
             _logger.LogError($"Can't find agent {id}");

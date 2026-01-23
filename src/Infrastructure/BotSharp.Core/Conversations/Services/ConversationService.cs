@@ -230,7 +230,7 @@ public partial class ConversationService : IConversationService
 
         if (string.IsNullOrEmpty(routingCtx.EntryAgentId)) return null;
 
-        var agent = await db.GetAgentAsync(routingCtx.EntryAgentId, basicsOnly: true);
+        var agent = await db.GetAgent(routingCtx.EntryAgentId, basicsOnly: true);
         return agent?.MaxMessageCount;
     }
 
