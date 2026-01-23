@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Routing.Models;
 using System.Collections.Concurrent;
 
@@ -15,7 +16,16 @@ public partial class AgentService
             return null;
         }
 
-        await HookEmitter.Emit<IAgentHook>(_services, async hook => await hook.OnAgentLoading(ref id), id);
+        var hooks = _services.GetHooks<IAgentHook>(id);
+        foreach (var hook in hooks)
+        {
+            var newId = await hook.OnAgentLoading(id);
+            if (!string.IsNullOrEmpty(newId) && newId != id)
+            {
+                id = newId;
+                break; // Only the first hook that redirects takes effect
+            }
+        }
 
         var agent = await GetAgent(id);
         if (agent == null)

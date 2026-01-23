@@ -23,15 +23,14 @@ public class A2AAgentHook : AgentHookBase
         _a2aSettings = a2aSettings;
     }
 
-    public override async Task<bool> OnAgentLoading(ref string id)
+    public override async Task<string?> OnAgentLoading(string id)
     {
-        var agentId = id;
-        var remoteConfig = _a2aSettings.Agents?.FirstOrDefault(x => x.Id == agentId);
+        var remoteConfig = _a2aSettings.Agents?.FirstOrDefault(x => x.Id == id);
         if (remoteConfig != null)
         {
-            return true;
+            return id; // No redirection needed, continue with current id
         }
-        return await base.OnAgentLoading(ref id);
+        return await base.OnAgentLoading(id);
     }
 
     public override async Task OnAgentLoaded(Agent agent)

@@ -24,9 +24,9 @@ public abstract class AgentHookBase : IAgentHook
         _agent = agent;
     }
 
-    public virtual Task<bool> OnAgentLoading(ref string id)
+    public virtual Task<string?> OnAgentLoading(string id)
     {
-        return Task.FromResult(true);
+        return Task.FromResult<string?>(id);
     }
 
     public virtual Task<bool> OnInstructionLoaded(string template, IDictionary<string, object> dict)

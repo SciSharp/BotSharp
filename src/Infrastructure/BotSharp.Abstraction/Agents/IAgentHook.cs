@@ -10,11 +10,11 @@ public interface IAgentHook : IHookBase
 
     /// <summary>
     /// Triggered when agent is loading.
-    /// Return different agent for redirection purpose.
+    /// Return different agent id for redirection purpose.
     /// </summary>
     /// <param name="id">Agent Id</param>
-    /// <returns></returns>
-    Task<bool> OnAgentLoading(ref string id);
+    /// <returns>New agent id if redirection is needed, null otherwise</returns>
+    Task<string?> OnAgentLoading(string id);
 
     Task<bool> OnInstructionLoaded(string template, IDictionary<string, object> dict);
 
