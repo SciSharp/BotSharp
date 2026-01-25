@@ -634,8 +634,7 @@ public partial class MongoRepository
                         continue;
                     }
 
-                    var values = state.Values.Where(x => x.MessageId != messageId)
-                                             .Where(x => x.UpdateTime < refTime)
+                    var values = state.Values.Where(x => x.MessageId != messageId && x.UpdateTime < refTime)
                                              .ToList();
                     if (values.Count == 0) continue;
 
