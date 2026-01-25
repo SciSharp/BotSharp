@@ -58,7 +58,7 @@ public class HandleHttpRequestFn : IFunctionCallback
         using var client = _httpClientFactory.CreateClient();
         
         var (uri, request) = BuildHttpRequest(url, method, content);
-        PrepareRequestHeaders(client, uri);
+        await PrepareRequestHeaders(client, uri);
 
         var response = await client.SendAsync(request);
         if (response == null || !response.IsSuccessStatusCode)
@@ -69,12 +69,12 @@ public class HandleHttpRequestFn : IFunctionCallback
         return response;
     }
 
-    private void PrepareRequestHeaders(HttpClient client, Uri uri)
+    private async Task PrepareRequestHeaders(HttpClient client, Uri uri)
     {
         var hooks = _services.GetServices<IHttpRequestHook>();
         foreach (var hook in hooks)
         {
-            hook.OnAddHttpHeaders(client.DefaultRequestHeaders, uri);
+            await hook.OnAddHttpHeaders(client.DefaultRequestHeaders, uri);
         }
     }
 

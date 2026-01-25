@@ -88,7 +88,7 @@ public class TwilioStreamMiddleware
         await convService.States.Save();
 
         var routing = services.GetRequiredService<IRoutingService>();
-        routing.Context.Push(agentId);
+        await routing.Context.Push(agentId);
 
         await foreach (ChatSessionUpdate update in session.ReceiveUpdatesAsync(CancellationToken.None))
         {

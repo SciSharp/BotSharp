@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Routing.Models;
 using System.Collections.Concurrent;
 
@@ -15,7 +16,16 @@ public partial class AgentService
             return null;
         }
 
-        HookEmitter.Emit<IAgentHook>(_services, hook => hook.OnAgentLoading(ref id), id);
+        var hooks = _services.GetHooks<IAgentHook>(id);
+        foreach (var hook in hooks)
+        {
+            var newId = await hook.OnAgentLoading(id);
+            if (!string.IsNullOrEmpty(newId) && newId != id)
+            {
+                id = newId;
+                break; // Only the first hook that redirects takes effect
+            }
+        }
 
         var agent = await GetAgent(id);
         if (agent == null)
@@ -35,35 +45,35 @@ public partial class AgentService
         PopulateState(agent);
 
         // After agent is loaded
-        HookEmitter.Emit<IAgentHook>(_services, hook => {
+        await HookEmitter.Emit<IAgentHook>(_services, async hook => {
             hook.SetAgent(agent);
 
             if (!string.IsNullOrEmpty(agent.Instruction))
             {
-                hook.OnInstructionLoaded(agent.Instruction, agent.TemplateDict);
+                await hook.OnInstructionLoaded(agent.Instruction, agent.TemplateDict);
             }
 
             if (agent.Functions != null)
             {
-                hook.OnFunctionsLoaded(agent.Functions);
+                await hook.OnFunctionsLoaded(agent.Functions);
             }
 
             if (agent.Samples != null)
             {
-                hook.OnSamplesLoaded(agent.Samples);
+                await hook.OnSamplesLoaded(agent.Samples);
             }
 
             if (loadUtility && !agent.Utilities.IsNullOrEmpty())
             {
-                hook.OnAgentUtilityLoaded(agent);
+                await hook.OnAgentUtilityLoaded(agent);
             }
 
             if (!agent.McpTools.IsNullOrEmpty())
             {
-                hook.OnAgentMcpToolLoaded(agent);
+                await hook.OnAgentMcpToolLoaded(agent);
             }
 
-            hook.OnAgentLoaded(agent);
+            await hook.OnAgentLoaded(agent);
 
         }, id);
 

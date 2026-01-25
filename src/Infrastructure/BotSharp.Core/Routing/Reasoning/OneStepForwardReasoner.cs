@@ -66,7 +66,7 @@ public class OneStepForwardReasoner : IRoutingReasoner
         var inst = response.Content.JsonContent<FunctionCallFromLlm>();
 
         // Fix LLM malformed response
-        ReasonerHelper.FixMalformedResponse(_services, inst);
+        await ReasonerHelper.FixMalformedResponse(_services, inst);
 
         return inst;
     }
@@ -80,7 +80,7 @@ public class OneStepForwardReasoner : IRoutingReasoner
         return Task.FromResult(true);
     }
 
-    public Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         var context = _services.GetRequiredService<IRoutingContext>();
         if (inst.UnmatchedAgent)
@@ -92,14 +92,14 @@ public class OneStepForwardReasoner : IRoutingReasoner
             router.TemplateDict["routing_agents"] = agents.Where(x => x.AgentId != unmatchedAgentId).ToArray();
 
             // Handover to Router;
-            context.Pop();
+            await context.Pop();
         }
         else
         {
-            context.Empty(reason: $"Agent queue is cleared by {nameof(OneStepForwardReasoner)}");
+            await context.Empty(reason: $"Agent queue is cleared by {nameof(OneStepForwardReasoner)}");
             // context.Push(inst.OriginalAgent, "Push user goal agent");
         }
-        return Task.FromResult(true);
+        return true;
     }
 
     private string GetNextStepPrompt(Agent router)

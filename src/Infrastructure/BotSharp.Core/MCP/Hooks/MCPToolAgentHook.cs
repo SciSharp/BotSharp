@@ -14,7 +14,7 @@ public class McpToolAgentHook : AgentHookBase
     {
     }
 
-    public override void OnAgentMcpToolLoaded(Agent agent)
+    public override async Task OnAgentMcpToolLoaded(Agent agent)
     {
         if (agent.Type == AgentType.Routing)
         {
@@ -27,7 +27,7 @@ public class McpToolAgentHook : AgentHookBase
 
         agent.SecondaryFunctions ??= [];
 
-        var functions = GetMcpContent(agent).ConfigureAwait(false).GetAwaiter().GetResult();
+        var functions = await GetMcpContent(agent);
         agent.SecondaryFunctions = agent.SecondaryFunctions.Concat(functions).DistinctBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList();
     }
 

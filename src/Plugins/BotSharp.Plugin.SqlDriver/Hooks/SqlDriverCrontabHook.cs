@@ -42,7 +42,7 @@ public class SqlDriverCrontabHook : ICrontabHook
                     })
                 };
                 var routing = _services.GetRequiredService<IRoutingService>();
-                routing.Context.Push(BuiltInAgentId.SqlDriver);
+                await routing.Context.Push(BuiltInAgentId.SqlDriver);
                 await routing.InvokeFunction("sql_select", message);
 
                 item.AgentId = BuiltInAgentId.SqlDriver;

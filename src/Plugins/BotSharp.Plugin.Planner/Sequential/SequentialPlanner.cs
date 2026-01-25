@@ -130,23 +130,23 @@ public class SequentialPlanner : ITaskPlanner
         return Task.FromResult(true);
     }
 
-    public Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         var context = _services.GetRequiredService<IRoutingContext>();
 
         if (message.StopCompletion)
         {
-            context.Empty(reason: $"Agent queue is cleared by {nameof(SequentialPlanner)}");
-            return Task.FromResult(false);
+            await context.Empty(reason: $"Agent queue is cleared by {nameof(SequentialPlanner)}");
+            return false;
         }
 
         // Handover to Router;
-        context.Pop();
+        await context.Pop();
 
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.ResetRecursiveCounter();
 
-        return Task.FromResult(true);
+        return true;
     }
 
     private string GetNextStepPrompt(Agent router)
