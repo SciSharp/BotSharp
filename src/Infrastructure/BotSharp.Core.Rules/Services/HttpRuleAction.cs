@@ -108,7 +108,7 @@ public sealed class HttpRuleAction : IRuleAction
             {
                 continue; 
             }
-            url.Replace($"{{{item.Key}}}", value);
+            url = url.Replace($"{{{item.Key}}}", value);
         }
 
         
