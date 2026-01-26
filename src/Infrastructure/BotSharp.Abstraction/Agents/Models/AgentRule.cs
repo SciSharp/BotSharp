@@ -14,6 +14,7 @@ public class AgentRule
     public string Criteria { get; set; } = string.Empty;
 
     [JsonPropertyName("action")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AgentRuleAction? Action { get; set; }
 }
 
