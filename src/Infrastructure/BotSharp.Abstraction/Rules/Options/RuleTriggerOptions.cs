@@ -7,4 +7,3 @@ public class RuleTriggerOptions
     /// </summary>
     public RuleCriteriaOptions? Criteria { get; set; }
 }
-

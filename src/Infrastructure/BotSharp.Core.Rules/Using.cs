@@ -1,6 +1,7 @@
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
+global using System.Text;
 
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Plugins;
@@ -13,6 +14,7 @@ global using BotSharp.Abstraction.Agents.Models;
 global using BotSharp.Abstraction.Conversations;
 
 global using BotSharp.Abstraction.Infrastructures.MessageQueues;
+global using BotSharp.Abstraction.Infrastructures.MessageQueues.Models;
 global using BotSharp.Abstraction.Models;
 global using BotSharp.Abstraction.Repositories.Filters;
 global using BotSharp.Abstraction.Rules;

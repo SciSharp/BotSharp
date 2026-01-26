@@ -65,4 +65,42 @@ public static class ObjectExtensions
             return null;
         }
     }
+
+    public static T? TryGetValueOrDefault<T>(this IDictionary<string, object?> dict, string key, T? defaultValue = default, JsonSerializerOptions? jsonOptions = null)
+    {
+        return dict.TryGetValue<T>(key, out var value, jsonOptions)
+                ? value!
+                : defaultValue;
+    }
+
+    public static bool TryGetValue<T>(this IDictionary<string, object?> dict, string key, out T? result, JsonSerializerOptions? jsonOptions = null)
+    {
+        result = default;
+
+        if (!dict.TryGetValue(key, out var value) || value is null)
+        {
+            return false;
+        }
+
+        if (value is T t)
+        {
+            result = t;
+            return true;
+        }
+
+        if (value is JsonElement je)
+        {
+            try
+            {
+                result = je.Deserialize<T>(jsonOptions);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        return false;
+    }
 }

@@ -22,5 +22,8 @@ public class RulesPlugin : IBotSharpPlugin
 
         // Register rule actions
         services.AddScoped<IRuleAction, ChatRuleAction>();
+        services.AddScoped<IRuleAction, HttpRuleAction>();
+        services.AddScoped<IRuleAction, FunctionCallRuleAction>();
+        services.AddScoped<IRuleAction, MessageQueueRuleAction>();
     }
 }

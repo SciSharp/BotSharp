@@ -1,3 +1,6 @@
+using BotSharp.Abstraction.Rules.Hooks;
+using System.Text.Json;
+
 namespace BotSharp.Core.Rules.Engines;
 
 public class RuleEngine : IRuleEngine
@@ -60,9 +63,9 @@ public class RuleEngine : IRuleEngine
             var context = new RuleActionContext
             {
                 Text = text,
-                States = states
+                States = BuildRuleActionContext(foundRule, states)
             };
-            var result = await ExecuteActionAsync(agent, trigger, foundRule.Action.IfNullOrEmptyAs("Chat")!, context);
+            var result = await ExecuteActionAsync(agent, trigger, foundRule.Action.IfNullOrEmptyAs("BotSharp-chat")!, context);
             if (result.Success && !string.IsNullOrEmpty(result.ConversationId))
             {
                 newConversationIds.Add(result.ConversationId);
@@ -70,6 +73,26 @@ public class RuleEngine : IRuleEngine
         }
 
         return newConversationIds;
+    }
+
+    private Dictionary<string, object?> BuildRuleActionContext(AgentRule rule, IEnumerable<MessageState>? states)
+    {
+        var dict = new Dictionary<string, object?>();
+
+        if (rule.ActionConfig != null)
+        {
+            dict = ConvertToDictionary(rule.ActionConfig);
+        }
+        
+        if (!states.IsNullOrEmpty())
+        {
+            foreach (var state in states!)
+            {
+                dict[state.Key] = state.Value;
+            }
+        }
+        
+        return dict;
     }
 
     private async Task<RuleActionResult> ExecuteActionAsync(
@@ -96,12 +119,64 @@ public class RuleEngine : IRuleEngine
             _logger.LogInformation("Start execution rule action {ActionName} for agent {AgentId} with trigger {TriggerName}",
                 action.Name, agent.Id, trigger.Name);
 
-            return await action.ExecuteAsync(agent, trigger, context);
+            // Combine states
+            
+
+            var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
+            foreach (var hook in hooks)
+            {
+                await hook.BeforeRuleActionExecuted(agent, trigger, context);
+            }
+
+            // Execute action
+            var result =  await action.ExecuteAsync(agent, trigger, context);
+
+            foreach (var hook in hooks)
+            {
+                await hook.AfterRuleActionExecuted(agent, trigger, result);
+            }
+
+            return result;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error executing rule action {ActionName} for agent {AgentId}", actionName, agent.Id);
             return RuleActionResult.Failed(ex.Message);
         }
+    }
+
+    public static Dictionary<string, object?> ConvertToDictionary(JsonDocument doc)
+    {
+        var dict = new Dictionary<string, object?>();
+
+        foreach (var prop in doc.RootElement.EnumerateObject())
+        {
+            dict[prop.Name] = prop.Value.ValueKind switch
+            {
+                JsonValueKind.String => prop.Value.GetString(),
+                JsonValueKind.Number when prop.Value.TryGetInt32(out int intValue) => intValue,
+                JsonValueKind.Number when prop.Value.TryGetInt64(out long longValue) => longValue,
+                JsonValueKind.Number when prop.Value.TryGetDouble(out double doubleValue) => doubleValue,
+                JsonValueKind.Number when prop.Value.TryGetDecimal(out decimal decimalValue) => decimalValue,
+                JsonValueKind.Number when prop.Value.TryGetByte(out byte byteValue) => byteValue,
+                JsonValueKind.Number when prop.Value.TryGetSByte(out sbyte sbyteValue) => sbyteValue,
+                JsonValueKind.Number when prop.Value.TryGetUInt16(out ushort uint16Value) => uint16Value,
+                JsonValueKind.Number when prop.Value.TryGetUInt32(out uint uint32Value) => uint32Value,
+                JsonValueKind.Number when prop.Value.TryGetUInt64(out ulong uint64Value) => uint64Value,
+                JsonValueKind.Number when prop.Value.TryGetDateTime(out DateTime dateTimeValue) => dateTimeValue,
+                JsonValueKind.Number when prop.Value.TryGetDateTimeOffset(out DateTimeOffset dateTimeOffsetValue) => dateTimeOffsetValue,
+                JsonValueKind.Number when prop.Value.TryGetGuid(out Guid guidValue) => guidValue,
+                JsonValueKind.Number => prop.Value.GetRawText(),
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.Null => null,
+                JsonValueKind.Undefined => null,
+                JsonValueKind.Array => prop.Value,
+                JsonValueKind.Object => prop.Value,
+                _ => prop.Value
+            };
+        }
+
+        return dict;
     }
 }

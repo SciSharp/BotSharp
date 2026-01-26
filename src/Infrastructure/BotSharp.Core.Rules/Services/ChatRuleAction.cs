@@ -13,17 +13,20 @@ public sealed class ChatRuleAction : IRuleAction
         _logger = logger;
     }
 
-    public string Name => "Chat";
+    public string Name => "BotSharp-chat";
 
     public async Task<RuleActionResult> ExecuteAsync(
         Agent agent,
         IRuleTrigger trigger,
         RuleActionContext context)
     {
+        using var scope = _services.CreateScope();
+        var sp = scope.ServiceProvider;
+
         try
         {
             var channel = trigger.Channel;
-            var convService = _services.GetRequiredService<IConversationService>();
+            var convService = sp.GetRequiredService<IConversationService>();
             var conv = await convService.NewConversation(new Conversation
             {
                 Channel = channel,
@@ -40,7 +43,8 @@ public sealed class ChatRuleAction : IRuleAction
 
             if (!context.States.IsNullOrEmpty())
             {
-                allStates.AddRange(context.States!);
+                var states = context.States.Select(x => new MessageState(x.Key, x.Value));
+                allStates.AddRange(states);
             }
 
             await convService.SetConversationId(conv.Id, allStates);
