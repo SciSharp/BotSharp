@@ -41,7 +41,7 @@ public class FunctionCallRuleAction : IRuleAction
         return new RuleActionResult
         {
             Success = true,
-            Response = $"Function {funcName} is executed successfully."
+            Response = funcArg?.RichContent?.Message?.Text ?? funcArg?.Content
         };
     }
 }
