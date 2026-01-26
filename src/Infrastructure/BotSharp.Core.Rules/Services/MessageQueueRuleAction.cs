@@ -96,6 +96,11 @@ public sealed class MessageQueueRuleAction : IRuleAction
             qty = context.States.TryGetValueOrDefault("mq_delay_qty", 0.0);
         }
 
+        if (qty <= 0)
+        {
+            return 0L;
+        }
+
         var unit = context.States.TryGetValueOrDefault("mq_delay_unit", string.Empty) ?? string.Empty;
         unit = unit.ToLower();
 
