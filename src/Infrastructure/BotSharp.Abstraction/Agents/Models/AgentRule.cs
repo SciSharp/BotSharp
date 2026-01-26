@@ -14,7 +14,17 @@ public class AgentRule
     public string Criteria { get; set; } = string.Empty;
 
     [JsonPropertyName("action")]
-    public string? Action { get; set; }
+    public AgentRuleAction? Action { get; set; }
+}
+
+
+public class AgentRuleAction
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+
+    [JsonPropertyName("disabled")]
+    public bool Disabled { get; set; }
 
     /// <summary>
     /// Adaptive configuration for rule actions.
@@ -24,7 +34,7 @@ public class AgentRule
     /// - For "MessageQueue" action: contains mq_config with topic_name, routing_key, etc.
     /// - For custom actions: can contain any custom configuration structure
     /// </summary>
-    [JsonPropertyName("action_config")]
+    [JsonPropertyName("config")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public JsonDocument? ActionConfig { get; set; }
+    public JsonDocument? Config { get; set; }
 }

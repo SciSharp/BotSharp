@@ -55,7 +55,7 @@ public class RuleEngine : IRuleEngine
             }
 
             var foundRule = agent.Rules.FirstOrDefault(x => x.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled);
-            if (foundRule == null)
+            if (foundRule == null || foundRule.Action?.Disabled == false)
             {
                 continue;
             }
@@ -63,9 +63,11 @@ public class RuleEngine : IRuleEngine
             var context = new RuleActionContext
             {
                 Text = text,
-                States = BuildRuleActionContext(foundRule, states)
+                States = BuildRuleActionContext(foundRule.Action, states)
             };
-            var result = await ExecuteActionAsync(agent, trigger, foundRule.Action.IfNullOrEmptyAs("BotSharp-chat")!, context);
+
+            var action = foundRule?.Action?.Name ?? "BotSharp-chat";
+            var result = await ExecuteActionAsync(agent, trigger, action, context);
             if (result.Success && !string.IsNullOrEmpty(result.ConversationId))
             {
                 newConversationIds.Add(result.ConversationId);
@@ -75,13 +77,13 @@ public class RuleEngine : IRuleEngine
         return newConversationIds;
     }
 
-    private Dictionary<string, object?> BuildRuleActionContext(AgentRule rule, IEnumerable<MessageState>? states)
+    private Dictionary<string, object?> BuildRuleActionContext(AgentRuleAction? ruleAction, IEnumerable<MessageState>? states)
     {
         var dict = new Dictionary<string, object?>();
 
-        if (rule.ActionConfig != null)
+        if (ruleAction?.Config != null)
         {
-            dict = ConvertToDictionary(rule.ActionConfig);
+            dict = ConvertToDictionary(ruleAction.Config);
         }
         
         if (!states.IsNullOrEmpty())
@@ -118,9 +120,6 @@ public class RuleEngine : IRuleEngine
 
             _logger.LogInformation("Start execution rule action {ActionName} for agent {AgentId} with trigger {TriggerName}",
                 action.Name, agent.Id, trigger.Name);
-
-            // Combine states
-            
 
             var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
             foreach (var hook in hooks)
