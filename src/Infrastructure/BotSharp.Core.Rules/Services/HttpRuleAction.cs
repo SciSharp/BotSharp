@@ -100,10 +100,9 @@ public sealed class HttpRuleAction : IRuleAction
         }
 
         // Fill in placeholders in url
-        var strValues = context.States.Where(x => x.Value != null && x.Value is string);
-        foreach (var item in strValues)
+        foreach (var item in context.States)
         {
-            var value = item.Value as string;
+            var value = item.Value?.ToString();
             if (string.IsNullOrEmpty(value))
             {
                 continue; 
@@ -111,10 +110,8 @@ public sealed class HttpRuleAction : IRuleAction
             url = url.Replace($"{{{item.Key}}}", value);
         }
 
-        
-        var queryParams = context.States.TryGetValueOrDefault<IEnumerable<KeyValue>>("http_query_params");
-
         // Add query parameters
+        var queryParams = context.States.TryGetValueOrDefault<IEnumerable<KeyValue>>("http_query_params");
         if (!queryParams.IsNullOrEmpty())
         {
             var builder = new UriBuilder(url);

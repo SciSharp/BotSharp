@@ -34,7 +34,7 @@ public class AgentRuleMongoElement
     }
 }
 
-
+[BsonIgnoreExtraElements(Inherited = true)]
 public class AgentRuleActionMongModel
 {
     public string Name { get; set; }

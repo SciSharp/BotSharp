@@ -4,7 +4,7 @@ namespace BotSharp.Abstraction.Rules.Hooks;
 
 public class RuleTriggerHookBase : IRuleTriggerHook
 {
-    public string SelfId = string.Empty;
+    public string SelfId => string.Empty;
 
     public Task BeforeRuleActionExecuted(Agent agent, IRuleTrigger trigger, RuleActionContext context)
     {

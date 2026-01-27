@@ -55,7 +55,7 @@ public class RuleEngine : IRuleEngine
             }
 
             var foundRule = agent.Rules.FirstOrDefault(x => x.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled);
-            if (foundRule == null || foundRule.Action?.Disabled == false)
+            if (foundRule == null || foundRule.Action?.Disabled == true)
             {
                 continue;
             }
