@@ -24,8 +24,6 @@ public sealed class MessageQueueRuleAction : IRuleAction
     {
         try
         {
-            context.States ??= [];
-
             // Get message queue service
             var mqService = _services.GetService<IMQService>();
             if (mqService == null)

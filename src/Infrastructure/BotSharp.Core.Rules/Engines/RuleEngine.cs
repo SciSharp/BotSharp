@@ -22,7 +22,7 @@ public class RuleEngine : IRuleEngine
 
         // Pull all user defined rules
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agents = await agentService.GetAgents(new AgentFilter
+        var agents = await agentService.GetAgents(options?.AgentFilter ?? new AgentFilter
         {
             Pager = new Pagination
             {
@@ -34,11 +34,17 @@ public class RuleEngine : IRuleEngine
         var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled)).ToList();
         foreach (var agent in filteredAgents)
         {
+            var rule = agent.Rules.FirstOrDefault(x => x.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled);
+            if (rule == null)
+            {
+                continue;
+            }
+
             // Criteria validation
             if (options?.Criteria != null)
             {
                 var criteria = _services.GetServices<IRuleCriteria>()
-                                        .FirstOrDefault(x => x.Provider == (options?.Criteria?.Provider ?? "botsharp-rule-criteria"));
+                                        .FirstOrDefault(x => x.Provider == (options?.Criteria?.Provider ?? "BotSharp-rule-criteria"));
 
                 if (criteria == null)
                 {
@@ -49,13 +55,12 @@ public class RuleEngine : IRuleEngine
                 var isValid = await criteria.ValidateAsync(agent, trigger, options.Criteria);
                 if (!isValid)
                 {
-                    _logger.LogDebug("Criteria validation failed for agent {AgentId} with trigger {TriggerName}", agent.Id, trigger.Name);
+                    _logger.LogWarning("Criteria validation failed for agent {AgentId} with trigger {TriggerName}", agent.Id, trigger.Name);
                     continue;
                 }
             }
 
-            var foundRule = agent.Rules.FirstOrDefault(x => x.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled);
-            if (foundRule == null || foundRule.Action?.Disabled == true)
+            if (rule.Action?.Disabled == true)
             {
                 continue;
             }
@@ -63,10 +68,10 @@ public class RuleEngine : IRuleEngine
             var context = new RuleActionContext
             {
                 Text = text,
-                States = BuildRuleActionContext(foundRule.Action, states)
+                States = BuildRuleActionContext(rule.Action, states)
             };
 
-            var action = foundRule?.Action?.Name ?? "BotSharp-chat";
+            var action = rule?.Action?.Name ?? "BotSharp-chat";
             var result = await ExecuteActionAsync(agent, trigger, action, context);
             if (result.Success && !string.IsNullOrEmpty(result.ConversationId))
             {
@@ -128,6 +133,7 @@ public class RuleEngine : IRuleEngine
             }
 
             // Execute action
+            context.States ??= [];
             var result =  await action.ExecuteAsync(agent, trigger, context);
 
             foreach (var hook in hooks)

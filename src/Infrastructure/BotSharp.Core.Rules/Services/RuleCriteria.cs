@@ -18,7 +18,7 @@ public class RuleCriteria : IRuleCriteria
         _codingSettings = codingSettings;
     }
 
-    public string Provider => "botsharp-rule-criteria";
+    public string Provider => "BotSharp-rule-criteria";
 
     public async Task<bool> ValidateAsync(Agent agent, IRuleTrigger trigger, CriteriaExecuteOptions options)
     {

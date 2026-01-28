@@ -30,8 +30,6 @@ public sealed class HttpRuleAction : IRuleAction
     {
         try
         {
-            context.States ??= [];
-
             var httpMethod = GetHttpMethod(context);
             if (httpMethod == null)
             {
@@ -176,8 +174,8 @@ public sealed class HttpRuleAction : IRuleAction
 
     private string? GetHttpRequestBody(RuleActionContext context)
     {
-        var body = context.States.TryGetValueOrDefault<string>("http_request_body");
-        if (string.IsNullOrEmpty(body))
+        var body = context.States.GetValueOrDefault("http_request_body");
+        if (body == null)
         {
             return null;
         }

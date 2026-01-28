@@ -23,8 +23,6 @@ public class FunctionCallRuleAction : IRuleAction
         IRuleTrigger trigger,
         RuleActionContext context)
     {
-        context.States ??= [];
-
         var funcName = context.States.TryGetValueOrDefault("function_name", string.Empty);
         var func = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name.IsEqualTo(funcName));
 
