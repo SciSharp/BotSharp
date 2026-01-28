@@ -10,9 +10,6 @@ public class AgentRule
     [JsonPropertyName("disabled")]
     public bool Disabled { get; set; }
 
-    [JsonPropertyName("criteria")]
-    public string Criteria { get; set; } = string.Empty;
-
     [JsonPropertyName("rule_criteria")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AgentRuleCriteria? RuleCriteria { get; set; }
@@ -24,6 +21,13 @@ public class AgentRule
 
 public class AgentRuleCriteria : AgentRuleConfigBase
 {
+    /// <summary>
+    /// Criteria
+    /// </summary>
+    [JsonPropertyName("criteria_text")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string CriteriaText { get; set; } = string.Empty;
+
     /// <summary>
     /// Adaptive configuration for rule criteria.
     /// This flexible JSON document can store any criteria-specific configuration.

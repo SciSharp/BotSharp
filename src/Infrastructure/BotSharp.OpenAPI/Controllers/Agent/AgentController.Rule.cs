@@ -17,6 +17,12 @@ public partial class AgentController
         }).OrderBy(x => x.TriggerName);
     }
 
+    [HttpGet("/rule/criteria-providers")]
+    public async Task<IEnumerable<string>> GetRuleCriteriaProviders()
+    {
+        return _services.GetServices<IRuleCriteria>().Select(x => x.Provider).OrderBy(x => x);
+    }
+
     [HttpGet("/rule/actions")]
     public async Task<IEnumerable<string>> GetRuleActions()
     {

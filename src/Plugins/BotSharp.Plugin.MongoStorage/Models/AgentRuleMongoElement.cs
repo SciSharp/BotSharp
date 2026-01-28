@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Agents.Models;
-using System;
 using System.Text.Json;
 
 namespace BotSharp.Plugin.MongoStorage.Models;
@@ -9,7 +8,6 @@ public class AgentRuleMongoElement
 {
     public string TriggerName { get; set; } = default!;
     public bool Disabled { get; set; }
-    public string Criteria { get; set; } = default!;
     public AgentRuleCriteriaMongoModel? RuleCriteria { get; set; }
     public AgentRuleActionMongoModel? RuleAction { get; set; }
 
@@ -19,7 +17,6 @@ public class AgentRuleMongoElement
         {
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
-            Criteria = rule.Criteria,
             RuleCriteria = AgentRuleCriteriaMongoModel.ToMongoModel(rule.RuleCriteria),
             RuleAction = AgentRuleActionMongoModel.ToMongoModel(rule.RuleAction)
         };
@@ -31,7 +28,6 @@ public class AgentRuleMongoElement
         {
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
-            Criteria = rule.Criteria,
             RuleCriteria = AgentRuleCriteriaMongoModel.ToDomainModel(rule.RuleCriteria),
             RuleAction = AgentRuleActionMongoModel.ToDomainModel(rule.RuleAction)
         };
@@ -41,6 +37,8 @@ public class AgentRuleMongoElement
 [BsonIgnoreExtraElements(Inherited = true)]
 public class AgentRuleCriteriaMongoModel : AgentRuleConfigMongoModel
 {
+    public string CriteriaText { get; set; }
+
     public static AgentRuleCriteriaMongoModel? ToMongoModel(AgentRuleCriteria? criteria)
     {
         if (criteria == null)
@@ -51,6 +49,7 @@ public class AgentRuleCriteriaMongoModel : AgentRuleConfigMongoModel
         return new AgentRuleCriteriaMongoModel
         {
             Name = criteria.Name,
+            CriteriaText = criteria.CriteriaText,
             Disabled = criteria.Disabled,
             Config = criteria.Config != null ? BsonDocument.Parse(criteria.Config.RootElement.GetRawText()) : null
         };
@@ -66,6 +65,7 @@ public class AgentRuleCriteriaMongoModel : AgentRuleConfigMongoModel
         return new AgentRuleCriteria
         {
             Name = criteria.Name,
+            CriteriaText = criteria.CriteriaText,
             Disabled = criteria.Disabled,
             Config = criteria.Config != null ? JsonDocument.Parse(criteria.Config.ToJson()) : null
         };

@@ -41,15 +41,10 @@ public class RuleEngine : IRuleEngine
             }
 
             // Criteria validation
-            if (rule.RuleCriteria != null && !rule.RuleCriteria.Disabled)
+            if (!string.IsNullOrEmpty(rule.RuleCriteria?.Name) && !rule.RuleCriteria.Disabled)
             {
-                var criteriaContext = new RuleCriteriaContext
-                {
-                    Text = text,
-                    Parameters = BuildContextParameters(rule.RuleCriteria?.Config, states)
-                };
-                var criteriaResult = await ExecuteCriteriaAsync(agent, trigger, rule.RuleCriteria?.Name, criteriaContext);
-                if (criteriaResult == null || !criteriaResult.IsValid)
+                var criteriaResult = await ExecuteCriteriaAsync(agent, rule, trigger, rule.RuleCriteria?.Name, text, states);
+                if (criteriaResult?.IsValid == false)
                 {
                     _logger.LogWarning("Criteria validation failed for agent {AgentId} with trigger {TriggerName}", agent.Id, trigger.Name);
                     continue;
@@ -62,14 +57,8 @@ public class RuleEngine : IRuleEngine
                 continue; 
             }
 
-            var actionContext = new RuleActionContext
-            {
-                Text = text,
-                Parameters = BuildContextParameters(rule.RuleAction?.Config, states)
-            };
-
-            var action = rule?.RuleAction?.Name ?? RuleConstant.DEFAULT_ACTION_NAME;
-            var actionResult = await ExecuteActionAsync(agent, trigger, action, actionContext);
+            var actionName = rule?.RuleAction?.Name ?? RuleConstant.DEFAULT_ACTION_NAME;
+            var actionResult = await ExecuteActionAsync(agent, rule, trigger, actionName, text, states);
             if (actionResult?.Success == true && !string.IsNullOrEmpty(actionResult.ConversationId))
             {
                 newConversationIds.Add(actionResult.ConversationId);
@@ -81,12 +70,16 @@ public class RuleEngine : IRuleEngine
 
 
     #region Criteria
-    private async Task<RuleCriteriaResult?> ExecuteCriteriaAsync(
+    private async Task<RuleCriteriaResult> ExecuteCriteriaAsync(
         Agent agent,
+        AgentRule rule,
         IRuleTrigger trigger,
         string? criteriaProvider,
-        RuleCriteriaContext context)
+        string text,
+        IEnumerable<MessageState>? states)
     {
+        var result = new RuleCriteriaResult();
+
         try
         {
             var criteria = _services.GetServices<IRuleCriteria>()
@@ -94,8 +87,15 @@ public class RuleEngine : IRuleEngine
 
             if (criteria == null)
             {
-                return null;
+                return result;
             }
+
+
+            var context = new RuleCriteriaContext
+            {
+                Text = text,
+                Parameters = BuildContextParameters(rule.RuleCriteria?.Config, states)
+            };
 
             _logger.LogInformation("Start execution rule criteria {CriteriaProvider} for agent {AgentId} with trigger {TriggerName}",
                 criteria.Provider, agent.Id, trigger.Name);
@@ -108,7 +108,7 @@ public class RuleEngine : IRuleEngine
 
             // Execute criteria
             context.Parameters ??= [];
-            var result = await criteria.ValidateAsync(agent, trigger, context);
+            result = await criteria.ValidateAsync(agent, trigger, context);
 
             foreach (var hook in hooks)
             {
@@ -120,7 +120,7 @@ public class RuleEngine : IRuleEngine
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error executing rule criteria {CriteriaProvider} for agent {AgentId}", criteriaProvider ?? string.Empty, agent.Id);
-            return null;
+            return result;
         }
     }
     #endregion
@@ -129,9 +129,11 @@ public class RuleEngine : IRuleEngine
     #region Action
     private async Task<RuleActionResult> ExecuteActionAsync(
         Agent agent,
+        AgentRule rule,
         IRuleTrigger trigger,
-        string actionName,
-        RuleActionContext context)
+        string? actionName,
+        string text,
+        IEnumerable<MessageState>? states)
     {
         try
         {
@@ -147,6 +149,12 @@ public class RuleEngine : IRuleEngine
                 _logger.LogWarning(errorMsg);
                 return RuleActionResult.Failed(errorMsg);
             }
+
+            var context = new RuleActionContext
+            {
+                Text = text,
+                Parameters = BuildContextParameters(rule.RuleAction?.Config, states)
+            };
 
             _logger.LogInformation("Start execution rule action {ActionName} for agent {AgentId} with trigger {TriggerName}",
                 action.Name, agent.Id, trigger.Name);
@@ -198,7 +206,7 @@ public class RuleEngine : IRuleEngine
         return dict;
     }
 
-    private Dictionary<string, object?> ConvertToDictionary(JsonDocument doc)
+    private static Dictionary<string, object?> ConvertToDictionary(JsonDocument doc)
     {
         var dict = new Dictionary<string, object?>();
 

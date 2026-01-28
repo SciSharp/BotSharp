@@ -22,7 +22,7 @@ public class RuleController : ControllerBase
         _ruleEngine = ruleEngine;
     }
 
-    [HttpPost("/rule/trigger/run")]
+    [HttpPost("/rule/trigger/action")]
     public async Task<IActionResult> RunAction([FromBody] RuleTriggerActionRequest request)
     {
         if (request == null)
