@@ -1,6 +1,11 @@
+using AgentSkillsDotNet;
 using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.AgentSkills.Functions;
+using EntityFrameworkCore.BootKit;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Plugin.AgentSkills;
@@ -19,22 +24,31 @@ public class AgentSkillsPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        // 修复：使用 Get<T> 获取配置对象
+        AgentSkillsSettings agentskillSettings = config.GetSection("AgentSkills").Get<AgentSkillsSettings>();
         // Register settings
         services.AddScoped(provider =>
         {
             var settingService = provider.GetRequiredService<ISettingService>();
-            return settingService.Bind<AgentSkillsSettings>("AgentSkills");
+            return agentskillSettings = settingService.Bind<AgentSkillsSettings>("AgentSkills");
+        }); 
+        var skillFactory = new AgentSkillsFactory();
+        var agentSkills = skillFactory.GetAgentSkills(agentskillSettings.ProjectSkillsDir);
+        services.AddSingleton(skillFactory);
+
+        IList<AITool> tools = agentSkills.GetAsTools(AgentSkillsAsToolsStrategy.AvailableSkillsAndLookupTools, new AgentSkillsAsToolsOptions
+        {
+            IncludeToolForFileContentRead = false
         });
 
-        // Register skill loader
-        services.AddScoped<SkillLoader>();
+        foreach (var tool in tools) {
+            services.AddSingleton<AIFunction>(tool as AIFunction);
+            services.AddScoped<IFunctionCallback>(sp =>
+                new AIToolCallbackAdapter(tool as AIFunction , sp));
+        }
 
-        // Register hooks
-        services.AddScoped<IAgentUtilityHook, AgentSkillsUtilityHook>();
-
-        // Register function callbacks
-        services.AddScoped<IFunctionCallback, ReadSkillFn>();
-        services.AddScoped<IFunctionCallback, ReadSkillFileFn>();
-        services.AddScoped<IFunctionCallback, ListSkillDirectoryFn>();
+        // 注册 BotSharp Hook
+        services.AddScoped<IAgentHook, AgentSkillsIntegrationHook>();
+        services.AddScoped<IConversationHook,AgentSkillsConversationHook>();
     }
 }

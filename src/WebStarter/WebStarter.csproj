@@ -92,7 +92,6 @@
   <ItemGroup>
     <Folder Include="logs\" />
     <Folder Include="Properties\PublishProfiles\" />
-    <Folder Include="skills\" />
   </ItemGroup>
   
 </Project>
