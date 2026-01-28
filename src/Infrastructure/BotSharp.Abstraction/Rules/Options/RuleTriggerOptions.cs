@@ -8,9 +8,4 @@ public class RuleTriggerOptions
     /// Filter agents
     /// </summary>
     public AgentFilter? AgentFilter { get; set; }
-
-    /// <summary>
-    /// Criteria options for validating whether the rule should be triggered
-    /// </summary>
-    public RuleCriteriaOptions? Criteria { get; set; }
 }

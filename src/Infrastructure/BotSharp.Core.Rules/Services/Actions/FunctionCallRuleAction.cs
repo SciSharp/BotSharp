@@ -1,7 +1,6 @@
-
 using BotSharp.Abstraction.Functions;
 
-namespace BotSharp.Core.Rules.Services;
+namespace BotSharp.Core.Rules.Services.Actions;
 
 public class FunctionCallRuleAction : IRuleAction
 {
@@ -23,7 +22,7 @@ public class FunctionCallRuleAction : IRuleAction
         IRuleTrigger trigger,
         RuleActionContext context)
     {
-        var funcName = context.States.TryGetValueOrDefault("function_name", string.Empty);
+        var funcName = context.Parameters.TryGetValueOrDefault("function_name", string.Empty);
         var func = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name.IsEqualTo(funcName));
 
         if (func == null)
@@ -33,7 +32,7 @@ public class FunctionCallRuleAction : IRuleAction
             return RuleActionResult.Failed(errorMsg);
         }
 
-        var funcArg = context.States.TryGetValueOrDefault<RoleDialogModel>("function_argument") ?? new();
+        var funcArg = context.Parameters.TryGetValueOrDefault<RoleDialogModel>("function_argument") ?? new();
         await func.Execute(funcArg);
 
         return new RuleActionResult

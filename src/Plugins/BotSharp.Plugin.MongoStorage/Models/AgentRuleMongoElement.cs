@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using System;
 using System.Text.Json;
 
 namespace BotSharp.Plugin.MongoStorage.Models;
@@ -9,7 +10,8 @@ public class AgentRuleMongoElement
     public string TriggerName { get; set; } = default!;
     public bool Disabled { get; set; }
     public string Criteria { get; set; } = default!;
-    public AgentRuleActionMongModel? Action { get; set; }
+    public AgentRuleCriteriaMongoModel? RuleCriteria { get; set; }
+    public AgentRuleActionMongoModel? RuleAction { get; set; }
 
     public static AgentRuleMongoElement ToMongoElement(AgentRule rule)
     {
@@ -18,7 +20,8 @@ public class AgentRuleMongoElement
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
             Criteria = rule.Criteria,
-            Action = AgentRuleActionMongModel.ToMongoModel(rule.Action)
+            RuleCriteria = AgentRuleCriteriaMongoModel.ToMongoModel(rule.RuleCriteria),
+            RuleAction = AgentRuleActionMongoModel.ToMongoModel(rule.RuleAction)
         };
     }
 
@@ -29,26 +32,57 @@ public class AgentRuleMongoElement
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
             Criteria = rule.Criteria,
-            Action = AgentRuleActionMongModel.ToDomainModel(rule.Action)
+            RuleCriteria = AgentRuleCriteriaMongoModel.ToDomainModel(rule.RuleCriteria),
+            RuleAction = AgentRuleActionMongoModel.ToDomainModel(rule.RuleAction)
         };
     }
 }
 
 [BsonIgnoreExtraElements(Inherited = true)]
-public class AgentRuleActionMongModel
+public class AgentRuleCriteriaMongoModel : AgentRuleConfigMongoModel
 {
-    public string Name { get; set; }
-    public bool Disabled { get; set; }
-    public BsonDocument? Config { get; set; }
+    public static AgentRuleCriteriaMongoModel? ToMongoModel(AgentRuleCriteria? criteria)
+    {
+        if (criteria == null)
+        {
+            return null;
+        }
 
-    public static AgentRuleActionMongModel? ToMongoModel(AgentRuleAction? action)
+        return new AgentRuleCriteriaMongoModel
+        {
+            Name = criteria.Name,
+            Disabled = criteria.Disabled,
+            Config = criteria.Config != null ? BsonDocument.Parse(criteria.Config.RootElement.GetRawText()) : null
+        };
+    }
+
+    public static AgentRuleCriteria? ToDomainModel(AgentRuleCriteriaMongoModel? criteria)
+    {
+        if (criteria == null)
+        {
+            return null;
+        }
+
+        return new AgentRuleCriteria
+        {
+            Name = criteria.Name,
+            Disabled = criteria.Disabled,
+            Config = criteria.Config != null ? JsonDocument.Parse(criteria.Config.ToJson()) : null
+        };
+    }
+}
+
+[BsonIgnoreExtraElements(Inherited = true)]
+public class AgentRuleActionMongoModel : AgentRuleConfigMongoModel
+{
+    public static AgentRuleActionMongoModel? ToMongoModel(AgentRuleAction? action)
     {
         if (action == null)
         {
             return null;
         }
 
-        return new AgentRuleActionMongModel
+        return new AgentRuleActionMongoModel
         {
             Name = action.Name,
             Disabled = action.Disabled,
@@ -56,7 +90,7 @@ public class AgentRuleActionMongModel
         };
     }
 
-    public static AgentRuleAction? ToDomainModel(AgentRuleActionMongModel? action)
+    public static AgentRuleAction? ToDomainModel(AgentRuleActionMongoModel? action)
     {
         if (action == null)
         {
@@ -70,4 +104,12 @@ public class AgentRuleActionMongModel
             Config = action.Config != null ? JsonDocument.Parse(action.Config.ToJson()) : null
         };
     }
+}
+
+[BsonIgnoreExtraElements(Inherited = true)]
+public class AgentRuleConfigMongoModel
+{
+    public string Name { get; set; }
+    public bool Disabled { get; set; }
+    public BsonDocument? Config { get; set; }
 }

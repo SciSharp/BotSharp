@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Rules.Hooks;
+using System.Data;
 using System.Text.Json;
 
 namespace BotSharp.Core.Rules.Engines;
@@ -41,67 +41,92 @@ public class RuleEngine : IRuleEngine
             }
 
             // Criteria validation
-            if (options?.Criteria != null)
+            if (rule.RuleCriteria != null && !rule.RuleCriteria.Disabled)
             {
-                var criteria = _services.GetServices<IRuleCriteria>()
-                                        .FirstOrDefault(x => x.Provider == (options?.Criteria?.Provider ?? "BotSharp-rule-criteria"));
-
-                if (criteria == null)
+                var criteriaContext = new RuleCriteriaContext
                 {
-                    _logger.LogWarning("No criteria provider found for {Provider}, skipping agent {AgentId}", options.Criteria.Provider, agent.Id);
-                    continue;
-                }
-
-                var isValid = await criteria.ValidateAsync(agent, trigger, options.Criteria);
-                if (!isValid)
+                    Text = text,
+                    Parameters = BuildContextParameters(rule.RuleCriteria?.Config, states)
+                };
+                var criteriaResult = await ExecuteCriteriaAsync(agent, trigger, rule.RuleCriteria?.Name, criteriaContext);
+                if (criteriaResult == null || !criteriaResult.IsValid)
                 {
                     _logger.LogWarning("Criteria validation failed for agent {AgentId} with trigger {TriggerName}", agent.Id, trigger.Name);
                     continue;
                 }
             }
-
-            if (rule.Action?.Disabled == true)
+            
+            // Execute action
+            if (rule.RuleAction?.Disabled == true)
             {
-                continue;
+                continue; 
             }
 
-            var context = new RuleActionContext
+            var actionContext = new RuleActionContext
             {
                 Text = text,
-                States = BuildRuleActionContext(rule.Action, states)
+                Parameters = BuildContextParameters(rule.RuleAction?.Config, states)
             };
 
-            var action = rule?.Action?.Name ?? "BotSharp-chat";
-            var result = await ExecuteActionAsync(agent, trigger, action, context);
-            if (result.Success && !string.IsNullOrEmpty(result.ConversationId))
+            var action = rule?.RuleAction?.Name ?? RuleConstant.DEFAULT_ACTION_NAME;
+            var actionResult = await ExecuteActionAsync(agent, trigger, action, actionContext);
+            if (actionResult?.Success == true && !string.IsNullOrEmpty(actionResult.ConversationId))
             {
-                newConversationIds.Add(result.ConversationId);
+                newConversationIds.Add(actionResult.ConversationId);
             }
         }
 
         return newConversationIds;
     }
 
-    private Dictionary<string, object?> BuildRuleActionContext(AgentRuleAction? ruleAction, IEnumerable<MessageState>? states)
+
+    #region Criteria
+    private async Task<RuleCriteriaResult?> ExecuteCriteriaAsync(
+        Agent agent,
+        IRuleTrigger trigger,
+        string? criteriaProvider,
+        RuleCriteriaContext context)
     {
-        var dict = new Dictionary<string, object?>();
+        try
+        {
+            var criteria = _services.GetServices<IRuleCriteria>()
+                                    .FirstOrDefault(x => x.Provider == criteriaProvider);
 
-        if (ruleAction?.Config != null)
-        {
-            dict = ConvertToDictionary(ruleAction.Config);
-        }
-        
-        if (!states.IsNullOrEmpty())
-        {
-            foreach (var state in states!)
+            if (criteria == null)
             {
-                dict[state.Key] = state.Value;
+                return null;
             }
-        }
-        
-        return dict;
-    }
 
+            _logger.LogInformation("Start execution rule criteria {CriteriaProvider} for agent {AgentId} with trigger {TriggerName}",
+                criteria.Provider, agent.Id, trigger.Name);
+
+            var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
+            foreach (var hook in hooks)
+            {
+                await hook.BeforeRuleCriteriaExecuted(agent, trigger, context);
+            }
+
+            // Execute criteria
+            context.Parameters ??= [];
+            var result = await criteria.ValidateAsync(agent, trigger, context);
+
+            foreach (var hook in hooks)
+            {
+                await hook.AfterRuleCriteriaExecuted(agent, trigger, result);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing rule criteria {CriteriaProvider} for agent {AgentId}", criteriaProvider ?? string.Empty, agent.Id);
+            return null;
+        }
+    }
+    #endregion
+
+
+    #region Action
     private async Task<RuleActionResult> ExecuteActionAsync(
         Agent agent,
         IRuleTrigger trigger,
@@ -133,8 +158,8 @@ public class RuleEngine : IRuleEngine
             }
 
             // Execute action
-            context.States ??= [];
-            var result =  await action.ExecuteAsync(agent, trigger, context);
+            context.Parameters ??= [];
+            var result = await action.ExecuteAsync(agent, trigger, context);
 
             foreach (var hook in hooks)
             {
@@ -149,8 +174,31 @@ public class RuleEngine : IRuleEngine
             return RuleActionResult.Failed(ex.Message);
         }
     }
+    #endregion
 
-    public static Dictionary<string, object?> ConvertToDictionary(JsonDocument doc)
+
+    #region Private methods
+    private Dictionary<string, object?> BuildContextParameters(JsonDocument? config, IEnumerable<MessageState>? states)
+    {
+        var dict = new Dictionary<string, object?>();
+
+        if (config != null)
+        {
+            dict = ConvertToDictionary(config);
+        }
+
+        if (!states.IsNullOrEmpty())
+        {
+            foreach (var state in states!)
+            {
+                dict[state.Key] = state.Value;
+            }
+        }
+
+        return dict;
+    }
+
+    private Dictionary<string, object?> ConvertToDictionary(JsonDocument doc)
     {
         var dict = new Dictionary<string, object?>();
 
@@ -183,5 +231,6 @@ public class RuleEngine : IRuleEngine
         }
 
         return dict;
+        #endregion
     }
 }

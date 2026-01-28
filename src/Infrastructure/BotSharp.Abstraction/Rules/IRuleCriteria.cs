@@ -1,9 +1,11 @@
+using BotSharp.Abstraction.Rules.Models;
+
 namespace BotSharp.Abstraction.Rules;
 
 public interface IRuleCriteria
 {
     string Provider { get; }
 
-    Task<bool> ValidateAsync(Agent agent, IRuleTrigger trigger, CriteriaExecuteOptions options)
-        => Task.FromResult(false);
+    Task<RuleCriteriaResult> ValidateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context)
+        => Task.FromResult(new RuleCriteriaResult());
 }

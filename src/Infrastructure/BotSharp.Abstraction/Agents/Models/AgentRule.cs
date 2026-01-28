@@ -13,20 +13,29 @@ public class AgentRule
     [JsonPropertyName("criteria")]
     public string Criteria { get; set; } = string.Empty;
 
-    [JsonPropertyName("action")]
+    [JsonPropertyName("rule_criteria")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public AgentRuleAction? Action { get; set; }
+    public AgentRuleCriteria? RuleCriteria { get; set; }
+
+    [JsonPropertyName("rule_action")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public AgentRuleAction? RuleAction { get; set; }
 }
 
-
-public class AgentRuleAction
+public class AgentRuleCriteria : AgentRuleConfigBase
 {
-    [JsonPropertyName("name")]
-    public string Name { get; set; }
+    /// <summary>
+    /// Adaptive configuration for rule criteria.
+    /// This flexible JSON document can store any criteria-specific configuration.
+    /// The structure depends on the criteria executor
+    /// </summary>
+    [JsonPropertyName("config")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public override JsonDocument? Config { get; set; }
+}
 
-    [JsonPropertyName("disabled")]
-    public bool Disabled { get; set; }
-
+public class AgentRuleAction : AgentRuleConfigBase
+{
     /// <summary>
     /// Adaptive configuration for rule actions.
     /// This flexible JSON document can store any action-specific configuration.
@@ -37,5 +46,18 @@ public class AgentRuleAction
     /// </summary>
     [JsonPropertyName("config")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public JsonDocument? Config { get; set; }
+    public override JsonDocument? Config { get; set; }
+}
+
+public class AgentRuleConfigBase
+{
+    [JsonPropertyName("name")]
+    public virtual string Name { get; set; }
+
+    [JsonPropertyName("disabled")]
+    public virtual bool Disabled { get; set; }
+
+    [JsonPropertyName("config")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public virtual JsonDocument? Config { get; set; }
 }

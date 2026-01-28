@@ -3,7 +3,7 @@ using System.Net.Mime;
 using System.Text.Json;
 using System.Web;
 
-namespace BotSharp.Core.Rules.Services;
+namespace BotSharp.Core.Rules.Services.Actions;
 
 public sealed class HttpRuleAction : IRuleAction
 {
@@ -91,25 +91,25 @@ public sealed class HttpRuleAction : IRuleAction
 
     private string BuildUrl(RuleActionContext context)
     {
-        var url = context.States.TryGetValueOrDefault<string>("http_url");
+        var url = context.Parameters.TryGetValueOrDefault<string>("http_url");
         if (string.IsNullOrEmpty(url))
         {
             throw new ArgumentNullException("Unable to find http_url in context");
         }
 
         // Fill in placeholders in url
-        foreach (var item in context.States)
+        foreach (var param in context.Parameters)
         {
-            var value = item.Value?.ToString();
+            var value = param.Value?.ToString();
             if (string.IsNullOrEmpty(value))
             {
                 continue; 
             }
-            url = url.Replace($"{{{item.Key}}}", value);
+            url = url.Replace($"{{{param.Key}}}", value);
         }
 
         // Add query parameters
-        var queryParams = context.States.TryGetValueOrDefault<IEnumerable<KeyValue>>("http_query_params");
+        var queryParams = context.Parameters.TryGetValueOrDefault<IEnumerable<KeyValue>>("http_query_params");
         if (!queryParams.IsNullOrEmpty())
         {
             var builder = new UriBuilder(url);
@@ -131,7 +131,7 @@ public sealed class HttpRuleAction : IRuleAction
 
     private HttpMethod? GetHttpMethod(RuleActionContext context)
     {
-        var method = context.States.TryGetValueOrDefault("http_method", string.Empty);
+        var method = context.Parameters.TryGetValueOrDefault("http_method", string.Empty);
         var innerMethod = method?.Trim()?.ToUpper();
         HttpMethod? matchMethod = null;
 
@@ -162,7 +162,7 @@ public sealed class HttpRuleAction : IRuleAction
 
     private void AddHttpHeaders(HttpClient client, RuleActionContext context)
     {
-        var headerParams = context.States.TryGetValueOrDefault<IEnumerable<KeyValue>>("http_headers");
+        var headerParams = context.Parameters.TryGetValueOrDefault<IEnumerable<KeyValue>>("http_headers");
         if (!headerParams.IsNullOrEmpty())
         {
             foreach (var header in headerParams!)
@@ -174,7 +174,7 @@ public sealed class HttpRuleAction : IRuleAction
 
     private string? GetHttpRequestBody(RuleActionContext context)
     {
-        var body = context.States.GetValueOrDefault("http_request_body");
+        var body = context.Parameters.GetValueOrDefault("http_request_body");
         if (body == null)
         {
             return null;

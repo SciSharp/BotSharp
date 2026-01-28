@@ -1,6 +1,6 @@
 using BotSharp.Core.Rules.Models;
 
-namespace BotSharp.Core.Rules.Services;
+namespace BotSharp.Core.Rules.Services.Actions;
 
 public sealed class MessageQueueRuleAction : IRuleAction
 {
@@ -41,7 +41,7 @@ public sealed class MessageQueueRuleAction : IRuleAction
                 Channel = trigger.Channel,
                 Text = context.Text,
                 Timestamp = DateTime.UtcNow,
-                States = context.States
+                States = context.Parameters
             };
 
             // Publish message to queue
@@ -74,8 +74,8 @@ public sealed class MessageQueueRuleAction : IRuleAction
 
     private MQPublishOptions GetMQPublishOptions(RuleActionContext context)
     {
-        var topicName = context.States.TryGetValueOrDefault("mq_topic_name", string.Empty);
-        var routingKey = context.States.TryGetValueOrDefault("mq_routing_key", string.Empty);
+        var topicName = context.Parameters.TryGetValueOrDefault("mq_topic_name", string.Empty);
+        var routingKey = context.Parameters.TryGetValueOrDefault("mq_routing_key", string.Empty);
         var delayMilliseconds = ParseDelay(context);
 
         return new MQPublishOptions
@@ -88,10 +88,10 @@ public sealed class MessageQueueRuleAction : IRuleAction
 
     private long ParseDelay(RuleActionContext context)
     {
-        var qty = (double)context.States.TryGetValueOrDefault("mq_delay_qty", 0);
+        var qty = (double)context.Parameters.TryGetValueOrDefault("mq_delay_qty", 0);
         if (qty == 0)
         {
-            qty = context.States.TryGetValueOrDefault("mq_delay_qty", 0.0);
+            qty = context.Parameters.TryGetValueOrDefault("mq_delay_qty", 0.0);
         }
 
         if (qty <= 0)
@@ -99,7 +99,7 @@ public sealed class MessageQueueRuleAction : IRuleAction
             return 0L;
         }
 
-        var unit = context.States.TryGetValueOrDefault("mq_delay_unit", string.Empty) ?? string.Empty;
+        var unit = context.Parameters.TryGetValueOrDefault("mq_delay_unit", string.Empty) ?? string.Empty;
         unit = unit.ToLower();
 
         var milliseconds = 0L;

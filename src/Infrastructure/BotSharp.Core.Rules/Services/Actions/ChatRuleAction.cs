@@ -1,4 +1,4 @@
-namespace BotSharp.Core.Rules.Services;
+namespace BotSharp.Core.Rules.Services.Actions;
 
 public sealed class ChatRuleAction : IRuleAction
 {
@@ -13,7 +13,7 @@ public sealed class ChatRuleAction : IRuleAction
         _logger = logger;
     }
 
-    public string Name => "BotSharp-chat";
+    public string Name => RuleConstant.DEFAULT_ACTION_NAME;
 
     public async Task<RuleActionResult> ExecuteAsync(
         Agent agent,
@@ -41,9 +41,9 @@ public sealed class ChatRuleAction : IRuleAction
                 new("channel", channel)
             };
 
-            if (!context.States.IsNullOrEmpty())
+            if (!context.Parameters.IsNullOrEmpty())
             {
-                var states = context.States.Select(x => new MessageState(x.Key, x.Value));
+                var states = context.Parameters.Select(x => new MessageState(x.Key, x.Value));
                 allStates.AddRange(states);
             }
 

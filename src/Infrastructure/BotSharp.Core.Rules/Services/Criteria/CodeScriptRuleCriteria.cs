@@ -1,16 +1,16 @@
 using System.Text.Json;
 
-namespace BotSharp.Core.Rules.Services;
+namespace BotSharp.Core.Rules.Services.Criteria;
 
-public class RuleCriteria : IRuleCriteria
+public class CodeScriptRuleCriteria : IRuleCriteria
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<RuleCriteria> _logger;
+    private readonly ILogger<CodeScriptRuleCriteria> _logger;
     private readonly CodingSettings _codingSettings;
 
-    public RuleCriteria(
+    public CodeScriptRuleCriteria(
         IServiceProvider services,
-        ILogger<RuleCriteria> logger,
+        ILogger<CodeScriptRuleCriteria> logger,
         CodingSettings codingSettings)
     {
         _services = services;
@@ -18,41 +18,45 @@ public class RuleCriteria : IRuleCriteria
         _codingSettings = codingSettings;
     }
 
-    public string Provider => "BotSharp-rule-criteria";
+    public string Provider => RuleConstant.DEFAULT_CRITERIA_PROVIDER;
 
-    public async Task<bool> ValidateAsync(Agent agent, IRuleTrigger trigger, CriteriaExecuteOptions options)
+    public async Task<RuleCriteriaResult> ValidateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context)
     {
+        var result = new RuleCriteriaResult();
+
         if (string.IsNullOrWhiteSpace(agent?.Id))
         {
-            return false;
+            return result;
         }
 
-        var provider = options.CodeProcessor ?? BuiltInCodeProcessor.PyInterpreter;
+        var provider = context.Parameters.TryGetValueOrDefault<string>("code_processor") ?? BuiltInCodeProcessor.PyInterpreter;
         var processor = _services.GetServices<ICodeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
         if (processor == null)
         {
             _logger.LogWarning($"Unable to find code processor: {provider}.");
-            return false;
+            return result;
         }
 
         var agentService = _services.GetRequiredService<IAgentService>();
-        var scriptName = options.CodeScriptName ?? $"{trigger.Name}_rule.py";
+        var scriptName = context.Parameters.TryGetValueOrDefault<string>("code_script_name") ?? $"{trigger.Name}_rule.py";
         var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
 
-        var msg = $"rule trigger ({trigger.Name}) code script ({scriptName}) in agent ({agent.Name}) => args: {options.ArgumentContent?.RootElement.GetRawText()}.";
+        var msg = $"rule trigger ({trigger.Name}) code script ({scriptName}) in agent ({agent.Name}).";
 
         if (codeScript == null || string.IsNullOrWhiteSpace(codeScript.Content))
         {
             _logger.LogWarning($"Unable to find {msg}.");
-            return false;
+            return result;
         }
 
         try
         {
             var hooks = _services.GetHooks<IInstructHook>(agent.Id);
 
-            var arguments = BuildArguments(options.ArgumentName, options.ArgumentContent);
-            var context = new CodeExecutionContext
+            var argName = context.Parameters.TryGetValueOrDefault<string>("argument_name");
+            var argValue = context.Parameters.TryGetValueOrDefault<JsonElement?>("argument_value");
+            var arguments = BuildArguments(argName, argValue);
+            var codeExeContext = new CodeExecutionContext
             {
                 CodeScript = codeScript,
                 Arguments = arguments
@@ -60,7 +64,7 @@ public class RuleCriteria : IRuleCriteria
 
             foreach (var hook in hooks)
             {
-                await hook.BeforeCodeExecution(agent, context);
+                await hook.BeforeCodeExecution(agent, codeExeContext);
             }
 
             var (useLock, useProcess, timeoutSeconds) = CodingUtil.GetCodeExecutionConfig(_codingSettings);
@@ -89,20 +93,19 @@ public class RuleCriteria : IRuleCriteria
             if (response == null || !response.Success)
             {
                 _logger.LogWarning($"Failed to handle {msg}");
-                return false;
+                return result;
             }
 
-            bool result;
             LogLevel logLevel;
             if (response.Result.IsEqualTo("true"))
             {
                 logLevel = LogLevel.Information;
-                result = true;
+                result.Success = true;
+                result.IsValid = true;
             }
             else
             {
                 logLevel = LogLevel.Warning;
-                result = false;
             }
 
             _logger.Log(logLevel, $"Code script execution result ({response}) from {msg}");
@@ -111,16 +114,16 @@ public class RuleCriteria : IRuleCriteria
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error when handling {msg}");
-            return false;
+            return result;
         }
     }
 
-    private List<KeyValue> BuildArguments(string? name, JsonDocument? args)
+    private List<KeyValue> BuildArguments(string? name, JsonElement? args)
     {
         var keyValues = new List<KeyValue>();
         if (args != null)
         {
-            keyValues.Add(new KeyValue(name ?? "trigger_args", args.RootElement.GetRawText()));
+            keyValues.Add(new KeyValue(name ?? "trigger_args", args.Value.GetRawText()));
         }
         return keyValues;
     }

@@ -31,4 +31,9 @@ public class CriteriaExecuteOptions
     /// Json arguments as an input value to the code script
     /// </summary>
     public JsonDocument? ArgumentContent { get; set; }
+
+    /// <summary>
+    /// Custom parameters
+    /// </summary>
+    public Dictionary<string, object?> Parameters { get; set; } = [];
 }
