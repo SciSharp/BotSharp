@@ -43,7 +43,7 @@ public class RuleEngine : IRuleEngine
             // Criteria validation
             if (!string.IsNullOrEmpty(rule.RuleCriteria?.Name) && !rule.RuleCriteria.Disabled)
             {
-                var criteriaResult = await ExecuteCriteriaAsync(agent, rule, trigger, rule.RuleCriteria?.Name, text, states);
+                var criteriaResult = await ExecuteCriteriaAsync(agent, rule, trigger, rule.RuleCriteria?.Name, text, states, options);
                 if (criteriaResult?.IsValid == false)
                 {
                     _logger.LogWarning("Criteria validation failed for agent {AgentId} with trigger {TriggerName}", agent.Id, trigger.Name);
@@ -58,7 +58,7 @@ public class RuleEngine : IRuleEngine
             }
 
             var actionName = rule?.RuleAction?.Name ?? RuleConstant.DEFAULT_ACTION_NAME;
-            var actionResult = await ExecuteActionAsync(agent, rule, trigger, actionName, text, states);
+            var actionResult = await ExecuteActionAsync(agent, rule, trigger, actionName, text, states, options);
             if (actionResult?.Success == true && !string.IsNullOrEmpty(actionResult.ConversationId))
             {
                 newConversationIds.Add(actionResult.ConversationId);
@@ -76,7 +76,8 @@ public class RuleEngine : IRuleEngine
         IRuleTrigger trigger,
         string? criteriaProvider,
         string text,
-        IEnumerable<MessageState>? states)
+        IEnumerable<MessageState>? states,
+        RuleTriggerOptions? triggerOptions)
     {
         var result = new RuleCriteriaResult();
 
@@ -94,7 +95,8 @@ public class RuleEngine : IRuleEngine
             var context = new RuleCriteriaContext
             {
                 Text = text,
-                Parameters = BuildContextParameters(rule.RuleCriteria?.Config, states)
+                Parameters = BuildContextParameters(rule.RuleCriteria?.Config, states),
+                JsonOptions = triggerOptions?.JsonOptions
             };
 
             _logger.LogInformation("Start execution rule criteria {CriteriaProvider} for agent {AgentId} with trigger {TriggerName}",
@@ -133,7 +135,8 @@ public class RuleEngine : IRuleEngine
         IRuleTrigger trigger,
         string? actionName,
         string text,
-        IEnumerable<MessageState>? states)
+        IEnumerable<MessageState>? states,
+        RuleTriggerOptions? triggerOptions)
     {
         try
         {
@@ -153,7 +156,8 @@ public class RuleEngine : IRuleEngine
             var context = new RuleActionContext
             {
                 Text = text,
-                Parameters = BuildContextParameters(rule.RuleAction?.Config, states)
+                Parameters = BuildContextParameters(rule.RuleAction?.Config, states),
+                JsonOptions = triggerOptions?.JsonOptions
             };
 
             _logger.LogInformation("Start execution rule action {ActionName} for agent {AgentId} with trigger {TriggerName}",

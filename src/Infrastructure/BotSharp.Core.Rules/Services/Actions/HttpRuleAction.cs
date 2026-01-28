@@ -1,6 +1,6 @@
-using BotSharp.Abstraction.Options;
 using System.Net.Mime;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Web;
 
 namespace BotSharp.Core.Rules.Services.Actions;
@@ -10,6 +10,14 @@ public sealed class HttpRuleAction : IRuleAction
     private readonly IServiceProvider _services;
     private readonly ILogger<HttpRuleAction> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+
+    private readonly JsonSerializerOptions _defaultJsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        AllowTrailingCommas = true,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles
+    };
 
     public HttpRuleAction(
         IServiceProvider services,
@@ -180,7 +188,7 @@ public sealed class HttpRuleAction : IRuleAction
             return null;
         }
 
-        return JsonSerializer.Serialize(body, BotSharpOptions.defaultJsonOptions);
+        return JsonSerializer.Serialize(body, context.JsonOptions ?? _defaultJsonOptions);
     }
 }
 

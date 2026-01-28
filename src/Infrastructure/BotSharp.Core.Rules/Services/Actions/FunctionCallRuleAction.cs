@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Functions;
 
 namespace BotSharp.Core.Rules.Services.Actions;
 
-public class FunctionCallRuleAction : IRuleAction
+public sealed class FunctionCallRuleAction : IRuleAction
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<FunctionCallRuleAction> _logger;
