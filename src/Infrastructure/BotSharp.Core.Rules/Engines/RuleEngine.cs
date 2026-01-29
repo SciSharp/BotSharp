@@ -54,10 +54,10 @@ public class RuleEngine : IRuleEngine
             // Execute action
             if (rule.RuleAction?.Disabled == true)
             {
-                continue; 
+                continue;
             }
 
-            var actionName = rule?.RuleAction?.Name ?? RuleConstant.DEFAULT_ACTION_NAME;
+            var actionName = !string.IsNullOrEmpty(rule?.RuleAction?.Name) ? rule.RuleAction.Name : RuleConstant.DEFAULT_ACTION_NAME;
             var actionResult = await ExecuteActionAsync(agent, rule, trigger, actionName, text, states, options);
             if (actionResult?.Success == true && !string.IsNullOrEmpty(actionResult.ConversationId))
             {
