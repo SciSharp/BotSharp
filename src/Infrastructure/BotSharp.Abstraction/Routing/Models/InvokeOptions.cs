@@ -8,15 +8,13 @@ public abstract class InvokeOptions
 public class InvokeAgentOptions : InvokeOptions
 {
     public bool UseStream { get; set; }
-    public bool IsRetry { get; set; }
 
     public static InvokeAgentOptions Default()
     {
         return new()
         {
             From = InvokeSource.Manual,
-            UseStream = false,
-            IsRetry = false
+            UseStream = false
         };
     }
 }

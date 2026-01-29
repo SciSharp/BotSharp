@@ -62,13 +62,6 @@ public partial class RoutingService
             message.IsStreaming = response.IsStreaming;
             message.MessageLabel = response.MessageLabel;
 
-            // Handle case when FunctionName is null or whitespace - retry once
-            var retryResult = await HandleEmptyFunctionNameRetry(agentId, message, dialogs, options);
-            if (retryResult.HasValue)
-            {
-                return retryResult.Value;
-            }
-
             await InvokeFunction(message, dialogs, options);
         }
         else
@@ -146,43 +139,5 @@ public partial class RoutingService
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// Handles the case when FunctionName is null or whitespace by retrying once.
-    /// Returns null if FunctionName is valid (no action needed), 
-    /// otherwise returns the result of handling (retry result or true if error was set).
-    /// </summary>
-    private async Task<bool?> HandleEmptyFunctionNameRetry(
-        string agentId,
-        RoleDialogModel message,
-        List<RoleDialogModel> dialogs,
-        InvokeAgentOptions? options)
-    {
-        if (string.IsNullOrWhiteSpace(message.FunctionName))
-        {
-            if (!(options?.IsRetry ?? false))
-            {
-                // Retry once by recursively calling InvokeAgent
-                _logger.LogWarning($"Function name is empty, retrying InvokeAgent for agent {agentId}");
-                options ??= InvokeAgentOptions.Default();
-                options.IsRetry = true;
-                var retryResult = await InvokeAgent(agentId, dialogs, options);
-                return retryResult;
-            }
-            else
-            {
-                // Already retried once, avoid infinite loop
-                _logger.LogError($"Function name is still empty after retry for agent {agentId}, stopping to avoid infinite loop");
-                message.StopCompletion = true;
-                message.Content = "I received a function call request but the function name is missing. Please try again.";
-                message.Role = AgentRole.Assistant;
-                dialogs.Add(message);
-                Context.AddDialogs([message]);
-                return true;
-            }
-        }
-
-        return null;
     }
 }
