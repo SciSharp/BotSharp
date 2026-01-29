@@ -54,6 +54,8 @@ public class ChatCompletionProvider : IChatCompletion
         RoleDialogModel responseMessage;
         if (reason == ChatFinishReason.FunctionCall || reason == ChatFinishReason.ToolCalls)
         {
+            _logger.LogInformation($"Action: {nameof(GetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, ToolCalls: {string.Join(",", value.ToolCalls.Select(x => x.FunctionName))}");
+
             var toolCall = value.ToolCalls.FirstOrDefault();
             responseMessage = new RoleDialogModel(AgentRole.Function, text)
             {
