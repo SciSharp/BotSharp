@@ -1,0 +1,31 @@
+{
+  "data_loading": {
+    "max_file_size_mb": 500,
+    "encoding": "utf-8",
+    "delimiter": "auto",
+    "skip_rows": 0
+  },
+  "cleaning": {
+    "missing_value_strategy": "drop",
+    "duplicate_handling": "remove",
+    "outlier_detection": "IQR",
+    "outlier_threshold": 1.5
+  },
+  "analysis": {
+    "correlation_method": "pearson",
+    "confidence_level": 0.95,
+    "enable_advanced_stats": true
+  },
+  "visualization": {
+    "style": "seaborn",
+    "figure_size": [10, 6],
+    "dpi": 300,
+    "output_format": "png",
+    "color_palette": "viridis"
+  },
+  "performance": {
+    "chunk_size": 10000,
+    "use_multiprocessing": false,
+    "max_memory_mb": 2048
+  }
+}

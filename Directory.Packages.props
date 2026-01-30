@@ -47,7 +47,7 @@
     <PackageVersion Include="LLamaSharp" Version="0.25.0" />
     <PackageVersion Include="FaissMask" Version="0.4.2" />
     <PackageVersion Include="FastText.NetWrapper" Version="1.3.1" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="10.2.0" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="10.0.0" />
     <PackageVersion Include="MongoDB.Driver" Version="3.5.0" />
     <PackageVersion Include="Docnet.Core" Version="2.7.0-alpha.1" />
@@ -96,6 +96,9 @@
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="coverlet.msbuild" Version="6.0.4" />
+    <PackageVersion Include="FluentAssertions" Version="7.0.0" />
+    <PackageVersion Include="CsCheck" Version="4.0.0" />
     <PackageVersion Include="MSTest.TestAdapter" Version="4.0.2" />
     <PackageVersion Include="MSTest.TestFramework" Version="4.0.2" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
@@ -125,10 +128,12 @@
     <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="2.3.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
@@ -150,10 +155,12 @@
     <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="2.3.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
@@ -175,10 +182,12 @@
     <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="2.3.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="6.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="6.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="6.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.4" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="6.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="6.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="6.0.3" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="6.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="6.0.1" />

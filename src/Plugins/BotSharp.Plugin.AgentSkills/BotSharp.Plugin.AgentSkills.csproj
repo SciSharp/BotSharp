@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="AgentSkillsDotNet" />
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
     <PackageReference Include="YamlDotNet" />
   </ItemGroup>
 
