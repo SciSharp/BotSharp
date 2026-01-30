@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Infrastructures.MessageQueues.Models;
-
 namespace BotSharp.Abstraction.Infrastructures.MessageQueues;
 
 /// <summary>

@@ -111,7 +111,7 @@ public sealed class MessageQueueRuleAction : IRuleAction
                 break;
             case "minute":
             case "minutes":
-                milliseconds = (long)TimeSpan.FromMilliseconds(qty).TotalMilliseconds;
+                milliseconds = (long)TimeSpan.FromMinutes(qty).TotalMilliseconds;
                 break;
             case "hour":
             case "hours":

@@ -1,7 +1,6 @@
-using BotSharp.Abstraction.Infrastructures.MessageQueues;
 using Microsoft.Extensions.Logging;
 
-namespace BotSharp.Plugin.RabbitMQ.Consumers;
+namespace BotSharp.Abstraction.Infrastructures.MessageQueues;
 
 /// <summary>
 /// Abstract base class for RabbitMQ consumers.
