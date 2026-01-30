@@ -155,7 +155,7 @@ public class RabbitMQService : IMQService
             _logger.LogInformation($"Message received on '{config.QueueName}', id: {eventArgs.BasicProperties?.MessageId}, data: {data}");
 
             var isHandled = await registration.Consumer.HandleMessageAsync(config.QueueName, data);
-            if (!config.AutoAck && registration.Channel != null)
+            if (!config.AutoAck && registration.Channel?.IsOpen == true)
             {
                 if (isHandled)
                 {
@@ -170,7 +170,7 @@ public class RabbitMQService : IMQService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error consuming message on queue '{config.QueueName}': {data}");
-            if (!config.AutoAck && registration.Channel != null)
+            if (!config.AutoAck && registration.Channel?.IsOpen == true)
             {
                 await registration.Channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: false);
             }
