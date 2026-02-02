@@ -78,7 +78,9 @@ public class SqlDriverController : ControllerBase
         var dialog = new RoleDialogModel(AgentRole.Assistant, sqlQueryResult.Results)
         {
             CurrentAgentId = sqlQueryResult.AgentId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            MessageId = sqlQueryResult.SqlUniqueId,
+            MessageLabel = "sql_query_result"
         };
         await storage.Append(conversationId, dialog);
 
