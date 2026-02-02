@@ -14,6 +14,8 @@ public class ChatCompletionProvider : IChatCompletion
     protected readonly IConversationStateService _state;
 
     protected string _model;
+    protected string? _apiKey;
+
     private List<string> renderedInstructions = [];
 
     public virtual string Provider => "openai";
@@ -41,7 +43,7 @@ public class ChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, apiKey: _apiKey, _services);
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
@@ -131,7 +133,7 @@ public class ChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, apiKey: _apiKey, _services);
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
@@ -212,7 +214,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     public async Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, apiKey: _apiKey, _services);
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
@@ -691,5 +693,10 @@ public class ChatCompletionProvider : IChatCompletion
     public void SetModelName(string model)
     {
         _model = model;
+    }
+
+    public void SetApiKey(string apiKey)
+    {
+        _apiKey = apiKey;
     }
 }

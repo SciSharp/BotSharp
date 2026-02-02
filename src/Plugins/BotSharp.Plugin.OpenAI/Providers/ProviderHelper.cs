@@ -5,13 +5,13 @@ namespace BotSharp.Plugin.OpenAI.Providers;
 
 public class ProviderHelper
 {
-    public static OpenAIClient GetClient(string provider, string model, IServiceProvider services)
+    public static OpenAIClient GetClient(string provider, string model, string? apiKey, IServiceProvider services)
     {
         var settingsService = services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(provider, model);
-        var options = !string.IsNullOrEmpty(settings.Endpoint) ?
+        var options = !string.IsNullOrEmpty(settings?.Endpoint) ?
                         new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint) } : null;
-        return new OpenAIClient(new ApiKeyCredential(settings.ApiKey), options);
+        return new OpenAIClient(new ApiKeyCredential(apiKey ?? settings!.ApiKey), options);
     }
 
     public static List<RoleDialogModel> GetChatSamples(List<string> lines)
