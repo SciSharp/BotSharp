@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Models;
+using BotSharp.Plugin.SqlDriver.Constants;
 using BotSharp.Plugin.SqlDriver.Controllers.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,8 +31,8 @@ public class SqlDriverController : ControllerBase
         var conv = _services.GetRequiredService<IConversationService>();
         await conv.SetConversationId(conversationId, 
             [
-                new MessageState("database_type", sqlQueryRequest.DbType),
-                new MessageState("data_source_name", sqlQueryRequest.DataSource),
+                new MessageState(StateKeys.DBType, sqlQueryRequest.DbType),
+                new MessageState(StateKeys.DataSource, sqlQueryRequest.DataSource),
             ]);
         
         var msg = new RoleDialogModel(AgentRole.User, sqlQueryRequest.SqlStatement)
