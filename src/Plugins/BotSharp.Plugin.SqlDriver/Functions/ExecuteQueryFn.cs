@@ -1,11 +1,3 @@
-using BotSharp.Core.Infrastructures;
-using Dapper;
-using Microsoft.Data.SqlClient;
-using Microsoft.Data.Sqlite;
-using MySqlConnector;
-using Npgsql;
-using System.Text;
-
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
 public class ExecuteQueryFn : IFunctionCallback
@@ -13,13 +5,18 @@ public class ExecuteQueryFn : IFunctionCallback
     public string Name => "execute_sql";
     public string Indication => "Performing data retrieval operation.";
     private readonly SqlDriverSetting _setting;
+    private readonly SqlExecuteService _sqlExecuteService;
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
 
-    public ExecuteQueryFn(IServiceProvider services, SqlDriverSetting setting, ILogger<ExecuteQueryFn> logger)
+    public ExecuteQueryFn(IServiceProvider services, 
+        SqlDriverSetting setting,
+        SqlExecuteService sqlExecuteService,
+        ILogger<ExecuteQueryFn> logger)
     {
         _services = services;
         _setting = setting;
+        _sqlExecuteService = sqlExecuteService;
         _logger = logger;
     }
 
@@ -38,14 +35,15 @@ public class ExecuteQueryFn : IFunctionCallback
         IEnumerable<dynamic> results = [];
         try
         {
-            results = dbType.ToLower() switch
+            results = await (dbType.ToLower() switch
             {
-                "mysql" => RunQueryInMySql(dbConnectionString, args.SqlStatements),
-                "sqlserver" or "mssql" => RunQueryInSqlServer(dbConnectionString, args.SqlStatements),
-                "redshift" => RunQueryInRedshift(dbConnectionString, args.SqlStatements),
-                "sqlite" => RunQueryInSqlite(dbConnectionString, args.SqlStatements),
+                "mysql" => _sqlExecuteService.RunQueryInMySql(dbConnectionString, args.SqlStatements),
+                "sqlserver" or "mssql" => _sqlExecuteService.RunQueryInSqlServer(dbConnectionString, args.SqlStatements),
+                "redshift" => _sqlExecuteService.RunQueryInRedshift(dbConnectionString, args.SqlStatements),
+                "sqlite" => _sqlExecuteService.RunQueryInSqlite(dbConnectionString, args.SqlStatements),
+                "mongodb" => _sqlExecuteService.RunQueryInMongoDb(dbConnectionString, args.SqlStatements.FirstOrDefault(), []),
                 _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
-            };
+            });
 
             if (args.SqlStatements.Length == 1 && args.SqlStatements[0].StartsWith("DROP TABLE"))
             {
@@ -213,34 +211,6 @@ public class ExecuteQueryFn : IFunctionCallback
 
         // Escape pipe characters which are special in Markdown tables
         return field.Replace("|", "\\|");
-    }
-
-    private IEnumerable<dynamic> RunQueryInMySql(string connectionString, string[] sqlTexts)
-    {
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new MySqlConnection(connectionString);
-        return connection.Query(string.Join(";\r\n", sqlTexts));
-    }
-
-    private IEnumerable<dynamic> RunQueryInSqlServer(string connectionString, string[] sqlTexts)
-    {
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new SqlConnection(connectionString);
-        return connection.Query(string.Join("\r\n", sqlTexts));
-    }
-
-    private IEnumerable<dynamic> RunQueryInRedshift(string connectionString, string[] sqlTexts)
-    {
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new NpgsqlConnection(connectionString);
-        return connection.Query(string.Join("\r\n", sqlTexts));
-    }
-
-    private IEnumerable<dynamic> RunQueryInSqlite(string connectionString, string[] sqlTexts)
-    {
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new SqliteConnection(connectionString);
-        return connection.Query(string.Join("\r\n", sqlTexts));
     }
 
     private async Task<ExecuteQueryArgs> RefineSqlStatement(RoleDialogModel message, ExecuteQueryArgs args)
