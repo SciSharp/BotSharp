@@ -48,7 +48,7 @@ public partial class MembaseGraphDb : IGraphDb
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error when querying {Provider} graph db.");
+            _logger.LogError(ex, $"Error when querying {Provider} graph db.");
             return new();
         }
     }
