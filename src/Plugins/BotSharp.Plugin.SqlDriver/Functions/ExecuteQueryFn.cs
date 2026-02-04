@@ -27,7 +27,7 @@ public class ExecuteQueryFn : IFunctionCallback
         var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbType = dbHook.GetDatabaseType(message);
         var connectionString = _setting.Connections.FirstOrDefault(x => x.Name.Equals(args.DataSource, StringComparison.OrdinalIgnoreCase))?.ConnectionString;
-        var dbConnectionString = dbHook.GetConnectionString(message) ?? connectionString ?? throw new Exception("database connection is not found");
+        var dbConnectionString = dbHook.GetConnectionString(message, args.DataSource) ?? connectionString ?? throw new Exception("database connection is not found");
 
         // Print all the SQL statements for debugging
         _logger.LogInformation("Executing SQL Statements: {SqlStatements}", string.Join("\r\n", args.SqlStatements));

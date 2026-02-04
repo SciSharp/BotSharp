@@ -5,13 +5,10 @@ public class SqlSelectFn : IFunctionCallback
     public string Name => "sql_select";
     private readonly IServiceProvider _services;
     private readonly SqlExecuteService _sqlExecuteService;
-    private readonly SqlDriverSetting _settings;
 
     public SqlSelectFn(IServiceProvider services, 
-        SqlExecuteService sqlExecuteService,
-        SqlDriverSetting settings)
+        SqlExecuteService sqlExecuteService)
     {
-        _settings = settings;
         _services = services;
         _sqlExecuteService = sqlExecuteService;
     }
@@ -30,7 +27,6 @@ public class SqlSelectFn : IFunctionCallback
         var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbType = dbHook.GetDatabaseType(message);
         var dbConnectionString = dbHook.GetConnectionString(message) ?? 
-            _settings.Connections.FirstOrDefault(c => c.DbType == dbType)?.ConnectionString ??
             throw new Exception("database connectdion is not found");
 
         var result = await (dbType switch
