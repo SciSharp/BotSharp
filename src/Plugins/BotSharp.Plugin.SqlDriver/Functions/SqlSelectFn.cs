@@ -38,6 +38,7 @@ public class SqlSelectFn : IFunctionCallback
             "mysql" => _sqlExecuteService.RunQueryInMySql(dbConnectionString, args.Statement, args.Parameters),
             "sqlserver" or "mssql" => _sqlExecuteService.RunQueryInSqlServer(dbConnectionString, args.Statement, args.Parameters),
             "redshift" => _sqlExecuteService.RunQueryInRedshift(dbConnectionString, args.Statement, args.Parameters),
+            "sqlite" => _sqlExecuteService.RunQueryInSqlite(dbConnectionString, args.Statement, args.Parameters),
             "mongodb" => _sqlExecuteService.RunQueryInMongoDb(dbConnectionString, args.Statement, args.Parameters),
             _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
         });
