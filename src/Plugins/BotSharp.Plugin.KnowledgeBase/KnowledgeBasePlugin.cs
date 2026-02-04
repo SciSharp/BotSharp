@@ -11,8 +11,6 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
     public string Name => "Knowledge Base";
     public string Description => "Embedding private data and feed them into LLM in the conversation.";
     public string IconUrl => "https://cdn-icons-png.flaticon.com/512/9592/9592995.png";
-    private string _membaseCredential = string.Empty;
-    private string _membaseProjectId = string.Empty;
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
@@ -28,9 +26,6 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
         services.AddScoped<IGraphKnowledgeService, GraphKnowledgeService>();
         services.AddScoped<IKnowledgeHook, KnowledgeHook>();
         services.AddScoped<IKnowledgeProcessor, TextFileKnowledgeProcessor>();
-
-        _membaseCredential = config.GetValue<string>("Membase:ApiKey")!;
-        _membaseProjectId = config.GetValue<string>("Membase:ProjectId")!;
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)
@@ -42,15 +37,6 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
             SubMenu = new List<PluginMenuDef>
             {
                 new PluginMenuDef("Q & A", link: "page/knowledge-base/question-answer"),
-                new PluginMenuDef("Relationships", link: "page/knowledge-base/relationships/membase")
-                {
-                    EmbeddingInfo = new EmbeddingData
-                    {
-                        Source = "membase",
-                        HtmlTag = "iframe",
-                        Url = $"http://console.membase.dev/query-editor/{_membaseProjectId}?token={_membaseCredential}"
-                    }
-                },
                 new PluginMenuDef("Documents", link: "page/knowledge-base/documents"),
                 new PluginMenuDef("Dictionary", link: "page/knowledge-base/dictionary")
             }
