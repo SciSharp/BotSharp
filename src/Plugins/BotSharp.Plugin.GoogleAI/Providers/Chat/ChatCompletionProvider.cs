@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
@@ -70,6 +71,17 @@ public class ChatCompletionProvider : IChatCompletion
                     [Constants.ThoughtSignature] = part?.ThoughtSignature
                 },
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
+            };
+        }
+        else if (candidate?.FinishReason == FinishReason.MAX_TOKENS)
+        {
+            _logger.LogWarning($"Action: {nameof(GetChatCompletions)}, Reason: {candidate.FinishReason}, Agent: {agent.Name}");
+
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                StopCompletion = true
             };
         }
         else
@@ -165,10 +177,7 @@ public class ChatCompletionProvider : IChatCompletion
             };
 
             // Somethings LLM will generate a function name with agent name.
-            if (!string.IsNullOrEmpty(funcContextIn.FunctionName))
-            {
-                funcContextIn.FunctionName = funcContextIn.FunctionName.Split('.').Last();
-            }
+            funcContextIn.FunctionName = funcContextIn.FunctionName.NormalizeFunctionName();
 
             // Execute functions
             await onFunctionExecuting(funcContextIn);

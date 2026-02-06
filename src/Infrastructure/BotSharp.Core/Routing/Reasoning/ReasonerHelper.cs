@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Utilities;
+
 namespace BotSharp.Core.Routing.Reasoning;
 
 public static class ReasonerHelper
@@ -43,10 +45,10 @@ public static class ReasonerHelper
         }
 
         // Function name shouldn't contain dot symbol
-        if (!string.IsNullOrEmpty(args.Function) &&
-            args.Function.Contains('.'))
+        var normalizedFunction = args.Function.NormalizeFunctionName();
+        if (normalizedFunction != args.Function)
         {
-            args.Function = args.Function.Split('.').Last();
+            args.Function = normalizedFunction;
             malformed = true;
         }
 
