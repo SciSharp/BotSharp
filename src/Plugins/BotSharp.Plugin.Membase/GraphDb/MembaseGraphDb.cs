@@ -1,6 +1,9 @@
 using BotSharp.Abstraction.Graph;
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Graph.Options;
+using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Options;
+using BotSharp.Abstraction.Utilities;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -31,12 +34,14 @@ public partial class MembaseGraphDb : IGraphDb
             throw new ArgumentException($"Please provide a valid {Provider} graph id.");
         }
 
+        var args = options?.Arguments ?? new();
+
         try
         {
             var response = await _membaseApi.CypherQueryAsync(options.GraphId, new CypherQueryRequest
             {
                 Query = query,
-                Parameters = options.Arguments ?? new Dictionary<string, object>()
+                Parameters = args
             });
 
             return new GraphQueryResult
@@ -48,7 +53,8 @@ public partial class MembaseGraphDb : IGraphDb
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error when executing query in {Provider} graph db.");
+            var argLogs = args.Select(x => (new KeyValue(x.Key, x.Value.ConvertToString(BotSharpOptions.defaultJsonOptions))).ToString());
+            _logger.LogError(ex, $"Error when executing query in {Provider} graph db. (Query: {query}), (Argments: \r\n{string.Join("\r\n", argLogs)})");
             return new();
         }
     }
