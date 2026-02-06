@@ -67,25 +67,36 @@ public static partial class StringExtensions
     /// <summary>
     /// Normalizes function name by removing namespace/agent prefixes.
     /// LLM sometimes returns function names like "AgentName.FunctionName" or "Namespace.FunctionName".
-    /// This method extracts the actual function name.
+    /// This method extracts the actual function name. Returns original input if normalization would
+    /// yield empty/whitespace (e.g. "Agent." or "Agent/ ") to avoid downstream invalid function lookup.
     /// </summary>
     /// <param name="functionName">The raw function name from LLM response</param>
-    /// <returns>The normalized function name, or null if input is null/empty</returns>
+    /// <returns>The normalized function name, or original if normalized would be empty/whitespace</returns>
     public static string? NormalizeFunctionName(this string? functionName)
     {
+        functionName = functionName?.Trim();
         if (string.IsNullOrEmpty(functionName))
         {
             return functionName;
         }
 
-        if (functionName.Contains('.'))
+        foreach (var separator in new[] { '.', '/' })
         {
-            return functionName.Split('.').Last();
-        }
+            if (!functionName.Contains(separator))
+            {
+                continue;
+            }
 
-        if (functionName.Contains('/'))
-        {
-            return functionName.Split('/').Last();
+            var segments = functionName.Split(separator);
+            var normalized = segments.LastOrDefault()?.Trim();
+
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                return functionName;
+            }
+
+            Console.WriteLine($"NormalizeFunctionName: {functionName} -> {normalized}");
+            return normalized;
         }
 
         return functionName;

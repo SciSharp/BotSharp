@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
+using BotSharp.Abstraction.Utilities;
 
 namespace BotSharp.Core.Routing;
 
@@ -46,13 +47,10 @@ public partial class RoutingService
             response = await chatCompletion.GetChatCompletions(agent, dialogs);
         }
 
-        if (response.Role == AgentRole.Function)
+        if (response.Role == AgentRole.Function && !string.IsNullOrEmpty(response.FunctionName))
         {
             message = RoleDialogModel.From(message, role: AgentRole.Function);
-            if (response.FunctionName != null && response.FunctionName.Contains("/"))
-            {
-                response.FunctionName = response.FunctionName.Split("/").Last();
-            }
+            response.FunctionName = response.FunctionName.NormalizeFunctionName();
             message.ToolCallId = response.ToolCallId;
             message.FunctionName = response.FunctionName;
             message.FunctionArgs = response.FunctionArgs;
