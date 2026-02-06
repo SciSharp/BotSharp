@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Graph;
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Graph.Options;
 using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Utilities;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
@@ -52,7 +53,7 @@ public partial class MembaseGraphDb : IGraphDb
         }
         catch (Exception ex)
         {
-            var argLogs = args.Select(x => (new KeyValue(x.Key, x.Value.ConvertToString())).ToString());
+            var argLogs = args.Select(x => (new KeyValue(x.Key, x.Value.ConvertToString(BotSharpOptions.defaultJsonOptions))).ToString());
             _logger.LogError(ex, $"Error when executing query in {Provider} graph db. (Query: {query}), (Argments: \r\n{string.Join("\r\n", argLogs)})");
             return new();
         }
