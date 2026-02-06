@@ -1,5 +1,6 @@
 #pragma warning disable OPENAI001
 using BotSharp.Abstraction.Conversations.Enums;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
@@ -66,10 +67,18 @@ public class ChatCompletionProvider : IChatCompletion
             };
 
             // Somethings LLM will generate a function name with agent name.
-            if (!string.IsNullOrEmpty(responseMessage.FunctionName))
+            responseMessage.FunctionName = responseMessage.FunctionName.NormalizeFunctionName();
+        }
+        else if (reason == ChatFinishReason.Length)
+        {
+            _logger.LogWarning($"Action: {nameof(GetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}");
+
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length {options.MaxOutputTokenCount}")
             {
-                responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
-            }
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                StopCompletion = true
+            };
         }
         else
         {
@@ -167,10 +176,7 @@ public class ChatCompletionProvider : IChatCompletion
             };
 
             // Somethings LLM will generate a function name with agent name.
-            if (!string.IsNullOrEmpty(funcContextIn.FunctionName))
-            {
-                funcContextIn.FunctionName = funcContextIn.FunctionName.Split('.').Last();
-            }
+            funcContextIn.FunctionName = funcContextIn.FunctionName.NormalizeFunctionName();
 
             // Execute functions
             await onFunctionExecuting(funcContextIn);
