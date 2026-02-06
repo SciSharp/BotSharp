@@ -53,7 +53,7 @@ public partial class MembaseGraphDb : IGraphDb
         catch (Exception ex)
         {
             var argLogs = args.Select(x => (new KeyValue(x.Key, x.Value.ConvertToString())).ToString());
-            _logger.LogError(ex, $"Error when executing query in {Provider} graph db. (Query: {query}, Argments: {string.Join("\r\n", argLogs)})");
+            _logger.LogError(ex, $"Error when executing query in {Provider} graph db. (Query: {query}), (Argments: \r\n{string.Join("\r\n", argLogs)})");
             return new();
         }
     }
