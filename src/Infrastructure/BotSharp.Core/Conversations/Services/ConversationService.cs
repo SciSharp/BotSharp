@@ -138,6 +138,8 @@ public partial class ConversationService : IConversationService
             await hook.OnConversationInitialized(record);
         }
 
+        _logger.LogInformation($"Conversation created: {record.Id}, AgentId: {record.AgentId}, UserId: {record.UserId}, Channel: {record.Channel}");
+
         return record;
     }
 
