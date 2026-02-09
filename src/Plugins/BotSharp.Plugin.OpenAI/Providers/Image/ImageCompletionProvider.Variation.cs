@@ -18,7 +18,7 @@ public partial class ImageCompletionProvider
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
 
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, apiKey: null, _services);
         var (imageCount, options) = PrepareVariationOptions(settings?.Image?.Variation);
         var imageClient = client.GetImageClient(_model);
 

@@ -10,6 +10,8 @@ public interface ITextEmbedding
 
     void SetModelName(string model);
 
+    string? ApiKey => null;
+    void SetApiKey(string apiKey) { }
 
     Task<float[]> GetVectorAsync(string text);
     Task<List<float[]>> GetVectorsAsync(List<string> texts);

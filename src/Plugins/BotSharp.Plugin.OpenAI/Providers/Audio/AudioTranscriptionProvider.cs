@@ -27,7 +27,7 @@ public class AudioTranscriptionProvider : IAudioTranscription
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
 
-        var audioClient = ProviderHelper.GetClient(Provider, _model, _services)
+        var audioClient = ProviderHelper.GetClient(Provider, _model, apiKey: null, _services)
                                         .GetAudioClient(_model);
 
         var options = PrepareTranscriptionOptions(text, settings?.Audio?.Transcription);

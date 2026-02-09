@@ -1,5 +1,6 @@
 #pragma warning disable OPENAI001
 using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
 using OpenAI.Chat;
@@ -14,6 +15,8 @@ public class ChatCompletionProvider : IChatCompletion
     protected readonly IConversationStateService _state;
 
     protected string _model;
+    protected string? _apiKey;
+
     private List<string> renderedInstructions = [];
 
     public virtual string Provider => "openai";
@@ -41,7 +44,7 @@ public class ChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, apiKey: _apiKey, _services);
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
@@ -54,6 +57,8 @@ public class ChatCompletionProvider : IChatCompletion
         RoleDialogModel responseMessage;
         if (reason == ChatFinishReason.FunctionCall || reason == ChatFinishReason.ToolCalls)
         {
+            _logger.LogInformation($"Action: {nameof(GetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, ToolCalls: {string.Join(",", value.ToolCalls.Select(x => x.FunctionName))}");
+
             var toolCall = value.ToolCalls.FirstOrDefault();
             responseMessage = new RoleDialogModel(AgentRole.Function, text)
             {
@@ -66,17 +71,17 @@ public class ChatCompletionProvider : IChatCompletion
             };
 
             // Somethings LLM will generate a function name with agent name.
-            if (!string.IsNullOrEmpty(responseMessage.FunctionName))
-            {
-                responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
-            }
+            responseMessage.FunctionName = responseMessage.FunctionName.NormalizeFunctionName();
         }
         else if (reason == ChatFinishReason.Length)
         {
-            responseMessage = new RoleDialogModel(AgentRole.Function, $"AI response execeed max output length {options.MaxOutputTokenCount}")
+            _logger.LogWarning($"Action: {nameof(GetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}");
+
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length {options.MaxOutputTokenCount}")
             {
                 CurrentAgentId = agent.Id,
-                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                StopCompletion = true
             };
         }
         else
@@ -129,7 +134,7 @@ public class ChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, apiKey: _apiKey, _services);
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
@@ -178,10 +183,7 @@ public class ChatCompletionProvider : IChatCompletion
             };
 
             // Somethings LLM will generate a function name with agent name.
-            if (!string.IsNullOrEmpty(funcContextIn.FunctionName))
-            {
-                funcContextIn.FunctionName = funcContextIn.FunctionName.Split('.').Last();
-            }
+            funcContextIn.FunctionName = funcContextIn.FunctionName.NormalizeFunctionName();
 
             // Execute functions
             await onFunctionExecuting(funcContextIn);
@@ -210,7 +212,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     public async Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, apiKey: _apiKey, _services);
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
@@ -689,5 +691,10 @@ public class ChatCompletionProvider : IChatCompletion
     public void SetModelName(string model)
     {
         _model = model;
+    }
+
+    public void SetApiKey(string apiKey)
+    {
+        _apiKey = apiKey;
     }
 }

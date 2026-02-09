@@ -15,6 +15,8 @@ public class TextEmbeddingProvider : ITextEmbedding
     public virtual string Provider => "openai";
     public string Model => _model;
 
+    private string? _apiKey;
+
     public TextEmbeddingProvider(
         OpenAiSettings settings,
         ILogger<TextEmbeddingProvider> logger,
@@ -28,7 +30,7 @@ public class TextEmbeddingProvider : ITextEmbedding
     [SharpCache(60)]
     public async Task<float[]> GetVectorAsync(string text)
     {
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, apiKey: _apiKey, _services);
         var embeddingClient = client.GetEmbeddingClient(_model);
         var options = PrepareOptions();
         var response = await embeddingClient.GenerateEmbeddingAsync(text, options);
@@ -38,7 +40,7 @@ public class TextEmbeddingProvider : ITextEmbedding
 
     public async Task<List<float[]>> GetVectorsAsync(List<string> texts)
     {
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, apiKey: _apiKey, _services);
         var embeddingClient = client.GetEmbeddingClient(_model);
         var options = PrepareOptions();
         var response = await embeddingClient.GenerateEmbeddingsAsync(texts, options);
@@ -49,6 +51,11 @@ public class TextEmbeddingProvider : ITextEmbedding
     public void SetModelName(string model)
     {
         _model = model;
+    }
+
+    public void SetApiKey(string apiKey)
+    {
+        _apiKey = apiKey;
     }
 
     public void SetDimension(int dimension)
