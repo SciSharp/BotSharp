@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace BotSharp.Abstraction.Infrastructures.MessageQueues.Models;
 
 /// <summary>
@@ -29,5 +31,10 @@ public class MQPublishOptions
     /// <summary>
     /// Additional arguments for the publish configuration (MQ-specific).
     /// </summary>
-    public Dictionary<string, object?> Arguments { get; set; } = new();
+    public Dictionary<string, object?> Arguments { get; set; } = [];
+
+    /// <summary>
+    /// Json serializer options
+    /// </summary>
+    public JsonSerializerOptions? JsonOptions { get; set; }
 }

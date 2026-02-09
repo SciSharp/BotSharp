@@ -45,7 +45,7 @@ public sealed class MessageQueueRuleAction : IRuleAction
             };
 
             // Publish message to queue
-            var mqOptions = GetMQPublishOptions(context);
+            var mqOptions = BuildMQPublishOptions(context);
             var success = await mqService.PublishAsync(payload, mqOptions);
 
             if (success)
@@ -72,7 +72,7 @@ public sealed class MessageQueueRuleAction : IRuleAction
         }
     }
 
-    private MQPublishOptions GetMQPublishOptions(RuleActionContext context)
+    private MQPublishOptions BuildMQPublishOptions(RuleActionContext context)
     {
         var topicName = context.Parameters.TryGetValueOrDefault("mq_topic_name", string.Empty);
         var routingKey = context.Parameters.TryGetValueOrDefault("mq_routing_key", string.Empty);
@@ -82,7 +82,8 @@ public sealed class MessageQueueRuleAction : IRuleAction
         {
             TopicName = topicName,
             RoutingKey = routingKey,
-            DelayMilliseconds = delayMilliseconds
+            DelayMilliseconds = delayMilliseconds,
+            JsonOptions = context.JsonOptions
         };
     }
 
@@ -111,7 +112,7 @@ public sealed class MessageQueueRuleAction : IRuleAction
                 break;
             case "minute":
             case "minutes":
-                milliseconds = (long)TimeSpan.FromMilliseconds(qty).TotalMilliseconds;
+                milliseconds = (long)TimeSpan.FromMinutes(qty).TotalMilliseconds;
                 break;
             case "hour":
             case "hours":

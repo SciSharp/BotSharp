@@ -18,11 +18,6 @@ internal class RabbitMQConsumerConfig
     internal string RoutingKey { get; set; } = "rabbitmq.routing";
 
     /// <summary>
-    /// Whether to automatically acknowledge messages.
-    /// </summary>
-    internal bool AutoAck { get; set; } = false;
-
-    /// <summary>
     /// Additional arguments for the consumer configuration.
     /// </summary>
     internal Dictionary<string, object?> Arguments { get; set; } = new();

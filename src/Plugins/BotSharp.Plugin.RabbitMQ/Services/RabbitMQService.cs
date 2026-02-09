@@ -86,7 +86,7 @@ public class RabbitMQService : IMQService
 
             await channel.BasicConsumeAsync(
                 queue: config.QueueName,
-                autoAck: config.AutoAck,
+                autoAck: false,
                 consumer: asyncConsumer);
 
             _logger.LogWarning($"RabbitMQ consuming queue '{config.QueueName}'.");
@@ -155,7 +155,7 @@ public class RabbitMQService : IMQService
             _logger.LogInformation($"Message received on '{config.QueueName}', id: {eventArgs.BasicProperties?.MessageId}, data: {data}");
 
             var isHandled = await registration.Consumer.HandleMessageAsync(config.QueueName, data);
-            if (!config.AutoAck && registration.Channel != null)
+            if (registration.Channel?.IsOpen == true)
             {
                 if (isHandled)
                 {
@@ -170,7 +170,7 @@ public class RabbitMQService : IMQService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error consuming message on queue '{config.QueueName}': {data}");
-            if (!config.AutoAck && registration.Channel != null)
+            if (registration.Channel?.IsOpen == true)
             {
                 await registration.Channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: false);
             }
@@ -222,7 +222,7 @@ public class RabbitMQService : IMQService
 
                     var messageId = options.MessageId ?? Guid.NewGuid().ToString();
                     var message = new MQMessage<T>(payload, messageId);
-                    var body = ConvertToBinary(message);
+                    var body = ConvertToBinary(message, options.JsonOptions);
                     var properties = new BasicProperties
                     {
                         MessageId = messageId,
@@ -272,9 +272,9 @@ public class RabbitMQService : IMQService
             });
     }
 
-    private byte[] ConvertToBinary<T>(T data)
+    private static byte[] ConvertToBinary<T>(T data, JsonSerializerOptions? jsonOptions = null)
     {
-        var jsonStr = JsonSerializer.Serialize(data);
+        var jsonStr = JsonSerializer.Serialize(data, jsonOptions);
         var body = Encoding.UTF8.GetBytes(jsonStr);
         return body;
     }
