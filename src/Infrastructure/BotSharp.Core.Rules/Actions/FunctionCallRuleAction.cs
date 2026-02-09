@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Functions;
 
-namespace BotSharp.Core.Rules.Services.Actions;
+namespace BotSharp.Core.Rules.Actions;
 
 public sealed class FunctionCallRuleAction : IRuleAction
 {

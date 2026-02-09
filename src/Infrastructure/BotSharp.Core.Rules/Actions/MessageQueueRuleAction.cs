@@ -1,6 +1,6 @@
 using BotSharp.Core.Rules.Models;
 
-namespace BotSharp.Core.Rules.Services.Actions;
+namespace BotSharp.Core.Rules.Actions;
 
 public sealed class MessageQueueRuleAction : IRuleAction
 {

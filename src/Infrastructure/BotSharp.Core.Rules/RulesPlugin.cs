@@ -1,6 +1,6 @@
+using BotSharp.Core.Rules.Actions;
+using BotSharp.Core.Rules.Criteria;
 using BotSharp.Core.Rules.Engines;
-using BotSharp.Core.Rules.Services.Actions;
-using BotSharp.Core.Rules.Services.Criteria;
 
 namespace BotSharp.Core.Rules;
 
@@ -26,5 +26,7 @@ public class RulesPlugin : IBotSharpPlugin
         services.AddScoped<IRuleAction, HttpRuleAction>();
         services.AddScoped<IRuleAction, FunctionCallRuleAction>();
         services.AddScoped<IRuleAction, MessageQueueRuleAction>();
+
+        services.AddScoped<IRuleTrigger, DemoRuleTrigger>();
     }
 }

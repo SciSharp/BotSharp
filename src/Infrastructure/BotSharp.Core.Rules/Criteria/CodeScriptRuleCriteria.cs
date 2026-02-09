@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace BotSharp.Core.Rules.Services.Criteria;
+namespace BotSharp.Core.Rules.Criteria;
 
 public class CodeScriptRuleCriteria : IRuleCriteria
 {

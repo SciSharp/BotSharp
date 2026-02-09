@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 
-namespace BotSharp.Core.Rules.Services.Actions;
+namespace BotSharp.Core.Rules.Actions;
 
 public sealed class HttpRuleAction : IRuleAction
 {
