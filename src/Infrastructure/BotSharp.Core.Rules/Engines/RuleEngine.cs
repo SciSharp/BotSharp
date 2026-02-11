@@ -43,7 +43,7 @@ public class RuleEngine : IRuleEngine
             // Criteria validation
             if (!string.IsNullOrEmpty(rule.RuleCriteria?.Name) && !rule.RuleCriteria.Disabled)
             {
-                var criteriaResult = await ExecuteCriteriaAsync(agent, rule, trigger, rule.RuleCriteria?.Name, text, states, options);
+                var criteriaResult = await ExecuteCriteriaAsync(agent, rule.RuleCriteria, trigger, text, states, options);
                 if (criteriaResult?.IsValid == false)
                 {
                     _logger.LogWarning("Criteria validation failed for agent {AgentId} with trigger {TriggerName}", agent.Id, trigger.Name);
@@ -75,9 +75,8 @@ public class RuleEngine : IRuleEngine
     #region Criteria
     private async Task<RuleCriteriaResult> ExecuteCriteriaAsync(
         Agent agent,
-        AgentRule rule,
+        AgentRuleCriteria ruleCriteria,
         IRuleTrigger trigger,
-        string? criteriaProvider,
         string text,
         IEnumerable<MessageState>? states,
         RuleTriggerOptions? triggerOptions)
@@ -87,7 +86,7 @@ public class RuleEngine : IRuleEngine
         try
         {
             var criteria = _services.GetServices<IRuleCriteria>()
-                                    .FirstOrDefault(x => x.Provider == criteriaProvider);
+                                    .FirstOrDefault(x => x.Provider == ruleCriteria.Name);
 
             if (criteria == null)
             {
@@ -98,7 +97,7 @@ public class RuleEngine : IRuleEngine
             var context = new RuleCriteriaContext
             {
                 Text = text,
-                Parameters = BuildContextParameters(rule.RuleCriteria?.Config, states),
+                Parameters = BuildContextParameters(ruleCriteria.Config, states),
                 JsonOptions = triggerOptions?.JsonOptions
             };
 
@@ -108,7 +107,7 @@ public class RuleEngine : IRuleEngine
             var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
             foreach (var hook in hooks)
             {
-                await hook.BeforeRuleCriteriaExecuted(agent, trigger, context);
+                await hook.BeforeRuleCriteriaExecuted(agent, ruleCriteria, trigger, context);
             }
 
             // Execute criteria
@@ -117,14 +116,14 @@ public class RuleEngine : IRuleEngine
 
             foreach (var hook in hooks)
             {
-                await hook.AfterRuleCriteriaExecuted(agent, trigger, result);
+                await hook.AfterRuleCriteriaExecuted(agent, ruleCriteria, trigger, result);
             }
 
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error executing rule criteria {CriteriaProvider} for agent {AgentId}", criteriaProvider ?? string.Empty, agent.Id);
+            _logger.LogError(ex, "Error executing rule criteria {CriteriaProvider} for agent {AgentId}", ruleCriteria.Name, agent.Id);
             return result;
         }
     }
