@@ -73,8 +73,8 @@ public sealed class HttpRuleAction : IRuleAction
 
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation("HTTP rule action executed successfully for agent {AgentId}, Status: {StatusCode}",
-                    agent.Id, response.StatusCode);
+                _logger.LogInformation("HTTP rule action executed successfully for agent {AgentId}, Status: {StatusCode}, Response: {Response}",
+                    agent.Id, response.StatusCode, responseContent);
 
                 return new RuleActionResult
                 {

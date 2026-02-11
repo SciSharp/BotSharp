@@ -89,7 +89,7 @@ public sealed class MessageQueueRuleAction : IRuleAction
 
     private long ParseDelay(RuleActionContext context)
     {
-        var qty = (double)context.Parameters.TryGetValueOrDefault("mq_delay_qty", 0);
+        var qty = (double)context.Parameters.TryGetValueOrDefault("mq_delay_qty", 0M);
         if (qty == 0)
         {
             qty = context.Parameters.TryGetValueOrDefault("mq_delay_qty", 0.0);
