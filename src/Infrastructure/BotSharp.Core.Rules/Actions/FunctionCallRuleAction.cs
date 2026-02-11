@@ -38,7 +38,13 @@ public sealed class FunctionCallRuleAction : IRuleAction
         return new RuleActionResult
         {
             Success = true,
-            Response = funcArg?.RichContent?.Message?.Text ?? funcArg?.Content
+            Response = funcArg?.RichContent?.Message?.Text ?? funcArg?.Content,
+            Data = new()
+            {
+                ["function_name"] = funcName!,
+                ["function_argument"] = funcArg!,
+                ["function_call_result"] = funcArg?.RichContent?.Message?.Text ?? funcArg?.Content ?? string.Empty
+            }
         };
     }
 }

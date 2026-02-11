@@ -60,7 +60,11 @@ public sealed class ChatRuleAction : IRuleAction
             return new RuleActionResult
             {
                 Success = true,
-                ConversationId = conv.Id
+                Data = new()
+                {
+                    ["agent_id"] = agent.Id,
+                    ["conversation_id"] = conv.Id
+                }
             };
         }
         catch (Exception ex)

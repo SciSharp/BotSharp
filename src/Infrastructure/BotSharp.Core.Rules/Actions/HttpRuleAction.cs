@@ -79,7 +79,11 @@ public sealed class HttpRuleAction : IRuleAction
                 return new RuleActionResult
                 {
                     Success = true,
-                    Response = responseContent
+                    Response = responseContent,
+                    Data = new()
+                    {
+                        ["http_response"] = responseContent
+                    }
                 };
             }
             else

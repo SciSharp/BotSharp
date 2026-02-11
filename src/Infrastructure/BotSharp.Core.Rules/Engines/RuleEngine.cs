@@ -58,12 +58,29 @@ public class RuleEngine : IRuleEngine
                 continue;
             }
 
+            var stepResults = new List<RuleActionStepResult>();
             foreach (var ruleAction in ruleActions)
             {
-                var actionResult = await ExecuteActionAsync(agent, ruleAction, trigger, text, states, options);
-                if (actionResult?.Success == true && !string.IsNullOrEmpty(actionResult.ConversationId))
+                var actionResult = await ExecuteActionAsync(agent, ruleAction, trigger, text, states, options, stepResults);
+                if (actionResult == null)
                 {
-                    newConversationIds.Add(actionResult.ConversationId);
+                    continue;
+                }
+
+                stepResults.Add(new()
+                {
+                    RuleAction = ruleAction,
+                    Success = actionResult.Success,
+                    Response = actionResult.Response,
+                    ErrorMessage = actionResult.ErrorMessage,
+                    Data = actionResult.Data
+                });
+
+                if (actionResult?.Success == true
+                    && actionResult.Data.TryGetValue("conversation_id", out var convId)
+                    && convId != null)
+                {
+                    newConversationIds.Add(convId.ToString()!);
                 }
             }
         }
@@ -137,7 +154,8 @@ public class RuleEngine : IRuleEngine
         IRuleTrigger trigger,
         string text,
         IEnumerable<MessageState>? states,
-        RuleTriggerOptions? triggerOptions)
+        RuleTriggerOptions? triggerOptions,
+        IEnumerable<RuleActionStepResult> prevStepResults)
     {
         try
         {
@@ -158,6 +176,7 @@ public class RuleEngine : IRuleEngine
             {
                 Text = text,
                 Parameters = BuildContextParameters(ruleAction.Config, states),
+                PrevStepResults = prevStepResults,
                 JsonOptions = triggerOptions?.JsonOptions
             };
 

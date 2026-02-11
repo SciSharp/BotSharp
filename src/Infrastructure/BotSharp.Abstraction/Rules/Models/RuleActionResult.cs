@@ -11,14 +11,14 @@ public class RuleActionResult
     public bool Success { get; set; }
 
     /// <summary>
-    /// The conversation ID if a new conversation was created
-    /// </summary>
-    public string? ConversationId { get; set; }
-
-    /// <summary>
     /// Response content from the action
     /// </summary>
     public string? Response { get; set; }
+
+    /// <summary>
+    /// Result data
+    /// </summary>
+    public Dictionary<string, object> Data { get; set; } = [];
 
     /// <summary>
     /// Error message if the action failed
@@ -44,3 +44,7 @@ public class RuleActionResult
     }
 }
 
+public class RuleActionStepResult : RuleActionResult
+{
+    public AgentRuleAction RuleAction { get; set; }
+}
