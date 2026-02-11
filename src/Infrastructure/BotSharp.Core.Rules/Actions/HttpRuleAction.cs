@@ -170,7 +170,7 @@ public sealed class HttpRuleAction : IRuleAction
 
     private void AddHttpHeaders(HttpClient client, RuleActionContext context)
     {
-        var headerParams = context.Parameters.TryGetValueOrDefault<IEnumerable<KeyValue>>("http_headers");
+        var headerParams = context.Parameters.TryGetValueOrDefault<IEnumerable<KeyValue>>("http_request_headers");
         if (!headerParams.IsNullOrEmpty())
         {
             foreach (var header in headerParams!)
