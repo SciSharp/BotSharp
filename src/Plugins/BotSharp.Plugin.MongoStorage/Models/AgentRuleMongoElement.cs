@@ -9,7 +9,7 @@ public class AgentRuleMongoElement
     public string TriggerName { get; set; } = default!;
     public bool Disabled { get; set; }
     public AgentRuleCriteriaMongoModel? RuleCriteria { get; set; }
-    public AgentRuleActionMongoModel? RuleAction { get; set; }
+    public List<AgentRuleActionMongoElement> RuleActions { get; set; } = [];
 
     public static AgentRuleMongoElement ToMongoElement(AgentRule rule)
     {
@@ -18,7 +18,7 @@ public class AgentRuleMongoElement
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
             RuleCriteria = AgentRuleCriteriaMongoModel.ToMongoModel(rule.RuleCriteria),
-            RuleAction = AgentRuleActionMongoModel.ToMongoModel(rule.RuleAction)
+            RuleActions = rule.RuleActions?.Where(x => x != null).Select(x => AgentRuleActionMongoElement.ToMongoElement(x)!)?.ToList() ?? []
         };
     }
 
@@ -29,7 +29,7 @@ public class AgentRuleMongoElement
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
             RuleCriteria = AgentRuleCriteriaMongoModel.ToDomainModel(rule.RuleCriteria),
-            RuleAction = AgentRuleActionMongoModel.ToDomainModel(rule.RuleAction)
+            RuleActions = rule.RuleActions?.Where(x => x != null).Select(x => AgentRuleActionMongoElement.ToDomainElement(x)!)?.ToList() ?? []
         };
     }
 }
@@ -73,16 +73,16 @@ public class AgentRuleCriteriaMongoModel : AgentRuleConfigMongoModel
 }
 
 [BsonIgnoreExtraElements(Inherited = true)]
-public class AgentRuleActionMongoModel : AgentRuleConfigMongoModel
+public class AgentRuleActionMongoElement : AgentRuleConfigMongoModel
 {
-    public static AgentRuleActionMongoModel? ToMongoModel(AgentRuleAction? action)
+    public static AgentRuleActionMongoElement? ToMongoElement(AgentRuleAction? action)
     {
         if (action == null)
         {
             return null;
         }
 
-        return new AgentRuleActionMongoModel
+        return new AgentRuleActionMongoElement
         {
             Name = action.Name,
             Disabled = action.Disabled,
@@ -90,7 +90,7 @@ public class AgentRuleActionMongoModel : AgentRuleConfigMongoModel
         };
     }
 
-    public static AgentRuleAction? ToDomainModel(AgentRuleActionMongoModel? action)
+    public static AgentRuleAction? ToDomainElement(AgentRuleActionMongoElement? action)
     {
         if (action == null)
         {

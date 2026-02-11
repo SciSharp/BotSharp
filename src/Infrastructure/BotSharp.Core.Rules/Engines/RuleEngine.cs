@@ -50,18 +50,21 @@ public class RuleEngine : IRuleEngine
                     continue;
                 }
             }
-            
+
             // Execute action
-            if (rule.RuleAction?.Disabled == true)
+            var ruleActions = rule.RuleActions?.Where(x => x != null && !string.IsNullOrEmpty(x.Name) && !x.Disabled) ?? [];
+            if (ruleActions.IsNullOrEmpty())
             {
                 continue;
             }
 
-            var actionName = !string.IsNullOrEmpty(rule?.RuleAction?.Name) ? rule.RuleAction.Name : RuleConstant.DEFAULT_ACTION_NAME;
-            var actionResult = await ExecuteActionAsync(agent, rule, trigger, actionName, text, states, options);
-            if (actionResult?.Success == true && !string.IsNullOrEmpty(actionResult.ConversationId))
+            foreach (var ruleAction in ruleActions)
             {
-                newConversationIds.Add(actionResult.ConversationId);
+                var actionResult = await ExecuteActionAsync(agent, ruleAction, trigger, text, states, options);
+                if (actionResult?.Success == true && !string.IsNullOrEmpty(actionResult.ConversationId))
+                {
+                    newConversationIds.Add(actionResult.ConversationId);
+                }
             }
         }
 
@@ -131,9 +134,8 @@ public class RuleEngine : IRuleEngine
     #region Action
     private async Task<RuleActionResult> ExecuteActionAsync(
         Agent agent,
-        AgentRule rule,
+        AgentRuleAction ruleAction,
         IRuleTrigger trigger,
-        string? actionName,
         string text,
         IEnumerable<MessageState>? states,
         RuleTriggerOptions? triggerOptions)
@@ -144,11 +146,11 @@ public class RuleEngine : IRuleEngine
             var actions = _services.GetServices<IRuleAction>();
 
             // Find the matching action
-            var action = actions.FirstOrDefault(x => x.Name.IsEqualTo(actionName));
+            var foundAction = actions.FirstOrDefault(x => x.Name.IsEqualTo(ruleAction.Name));
 
-            if (action == null)
+            if (foundAction == null)
             {
-                var errorMsg = $"No rule action {actionName} is found";
+                var errorMsg = $"No rule action {ruleAction.Name} is found";
                 _logger.LogWarning(errorMsg);
                 return RuleActionResult.Failed(errorMsg);
             }
@@ -156,33 +158,33 @@ public class RuleEngine : IRuleEngine
             var context = new RuleActionContext
             {
                 Text = text,
-                Parameters = BuildContextParameters(rule.RuleAction?.Config, states),
+                Parameters = BuildContextParameters(ruleAction.Config, states),
                 JsonOptions = triggerOptions?.JsonOptions
             };
 
             _logger.LogInformation("Start execution rule action {ActionName} for agent {AgentId} with trigger {TriggerName}",
-                action.Name, agent.Id, trigger.Name);
+                foundAction.Name, agent.Id, trigger.Name);
 
             var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
             foreach (var hook in hooks)
             {
-                await hook.BeforeRuleActionExecuted(agent, trigger, context);
+                await hook.BeforeRuleActionExecuted(agent, ruleAction, trigger, context);
             }
 
             // Execute action
             context.Parameters ??= [];
-            var result = await action.ExecuteAsync(agent, trigger, context);
+            var result = await foundAction.ExecuteAsync(agent, trigger, context);
 
             foreach (var hook in hooks)
             {
-                await hook.AfterRuleActionExecuted(agent, trigger, result);
+                await hook.AfterRuleActionExecuted(agent, ruleAction, trigger, result);
             }
 
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error executing rule action {ActionName} for agent {AgentId}", actionName, agent.Id);
+            _logger.LogError(ex, "Error executing rule action {ActionName} for agent {AgentId}", ruleAction.Name, agent.Id);
             return RuleActionResult.Failed(ex.Message);
         }
     }

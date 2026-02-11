@@ -15,7 +15,7 @@ public sealed class FunctionCallRuleAction : IRuleAction
         _logger = logger;
     }
 
-    public string Name => "BotSharp-function-call";
+    public string Name => "function_call";
 
     public async Task<RuleActionResult> ExecuteAsync(
         Agent agent,

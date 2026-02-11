@@ -29,7 +29,7 @@ public sealed class HttpRuleAction : IRuleAction
         _httpClientFactory = httpClientFactory;
     }
 
-    public string Name => "BotSharp-http";
+    public string Name => "http_request";
 
     public async Task<RuleActionResult> ExecuteAsync(
         Agent agent,
@@ -134,6 +134,7 @@ public sealed class HttpRuleAction : IRuleAction
             url = builder.ToString();
         }
 
+        _logger.LogInformation("HTTP url after filling: {Url}", url);
         return url;
     }
 

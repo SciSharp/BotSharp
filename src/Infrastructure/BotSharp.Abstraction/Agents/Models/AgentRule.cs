@@ -14,9 +14,9 @@ public class AgentRule
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AgentRuleCriteria? RuleCriteria { get; set; }
 
-    [JsonPropertyName("rule_action")]
+    [JsonPropertyName("rule_actions")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public AgentRuleAction? RuleAction { get; set; }
+    public IEnumerable<AgentRuleAction> RuleActions { get; set; } = [];
 }
 
 public class AgentRuleCriteria : AgentRuleConfigBase

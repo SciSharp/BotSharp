@@ -13,7 +13,7 @@ public sealed class ChatRuleAction : IRuleAction
         _logger = logger;
     }
 
-    public string Name => RuleConstant.DEFAULT_ACTION_NAME;
+    public string Name => "send_message_to_agent";
 
     public async Task<RuleActionResult> ExecuteAsync(
         Agent agent,
