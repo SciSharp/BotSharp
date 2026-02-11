@@ -27,6 +27,8 @@ public class RulesPlugin : IBotSharpPlugin
         services.AddScoped<IRuleAction, FunctionCallRuleAction>();
         services.AddScoped<IRuleAction, MessageQueueRuleAction>();
 
+#if DEBUG
         services.AddScoped<IRuleTrigger, DemoRuleTrigger>();
+#endif
     }
 }
