@@ -84,7 +84,7 @@ public class GraphDb : IGraphDb
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error when fetching Lessen GLM response (Endpoint: {url}).");
+                _logger.LogError(ex, $"Error when fetching {Provider} Graph db response (Endpoint: {url}).");
                 return result;
             }
         }

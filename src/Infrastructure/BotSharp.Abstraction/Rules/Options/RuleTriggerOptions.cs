@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories.Filters;
 using System.Text.Json;
 
 namespace BotSharp.Abstraction.Rules.Options;
@@ -5,22 +6,12 @@ namespace BotSharp.Abstraction.Rules.Options;
 public class RuleTriggerOptions
 {
     /// <summary>
-    /// Code processor provider
+    /// Filter agents
     /// </summary>
-    public string? CodeProcessor { get; set; }
+    public AgentFilter? AgentFilter { get; set; }
 
     /// <summary>
-    /// Code script name
+    /// Json serializer options
     /// </summary>
-    public string? CodeScriptName { get; set; }
-
-    /// <summary>
-    /// Argument name as an input key to the code script
-    /// </summary>
-    public string? ArgumentName { get; set; }
-
-    /// <summary>
-    /// Json arguments as an input value to the code script
-    /// </summary>
-    public JsonDocument? ArgumentContent { get; set; }
+    public JsonSerializerOptions? JsonOptions { get; set; }
 }
