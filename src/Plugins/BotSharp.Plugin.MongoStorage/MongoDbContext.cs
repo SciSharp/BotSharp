@@ -14,10 +14,13 @@ public class MongoDbContext
 
     public MongoDbContext(BotSharpDatabaseSettings dbSettings)
     {
-        var mongoDbConnectionString = dbSettings.BotSharpMongoDb;
+        var mongoDbConnectionString = dbSettings?.BotSharpMongoDb;
+        if (string.IsNullOrWhiteSpace(mongoDbConnectionString))
+            throw new InvalidOperationException("MongoDB is enabled but BotSharpMongoDb is not configured.");
+
         _mongoClient = new MongoClient(mongoDbConnectionString);
         _mongoDbDatabaseName = GetDatabaseName(mongoDbConnectionString);
-        _collectionPrefix = dbSettings.TablePrefix.IfNullOrEmptyAs(DefaultTablePrefix)!;
+        _collectionPrefix = dbSettings?.TablePrefix.IfNullOrEmptyAs(DefaultTablePrefix)!;
         CreateIndexes();
     }
 
