@@ -1,54 +1,30 @@
 using BotSharp.Abstraction.Repositories.Settings;
+using BotSharp.Abstraction.Utilities;
 using System.Threading;
 
 namespace BotSharp.Plugin.MongoStorage;
 
 public class MongoDbContext
 {
+    private const string BotSharp = "BotSharp";
     private readonly MongoClient _mongoClient;
     private readonly string _mongoDbDatabaseName;
     private readonly string _collectionPrefix;
     private static int _indexesInitialized = 0;
-
-    private const string DB_NAME_INDEX = "authSource";
 
     public MongoDbContext(BotSharpDatabaseSettings dbSettings)
     {
         var mongoDbConnectionString = dbSettings.BotSharpMongoDb;
         _mongoClient = new MongoClient(mongoDbConnectionString);
         _mongoDbDatabaseName = GetDatabaseName(mongoDbConnectionString);
-        _collectionPrefix = dbSettings.TablePrefix.IfNullOrEmptyAs("BotSharp")!;
+        _collectionPrefix = dbSettings.TablePrefix.IfNullOrEmptyAs(BotSharp)!;
         CreateIndexes();
     }
 
     private string GetDatabaseName(string mongoDbConnectionString)
     {
-        var databaseName = mongoDbConnectionString.Substring(mongoDbConnectionString.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase) + 1);
-
-        var symbol = "?";
-        if (databaseName.Contains(symbol))
-        {
-            var markIdx = databaseName.IndexOf(symbol, StringComparison.InvariantCultureIgnoreCase);
-            var db = databaseName.Substring(0, markIdx);
-            if (!string.IsNullOrWhiteSpace(db))
-            {
-                return db;
-            }
-
-            var queryStr = databaseName.Substring(markIdx + 1);
-            var queries = queryStr.Split("&", StringSplitOptions.RemoveEmptyEntries).Select(x => new
-            {
-                Key = x.Split("=")[0],
-                Value = x.Split("=")[1]
-            }).ToList();
-
-            var source = queries.FirstOrDefault(x => x.Key.IsEqualTo(DB_NAME_INDEX));
-            if (source != null)
-            {
-                databaseName = source.Value;
-            }
-        }
-        return databaseName;
+        var mongoUrl = new MongoUrl(mongoDbConnectionString);
+        return mongoUrl.DatabaseName.IfNullOrEmptyAs(mongoUrl.AuthenticationSource).IfNullOrEmptyAs(BotSharp)!;
     }
 
     private IMongoDatabase Database => _mongoClient.GetDatabase(_mongoDbDatabaseName);
