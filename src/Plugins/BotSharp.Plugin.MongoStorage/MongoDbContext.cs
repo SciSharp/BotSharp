@@ -6,7 +6,7 @@ namespace BotSharp.Plugin.MongoStorage;
 
 public class MongoDbContext
 {
-    private const string BotSharp = "BotSharp";
+    private const string DefaultTablePrefix = "BotSharp";
     private readonly MongoClient _mongoClient;
     private readonly string _mongoDbDatabaseName;
     private readonly string _collectionPrefix;
@@ -17,14 +17,20 @@ public class MongoDbContext
         var mongoDbConnectionString = dbSettings.BotSharpMongoDb;
         _mongoClient = new MongoClient(mongoDbConnectionString);
         _mongoDbDatabaseName = GetDatabaseName(mongoDbConnectionString);
-        _collectionPrefix = dbSettings.TablePrefix.IfNullOrEmptyAs(BotSharp)!;
+        _collectionPrefix = dbSettings.TablePrefix.IfNullOrEmptyAs(DefaultTablePrefix)!;
         CreateIndexes();
     }
 
     private string GetDatabaseName(string mongoDbConnectionString)
     {
         var mongoUrl = new MongoUrl(mongoDbConnectionString);
-        return mongoUrl.DatabaseName.IfNullOrEmptyAs(mongoUrl.AuthenticationSource).IfNullOrEmptyAs(BotSharp)!;
+        var databaseName = mongoUrl.DatabaseName.IfNullOrEmptyAs(mongoUrl.AuthenticationSource);
+        if (string.IsNullOrWhiteSpace(databaseName))
+        {
+            throw new InvalidOperationException(
+                "MongoDB connection string must specify a database: set the database in the path (e.g. mongodb://host/dbname) or set authSource in the query string (e.g. ?authSource=dbname). ");
+        }
+        return databaseName!;
     }
 
     private IMongoDatabase Database => _mongoClient.GetDatabase(_mongoDbDatabaseName);
