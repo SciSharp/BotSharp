@@ -16,12 +16,13 @@ public class TenantConnectionProvider : ITenantConnectionProvider
 
     public string GetConnectionString(string name)
     {
-        // Prefer app-level connection strings
-        var fallback = _configuration.GetConnectionString(name);
-        if (!string.IsNullOrWhiteSpace(fallback)) return fallback;
-
+        // Prefer tenant-level connection strings
         var cs = _resolver.GetConnectionString(name);
-        return cs ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(cs)) return cs;
+
+        // Fallback to app-level connection strings
+        var fallback = _configuration.GetConnectionString(name);
+        return fallback ?? string.Empty;
     }
 
     public string GetDefaultConnectionString()
