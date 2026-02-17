@@ -1,54 +1,39 @@
 using BotSharp.Abstraction.Repositories.Settings;
+using BotSharp.Abstraction.Utilities;
 using System.Threading;
 
 namespace BotSharp.Plugin.MongoStorage;
 
 public class MongoDbContext
 {
+    private const string DefaultTablePrefix = "BotSharp";
     private readonly MongoClient _mongoClient;
     private readonly string _mongoDbDatabaseName;
     private readonly string _collectionPrefix;
     private static int _indexesInitialized = 0;
 
-    private const string DB_NAME_INDEX = "authSource";
-
     public MongoDbContext(BotSharpDatabaseSettings dbSettings)
     {
-        var mongoDbConnectionString = dbSettings.BotSharpMongoDb;
+        var mongoDbConnectionString = dbSettings?.BotSharpMongoDb;
+        if (string.IsNullOrWhiteSpace(mongoDbConnectionString))
+            throw new InvalidOperationException("MongoDB is enabled but BotSharpMongoDb is not configured.");
+
         _mongoClient = new MongoClient(mongoDbConnectionString);
         _mongoDbDatabaseName = GetDatabaseName(mongoDbConnectionString);
-        _collectionPrefix = dbSettings.TablePrefix.IfNullOrEmptyAs("BotSharp")!;
+        _collectionPrefix = dbSettings?.TablePrefix.IfNullOrEmptyAs(DefaultTablePrefix)!;
         CreateIndexes();
     }
 
     private string GetDatabaseName(string mongoDbConnectionString)
     {
-        var databaseName = mongoDbConnectionString.Substring(mongoDbConnectionString.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase) + 1);
-
-        var symbol = "?";
-        if (databaseName.Contains(symbol))
+        var mongoUrl = new MongoUrl(mongoDbConnectionString);
+        var databaseName = mongoUrl.DatabaseName.IfNullOrEmptyAs(mongoUrl.AuthenticationSource);
+        if (string.IsNullOrWhiteSpace(databaseName))
         {
-            var markIdx = databaseName.IndexOf(symbol, StringComparison.InvariantCultureIgnoreCase);
-            var db = databaseName.Substring(0, markIdx);
-            if (!string.IsNullOrWhiteSpace(db))
-            {
-                return db;
-            }
-
-            var queryStr = databaseName.Substring(markIdx + 1);
-            var queries = queryStr.Split("&", StringSplitOptions.RemoveEmptyEntries).Select(x => new
-            {
-                Key = x.Split("=")[0],
-                Value = x.Split("=")[1]
-            }).ToList();
-
-            var source = queries.FirstOrDefault(x => x.Key.IsEqualTo(DB_NAME_INDEX));
-            if (source != null)
-            {
-                databaseName = source.Value;
-            }
+            throw new InvalidOperationException(
+                "MongoDB connection string must specify a database: set the database in the path (e.g. mongodb://host/dbname) or set authSource in the query string (e.g. ?authSource=dbname). ");
         }
-        return databaseName;
+        return databaseName!;
     }
 
     private IMongoDatabase Database => _mongoClient.GetDatabase(_mongoDbDatabaseName);

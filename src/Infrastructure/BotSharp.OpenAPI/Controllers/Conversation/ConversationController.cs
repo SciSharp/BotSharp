@@ -213,8 +213,8 @@ public partial class ConversationController : ControllerBase
             return false;
         }
 
-        var response = await conv.UpdateConversationTitle(conversationId, newTile.NewTitle);
-        return response != null;
+        await conv.UpdateConversationTitle(conversationId, newTile.NewTitle);
+        return true;
     }
 
     [HttpPut("/conversation/{conversationId}/update-title-alias")]
