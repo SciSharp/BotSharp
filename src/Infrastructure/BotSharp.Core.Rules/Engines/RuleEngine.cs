@@ -99,7 +99,7 @@ public class RuleEngine : IRuleEngine
         return newConversationIds;
     }
 
-    public async Task<bool> RunActions(IRuleTrigger trigger, IEnumerable<AgentRuleAction> actions, RuleExecutionActionOptions options)
+    public async Task<bool> ExecuteActions(IRuleTrigger trigger, IEnumerable<AgentRuleAction> actions, RuleExecutionActionOptions options)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(options.AgentId);

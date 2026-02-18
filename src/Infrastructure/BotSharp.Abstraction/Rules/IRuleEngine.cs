@@ -21,6 +21,6 @@ public interface IRuleEngine
     /// <param name="actions"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    Task<bool> RunActions(IRuleTrigger trigger, IEnumerable<AgentRuleAction> actions, RuleExecutionActionOptions options)
+    Task<bool> ExecuteActions(IRuleTrigger trigger, IEnumerable<AgentRuleAction> actions, RuleExecutionActionOptions options)
         => Task.FromResult(false);
 }
