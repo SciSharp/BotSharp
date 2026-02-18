@@ -12,5 +12,5 @@ public interface IInstructHook : IHookBase
     Task OnResponseGenerated(InstructResponseModel response) => Task.CompletedTask;
 
     Task BeforeCodeExecution(Agent agent, CodeExecutionContext context) => Task.CompletedTask;
-    Task AfterCodeExecution(Agent agent, CodeExecutionResponseModel response) => Task.CompletedTask;
+    Task AfterCodeExecution(Agent agent, CodeExecutionContext context, CodeExecutionResponseModel response) => Task.CompletedTask;
 }

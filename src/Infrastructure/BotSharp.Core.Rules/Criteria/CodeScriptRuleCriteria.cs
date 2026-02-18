@@ -53,26 +53,28 @@ public class CodeScriptRuleCriteria : IRuleCriteria
         {
             var hooks = _services.GetHooks<IInstructHook>(agent.Id);
 
-            var argName = context.Parameters.GetValueOrDefault("argument_name", null);
-            var argValue = context.Parameters.TryGetValue("argument_value", out var val) && val != null ? JsonSerializer.Deserialize<JsonElement>(val) : (JsonElement?)null;
+            var argName = context.Parameters.GetValueOrDefault("code_script_arg_name", null);
+            var argValue = context.Parameters.TryGetValue("code_script_arg_value", out var val) && val != null ? JsonSerializer.Deserialize<JsonElement>(val) : (JsonElement?)null;
             var arguments = BuildArguments(argName, argValue);
-            var codeExeContext = new CodeExecutionContext
+            var codeExecutionContext = new CodeExecutionContext
             {
                 CodeScript = codeScript,
-                Arguments = arguments
+                Arguments = arguments,
+                InvokeFrom = nameof(CodeScriptRuleCriteria)
             };
 
             foreach (var hook in hooks)
             {
-                await hook.BeforeCodeExecution(agent, codeExeContext);
+                await hook.BeforeCodeExecution(agent, codeExecutionContext);
             }
 
+            codeScript = codeExecutionContext.CodeScript;
             var (useLock, useProcess, timeoutSeconds) = CodingUtil.GetCodeExecutionConfig(_codingSettings);
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
             var response = processor.Run(codeScript.Content, options: new()
             {
                 ScriptName = scriptName,
-                Arguments = arguments,
+                Arguments = codeExecutionContext.Arguments,
                 UseLock = useLock,
                 UseProcess = useProcess
             }, cancellationToken: cts.Token);
@@ -87,7 +89,7 @@ public class CodeScriptRuleCriteria : IRuleCriteria
 
             foreach (var hook in hooks)
             {
-                await hook.AfterCodeExecution(agent, codeResponse);
+                await hook.AfterCodeExecution(agent, codeExecutionContext, codeResponse);
             }
 
             if (response == null || !response.Success)
