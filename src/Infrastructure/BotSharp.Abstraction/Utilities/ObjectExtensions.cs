@@ -103,4 +103,32 @@ public static class ObjectExtensions
 
         return false;
     }
+
+
+    public static T? TryGetObjectValueOrDefault<T>(this IDictionary<string, string?> dict, string key, T? defaultValue = default, JsonSerializerOptions? jsonOptions = null) where T : class
+    {
+        return dict.TryGetObjectValue<T>(key, out var value, jsonOptions)
+                ? value!
+                : defaultValue;
+    }
+
+    public static bool TryGetObjectValue<T>(this IDictionary<string, string?> dict, string key, out T? result, JsonSerializerOptions? jsonOptions = null) where T : class
+    {
+        result = default;
+
+        if (!dict.TryGetValue(key, out var value) || value is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            result = JsonSerializer.Deserialize<T>(value, jsonOptions);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

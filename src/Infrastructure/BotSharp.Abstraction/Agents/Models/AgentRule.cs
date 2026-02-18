@@ -64,4 +64,7 @@ public class AgentRuleConfigBase
     [JsonPropertyName("config")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual JsonDocument? Config { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public virtual string? JsonConfig { get; set; }
 }

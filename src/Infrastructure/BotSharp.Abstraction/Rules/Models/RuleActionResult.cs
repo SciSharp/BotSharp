@@ -18,12 +18,17 @@ public class RuleActionResult
     /// <summary>
     /// Result data
     /// </summary>
-    public Dictionary<string, object> Data { get; set; } = [];
+    public Dictionary<string, string> Data { get; set; } = [];
 
     /// <summary>
     /// Error message if the action failed
     /// </summary>
     public string? ErrorMessage { get; set; }
+
+    /// <summary>
+    /// Whether the action is delayed
+    /// </summary>
+    public bool IsDelayed { get; set; }
 
     public static RuleActionResult Succeeded(string? response = null)
     {

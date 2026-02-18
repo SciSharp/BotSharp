@@ -43,7 +43,7 @@ public sealed class ChatRuleAction : IRuleAction
 
             if (!context.Parameters.IsNullOrEmpty())
             {
-                var states = context.Parameters.Select(x => new MessageState(x.Key, x.Value));
+                var states = context.Parameters.Where(x => x.Value != null).Select(x => new MessageState(x.Key, x.Value!));
                 allStates.AddRange(states);
             }
 

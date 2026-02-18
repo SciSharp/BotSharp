@@ -29,7 +29,7 @@ public class CodeScriptRuleCriteria : IRuleCriteria
             return result;
         }
 
-        var provider = context.Parameters.TryGetValueOrDefault<string>("code_processor") ?? BuiltInCodeProcessor.PyInterpreter;
+        var provider = context.Parameters.GetValueOrDefault("code_processor", BuiltInCodeProcessor.PyInterpreter);
         var processor = _services.GetServices<ICodeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
         if (processor == null)
         {
@@ -38,7 +38,7 @@ public class CodeScriptRuleCriteria : IRuleCriteria
         }
 
         var agentService = _services.GetRequiredService<IAgentService>();
-        var scriptName = context.Parameters.TryGetValueOrDefault<string>("code_script_name") ?? $"{trigger.Name}_rule.py";
+        var scriptName = context.Parameters.GetValueOrDefault("code_script_name", $"{trigger.Name}_rule.py");
         var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
 
         var msg = $"rule trigger ({trigger.Name}) code script ({scriptName}) in agent ({agent.Name}).";
@@ -53,8 +53,8 @@ public class CodeScriptRuleCriteria : IRuleCriteria
         {
             var hooks = _services.GetHooks<IInstructHook>(agent.Id);
 
-            var argName = context.Parameters.TryGetValueOrDefault<string>("argument_name");
-            var argValue = context.Parameters.TryGetValueOrDefault<JsonElement?>("argument_value");
+            var argName = context.Parameters.GetValueOrDefault("argument_name", null);
+            var argValue = context.Parameters.TryGetValue("argument_value", out var val) && val != null ? JsonSerializer.Deserialize<JsonElement>(val) : (JsonElement?)null;
             var arguments = BuildArguments(argName, argValue);
             var codeExeContext = new CodeExecutionContext
             {

@@ -11,14 +11,6 @@ public sealed class HttpRuleAction : IRuleAction
     private readonly ILogger<HttpRuleAction> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
 
-    private readonly JsonSerializerOptions _defaultJsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        AllowTrailingCommas = true,
-        ReferenceHandler = ReferenceHandler.IgnoreCycles
-    };
-
     public HttpRuleAction(
         IServiceProvider services,
         ILogger<HttpRuleAction> logger,
@@ -103,7 +95,7 @@ public sealed class HttpRuleAction : IRuleAction
 
     private string BuildUrl(RuleActionContext context)
     {
-        var url = context.Parameters.TryGetValueOrDefault<string>("http_url");
+        var url = context.Parameters.GetValueOrDefault("http_url", string.Empty);
         if (string.IsNullOrEmpty(url))
         {
             throw new ArgumentNullException("Unable to find http_url in context");
@@ -121,7 +113,7 @@ public sealed class HttpRuleAction : IRuleAction
         }
 
         // Add query parameters
-        var queryParams = context.Parameters.TryGetValueOrDefault<IEnumerable<KeyValue>>("http_query_params");
+        var queryParams = context.Parameters.TryGetObjectValueOrDefault<IEnumerable<KeyValue>>("http_query_params");
         if (!queryParams.IsNullOrEmpty())
         {
             var builder = new UriBuilder(url);
@@ -144,7 +136,7 @@ public sealed class HttpRuleAction : IRuleAction
 
     private HttpMethod? GetHttpMethod(RuleActionContext context)
     {
-        var method = context.Parameters.TryGetValueOrDefault("http_method", string.Empty);
+        var method = context.Parameters.GetValueOrDefault("http_method", string.Empty);
         var innerMethod = method?.Trim()?.ToUpper();
         HttpMethod? matchMethod = null;
 
@@ -175,7 +167,7 @@ public sealed class HttpRuleAction : IRuleAction
 
     private void AddHttpHeaders(HttpClient client, RuleActionContext context)
     {
-        var headerParams = context.Parameters.TryGetValueOrDefault<IEnumerable<KeyValue>>("http_request_headers");
+        var headerParams = context.Parameters.TryGetObjectValueOrDefault<IEnumerable<KeyValue>>("http_request_headers");
         if (!headerParams.IsNullOrEmpty())
         {
             foreach (var header in headerParams!)
@@ -188,12 +180,7 @@ public sealed class HttpRuleAction : IRuleAction
     private string? GetHttpRequestBody(RuleActionContext context)
     {
         var body = context.Parameters.GetValueOrDefault("http_request_body");
-        if (body == null)
-        {
-            return null;
-        }
-
-        return JsonSerializer.Serialize(body, context.JsonOptions ?? _defaultJsonOptions);
+        return body;
     }
 }
 

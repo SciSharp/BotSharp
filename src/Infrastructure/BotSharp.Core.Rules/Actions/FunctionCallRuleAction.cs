@@ -22,7 +22,7 @@ public sealed class FunctionCallRuleAction : IRuleAction
         IRuleTrigger trigger,
         RuleActionContext context)
     {
-        var funcName = context.Parameters.TryGetValueOrDefault("function_name", string.Empty);
+        var funcName = context.Parameters.TryGetValue("function_name", out var fName) ? fName : null;
         var func = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name.IsEqualTo(funcName));
 
         if (func == null)
@@ -32,7 +32,7 @@ public sealed class FunctionCallRuleAction : IRuleAction
             return RuleActionResult.Failed(errorMsg);
         }
 
-        var funcArg = context.Parameters.TryGetValueOrDefault<RoleDialogModel>("function_argument") ?? new();
+        var funcArg = context.Parameters.TryGetObjectValueOrDefault<RoleDialogModel>("function_argument", new()) ?? new();
         await func.Execute(funcArg);
 
         return new RuleActionResult
@@ -42,7 +42,7 @@ public sealed class FunctionCallRuleAction : IRuleAction
             Data = new()
             {
                 ["function_name"] = funcName!,
-                ["function_argument"] = funcArg!,
+                ["function_argument"] = funcArg?.ConvertToString() ?? "{}",
                 ["function_call_result"] = funcArg?.RichContent?.Message?.Text ?? funcArg?.Content ?? string.Empty
             }
         };

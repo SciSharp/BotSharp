@@ -59,12 +59,18 @@ public class RuleEngine : IRuleEngine
             }
 
             var stepResults = new List<RuleActionStepResult>();
-            foreach (var ruleAction in ruleActions)
+            for (int i = 0; i < ruleActions.Count(); i++)
             {
-                var actionResult = await ExecuteActionAsync(agent, ruleAction, trigger, text, states, options, stepResults);
+                var ruleAction = ruleActions.ElementAt(i);
+                var actionResult = await ExecuteActionAsync(agent, ruleAction, ruleActions.Skip(i + 1), trigger, text, states, stepResults, options);
                 if (actionResult == null)
                 {
                     continue;
+                }
+
+                if (!actionResult.Success)
+                {
+                    break;
                 }
 
                 stepResults.Add(new()
@@ -82,10 +88,53 @@ public class RuleEngine : IRuleEngine
                 {
                     newConversationIds.Add(convId.ToString()!);
                 }
+
+                if (actionResult?.IsDelayed == true)
+                {
+                    break;
+                }
             }
         }
 
         return newConversationIds;
+    }
+
+    public async Task<bool> RunActions(IRuleTrigger trigger, IEnumerable<AgentRuleAction> actions, RuleExecutionActionOptions options)
+    {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(options.AgentId);
+
+        var stepResults = new List<RuleActionStepResult>();
+        for (int i = 0; i < actions.Count(); i++)
+        {
+            var ruleAction = actions.ElementAt(i);
+            var actionResult = await ExecuteActionAsync(agent, ruleAction, actions.Skip(i + 1), trigger, options.Text, options.States, stepResults);
+            if (actionResult == null)
+            {
+                continue;
+            }
+
+            if (!actionResult.Success)
+            {
+                break;
+            }
+
+            stepResults.Add(new()
+            {
+                RuleAction = ruleAction,
+                Success = actionResult.Success,
+                Response = actionResult.Response,
+                ErrorMessage = actionResult.ErrorMessage,
+                Data = actionResult.Data
+            });
+
+            if (actionResult?.IsDelayed == true)
+            {
+                break;
+            }
+        }
+
+        return true;
     }
 
 
@@ -150,12 +199,13 @@ public class RuleEngine : IRuleEngine
     #region Action
     private async Task<RuleActionResult> ExecuteActionAsync(
         Agent agent,
-        AgentRuleAction ruleAction,
+        AgentRuleAction curRuleAction,
+        IEnumerable<AgentRuleAction> nextRuleActions,
         IRuleTrigger trigger,
         string text,
         IEnumerable<MessageState>? states,
-        RuleTriggerOptions? triggerOptions,
-        IEnumerable<RuleActionStepResult> prevStepResults)
+        IEnumerable<RuleActionStepResult> prevStepResults,
+        RuleTriggerOptions? triggerOptions = null)
     {
         try
         {
@@ -163,11 +213,11 @@ public class RuleEngine : IRuleEngine
             var actions = _services.GetServices<IRuleAction>();
 
             // Find the matching action
-            var foundAction = actions.FirstOrDefault(x => x.Name.IsEqualTo(ruleAction.Name));
+            var foundAction = actions.FirstOrDefault(x => x.Name.IsEqualTo(curRuleAction.Name));
 
             if (foundAction == null)
             {
-                var errorMsg = $"No rule action {ruleAction.Name} is found";
+                var errorMsg = $"No rule action {curRuleAction.Name} is found";
                 _logger.LogWarning(errorMsg);
                 return RuleActionResult.Failed(errorMsg);
             }
@@ -175,8 +225,9 @@ public class RuleEngine : IRuleEngine
             var context = new RuleActionContext
             {
                 Text = text,
-                Parameters = BuildContextParameters(ruleAction.Config, states),
+                Parameters = BuildContextParameters(curRuleAction.Config, states, prevStepResults),
                 PrevStepResults = prevStepResults,
+                NextActions = nextRuleActions,
                 JsonOptions = triggerOptions?.JsonOptions
             };
 
@@ -186,7 +237,7 @@ public class RuleEngine : IRuleEngine
             var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
             foreach (var hook in hooks)
             {
-                await hook.BeforeRuleActionExecuted(agent, ruleAction, trigger, context);
+                await hook.BeforeRuleActionExecuted(agent, curRuleAction, trigger, context);
             }
 
             // Execute action
@@ -195,14 +246,14 @@ public class RuleEngine : IRuleEngine
 
             foreach (var hook in hooks)
             {
-                await hook.AfterRuleActionExecuted(agent, ruleAction, trigger, result);
+                await hook.AfterRuleActionExecuted(agent, curRuleAction, trigger, result);
             }
 
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error executing rule action {ActionName} for agent {AgentId}", ruleAction.Name, agent.Id);
+            _logger.LogError(ex, "Error executing rule action {ActionName} for agent {AgentId}", curRuleAction.Name, agent.Id);
             return RuleActionResult.Failed(ex.Message);
         }
     }
@@ -210,9 +261,9 @@ public class RuleEngine : IRuleEngine
 
 
     #region Private methods
-    private Dictionary<string, object?> BuildContextParameters(JsonDocument? config, IEnumerable<MessageState>? states)
+    private Dictionary<string, string?> BuildContextParameters(JsonDocument? config, IEnumerable<MessageState>? states, IEnumerable<RuleActionStepResult>? stepResults = null)
     {
-        var dict = new Dictionary<string, object?>();
+        var dict = new Dictionary<string, string?>();
 
         if (config != null)
         {
@@ -223,20 +274,33 @@ public class RuleEngine : IRuleEngine
         {
             foreach (var state in states!)
             {
-                dict[state.Key] = state.Value;
+                dict[state.Key] = state.Value?.ConvertToString();
+            }
+        }
+
+        if (!stepResults.IsNullOrEmpty())
+        {
+            foreach (var result in stepResults!)
+            {
+                if (result.Data.IsNullOrEmpty()) continue;
+
+                foreach (var item in result.Data)
+                {
+                    dict[item.Key] = item.Value;
+                }
             }
         }
 
         return dict;
     }
 
-    private static Dictionary<string, object?> ConvertToDictionary(JsonDocument doc)
+    private static Dictionary<string, string?> ConvertToDictionary(JsonDocument doc)
     {
-        var dict = new Dictionary<string, object?>();
+        var dict = new Dictionary<string, string?>();
 
         foreach (var prop in doc.RootElement.EnumerateObject())
         {
-            dict[prop.Name] = prop.Value.ValueKind switch
+            object? value = prop.Value.ValueKind switch
             {
                 JsonValueKind.String => prop.Value.GetString(),
                 JsonValueKind.Number when prop.Value.TryGetDecimal(out decimal decimalValue) => decimalValue,
@@ -255,6 +319,7 @@ public class RuleEngine : IRuleEngine
                 JsonValueKind.Object => prop.Value,
                 _ => prop.Value
             };
+            dict[prop.Name] = value?.ConvertToString();
         }
 
         return dict;
