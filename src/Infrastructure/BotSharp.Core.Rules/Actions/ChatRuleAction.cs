@@ -60,6 +60,7 @@ public sealed class ChatRuleAction : IRuleAction
             return new RuleActionResult
             {
                 Success = true,
+                Response = conv.Id,
                 Data = new()
                 {
                     ["agent_id"] = agent.Id,
