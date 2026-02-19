@@ -375,9 +375,9 @@ public class RuleEngine : IRuleEngine
         {
             steps = intVal;
         }
-        else if (bool.TryParse(result, out var boolVal))
+        else if (bool.TryParse(result, out var boolVal) && boolVal)
         {
-            steps = boolVal ? 1 : 0;
+            steps = 1;
         }
 
         return steps;
