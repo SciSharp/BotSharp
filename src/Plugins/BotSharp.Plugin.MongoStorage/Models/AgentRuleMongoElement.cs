@@ -75,6 +75,8 @@ public class AgentRuleCriteriaMongoModel : AgentRuleConfigMongoModel
 [BsonIgnoreExtraElements(Inherited = true)]
 public class AgentRuleActionMongoElement : AgentRuleConfigMongoModel
 {
+    public string? SkippingExpression { get; set; }
+
     public static AgentRuleActionMongoElement? ToMongoElement(AgentRuleAction? action)
     {
         if (action == null)
@@ -86,7 +88,8 @@ public class AgentRuleActionMongoElement : AgentRuleConfigMongoModel
         {
             Name = action.Name,
             Disabled = action.Disabled,
-            Config = action.Config != null ? BsonDocument.Parse(action.Config.RootElement.GetRawText()) : null
+            Config = action.Config != null ? BsonDocument.Parse(action.Config.RootElement.GetRawText()) : null,
+            SkippingExpression = action.SkippingExpression
         };
     }
 
@@ -101,7 +104,8 @@ public class AgentRuleActionMongoElement : AgentRuleConfigMongoModel
         {
             Name = action.Name,
             Disabled = action.Disabled,
-            Config = action.Config != null ? JsonDocument.Parse(action.Config.ToJson()) : null
+            Config = action.Config != null ? JsonDocument.Parse(action.Config.ToJson()) : null,
+            SkippingExpression = action.SkippingExpression
         };
     }
 }

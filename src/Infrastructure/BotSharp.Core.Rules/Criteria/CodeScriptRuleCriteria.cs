@@ -20,6 +20,14 @@ public class CodeScriptRuleCriteria : IRuleCriteria
 
     public string Provider => RuleConstant.DEFAULT_CRITERIA_PROVIDER;
 
+    public JsonDocument DefaultConfig => JsonDocument.Parse(JsonSerializer.Serialize(new
+    {
+        code_processor = BuiltInCodeProcessor.PyInterpreter,
+        code_script_name = "{trigger_name}_rule.py",
+        code_script_arg_name = "trigger_args",
+        code_script_arg_value = JsonDocument.Parse("{}")
+    }));
+
     public async Task<RuleCriteriaResult> ValidateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context)
     {
         var result = new RuleCriteriaResult();

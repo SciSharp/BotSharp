@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Templating;
 using System.Data;
 using System.Text.Json;
 
@@ -58,13 +59,24 @@ public class RuleEngine : IRuleEngine
                 continue;
             }
 
+            var actionIdx = 0;
             var stepResults = new List<RuleActionStepResult>();
-            for (int i = 0; i < ruleActions.Count(); i++)
+            while (actionIdx >= 0 && actionIdx < ruleActions.Count())
             {
-                var ruleAction = ruleActions.ElementAt(i);
-                var actionResult = await ExecuteActionAsync(agent, ruleAction, ruleActions.Skip(i + 1), trigger, text, states, stepResults, options);
+                var ruleAction = ruleActions.ElementAt(actionIdx);
+                var dict = BuildContextParameters(ruleAction.Config, states, stepResults);
+
+                var skipSteps = RenderSkippingExpression(ruleAction.SkippingExpression, dict);
+                if (skipSteps.HasValue && skipSteps > 0)
+                {
+                    actionIdx += skipSteps.Value;
+                    continue;
+                }
+
+                var actionResult = await ExecuteActionAsync(agent, ruleAction, ruleActions.Skip(actionIdx + 1), trigger, text, dict, stepResults, options);
                 if (actionResult == null)
                 {
+                    actionIdx++;
                     continue;
                 }
 
@@ -93,6 +105,8 @@ public class RuleEngine : IRuleEngine
                 {
                     break;
                 }
+
+                actionIdx++;
             }
         }
 
@@ -104,13 +118,24 @@ public class RuleEngine : IRuleEngine
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(options.AgentId);
 
+        var actionIdx = 0;
         var stepResults = new List<RuleActionStepResult>();
-        for (int i = 0; i < actions.Count(); i++)
+        while (actionIdx >= 0 && actionIdx < actions.Count())
         {
-            var ruleAction = actions.ElementAt(i);
-            var actionResult = await ExecuteActionAsync(agent, ruleAction, actions.Skip(i + 1), trigger, options.Text, options.States, stepResults);
+            var ruleAction = actions.ElementAt(actionIdx);
+            var dict = BuildContextParameters(ruleAction.Config, options.States, stepResults);
+
+            var skipSteps = RenderSkippingExpression(ruleAction.SkippingExpression, dict);
+            if (skipSteps.HasValue && skipSteps > 0)
+            {
+                actionIdx += skipSteps.Value;
+                continue;
+            }
+
+            var actionResult = await ExecuteActionAsync(agent, ruleAction, actions.Skip(actionIdx + 1), trigger, options.Text, dict, stepResults);
             if (actionResult == null)
             {
+                actionIdx++;
                 continue;
             }
 
@@ -132,6 +157,8 @@ public class RuleEngine : IRuleEngine
             {
                 break;
             }
+
+            actionIdx++;
         }
 
         return true;
@@ -203,7 +230,7 @@ public class RuleEngine : IRuleEngine
         IEnumerable<AgentRuleAction> nextRuleActions,
         IRuleTrigger trigger,
         string text,
-        IEnumerable<MessageState>? states,
+        Dictionary<string, string?> param,
         IEnumerable<RuleActionStepResult> prevStepResults,
         RuleTriggerOptions? triggerOptions = null)
     {
@@ -225,7 +252,7 @@ public class RuleEngine : IRuleEngine
             var context = new RuleActionContext
             {
                 Text = text,
-                Parameters = BuildContextParameters(curRuleAction.Config, states, prevStepResults),
+                Parameters = param,
                 PrevStepResults = prevStepResults,
                 NextActions = nextRuleActions,
                 JsonOptions = triggerOptions?.JsonOptions
@@ -324,5 +351,35 @@ public class RuleEngine : IRuleEngine
 
         return dict;
         #endregion
+    }
+
+    private int? RenderSkippingExpression(string? expression, Dictionary<string, string?> dict)
+    {
+        int? steps = null;
+
+        if (string.IsNullOrWhiteSpace(expression))
+        {
+            return steps;
+        }
+
+        var render = _services.GetRequiredService<ITemplateRender>();
+        var copy = dict != null
+            ? new Dictionary<string, object>(dict.Where(x => x.Value != null).ToDictionary(x => x.Key, x => (object)x.Value!))
+            : [];
+        var result = render.Render(expression, new Dictionary<string, object>
+        {
+            { "states", copy }
+        });
+
+        if (int.TryParse(result, out var intVal))
+        {
+            steps = intVal;
+        }
+        else if (bool.TryParse(result, out var boolVal))
+        {
+            steps = boolVal ? 1 : 0;
+        }
+
+        return steps;
     }
 }

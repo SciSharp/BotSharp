@@ -1,7 +1,5 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Rules.Models;
-using BotSharp.Abstraction.Rules.Options;
+using System.Text.Json;
 
 namespace BotSharp.Abstraction.Rules;
 
@@ -14,6 +12,11 @@ public interface IRuleAction
     /// The unique name of the rule action provider
     /// </summary>
     string Name { get; }
+
+    /// <summary>
+    /// The default config json format.
+    /// </summary>
+    JsonDocument DefaultConfig => JsonDocument.Parse("{}");
 
     /// <summary>
     /// Execute the rule action

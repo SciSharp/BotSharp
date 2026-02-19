@@ -1,6 +1,5 @@
 using System.Net.Mime;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Web;
 
 namespace BotSharp.Core.Rules.Actions;
@@ -22,6 +21,12 @@ public sealed class HttpRuleAction : IRuleAction
     }
 
     public string Name => "http_request";
+
+    public JsonDocument DefaultConfig => JsonDocument.Parse(JsonSerializer.Serialize(new
+    {
+        http_url = "https://dummy.example.com/api/v1/employees",
+        http_method = "GET"
+    }));
 
     public async Task<RuleActionResult> ExecuteAsync(
         Agent agent,

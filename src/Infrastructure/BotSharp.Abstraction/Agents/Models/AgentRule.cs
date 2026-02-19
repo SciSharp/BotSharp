@@ -48,20 +48,22 @@ public class AgentRuleAction : AgentRuleConfigBase
     /// - For "MessageQueue" action: contains mq_config with topic_name, routing_key, etc.
     /// - For custom actions: can contain any custom configuration structure
     /// </summary>
-    [JsonPropertyName("config")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public override JsonDocument? Config { get; set; }
+
+    /// <summary>
+    /// Skipping the number of actions using liquid template, starting from the action itself.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? SkippingExpression { get; set; }
 }
 
 public class AgentRuleConfigBase
 {
-    [JsonPropertyName("name")]
     public virtual string Name { get; set; }
 
-    [JsonPropertyName("disabled")]
     public virtual bool Disabled { get; set; }
 
-    [JsonPropertyName("config")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual JsonDocument? Config { get; set; }
 
