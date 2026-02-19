@@ -367,42 +367,8 @@ public class ChatCompletionProvider : IChatCompletion
         // Prepare instruction and functions
         var renderData = agentService.CollectRenderData(agent);
         var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent, renderData);
-        if (!string.IsNullOrWhiteSpace(instruction))
-        {
-            renderedInstructions.Add(instruction);
-            messages.Add(new SystemChatMessage(instruction));
-        }
 
-        // Render functions
-        if (options.WebSearchOptions == null)
-        {
-            foreach (var function in functions)
-            {
-                if (!agentService.RenderFunction(agent, function, renderData))
-                {
-                    continue;
-                }
-
-                var property = agentService.RenderFunctionProperty(agent, function, renderData);
-
-                options.Tools.Add(ChatTool.CreateFunctionTool(
-                    functionName: function.Name,
-                    functionDescription: function.Description,
-                    functionParameters: BinaryData.FromObjectAsJson(property)));
-            }
-        }
-
-        if (!string.IsNullOrEmpty(agent.Knowledges))
-        {
-            messages.Add(new SystemChatMessage(agent.Knowledges));
-        }
-
-        var samples = ProviderHelper.GetChatSamples(agent.Samples);
-        foreach (var sample in samples)
-        {
-            messages.Add(sample.Role == AgentRole.User ? new UserChatMessage(sample.Content) : new AssistantChatMessage(sample.Content));
-        }
-
+        // Build messages
         var filteredMessages = conversations.Select(x => x).ToList();
         var firstUserMsgIdx = filteredMessages.FindIndex(x => x.Role == AgentRole.User);
         if (firstUserMsgIdx > 0)
@@ -450,6 +416,43 @@ public class ChatCompletionProvider : IChatCompletion
                     CollectMessageContentParts(contentParts, message.Files, imageDetailLevel);
                 }
                 messages.Add(new AssistantChatMessage(contentParts));
+            }
+        }
+
+        // Build system messages
+        if (!string.IsNullOrWhiteSpace(instruction))
+        {
+            renderedInstructions.Add(instruction);
+            messages.Add(new SystemChatMessage(instruction));
+        }
+
+        if (!string.IsNullOrEmpty(agent.Knowledges))
+        {
+            messages.Add(new SystemChatMessage(agent.Knowledges));
+        }
+
+        var samples = ProviderHelper.GetChatSamples(agent.Samples);
+        foreach (var sample in samples)
+        {
+            messages.Add(sample.Role == AgentRole.User ? new UserChatMessage(sample.Content) : new AssistantChatMessage(sample.Content));
+        }
+
+        // Render functions
+        if (options.WebSearchOptions == null)
+        {
+            foreach (var function in functions)
+            {
+                if (!agentService.RenderFunction(agent, function, renderData))
+                {
+                    continue;
+                }
+
+                var property = agentService.RenderFunctionProperty(agent, function, renderData);
+
+                options.Tools.Add(ChatTool.CreateFunctionTool(
+                    functionName: function.Name,
+                    functionDescription: function.Description,
+                    functionParameters: BinaryData.FromObjectAsJson(property)));
             }
         }
 
