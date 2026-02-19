@@ -575,8 +575,37 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         // Prepare instruction and functions
         var renderData = agentService.CollectRenderData(agent);
         var (instruction, functions) = agentService.PrepareInstructionAndFunctions(agent, renderData);
-        
-        // Build messages
+        if (!string.IsNullOrWhiteSpace(instruction))
+        {
+            messages.Add(new SystemChatMessage(instruction));
+        }
+
+        foreach (var function in functions)
+        {
+            if (!agentService.RenderFunction(agent, function, renderData))
+            {
+                continue;
+            }
+
+            var property = agentService.RenderFunctionProperty(agent, function, renderData);
+
+            options.Tools.Add(ChatTool.CreateFunctionTool(
+                functionName: function.Name,
+                functionDescription: function.Description,
+                functionParameters: BinaryData.FromObjectAsJson(property)));
+        }
+
+        if (!string.IsNullOrEmpty(agent.Knowledges))
+        {
+            messages.Add(new SystemChatMessage(agent.Knowledges));
+        }
+
+        var samples = ProviderHelper.GetChatSamples(agent.Samples);
+        foreach (var sample in samples)
+        {
+            messages.Add(sample.Role == AgentRole.User ? new UserChatMessage(sample.Content) : new AssistantChatMessage(sample.Content));
+        }
+
         var filteredMessages = conversations.Select(x => x).ToList();
         var firstUserMsgIdx = filteredMessages.FindIndex(x => x.Role == AgentRole.User);
         if (firstUserMsgIdx > 0)
@@ -603,39 +632,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 messages.Add(new AssistantChatMessage(message.LlmContent));
             }
-        }
-
-        // Build system messages
-        if (!string.IsNullOrWhiteSpace(instruction))
-        {
-            messages.Add(new SystemChatMessage(instruction));
-        }
-
-        if (!string.IsNullOrEmpty(agent.Knowledges))
-        {
-            messages.Add(new SystemChatMessage(agent.Knowledges));
-        }
-
-        var samples = ProviderHelper.GetChatSamples(agent.Samples);
-        foreach (var sample in samples)
-        {
-            messages.Add(sample.Role == AgentRole.User ? new UserChatMessage(sample.Content) : new AssistantChatMessage(sample.Content));
-        }
-
-        // Build functions
-        foreach (var function in functions)
-        {
-            if (!agentService.RenderFunction(agent, function, renderData))
-            {
-                continue;
-            }
-
-            var property = agentService.RenderFunctionProperty(agent, function, renderData);
-
-            options.Tools.Add(ChatTool.CreateFunctionTool(
-                functionName: function.Name,
-                functionDescription: function.Description,
-                functionParameters: BinaryData.FromObjectAsJson(property)));
         }
 
         var prompt = GetPrompt(messages, options);
