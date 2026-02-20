@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Infrastructures;
+using BotSharp.Abstraction.MultiTenancy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Rougamo;
@@ -76,7 +77,7 @@ public class SharpCacheAttribute : AsyncMoAttribute
     private string GetCacheKey(MethodContext context)
     {
         var prefixKey = GetPrefixKey(context.Method.Name);
-        var argsKey = string.Join("_", context.Arguments.Select(arg => GetCacheKeyByArg(arg)));        
+        var argsKey = string.Join("_", context.Arguments.Select(arg => GetCacheKeyByArg(arg)));
 
         if (_perInstanceCache && context.Target != null)
         {
@@ -85,12 +86,31 @@ public class SharpCacheAttribute : AsyncMoAttribute
         else
         {
             return $"{prefixKey}_{argsKey}";
-        }        
+        }
     }
 
     private string GetPrefixKey(string name)
     {
+        var tenantId = GetTenantId();
+        if (!string.IsNullOrWhiteSpace(tenantId))
+        {
+            return $"{_settings.Prefix}:{tenantId}:{name}";
+        }
+
         return _settings.Prefix + ":" + name;
+    }
+
+    private string? GetTenantId()
+    {
+        try
+        {
+            var tenant = Services.GetService<ICurrentTenant>();
+            return tenant?.TenantId;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private string GetCacheKeyByArg(object? arg)
@@ -100,7 +120,7 @@ public class SharpCacheAttribute : AsyncMoAttribute
             return NullMarker.GetHashCode().ToString();
         }
         else if (arg is ICacheKey withCacheKey)
-        { 
+        {
             return withCacheKey.GetCacheKey();
         }
         else
@@ -110,7 +130,10 @@ public class SharpCacheAttribute : AsyncMoAttribute
     }
 
     public async Task ClearCacheAsync()
-    { 
-        await _cache.ClearCacheAsync(_settings.Prefix);
+    {
+        var tenantId = GetTenantId();
+        var prefix = string.IsNullOrWhiteSpace(tenantId) ? _settings.Prefix : $"{_settings.Prefix}:{tenantId}";
+        await _cache.ClearCacheAsync(prefix);
     }
+
 }
