@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Rules;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -18,9 +17,23 @@ public partial class AgentController
         }).OrderBy(x => x.TriggerName);
     }
 
-    [HttpGet("/rule/formalization")]
-    public async Task<string> GetFormalizedRuleDefinition([FromBody] AgentRule rule)
+    [HttpGet("/rule/criteria-providers")]
+    public async Task<IEnumerable<KeyValue>> GetRuleCriteriaProviders()
     {
-        return "{}";
+        return _services.GetServices<IRuleCriteria>().OrderBy(x => x.Provider).Select(x => new KeyValue
+        {
+            Key = x.Provider,
+            Value = x.DefaultConfig != null ? x.DefaultConfig.RootElement.GetRawText() : "{}"
+        });
+    }
+
+    [HttpGet("/rule/actions")]
+    public async Task<IEnumerable<KeyValue>> GetRuleActions()
+    {
+        return _services.GetServices<IRuleAction>().OrderBy(x => x.Name).Select(x => new KeyValue
+        {
+            Key = x.Name,
+            Value = x.DefaultConfig != null ? x.DefaultConfig.RootElement.GetRawText() : "{}"
+        });
     }
 }
