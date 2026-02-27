@@ -80,7 +80,7 @@ public class ChatCompletionProvider : IChatCompletion
             }
             else if (reason == ChatFinishReason.Length)
             {
-                _logger.LogWarning($"Action: {nameof(GetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}");
+                _logger.LogWarning($"Action: {nameof(GetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{text}");
 
                 responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length {options.MaxOutputTokenCount}")
                 {
@@ -213,6 +213,19 @@ public class ChatCompletionProvider : IChatCompletion
 
             // Execute functions
             await onFunctionExecuting(funcContextIn);
+        }
+        else if (reason == ChatFinishReason.Length)
+        {
+            _logger.LogWarning($"Action: {nameof(GetChatCompletionsAsync)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{text}");
+
+            msg = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length {options.MaxOutputTokenCount}")
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                StopCompletion = true,
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
+            };
+            await onMessageReceived(msg);
         }
         else
         {

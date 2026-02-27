@@ -48,6 +48,7 @@ public class ChatCompletionProvider : IChatCompletion
         var response = await client.Messages.GetClaudeMessageAsync(parameters);
 
         RoleDialogModel responseMessage;
+        var text = response.FirstMessage?.Text ?? string.Empty;
 
         if (response.StopReason == StopReason.ToolUse)
         {
@@ -62,10 +63,20 @@ public class ChatCompletionProvider : IChatCompletion
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
+        else if (response.StopReason == StopReason.MaxTokens)
+        {
+            _logger.LogWarning($"Action: {nameof(GetChatCompletions)}, Reason: {response.StopReason}, Agent: {agent.Name}, MaxOutputTokens: {parameters.MaxTokens}, Content:{text}");
+
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length {parameters.MaxTokens}")
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                StopCompletion = true
+            };
+        }
         else
         {
-            var message = response.FirstMessage;
-            responseMessage = new RoleDialogModel(AgentRole.Assistant, message?.Text ?? string.Empty)
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
@@ -108,6 +119,7 @@ public class ChatCompletionProvider : IChatCompletion
         var response = await client.Messages.GetClaudeMessageAsync(parameters);
 
         RoleDialogModel responseMessage;
+        var text = response.FirstMessage?.Text ?? string.Empty;
 
         if (response.StopReason == StopReason.ToolUse)
         {
@@ -125,10 +137,22 @@ public class ChatCompletionProvider : IChatCompletion
             // Execute functions
             await onFunctionExecuting(responseMessage);
         }
+        else if (response.StopReason == StopReason.MaxTokens)
+        {            
+            _logger.LogWarning($"Action: {nameof(GetChatCompletionsAsync)}, Reason: {response.StopReason}, Agent: {agent.Name}, MaxOutputTokens: {parameters.MaxTokens}, Content:{text}");
+
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length {parameters.MaxTokens}")
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                StopCompletion = true
+            };
+
+            await onMessageReceived(responseMessage);
+        }
         else
         {
-            var message = response.FirstMessage;
-            responseMessage = new RoleDialogModel(AgentRole.Assistant, message?.Text ?? string.Empty)
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
