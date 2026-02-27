@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Templating;
-using Microsoft.Extensions.Options;
 using System.Data;
 using System.Text.Json;
 
@@ -70,58 +69,6 @@ public class RuleEngine : IRuleEngine
         }
 
         return newConversationIds;
-    }
-
-    [Obsolete]
-    public async Task<bool> ExecuteActions(IRuleTrigger trigger, IEnumerable<AgentRuleAction> actions, RuleExecutionActionOptions options)
-    {
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.GetAgent(options.AgentId);
-
-        var actionIdx = 0;
-        var stepResults = new List<RuleActionStepResult>();
-        while (actionIdx >= 0 && actionIdx < actions.Count())
-        {
-            var ruleAction = actions.ElementAt(actionIdx);
-            var dict = BuildContextParameters(ruleAction.Config, options.States, stepResults);
-
-            var skipSteps = RenderSkippingExpression(ruleAction.SkippingExpression, dict);
-            if (skipSteps.HasValue && skipSteps > 0)
-            {
-                actionIdx += skipSteps.Value;
-                continue;
-            }
-
-            var actionResult = await ExecuteActionAsync(agent, ruleAction, actions.Skip(actionIdx + 1), trigger, options.Text, dict, stepResults);
-            if (actionResult == null)
-            {
-                actionIdx++;
-                continue;
-            }
-
-            if (!actionResult.Success)
-            {
-                break;
-            }
-
-            stepResults.Add(new()
-            {
-                RuleAction = ruleAction,
-                Success = actionResult.Success,
-                Response = actionResult.Response,
-                ErrorMessage = actionResult.ErrorMessage,
-                Data = actionResult.Data
-            });
-
-            if (actionResult?.IsDelayed == true)
-            {
-                break;
-            }
-
-            actionIdx++;
-        }
-
-        return true;
     }
 
     public async Task ExecuteGraphNode(RuleNode node, RuleGraph graph, IRuleTrigger trigger, RuleExecutionActionOptions options)
@@ -389,69 +336,6 @@ public class RuleEngine : IRuleEngine
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error executing rule action {ActionName} for agent {AgentId}", node?.Name, agent.Id);
-            return RuleActionResult.Failed(ex.Message);
-        }
-    }
-
-
-    [Obsolete]
-    private async Task<RuleActionResult> ExecuteActionAsync(
-        Agent agent,
-        AgentRuleAction curRuleAction,
-        IEnumerable<AgentRuleAction> nextRuleActions,
-        IRuleTrigger trigger,
-        string text,
-        Dictionary<string, string?> param,
-        IEnumerable<RuleActionStepResult> prevStepResults,
-        RuleTriggerOptions? triggerOptions = null)
-    {
-        try
-        {
-            // Get all registered rule actions
-            var actions = _services.GetServices<IRuleAction>();
-
-            // Find the matching action
-            var foundAction = actions.FirstOrDefault(x => x.Name.IsEqualTo(curRuleAction.Name));
-
-            if (foundAction == null)
-            {
-                var errorMsg = $"No rule action {curRuleAction.Name} is found";
-                _logger.LogWarning(errorMsg);
-                return RuleActionResult.Failed(errorMsg);
-            }
-
-            var context = new RuleActionContext
-            {
-                Text = text,
-                Parameters = param,
-                PrevStepResults = prevStepResults,
-                NextActions = nextRuleActions,
-                JsonOptions = triggerOptions?.JsonOptions
-            };
-
-            _logger.LogInformation("Start execution rule action {ActionName} for agent {AgentId} with trigger {TriggerName}",
-                foundAction.Name, agent.Id, trigger.Name);
-
-            var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
-            foreach (var hook in hooks)
-            {
-                await hook.BeforeRuleActionExecuted(agent, curRuleAction, trigger, context);
-            }
-
-            // Execute action
-            context.Parameters ??= [];
-            var result = await foundAction.ExecuteAsync(agent, trigger, context);
-
-            foreach (var hook in hooks)
-            {
-                await hook.AfterRuleActionExecuted(agent, curRuleAction, trigger, result);
-            }
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error executing rule action {ActionName} for agent {AgentId}", curRuleAction.Name, agent.Id);
             return RuleActionResult.Failed(ex.Message);
         }
     }

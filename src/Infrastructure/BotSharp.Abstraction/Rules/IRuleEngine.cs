@@ -17,15 +17,12 @@ public interface IRuleEngine
         => throw new NotImplementedException();
 
     /// <summary>
-    /// Execute rule actions
+    /// Execute rule graph node
     /// </summary>
+    /// <param name="node"></param>
+    /// <param name="graph"></param>
     /// <param name="trigger"></param>
-    /// <param name="actions"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    Task<bool> ExecuteActions(IRuleTrigger trigger, IEnumerable<AgentRuleAction> actions, RuleExecutionActionOptions options)
-        => Task.FromResult(false);
-
-
     Task ExecuteGraphNode(RuleNode node, RuleGraph graph, IRuleTrigger trigger, RuleExecutionActionOptions options);
 }

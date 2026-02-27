@@ -51,5 +51,4 @@ public class RuleActionResult
 
 public class RuleActionStepResult : RuleActionResult
 {
-    public AgentRuleAction RuleAction { get; set; }
 }
