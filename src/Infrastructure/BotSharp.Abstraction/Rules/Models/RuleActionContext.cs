@@ -9,4 +9,6 @@ public class RuleActionContext
     public IEnumerable<RuleActionStepResult> PrevStepResults { get; set; } = [];
     public IEnumerable<AgentRuleAction> NextActions { get; set; } = [];
     public JsonSerializerOptions? JsonOptions { get; set; }
+    public RuleNode Node { get; set; }
+    public RuleGraph Graph { get; set; }
 }

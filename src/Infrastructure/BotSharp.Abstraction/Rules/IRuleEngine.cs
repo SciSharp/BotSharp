@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Rules.Models;
+
 namespace BotSharp.Abstraction.Rules;
 
 public interface IRuleEngine
@@ -23,4 +25,7 @@ public interface IRuleEngine
     /// <returns></returns>
     Task<bool> ExecuteActions(IRuleTrigger trigger, IEnumerable<AgentRuleAction> actions, RuleExecutionActionOptions options)
         => Task.FromResult(false);
+
+
+    Task ExecuteGraphNode(RuleNode node, RuleGraph graph, IRuleTrigger trigger, RuleExecutionActionOptions options);
 }

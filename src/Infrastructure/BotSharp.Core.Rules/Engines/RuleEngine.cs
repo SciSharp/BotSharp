@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Templating;
+using Microsoft.Extensions.Options;
 using System.Data;
 using System.Text.Json;
 
@@ -52,67 +53,26 @@ public class RuleEngine : IRuleEngine
                 }
             }
 
-            // Execute action
-            var ruleActions = rule.RuleActions?.Where(x => x != null && !string.IsNullOrEmpty(x.Name) && !x.Disabled) ?? [];
-            if (ruleActions.IsNullOrEmpty())
+            // Execute actions
+            // 1. Load graph (agent id, rule name)
+            var graph = LoadGraph();
+
+            // 2. Get root node
+            var root = graph.GetRootNode();
+            if (root == null)
             {
                 continue;
             }
 
-            var actionIdx = 0;
-            var stepResults = new List<RuleActionStepResult>();
-            while (actionIdx >= 0 && actionIdx < ruleActions.Count())
-            {
-                var ruleAction = ruleActions.ElementAt(actionIdx);
-                var dict = BuildContextParameters(ruleAction.Config, states, stepResults);
-
-                var skipSteps = RenderSkippingExpression(ruleAction.SkippingExpression, dict);
-                if (skipSteps.HasValue && skipSteps > 0)
-                {
-                    actionIdx += skipSteps.Value;
-                    continue;
-                }
-
-                var actionResult = await ExecuteActionAsync(agent, ruleAction, ruleActions.Skip(actionIdx + 1), trigger, text, dict, stepResults, options);
-                if (actionResult == null)
-                {
-                    actionIdx++;
-                    continue;
-                }
-
-                if (!actionResult.Success)
-                {
-                    break;
-                }
-
-                stepResults.Add(new()
-                {
-                    RuleAction = ruleAction,
-                    Success = actionResult.Success,
-                    Response = actionResult.Response,
-                    ErrorMessage = actionResult.ErrorMessage,
-                    Data = actionResult.Data
-                });
-
-                if (actionResult?.Success == true
-                    && actionResult.Data.TryGetValue("conversation_id", out var convId)
-                    && convId != null)
-                {
-                    newConversationIds.Add(convId.ToString()!);
-                }
-
-                if (actionResult?.IsDelayed == true)
-                {
-                    break;
-                }
-
-                actionIdx++;
-            }
+            // 3. Execute graph
+            var execResults = new List<RuleActionResult>();
+            await ExecuteGraphNode(root, graph, agent, trigger, text, states, options, execResults);
         }
 
         return newConversationIds;
     }
 
+    [Obsolete]
     public async Task<bool> ExecuteActions(IRuleTrigger trigger, IEnumerable<AgentRuleAction> actions, RuleExecutionActionOptions options)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -161,6 +121,166 @@ public class RuleEngine : IRuleEngine
             actionIdx++;
         }
 
+        return true;
+    }
+
+    public async Task ExecuteGraphNode(RuleNode node, RuleGraph graph, IRuleTrigger trigger, RuleExecutionActionOptions options)
+    {
+        if (node == null || graph == null)
+        {
+            return;
+        }
+
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(options.AgentId);
+
+        var execResults = new List<RuleActionResult>();
+        await ExecuteGraphNode(node, graph, agent, trigger, options.Text, options.States, null, execResults);
+    }
+
+    private RuleGraph LoadGraph()
+    {
+        var graph = RuleGraph.Init();
+        var root = new RuleNode
+        {
+            Name = "root",
+            Type = "root",
+        };
+
+        var delayNode = new RuleNode
+        {
+            Name = "delay_message",
+            Type = "action",
+            Config = new()
+            {
+                ["delay"] = "3 seconds"
+            }
+        };
+
+        var node1 = new RuleNode
+        {
+            Name = "http_request",
+            Type = "action",
+            Config = new()
+            {
+                ["http_method"] = "GET",
+                ["http_url"] = "https://dummy.restapiexample.com/api/v1/employees"
+            }
+        };
+
+        var node2 = new RuleNode
+        {
+            Name = "http_request",
+            Type = "action",
+            Config = new()
+            {
+                ["http_method"] = "GET",
+                ["http_url"] = "https://dummy.restapiexample.com/api/v1/employee/1"
+            }
+        };
+
+        var node3 = new RuleNode
+        {
+            Name = "http_request",
+            Type = "action",
+            Config = new()
+            {
+                ["http_method"] = "GET",
+                ["http_url"] = "https://dummy.restapiexample.com/api/v1/employee/2"
+            }
+        };
+
+        graph.AddEdge(root, delayNode, payload: new()
+        {
+            Name = "edge",
+            Type = "is_next"
+        });
+
+        graph.AddEdge(delayNode, node1, payload: new()
+        {
+            Name = "edge",
+            Type = "is_next"
+        });
+
+        graph.AddEdge(node1, node2, payload: new()
+        {
+            Name = "edge",
+            Type = "is_next"
+        });
+
+        graph.AddEdge(node1, node3, payload: new()
+        {
+            Name = "edge",
+            Type = "is_next"
+        });
+
+        return graph;
+    }
+
+
+    private async Task ExecuteGraphNode(
+        RuleNode node,
+        RuleGraph graph,
+        Agent agent,
+        IRuleTrigger trigger,
+        string text,
+        IEnumerable<MessageState>? states,
+        RuleTriggerOptions? options,
+        List<RuleActionResult> results)
+    {
+        var neighbors = graph.GetNeighbors(node);
+        foreach (var (neighborNode, edge) in neighbors)
+        {
+            if (!neighborNode.Type.IsEqualTo("action"))
+            {
+                continue;
+            }
+
+            var actions = _services.GetServices<IRuleAction>();
+            var action = actions.FirstOrDefault(x => x.Name.IsEqualTo(neighborNode.Name));
+            if (action == null)
+            {
+                continue;
+            }
+
+            var context = new RuleActionContext
+            {
+                Node = neighborNode,
+                Graph = graph,
+                Text = text,
+                Parameters = BuildContextParameters(neighborNode.Config, states),
+                PrevStepResults = results.Select(x => new RuleActionStepResult
+                {
+                    Success = x.Success,
+                    Response = x.Response,
+                    ErrorMessage = x.ErrorMessage,
+                    Data = x.Data
+                }),
+                JsonOptions = options?.JsonOptions
+            };
+
+            // Check whether the edge is executable from source node to target node
+            var isExecutable = IsExecutable(edge, agent, trigger, context);
+            if (!isExecutable)
+            {
+                continue;
+            }
+
+            var actionResult = await ExecuteAction(neighborNode, graph, agent, trigger, context);
+            results.Add(actionResult);
+
+            if (actionResult.IsDelayed)
+            {
+                continue;
+            }
+
+            await ExecuteGraphNode(neighborNode, graph, agent, trigger, text, states, options, results);
+        }
+    }
+
+
+    private bool IsExecutable(RuleEdge edge, Agent agent, IRuleTrigger triger, RuleActionContext context)
+    {
         return true;
     }
 
@@ -224,6 +344,57 @@ public class RuleEngine : IRuleEngine
 
 
     #region Action
+    private async Task<RuleActionResult> ExecuteAction(
+        RuleNode node,
+        RuleGraph graph,
+        Agent agent,
+        IRuleTrigger trigger,
+        RuleActionContext context)
+    {
+        try
+        {
+            // Get all registered rule actions
+            var actions = _services.GetServices<IRuleAction>();
+
+            // Find the matching action
+            var foundAction = actions.FirstOrDefault(x => x.Name.IsEqualTo(node?.Name));
+
+            if (foundAction == null)
+            {
+                var errorMsg = $"No rule action {node?.Name} is found";
+                _logger.LogWarning(errorMsg);
+                return RuleActionResult.Failed(errorMsg);
+            }
+
+            _logger.LogInformation("Start execution rule action {ActionName} for agent {AgentId} with trigger {TriggerName}",
+                foundAction.Name, agent.Id, trigger.Name);
+
+            var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
+            foreach (var hook in hooks)
+            {
+                await hook.BeforeRuleActionExecuted(agent, node, trigger, context);
+            }
+
+            // Execute action
+            context.Parameters ??= [];
+            var result = await foundAction.ExecuteAsync(agent, trigger, context);
+
+            foreach (var hook in hooks)
+            {
+                await hook.AfterRuleActionExecuted(agent, node, trigger, result);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing rule action {ActionName} for agent {AgentId}", node?.Name, agent.Id);
+            return RuleActionResult.Failed(ex.Message);
+        }
+    }
+
+
+    [Obsolete]
     private async Task<RuleActionResult> ExecuteActionAsync(
         Agent agent,
         AgentRuleAction curRuleAction,
@@ -295,6 +466,39 @@ public class RuleEngine : IRuleEngine
         if (config != null)
         {
             dict = ConvertToDictionary(config);
+        }
+
+        if (!states.IsNullOrEmpty())
+        {
+            foreach (var state in states!)
+            {
+                dict[state.Key] = state.Value?.ConvertToString();
+            }
+        }
+
+        if (!stepResults.IsNullOrEmpty())
+        {
+            foreach (var result in stepResults!)
+            {
+                if (result.Data.IsNullOrEmpty()) continue;
+
+                foreach (var item in result.Data)
+                {
+                    dict[item.Key] = item.Value;
+                }
+            }
+        }
+
+        return dict;
+    }
+
+    private Dictionary<string, string?> BuildContextParameters(Dictionary<string, string?>? config, IEnumerable<MessageState>? states, IEnumerable<RuleActionStepResult>? stepResults = null)
+    {
+        var dict = new Dictionary<string, string?>();
+
+        if (config != null)
+        {
+            dict = new(config);
         }
 
         if (!states.IsNullOrEmpty())

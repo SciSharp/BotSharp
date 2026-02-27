@@ -10,4 +10,7 @@ public interface IRuleTriggerHook : IHookBase
 
     Task BeforeRuleActionExecuted(Agent agent, AgentRuleAction ruleAction, IRuleTrigger trigger, RuleActionContext context) => Task.CompletedTask;
     Task AfterRuleActionExecuted(Agent agent, AgentRuleAction ruleAction, IRuleTrigger trigger, RuleActionResult result) => Task.CompletedTask;
+
+    Task BeforeRuleActionExecuted(Agent agent, RuleNode actionNode, IRuleTrigger trigger, RuleActionContext context) => Task.CompletedTask;
+    Task AfterRuleActionExecuted(Agent agent, RuleNode actionNode, IRuleTrigger trigger, RuleActionResult result) => Task.CompletedTask;
 }
