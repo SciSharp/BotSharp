@@ -14,5 +14,10 @@
     "model": "gpt-5-mini",
     "max_recursion_depth": 3,
     "reasoning_effort_level": "minimal"
-  }
+  },
+  "rules": [
+    {
+      "trigger_name": "DemoRuleTrigger"
+    }
+  ]
 }
