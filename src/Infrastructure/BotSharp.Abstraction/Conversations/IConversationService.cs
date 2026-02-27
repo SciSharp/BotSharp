@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Abstraction.Conversations;
 
@@ -41,7 +40,7 @@ public interface IConversationService
         PostbackMessageModel? replyMessage,
         Func<RoleDialogModel, Task> onResponseReceived);
 
-    Task<List<RoleDialogModel>> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true, IEnumerable<string>? includeMessageTypes = null);
+    Task<List<RoleDialogModel>> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true, IEnumerable<string>? includeMessageTypes = null, ConversationDialogFilter? filter = null);
     Task CleanHistory(string agentId);
 
     /// <summary>

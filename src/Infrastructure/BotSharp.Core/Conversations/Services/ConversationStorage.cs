@@ -50,10 +50,10 @@ public class ConversationStorage : IConversationStorage
         await db.AppendConversationDialogs(conversationId, dialogElements);
     }
 
-    public async Task<List<RoleDialogModel>> GetDialogs(string conversationId)
+    public async Task<List<RoleDialogModel>> GetDialogs(string conversationId, ConversationDialogFilter? filter = null)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var dialogs = await db.GetConversationDialogs(conversationId);
+        var dialogs = await db.GetConversationDialogs(conversationId, filter);
         var hooks = _services.GetServices<IConversationHook>();
 
         var results = new List<RoleDialogModel>();

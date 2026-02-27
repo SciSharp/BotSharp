@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Loggers.Models;
 using System.IO;
-using System.Threading;
 
 namespace BotSharp.Core.Repository;
 
@@ -75,7 +74,7 @@ public partial class FileRepository
     }
 
     [SideCar]
-    public async Task<List<DialogElement>> GetConversationDialogs(string conversationId)
+    public async Task<List<DialogElement>> GetConversationDialogs(string conversationId, ConversationDialogFilter? filter = null)
     {
         var dialogs = new List<DialogElement>();
         var convDir = FindConversationDirectory(conversationId);
@@ -93,11 +92,16 @@ public partial class FileRepository
                 var texts = await File.ReadAllTextAsync(dialogDir);
                 try
                 {
-                    dialogs = JsonSerializer.Deserialize<List<DialogElement>>(texts, _options) ?? new List<DialogElement>();
+                    dialogs = JsonSerializer.Deserialize<List<DialogElement>>(texts, _options) ?? [];
                 }
                 catch
                 {
-                    dialogs = new List<DialogElement>();
+                    dialogs = [];
+                }
+
+                if (filter?.Order == "desc")
+                {
+                    dialogs = dialogs.OrderByDescending(x => x.MetaData?.CreatedTime).ToList();
                 }
             }
             finally
@@ -882,6 +886,139 @@ public partial class FileRepository
         await File.WriteAllTextAsync(latestStateFile, stateStr);
         return true;
     }
+
+
+    #region Files
+    public async Task<List<ConversationFile>> GetConversationFiles(ConversationFileFilter filter)
+    {
+        if (filter == null || filter.ConversationIds.IsNullOrEmpty())
+        {
+            return [];
+        }
+
+        var files = new List<ConversationFile>();
+        var baseDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+
+        if (!Directory.Exists(baseDir))
+        {
+            return files;
+        }
+
+        foreach (var conversationId in filter.ConversationIds)
+        {
+            if (string.IsNullOrEmpty(conversationId))
+            {
+                continue;
+            }
+
+            var convDir = Path.Combine(baseDir, conversationId);
+            if (!Directory.Exists(convDir))
+            {
+                continue;
+            }
+
+            var filesFile = Path.Combine(convDir, CONV_FILES_FILE);
+            if (!File.Exists(filesFile))
+            {
+                continue;
+            }
+
+            try
+            {
+                var json = await File.ReadAllTextAsync(filesFile);
+                var conversationFile = JsonSerializer.Deserialize<ConversationFile>(json, _options);
+                if (conversationFile != null)
+                {
+                    files.Add(conversationFile);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Error when reading conversation files for conversation {conversationId}.");
+            }
+        }
+
+        return files;
+    }
+
+    public async Task<bool> SaveConversationFiles(List<ConversationFile> files)
+    {
+        if (files.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        try
+        {
+            var baseDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+
+            foreach (var file in files)
+            {
+                if (string.IsNullOrEmpty(file.ConversationId))
+                {
+                    continue;
+                }
+
+                var convDir = Path.Combine(baseDir, file.ConversationId);
+                if (!Directory.Exists(convDir))
+                {
+                    Directory.CreateDirectory(convDir);
+                }
+
+                var convFile = Path.Combine(convDir, CONV_FILES_FILE);
+                var json = JsonSerializer.Serialize(file, _options);
+                await File.WriteAllTextAsync(convFile, json);
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error when saving conversation files.");
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteConversationFiles(List<string> conversationIds)
+    {
+        if (conversationIds.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        try
+        {
+            var baseDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+
+            foreach (var conversationId in conversationIds)
+            {
+                if (string.IsNullOrEmpty(conversationId))
+                {
+                    continue;
+                }
+
+                var convDir = Path.Combine(baseDir, conversationId);
+                if (!Directory.Exists(convDir))
+                {
+                    continue;
+                }
+
+                var filesFile = Path.Combine(convDir, CONV_FILES_FILE);
+                if (File.Exists(filesFile))
+                {
+                    File.Delete(filesFile);
+                }
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error when deleting conversation files.");
+            return false;
+        }
+    }
+    #endregion
 
 
     #region Private methods

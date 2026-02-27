@@ -216,6 +216,9 @@ public class MongoDbContext
     public IMongoCollection<ConversationStateDocument> ConversationStates
         => GetCollection<ConversationStateDocument>("ConversationStates");
 
+    public IMongoCollection<ConversationFileDocument> ConversationFiles
+        => GetCollection<ConversationFileDocument>("ConversationFiles");
+
     public IMongoCollection<LlmCompletionLogDocument> LlmCompletionLogs
         => GetCollection<LlmCompletionLogDocument>("LlmCompletionLogs");
 

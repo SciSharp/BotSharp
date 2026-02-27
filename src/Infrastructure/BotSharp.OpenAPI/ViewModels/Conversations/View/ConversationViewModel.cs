@@ -8,6 +8,10 @@ public class ConversationViewModel : ConversationDto
     [JsonPropertyName("is_realtime_enabled")]
     public bool IsRealtimeEnabled { get; set; }
 
+    [JsonPropertyName("thumbnail")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Thumbnail { get; set; }
+
     public static ConversationViewModel FromSession(Conversation sess)
     {
         return new ConversationViewModel

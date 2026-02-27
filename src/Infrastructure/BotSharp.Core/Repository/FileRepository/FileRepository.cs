@@ -37,6 +37,7 @@ public partial class FileRepository : IBotSharpRepository
     private const string BREAKPOINT_FILE = "breakpoint.json";
     private const string CONV_LATEST_STATE_FILE = "latest-state.json";
     private const string TRANSLATION_MEMORY_FILE = "memory.json";
+    private const string CONV_FILES_FILE = "conv_files.json";
 
     private const string USERS_FOLDER = "users";
     private const string USER_FILE = "user.json";

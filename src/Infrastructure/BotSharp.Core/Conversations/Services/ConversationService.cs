@@ -154,14 +154,14 @@ public partial class ConversationService : IConversationService
         throw new NotImplementedException();
     }
 
-    public async Task<List<RoleDialogModel>> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true, IEnumerable<string>? includeMessageTypes = null)
+    public async Task<List<RoleDialogModel>> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true, IEnumerable<string>? includeMessageTypes = null, ConversationDialogFilter? filter = null)
     {
         if (string.IsNullOrEmpty(_conversationId))
         {
             throw new ArgumentNullException("ConversationId is null.");
         }
 
-        var dialogs = await _storage.GetDialogs(_conversationId);
+        var dialogs = await _storage.GetDialogs(_conversationId, filter);
 
         if (!includeMessageTypes.IsNullOrEmpty())
         {
@@ -190,7 +190,7 @@ public partial class ConversationService : IConversationService
         var agentMsgCount = await GetAgentMessageCount();
         var count = agentMsgCount.HasValue && agentMsgCount.Value > 0 ? agentMsgCount.Value : lastCount;
 
-        return dialogs.TakeLast(count).ToList();
+        return filter?.Order == "desc" ? dialogs.Take(count).ToList() : dialogs.TakeLast(count).ToList();
     }
 
     public async Task SetConversationId(string conversationId, List<MessageState> states, bool isReadOnly = false)

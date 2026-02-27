@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Files.Utilities;
+using BotSharp.Abstraction.Repositories;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -112,6 +113,36 @@ public partial class ConversationController
         stream.Position = 0;
 
         return new FileStreamResult(stream, contentType) { FileDownloadName = fName };
+    }
+    #endregion
+
+    #region Thumbnail
+    [HttpPost("/conversation/{conversationId}/thumbnail")]
+    public async Task<bool> SaveConversationThumbnail([FromRoute] string conversationId, [FromBody] ConversationFileRequest request)
+    {
+        if (request == null)
+        {
+            return false;
+        }
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var result = await db.SaveConversationFiles(
+        [
+            new()
+            {
+                ConversationId = conversationId,
+                Thumbnail = request.Thumbnail
+            }
+        ]);
+        return result;
+    }
+
+    [HttpDelete("/conversation/{conversationId}/thumbnail")]
+    public async Task<bool> DeleteConversationThumbnail([FromRoute] string conversationId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var result = await db.DeleteConversationFiles([conversationId]);
+        return result;
     }
     #endregion
 }
