@@ -51,4 +51,5 @@ public class RuleActionResult
 
 public class RuleActionStepResult : RuleActionResult
 {
+    public RuleNode Node { get; set; }
 }

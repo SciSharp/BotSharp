@@ -55,6 +55,10 @@ public class RuleEngine : IRuleEngine
             // Execute actions
             // 1. Load graph (agent id, rule name)
             var graph = LoadGraph();
+            if (graph == null)
+            {
+                continue;
+            }
 
             // 2. Get root node
             var root = graph.GetRootNode();
@@ -64,8 +68,15 @@ public class RuleEngine : IRuleEngine
             }
 
             // 3. Execute graph
-            var execResults = new List<RuleActionResult>();
+            var execResults = new List<RuleActionStepResult>();
             await ExecuteGraphNode(root, graph, agent, trigger, text, states, options, execResults);
+
+            var convIds = execResults.Where(x => x.Success && x.Data.TryGetValue("conversation_id", out _))
+                                     .Select(x => x.Data.GetValueOrDefault("conversation_id", string.Empty))
+                                     .Where(x => !string.IsNullOrEmpty(x))
+                                     .ToList();
+
+            newConversationIds.AddRange(convIds);
         }
 
         return newConversationIds;
@@ -81,7 +92,7 @@ public class RuleEngine : IRuleEngine
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(options.AgentId);
 
-        var execResults = new List<RuleActionResult>();
+        var execResults = new List<RuleActionStepResult>();
         await ExecuteGraphNode(node, graph, agent, trigger, options.Text, options.States, null, execResults);
     }
 
@@ -173,7 +184,7 @@ public class RuleEngine : IRuleEngine
         string text,
         IEnumerable<MessageState>? states,
         RuleTriggerOptions? options,
-        List<RuleActionResult> results)
+        List<RuleActionStepResult> results)
     {
         var neighbors = graph.GetNeighbors(node);
         foreach (var (neighborNode, edge) in neighbors)
@@ -196,13 +207,7 @@ public class RuleEngine : IRuleEngine
                 Graph = graph,
                 Text = text,
                 Parameters = BuildContextParameters(neighborNode.Config, states),
-                PrevStepResults = results.Select(x => new RuleActionStepResult
-                {
-                    Success = x.Success,
-                    Response = x.Response,
-                    ErrorMessage = x.ErrorMessage,
-                    Data = x.Data
-                }),
+                PrevStepResults = results,
                 JsonOptions = options?.JsonOptions
             };
 
@@ -213,8 +218,17 @@ public class RuleEngine : IRuleEngine
                 continue;
             }
 
+            // Execute action
             var actionResult = await ExecuteAction(neighborNode, graph, agent, trigger, context);
-            results.Add(actionResult);
+            results.Add(new RuleActionStepResult
+            {
+                Node = neighborNode,
+                Success = actionResult.Success,
+                Response = actionResult.Response,
+                Data = new(actionResult.Data ?? []),
+                ErrorMessage = actionResult.ErrorMessage,
+                IsDelayed = actionResult.IsDelayed
+            });
 
             if (actionResult.IsDelayed)
             {
