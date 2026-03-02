@@ -383,7 +383,7 @@ public class RuleEngine : IRuleEngine
 
 
     #region Private methods
-    private Dictionary<string, string?> BuildContextParameters(JsonDocument? config, IEnumerable<MessageState>? states, IEnumerable<RuleActionStepResult>? stepResults = null)
+    private Dictionary<string, string?> BuildContextParameters(JsonDocument? config, IEnumerable<MessageState>? states)
     {
         var dict = new Dictionary<string, string?>();
 
@@ -400,23 +400,10 @@ public class RuleEngine : IRuleEngine
             }
         }
 
-        if (!stepResults.IsNullOrEmpty())
-        {
-            foreach (var result in stepResults!)
-            {
-                if (result.Data.IsNullOrEmpty()) continue;
-
-                foreach (var item in result.Data)
-                {
-                    dict[item.Key] = item.Value;
-                }
-            }
-        }
-
         return dict;
     }
 
-    private Dictionary<string, string?> BuildContextParameters(Dictionary<string, string?>? config, IEnumerable<MessageState>? states, IEnumerable<RuleActionStepResult>? stepResults = null)
+    private Dictionary<string, string?> BuildContextParameters(Dictionary<string, string?>? config, IEnumerable<MessageState>? states)
     {
         var dict = new Dictionary<string, string?>();
 
@@ -430,19 +417,6 @@ public class RuleEngine : IRuleEngine
             foreach (var state in states!)
             {
                 dict[state.Key] = state.Value?.ConvertToString();
-            }
-        }
-
-        if (!stepResults.IsNullOrEmpty())
-        {
-            foreach (var result in stepResults!)
-            {
-                if (result.Data.IsNullOrEmpty()) continue;
-
-                foreach (var item in result.Data)
-                {
-                    dict[item.Key] = item.Value;
-                }
             }
         }
 
