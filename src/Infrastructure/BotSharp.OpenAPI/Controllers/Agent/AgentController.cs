@@ -55,7 +55,8 @@ public partial class AgentController : ControllerBase
 
         var redirectAgents = await _agentService.GetAgents(new AgentFilter
         {
-            AgentIds = redirectAgentIds
+            AgentIds = redirectAgentIds,
+            Pager = new() { Size = redirectAgentIds.Count }
         });
         foreach (var rule in targetAgent.RoutingRules)
         {

@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
-using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
@@ -75,7 +74,7 @@ public class ChatCompletionProvider : IChatCompletion
         }
         else if (candidate?.FinishReason == FinishReason.MAX_TOKENS)
         {
-            _logger.LogWarning($"Action: {nameof(GetChatCompletions)}, Reason: {candidate.FinishReason}, Agent: {agent.Name}");
+            _logger.LogWarning($"Action: {nameof(GetChatCompletions)}, Reason: {candidate.FinishReason}, Agent: {agent.Name}, MaxOutputTokens: {request.GenerationConfig?.MaxOutputTokens}, Content:{text}");
 
             responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
             {
@@ -181,6 +180,23 @@ public class ChatCompletionProvider : IChatCompletion
 
             // Execute functions
             await onFunctionExecuting(funcContextIn);
+        }
+        else if (candidate?.FinishReason == FinishReason.MAX_TOKENS)
+        {
+            _logger.LogWarning($"Action: {nameof(GetChatCompletionsAsync)}, Reason: {candidate.FinishReason}, Agent: {agent.Name}, MaxOutputTokens: {messages.GenerationConfig?.MaxOutputTokens}, Content:{text}");
+
+            msg = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                StopCompletion = true,
+                MetaData = new Dictionary<string, string?>
+                {
+                    [Constants.ThoughtSignature] = part?.ThoughtSignature
+                },
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
+            };
+            await onMessageReceived(msg);
         }
         else
         {
