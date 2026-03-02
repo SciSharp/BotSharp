@@ -28,6 +28,11 @@ public class RuleGraph
         return _nodes.FirstOrDefault(x => x.Id.IsEqualTo(id));
     }
 
+    public string GetGraphId()
+    {
+        return _id;
+    }
+
     public IEnumerable<RuleNode> GetNodes()
     {
         return [.. _nodes];
@@ -114,6 +119,11 @@ public class RuleGraph
         graph.SetNodes(graphInfo.Nodes);
         graph.SetEdges(graphInfo.Edges);
         return graph;
+    }
+
+    public override string ToString()
+    {
+        return $"Graph ({_id}) => Nodes: {_nodes.Count}, Edges: {_edges.Count}";
     }
 }
 

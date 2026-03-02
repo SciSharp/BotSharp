@@ -5,5 +5,5 @@ public class RuleExecutionActionOptions
     public string AgentId { get; set; }
     public string Text { get; set; }
     public IEnumerable<MessageState> States { get; set; } = [];
-    public int? MaxGraphRecursion { get; set; } = 10;
+    public int? MaxGraphRecursion { get; set; }
 }

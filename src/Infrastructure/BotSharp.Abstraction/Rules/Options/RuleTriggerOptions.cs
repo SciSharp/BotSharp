@@ -18,5 +18,5 @@ public class RuleTriggerOptions
     /// <summary>
     /// Max number of action node execution (prevent endless loop)
     /// </summary>
-    public int? MaxGraphRecursion { get; set; } = 10;
+    public int? MaxGraphRecursion { get; set; }
 }
