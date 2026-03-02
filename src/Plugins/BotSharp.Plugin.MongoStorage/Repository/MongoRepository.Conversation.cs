@@ -805,21 +805,28 @@ public partial class MongoRepository
         try
         {
             var builder = Builders<ConversationFileDocument>.Filter;
-            var operations = files.Where(x => !string.IsNullOrEmpty(x.ConversationId))
-                                  .Select(file =>
-                                  {
-                                      var fileDoc = ConversationFileDocument.ToMongoModel(file);
-                                      var filter = builder.Eq(x => x.ConversationId, file.ConversationId);
-                                      return new ReplaceOneModel<ConversationFileDocument>(filter, fileDoc)
-                                      {
-                                          IsUpsert = true
-                                      };
-                                  })
-                                  .ToList();
+            var ops = files.Where(x => !string.IsNullOrEmpty(x.ConversationId))
+                           .Select(file =>
+                           {
+                               var updateBuilder = Builders<ConversationFileDocument>.Update
+                                   .Set(y => y.Thumbnail, file.Thumbnail)
+                                   .Set(y => y.UpdatedTime, DateTime.UtcNow)
+                                   .SetOnInsert(y => y.Id, Guid.NewGuid().ToString())
+                                   .SetOnInsert(y => y.ConversationId, file.ConversationId)
+                                   .SetOnInsert(y => y.CreatedTime, DateTime.UtcNow);
 
-            if (!operations.IsNullOrEmpty())
+                               var filter = builder.Eq(y => y.ConversationId, file.ConversationId);
+
+                               return new UpdateOneModel<ConversationFileDocument>(
+                                   filter,
+                                   updateBuilder
+                               ) { IsUpsert = true };
+                           })
+                           .ToList();
+
+            if (!ops.IsNullOrEmpty())
             {
-                await _dc.ConversationFiles.BulkWriteAsync(operations, new BulkWriteOptions { IsOrdered = false });
+                await _dc.ConversationFiles.BulkWriteAsync(ops, new BulkWriteOptions { IsOrdered = false });
             }
 
             return true;
