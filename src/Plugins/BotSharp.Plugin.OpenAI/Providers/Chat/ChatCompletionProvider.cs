@@ -77,7 +77,7 @@ public class ChatCompletionProvider : IChatCompletion
         {
             _logger.LogWarning($"Action: {nameof(GetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{text}");
 
-            responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length {options.MaxOutputTokenCount}")
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
@@ -192,7 +192,7 @@ public class ChatCompletionProvider : IChatCompletion
         {
             _logger.LogWarning($"Action: {nameof(GetChatCompletionsAsync)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{text}");
 
-            msg = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length {options.MaxOutputTokenCount}")
+            msg = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
