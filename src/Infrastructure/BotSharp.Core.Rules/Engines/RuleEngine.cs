@@ -54,7 +54,7 @@ public class RuleEngine : IRuleEngine
 
             // Execute actions
             // 1. Load graph (agent id, rule name)
-            var graph = LoadGraph();
+            var graph = await LoadGraph();
             if (graph == null)
             {
                 continue;
@@ -84,7 +84,7 @@ public class RuleEngine : IRuleEngine
 
     public async Task ExecuteGraphNode(RuleNode node, RuleGraph graph, IRuleTrigger trigger, RuleExecutionActionOptions options)
     {
-        if (node == null || graph == null)
+        if (node == null || graph == null || options == null)
         {
             return;
         }
@@ -92,11 +92,22 @@ public class RuleEngine : IRuleEngine
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(options.AgentId);
 
+        var triggerOptions = new RuleTriggerOptions
+        {
+            MaxGraphRecursion = options.MaxGraphRecursion
+        };
+
         var execResults = new List<RuleActionStepResult>();
-        await ExecuteGraphNode(node, graph, agent, trigger, options.Text, options.States, null, execResults);
+        await ExecuteGraphNode(
+            node, graph,
+            agent, trigger,
+            options.Text,
+            options.States,
+            triggerOptions,
+            execResults);
     }
 
-    private RuleGraph LoadGraph()
+    private async Task<RuleGraph> LoadGraph()
     {
         var graph = RuleGraph.Init();
         var root = new RuleNode
@@ -186,9 +197,24 @@ public class RuleEngine : IRuleEngine
         RuleTriggerOptions? options,
         List<RuleActionStepResult> results)
     {
+        var maxRecursion = options?.MaxGraphRecursion ?? RuleConstant.MAX_GRAPH_RECURSION;
+        if (results.Count >= maxRecursion)
+        {
+            _logger.LogWarning("Exceed max graph recursion {MaxRecursion} (agent {Agent} and trigger {Trigger}).",
+                maxRecursion, agent.Name, trigger.Name);
+            return;
+        }
+
         var neighbors = graph.GetNeighbors(node);
         foreach (var (neighborNode, edge) in neighbors)
         {
+            if (results.Count >= maxRecursion)
+            {
+                _logger.LogWarning("Exceed max graph recursion {MaxRecursion} (agent {Agent} and trigger {Trigger}).",
+                                    maxRecursion, agent.Name, trigger.Name);
+                break;
+            }
+
             if (!neighborNode.Type.IsEqualTo("action"))
             {
                 continue;
@@ -212,7 +238,7 @@ public class RuleEngine : IRuleEngine
             };
 
             // Check whether the edge is executable from source node to target node
-            var isExecutable = IsExecutable(edge, agent, trigger, context);
+            var isExecutable = await IsExecutable(edge, agent, trigger, context, results);
             if (!isExecutable)
             {
                 continue;
@@ -240,7 +266,7 @@ public class RuleEngine : IRuleEngine
     }
 
 
-    private bool IsExecutable(RuleEdge edge, Agent agent, IRuleTrigger triger, RuleActionContext context)
+    private async Task<bool> IsExecutable(RuleEdge edge, Agent agent, IRuleTrigger triger, RuleActionContext context, IEnumerable<RuleActionStepResult> prevStepResults)
     {
         return true;
     }

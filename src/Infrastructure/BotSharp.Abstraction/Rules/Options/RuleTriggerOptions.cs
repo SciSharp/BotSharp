@@ -14,4 +14,9 @@ public class RuleTriggerOptions
     /// Json serializer options
     /// </summary>
     public JsonSerializerOptions? JsonOptions { get; set; }
+
+    /// <summary>
+    /// Max number of action node execution (prevent endless loop)
+    /// </summary>
+    public int? MaxGraphRecursion { get; set; } = 10;
 }

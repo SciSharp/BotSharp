@@ -2,11 +2,13 @@ namespace BotSharp.Abstraction.Agents.Models;
 
 public class RuleGraph
 {
+    private string _id = Guid.NewGuid().ToString();
     private List<RuleNode> _nodes = [];
     private List<RuleEdge> _edges = [];
 
     public RuleGraph()
     {
+        _id = Guid.NewGuid().ToString();
         _nodes = [];
         _edges = [];
     }
@@ -34,6 +36,11 @@ public class RuleGraph
     public IEnumerable<RuleEdge> GetEdges()
     {
         return [.. _edges];
+    }
+
+    public void SetGraphId(string id)
+    {
+        _id = id;
     }
 
     public void SetNodes(IEnumerable<RuleNode> nodes)
@@ -86,13 +93,15 @@ public class RuleGraph
     public IEnumerable<(RuleNode, RuleEdge)> GetNeighbors(RuleNode node)
     {
         return _edges.Where(e => e.From != null && e.From.Id.IsEqualTo(node.Id))
-                     .Select(e => (e.To, e));
+                     .Select(e => (e.To, e))
+                     .ToList();
     }
 
     public RuleGraphInfo GetGraphInfo()
     {
         return new()
         {
+            GraphId = _id,
             Nodes = _nodes,
             Edges = _edges
         };
@@ -101,6 +110,7 @@ public class RuleGraph
     public static RuleGraph FromGraphInfo(RuleGraphInfo graphInfo)
     {
         var graph = new RuleGraph();
+        graph.SetGraphId(graphInfo.GraphId.IfNullOrEmptyAs(Guid.NewGuid().ToString())!);
         graph.SetNodes(graphInfo.Nodes);
         graph.SetEdges(graphInfo.Edges);
         return graph;
@@ -162,6 +172,7 @@ public class GraphItemPayload
 
 public class RuleGraphInfo
 {
+    public string GraphId { get; set; }
     public IEnumerable<RuleNode> Nodes { get; set; } = [];
     public IEnumerable<RuleEdge> Edges { get; set; } = [];
 }
