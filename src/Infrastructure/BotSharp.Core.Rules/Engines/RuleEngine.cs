@@ -238,7 +238,7 @@ public class RuleEngine : IRuleEngine
             };
 
             // Check whether the edge is executable from source node to target node
-            var isExecutable = await IsExecutable(edge, agent, trigger, context, results);
+            var isExecutable = await IsExecutable(edge, agent, trigger, context);
             if (!isExecutable)
             {
                 continue;
@@ -266,7 +266,7 @@ public class RuleEngine : IRuleEngine
     }
 
 
-    private async Task<bool> IsExecutable(RuleEdge edge, Agent agent, IRuleTrigger triger, RuleActionContext context, IEnumerable<RuleActionStepResult> prevStepResults)
+    private async Task<bool> IsExecutable(RuleEdge edge, Agent agent, IRuleTrigger triger, RuleActionContext context)
     {
         return true;
     }
