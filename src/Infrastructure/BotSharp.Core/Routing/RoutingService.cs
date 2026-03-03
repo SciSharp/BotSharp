@@ -149,6 +149,7 @@ public partial class RoutingService : IRoutingService
         var records = await GetRoutingRecords();
         var rules = records
             .Where(x => x.AgentName.ToLower() == name.ToLower())
+            .Select(r => r.Clone())
             .ToList();
         if (rules.Count > 0)
         {
@@ -163,6 +164,7 @@ public partial class RoutingService : IRoutingService
         var records = await GetRoutingRecords();
         var rules = records
             .Where(x => x.AgentId == id)
+            .Select(r => r.Clone())
             .ToList();
         if (rules.Count > 0)
         {
