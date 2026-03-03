@@ -54,7 +54,7 @@ public class RuleEngine : IRuleEngine
 
             // Execute actions
             // 1. Load graph (agent id, rule name)
-            var graph = await LoadGraph();
+            var graph = await LoadGraph(agent.Id, trigger);
             if (graph == null)
             {
                 continue;
@@ -82,7 +82,7 @@ public class RuleEngine : IRuleEngine
         return newConversationIds;
     }
 
-    public async Task ExecuteGraphNode(RuleNode node, RuleGraph graph, IRuleTrigger trigger, RuleExecutionActionOptions options)
+    public async Task ExecuteGraphNode(RuleNode node, RuleGraph graph, IRuleTrigger trigger, RuleNodeExecutionOptions options)
     {
         if (node == null || graph == null || options == null)
         {
@@ -107,7 +107,7 @@ public class RuleEngine : IRuleEngine
             execResults);
     }
 
-    private async Task<RuleGraph> LoadGraph()
+    private async Task<RuleGraph> LoadGraph(string agentId, IRuleTrigger trigger, RuleGraphOptions? options = null)
     {
         var graph = RuleGraph.Init();
         var root = new RuleNode
@@ -187,6 +187,31 @@ public class RuleEngine : IRuleEngine
     }
 
 
+    private async Task<RuleGraph> LoadDefaultGraph()
+    {
+        var graph = RuleGraph.Init();
+        var root = new RuleNode
+        {
+            Name = "root",
+            Type = "root",
+        };
+
+        var node = new RuleNode
+        {
+            Name = "send_message_to_agent",
+            Type = "action"
+        };
+
+        graph.AddEdge(root, node, payload: new()
+        {
+            Name = "edge",
+            Type = "is_next"
+        });
+
+        return graph;
+    }
+
+
     private async Task ExecuteGraphNode(
         RuleNode node,
         RuleGraph graph,
@@ -208,13 +233,6 @@ public class RuleEngine : IRuleEngine
         var neighbors = graph.GetNeighbors(node);
         foreach (var (neighborNode, edge) in neighbors)
         {
-            if (results.Count >= maxRecursion)
-            {
-                _logger.LogWarning("Exceed max graph recursion {MaxRecursion} (agent {Agent} and trigger {Trigger}).",
-                                    maxRecursion, agent.Name, trigger.Name);
-                break;
-            }
-
             if (!neighborNode.Type.IsEqualTo("action"))
             {
                 continue;
@@ -255,6 +273,13 @@ public class RuleEngine : IRuleEngine
                 ErrorMessage = actionResult.ErrorMessage,
                 IsDelayed = actionResult.IsDelayed
             });
+
+            if (results.Count >= maxRecursion)
+            {
+                _logger.LogWarning("Exceed max graph recursion {MaxRecursion} (agent {Agent} and trigger {Trigger}).",
+                                    maxRecursion, agent.Name, trigger.Name);
+                break;
+            }
 
             if (actionResult.IsDelayed)
             {

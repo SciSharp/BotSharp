@@ -24,5 +24,5 @@ public interface IRuleEngine
     /// <param name="trigger"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    Task ExecuteGraphNode(RuleNode node, RuleGraph graph, IRuleTrigger trigger, RuleExecutionActionOptions options);
+    Task ExecuteGraphNode(RuleNode node, RuleGraph graph, IRuleTrigger trigger, RuleNodeExecutionOptions options);
 }

@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Rules.Options;
 
-public class RuleExecutionActionOptions
+public class RuleNodeExecutionOptions
 {
     public string AgentId { get; set; }
     public string Text { get; set; }
