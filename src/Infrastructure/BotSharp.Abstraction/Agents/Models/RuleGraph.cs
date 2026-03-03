@@ -136,7 +136,7 @@ public class RuleNode : GraphItemPayload
 
     public override string ToString()
     {
-        return $"Node: {Name} ({Type})";
+        return $"Node ({Id}): {Name} ({Type})";
     }
 }
 
@@ -163,7 +163,7 @@ public class RuleEdge : GraphItemPayload
 
     public override string ToString()
     {
-        return $"Edge: {Name} ({Type}), Connects from Node ({From?.Name}) to Node ({To?.Name})";
+        return $"Edge ({Id}): {Name} ({Type}), Connects from Node ({From?.Name}) to Node ({To?.Name})";
     }
 }
 
