@@ -1,11 +1,9 @@
-using AgentSkillsDotNet;
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.AgentSkills.Functions;
-using BotSharp.Plugin.AgentSkills.Hooks;
 using BotSharp.Plugin.AgentSkills.Services;
-using BotSharp.Plugin.AgentSkills.Settings;
+using BotSharp.Plugin.AgentSkills.Skills;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

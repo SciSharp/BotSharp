@@ -9,5 +9,11 @@
   "disabled": false,
   "isPublic": true,
   "profiles": [ "skill" ],
-  "utilities": []
+  "utilities": [],
+  "skills": [
+    {
+      "name": "employee-handbook",
+      "description": "Explains employee information for company Sensum365"
+    }
+  ]
 }

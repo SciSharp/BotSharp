@@ -14,6 +14,21 @@ public class AgentSkillsInstructionHook : AgentHookBase
 {
     public override string SelfId => "471ca181-375f-b16f-7134-5f868ecd31c6";
 
+    private const string DefaultSkillsInstructionPrompt =
+       """
+        You have access to skills containing domain-specific knowledge and capabilities.
+        Each skill provides specialized instructions, reference documents, and assets for specific tasks.
+ 
+        {0}        
+
+        When a task aligns with a skill's domain:
+        1. Use `get-skill-by-name` to retrieve the skill's instructions
+        2. Follow the provided guidance
+        3. Use `read-skill-file-content` to read any references or other files mentioned by the skill
+
+        Only load what is needed, when it is needed.
+        """;
+
     private readonly ISkillService _skillService;
     private readonly ILogger<AgentSkillsInstructionHook> _logger;
 
@@ -56,12 +71,13 @@ public class AgentSkillsInstructionHook : AgentHookBase
         try
         {
             // FR-2.1: Use GetInstructions() method provided by AgentSkillsDotNet
-            var instructions = _skillService.GetInstructions();
+            var instructions = _skillService.GetInstructions(this.Agent);
 
             if (!string.IsNullOrEmpty(instructions))
             {
+                var promptTemplate =  string.Format(DefaultSkillsInstructionPrompt, instructions);
                 // Inject into instruction dictionary
-                dict["available_skills"] = instructions;
+                dict["SkillsInstructionPrompt"] = promptTemplate;
 
                 _logger.LogInformation(
                     "Injected {Count} skills into agent {AgentId} instructions",

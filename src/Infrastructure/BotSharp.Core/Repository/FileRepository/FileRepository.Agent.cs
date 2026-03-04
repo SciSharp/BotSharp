@@ -79,6 +79,9 @@ namespace BotSharp.Core.Repository
                 case AgentField.MaxMessageCount:
                     await UpdateAgentMaxMessageCount(agent.Id, agent.MaxMessageCount);
                     break;
+                case AgentField.Skills:
+                    await UpdateAgentSkills(agent.Id, agent.Skills);
+                    break;
                 case AgentField.All:
                     await UpdateAgentAllFields(agent);
                     break;
@@ -505,6 +508,25 @@ namespace BotSharp.Core.Repository
             await File.WriteAllTextAsync(agentFile, json);
         }
 
+        private async Task UpdateAgentSkills(string agentId, List<AgentSkill> skills)
+        {
+            if (skills == null)
+            {
+                return;
+            }
+
+            var (agent, agentFile) = GetAgentFromFile(agentId);
+            if (agent == null)
+            {
+                return;
+            }
+
+            agent.Skills = skills;
+            agent.UpdatedDateTime = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(agent, _options);
+            await File.WriteAllTextAsync(agentFile, json);
+        }
+
         private async Task UpdateAgentAllFields(Agent inputAgent)
         {
             var (agent, agentFile) = GetAgentFromFile(inputAgent.Id);
@@ -531,6 +553,7 @@ namespace BotSharp.Core.Repository
             agent.LlmConfig = inputAgent.LlmConfig;
             agent.MaxMessageCount = inputAgent.MaxMessageCount;
             agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.Skills = inputAgent.Skills;
             var json = JsonSerializer.Serialize(agent, _options);
             await File.WriteAllTextAsync(agentFile, json);
 

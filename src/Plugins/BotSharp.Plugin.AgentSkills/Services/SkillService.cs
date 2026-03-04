@@ -1,7 +1,8 @@
-using AgentSkillsDotNet;
 using BotSharp.Plugin.AgentSkills.Settings;
+using BotSharp.Plugin.AgentSkills.Skills;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using System.Text;
 
 namespace BotSharp.Plugin.AgentSkills.Services;
 
@@ -16,7 +17,7 @@ public class SkillService : ISkillService
     private readonly IServiceProvider _serviceProvider;
     private AgentSkillsSettings _settings;
     private readonly ILogger<SkillService> _logger;
-    private AgentSkillsDotNet.AgentSkills? _agentSkills;
+    private Skills.AgentSkills? _agentSkills;
     private IList<AITool>? _tools;
     private readonly object _lock = new object();
 
@@ -138,7 +139,7 @@ public class SkillService : ISkillService
     /// Gets all loaded skills.
     /// Implements requirement: FR-1.1
     /// </summary>
-    public AgentSkillsDotNet.AgentSkills GetAgentSkills()
+    public Skills.AgentSkills GetAgentSkills()
     {
         if (_agentSkills == null)
         {
@@ -152,7 +153,7 @@ public class SkillService : ISkillService
     /// Gets skill instructions text for injection into Agent prompts.
     /// Implements requirement: FR-2.1
     /// </summary>
-    public string GetInstructions()
+    public string GetInstructions(Agent agent)
     {
         if (_agentSkills == null)
         {
@@ -162,18 +163,47 @@ public class SkillService : ISkillService
 
         try
         {
-            // FR-2.1: Use AgentSkillsDotNet to generate instructions
-            var instructions = _agentSkills.GetInstructions();
-            var skillCount = instructions.Split("<skill>").Length - 1;
-            _logger.LogDebug("Generated instructions for {Count} skills", skillCount);
-            return instructions ?? string.Empty;
+            var agentskills = _agentSkills.Skills;
+            if (agentskills == null)
+            {
+                _logger.LogWarning("GetInstructions called but no skills are available in AgentSkills");
+                return string.Empty;
+            }
+            else
+            {
+                StringBuilder availableSkillToolBuilder = new();
+                availableSkillToolBuilder.AppendLine("<available_skills>");
+
+                _logger.LogDebug("Generating instructions for {Count} skills", agentskills.Count);
+                foreach (var skill in agent.Skills)
+                {
+                    if (!agentskills.Any(s => s.Name.Equals(skill.Name, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        _logger.LogWarning("Agent {AgentName} has skill '{Skill}' which is not available in loaded skills", agent.Name, skill);
+                    }
+                    else
+                    {
+                        var agentSkill = agentskills.FirstOrDefault(s => s.Name== skill.Name);
+                        availableSkillToolBuilder.AppendLine("\t<skill>");
+                        availableSkillToolBuilder.AppendLine($"\t\t<name>{agentSkill.Name}</name>");
+                        availableSkillToolBuilder.AppendLine($"\t\t<description>{agentSkill.Description}</description>");
+                        availableSkillToolBuilder.AppendLine($"\t\t<location>{agentSkill.FolderPath}</location>");
+                        availableSkillToolBuilder.AppendLine("\t</skill>");
+                    }
+                }
+
+                var instructions = availableSkillToolBuilder.AppendLine("</available_skills>").ToString();
+                var skillCount = instructions.Split("<skill>").Length - 1;
+                _logger.LogDebug("Generated instructions for {Count} skills", skillCount);
+                return instructions ?? string.Empty;
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate skill instructions");
             return string.Empty;
         }
-    }
+    }  
 
     /// <summary>
     /// Gets the list of skill tools.
