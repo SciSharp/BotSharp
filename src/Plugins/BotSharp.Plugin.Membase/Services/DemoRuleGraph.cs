@@ -20,7 +20,7 @@ public class DemoRuleGraph : IRuleGraph
 
     public string Provider => "demo";
 
-    public Task<RuleGraph> LoadGraphAsync(string graphId, RuleGraphLoadOptions? options = null)
+    public Task<RuleGraph> GetGraphAsync(string graphId, RuleGraphLoadOptions? options = null)
     {
         var graph = RuleGraph.Init();
         var root = new RuleNode

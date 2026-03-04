@@ -13,5 +13,5 @@ public interface IRuleGraph
     /// <param name="graphId"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    Task<RuleGraph> LoadGraphAsync(string graphId, RuleGraphLoadOptions? options = null);
+    Task<RuleGraph> GetGraphAsync(string graphId, RuleGraphLoadOptions? options = null);
 }

@@ -111,7 +111,7 @@ public class RuleEngine : IRuleEngine
             return null;
         }
 
-        return await graph.LoadGraphAsync(graphId, options: new()
+        return await graph.GetGraphAsync(graphId, options: new()
         {
             AgentId = agentId,
             Trigger = trigger.Name,
