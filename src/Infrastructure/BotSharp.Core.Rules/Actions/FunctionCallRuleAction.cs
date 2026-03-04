@@ -17,10 +17,10 @@ public sealed class FunctionCallRuleAction : IRuleAction
 
     public string Name => "function_call";
 
-    public async Task<RuleActionResult> ExecuteAsync(
+    public async Task<RuleNodeResult> ExecuteAsync(
         Agent agent,
         IRuleTrigger trigger,
-        RuleActionContext context)
+        RuleFlowContext context)
     {
         var funcName = context.Parameters.TryGetValue("function_name", out var fName) ? fName : null;
         var func = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name.IsEqualTo(funcName));
@@ -29,13 +29,17 @@ public sealed class FunctionCallRuleAction : IRuleAction
         {
             var errorMsg = $"Unable to find function '{funcName}' when running action {agent.Name}-{trigger.Name}";
             _logger.LogWarning(errorMsg);
-            return RuleActionResult.Failed(errorMsg);
+            return new RuleNodeResult
+            {
+                Success = false,
+                ErrorMessage = errorMsg
+            };
         }
 
         var funcArg = context.Parameters.TryGetObjectValueOrDefault<RoleDialogModel>("function_argument", new()) ?? new();
         await func.Execute(funcArg);
 
-        return new RuleActionResult
+        return new RuleNodeResult
         {
             Success = true,
             Response = funcArg?.RichContent?.Message?.Text ?? funcArg?.Content,

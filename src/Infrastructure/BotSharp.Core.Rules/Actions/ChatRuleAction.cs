@@ -15,10 +15,10 @@ public sealed class ChatRuleAction : IRuleAction
 
     public string Name => "send_message_to_agent";
 
-    public async Task<RuleActionResult> ExecuteAsync(
+    public async Task<RuleNodeResult> ExecuteAsync(
         Agent agent,
         IRuleTrigger trigger,
-        RuleActionContext context)
+        RuleFlowContext context)
     {
         using var scope = _services.CreateScope();
         var sp = scope.ServiceProvider;
@@ -57,7 +57,7 @@ public sealed class ChatRuleAction : IRuleAction
 
             _logger.LogInformation("Chat rule action executed successfully for agent {AgentId}, conversation {ConversationId}", agent.Id, conv.Id);
 
-            return new RuleActionResult
+            return new RuleNodeResult
             {
                 Success = true,
                 Response = conv.Id,
@@ -71,7 +71,11 @@ public sealed class ChatRuleAction : IRuleAction
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error when sending chat via rule action for agent {AgentId} and trigger {TriggerName}", agent.Id, trigger.Name);
-            return RuleActionResult.Failed(ex.Message);
+            return new RuleNodeResult
+            {
+                Success = false,
+                ErrorMessage = ex.Message
+            };
         }
     }
 }

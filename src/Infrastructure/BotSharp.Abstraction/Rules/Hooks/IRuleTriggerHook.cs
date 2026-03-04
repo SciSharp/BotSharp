@@ -5,9 +5,9 @@ namespace BotSharp.Abstraction.Rules.Hooks;
 
 public interface IRuleTriggerHook : IHookBase
 {
-    Task BeforeRuleCriteriaExecuted(Agent agent, AgentRuleCriteria ruleCriteria, IRuleTrigger trigger, RuleCriteriaContext context) => Task.CompletedTask;
-    Task AfterRuleCriteriaExecuted(Agent agent, AgentRuleCriteria ruleCriteria, IRuleTrigger trigger, RuleCriteriaResult result) => Task.CompletedTask;
+    Task BeforeRuleConditionExecuted(Agent agent, RuleNode conditionNode, IRuleTrigger trigger, RuleFlowContext context) => Task.CompletedTask;
+    Task AfterRuleConditionExecuted(Agent agent, RuleNode conditionNode, IRuleTrigger trigger, RuleNodeResult result) => Task.CompletedTask;
 
-    Task BeforeRuleActionExecuted(Agent agent, RuleNode actionNode, IRuleTrigger trigger, RuleActionContext context) => Task.CompletedTask;
-    Task AfterRuleActionExecuted(Agent agent, RuleNode actionNode, IRuleTrigger trigger, RuleActionResult result) => Task.CompletedTask;
+    Task BeforeRuleActionExecuted(Agent agent, RuleNode actionNode, IRuleTrigger trigger, RuleFlowContext context) => Task.CompletedTask;
+    Task AfterRuleActionExecuted(Agent agent, RuleNode actionNode, IRuleTrigger trigger, RuleNodeResult result) => Task.CompletedTask;
 }

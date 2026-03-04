@@ -20,7 +20,7 @@ public class RuleGraph
 
     public RuleNode? GetRootNode()
     {
-        return _nodes.FirstOrDefault(x => x.Type.IsEqualTo("root"));
+        return _nodes.FirstOrDefault(x => x.Type.IsEqualTo("root") || x.Type.IsEqualTo("start"));
     }
 
     public RuleNode? GetNode(string id)
@@ -171,7 +171,8 @@ public class GraphItemPayload
 {
     public virtual string Id { get; set; } = Guid.NewGuid().ToString();
     public virtual string Name { get; set; } = null!;
-    public virtual string Type { get; set; } = "is_next";
+    public virtual string Type { get; set; } = null!;
+    public virtual IEnumerable<string> Labels { get; set; } = [];
     public virtual Dictionary<string, string?> Config { get; set; } = [];
 
     public GraphItemPayload()

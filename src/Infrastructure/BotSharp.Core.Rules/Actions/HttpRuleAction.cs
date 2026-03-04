@@ -1,5 +1,4 @@
 using System.Net.Mime;
-using System.Text.Json;
 using System.Web;
 
 namespace BotSharp.Core.Rules.Actions;
@@ -22,16 +21,16 @@ public sealed class HttpRuleAction : IRuleAction
 
     public string Name => "http_request";
 
-    public JsonDocument DefaultConfig => JsonDocument.Parse(JsonSerializer.Serialize(new
-    {
-        http_url = "https://dummy.example.com/api/v1/employees",
-        http_method = "GET"
-    }));
+    // Default configuration example:
+    // {
+    //     "http_url": "https://dummy.example.com/api/v1/employees",
+    //     "http_method": "GET"
+    // }
 
-    public async Task<RuleActionResult> ExecuteAsync(
+    public async Task<RuleNodeResult> ExecuteAsync(
         Agent agent,
         IRuleTrigger trigger,
-        RuleActionContext context)
+        RuleFlowContext context)
     {
         try
         {
@@ -40,7 +39,11 @@ public sealed class HttpRuleAction : IRuleAction
             {
                 var errorMsg = $"HTTP method is not supported in agent rule {agent.Name}-{trigger.Name}";
                 _logger.LogWarning(errorMsg);
-                return RuleActionResult.Failed(errorMsg);
+                return new RuleNodeResult
+                {
+                    Success = false,
+                    ErrorMessage = errorMsg
+                };
             }
 
             // Build the full URL
@@ -73,7 +76,7 @@ public sealed class HttpRuleAction : IRuleAction
                 _logger.LogInformation("HTTP rule action executed successfully for agent {AgentId}, Status: {StatusCode}, Response: {Response}",
                     agent.Id, response.StatusCode, responseContent);
 
-                return new RuleActionResult
+                return new RuleNodeResult
                 {
                     Success = true,
                     Response = responseContent,
@@ -87,18 +90,26 @@ public sealed class HttpRuleAction : IRuleAction
             {
                 var errorMsg = $"HTTP request failed with status code {response.StatusCode}: {responseContent}";
                 _logger.LogWarning(errorMsg);
-                return RuleActionResult.Failed(errorMsg);
+                return new RuleNodeResult
+                {
+                    Success = false,
+                    ErrorMessage = errorMsg
+                };
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error executing HTTP rule action for agent {AgentId} and trigger {TriggerName}",
                 agent.Id, trigger.Name);
-            return RuleActionResult.Failed(ex.Message);
+            return new RuleNodeResult
+            {
+                Success = false,
+                ErrorMessage = ex.Message
+            };
         }
     }
 
-    private string BuildUrl(RuleActionContext context)
+    private string BuildUrl(RuleFlowContext context)
     {
         var url = context.Parameters.GetValueOrDefault("http_url", string.Empty);
         if (string.IsNullOrEmpty(url))
@@ -139,7 +150,7 @@ public sealed class HttpRuleAction : IRuleAction
         return url;
     }
 
-    private HttpMethod? GetHttpMethod(RuleActionContext context)
+    private HttpMethod? GetHttpMethod(RuleFlowContext context)
     {
         var method = context.Parameters.GetValueOrDefault("http_method", string.Empty);
         var innerMethod = method?.Trim()?.ToUpper();
@@ -170,7 +181,7 @@ public sealed class HttpRuleAction : IRuleAction
         return matchMethod;
     }
 
-    private void AddHttpHeaders(HttpClient client, RuleActionContext context)
+    private void AddHttpHeaders(HttpClient client, RuleFlowContext context)
     {
         var headerParams = context.Parameters.TryGetObjectValueOrDefault<IEnumerable<KeyValue>>("http_request_headers");
         if (!headerParams.IsNullOrEmpty())
@@ -182,7 +193,7 @@ public sealed class HttpRuleAction : IRuleAction
         }
     }
 
-    private string? GetHttpRequestBody(RuleActionContext context)
+    private string? GetHttpRequestBody(RuleFlowContext context)
     {
         var body = context.Parameters.GetValueOrDefault("http_request_body");
         return body;

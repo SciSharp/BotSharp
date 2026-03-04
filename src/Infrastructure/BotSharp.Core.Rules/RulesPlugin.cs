@@ -1,5 +1,5 @@
 using BotSharp.Core.Rules.Actions;
-using BotSharp.Core.Rules.Criteria;
+using BotSharp.Core.Rules.Conditions;
 using BotSharp.Core.Rules.Engines;
 
 namespace BotSharp.Core.Rules;
@@ -19,12 +19,15 @@ public class RulesPlugin : IBotSharpPlugin
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         services.AddScoped<IRuleEngine, RuleEngine>();
-        services.AddScoped<IRuleCriteria, CodeScriptRuleCriteria>();
 
         // Register rule actions
         services.AddScoped<IRuleAction, ChatRuleAction>();
         services.AddScoped<IRuleAction, HttpRuleAction>();
         services.AddScoped<IRuleAction, FunctionCallRuleAction>();
+
+        // Register rule conditions
+        // Uncomment the line below to enable the example condition
+        // services.AddScoped<IRuleCondition, ExampleRuleCondition>();
 
 #if DEBUG
         services.AddScoped<IRuleTrigger, DemoRuleTrigger>();

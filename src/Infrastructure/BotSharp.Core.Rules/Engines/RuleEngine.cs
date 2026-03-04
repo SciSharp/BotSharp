@@ -1,6 +1,4 @@
-using BotSharp.Abstraction.Templating;
-using System.Data;
-using System.Text.Json;
+using System.Xml.Linq;
 
 namespace BotSharp.Core.Rules.Engines;
 
@@ -41,18 +39,7 @@ public class RuleEngine : IRuleEngine
                 continue;
             }
 
-            // Criteria validation
-            if (!string.IsNullOrEmpty(rule.RuleCriteria?.Name) && !rule.RuleCriteria.Disabled)
-            {
-                var criteriaResult = await ExecuteCriteriaAsync(agent, rule.RuleCriteria, trigger, text, states, options);
-                if (criteriaResult?.IsValid == false)
-                {
-                    _logger.LogWarning("Criteria validation failed for agent {AgentId} with trigger {TriggerName}", agent.Id, trigger.Name);
-                    continue;
-                }
-            }
-
-            // Execute actions
+            // Execute graph
             // 1. Load graph (agent id, rule name)
             var graph = await LoadGraph(agent.Id, trigger);
             if (graph == null)
@@ -68,7 +55,7 @@ public class RuleEngine : IRuleEngine
             }
 
             // 3. Execute graph
-            var execResults = new List<RuleActionStepResult>();
+            var execResults = new List<RuleFlowStepResult>();
             await ExecuteGraphNode(root, graph, agent, trigger, text, states, options, execResults);
 
             var convIds = execResults.Where(x => x.Success && x.Data.TryGetValue("conversation_id", out _))
@@ -97,7 +84,7 @@ public class RuleEngine : IRuleEngine
             MaxGraphRecursion = options.MaxGraphRecursion
         };
 
-        var execResults = new List<RuleActionStepResult>();
+        var execResults = new List<RuleFlowStepResult>();
         await ExecuteGraphNode(
             node, graph,
             agent, trigger,
@@ -112,8 +99,14 @@ public class RuleEngine : IRuleEngine
         var graph = RuleGraph.Init();
         var root = new RuleNode
         {
-            Name = "root",
-            Type = "root",
+            Name = "start",
+            Type = "start",
+        };
+
+        var end = new RuleNode
+        {
+            Name = "end",
+            Type = "end",
         };
 
         var delayNode = new RuleNode
@@ -133,7 +126,7 @@ public class RuleEngine : IRuleEngine
             Config = new()
             {
                 ["http_method"] = "GET",
-                ["http_url"] = "https://dummy.restapiexample.com/api/v1/employees"
+                ["http_url"] = "https://meshstage.lessen.com/reactivewocore/reactivewos/9883958"
             }
         };
 
@@ -144,7 +137,7 @@ public class RuleEngine : IRuleEngine
             Config = new()
             {
                 ["http_method"] = "GET",
-                ["http_url"] = "https://dummy.restapiexample.com/api/v1/employee/1"
+                ["http_url"] = "https://meshstage.lessen.com/reactivewocore/reactivewos/9883956"
             }
         };
 
@@ -155,7 +148,7 @@ public class RuleEngine : IRuleEngine
             Config = new()
             {
                 ["http_method"] = "GET",
-                ["http_url"] = "https://dummy.restapiexample.com/api/v1/employee/2"
+                ["http_url"] = "https://meshstage.lessen.com/reactivewocore/reactivewos/9883954"
             }
         };
 
@@ -183,6 +176,12 @@ public class RuleEngine : IRuleEngine
             Type = "is_next"
         });
 
+        graph.AddEdge(node2, node3, payload: new()
+        {
+            Name = "edge",
+            Type = "is_next"
+        });
+
         return graph;
     }
 
@@ -196,6 +195,12 @@ public class RuleEngine : IRuleEngine
             Type = "root",
         };
 
+        var end = new RuleNode
+        {
+            Name = "end",
+            Type = "end",
+        };
+
         var node = new RuleNode
         {
             Name = "send_message_to_agent",
@@ -203,6 +208,12 @@ public class RuleEngine : IRuleEngine
         };
 
         graph.AddEdge(root, node, payload: new()
+        {
+            Name = "edge",
+            Type = "is_next"
+        });
+
+        graph.AddEdge(node, end, payload: new()
         {
             Name = "edge",
             Type = "is_next"
@@ -220,10 +231,11 @@ public class RuleEngine : IRuleEngine
         string text,
         IEnumerable<MessageState>? states,
         RuleTriggerOptions? options,
-        List<RuleActionStepResult> results)
+        List<RuleFlowStepResult> results)
     {
+        var actionResultCount = results.Count(x => RuleConstant.ACTION_NODE_TYPES.Contains(x.Node.Type));
         var maxRecursion = options?.MaxGraphRecursion ?? RuleConstant.MAX_GRAPH_RECURSION;
-        if (results.Count >= maxRecursion)
+        if (actionResultCount >= maxRecursion)
         {
             _logger.LogWarning("Exceed max graph recursion {MaxRecursion} (agent {Agent} and trigger {Trigger}).",
                 maxRecursion, agent.Name, trigger.Name);
@@ -233,19 +245,13 @@ public class RuleEngine : IRuleEngine
         var neighbors = graph.GetNeighbors(node);
         foreach (var (neighborNode, edge) in neighbors)
         {
-            if (!neighborNode.Type.IsEqualTo("action"))
+            if (RuleConstant.END_NODE_TYPES.Contains(neighborNode.Type))
             {
                 continue;
             }
 
-            var actions = _services.GetServices<IRuleAction>();
-            var action = actions.FirstOrDefault(x => x.Name.IsEqualTo(neighborNode.Name));
-            if (action == null)
-            {
-                continue;
-            }
-
-            var context = new RuleActionContext
+            // Build context
+            var context = new RuleFlowContext
             {
                 Node = neighborNode,
                 Graph = graph,
@@ -255,127 +261,75 @@ public class RuleEngine : IRuleEngine
                 JsonOptions = options?.JsonOptions
             };
 
-            // Check whether the edge is executable from source node to target node
-            var isExecutable = await IsExecutable(edge, agent, trigger, context);
-            if (!isExecutable)
+
+            if (RuleConstant.CONDITION_NODE_TYPES.Contains(neighborNode.Type))
             {
-                continue;
+                // Execute condition
+                var conditionResult = await ExecuteCondition(neighborNode, graph, agent, trigger, context);
+                if (conditionResult == null)
+                {
+                    continue;
+                }
+
+                results.Add(RuleFlowStepResult.FromResult(conditionResult, neighborNode));
+
+                // If condition result is true, then execute the next node, otherwise skip
+                if (conditionResult.IsValid)
+                {
+                    await ExecuteGraphNode(neighborNode, graph, agent, trigger, text, states, options, results);
+                }
+                else
+                {
+                    _logger.LogInformation("Condition {ConditionName} evaluated to false, skipping next node (agent {Agent} and trigger {Trigger}).",
+                        neighborNode.Name, agent.Name, trigger.Name);
+                }
             }
-
-            // Execute action
-            var actionResult = await ExecuteAction(neighborNode, graph, agent, trigger, context);
-            results.Add(new RuleActionStepResult
+            else if (RuleConstant.ACTION_NODE_TYPES.Contains(neighborNode.Type))
             {
-                Node = neighborNode,
-                Success = actionResult.Success,
-                Response = actionResult.Response,
-                Data = new(actionResult.Data ?? []),
-                ErrorMessage = actionResult.ErrorMessage,
-                IsDelayed = actionResult.IsDelayed
-            });
+                // Execute action
+                var actionResult = await ExecuteAction(neighborNode, graph, agent, trigger, context);
+                if (actionResult == null)
+                {
+                    continue;
+                }
 
-            if (results.Count >= maxRecursion)
-            {
-                _logger.LogWarning("Exceed max graph recursion {MaxRecursion} (agent {Agent} and trigger {Trigger}).",
-                                    maxRecursion, agent.Name, trigger.Name);
-                break;
+                results.Add(RuleFlowStepResult.FromResult(actionResult, neighborNode));
+
+                if (actionResult.IsDelayed)
+                {
+                    continue;
+                }
+
+                actionResultCount = results.Count(x => RuleConstant.ACTION_NODE_TYPES.Contains(x.Node.Type));
+                if (actionResultCount >= maxRecursion)
+                {
+                    _logger.LogWarning("Exceed max graph recursion {MaxRecursion} (agent {Agent} and trigger {Trigger}).",
+                                        maxRecursion, agent.Name, trigger.Name);
+                    break;
+                }
+
+                await ExecuteGraphNode(neighborNode, graph, agent, trigger, text, states, options, results);
             }
-
-            if (actionResult.IsDelayed)
-            {
-                continue;
-            }
-
-            await ExecuteGraphNode(neighborNode, graph, agent, trigger, text, states, options, results);
         }
     }
-
-
-    private async Task<bool> IsExecutable(RuleEdge edge, Agent agent, IRuleTrigger triger, RuleActionContext context)
-    {
-        return true;
-    }
-
-
-    #region Criteria
-    private async Task<RuleCriteriaResult> ExecuteCriteriaAsync(
-        Agent agent,
-        AgentRuleCriteria ruleCriteria,
-        IRuleTrigger trigger,
-        string text,
-        IEnumerable<MessageState>? states,
-        RuleTriggerOptions? triggerOptions)
-    {
-        var result = new RuleCriteriaResult();
-
-        try
-        {
-            var criteria = _services.GetServices<IRuleCriteria>()
-                                    .FirstOrDefault(x => x.Provider == ruleCriteria.Name);
-
-            if (criteria == null)
-            {
-                return result;
-            }
-
-
-            var context = new RuleCriteriaContext
-            {
-                Text = text,
-                Parameters = BuildContextParameters(ruleCriteria.Config, states),
-                JsonOptions = triggerOptions?.JsonOptions
-            };
-
-            _logger.LogInformation("Start execution rule criteria {CriteriaProvider} for agent {AgentId} with trigger {TriggerName}",
-                criteria.Provider, agent.Id, trigger.Name);
-
-            var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
-            foreach (var hook in hooks)
-            {
-                await hook.BeforeRuleCriteriaExecuted(agent, ruleCriteria, trigger, context);
-            }
-
-            // Execute criteria
-            context.Parameters ??= [];
-            result = await criteria.ValidateAsync(agent, trigger, context);
-
-            foreach (var hook in hooks)
-            {
-                await hook.AfterRuleCriteriaExecuted(agent, ruleCriteria, trigger, result);
-            }
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error executing rule criteria {CriteriaProvider} for agent {AgentId}", ruleCriteria.Name, agent.Id);
-            return result;
-        }
-    }
-    #endregion
-
 
     #region Action
-    private async Task<RuleActionResult> ExecuteAction(
+    private async Task<RuleNodeResult?> ExecuteAction(
         RuleNode node,
         RuleGraph graph,
         Agent agent,
         IRuleTrigger trigger,
-        RuleActionContext context)
+        RuleFlowContext context)
     {
         try
         {
-            // Get all registered rule actions
-            var actions = _services.GetServices<IRuleAction>();
-
             // Find the matching action
-            var foundAction = actions.FirstOrDefault(x => x.Name.IsEqualTo(node?.Name));
-
+            var foundAction = GetRuleAction(node, agent, trigger);
             if (foundAction == null)
             {
                 var errorMsg = $"No rule action {node?.Name} is found";
                 _logger.LogWarning(errorMsg);
-                return RuleActionResult.Failed(errorMsg);
+                return null;
             }
 
             _logger.LogInformation("Start execution rule action {ActionName} for agent {AgentId} with trigger {TriggerName}",
@@ -401,33 +355,138 @@ public class RuleEngine : IRuleEngine
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error executing rule action {ActionName} for agent {AgentId}", node?.Name, agent.Id);
-            return RuleActionResult.Failed(ex.Message);
+            return new RuleNodeResult
+            {
+                Success = false,
+                ErrorMessage = ex.Message
+            };
         }
+    }
+
+    // Find the matching action
+    private IRuleAction? GetRuleAction(RuleNode node, Agent agent, IRuleTrigger trigger)
+    {
+        var actions = _services.GetServices<IRuleAction>()
+                               .Where(x => x.Name.IsEqualTo(node?.Name))
+                               .ToList();
+
+        var found = actions.FirstOrDefault(x => !string.IsNullOrEmpty(x.AgentId) && x.AgentId.IsEqualTo(agent.Id) && x.Triggers?.Contains(trigger.Name) == true);
+        if (found != null)
+        {
+            return found;
+        }
+
+        found = actions.FirstOrDefault(x => !string.IsNullOrEmpty(x.AgentId) && x.AgentId.IsEqualTo(agent.Id));
+        if (found != null)
+        {
+            return found;
+        }
+
+        found = actions.FirstOrDefault(x => x.Triggers?.Contains(trigger.Name, StringComparer.OrdinalIgnoreCase) == true);
+        if (found != null)
+        {
+            return found;
+        }
+
+        found = actions.FirstOrDefault();
+        if (found != null)
+        {
+            return found;
+        }
+
+        return null;
+    }
+    #endregion
+
+
+    #region Condition
+    private async Task<RuleNodeResult?> ExecuteCondition(
+        RuleNode node,
+        RuleGraph graph,
+        Agent agent,
+        IRuleTrigger trigger,
+        RuleFlowContext context)
+    {
+        try
+        {
+            // Find the matching condition
+            var foundCondition = GetRuleCondition(node, agent, trigger);
+            if (foundCondition == null)
+            {
+                var errorMsg = $"No rule condition {node?.Name} is found";
+                _logger.LogWarning(errorMsg);
+                return null;
+            }
+
+            _logger.LogInformation("Start execution rule condition {ConditionName} for agent {AgentId} with trigger {TriggerName}",
+                foundCondition.Name, agent.Id, trigger.Name);
+
+            var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
+            foreach (var hook in hooks)
+            {
+                await hook.BeforeRuleConditionExecuted(agent, node, trigger, context);
+            }
+
+            // Execute condition
+            context.Parameters ??= [];
+            var result = await foundCondition.EvaluateAsync(agent, trigger, context);
+
+            foreach (var hook in hooks)
+            {
+                await hook.AfterRuleConditionExecuted(agent, node, trigger, result);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing rule condition {ConditionName} for agent {AgentId}", node?.Name, agent.Id);
+            return new RuleNodeResult
+            {
+                Success = false,
+                IsValid = false,
+                ErrorMessage = ex.Message
+            };
+        }
+    }
+
+    // Find the matching condition
+    private IRuleCondition? GetRuleCondition(RuleNode node, Agent agent, IRuleTrigger trigger)
+    {
+        var conditions = _services.GetServices<IRuleCondition>()
+                               .Where(x => x.Name.IsEqualTo(node?.Name))
+                               .ToList();
+
+        var found = conditions.FirstOrDefault(x => !string.IsNullOrEmpty(x.AgentId) && x.AgentId.IsEqualTo(agent.Id) && x.Triggers?.Contains(trigger.Name) == true);
+        if (found != null)
+        {
+            return found;
+        }
+
+        found = conditions.FirstOrDefault(x => !string.IsNullOrEmpty(x.AgentId) && x.AgentId.IsEqualTo(agent.Id));
+        if (found != null)
+        {
+            return found;
+        }
+
+        found = conditions.FirstOrDefault(x => x.Triggers?.Contains(trigger.Name, StringComparer.OrdinalIgnoreCase) == true);
+        if (found != null)
+        {
+            return found;
+        }
+
+        found = conditions.FirstOrDefault();
+        if (found != null)
+        {
+            return found;
+        }
+
+        return null;
     }
     #endregion
 
 
     #region Private methods
-    private Dictionary<string, string?> BuildContextParameters(JsonDocument? config, IEnumerable<MessageState>? states)
-    {
-        var dict = new Dictionary<string, string?>();
-
-        if (config != null)
-        {
-            dict = ConvertToDictionary(config);
-        }
-
-        if (!states.IsNullOrEmpty())
-        {
-            foreach (var state in states!)
-            {
-                dict[state.Key] = state.Value?.ConvertToString();
-            }
-        }
-
-        return dict;
-    }
-
     private Dictionary<string, string?> BuildContextParameters(Dictionary<string, string?>? config, IEnumerable<MessageState>? states)
     {
         var dict = new Dictionary<string, string?>();
@@ -447,66 +506,5 @@ public class RuleEngine : IRuleEngine
 
         return dict;
     }
-
-    private static Dictionary<string, string?> ConvertToDictionary(JsonDocument doc)
-    {
-        var dict = new Dictionary<string, string?>();
-
-        foreach (var prop in doc.RootElement.EnumerateObject())
-        {
-            object? value = prop.Value.ValueKind switch
-            {
-                JsonValueKind.String => prop.Value.GetString(),
-                JsonValueKind.Number when prop.Value.TryGetDecimal(out decimal decimalValue) => decimalValue,
-                JsonValueKind.Number when prop.Value.TryGetDouble(out double doubleValue) => doubleValue,
-                JsonValueKind.Number when prop.Value.TryGetInt32(out int intValue) => intValue,
-                JsonValueKind.Number when prop.Value.TryGetInt64(out long longValue) => longValue,
-                JsonValueKind.Number when prop.Value.TryGetDateTime(out DateTime dateTimeValue) => dateTimeValue,
-                JsonValueKind.Number when prop.Value.TryGetDateTimeOffset(out DateTimeOffset dateTimeOffsetValue) => dateTimeOffsetValue,
-                JsonValueKind.Number when prop.Value.TryGetGuid(out Guid guidValue) => guidValue,
-                JsonValueKind.Number => prop.Value.GetDouble(),
-                JsonValueKind.True => true,
-                JsonValueKind.False => false,
-                JsonValueKind.Null => null,
-                JsonValueKind.Undefined => null,
-                JsonValueKind.Array => prop.Value,
-                JsonValueKind.Object => prop.Value,
-                _ => prop.Value
-            };
-            dict[prop.Name] = value?.ConvertToString();
-        }
-
-        return dict;
-        #endregion
-    }
-
-    private int? RenderSkippingExpression(string? expression, Dictionary<string, string?> dict)
-    {
-        int? steps = null;
-
-        if (string.IsNullOrWhiteSpace(expression))
-        {
-            return steps;
-        }
-
-        var render = _services.GetRequiredService<ITemplateRender>();
-        var copy = dict != null
-            ? new Dictionary<string, object>(dict.Where(x => x.Value != null).ToDictionary(x => x.Key, x => (object)x.Value!))
-            : [];
-        var result = render.Render(expression, new Dictionary<string, object>
-        {
-            { "states", copy }
-        });
-
-        if (int.TryParse(result, out var intVal))
-        {
-            steps = intVal;
-        }
-        else if (bool.TryParse(result, out var boolVal) && boolVal)
-        {
-            steps = 1;
-        }
-
-        return steps;
-    }
+    #endregion
 }

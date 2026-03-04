@@ -3,19 +3,20 @@ using BotSharp.Abstraction.Rules.Models;
 namespace BotSharp.Abstraction.Rules;
 
 /// <summary>
-/// Base interface for rule actions that can be executed by the RuleEngine
+/// Base interface for rule conditions that can be evaluated by the RuleEngine
 /// </summary>
-public interface IRuleAction : IRuleFlowUnit
+public interface IRuleCondition : IRuleFlowUnit
 {
     /// <summary>
-    /// Execute the rule action
+    /// Evaluate the rule condition
     /// </summary>
     /// <param name="agent">The agent that triggered the rule</param>
     /// <param name="trigger">The rule trigger</param>
     /// <param name="context">The flow context</param>
-    /// <returns>The action execution result</returns>
-    Task<RuleNodeResult> ExecuteAsync(
+    /// <returns>The condition evaluation result</returns>
+    Task<RuleNodeResult> EvaluateAsync(
         Agent agent,
         IRuleTrigger trigger,
         RuleFlowContext context);
 }
+
