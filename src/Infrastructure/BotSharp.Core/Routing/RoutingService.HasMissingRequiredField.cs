@@ -16,13 +16,13 @@ public partial class RoutingService
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
         var routing = _services.GetRequiredService<IRoutingService>();
 
-        var routingRules = await routing.GetRulesByAgentName(args.AgentName);
-
-        if (routingRules == null || !routingRules.Any())
+        var routingRules = (await routing.GetRulesByAgentName(args.AgentName)).ToList();
+        if (routingRules.IsNullOrEmpty())
         {
             agentId = message.CurrentAgentId;
             return (false, reason, agentId);
         }
+        await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingRulesLoaded(routingRules[0].AgentId, routingRules), routingRules[0].AgentId);
 
         agentId = routingRules.First().AgentId;
         // Add routed agent

@@ -149,6 +149,7 @@ public partial class RoutingService : IRoutingService
         var records = await GetRoutingRecords();
         return records
             .Where(x => x.AgentName.ToLower() == name.ToLower())
+            .Select(r => r.Clone())
             .ToArray();
     }
 
@@ -157,6 +158,7 @@ public partial class RoutingService : IRoutingService
         var records = await GetRoutingRecords();
         return records
             .Where(x => x.AgentId == id)
+            .Select(r => r.Clone())
             .ToArray();
     }
 }
