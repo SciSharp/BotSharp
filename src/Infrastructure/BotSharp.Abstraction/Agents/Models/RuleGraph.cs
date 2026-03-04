@@ -132,7 +132,7 @@ public class RuleGraph
     }
 }
 
-public class RuleNode : GraphItemPayload
+public class RuleNode : GraphItem
 {
     /// <summary>
     /// Node type: root, criteria, action, etc.
@@ -145,7 +145,7 @@ public class RuleNode : GraphItemPayload
     }
 }
 
-public class RuleEdge : GraphItemPayload
+public class RuleEdge : GraphItem
 {
     /// <summary>
     /// Edge type: is_next, etc.
@@ -155,12 +155,12 @@ public class RuleEdge : GraphItemPayload
     public RuleNode From { get; set; }
     public RuleNode To { get; set; }
 
-    public RuleEdge()
+    public RuleEdge() : base()
     {
         
     }
 
-    public RuleEdge(RuleNode from, RuleNode to)
+    public RuleEdge(RuleNode from, RuleNode to) : base()
     {
         Id = Guid.NewGuid().ToString();
         From = from;
@@ -173,18 +173,17 @@ public class RuleEdge : GraphItemPayload
     }
 }
 
-public class GraphItemPayload
+public class GraphItem
 {
     public virtual string Id { get; set; } = Guid.NewGuid().ToString();
     public virtual string Name { get; set; } = null!;
     public virtual string Type { get; set; } = null!;
     public virtual IEnumerable<string> Labels { get; set; } = [];
     public virtual Dictionary<string, string?> Config { get; set; } = [];
+}
 
-    public GraphItemPayload()
-    {
-        
-    }
+public class GraphItemPayload : GraphItem
+{
 }
 
 public class RuleGraphInfo
