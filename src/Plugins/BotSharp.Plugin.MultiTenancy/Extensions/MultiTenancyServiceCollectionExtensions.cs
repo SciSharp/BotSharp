@@ -1,14 +1,13 @@
 using BotSharp.Abstraction.MultiTenancy;
 using BotSharp.Abstraction.MultiTenancy.Options;
-using BotSharp.Plugin.MultiTenancy.Interfaces;
 using BotSharp.Plugin.MultiTenancy.Models;
 using BotSharp.Plugin.MultiTenancy.MultiTenancy;
-using BotSharp.Plugin.MultiTenancy.MultiTenancy.Providers;
 using BotSharp.Plugin.MultiTenancy.MultiTenancy.Resolvers;
-using BotSharp.Plugin.MultiTenancy.MultiTenancy.Tenant;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 
 namespace BotSharp.Plugin.MultiTenancy.Extensions;
 
@@ -16,6 +15,16 @@ public static class MultiTenancyServiceCollectionExtensions
 {
     public static IServiceCollection AddMultiTenancy(this IServiceCollection services, IConfiguration configuration, string sectionName = "TenantStore")
     {
+        var section = configuration.GetSection(sectionName);
+        if (section.Exists())
+        {
+            services.Configure<TenantStoreOptions>(section);
+        }
+        else
+        {
+            services.Configure<TenantStoreOptions>(_ => { });
+        }
+
         services.Configure<TenantResolveOptions>(options =>
         {
             options.TenantResolvers.Add(new ClaimsTenantResolveContributor());
@@ -23,16 +32,27 @@ public static class MultiTenancyServiceCollectionExtensions
             options.TenantResolvers.Add(new QueryStringTenantResolveContributor());
         });
 
-        services.Configure<TenantStoreOptions>(configuration.GetSection(sectionName));
+        services.AddScoped<ITenantResolver, TenantResolver>();
+        services.AddScoped<MultiTenancyMiddleware>();
         services.AddScoped<ICurrentTenant, CurrentTenant>();
         services.AddSingleton<ICurrentTenantAccessor>(AsyncLocalCurrentTenantAccessor.Instance);
-        services.AddScoped<ITenantResolver, TenantResolver>();
-        services.AddScoped<IConnectionStringResolver, DefaultConnectionStringResolver>();
-        services.AddScoped<ITenantConnectionProvider, TenantConnectionProvider>();
-        services.AddSingleton<ITenantFeature, TenantFeature>();
-        services.AddScoped<MultiTenancyMiddleware>();
 
-        services.TryAddScoped<ITenantOptionProvider, ConfigTenantOptionProvider>();
+        // tenant store infrastructure
+        services.AddMemoryCache();
+        services.TryAddScoped<ITenantRepository, NullTenantRepository>();
+        services.TryAddScoped<ConfigTenantStore>();
+        services.TryAddScoped<DbTenantStore>();
+        services.TryAddScoped<ITenantStore>(sp => new CompositeTenantStore(
+            sp.GetRequiredService<IOptionsMonitor<TenantStoreOptions>>(),
+            new List<ITenantStore>
+            {
+                sp.GetRequiredService<ConfigTenantStore>(),
+                sp.GetRequiredService<DbTenantStore>()
+            }));
+
+        services.TryAddScoped<IConnectionStringResolver, DefaultConnectionStringResolver>();
+        services.TryAddScoped<ITenantFeature, TenantFeature>();
+        services.TryAddScoped<ITenantConnectionProvider, TenantConnectionProvider>();
 
         return services;
     }
