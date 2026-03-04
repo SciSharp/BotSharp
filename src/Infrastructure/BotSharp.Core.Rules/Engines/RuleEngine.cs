@@ -1,5 +1,3 @@
-using System.Xml.Linq;
-
 namespace BotSharp.Core.Rules.Engines;
 
 public class RuleEngine : IRuleEngine
@@ -39,37 +37,47 @@ public class RuleEngine : IRuleEngine
                 continue;
             }
 
-            // Execute graph
-            // 1. Load graph (agent id, rule name)
-            var graph = await LoadGraph(agent.Id, trigger);
-            if (graph == null)
+            if (!string.IsNullOrEmpty(options?.GraphOptions?.Provider)
+                && !string.IsNullOrEmpty(options?.GraphOptions?.GraphId))
             {
-                continue;
-            }
+                // Execute graph
+                // 1. Load graph
+                var graph = await LoadGraph(options.GraphOptions.Provider, options.GraphOptions.GraphId, agent.Id, trigger, states);
+                if (graph == null)
+                {
+                    continue;
+                }
 
-            // 2. Get root node
-            var root = graph.GetRootNode();
-            if (root == null)
+                // 2. Get root node
+                var root = graph.GetRootNode(options.GraphOptions.RootNodeName);
+                if (root == null)
+                {
+                    continue;
+                }
+
+                // 3. Execute graph
+                var execResults = new List<RuleFlowStepResult>();
+                await ExecuteGraphNode(root, graph, agent, trigger, text, states, options, execResults);
+
+                // Get conversation id to support legacy features
+                var convIds = execResults.Where(x => x.Success && x.Data.TryGetValue("conversation_id", out _))
+                                         .Select(x => x.Data.GetValueOrDefault("conversation_id", string.Empty))
+                                         .Where(x => !string.IsNullOrEmpty(x))
+                                         .ToList();
+
+                newConversationIds.AddRange(convIds);
+            }
+            else
             {
-                continue;
+                var convId = await SendMessageToAgent(agent, trigger, text, states);
+                newConversationIds.Add(convId);
             }
-
-            // 3. Execute graph
-            var execResults = new List<RuleFlowStepResult>();
-            await ExecuteGraphNode(root, graph, agent, trigger, text, states, options, execResults);
-
-            var convIds = execResults.Where(x => x.Success && x.Data.TryGetValue("conversation_id", out _))
-                                     .Select(x => x.Data.GetValueOrDefault("conversation_id", string.Empty))
-                                     .Where(x => !string.IsNullOrEmpty(x))
-                                     .ToList();
-
-            newConversationIds.AddRange(convIds);
         }
 
         return newConversationIds;
     }
 
-    public async Task ExecuteGraphNode(RuleNode node, RuleGraph graph, IRuleTrigger trigger, RuleNodeExecutionOptions options)
+    public async Task ExecuteGraphNode(RuleNode node, RuleGraph graph, string agentId, IRuleTrigger trigger, RuleNodeExecutionOptions options)
     {
         if (node == null || graph == null || options == null)
         {
@@ -77,11 +85,11 @@ public class RuleEngine : IRuleEngine
         }
 
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.GetAgent(options.AgentId);
+        var agent = await agentService.GetAgent(agentId);
 
         var triggerOptions = new RuleTriggerOptions
         {
-            MaxGraphRecursion = options.MaxGraphRecursion
+            GraphOptions = options.GraphOptions
         };
 
         var execResults = new List<RuleFlowStepResult>();
@@ -94,134 +102,22 @@ public class RuleEngine : IRuleEngine
             execResults);
     }
 
-    private async Task<RuleGraph> LoadGraph(string agentId, IRuleTrigger trigger, RuleGraphOptions? options = null)
+    #region Graph
+    private async Task<RuleGraph?> LoadGraph(string provider, string graphId, string agentId, IRuleTrigger trigger, IEnumerable<MessageState>? states)
     {
-        var graph = RuleGraph.Init();
-        var root = new RuleNode
+        var graph = _services.GetServices<IRuleGraph>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
+        if (graph == null)
         {
-            Name = "start",
-            Type = "start",
-        };
+            return null;
+        }
 
-        var end = new RuleNode
+        return await graph.LoadGraphAsync(graphId, options: new()
         {
-            Name = "end",
-            Type = "end",
-        };
-
-        var delayNode = new RuleNode
-        {
-            Name = "delay_message",
-            Type = "action",
-            Config = new()
-            {
-                ["delay"] = "3 seconds"
-            }
-        };
-
-        var node1 = new RuleNode
-        {
-            Name = "http_request",
-            Type = "action",
-            Config = new()
-            {
-                ["http_method"] = "GET",
-                ["http_url"] = "https://meshstage.lessen.com/reactivewocore/reactivewos/9883958"
-            }
-        };
-
-        var node2 = new RuleNode
-        {
-            Name = "http_request",
-            Type = "action",
-            Config = new()
-            {
-                ["http_method"] = "GET",
-                ["http_url"] = "https://meshstage.lessen.com/reactivewocore/reactivewos/9883956"
-            }
-        };
-
-        var node3 = new RuleNode
-        {
-            Name = "http_request",
-            Type = "action",
-            Config = new()
-            {
-                ["http_method"] = "GET",
-                ["http_url"] = "https://meshstage.lessen.com/reactivewocore/reactivewos/9883954"
-            }
-        };
-
-        graph.AddEdge(root, delayNode, payload: new()
-        {
-            Name = "edge",
-            Type = "is_next"
+            AgentId = agentId,
+            Trigger = trigger.Name,
+            States = states
         });
-
-        graph.AddEdge(delayNode, node1, payload: new()
-        {
-            Name = "edge",
-            Type = "is_next"
-        });
-
-        graph.AddEdge(node1, node2, payload: new()
-        {
-            Name = "edge",
-            Type = "is_next"
-        });
-
-        graph.AddEdge(node1, node3, payload: new()
-        {
-            Name = "edge",
-            Type = "is_next"
-        });
-
-        graph.AddEdge(node2, node3, payload: new()
-        {
-            Name = "edge",
-            Type = "is_next"
-        });
-
-        return graph;
     }
-
-
-    private async Task<RuleGraph> LoadDefaultGraph()
-    {
-        var graph = RuleGraph.Init();
-        var root = new RuleNode
-        {
-            Name = "root",
-            Type = "root",
-        };
-
-        var end = new RuleNode
-        {
-            Name = "end",
-            Type = "end",
-        };
-
-        var node = new RuleNode
-        {
-            Name = "send_message_to_agent",
-            Type = "action"
-        };
-
-        graph.AddEdge(root, node, payload: new()
-        {
-            Name = "edge",
-            Type = "is_next"
-        });
-
-        graph.AddEdge(node, end, payload: new()
-        {
-            Name = "edge",
-            Type = "is_next"
-        });
-
-        return graph;
-    }
-
 
     private async Task ExecuteGraphNode(
         RuleNode node,
@@ -234,7 +130,8 @@ public class RuleEngine : IRuleEngine
         List<RuleFlowStepResult> results)
     {
         var actionResultCount = results.Count(x => RuleConstant.ACTION_NODE_TYPES.Contains(x.Node.Type));
-        var maxRecursion = options?.MaxGraphRecursion ?? RuleConstant.MAX_GRAPH_RECURSION;
+        var maxRecursion = options?.GraphOptions?.MaxGraphRecursion ?? RuleConstant.MAX_GRAPH_RECURSION;
+
         if (actionResultCount >= maxRecursion)
         {
             _logger.LogWarning("Exceed max graph recursion {MaxRecursion} (agent {Agent} and trigger {Trigger}).",
@@ -312,6 +209,7 @@ public class RuleEngine : IRuleEngine
             }
         }
     }
+    #endregion
 
     #region Action
     private async Task<RuleNodeResult?> ExecuteAction(
@@ -505,6 +403,41 @@ public class RuleEngine : IRuleEngine
         }
 
         return dict;
+    }
+    #endregion
+
+    #region Legacy conversation
+    private async Task<string> SendMessageToAgent(Agent agent, IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null)
+    {
+        var convService = _services.GetRequiredService<IConversationService>();
+        var conv = await convService.NewConversation(new Conversation
+        {
+            Channel = trigger.Channel,
+            Title = text,
+            AgentId = agent.Id
+        });
+
+        var message = new RoleDialogModel(AgentRole.User, text);
+
+        var allStates = new List<MessageState>
+        {
+            new("channel", trigger.Channel)
+        };
+
+        if (!states.IsNullOrEmpty())
+        {
+            allStates.AddRange(states!);
+        }
+
+        await convService.SetConversationId(conv.Id, allStates);
+        await convService.SendMessage(agent.Id,
+            message,
+            null,
+            msg => Task.CompletedTask);
+
+        await convService.SaveStates();
+
+        return conv.Id;
     }
     #endregion
 }

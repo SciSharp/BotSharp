@@ -18,6 +18,7 @@ public class RulesPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        // Register rule engine
         services.AddScoped<IRuleEngine, RuleEngine>();
 
         // Register rule actions
@@ -25,11 +26,12 @@ public class RulesPlugin : IBotSharpPlugin
         services.AddScoped<IRuleAction, HttpRuleAction>();
         services.AddScoped<IRuleAction, FunctionCallRuleAction>();
 
-        // Register rule conditions
-        // Uncomment the line below to enable the example condition
-        // services.AddScoped<IRuleCondition, ExampleRuleCondition>();
 
 #if DEBUG
+        // Register rule conditions
+        services.AddScoped<IRuleCondition, ExampleRuleCondition>();
+
+        // Register rule trigger
         services.AddScoped<IRuleTrigger, DemoRuleTrigger>();
 #endif
     }

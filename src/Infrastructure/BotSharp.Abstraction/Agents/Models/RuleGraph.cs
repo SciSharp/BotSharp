@@ -18,8 +18,13 @@ public class RuleGraph
         return new RuleGraph();
     }
 
-    public RuleNode? GetRootNode()
+    public RuleNode? GetRootNode(string? name = null)
     {
+        if (!string.IsNullOrEmpty(name))
+        {
+            return _nodes.FirstOrDefault(x => x.Name.IsEqualTo(name));
+        }
+
         return _nodes.FirstOrDefault(x => x.Type.IsEqualTo("root") || x.Type.IsEqualTo("start"));
     }
 
@@ -145,7 +150,7 @@ public class RuleEdge : GraphItemPayload
     /// <summary>
     /// Edge type: is_next, etc.
     /// </summary>
-    public override string Type { get; set; } = "is_next";
+    public override string Type { get; set; } = "next";
 
     public RuleNode From { get; set; }
     public RuleNode To { get; set; }
@@ -157,6 +162,7 @@ public class RuleEdge : GraphItemPayload
 
     public RuleEdge(RuleNode from, RuleNode to)
     {
+        Id = Guid.NewGuid().ToString();
         From = from;
         To = to;
     }

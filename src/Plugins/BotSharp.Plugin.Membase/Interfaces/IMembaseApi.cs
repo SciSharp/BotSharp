@@ -1,7 +1,7 @@
 using BotSharp.Plugin.Membase.Models.Graph;
 using Refit;
 
-namespace BotSharp.Plugin.Membase.Services;
+namespace BotSharp.Plugin.Membase.Interfaces;
 
 /// <summary>
 /// Membase REST API interface

@@ -4,6 +4,7 @@ using BotSharp.Abstraction.Graph.Options;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Utilities;
+using BotSharp.Plugin.Membase.Interfaces;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 

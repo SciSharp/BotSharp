@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Graph.Models;
+using BotSharp.Plugin.Membase.Interfaces;
 using BotSharp.Plugin.Membase.Models.Graph;
 
 namespace BotSharp.Plugin.Membase.Services;
