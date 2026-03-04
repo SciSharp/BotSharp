@@ -147,29 +147,18 @@ public partial class RoutingService : IRoutingService
     public async Task<RoutingRule[]> GetRulesByAgentName(string name)
     {
         var records = await GetRoutingRecords();
-        var rules = records
+        return records
             .Where(x => x.AgentName.ToLower() == name.ToLower())
             .Select(r => r.Clone())
-            .ToList();
-        if (rules.Count > 0)
-        {
-            var agentId = rules[0].AgentId;
-            await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingRulesLoaded(agentId, rules), agentId);
-        }
-        return rules.ToArray();
+            .ToArray();
     }
 
     public async Task<RoutingRule[]> GetRulesByAgentId(string id)
     {
         var records = await GetRoutingRecords();
-        var rules = records
+        return records
             .Where(x => x.AgentId == id)
             .Select(r => r.Clone())
-            .ToList();
-        if (rules.Count > 0)
-        {
-            await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingRulesLoaded(id, rules), id);
-        }
-        return rules.ToArray();
+            .ToArray();
     }
 }
