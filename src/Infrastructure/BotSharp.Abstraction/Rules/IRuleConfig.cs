@@ -1,17 +1,17 @@
 namespace BotSharp.Abstraction.Rules;
 
-public interface IRuleGraph
+public interface IRuleConfig<T> where T : class
 {
     /// <summary>
-    /// Rule graph provider
+    /// Rule config provider
     /// </summary>
     string Provider { get; }
 
     /// <summary>
-    /// Load graph
+    /// Load config
     /// </summary>
-    /// <param name="graphId"></param>
+    /// <param name="id"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    Task<RuleGraph> GetGraphAsync(string graphId, RuleGraphLoadOptions? options = null);
+    Task<T> GetConfigAsync(string id, RuleConfigLoadOptions? options = null);
 }

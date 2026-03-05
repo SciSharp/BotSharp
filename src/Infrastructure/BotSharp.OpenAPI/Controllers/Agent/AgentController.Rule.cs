@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Rules;
+using BotSharp.Abstraction.Rules.Settings;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -15,5 +16,13 @@ public partial class AgentController
             Statement = x.Statement,
             OutputArgs = x.OutputArgs
         }).OrderBy(x => x.TriggerName);
+    }
+
+    [HttpGet("/rule/config/options")]
+    public IDictionary<string, IEnumerable<string>> GetRuleConfigOptions()
+    {
+        var settings = _services.GetRequiredService<RuleSettings>();
+        var options = settings?.ConfigOptions ?? [];
+        return options;
     }
 }

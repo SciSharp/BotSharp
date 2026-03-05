@@ -37,19 +37,24 @@ public class RuleEngine : IRuleEngine
                 continue;
             }
 
-            if (!string.IsNullOrEmpty(options?.GraphOptions?.Provider)
-                && !string.IsNullOrEmpty(options?.GraphOptions?.GraphId))
+            var ruleConfig = rule.Config;
+            var ruleConfigProvider = options?.ConfigOptions?.Provider ?? ruleConfig?.Provider;
+
+            if (ruleConfig != null
+                && ruleConfig.Type.IsEqualTo("graph")
+                && !string.IsNullOrEmpty(ruleConfigProvider))
             {
                 // Execute graph
                 // 1. Load graph
-                var graph = await LoadGraph(options.GraphOptions.Provider, options.GraphOptions.GraphId, agent.Id, trigger, states);
+                var graph = await LoadGraph(ruleConfigProvider, options?.ConfigOptions?.Id, agent.Id, trigger, states);
                 if (graph == null)
                 {
                     continue;
                 }
 
                 // 2. Get root node
-                var root = graph.GetRootNode(options.GraphOptions.RootNodeName);
+                var rootNodeName = options.ConfigOptions.Parameters.GetValueOrDefault("root_node_name");
+                var root = graph.GetRootNode(rootNodeName);
                 if (root == null)
                 {
                     continue;
@@ -89,7 +94,7 @@ public class RuleEngine : IRuleEngine
 
         var triggerOptions = new RuleTriggerOptions
         {
-            GraphOptions = options.GraphOptions
+            ConfigOptions = options.ConfigOptions
         };
 
         var execResults = new List<RuleFlowStepResult>();
@@ -105,17 +110,35 @@ public class RuleEngine : IRuleEngine
     #region Graph
     private async Task<RuleGraph?> LoadGraph(string provider, string graphId, string agentId, IRuleTrigger trigger, IEnumerable<MessageState>? states)
     {
-        var graph = _services.GetServices<IRuleGraph>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
-        if (graph == null)
+        var config = _services.GetServices<IRuleConfig<RuleGraph>>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
+        if (config == null)
         {
             return null;
         }
 
-        return await graph.GetGraphAsync(graphId, options: new()
+        if (string.IsNullOrEmpty(graphId))
+        {
+            return null;
+        }
+
+        var param = new Dictionary<string, object>();
+        if (!states.IsNullOrEmpty())
+        {
+            foreach (var state in states!)
+            {
+                if (state.Key == null || state.Value == null)
+                {
+                    continue; 
+                }
+                param[state.Key] = state.Value;
+            }
+        }
+
+        return await config.GetConfigAsync(graphId, options: new()
         {
             AgentId = agentId,
             Trigger = trigger.Name,
-            States = states
+            Parameters = param
         });
     }
 
@@ -130,7 +153,8 @@ public class RuleEngine : IRuleEngine
         List<RuleFlowStepResult> results)
     {
         var actionResultCount = results.Count(x => RuleConstant.ACTION_NODE_TYPES.Contains(x.Node.Type));
-        var maxRecursion = options?.GraphOptions?.MaxGraphRecursion ?? RuleConstant.MAX_GRAPH_RECURSION;
+        var param = options?.ConfigOptions?.Parameters ?? [];
+        var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion"), out var depth) ? depth : RuleConstant.MAX_GRAPH_RECURSION;
 
         if (actionResultCount >= maxRecursion)
         {
@@ -153,7 +177,7 @@ public class RuleEngine : IRuleEngine
                 Node = neighborNode,
                 Graph = graph,
                 Text = text,
-                Parameters = BuildContextParameters(neighborNode.Config, states),
+                Parameters = BuildParameters(neighborNode.Config, states),
                 PrevStepResults = results,
                 JsonOptions = options?.JsonOptions
             };
@@ -385,7 +409,7 @@ public class RuleEngine : IRuleEngine
 
 
     #region Private methods
-    private Dictionary<string, string?> BuildContextParameters(Dictionary<string, string?>? config, IEnumerable<MessageState>? states)
+    private Dictionary<string, string?> BuildParameters(Dictionary<string, string?>? config, IEnumerable<MessageState>? states)
     {
         var dict = new Dictionary<string, string?>();
 

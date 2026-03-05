@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Graph;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Rules;
@@ -38,7 +39,7 @@ public class MembasePlugin : IBotSharpPlugin
         _membaseProjectId = config.GetValue<string>("Membase:ProjectId") ?? string.Empty;
 
 #if DEBUG
-        services.AddScoped<IRuleGraph, DemoRuleGraph>();
+        services.AddScoped<IRuleConfig<RuleGraph>, DemoRuleGraph>();
 #endif
     }
 

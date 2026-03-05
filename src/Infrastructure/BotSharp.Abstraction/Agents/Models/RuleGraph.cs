@@ -95,6 +95,8 @@ public class RuleGraph
                 Id = payload.Id,
                 Name = payload.Name,
                 Type = payload.Type,
+                Labels = payload.Labels,
+                Weight = payload.Weight,
                 Config = payload.Config
             });
         }
@@ -179,6 +181,7 @@ public class GraphItem
     public virtual string Name { get; set; } = null!;
     public virtual string Type { get; set; } = null!;
     public virtual IEnumerable<string> Labels { get; set; } = [];
+    public virtual int Weight { get; set; }
     public virtual Dictionary<string, string?> Config { get; set; } = [];
 }
 

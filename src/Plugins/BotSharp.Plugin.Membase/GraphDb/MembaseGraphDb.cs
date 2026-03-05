@@ -39,7 +39,7 @@ public partial class MembaseGraphDb : IGraphDb
 
         try
         {
-            var response = await _membaseApi.CypherQueryAsync(options.GraphId, new CypherQueryRequest
+            var response = await _membaseApi.CypherQueryAsync(options!.GraphId, new CypherQueryRequest
             {
                 Query = query,
                 Parameters = args

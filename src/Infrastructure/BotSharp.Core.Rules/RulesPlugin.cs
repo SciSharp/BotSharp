@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Crontab.Settings;
+using BotSharp.Abstraction.Rules.Settings;
 using BotSharp.Core.Rules.Actions;
 using BotSharp.Core.Rules.Conditions;
 using BotSharp.Core.Rules.Engines;
@@ -18,6 +20,11 @@ public class RulesPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        // Register rule settings
+        var settings = new RuleSettings();
+        config.Bind("Rule", settings);
+        services.AddSingleton(settings);
+
         // Register rule engine
         services.AddScoped<IRuleEngine, RuleEngine>();
 
@@ -25,7 +32,6 @@ public class RulesPlugin : IBotSharpPlugin
         services.AddScoped<IRuleAction, ChatRuleAction>();
         services.AddScoped<IRuleAction, HttpRuleAction>();
         services.AddScoped<IRuleAction, FunctionCallRuleAction>();
-
 
 #if DEBUG
         // Register rule conditions
