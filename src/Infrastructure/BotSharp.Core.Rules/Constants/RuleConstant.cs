@@ -2,7 +2,7 @@ namespace BotSharp.Core.Rules.Constants;
 
 public static class RuleConstant
 {
-    public const int MAX_GRAPH_RECURSION = 10;
+    public const int MAX_GRAPH_RECURSION = 30;
 
     public static IEnumerable<string> CONDITION_NODE_TYPES = new List<string>
     {

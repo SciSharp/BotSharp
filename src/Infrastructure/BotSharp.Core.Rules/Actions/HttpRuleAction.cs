@@ -1,7 +1,6 @@
 using System.Net.Mime;
 using System.Text.Json;
 using System.Web;
-using System.Xml.Linq;
 
 namespace BotSharp.Core.Rules.Actions;
 

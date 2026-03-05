@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc;
+
 namespace BotSharp.Core.Rules.Engines;
 
 public class RuleEngine : IRuleEngine
@@ -139,11 +141,12 @@ public class RuleEngine : IRuleEngine
         List<RuleFlowStepResult> results)
     {
         // Check whether the action nodes have been visited more than limit
-        var actionResultCount = results.Count(x => RuleConstant.ACTION_NODE_TYPES.Contains(x.Node.Type));
+        var visited = results.Count();
         var param = options?.Flow?.Parameters ?? [];
-        var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion")?.ToString(), out var depth) && depth > 0 ? depth : RuleConstant.MAX_GRAPH_RECURSION;
+        var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion")?.ToString(), out var depth) && depth > 0
+            ? depth : RuleConstant.MAX_GRAPH_RECURSION;
 
-        if (actionResultCount >= maxRecursion)
+        if (visited >= maxRecursion)
         {
             _logger.LogWarning("Exceed max graph recursion {MaxRecursion} (agent {Agent} and trigger {Trigger}).",
                 maxRecursion, agent.Name, trigger.Name);
@@ -179,6 +182,11 @@ public class RuleEngine : IRuleEngine
                 var conditionResult = await ExecuteCondition(neighborNode, graph, agent, trigger, context);
                 if (conditionResult == null)
                 {
+                    results.Add(RuleFlowStepResult.FromResult(new()
+                    {
+                        Success = false,
+                        ErrorMessage = $"Unable to find condition {neighborNode.Name}."
+                    }, neighborNode));
                     continue;
                 }
 
@@ -201,6 +209,11 @@ public class RuleEngine : IRuleEngine
                 var actionResult = await ExecuteAction(neighborNode, graph, agent, trigger, context);
                 if (actionResult == null)
                 {
+                    results.Add(RuleFlowStepResult.FromResult(new()
+                    {
+                        Success = false,
+                        ErrorMessage = $"Unable to find action {neighborNode.Name}."
+                    }, neighborNode));
                     continue;
                 }
 
@@ -211,18 +224,15 @@ public class RuleEngine : IRuleEngine
                     continue;
                 }
 
-                actionResultCount = results.Count(x => RuleConstant.ACTION_NODE_TYPES.Contains(x.Node.Type));
-                if (actionResultCount >= maxRecursion)
-                {
-                    _logger.LogWarning("Exceed max graph recursion {MaxRecursion} (agent {Agent} and trigger {Trigger}).",
-                                        maxRecursion, agent.Name, trigger.Name);
-                    break;
-                }
-
                 await ExecuteGraphNode(neighborNode, graph, agent, trigger, text, states, options, results);
             }
             else
             {
+                results.Add(RuleFlowStepResult.FromResult(new()
+                {
+                    Success = true,
+                    Response = $"Pass through node {neighborNode.Name}."
+                }, neighborNode));
                 await ExecuteGraphNode(neighborNode, graph, agent, trigger, text, states, options, results);
             }
         }

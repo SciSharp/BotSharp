@@ -128,6 +128,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
                 Labels = sourceNodeLabels,
                 Name = GetGraphItemAttribute(sourceNodeProps, key: "name", defaultValue: "node"),
                 Type = GetGraphItemAttribute(sourceNodeProps, key: "type", defaultValue: "action"),
+                Purpose = GetGraphItemAttribute(sourceNodeProps, key: "purpose", defaultValue: "empty"),
                 Config = GetConfig(sourceNodeProps)
             };
 
@@ -138,6 +139,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
                 Labels = targetNodeLabels,
                 Name = GetGraphItemAttribute(targetNodeProps, key: "name", defaultValue: "node"),
                 Type = GetGraphItemAttribute(targetNodeProps, key: "type", defaultValue: "action"),
+                Purpose = GetGraphItemAttribute(sourceNodeProps, key: "purpose", defaultValue: "empty"),
                 Config = GetConfig(targetNodeProps)
             };
 
@@ -147,6 +149,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
                 Id = edgeId ?? Guid.NewGuid().ToString(),
                 Name = GetGraphItemAttribute(targetNodeProps, key: "name", defaultValue: "edge"),
                 Type = GetGraphItemAttribute(targetNodeProps, key: "type", defaultValue: "next"),
+                Purpose = GetGraphItemAttribute(sourceNodeProps, key: "purpose", defaultValue: "empty"),
                 Weight = edgeWeight,
                 Config = GetConfig(edgeProps)
             };
