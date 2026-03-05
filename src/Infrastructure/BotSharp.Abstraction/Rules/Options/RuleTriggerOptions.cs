@@ -16,7 +16,7 @@ public class RuleTriggerOptions
     public JsonSerializerOptions? JsonOptions { get; set; }
 
     /// <summary>
-    /// Rule config options
+    /// Rule flow options
     /// </summary>
-    public RuleConfigOptions? ConfigOptions { get; set; }
+    public RuleFlowOptions? FlowOptions { get; set; }
 }

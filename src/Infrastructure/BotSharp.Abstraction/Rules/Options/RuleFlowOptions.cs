@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Rules.Options;
 
-public class RuleConfigOptions
+public class RuleFlowOptions
 {
     /// <summary>
     /// Config provider

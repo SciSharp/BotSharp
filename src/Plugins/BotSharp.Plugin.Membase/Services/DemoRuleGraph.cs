@@ -9,7 +9,7 @@ using System.Text.Json;
 
 namespace BotSharp.Plugin.Membase.Services;
 
-public class DemoRuleGraph : IRuleConfig<RuleGraph>
+public class DemoRuleGraph : IRuleFlow<RuleGraph>
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<DemoRuleGraph> _logger;
@@ -24,7 +24,7 @@ public class DemoRuleGraph : IRuleConfig<RuleGraph>
 
     public string Provider => "membase";
 
-    public async Task<RuleGraph> GetTopologyAsync(string id, RuleConfigLoadOptions? options = null)
+    public async Task<RuleGraph> GetTopologyAsync(string id, RuleFlowLoadOptions? options = null)
     {
         if (string.IsNullOrEmpty(id))
         {

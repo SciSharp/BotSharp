@@ -39,7 +39,7 @@ public class MembasePlugin : IBotSharpPlugin
         _membaseProjectId = config.GetValue<string>("Membase:ProjectId") ?? string.Empty;
 
 #if DEBUG
-        services.AddScoped<IRuleConfig<RuleGraph>, DemoRuleGraph>();
+        services.AddScoped<IRuleFlow<RuleGraph>, DemoRuleGraph>();
 #endif
     }
 

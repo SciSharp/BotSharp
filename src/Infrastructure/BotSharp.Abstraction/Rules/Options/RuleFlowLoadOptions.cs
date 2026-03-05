@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Rules.Options;
 
-public class RuleConfigLoadOptions
+public class RuleFlowLoadOptions
 {
     public string? AgentId { get; set; }
     public string? Trigger { get; set; }
