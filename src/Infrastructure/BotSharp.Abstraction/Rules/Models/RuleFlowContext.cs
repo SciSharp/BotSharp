@@ -12,6 +12,7 @@ public class RuleFlowContext
     public IEnumerable<RuleFlowStepResult> PrevStepResults { get; set; } = [];
     public JsonSerializerOptions? JsonOptions { get; set; }
     public RuleNode Node { get; set; }
+    public RuleEdge Edge { get; set; }
     public RuleGraph Graph { get; set; }
 }
 

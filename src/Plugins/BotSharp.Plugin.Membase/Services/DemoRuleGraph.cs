@@ -24,11 +24,11 @@ public class DemoRuleGraph : IRuleConfig<RuleGraph>
 
     public string Provider => "membase";
 
-    public async Task<RuleGraph> GetConfigAsync(string id, RuleConfigLoadOptions? options = null)
+    public async Task<RuleGraph> GetTopologyAsync(string id, RuleConfigLoadOptions? options = null)
     {
         if (string.IsNullOrEmpty(id))
         {
-            return null;
+            return GetDefaultGraph();
         }
 
         var query = $"""

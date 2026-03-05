@@ -39,21 +39,21 @@ public class RuleEngine : IRuleEngine
 
             var ruleConfig = rule.Config;
             var ruleConfigProvider = options?.ConfigOptions?.Provider ?? ruleConfig?.Provider;
+            var ruleConfigId = options?.ConfigOptions?.Id;
 
-            if (ruleConfig != null
-                && ruleConfig.Type.IsEqualTo("graph")
-                && !string.IsNullOrEmpty(ruleConfigProvider))
+            if (!string.IsNullOrEmpty(ruleConfigProvider))
             {
                 // Execute graph
                 // 1. Load graph
-                var graph = await LoadGraph(ruleConfigProvider, options?.ConfigOptions?.Id, agent.Id, trigger, states);
+                var graph = await LoadGraph(ruleConfigProvider, ruleConfigId, agent.Id, trigger, states);
                 if (graph == null)
                 {
                     continue;
                 }
 
                 // 2. Get root node
-                var rootNodeName = options.ConfigOptions.Parameters.GetValueOrDefault("root_node_name");
+                var param = options?.ConfigOptions?.Parameters;
+                var rootNodeName = param != null ? param.GetValueOrDefault("root_node_name") : null;
                 var root = graph.GetRootNode(rootNodeName);
                 if (root == null)
                 {
@@ -94,7 +94,8 @@ public class RuleEngine : IRuleEngine
 
         var triggerOptions = new RuleTriggerOptions
         {
-            ConfigOptions = options.ConfigOptions
+            ConfigOptions = options.ConfigOptions,
+            JsonOptions = options.JsonOptions
         };
 
         var execResults = new List<RuleFlowStepResult>();
@@ -116,11 +117,6 @@ public class RuleEngine : IRuleEngine
             return null;
         }
 
-        if (string.IsNullOrEmpty(graphId))
-        {
-            return null;
-        }
-
         var param = new Dictionary<string, object>();
         if (!states.IsNullOrEmpty())
         {
@@ -134,7 +130,7 @@ public class RuleEngine : IRuleEngine
             }
         }
 
-        return await config.GetConfigAsync(graphId, options: new()
+        return await config.GetTopologyAsync(graphId, options: new()
         {
             AgentId = agentId,
             Trigger = trigger.Name,
@@ -152,9 +148,10 @@ public class RuleEngine : IRuleEngine
         RuleTriggerOptions? options,
         List<RuleFlowStepResult> results)
     {
+        // Check whether the action nodes have been visited more than limit
         var actionResultCount = results.Count(x => RuleConstant.ACTION_NODE_TYPES.Contains(x.Node.Type));
         var param = options?.ConfigOptions?.Parameters ?? [];
-        var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion"), out var depth) ? depth : RuleConstant.MAX_GRAPH_RECURSION;
+        var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion"), out var depth) && depth > 0 ? depth : RuleConstant.MAX_GRAPH_RECURSION;
 
         if (actionResultCount >= maxRecursion)
         {
@@ -163,18 +160,21 @@ public class RuleEngine : IRuleEngine
             return;
         }
 
+        // Get current node neighbors
         var neighbors = graph.GetNeighbors(node);
+        if (neighbors.IsNullOrEmpty())
+        {
+            return;
+        }
+
+        // Visit neighbor nodes
         foreach (var (neighborNode, edge) in neighbors)
         {
-            if (RuleConstant.END_NODE_TYPES.Contains(neighborNode.Type))
-            {
-                continue;
-            }
-
             // Build context
             var context = new RuleFlowContext
             {
                 Node = neighborNode,
+                Edge = edge,
                 Graph = graph,
                 Text = text,
                 Parameters = BuildParameters(neighborNode.Config, states),
@@ -185,7 +185,7 @@ public class RuleEngine : IRuleEngine
 
             if (RuleConstant.CONDITION_NODE_TYPES.Contains(neighborNode.Type))
             {
-                // Execute condition
+                // Execute condition node
                 var conditionResult = await ExecuteCondition(neighborNode, graph, agent, trigger, context);
                 if (conditionResult == null)
                 {
@@ -207,7 +207,7 @@ public class RuleEngine : IRuleEngine
             }
             else if (RuleConstant.ACTION_NODE_TYPES.Contains(neighborNode.Type))
             {
-                // Execute action
+                // Execute action node
                 var actionResult = await ExecuteAction(neighborNode, graph, agent, trigger, context);
                 if (actionResult == null)
                 {
@@ -231,9 +231,14 @@ public class RuleEngine : IRuleEngine
 
                 await ExecuteGraphNode(neighborNode, graph, agent, trigger, text, states, options, results);
             }
+            else
+            {
+                await ExecuteGraphNode(neighborNode, graph, agent, trigger, text, states, options, results);
+            }
         }
     }
     #endregion
+
 
     #region Action
     private async Task<RuleNodeResult?> ExecuteAction(
@@ -429,6 +434,7 @@ public class RuleEngine : IRuleEngine
         return dict;
     }
     #endregion
+
 
     #region Legacy conversation
     private async Task<string> SendMessageToAgent(Agent agent, IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null)

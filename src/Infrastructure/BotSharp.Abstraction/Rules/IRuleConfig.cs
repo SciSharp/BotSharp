@@ -8,10 +8,10 @@ public interface IRuleConfig<T> where T : class
     string Provider { get; }
 
     /// <summary>
-    /// Load config
+    /// Get rule topology
     /// </summary>
     /// <param name="id"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    Task<T> GetConfigAsync(string id, RuleConfigLoadOptions? options = null);
+    Task<T> GetTopologyAsync(string id, RuleConfigLoadOptions? options = null);
 }
