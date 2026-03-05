@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Rules;
-using BotSharp.Abstraction.Rules.Settings;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -19,10 +18,17 @@ public partial class AgentController
     }
 
     [HttpGet("/rule/config/options")]
-    public IDictionary<string, IEnumerable<string>> GetRuleConfigOptions()
+    public async Task<IDictionary<string, JsonDocument>> GetRuleConfigOptions()
     {
-        var settings = _services.GetRequiredService<RuleSettings>();
-        var options = settings?.ConfigOptions ?? [];
-        return options;
+        var dict = new Dictionary<string, JsonDocument>();
+        var configs = _services.GetServices<IRuleConfig>();
+
+        foreach (var config in configs)
+        {
+            var json = await config.GetConfigAsync();
+            dict[config.Provider.ToLower()] = json;
+        }
+
+        return dict;
     }
 }
