@@ -8,11 +8,6 @@ public class RuleNodeResult
     public virtual bool Success { get; set; }
 
     /// <summary>
-    /// Whether the node evaluation is valid (used for conditions)
-    /// </summary>
-    public virtual bool IsValid { get; set; }
-
-    /// <summary>
     /// Response content from the node
     /// </summary>
     public virtual string? Response { get; set; }

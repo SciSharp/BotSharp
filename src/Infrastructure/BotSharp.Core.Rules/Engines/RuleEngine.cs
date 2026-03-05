@@ -185,7 +185,7 @@ public class RuleEngine : IRuleEngine
                 results.Add(RuleFlowStepResult.FromResult(conditionResult, neighborNode));
 
                 // If condition result is true, then execute the next node, otherwise skip
-                if (conditionResult.IsValid)
+                if (conditionResult.Success)
                 {
                     await ExecuteGraphNode(neighborNode, graph, agent, trigger, text, states, options, results);
                 }
@@ -361,7 +361,6 @@ public class RuleEngine : IRuleEngine
             return new RuleNodeResult
             {
                 Success = false,
-                IsValid = false,
                 ErrorMessage = ex.Message
             };
         }

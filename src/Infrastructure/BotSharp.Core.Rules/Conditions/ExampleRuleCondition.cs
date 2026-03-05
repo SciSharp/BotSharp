@@ -42,7 +42,6 @@ public sealed class ExampleRuleCondition : IRuleCondition
                 return new RuleNodeResult
                 {
                     Success = true,
-                    IsValid = true,
                     Response = $"Condition met: {parameterName} = {actualValue}"
                 };
             }
@@ -51,7 +50,6 @@ public sealed class ExampleRuleCondition : IRuleCondition
                 return new RuleNodeResult
                 {
                     Success = true,
-                    IsValid = false,
                     Response = $"Condition not met: {parameterName} = {actualValue}, expected = {expectedValue}"
                 };
             }
@@ -62,7 +60,6 @@ public sealed class ExampleRuleCondition : IRuleCondition
             return new RuleNodeResult
             {
                 Success = false,
-                IsValid = false,
                 ErrorMessage = ex.Message
             };
         }

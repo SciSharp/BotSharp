@@ -1,5 +1,7 @@
 using System.Net.Mime;
+using System.Text.Json;
 using System.Web;
+using System.Xml.Linq;
 
 namespace BotSharp.Core.Rules.Actions;
 
@@ -82,6 +84,7 @@ public sealed class HttpRuleAction : IRuleAction
                     Response = responseContent,
                     Data = new()
                     {
+                        ["http_response_headers"] = JsonSerializer.Serialize(response.Headers),
                         ["http_response"] = responseContent
                     }
                 };

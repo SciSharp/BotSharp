@@ -13,7 +13,6 @@ public class RuleFlowStepResult : RuleNodeResult
         {
             Node = node,
             Success = result.Success,
-            IsValid = result.IsValid,
             Response = result.Response,
             ErrorMessage = result.ErrorMessage,
             Data = new(result.Data ?? []),
