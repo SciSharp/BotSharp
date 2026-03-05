@@ -45,7 +45,7 @@ public class RuleEngine : IRuleEngine
             {
                 // Execute graph
                 // 1. Load graph
-                var graph = await LoadGraph(ruleFlowProvider, ruleFlowId, agent.Id, trigger, states);
+                var graph = await LoadGraph(ruleFlowProvider, ruleFlowId, agent.Id, trigger, options?.FlowOptions?.Parameters);
                 if (graph == null)
                 {
                     continue;
@@ -53,7 +53,7 @@ public class RuleEngine : IRuleEngine
 
                 // 2. Get root node
                 var param = options?.FlowOptions?.Parameters;
-                var rootNodeName = param != null ? param.GetValueOrDefault("root_node_name") : null;
+                var rootNodeName = param != null ? param.GetValueOrDefault("root_node_name")?.ToString() : null;
                 var root = graph.GetRootNode(rootNodeName);
                 if (root == null)
                 {
@@ -109,7 +109,7 @@ public class RuleEngine : IRuleEngine
     }
 
     #region Graph
-    private async Task<RuleGraph?> LoadGraph(string provider, string graphId, string agentId, IRuleTrigger trigger, IEnumerable<MessageState>? states)
+    private async Task<RuleGraph?> LoadGraph(string provider, string graphId, string agentId, IRuleTrigger trigger, Dictionary<string, object>? parameters)
     {
         var flow = _services.GetServices<IRuleFlow<RuleGraph>>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
         if (flow == null)
@@ -117,24 +117,11 @@ public class RuleEngine : IRuleEngine
             return null;
         }
 
-        var param = new Dictionary<string, object>();
-        if (!states.IsNullOrEmpty())
-        {
-            foreach (var state in states!)
-            {
-                if (state.Key == null || state.Value == null)
-                {
-                    continue; 
-                }
-                param[state.Key] = state.Value;
-            }
-        }
-
         return await flow.GetTopologyAsync(graphId, options: new()
         {
             AgentId = agentId,
             Trigger = trigger.Name,
-            Parameters = param
+            Parameters = new(parameters ?? [])
         });
     }
 
@@ -151,7 +138,7 @@ public class RuleEngine : IRuleEngine
         // Check whether the action nodes have been visited more than limit
         var actionResultCount = results.Count(x => RuleConstant.ACTION_NODE_TYPES.Contains(x.Node.Type));
         var param = options?.FlowOptions?.Parameters ?? [];
-        var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion"), out var depth) && depth > 0 ? depth : RuleConstant.MAX_GRAPH_RECURSION;
+        var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion")?.ToString(), out var depth) && depth > 0 ? depth : RuleConstant.MAX_GRAPH_RECURSION;
 
         if (actionResultCount >= maxRecursion)
         {

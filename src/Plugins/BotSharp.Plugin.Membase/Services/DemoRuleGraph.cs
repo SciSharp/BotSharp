@@ -39,6 +39,16 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
         """;
 
         var args = new Dictionary<string, object>();
+        if (options?.AgentId != null)
+        {
+            args["agent_id"] = options.AgentId;
+        }
+
+        if (options?.Trigger != null)
+        {
+            args["trigger"] = options.Trigger;
+        }
+
         if (options?.Parameters != null)
         {
             foreach (var param in options.Parameters!)
@@ -49,16 +59,6 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
                 }
                 args[param.Key] = param.Value;
             }
-        }
-
-        if (options?.AgentId != null)
-        {
-            args["agent_id"] = options.AgentId;
-        }
-
-        if (options?.Trigger != null)
-        {
-            args["trigger"] = options.Trigger;
         }
 
         try

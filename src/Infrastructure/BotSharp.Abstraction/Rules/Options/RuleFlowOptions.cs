@@ -15,5 +15,5 @@ public class RuleFlowOptions
     /// <summary>
     /// Additional custom parameters, e.g., root_node_name, max_recursion
     /// </summary>
-    public Dictionary<string, string> Parameters { get; set; } = [];
+    public Dictionary<string, object> Parameters { get; set; } = [];
 }
