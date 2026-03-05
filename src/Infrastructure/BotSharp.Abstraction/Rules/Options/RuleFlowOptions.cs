@@ -3,14 +3,14 @@ namespace BotSharp.Abstraction.Rules.Options;
 public class RuleFlowOptions
 {
     /// <summary>
-    /// Config provider
+    /// Flow provider
     /// </summary>
     public string Provider { get; set; } = string.Empty;
 
     /// <summary>
-    /// Config id
+    /// Flow topology id
     /// </summary>
-    public string Id { get; set; } = string.Empty;
+    public string TopologyId { get; set; } = string.Empty;
 
     /// <summary>
     /// Additional custom parameters, e.g., root_node_name, max_recursion

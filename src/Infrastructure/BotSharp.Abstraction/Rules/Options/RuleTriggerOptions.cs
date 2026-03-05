@@ -18,5 +18,5 @@ public class RuleTriggerOptions
     /// <summary>
     /// Rule flow options
     /// </summary>
-    public RuleFlowOptions? FlowOptions { get; set; }
+    public RuleFlowOptions? Flow { get; set; }
 }

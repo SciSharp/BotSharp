@@ -38,21 +38,21 @@ public class RuleEngine : IRuleEngine
             }
 
             var ruleConfig = rule.Config;
-            var ruleFlowProvider = options?.FlowOptions?.Provider ?? ruleConfig?.Provider;
-            var ruleFlowId = options?.FlowOptions?.Id;
+            var ruleFlowProvider = options?.Flow?.Provider ?? ruleConfig?.Provider;
+            var ruleFlowId = options?.Flow?.TopologyId;
 
             if (!string.IsNullOrEmpty(ruleFlowProvider))
             {
                 // Execute graph
                 // 1. Load graph
-                var graph = await LoadGraph(ruleFlowProvider, ruleFlowId, agent.Id, trigger, options?.FlowOptions?.Parameters);
+                var graph = await LoadGraph(ruleFlowProvider, ruleFlowId, agent.Id, trigger, options?.Flow?.Parameters);
                 if (graph == null)
                 {
                     continue;
                 }
 
                 // 2. Get root node
-                var param = options?.FlowOptions?.Parameters;
+                var param = options?.Flow?.Parameters;
                 var rootNodeName = param != null ? param.GetValueOrDefault("root_node_name")?.ToString() : null;
                 var root = graph.GetRootNode(rootNodeName);
                 if (root == null)
@@ -94,7 +94,7 @@ public class RuleEngine : IRuleEngine
 
         var triggerOptions = new RuleTriggerOptions
         {
-            FlowOptions = options.FlowOptions,
+            Flow = options.Flow,
             JsonOptions = options.JsonOptions
         };
 
@@ -137,7 +137,7 @@ public class RuleEngine : IRuleEngine
     {
         // Check whether the action nodes have been visited more than limit
         var actionResultCount = results.Count(x => RuleConstant.ACTION_NODE_TYPES.Contains(x.Node.Type));
-        var param = options?.FlowOptions?.Parameters ?? [];
+        var param = options?.Flow?.Parameters ?? [];
         var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion")?.ToString(), out var depth) && depth > 0 ? depth : RuleConstant.MAX_GRAPH_RECURSION;
 
         if (actionResultCount >= maxRecursion)

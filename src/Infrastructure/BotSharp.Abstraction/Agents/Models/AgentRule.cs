@@ -15,8 +15,8 @@ public class AgentRule
 
 public class RuleConfig
 {
-    [JsonPropertyName("type")]
-    public string? Type { get; set; }
+    [JsonPropertyName("topology")]
+    public string? Topology { get; set; }
 
     [JsonPropertyName("provider")]
     public string? Provider { get; set; }
