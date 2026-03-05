@@ -45,7 +45,7 @@ public class RuleEngine : IRuleEngine
             {
                 // Execute graph
                 // 1. Load graph
-                var graph = await LoadGraph(ruleFlowProvider, ruleFlowId, agent.Id, trigger, options?.Flow?.Parameters);
+                var graph = await LoadGraph(ruleFlowProvider, ruleFlowId, agent, trigger, options?.Flow?.Parameters);
                 if (graph == null)
                 {
                     continue;
@@ -109,7 +109,7 @@ public class RuleEngine : IRuleEngine
     }
 
     #region Graph
-    private async Task<RuleGraph?> LoadGraph(string provider, string graphId, string agentId, IRuleTrigger trigger, Dictionary<string, object>? parameters)
+    private async Task<RuleGraph?> LoadGraph(string provider, string graphId, Agent agent, IRuleTrigger trigger, Dictionary<string, object>? parameters)
     {
         var flow = _services.GetServices<IRuleFlow<RuleGraph>>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
         if (flow == null)
@@ -117,11 +117,14 @@ public class RuleEngine : IRuleEngine
             return null;
         }
 
+        var param = new Dictionary<string, object>(parameters ?? []);
+        param["agent"] = param.GetValueOrDefault("agent", agent.Name);
+        param["agent_id"] = param.GetValueOrDefault("agent_id", agent.Id);
+        param["trigger"] = param.GetValueOrDefault("trigger", trigger.Name);
+
         return await flow.GetTopologyAsync(graphId, options: new()
         {
-            AgentId = agentId,
-            Trigger = trigger.Name,
-            Parameters = new(parameters ?? [])
+            Parameters = param
         });
     }
 

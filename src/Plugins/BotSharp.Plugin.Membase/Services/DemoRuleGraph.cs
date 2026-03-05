@@ -22,7 +22,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
         _logger = logger;
     }
 
-    public string Provider => "membase";
+    public string Provider => "demo";
 
     public async Task<RuleGraph> GetTopologyAsync(string id, RuleFlowLoadOptions? options = null)
     {
@@ -33,22 +33,13 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
 
         var query = $"""
             MATCH (a)-[r]->(b)
-            WITH DISTINCT a, r, b
+            WITH a, r, b
+            WHERE a.agent = $agent AND a.trigger = $trigger AND b.agent = $agent AND b.trigger = $trigger
             RETURN a, r, b 
             LIMIT 100
         """;
 
         var args = new Dictionary<string, object>();
-        if (options?.AgentId != null)
-        {
-            args["agent_id"] = options.AgentId;
-        }
-
-        if (options?.Trigger != null)
-        {
-            args["trigger"] = options.Trigger;
-        }
-
         if (options?.Parameters != null)
         {
             foreach (var param in options.Parameters!)
@@ -63,7 +54,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
 
         try
         {
-            var graphDb = _services.GetServices<IGraphDb>().First(x => x.Provider.IsEqualTo(Provider));
+            var graphDb = _services.GetServices<IGraphDb>().First(x => x.Provider.IsEqualTo("membase"));
             var result = await graphDb.ExecuteQueryAsync(query, options: new()
             {
                 GraphId = id,
@@ -80,8 +71,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error when loading graph (id: {GraphId}) for agent {AgentId} and trigger {Trigger} ",
-                id, options?.AgentId, options?.Trigger);
+            _logger.LogError(ex, "Error when loading graph (id: {GraphId})", id);
             return null;
         }
     }
@@ -128,8 +118,8 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
                 ? eProps
                 : default;
             var edgeWeight = edgeElement.TryGetProperty("weight", out var eWeight) && eWeight.ValueKind == JsonValueKind.Number
-                ? (int)eWeight.GetDouble()
-                : 1;
+                ? eWeight.GetDouble()
+                : 1.0;
 
             // Create source node
             var sourceNode = new RuleNode()
