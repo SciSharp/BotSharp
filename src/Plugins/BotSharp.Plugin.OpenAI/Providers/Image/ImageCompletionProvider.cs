@@ -105,10 +105,10 @@ public partial class ImageCompletionProvider : IImageCompletion
         switch (value)
         {
             case "low":
-                retQuality = GeneratedImageQuality.Low;
+                retQuality = GeneratedImageQuality.LowQuality;
                 break;
             case "medium":
-                retQuality = GeneratedImageQuality.Medium;
+                retQuality = GeneratedImageQuality.MediumQuality;
                 break;
             case "high":
                 retQuality = GeneratedImageQuality.High;

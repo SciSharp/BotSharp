@@ -5,13 +5,13 @@ namespace BotSharp.Core.Conversations.Services;
 
 public class TokenStatistics : ITokenStatistics
 {
-    private int _promptTokenCount = 0;
+    private long _promptTokenCount = 0;
     private float _promptCost = 0f;
-    private int _completionTokenCount = 0;
+    private long _completionTokenCount = 0;
     private float _completionCost = 0f;
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
-    public int Total => _promptTokenCount + _completionTokenCount;
+    public long Total => _promptTokenCount + _completionTokenCount;
     public string _model;
     private Stopwatch _timer;
 
@@ -150,7 +150,7 @@ public class TokenStatistics : ITokenStatistics
         _timer.Stop();
     }
 
-    private float GetDeltaCost(int tokens, float? unitCost)
+    private float GetDeltaCost(long tokens, float? unitCost)
     {
         return tokens / 1000f * (unitCost ?? 0f);
     }
