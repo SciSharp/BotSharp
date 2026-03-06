@@ -37,7 +37,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
         {
             TopologyProvider = Provider,
             TopologyId = graphId,
-            CustomConfig = JsonDocument.Parse(JsonSerializer.Serialize(new
+            CustomParameters = JsonDocument.Parse(JsonSerializer.Serialize(new
             {
                 htmlTag = "iframe",
                 appendParameterName = "parameters",

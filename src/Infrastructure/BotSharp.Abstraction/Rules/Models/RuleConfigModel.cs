@@ -6,5 +6,5 @@ public class RuleConfigModel
 {
     public string TopologyId { get; set; }
     public string TopologyProvider { get; set; }
-    public JsonDocument CustomConfig { get; set; }
+    public JsonDocument CustomParameters { get; set; } = JsonDocument.Parse("{}");
 }
