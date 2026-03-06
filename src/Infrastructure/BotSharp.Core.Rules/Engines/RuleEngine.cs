@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-
 namespace BotSharp.Core.Rules.Engines;
 
 public class RuleEngine : IRuleEngine
@@ -40,14 +38,13 @@ public class RuleEngine : IRuleEngine
             }
 
             var ruleConfig = rule.Config;
-            var ruleFlowProvider = options?.Flow?.Provider ?? ruleConfig?.Provider;
-            var ruleFlowId = options?.Flow?.TopologyId;
+            var ruleFlowProvider = options?.Flow?.TopologyProvider ?? ruleConfig?.TopologyProvider;
 
             if (!string.IsNullOrEmpty(ruleFlowProvider))
             {
                 // Execute graph
                 // 1. Load graph
-                var graph = await LoadGraph(ruleFlowProvider, ruleFlowId, agent, trigger, options?.Flow?.Parameters);
+                var graph = await LoadGraph(ruleFlowProvider, agent, trigger, options?.Flow);
                 if (graph == null)
                 {
                     continue;
@@ -111,7 +108,7 @@ public class RuleEngine : IRuleEngine
     }
 
     #region Graph
-    private async Task<RuleGraph?> LoadGraph(string provider, string graphId, Agent agent, IRuleTrigger trigger, Dictionary<string, object>? parameters)
+    private async Task<RuleGraph?> LoadGraph(string provider, Agent agent, IRuleTrigger trigger, RuleFlowOptions? options)
     {
         var flow = _services.GetServices<IRuleFlow<RuleGraph>>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
         if (flow == null)
@@ -119,13 +116,23 @@ public class RuleEngine : IRuleEngine
             return null;
         }
 
-        var param = new Dictionary<string, object>(parameters ?? []);
+        var param = new Dictionary<string, object>(options?.Parameters ?? []);
         param["agent"] = param.GetValueOrDefault("agent", agent.Name);
         param["agent_id"] = param.GetValueOrDefault("agent_id", agent.Id);
         param["trigger"] = param.GetValueOrDefault("trigger", trigger.Name);
 
-        return await flow.GetTopologyAsync(graphId, options: new()
+        var topologyId = options?.TopologyId;
+        if (string.IsNullOrEmpty(topologyId))
         {
+            var config = await flow.GetTopologyConfigAsync();
+            topologyId = config.TopologyId;
+        }
+
+        return await flow.GetTopologyAsync(topologyId, options: new()
+        {
+            AgentId = agent.Id,
+            TriggerName = trigger.Name,
+            Query = options?.Query,
             Parameters = param
         });
     }
@@ -153,87 +160,87 @@ public class RuleEngine : IRuleEngine
             return;
         }
 
-        // Get current node neighbors
-        var neighbors = graph.GetNeighbors(node);
-        if (neighbors.IsNullOrEmpty())
+        // Get current node successors
+        var nextNodes = graph.GetChildrenNodes(node);
+        if (nextNodes.IsNullOrEmpty())
         {
             return;
         }
 
         // Visit neighbor nodes
-        foreach (var (neighborNode, edge) in neighbors)
+        foreach (var (nextNode, edge) in nextNodes)
         {
             // Build context
             var context = new RuleFlowContext
             {
-                Node = neighborNode,
+                Node = nextNode,
                 Edge = edge,
                 Graph = graph,
                 Text = text,
-                Parameters = BuildParameters(neighborNode.Config, states),
+                Parameters = BuildParameters(nextNode.Config, states),
                 PrevStepResults = results,
                 JsonOptions = options?.JsonOptions
             };
 
 
-            if (RuleConstant.CONDITION_NODE_TYPES.Contains(neighborNode.Type))
+            if (RuleConstant.CONDITION_NODE_TYPES.Contains(nextNode.Type))
             {
                 // Execute condition node
-                var conditionResult = await ExecuteCondition(neighborNode, graph, agent, trigger, context);
+                var conditionResult = await ExecuteCondition(nextNode, graph, agent, trigger, context);
                 if (conditionResult == null)
                 {
                     results.Add(RuleFlowStepResult.FromResult(new()
                     {
                         Success = false,
-                        ErrorMessage = $"Unable to find condition {neighborNode.Name}."
-                    }, neighborNode));
+                        ErrorMessage = $"Unable to find condition {nextNode.Name}."
+                    }, nextNode));
                     continue;
                 }
 
-                results.Add(RuleFlowStepResult.FromResult(conditionResult, neighborNode));
+                results.Add(RuleFlowStepResult.FromResult(conditionResult, nextNode));
 
                 // If condition result is true, then execute the next node, otherwise skip
                 if (conditionResult.Success)
                 {
-                    await ExecuteGraphNode(neighborNode, graph, agent, trigger, text, states, options, results);
+                    await ExecuteGraphNode(nextNode, graph, agent, trigger, text, states, options, results);
                 }
                 else
                 {
                     _logger.LogInformation("Condition {ConditionName} evaluated to false, skipping next node (agent {Agent} and trigger {Trigger}).",
-                        neighborNode.Name, agent.Name, trigger.Name);
+                        nextNode.Name, agent.Name, trigger.Name);
                 }
             }
-            else if (RuleConstant.ACTION_NODE_TYPES.Contains(neighborNode.Type))
+            else if (RuleConstant.ACTION_NODE_TYPES.Contains(nextNode.Type))
             {
                 // Execute action node
-                var actionResult = await ExecuteAction(neighborNode, graph, agent, trigger, context);
+                var actionResult = await ExecuteAction(nextNode, graph, agent, trigger, context);
                 if (actionResult == null)
                 {
                     results.Add(RuleFlowStepResult.FromResult(new()
                     {
                         Success = false,
-                        ErrorMessage = $"Unable to find action {neighborNode.Name}."
-                    }, neighborNode));
+                        ErrorMessage = $"Unable to find action {nextNode.Name}."
+                    }, nextNode));
                     continue;
                 }
 
-                results.Add(RuleFlowStepResult.FromResult(actionResult, neighborNode));
+                results.Add(RuleFlowStepResult.FromResult(actionResult, nextNode));
 
                 if (actionResult.IsDelayed)
                 {
                     continue;
                 }
 
-                await ExecuteGraphNode(neighborNode, graph, agent, trigger, text, states, options, results);
+                await ExecuteGraphNode(nextNode, graph, agent, trigger, text, states, options, results);
             }
             else
             {
                 results.Add(RuleFlowStepResult.FromResult(new()
                 {
                     Success = true,
-                    Response = $"Pass through node {neighborNode.Name}."
-                }, neighborNode));
-                await ExecuteGraphNode(neighborNode, graph, agent, trigger, text, states, options, results);
+                    Response = $"Pass through node {nextNode.Name}."
+                }, nextNode));
+                await ExecuteGraphNode(nextNode, graph, agent, trigger, text, states, options, results);
             }
         }
     }
@@ -265,7 +272,7 @@ public class RuleEngine : IRuleEngine
             var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
             foreach (var hook in hooks)
             {
-                await hook.BeforeRuleActionExecuted(agent, node, trigger, context);
+                await hook.BeforeRuleActionExecuting(agent, node, trigger, context);
             }
 
             // Execute action
@@ -351,7 +358,7 @@ public class RuleEngine : IRuleEngine
             var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
             foreach (var hook in hooks)
             {
-                await hook.BeforeRuleConditionExecuted(agent, node, trigger, context);
+                await hook.BeforeRuleConditionExecuting(agent, node, trigger, context);
             }
 
             // Execute condition

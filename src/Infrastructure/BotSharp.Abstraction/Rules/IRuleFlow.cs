@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Rules.Models;
+
 namespace BotSharp.Abstraction.Rules;
 
 public interface IRuleFlow<T> where T : class
@@ -6,6 +8,12 @@ public interface IRuleFlow<T> where T : class
     /// Rule flow provider
     /// </summary>
     string Provider { get; }
+
+    /// <summary>
+    /// Get rule flow topology config 
+    /// </summary>
+    /// <returns></returns>
+    Task<RuleConfigModel> GetTopologyConfigAsync();
 
     /// <summary>
     /// Get rule flow topology

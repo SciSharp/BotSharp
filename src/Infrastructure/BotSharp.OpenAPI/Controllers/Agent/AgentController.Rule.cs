@@ -1,4 +1,6 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Rules;
+using BotSharp.Abstraction.Rules.Models;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -18,15 +20,15 @@ public partial class AgentController
     }
 
     [HttpGet("/rule/config/options")]
-    public async Task<IDictionary<string, JsonDocument>> GetRuleConfigOptions()
+    public async Task<IDictionary<string, RuleConfigModel>> GetRuleConfigOptions()
     {
-        var dict = new Dictionary<string, JsonDocument>();
-        var configs = _services.GetServices<IRuleConfig>();
+        var dict = new Dictionary<string, RuleConfigModel>();
+        var flows = _services.GetServices<IRuleFlow<RuleGraph>>();
 
-        foreach (var config in configs)
+        foreach (var flow in flows)
         {
-            var json = await config.GetConfigAsync();
-            dict[config.Provider.ToLower()] = json;
+            var config = await flow.GetTopologyConfigAsync();
+            dict[config.TopologyProvider.ToLower()] = config;
         }
 
         return dict;

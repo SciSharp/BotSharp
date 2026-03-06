@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Graph;
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Rules;
+using BotSharp.Abstraction.Rules.Models;
 using BotSharp.Abstraction.Rules.Options;
 using BotSharp.Abstraction.Utilities;
 using Microsoft.Extensions.Logging;
@@ -24,6 +25,27 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
 
     public string Provider => "demo";
 
+    public async Task<RuleConfigModel> GetTopologyConfigAsync()
+    {
+        var settings = _services.GetRequiredService<MembaseSettings>();
+        var apiKey = settings.ApiKey;
+        var projectId = settings.ProjectId;
+        var graphId = settings.GraphInstances?.FirstOrDefault(x => x.Purpose.IsEqualTo("rule"))?.Id ?? string.Empty;
+        var query = Uri.EscapeDataString("MATCH (a)-[r]->(b) WITH a, r, b WHERE a.agent = $agent AND a.trigger = $trigger AND b.agent = $agent AND b.trigger = $trigger RETURN a, r, b LIMIT 100");
+
+        return new RuleConfigModel
+        {
+            TopologyProvider = Provider,
+            TopologyId = graphId,
+            CustomConfig = JsonDocument.Parse(JsonSerializer.Serialize(new
+            {
+                htmlTag = "iframe",
+                appendParameterName = "parameters",
+                url = $"https://console.membase.dev/query-editor/{projectId}?graphId={graphId}&query={query}&token={apiKey}"
+            }))
+        };
+    }
+
     public async Task<RuleGraph> GetTopologyAsync(string id, RuleFlowLoadOptions? options = null)
     {
         if (string.IsNullOrEmpty(id))
@@ -31,13 +53,17 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
             return GetDefaultGraph();
         }
 
-        var query = $"""
-            MATCH (a)-[r]->(b)
-            WITH a, r, b
-            WHERE a.agent = $agent AND a.trigger = $trigger AND b.agent = $agent AND b.trigger = $trigger
-            RETURN a, r, b 
-            LIMIT 100
-        """;
+        var query = options?.Query ?? string.Empty;
+        if (string.IsNullOrEmpty(query))
+        {
+            query = $"""
+                MATCH (a)-[r]->(b)
+                WITH a, r, b
+                WHERE a.agent = $agent AND a.trigger = $trigger AND b.agent = $agent AND b.trigger = $trigger
+                RETURN a, r, b 
+                LIMIT 100
+            """;
+        }
 
         var args = new Dictionary<string, object>();
         if (options?.Parameters != null)

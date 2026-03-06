@@ -103,7 +103,14 @@ public class RuleGraph
         }
     }
 
-    public IEnumerable<(RuleNode, RuleEdge)> GetNeighbors(RuleNode node)
+    public IEnumerable<(RuleNode, RuleEdge)> GetParentNodes(RuleNode node)
+    {
+        return _edges.Where(e => e.To != null && e.To.Id.IsEqualTo(node.Id))
+                     .Select(e => (e.From, e))
+                     .ToList();
+    }
+
+    public IEnumerable<(RuleNode, RuleEdge)> GetChildrenNodes(RuleNode node)
     {
         return _edges.Where(e => e.From != null && e.From.Id.IsEqualTo(node.Id))
                      .Select(e => (e.To, e))

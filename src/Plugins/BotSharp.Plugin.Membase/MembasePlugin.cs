@@ -40,7 +40,6 @@ public class MembasePlugin : IBotSharpPlugin
 
 #if DEBUG
         services.AddScoped<IRuleFlow<RuleGraph>, DemoRuleGraph>();
-        services.AddScoped<IRuleConfig, DemoRuleConfig>();
 #endif
     }
 

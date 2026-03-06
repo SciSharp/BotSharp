@@ -33,8 +33,7 @@ public class AgentRuleMongoElement
 [BsonIgnoreExtraElements(Inherited = true)]
 public class RuleConfigMongoModel
 {
-    public string? Topology { get; set; }
-    public string? Provider { get; set; }
+    public string? TopologyProvider { get; set; }
 
     public static RuleConfigMongoModel? ToMongoModel(RuleConfig? config)
     {
@@ -45,8 +44,7 @@ public class RuleConfigMongoModel
 
         return new RuleConfigMongoModel
         {
-            Topology = config.Topology,
-            Provider = config.Provider
+            TopologyProvider = config.TopologyProvider
         };
     }
 
@@ -59,8 +57,7 @@ public class RuleConfigMongoModel
 
         return new RuleConfig
         {
-            Topology = config.Topology,
-            Provider = config.Provider
+            TopologyProvider = config.TopologyProvider
         };
     }
 }
