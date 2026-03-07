@@ -56,12 +56,14 @@ public class RuleEngine : IRuleEngine
                 var root = graph.GetRootNode(rootNodeName);
                 if (root == null)
                 {
+                    graph.Clear();
                     continue;
                 }
 
                 // 3. Execute graph
                 var execResults = new List<RuleFlowStepResult>();
                 await ExecuteGraphNode(root, graph, agent, trigger, text, states, options, execResults);
+                graph.Clear();
 
                 // Get conversation id to support legacy features
                 var convIds = execResults.Where(x => x.Success && x.Data.TryGetValue("conversation_id", out _))
@@ -105,6 +107,7 @@ public class RuleEngine : IRuleEngine
             options.States,
             triggerOptions,
             execResults);
+        graph.Clear();
     }
 
     #region Graph

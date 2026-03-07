@@ -127,6 +127,12 @@ public class RuleGraph
         };
     }
 
+    public void Clear()
+    {
+        _nodes = [];
+        _edges = [];
+    }
+
     public static RuleGraph FromGraphInfo(RuleGraphInfo graphInfo)
     {
         var graph = new RuleGraph();
