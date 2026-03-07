@@ -150,6 +150,26 @@ public class RuleEngine : IRuleEngine
         RuleTriggerOptions? options,
         List<RuleFlowStepResult> results)
     {
+        if (options?.Flow?.TraversalAlgorithm?.IsEqualTo("bfs") == true)
+        {
+            await ExecuteGraphNodeBfs(node, graph, agent, trigger, text, states, options, results);
+        }
+        else
+        {
+            await ExecuteGraphNodeDfs(node, graph, agent, trigger, text, states, options, results);
+        }
+    }
+
+    private async Task ExecuteGraphNodeDfs(
+        RuleNode node,
+        RuleGraph graph,
+        Agent agent,
+        IRuleTrigger trigger,
+        string text,
+        IEnumerable<MessageState>? states,
+        RuleTriggerOptions? options,
+        List<RuleFlowStepResult> results)
+    {
         // Check whether the action nodes have been visited more than limit
         var visited = results.Count();
         var param = options?.Flow?.Parameters ?? [];
@@ -185,7 +205,6 @@ public class RuleEngine : IRuleEngine
                 JsonOptions = options?.JsonOptions
             };
 
-
             if (RuleConstant.CONDITION_NODE_TYPES.Contains(nextNode.Type))
             {
                 // Execute condition node
@@ -205,7 +224,7 @@ public class RuleEngine : IRuleEngine
                 // If condition result is true, then execute the next node, otherwise skip
                 if (conditionResult.Success)
                 {
-                    await ExecuteGraphNode(nextNode, graph, agent, trigger, text, states, options, results);
+                    await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, options, results);
                 }
                 else
                 {
@@ -234,7 +253,7 @@ public class RuleEngine : IRuleEngine
                     continue;
                 }
 
-                await ExecuteGraphNode(nextNode, graph, agent, trigger, text, states, options, results);
+                await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, options, results);
             }
             else
             {
@@ -243,7 +262,121 @@ public class RuleEngine : IRuleEngine
                     Success = true,
                     Response = $"Pass through node {nextNode.Name}."
                 }, nextNode));
-                await ExecuteGraphNode(nextNode, graph, agent, trigger, text, states, options, results);
+                await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, options, results);
+            }
+        }
+    }
+
+    private async Task ExecuteGraphNodeBfs(
+        RuleNode root,
+        RuleGraph graph,
+        Agent agent,
+        IRuleTrigger trigger,
+        string text,
+        IEnumerable<MessageState>? states,
+        RuleTriggerOptions? options,
+        List<RuleFlowStepResult> results)
+    {
+        var param = options?.Flow?.Parameters ?? [];
+        var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion")?.ToString(), out var depth) && depth > 0
+            ? depth : RuleConstant.MAX_GRAPH_RECURSION;
+
+        // Each queue entry is (node-to-process, edge-that-leads-to-it)
+        var queue = new Queue<(RuleNode Node, RuleEdge Edge)>();
+
+        foreach (var (childNode, edge) in graph.GetChildrenNodes(root))
+        {
+            queue.Enqueue((childNode, edge));
+        }
+
+        while (queue.Count > 0)
+        {
+            if (results.Count >= maxRecursion)
+            {
+                _logger.LogWarning("Exceed max graph nodes {MaxNodes} during BFS (agent {Agent} and trigger {Trigger}).",
+                    maxRecursion, agent.Name, trigger.Name);
+                break;
+            }
+
+            var (nextNode, nextEdge) = queue.Dequeue();
+
+            var context = new RuleFlowContext
+            {
+                Node = nextNode,
+                Edge = nextEdge,
+                Graph = graph,
+                Text = text,
+                Parameters = BuildParameters(nextNode.Config, states),
+                PrevStepResults = results,
+                JsonOptions = options?.JsonOptions
+            };
+
+            if (RuleConstant.CONDITION_NODE_TYPES.Contains(nextNode.Type))
+            {
+                // Execute condition node
+                var conditionResult = await ExecuteCondition(nextNode, graph, agent, trigger, context);
+                if (conditionResult == null)
+                {
+                    results.Add(RuleFlowStepResult.FromResult(new()
+                    {
+                        Success = false,
+                        ErrorMessage = $"Unable to find condition {nextNode.Name}."
+                    }, nextNode));
+                    continue;
+                }
+
+                results.Add(RuleFlowStepResult.FromResult(conditionResult, nextNode));
+
+                // If condition is true, enqueue children; otherwise skip the branch
+                if (conditionResult.Success)
+                {
+                    foreach (var (childNode, childEdge) in graph.GetChildrenNodes(nextNode))
+                    {
+                        queue.Enqueue((childNode, childEdge));
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation("Condition {ConditionName} evaluated to false, skipping next node (agent {Agent} and trigger {Trigger}).",
+                        nextNode.Name, agent.Name, trigger.Name);
+                }
+            }
+            else if (RuleConstant.ACTION_NODE_TYPES.Contains(nextNode.Type))
+            {
+                // Execute action node
+                var actionResult = await ExecuteAction(nextNode, graph, agent, trigger, context);
+                if (actionResult == null)
+                {
+                    results.Add(RuleFlowStepResult.FromResult(new()
+                    {
+                        Success = false,
+                        ErrorMessage = $"Unable to find action {nextNode.Name}."
+                    }, nextNode));
+                    continue;
+                }
+
+                results.Add(RuleFlowStepResult.FromResult(actionResult, nextNode));
+
+                if (!actionResult.IsDelayed)
+                {
+                    foreach (var (childNode, childEdge) in graph.GetChildrenNodes(nextNode))
+                    {
+                        queue.Enqueue((childNode, childEdge));
+                    }
+                }
+            }
+            else
+            {
+                results.Add(RuleFlowStepResult.FromResult(new()
+                {
+                    Success = true,
+                    Response = $"Pass through node {nextNode.Name}."
+                }, nextNode));
+
+                foreach (var (childNode, childEdge) in graph.GetChildrenNodes(nextNode))
+                {
+                    queue.Enqueue((childNode, childEdge));
+                }
             }
         }
     }

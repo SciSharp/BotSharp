@@ -28,9 +28,22 @@ public class RuleGraph
         return _nodes.FirstOrDefault(x => x.Type.IsEqualTo("root") || x.Type.IsEqualTo("start"));
     }
 
-    public RuleNode? GetNode(string id)
+    public (RuleNode? Node, IEnumerable<RuleEdge> IncomingEdges, IEnumerable<RuleEdge> OutgoingEdges) GetNode(string id)
     {
-        return _nodes.FirstOrDefault(x => x.Id.IsEqualTo(id));
+        var node = _nodes.FirstOrDefault(x => x.Id.IsEqualTo(id));
+        if (node == null)
+        {
+            return (null, [], []);
+        }
+
+        var incomingEdges = _edges
+            .Where(e => e.To != null && e.To.Id.IsEqualTo(id))
+            .ToList();
+        var outgoingEdges = _edges
+            .Where(e => e.From != null && e.From.Id.IsEqualTo(id))
+            .ToList();
+
+        return (node, incomingEdges, outgoingEdges);
     }
 
     public string GetGraphId()
@@ -38,14 +51,14 @@ public class RuleGraph
         return _id;
     }
 
-    public IEnumerable<RuleNode> GetNodes()
+    public IEnumerable<RuleNode> GetNodes(Func<RuleNode, bool>? filter = null)
     {
-        return [.. _nodes];
+        return filter == null ? [.. _nodes] : [.. _nodes.Where(filter)];
     }
 
-    public IEnumerable<RuleEdge> GetEdges()
+    public IEnumerable<RuleEdge> GetEdges(Func<RuleEdge, bool>? filter = null)
     {
-        return [.. _edges];
+        return filter == null ? [.. _edges] : [.. _edges.Where(filter)];
     }
 
     public void SetGraphId(string id)

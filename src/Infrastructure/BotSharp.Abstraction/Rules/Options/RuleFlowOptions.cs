@@ -18,6 +18,11 @@ public class RuleFlowOptions
     public string? Query { get; set; }
 
     /// <summary>
+    /// Graph traversal algorithm: "dfs" (default) or "bfs"
+    /// </summary>
+    public string TraversalAlgorithm { get; set; } = "dfs";
+
+    /// <summary>
     /// Additional custom parameters, e.g., root_node_name, max_recursion
     /// </summary>
     public Dictionary<string, object> Parameters { get; set; } = [];
