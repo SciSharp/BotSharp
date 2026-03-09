@@ -25,12 +25,25 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
 
     public string Provider => "demo";
 
-    public async Task<RuleConfigModel> GetTopologyConfigAsync()
+    public async Task<RuleConfigModel> GetTopologyConfigAsync(RuleFlowConfigOptions? options = null)
     {
         var settings = _services.GetRequiredService<MembaseSettings>();
         var apiKey = settings.ApiKey;
         var projectId = settings.ProjectId;
-        var graphId = settings.GraphInstances?.FirstOrDefault(x => x.Purpose.IsEqualTo("rule"))?.Id ?? string.Empty;
+
+        var foundInstance = settings.GraphInstances?.FirstOrDefault(x => x.Id.IsEqualTo(options?.TopologyId));
+        if (foundInstance == null && !string.IsNullOrEmpty(options?.Purpose))
+        {
+            foundInstance = settings.GraphInstances?.FirstOrDefault(x => x.Purpose.IsEqualTo(options.Purpose));
+        }
+
+        if (foundInstance == null)
+        {
+            // default
+            foundInstance = settings.GraphInstances?.FirstOrDefault(x => x.Purpose.IsEqualTo("rule"));
+        }
+
+        var graphId = foundInstance?.Id ?? string.Empty;
         var query = Uri.EscapeDataString("MATCH (a)-[r]->(b) WITH a, r, b WHERE a.agent = $agent AND a.trigger = $trigger AND b.agent = $agent AND b.trigger = $trigger RETURN a, r, b LIMIT 100");
 
         return new RuleConfigModel

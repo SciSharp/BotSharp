@@ -12,8 +12,9 @@ public interface IRuleFlow<T> where T : class
     /// <summary>
     /// Get rule flow topology config 
     /// </summary>
+    /// <param name="options"></param>
     /// <returns></returns>
-    Task<RuleConfigModel> GetTopologyConfigAsync();
+    Task<RuleConfigModel> GetTopologyConfigAsync(RuleFlowConfigOptions? options = null);
 
     /// <summary>
     /// Get rule flow topology
