@@ -2,7 +2,7 @@ namespace BotSharp.Abstraction.Conversations;
 
 public interface ITokenStatistics
 {
-    int Total { get; }
+    long Total { get; }
     float AccumulatedCost { get; }
     float Cost { get; }
     void StartTimer();
