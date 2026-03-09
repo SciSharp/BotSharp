@@ -130,17 +130,6 @@ public class AgentSkill
         };
     }
 
-    /// <summary>
-    /// Get the AgentSkill as a Tool
-    /// </summary>
-    /// <param name="options"></param>
-    /// <returns></returns>
-    public AITool AsAITool(AgentSkillAsToolOptions? options = null)
-    {
-        AgentSkillAsToolOptions optionsToUse = options ?? new AgentSkillAsToolOptions();
-        string definition = GenerateDefinition(optionsToUse);
-        return AIFunctionFactory.Create(() => definition, name: Name, description: Description);
-    }
 
     /// <summary>
     /// Get the Definition of the Skill
