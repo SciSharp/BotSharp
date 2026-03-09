@@ -53,19 +53,20 @@ public sealed class ChatRuleAction : IRuleAction
                 null,
                 msg => Task.CompletedTask);
 
+            var data = new Dictionary<string, string>(convService.States.GetStates() ?? []);
             await convService.SaveStates();
 
             _logger.LogInformation("Chat rule action executed successfully for agent {AgentId}, conversation {ConversationId}", agent.Id, conv.Id);
+
+
+            data["agent_id"] = agent.Id;
+            data["conversation_id"] = conv.Id;
 
             return new RuleNodeResult
             {
                 Success = true,
                 Response = conv.Id,
-                Data = new()
-                {
-                    ["agent_id"] = agent.Id,
-                    ["conversation_id"] = conv.Id
-                }
+                Data = data
             };
         }
         catch (Exception ex)
