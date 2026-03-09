@@ -62,7 +62,7 @@ public class RuleEngine : IRuleEngine
 
                 // 3. Execute graph
                 var execResults = new List<RuleFlowStepResult>();
-                await ExecuteGraphNode(root, graph, agent, trigger, text, states, options, execResults);
+                await ExecuteGraphNode(root, graph, agent, trigger, text, states, null, options, execResults);
                 graph.Clear();
 
                 // Get conversation id to support legacy features
@@ -105,6 +105,7 @@ public class RuleEngine : IRuleEngine
             agent, trigger,
             options.Text,
             options.States,
+            null,
             triggerOptions,
             execResults);
         graph.Clear();
@@ -147,6 +148,7 @@ public class RuleEngine : IRuleEngine
         IRuleTrigger trigger,
         string text,
         IEnumerable<MessageState>? states,
+        Dictionary<string, string?>? data,
         RuleTriggerOptions? options,
         List<RuleFlowStepResult> results)
     {
@@ -156,7 +158,7 @@ public class RuleEngine : IRuleEngine
         }
         else
         {
-            await ExecuteGraphNodeDfs(node, graph, agent, trigger, text, states, options, results);
+            await ExecuteGraphNodeDfs(node, graph, agent, trigger, text, states, data, options, results);
         }
     }
 
@@ -167,6 +169,7 @@ public class RuleEngine : IRuleEngine
         IRuleTrigger trigger,
         string text,
         IEnumerable<MessageState>? states,
+        Dictionary<string, string?>? data,
         RuleTriggerOptions? options,
         List<RuleFlowStepResult> results)
     {
@@ -200,7 +203,7 @@ public class RuleEngine : IRuleEngine
                 Edge = edge,
                 Graph = graph,
                 Text = text,
-                Parameters = BuildParameters(nextNode.Config, states),
+                Parameters = BuildParameters(nextNode.Config, states, data),
                 PrevStepResults = results,
                 JsonOptions = options?.JsonOptions
             };
@@ -224,7 +227,7 @@ public class RuleEngine : IRuleEngine
                 // If condition result is true, then execute the next node, otherwise skip
                 if (conditionResult.Success)
                 {
-                    await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, options, results);
+                    await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, context.Parameters, options, results);
                 }
                 else
                 {
@@ -253,7 +256,7 @@ public class RuleEngine : IRuleEngine
                     continue;
                 }
 
-                await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, options, results);
+                await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, data, options, results);
             }
             else
             {
@@ -262,7 +265,7 @@ public class RuleEngine : IRuleEngine
                     Success = true,
                     Response = $"Pass through node {nextNode.Name}."
                 }, nextNode));
-                await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, options, results);
+                await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, data, options, results);
             }
         }
     }
@@ -556,7 +559,10 @@ public class RuleEngine : IRuleEngine
 
 
     #region Private methods
-    private Dictionary<string, string?> BuildParameters(Dictionary<string, string?>? config, IEnumerable<MessageState>? states)
+    private Dictionary<string, string?> BuildParameters(
+        Dictionary<string, string?>? config,
+        IEnumerable<MessageState>? states,
+        Dictionary<string, string?>? param = null)
     {
         var dict = new Dictionary<string, string?>();
 
@@ -570,6 +576,14 @@ public class RuleEngine : IRuleEngine
             foreach (var state in states!)
             {
                 dict[state.Key] = state.Value?.ConvertToString();
+            }
+        }
+
+        if (!param.IsNullOrEmpty())
+        {
+            foreach (var pair in param!)
+            {
+                dict[pair.Key] = pair.Value;
             }
         }
 
