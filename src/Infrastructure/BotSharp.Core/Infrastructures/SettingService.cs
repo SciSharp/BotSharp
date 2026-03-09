@@ -54,7 +54,7 @@ public class SettingService : ISettingService
     public string GetUpgradeModel(string oldModelName)
     {
         var modelUpgradeMapSettings = _services.GetRequiredService<ModelUpgradeMapSettings>();
-        var mapping = modelUpgradeMapSettings.ModelUpgradeMap.FirstOrDefault(x => x.OldModel.Equals(oldModelName, StringComparison.InvariantCultureIgnoreCase));
+        var mapping = modelUpgradeMapSettings.ModelUpgradeMap.FirstOrDefault(x => x.OldModel.Equals(oldModelName, StringComparison.OrdinalIgnoreCase));
         
         if(mapping == null || !mapping.Enable)
         {
