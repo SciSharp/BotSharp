@@ -18,7 +18,6 @@ public class SkillService : ISkillService
     private AgentSkillsSettings _settings;
     private readonly ILogger<SkillService> _logger;
     private Skills.AgentSkills? _agentSkills;
-    private IList<AITool>? _tools;
     private readonly object _lock = new object();
 
     /// <summary>
@@ -91,37 +90,7 @@ public class SkillService : ISkillService
                         // FR-1.3: Directory not found - log warning but continue
                         _logger.LogWarning("User skills directory not found: {Directory}", userSkillsDir);
                     }
-                }
-
-                // FR-3.1: Convert skills to tools
-                if (_agentSkills != null)
-                {
-                    _logger.LogDebug("Generating tools from skills...");
-
-                    // FR-3.2: Generate tools based on configuration
-                    var options = new AgentSkillsAsToolsOptions
-                    {
-                        IncludeToolForFileContentRead = _settings.EnableReadFileTool
-                    };
-
-                    _tools = _agentSkills.GetAsTools(
-                        AgentSkillsAsToolsStrategy.AvailableSkillsAndLookupTools,
-                        options
-                    );
-
-                    var skillCount = _agentSkills.GetInstructions().Split("<skill>").Length - 1;
-                    _logger.LogInformation(
-                        "Generated {ToolCount} tools from {SkillCount} skills",
-                        _tools?.Count ?? 0,
-                        skillCount
-                    );
-                }
-                else
-                {
-                    // No skills loaded
-                    _tools = new List<AITool>();
-                    _logger.LogWarning("No skills loaded. Ensure at least one skill directory exists and is configured.");
-                }
+                }              
 
                 _logger.LogInformation("Agent Skills initialization completed successfully");
             }
@@ -130,7 +99,6 @@ public class SkillService : ISkillService
                 // FR-1.3: Loading failure should not interrupt application startup
                 _logger.LogError(ex, "Failed to initialize Agent Skills");
                 _agentSkills = null;
-                _tools = new List<AITool>();
             }
         }
     }
@@ -139,14 +107,39 @@ public class SkillService : ISkillService
     /// Gets all loaded skills.
     /// Implements requirement: FR-1.1
     /// </summary>
-    public Skills.AgentSkills GetAgentSkills()
+    public IList<Skills.AgentSkill> GetAgentSkills()
     {
+        return _agentSkills?.Skills ?? new List<Skills.AgentSkill>();
+    }
+
+    /// <summary>
+    /// Gets all loaded skills.
+    /// Implements requirement: FR-1.1
+    /// </summary>
+    public IList<Skills.AgentSkill> GetAgentSkills(Agent agent)
+    {
+        var agentskills = new List<Skills.AgentSkill>();
         if (_agentSkills == null)
         {
             throw new InvalidOperationException("Skills not loaded. Check logs for initialization errors.");
         }
 
-        return _agentSkills;
+        foreach (var skill in agent.Skills)
+        {
+            if (!_agentSkills.Skills.Any(s => s.Name.Equals(skill.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                _logger.LogWarning("Agent {AgentName} has skill '{Skill}' which is not available in loaded skills", agent.Name, skill);
+            }
+            else
+            {
+                var agentSkill = _agentSkills.Skills.FirstOrDefault(s => s.Name.Equals(skill.Name, StringComparison.OrdinalIgnoreCase));
+               if(agentSkill != null)
+                {
+                    agentskills.Add(agentSkill);
+                }
+            }
+        } 
+        return agentskills;
     }
 
     /// <summary>
@@ -205,20 +198,6 @@ public class SkillService : ISkillService
         }
     }  
 
-    /// <summary>
-    /// Gets the list of skill tools.
-    /// Implements requirement: FR-3.1
-    /// </summary>
-    public IList<AITool> GetTools()
-    {
-        if (_tools == null)
-        {
-            _logger.LogWarning("GetTools called but no tools are available");
-            return new List<AITool>();
-        }
-
-        return _tools;
-    }
 
     /// <summary>
     /// Reloads all skills from configured directories.

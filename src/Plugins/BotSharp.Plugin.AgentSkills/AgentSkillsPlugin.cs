@@ -44,49 +44,9 @@ public class AgentSkillsPlugin : IBotSharpPlugin
         // FR-1.1, NFR-4.1: Register ISkillService and SkillService as scoped 
         services.AddScoped<ISkillService, SkillService>();
 
-        // FR-4.1: Register skill tools as IFunctionCallback
-        // Build temporary service provider to access ISkillService
-        using (var sp = services.BuildServiceProvider())
-        {
-            try
-            {
-                var logger = sp.GetService<ILogger<AgentSkillsPlugin>>();
-                logger?.LogInformation("Registering Agent Skills tools...");
-
-                var skillService = sp.GetRequiredService<ISkillService>();
-                var tools = skillService.GetTools();
-
-                logger?.LogInformation("Found {ToolCount} tools from {SkillCount} skills",
-                    tools.Count, skillService.GetSkillCount());
-
-                // FR-4.1: Register each AIFunction as IFunctionCallback
-                foreach (var tool in tools)
-                {
-                    if (tool is AIFunction aiFunc)
-                    {
-                        // Capture aiFunc in closure to avoid reference issues
-                        var capturedFunc = aiFunc;
-                        services.AddSingleton<AIFunction>(capturedFunc);
-                        // Register as Scoped - new instance per request to avoid state sharing
-                        services.AddScoped<IFunctionCallback>(provider =>
-                            new AIToolCallbackAdapter(
-                                capturedFunc,
-                                provider,
-                                provider.GetService<ILogger<AIToolCallbackAdapter>>()));
-
-                        logger?.LogDebug("Registered tool: {ToolName}", aiFunc.Name);
-                    }
-                }
-
-                logger?.LogInformation("Successfully registered {ToolCount} Agent Skills tools", tools.Count);
-            }
-            catch (Exception ex)
-            {
-                // FR-1.3: Log error but don't interrupt application startup
-                var logger = sp.GetService<ILogger<AgentSkillsPlugin>>();
-                logger?.LogError(ex, "Failed to register Agent Skills tools. Plugin will continue with limited functionality.");
-            }
-        }
+        services.AddScoped<IFunctionCallback, GetInstructionsFn>();
+        services.AddScoped<IFunctionCallback, GetSkillBynameFn>();
+        services.AddScoped<IFunctionCallback, GetSkillFileContentFn>();
 
         // FR-2.1: Register AgentSkillsInstructionHook for instruction injection
         services.AddScoped<IAgentHook, AgentSkillsInstructionHook>();
