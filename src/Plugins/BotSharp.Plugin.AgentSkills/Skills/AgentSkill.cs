@@ -116,7 +116,7 @@ public class AgentSkill
         }
         else
         {
-            if (Name.Length > 1024)
+            if (Description.Length > 1024)
             {
                 valid = false;
                 issues.Add("Description: Must be 1-1024 characters");

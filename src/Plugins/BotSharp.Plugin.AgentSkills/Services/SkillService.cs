@@ -176,7 +176,7 @@ public class SkillService : ISkillService
                     }
                     else
                     {
-                        var agentSkill = agentskills.FirstOrDefault(s => s.Name== skill.Name);
+                        var agentSkill = agentskills.FirstOrDefault(s => s.Name.Equals(skill.Name, StringComparison.OrdinalIgnoreCase));
                         availableSkillToolBuilder.AppendLine("\t<skill>");
                         availableSkillToolBuilder.AppendLine($"\t\t<name>{agentSkill.Name}</name>");
                         availableSkillToolBuilder.AppendLine($"\t\t<description>{agentSkill.Description}</description>");
