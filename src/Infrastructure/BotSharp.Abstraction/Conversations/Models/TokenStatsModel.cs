@@ -7,9 +7,9 @@ public class TokenStatsModel
     public string Prompt { get; set; }
 
     #region Text token
-    public int TextInputTokens { get; set; }
-    public int CachedTextInputTokens { get; set; }
-    public int TextOutputTokens { get; set; }
+    public long TextInputTokens { get; set; }
+    public long CachedTextInputTokens { get; set; }
+    public long TextOutputTokens { get; set; }
     #endregion
 
     #region Audio token
@@ -19,9 +19,9 @@ public class TokenStatsModel
     #endregion
 
     #region Image token
-    public int ImageInputTokens { get; set; }
-    public int CachedImageInputTokens { get; set; }
-    public int ImageOutputTokens { get; set; }
+    public long ImageInputTokens { get; set; }
+    public long CachedImageInputTokens { get; set; }
+    public long ImageOutputTokens { get; set; }
     #endregion
 
     #region Image
@@ -29,8 +29,8 @@ public class TokenStatsModel
     public float ImageGenerationUnitCost { get; set; }
     #endregion
 
-    public int TotalInputTokens => TextInputTokens + CachedTextInputTokens 
+    public long TotalInputTokens => TextInputTokens + CachedTextInputTokens 
                                 + AudioInputTokens + CachedAudioInputTokens
                                 + ImageInputTokens + CachedImageInputTokens;
-    public int TotalOutputTokens => TextOutputTokens + AudioOutputTokens + ImageOutputTokens;
+    public long TotalOutputTokens => TextOutputTokens + AudioOutputTokens + ImageOutputTokens;
 }

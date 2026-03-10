@@ -68,7 +68,11 @@ public class RoutingAgentHook : AgentHookBase
         {
             // check if enabled the routing rule
             var routing = _services.GetRequiredService<IRoutingService>();
-            var rules = await routing.GetRulesByAgentId(_agent.Id);
+            var rules = (await routing.GetRulesByAgentId(_agent.Id)).ToList();
+            if (!rules.IsNullOrEmpty())
+            {
+                await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingRulesLoaded(_agent.Id, rules), _agent.Id);
+            }
             var rule = rules.FirstOrDefault(x => x.Type == RuleType.Fallback);
             if (rule != null)
             {

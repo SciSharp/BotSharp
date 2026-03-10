@@ -50,4 +50,17 @@ public class SettingService : ISettingService
             + string.Join("", Enumerable.Repeat("*", value.Length / 2));
         return value;
     }
+
+    public string GetUpgradeModel(string oldModelName)
+    {
+        var modelUpgradeMapSettings = _services.GetRequiredService<ModelUpgradeMapSettings>();
+        var mapping = modelUpgradeMapSettings.ModelUpgradeMap.FirstOrDefault(x => x.OldModel.Equals(oldModelName, StringComparison.OrdinalIgnoreCase));
+        
+        if(mapping == null || !mapping.Enable)
+        {
+            return oldModelName;
+        }
+
+        return mapping.NewModel;
+    }
 }
