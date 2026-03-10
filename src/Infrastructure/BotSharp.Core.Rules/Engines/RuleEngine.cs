@@ -154,7 +154,7 @@ public class RuleEngine : IRuleEngine
     {
         if (options?.Flow?.TraversalAlgorithm?.IsEqualTo("bfs") == true)
         {
-            await ExecuteGraphNodeBfs(node, graph, agent, trigger, text, states, options, results);
+            await ExecuteGraphNodeBfs(node, graph, agent, trigger, text, states, data, options, results);
         }
         else
         {
@@ -178,6 +178,8 @@ public class RuleEngine : IRuleEngine
         var param = options?.Flow?.Parameters ?? [];
         var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion")?.ToString(), out var depth) && depth > 0
             ? depth : RuleConstant.MAX_GRAPH_RECURSION;
+
+        var innerData = new Dictionary<string, string?>(data ?? []);
 
         if (visited >= maxRecursion)
         {
@@ -203,7 +205,7 @@ public class RuleEngine : IRuleEngine
                 Edge = edge,
                 Graph = graph,
                 Text = text,
-                Parameters = BuildParameters(nextNode.Config, states, data),
+                Parameters = BuildParameters(nextNode.Config, states, innerData),
                 PrevStepResults = results,
                 JsonOptions = options?.JsonOptions
             };
@@ -277,12 +279,15 @@ public class RuleEngine : IRuleEngine
         IRuleTrigger trigger,
         string text,
         IEnumerable<MessageState>? states,
+        Dictionary<string, string?>? data,
         RuleTriggerOptions? options,
         List<RuleFlowStepResult> results)
     {
         var param = options?.Flow?.Parameters ?? [];
         var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion")?.ToString(), out var depth) && depth > 0
             ? depth : RuleConstant.MAX_GRAPH_RECURSION;
+
+        var innerData = new Dictionary<string, string?>(data ?? []);
 
         // Each queue entry is (node-to-process, edge-that-leads-to-it)
         var queue = new Queue<(RuleNode Node, RuleEdge Edge)>();
@@ -309,7 +314,7 @@ public class RuleEngine : IRuleEngine
                 Edge = nextEdge,
                 Graph = graph,
                 Text = text,
-                Parameters = BuildParameters(nextNode.Config, states),
+                Parameters = BuildParameters(nextNode.Config, states, innerData),
                 PrevStepResults = results,
                 JsonOptions = options?.JsonOptions
             };
@@ -318,6 +323,8 @@ public class RuleEngine : IRuleEngine
             {
                 // Execute condition node
                 var conditionResult = await ExecuteCondition(nextNode, graph, agent, trigger, context);
+                innerData = new(context.Parameters ?? []);
+
                 if (conditionResult == null)
                 {
                     results.Add(RuleFlowStepResult.FromResult(new()
@@ -348,6 +355,8 @@ public class RuleEngine : IRuleEngine
             {
                 // Execute action node
                 var actionResult = await ExecuteAction(nextNode, graph, agent, trigger, context);
+                innerData = new(context.Parameters ?? []);
+
                 if (actionResult == null)
                 {
                     results.Add(RuleFlowStepResult.FromResult(new()
