@@ -24,6 +24,9 @@ public class MembaseController : ControllerBase
     /// </summary>
     /// <param name="graphId">The graph identifier</param>
     /// <returns>Graph information</returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
     [HttpGet("/membase/{graphId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -54,6 +57,9 @@ public class MembaseController : ControllerBase
     /// <param name="graphId">The graph identifier</param>
     /// <param name="request">The Cypher query request containing the query and parameters</param>
     /// <returns>Query result with columns and data</returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
     [HttpPost("/membase/{graphId}/query")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -98,6 +104,9 @@ public class MembaseController : ControllerBase
     /// <param name="graphId">The graph identifier</param>
     /// <param name="nodeId">The node identifier</param>
     /// <returns>The node</returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
     [HttpGet("/membase/{graphId}/node/{nodeId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -133,6 +142,9 @@ public class MembaseController : ControllerBase
     /// <param name="graphId">The graph identifier</param>
     /// <param name="request">The node creation model</param>
     /// <returns>The created node</returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
     [HttpPost("/membase/{graphId}/node")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -166,28 +178,30 @@ public class MembaseController : ControllerBase
     /// Merge a node in the graph
     /// </summary>
     /// <param name="graphId">The graph identifier</param>
-    /// <param name="nodeId">The node identifier</param>
     /// <param name="request">The node update model</param>
     /// <returns>The merged node</returns>
-    [HttpPut("/membase/{graphId}/node/{nodeId}/merge")]
+#if DEBUG
+    [AllowAnonymous]
+#endif
+    [HttpPut("/membase/{graphId}/node/merge")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> MergeNode(string graphId, string nodeId, [FromBody] NodeUpdateModel request)
+    public async Task<IActionResult> MergeNode(string graphId, [FromBody] NodeUpdateModel request)
     {
         if (string.IsNullOrWhiteSpace(graphId))
         {
             return BadRequest("Graph ID cannot be empty.");
         }
 
-        if (string.IsNullOrWhiteSpace(nodeId))
+        if (string.IsNullOrWhiteSpace(request?.Id))
         {
             return BadRequest("Node ID cannot be empty.");
         }
 
         try
         {
-            var node = await _membaseApi.MergeNodeAsync(graphId, nodeId, request);
+            var node = await _membaseApi.MergeNodeAsync(graphId, request.Id, request);
             return Ok(node);
         }
         catch (Exception ex)
@@ -204,6 +218,9 @@ public class MembaseController : ControllerBase
     /// <param name="graphId">The graph identifier</param>
     /// <param name="nodeId">The node identifier</param>
     /// <returns>Delete response</returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
     [HttpDelete("/membase/{graphId}/node/{nodeId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -239,6 +256,9 @@ public class MembaseController : ControllerBase
     /// <param name="graphId">The graph identifier</param>
     /// <param name="edgeId">The edge identifier</param>
     /// <returns>The edge</returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
     [HttpGet("/membase/{graphId}/edge/{edgeId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -274,6 +294,9 @@ public class MembaseController : ControllerBase
     /// <param name="graphId">The graph identifier</param>
     /// <param name="request">The edge creation model</param>
     /// <returns>The created edge</returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
     [HttpPost("/membase/{graphId}/edge")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -322,28 +345,30 @@ public class MembaseController : ControllerBase
     /// Update an edge in the graph
     /// </summary>
     /// <param name="graphId">The graph identifier</param>
-    /// <param name="edgeId">The edge identifier</param>
     /// <param name="request">The edge update model</param>
     /// <returns>The updated edge</returns>
-    [HttpPut("/membase/{graphId}/edge/{edgeId}")]
+#if DEBUG
+    [AllowAnonymous]
+#endif
+    [HttpPut("/membase/{graphId}/edge")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdateEdge(string graphId, string edgeId, [FromBody] EdgeUpdateModel request)
+    public async Task<IActionResult> UpdateEdge(string graphId, [FromBody] EdgeUpdateModel request)
     {
         if (string.IsNullOrWhiteSpace(graphId))
         {
             return BadRequest("Graph ID cannot be empty.");
         }
 
-        if (string.IsNullOrWhiteSpace(edgeId))
+        if (string.IsNullOrWhiteSpace(request?.Id))
         {
             return BadRequest("Edge ID cannot be empty.");
         }
 
         try
         {
-            var edge = await _membaseApi.UpdateEdgeAsync(graphId, edgeId, request);
+            var edge = await _membaseApi.UpdateEdgeAsync(graphId, request.Id, request);
             return Ok(edge);
         }
         catch (Exception ex)
@@ -360,6 +385,9 @@ public class MembaseController : ControllerBase
     /// <param name="graphId">The graph identifier</param>
     /// <param name="edgeId">The edge identifier</param>
     /// <returns>Delete response</returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
     [HttpDelete("/membase/{graphId}/edge/{edgeId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -258,7 +258,7 @@ public class RuleEngine : IRuleEngine
                     continue;
                 }
 
-                await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, data, options, results);
+                await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, context.Parameters, options, results);
             }
             else
             {
@@ -267,7 +267,7 @@ public class RuleEngine : IRuleEngine
                     Success = true,
                     Response = $"Pass through node {nextNode.Name}."
                 }, nextNode));
-                await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, data, options, results);
+                await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, context.Parameters, options, results);
             }
         }
     }
@@ -429,7 +429,7 @@ public class RuleEngine : IRuleEngine
 
             foreach (var hook in hooks)
             {
-                await hook.AfterRuleActionExecuted(agent, node, trigger, result);
+                await hook.AfterRuleActionExecuted(agent, node, trigger, context, result);
             }
 
             return result;
@@ -515,7 +515,7 @@ public class RuleEngine : IRuleEngine
 
             foreach (var hook in hooks)
             {
-                await hook.AfterRuleConditionExecuted(agent, node, trigger, result);
+                await hook.AfterRuleConditionExecuted(agent, node, trigger, context, result);
             }
 
             return result;

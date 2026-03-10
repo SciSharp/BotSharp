@@ -59,7 +59,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
         };
     }
 
-    public async Task<RuleGraph> GetTopologyAsync(string id, RuleFlowLoadOptions? options = null)
+    public async Task<RuleGraph?> GetTopologyAsync(string id, RuleFlowLoadOptions? options = null)
     {
         if (string.IsNullOrEmpty(id))
         {

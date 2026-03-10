@@ -22,5 +22,5 @@ public interface IRuleFlow<T> where T : class
     /// <param name="id"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    Task<T> GetTopologyAsync(string id, RuleFlowLoadOptions? options = null);
+    Task<T?> GetTopologyAsync(string id, RuleFlowLoadOptions? options = null);
 }

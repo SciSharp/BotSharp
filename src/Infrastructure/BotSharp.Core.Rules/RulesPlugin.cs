@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Crontab.Settings;
 using BotSharp.Abstraction.Rules.Settings;
 using BotSharp.Core.Rules.Actions;
 using BotSharp.Core.Rules.Conditions;
@@ -35,7 +34,8 @@ public class RulesPlugin : IBotSharpPlugin
 
 #if DEBUG
         // Register rule conditions
-        services.AddScoped<IRuleCondition, ExampleRuleCondition>();
+        services.AddScoped<IRuleCondition, LoopingCondition>();
+        services.AddScoped<IRuleCondition, AllVisitedRuleCondition>();
 
         // Register rule trigger
         services.AddScoped<IRuleTrigger, DemoRuleTrigger>();
