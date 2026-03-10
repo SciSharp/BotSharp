@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
+using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.EmailHandler.Models;
 using BotSharp.Plugin.EmailHandler.Providers;
 using MailKit;
@@ -66,8 +68,9 @@ public class HandleEmailReaderFn : IFunctionCallback
                     };
 
                     var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+                    var settingService = _services.GetRequiredService<ISettingService>();
                     var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == "openai");
-                    var model = llmProviderService.GetProviderModel(provider: provider ?? "openai", id: "gpt-4o");
+                    var model = llmProviderService.GetProviderModel(provider: provider ?? "openai", id: settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o));
                     var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model?.Name);
                     var convService = _services.GetRequiredService<IConversationService>();
                     var conversationId = convService.ConversationId;

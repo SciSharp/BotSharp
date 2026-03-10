@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Hooks;
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Realtime.Options;
 using BotSharp.Abstraction.Realtime.Settings;
+using BotSharp.Abstraction.Settings;
 using OpenAI.Chat;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Realtime;
@@ -17,7 +19,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     private readonly ILogger<RealTimeCompletionProvider> _logger;
     private readonly BotSharpOptions _botsharpOptions;
 
-    private string _model = "gpt-4o-mini-realtime-preview";
+    private string _model = Gpt4xModelConstants.GPT_4o_Mini_Realtime_Preview;
     private LlmRealtimeSession _session;
     private RealtimeOptions? _realtimeOptions;
     private bool _isBlocking = false;
@@ -40,6 +42,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         _logger = logger;
         _services = services;
         _botsharpOptions = botsharpOptions;
+
+        var settingService = _services.GetRequiredService<ISettingService>();
+        _model = settingService.GetUpgradeModel(_model);
     }
 
     public async Task Connect(
@@ -67,8 +72,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var realtimeSettings = _services.GetRequiredService<RealtimeModelSettings>();
+        var settingService = _services.GetRequiredService<ISettingService>();
 
-        _model ??= realtimeSettings.Model;
+        _model ??= settingService.GetUpgradeModel(realtimeSettings.Model);
         var settings = settingsService.GetSetting(Provider, _model);
 
         _session = new LlmRealtimeSession(_services, new ChatSessionOptions
@@ -321,6 +327,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var agentService = _services.GetRequiredService<IAgentService>();
+        var settingService = _services.GetRequiredService<ISettingService>();
 
         var conv = await convService.GetConversation(conn.ConversationId);
         var agent = await agentService.LoadAgent(conn.CurrentAgentId);
@@ -370,7 +377,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
             sessionUpdate.session.InputAudioTranscription = new InputAudioTranscription
             {
-                Model = realtimeModelSettings.InputAudioTranscription.Model,
+                Model = settingService.GetUpgradeModel(realtimeModelSettings.InputAudioTranscription.Model),
                 Language = realtimeModelSettings.InputAudioTranscription.Language,
                 Prompt = string.Join(", ", words.Select(x => x.ToLower().Trim()).Distinct()).SubstringMax(1024)
             };

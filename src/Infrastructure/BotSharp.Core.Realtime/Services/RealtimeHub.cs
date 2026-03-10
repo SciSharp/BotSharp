@@ -6,6 +6,7 @@ using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Realtime.Options;
 using BotSharp.Abstraction.Realtime.Settings;
 using BotSharp.Abstraction.Routing.Enums;
+using BotSharp.Abstraction.Settings;
 using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Core.Realtime.Services;
@@ -192,6 +193,7 @@ public class RealtimeHub : IRealtimeHub
     {
         var provider = agent?.LlmConfig?.Realtime?.Provider;
         var model = agent?.LlmConfig?.Realtime?.Model;
+        var settingService = _services.GetRequiredService<ISettingService>();
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
@@ -199,7 +201,7 @@ public class RealtimeHub : IRealtimeHub
         }
 
         provider = _settings.Provider;
-        model = _settings.Model;
+        model = settingService.GetUpgradeModel(_settings.Model);
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {

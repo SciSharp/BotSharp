@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Shared;
 using BotSharp.Abstraction.Shared.Options;
 using BotSharp.Abstraction.Templating;
@@ -93,12 +95,13 @@ public class JsonRepairService : IJsonRepairService
         var data = options?.Data ?? new Dictionary<string, object>();
         data["input"] = malformedJson;
         var prompt = render.Render(template, data);
+        var settingService = _services.GetRequiredService<ISettingService>();
 
         try
         {
             var completion = CompletionProvider.GetChatCompletion(_services,
                         provider: options?.Provider ?? agent?.LlmConfig?.Provider ?? "openai",
-                        model: options?.Model ?? agent?.LlmConfig?.Model ?? "gpt-4o-mini");
+                        model: options?.Model ?? agent?.LlmConfig?.Model ?? settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o_Mini));
 
             var innerAgent = new Agent
             {
