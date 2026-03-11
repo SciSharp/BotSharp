@@ -1,3 +1,5 @@
+using System.Xml.Linq;
+
 namespace BotSharp.Abstraction.Agents.Models;
 
 public class RuleGraph
@@ -108,10 +110,10 @@ public class RuleGraph
                 Id = payload.Id,
                 Name = payload.Name,
                 Type = payload.Type,
-                Labels = payload.Labels,
+                Labels = [.. payload.Labels ?? []],
                 Weight = payload.Weight,
                 Purpose = payload.Purpose,
-                Config = payload.Config
+                Config = new(payload.Config ?? [])
             });
         }
     }
@@ -135,8 +137,8 @@ public class RuleGraph
         return new()
         {
             GraphId = _id,
-            Nodes = _nodes,
-            Edges = _edges
+            Nodes = [.. _nodes?.ToList() ?? []],
+            Edges = [.. _edges?.ToList() ?? []]
         };
     }
 
