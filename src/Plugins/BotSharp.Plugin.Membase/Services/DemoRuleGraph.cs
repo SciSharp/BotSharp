@@ -63,7 +63,11 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
     {
         if (string.IsNullOrEmpty(id))
         {
+#if DEBUG
             return GetDefaultGraph();
+#else
+            return null;
+#endif
         }
 
         var query = options?.Query ?? string.Empty;
@@ -248,16 +252,6 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
             Type = "end",
         };
 
-        var delayNode = new RuleNode
-        {
-            Name = "delay_message",
-            Type = "action",
-            Config = new()
-            {
-                ["delay"] = "3 seconds"
-            }
-        };
-
         var node1 = new RuleNode
         {
             Name = "http_request",
@@ -265,7 +259,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
             Config = new()
             {
                 ["http_method"] = "GET",
-                ["http_url"] = "https://meshstage.lessen.com/reactivewocore/reactivewos/9883958"
+                ["http_url"] = "https://dummy.restapiexample.com/api/v1/employees"
             }
         };
 
@@ -276,7 +270,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
             Config = new()
             {
                 ["http_method"] = "GET",
-                ["http_url"] = "https://meshstage.lessen.com/reactivewocore/reactivewos/9883956"
+                ["http_url"] = "https://dummy.restapiexample.com/api/v1/employee/1"
             }
         };
 
@@ -287,17 +281,11 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
             Config = new()
             {
                 ["http_method"] = "GET",
-                ["http_url"] = "https://meshstage.lessen.com/reactivewocore/reactivewos/9883954"
+                ["http_url"] = "https://dummy.restapiexample.com/api/v1/employee/2"
             }
         };
 
-        graph.AddEdge(root, delayNode, payload: new()
-        {
-            Name = "edge",
-            Type = "is_next"
-        });
-
-        graph.AddEdge(delayNode, node1, payload: new()
+        graph.AddEdge(root, node1, payload: new()
         {
             Name = "edge",
             Type = "next"
