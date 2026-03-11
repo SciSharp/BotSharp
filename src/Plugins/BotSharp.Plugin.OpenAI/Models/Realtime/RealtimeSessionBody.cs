@@ -84,7 +84,7 @@ public class RealtimeSessionTurnDetection
 public class InputAudioTranscription
 {
     [JsonPropertyName("model")]
-    public string Model { get; set; } = Gpt4xModelConstants.GPT_4o_Mini_Transcribe;
+    public string Model { get; set; } = Gpt4xModelConstants.GPT_4o_Transcribe;
 
     [JsonPropertyName("language")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
