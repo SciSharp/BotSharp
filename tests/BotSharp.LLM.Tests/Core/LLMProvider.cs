@@ -75,7 +75,7 @@ namespace BotSharp.Plugin.Google.Core
         
         public static (IServiceCollection services, IConfiguration config, string modelName) CreateOpenAI()
         {
-            string modelName = "gpt-4o-mini";
+            string modelName = "gpt-5-mini";
             
             var apiKey = Environment.GetEnvironmentVariable("OPEN_AI_APIKEY") ??
                          throw new Exception("OPEN_AI_APIKEY is not set");

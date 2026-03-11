@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Options;
+using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Settings;
 using System.IO;
 
 namespace BotSharp.Core.Files.Services;
@@ -9,11 +11,12 @@ public partial class FileInstructService
 {
     public async Task<string> ReadImages(string text, IEnumerable<InstructFileModel> images, InstructOptions? options = null)
     {
+        var settingService = _services.GetRequiredService<ISettingService>();
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
         var instruction = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
         text = RenderText(text, options?.Data);
 
-        var completion = CompletionProvider.GetChatCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-4o", multiModal: true);
+        var completion = CompletionProvider.GetChatCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o), multiModal: true);
         var message = await completion.GetChatCompletions(new Agent()
         {
             Id = innerAgentId,
