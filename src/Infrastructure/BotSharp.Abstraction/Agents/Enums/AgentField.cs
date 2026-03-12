@@ -24,7 +24,8 @@ public enum AgentField
     McpTool,
     KnowledgeBase,
     Rule,
-    MaxMessageCount
+    MaxMessageCount,
+    Skills
 }
 
 public enum AgentTaskField

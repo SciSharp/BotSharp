@@ -161,6 +161,11 @@ public class Agent
     [JsonIgnore]
     public List<string> SecondaryInstructions { get; set; } = [];
 
+    /// <summary>
+    /// Agent skills, which is a collection of instructions, functions, and other resources for specific domains or tasks.
+    /// </summary>
+    public List<AgentSkill> Skills { get; set; } = new();
+
     public override string ToString()
         => $"{Name} {Id}";
 
@@ -193,6 +198,7 @@ public class Agent
             Rules = agent.Rules,
             LlmConfig = agent.LlmConfig,
             KnowledgeBases = agent.KnowledgeBases,
+            Skills = agent.Skills,
             CreatedDateTime = agent.CreatedDateTime,
             UpdatedDateTime = agent.UpdatedDateTime,
         };
@@ -344,6 +350,12 @@ public class Agent
     public Agent SetMcpTools(List<McpTool>? mcps)
     {
         McpTools = mcps ?? [];
+        return this;
+    }
+
+    public Agent SetSkills(List<AgentSkill>? skills)
+    {
+        Skills = skills ?? [];
         return this;
     }
 }

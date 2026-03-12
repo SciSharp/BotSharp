@@ -1,0 +1,31 @@
+# Template File
+
+This is a sample template file for testing the Agent Skills assets functionality.
+
+## Variables
+
+- {{PROJECT_NAME}}: The name of the project
+- {{AUTHOR}}: The author name
+- {{DATE}}: The current date
+- {{VERSION}}: The version number
+
+## Template Content
+
+Project: {{PROJECT_NAME}}
+Author: {{AUTHOR}}
+Date: {{DATE}}
+Version: {{VERSION}}
+
+## Description
+
+{{DESCRIPTION}}
+
+## Features
+
+- Feature 1: {{FEATURE_1}}
+- Feature 2: {{FEATURE_2}}
+- Feature 3: {{FEATURE_3}}
+
+## Notes
+
+This template can be used to generate standardized documents with variable substitution.
