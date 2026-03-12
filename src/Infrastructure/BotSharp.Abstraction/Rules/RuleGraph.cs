@@ -1,6 +1,4 @@
-using System.Xml.Linq;
-
-namespace BotSharp.Abstraction.Agents.Models;
+namespace BotSharp.Abstraction.Rules;
 
 public class RuleGraph
 {
@@ -40,9 +38,11 @@ public class RuleGraph
 
         var incomingEdges = _edges
             .Where(e => e.To != null && e.To.Id.IsEqualTo(id))
+            .OrderByDescending(x => x.Weight)
             .ToList();
         var outgoingEdges = _edges
             .Where(e => e.From != null && e.From.Id.IsEqualTo(id))
+            .OrderByDescending(x => x.Weight)
             .ToList();
 
         return (node, incomingEdges, outgoingEdges);
@@ -121,6 +121,7 @@ public class RuleGraph
     public IEnumerable<(RuleNode, RuleEdge)> GetParentNodes(RuleNode node)
     {
         return _edges.Where(e => e.To != null && e.To.Id.IsEqualTo(node.Id))
+                     .OrderByDescending(e => e.Weight)
                      .Select(e => (e.From, e))
                      .ToList();
     }
@@ -128,6 +129,7 @@ public class RuleGraph
     public IEnumerable<(RuleNode, RuleEdge)> GetChildrenNodes(RuleNode node)
     {
         return _edges.Where(e => e.From != null && e.From.Id.IsEqualTo(node.Id))
+                     .OrderByDescending(e => e.Weight)
                      .Select(e => (e.To, e))
                      .ToList();
     }

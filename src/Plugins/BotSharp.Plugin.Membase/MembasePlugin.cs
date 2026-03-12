@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Graph;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Rules;
