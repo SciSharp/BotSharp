@@ -144,6 +144,9 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
             var sourceNodeProps = sourceNodeElement.TryGetProperty("properties", out var sProps)
                 ? sProps
                 : default;
+            var sourceNodeWeight = sourceNodeElement.TryGetProperty("weight", out var sNodeWeight) && sNodeWeight.ValueKind == JsonValueKind.Number
+                ? sNodeWeight.GetDouble()
+                : 1.0;
 
             // Parse target node
             var targetNodeId = targetNodeElement.GetProperty("id").GetString();
@@ -153,6 +156,9 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
             var targetNodeProps = targetNodeElement.TryGetProperty("properties", out var tProps)
                 ? tProps
                 : default;
+            var targetNodeWeight = targetNodeElement.TryGetProperty("weight", out var tNodeWeight) && tNodeWeight.ValueKind == JsonValueKind.Number
+                ? tNodeWeight.GetDouble()
+                : 1.0;
 
             // Parse edge
             var edgeId = edgeElement.GetProperty("id").GetString();
@@ -168,6 +174,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
             {
                 Id = sourceNodeId ?? Guid.NewGuid().ToString(),
                 Labels = sourceNodeLabels,
+                Weight = sourceNodeWeight,
                 Name = GetGraphItemAttribute(sourceNodeProps, key: "name", defaultValue: "node"),
                 Type = GetGraphItemAttribute(sourceNodeProps, key: "type", defaultValue: "action"),
                 Purpose = GetGraphItemAttribute(sourceNodeProps, key: "purpose", defaultValue: "unknown"),
@@ -179,6 +186,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
             {
                 Id = targetNodeId ?? Guid.NewGuid().ToString(),
                 Labels = targetNodeLabels,
+                Weight = targetNodeWeight,
                 Name = GetGraphItemAttribute(targetNodeProps, key: "name", defaultValue: "node"),
                 Type = GetGraphItemAttribute(targetNodeProps, key: "type", defaultValue: "action"),
                 Purpose = GetGraphItemAttribute(targetNodeProps, key: "purpose", defaultValue: "unknown"),
