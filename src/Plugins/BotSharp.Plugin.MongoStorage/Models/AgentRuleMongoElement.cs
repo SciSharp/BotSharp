@@ -7,7 +7,7 @@ public class AgentRuleMongoElement
 {
     public string TriggerName { get; set; } = default!;
     public bool Disabled { get; set; }
-    public string Criteria { get; set; } = default!;
+    public RuleConfigMongoModel? Config { get; set; }
 
     public static AgentRuleMongoElement ToMongoElement(AgentRule rule)
     {
@@ -15,7 +15,7 @@ public class AgentRuleMongoElement
         {
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
-            Criteria = rule.Criteria
+            Config = RuleConfigMongoModel.ToMongoModel(rule.Config)
         };
     }
 
@@ -25,7 +25,39 @@ public class AgentRuleMongoElement
         {
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
-            Criteria = rule.Criteria
+            Config = RuleConfigMongoModel.ToDomainModel(rule.Config)
+        };
+    }
+}
+
+[BsonIgnoreExtraElements(Inherited = true)]
+public class RuleConfigMongoModel
+{
+    public string? TopologyProvider { get; set; }
+
+    public static RuleConfigMongoModel? ToMongoModel(RuleConfig? config)
+    {
+        if (config == null)
+        {
+            return null;
+        }
+
+        return new RuleConfigMongoModel
+        {
+            TopologyProvider = config.TopologyProvider
+        };
+    }
+
+    public static RuleConfig? ToDomainModel(RuleConfigMongoModel? config)
+    {
+        if (config == null)
+        {
+            return null;
+        }
+
+        return new RuleConfig
+        {
+            TopologyProvider = config.TopologyProvider
         };
     }
 }

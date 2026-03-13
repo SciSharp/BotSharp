@@ -195,7 +195,7 @@ public partial class InstructService
         foreach (var hook in hooks)
         {
             await hook.AfterCompletion(agent, instructResult);
-            await hook.AfterCodeExecution(agent, codeExecution);
+            await hook.AfterCodeExecution(agent, context, codeExecution);
         }
 
         return instructResult;

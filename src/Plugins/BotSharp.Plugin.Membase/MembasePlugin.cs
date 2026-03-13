@@ -1,6 +1,9 @@
 using BotSharp.Abstraction.Graph;
 using BotSharp.Abstraction.Plugins.Models;
+using BotSharp.Abstraction.Rules;
 using BotSharp.Plugin.Membase.GraphDb;
+using BotSharp.Plugin.Membase.Handlers;
+using BotSharp.Plugin.Membase.Interfaces;
 using Refit;
 
 namespace BotSharp.Plugin.Membase;
@@ -37,6 +40,10 @@ public class MembasePlugin : IBotSharpPlugin
 
         _membaseCredential = config.GetValue<string>("Membase:ApiKey") ?? string.Empty;
         _membaseProjectId = config.GetValue<string>("Membase:ProjectId") ?? string.Empty;
+
+#if DEBUG
+        services.AddScoped<IRuleFlow<RuleGraph>, DemoRuleGraph>();
+#endif
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)

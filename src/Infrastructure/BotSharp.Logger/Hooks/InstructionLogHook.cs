@@ -1,9 +1,11 @@
+using BotSharp.Abstraction.Coding.Contexts;
 using BotSharp.Abstraction.Coding.Models;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Instructs.Settings;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Users;
 using BotSharp.Abstraction.Utilities;
+using System;
 
 namespace BotSharp.Logger.Hooks;
 
@@ -61,7 +63,7 @@ public class InstructionLogHook : InstructHookBase
         await base.OnResponseGenerated(response);
     }
 
-    public override async Task AfterCodeExecution(Agent agent, CodeExecutionResponseModel response)
+    public override async Task AfterCodeExecution(Agent agent, CodeExecutionContext context, CodeExecutionResponseModel response)
     {
         if (response == null || !IsLoggingEnabled(agent?.Id))
         {
@@ -88,7 +90,7 @@ public class InstructionLogHook : InstructHookBase
             }
         });
 
-        await base.AfterCodeExecution(agent, response);
+        await base.AfterCodeExecution(agent, context, response);
     }
 
     private bool IsLoggingEnabled(string? agentId)

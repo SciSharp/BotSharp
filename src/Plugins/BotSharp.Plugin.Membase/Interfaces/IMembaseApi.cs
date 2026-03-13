@@ -1,7 +1,7 @@
 using BotSharp.Plugin.Membase.Models.Graph;
 using Refit;
 
-namespace BotSharp.Plugin.Membase.Services;
+namespace BotSharp.Plugin.Membase.Interfaces;
 
 /// <summary>
 /// Membase REST API interface
@@ -29,7 +29,7 @@ public interface IMembaseApi
     Task<Node> MergeNodeAsync(string graphId, string nodeId, [Body] NodeUpdateModel node);
 
     [Delete("/graph/{graphId}/node/{nodeId}")]
-    Task<NodeDeleteResponse?> DeleteNodeAsync(string graphId, string nodeId);
+    Task DeleteNodeAsync(string graphId, string nodeId);
     #endregion
 
     #region Edge
@@ -43,6 +43,6 @@ public interface IMembaseApi
     Task<Edge> UpdateEdgeAsync(string graphId, string edgeId, [Body] EdgeUpdateModel edge);
 
     [Delete("/graph/{graphId}/edge/{edgeId}")]
-    Task<EdgeDeleteResponse> DeleteEdgeAsync(string graphId, string edgeId);
+    Task DeleteEdgeAsync(string graphId, string edgeId);
     #endregion
 }

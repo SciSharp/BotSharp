@@ -28,7 +28,7 @@ public class InstructHookBase : IInstructHook
         await Task.CompletedTask;
     }
 
-    public virtual async Task AfterCodeExecution(Agent agent, CodeExecutionResponseModel response)
+    public virtual async Task AfterCodeExecution(Agent agent, CodeExecutionContext context, CodeExecutionResponseModel response)
     {
         await Task.CompletedTask;
     }

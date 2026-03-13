@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Threading;
 
-namespace BotSharp.Plugin.Membase.Services;
+namespace BotSharp.Plugin.Membase.Handlers;
 
 public class MembaseAuthHandler : DelegatingHandler
 {
