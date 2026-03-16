@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Instructs.Options;
+using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
@@ -51,7 +52,7 @@ public class SqlValidateFn : IFunctionCallback
 
         if (msgCopy.Data != null && msgCopy.Data is DbException ex)
         {
-            
+            var settingService = _services.GetRequiredService<ISettingService>();
             var instructService = _services.GetRequiredService<IInstructService>();
             var agentService = _services.GetRequiredService<IAgentService>();
             var states = _services.GetRequiredService<IConversationStateService>();
@@ -63,7 +64,7 @@ public class SqlValidateFn : IFunctionCallback
                 new InstructOptions
                 {
                     Provider = "openai",
-                    Model = "gpt-4o",
+                    Model = settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o),
                     AgentId = BuiltInAgentId.SqlDriver,
                     TemplateName = "sql_statement_correctness",
                     Data = new Dictionary<string, object>

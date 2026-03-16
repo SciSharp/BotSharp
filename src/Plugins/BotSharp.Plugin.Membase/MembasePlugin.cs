@@ -30,7 +30,11 @@ public class MembasePlugin : IBotSharpPlugin
                     CollectionFormat = CollectionFormat.Multi
                 })
                 .AddHttpMessageHandler<MembaseAuthHandler>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(settings.Host));
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = new Uri(settings.Host);
+                    c.Timeout = TimeSpan.FromSeconds(5);
+                });
 
         services.AddScoped<IGraphDb, MembaseGraphDb>();
 

@@ -6,6 +6,7 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Knowledges.Enums;
 using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.Plugin.SqlDriver.Models;
+using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Plugin.SqlDriver.Services;
 
@@ -26,8 +27,9 @@ public class DbKnowledgeService
     {
         var sqlDriverSettings = _services.GetRequiredService<SqlDriverSetting>();
         var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
+        var settingService = _services.GetRequiredService<ISettingService>();
         var provider = request.Provider ?? "openai";
-        var model = request.Model ?? "gpt-4o";
+        var model = request.Model ?? settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o);
         var schema = request.Schema;
         var collectionName = request.KnowledgebaseCollection;
 

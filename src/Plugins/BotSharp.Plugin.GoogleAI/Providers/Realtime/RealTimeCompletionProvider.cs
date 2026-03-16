@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Realtime.Options;
 using BotSharp.Abstraction.Realtime.Sessions;
 using BotSharp.Abstraction.Realtime.Settings;
+using BotSharp.Abstraction.Settings;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.Session;
 using BotSharp.Plugin.GoogleAI.Models.Realtime;
@@ -87,8 +88,9 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
 
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
+        var settingService = _services.GetRequiredService<ISettingService>();
 
-        _model ??= realtimeModelSettings.Model;
+        _model ??= settingService.GetUpgradeModel(realtimeModelSettings.Model);
         var modelSettings = settingsService.GetSetting(Provider, _model);
 
         Reset();

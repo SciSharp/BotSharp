@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.Instructs.Options;
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Options;
+using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Templating;
 using System.Collections;
 using System.Reflection;
@@ -86,9 +88,10 @@ public partial class InstructService
 
     private async Task<RoleDialogModel> GetAiResponse(string text, Agent agent, InstructOptions? options)
     {
+        var settingService = _services.GetRequiredService<ISettingService>();
         var dialogs = await BuildDialogs(text, options);
         var provider = options?.Provider ?? agent?.LlmConfig?.Provider ?? "openai";
-        var model = options?.Model ?? agent?.LlmConfig?.Model ?? "gpt-4o";
+        var model = options?.Model ?? agent?.LlmConfig?.Model ?? settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o);
         var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
         return await completion.GetChatCompletions(agent, dialogs);
     }
