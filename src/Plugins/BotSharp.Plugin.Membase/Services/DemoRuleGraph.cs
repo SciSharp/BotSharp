@@ -22,7 +22,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
         _logger = logger;
     }
 
-    public string Provider => "demo";
+    public string Name => "One Flow";
 
     public async Task<RuleConfigModel> GetTopologyConfigAsync(RuleFlowConfigOptions? options = null)
     {
@@ -30,25 +30,20 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
         var apiKey = settings.ApiKey;
         var projectId = settings.ProjectId;
 
-        var foundInstance = settings.GraphInstances?.FirstOrDefault(x => x.Id.IsEqualTo(options?.TopologyId));
-        if (foundInstance == null && !string.IsNullOrEmpty(options?.Purpose))
+        var topologyName = Name;
+        if (!string.IsNullOrEmpty(options?.TopologyName))
         {
-            foundInstance = settings.GraphInstances?.FirstOrDefault(x => x.Purpose.IsEqualTo(options.Purpose));
+            topologyName = options.TopologyName;
         }
 
-        if (foundInstance == null)
-        {
-            // default
-            foundInstance = settings.GraphInstances?.FirstOrDefault(x => x.Purpose.IsEqualTo("rule"));
-        }
-
+        var foundInstance = settings.GraphInstances?.FirstOrDefault(x => x.Name.IsEqualTo(topologyName));
         var graphId = foundInstance?.Id ?? string.Empty;
         var query = Uri.EscapeDataString("MATCH (a)-[r]->(b) WITH a, r, b WHERE a.agent = $agent AND a.trigger = $trigger AND b.agent = $agent AND b.trigger = $trigger RETURN a, r, b LIMIT 100");
 
         return new RuleConfigModel
         {
-            TopologyProvider = Provider,
             TopologyId = graphId,
+            TopologyName = foundInstance?.Name,
             CustomParameters = JsonDocument.Parse(JsonSerializer.Serialize(new
             {
                 htmlTag = "iframe",

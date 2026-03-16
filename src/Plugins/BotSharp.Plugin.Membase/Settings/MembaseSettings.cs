@@ -21,7 +21,7 @@ public class GraphInstance
     public string Name { get; set; }
 
     /// <summary>
-    /// Graph purpose, i.e., rule, etc.
+    /// Graph description
     /// </summary>
-    public string Purpose { get; set; }
+    public string Description { get; set; }
 }

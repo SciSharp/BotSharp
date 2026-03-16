@@ -27,7 +27,7 @@ public partial class AgentController
         foreach (var flow in flows)
         {
             var config = await flow.GetTopologyConfigAsync();
-            dict[config.TopologyProvider.ToLower()] = config;
+            dict[config.TopologyName.ToLower()] = config;
         }
 
         return dict;

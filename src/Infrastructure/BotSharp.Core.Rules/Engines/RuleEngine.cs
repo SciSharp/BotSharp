@@ -38,13 +38,13 @@ public class RuleEngine : IRuleEngine
             }
 
             var ruleConfig = rule.Config;
-            var ruleFlowProvider = options?.Flow?.TopologyProvider ?? ruleConfig?.TopologyProvider;
+            var ruleFlowTopologyName = options?.Flow?.TopologyName ?? ruleConfig?.TopologyName;
 
-            if (!string.IsNullOrEmpty(ruleFlowProvider))
+            if (!string.IsNullOrEmpty(ruleFlowTopologyName))
             {
                 // Execute graph
                 // 1. Load graph
-                var graph = await LoadGraph(ruleFlowProvider, agent, trigger, options?.Flow);
+                var graph = await LoadGraph(ruleFlowTopologyName, agent, trigger, options?.Flow);
                 if (graph == null)
                 {
                     continue;
@@ -112,33 +112,44 @@ public class RuleEngine : IRuleEngine
     }
 
     #region Graph
-    private async Task<RuleGraph?> LoadGraph(string provider, Agent agent, IRuleTrigger trigger, RuleFlowOptions? options)
+    private async Task<RuleGraph?> LoadGraph(string name, Agent agent, IRuleTrigger trigger, RuleFlowOptions? options)
     {
-        var flow = _services.GetServices<IRuleFlow<RuleGraph>>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
+        var flow = _services.GetServices<IRuleFlow<RuleGraph>>().FirstOrDefault(x => x.Name.IsEqualTo(name));
         if (flow == null)
         {
             return null;
         }
 
-        var param = new Dictionary<string, object>(options?.Parameters ?? []);
-        param["agent"] = param.GetValueOrDefault("agent", agent.Name);
-        param["agent_id"] = param.GetValueOrDefault("agent_id", agent.Id);
-        param["trigger"] = param.GetValueOrDefault("trigger", trigger.Name);
-
-        var topologyId = options?.TopologyId;
-        if (string.IsNullOrEmpty(topologyId))
+        try
         {
-            var config = await flow.GetTopologyConfigAsync();
-            topologyId = config.TopologyId;
+            var config = await flow.GetTopologyConfigAsync(options: new()
+            {
+                TopologyName = name
+            });
+
+            var topologyId = config?.TopologyId;
+            if (string.IsNullOrEmpty(topologyId))
+            {
+                return null;
+            }
+
+
+            var param = new Dictionary<string, object>(options?.Parameters ?? []);
+            param["agent"] = param.GetValueOrDefault("agent", agent.Name);
+            param["agent_id"] = param.GetValueOrDefault("agent_id", agent.Id);
+            param["trigger"] = param.GetValueOrDefault("trigger", trigger.Name);
+
+            return await flow.GetTopologyAsync(topologyId, options: new()
+            {
+                Query = options?.Query,
+                Parameters = param
+            });
         }
-
-        return await flow.GetTopologyAsync(topologyId, options: new()
+        catch (Exception ex)
         {
-            AgentId = agent.Id,
-            TriggerName = trigger.Name,
-            Query = options?.Query,
-            Parameters = param
-        });
+            _logger.LogError(ex, $"Error when loading graph (name: {name}, agent: {agent}, trigger: {trigger?.Name})");
+            return null;
+        }
     }
 
     private async Task ExecuteGraphNode(
@@ -152,14 +163,18 @@ public class RuleEngine : IRuleEngine
         RuleTriggerOptions? options,
         List<RuleFlowStepResult> results)
     {
-        if (options?.Flow?.TraversalAlgorithm?.IsEqualTo("bfs") == true)
+        try
         {
-            await ExecuteGraphNodeBfs(node, graph, agent, trigger, text, states, data, options, results);
+            if (options?.Flow?.TraversalAlgorithm?.IsEqualTo("bfs") == true)
+            {
+                await ExecuteGraphNodeBfs(node, graph, agent, trigger, text, states, data, options, results);
+            }
+            else
+            {
+                await ExecuteGraphNodeDfs(node, graph, agent, trigger, text, states, data, options, results);
+            }
         }
-        else
-        {
-            await ExecuteGraphNodeDfs(node, graph, agent, trigger, text, states, data, options, results);
-        }
+        catch { }
     }
 
     private async Task ExecuteGraphNodeDfs(

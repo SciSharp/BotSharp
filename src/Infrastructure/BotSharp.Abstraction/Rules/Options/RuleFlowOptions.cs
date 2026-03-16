@@ -9,10 +9,10 @@ public class RuleFlowOptions
     public string? TopologyProvider { get; set; }
 
     /// <summary>
-    /// Flow topology id
+    /// Flow topology name
     /// </summary>
-    [JsonPropertyName("topology_id")]
-    public string? TopologyId { get; set; }
+    [JsonPropertyName("topology_name")]
+    public string? TopologyName { get; set; }
 
     /// <summary>
     /// Query to get flow topology

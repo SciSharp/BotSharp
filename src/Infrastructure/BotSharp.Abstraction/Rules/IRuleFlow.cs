@@ -5,9 +5,9 @@ namespace BotSharp.Abstraction.Rules;
 public interface IRuleFlow<T> where T : class
 {
     /// <summary>
-    /// Rule flow provider
+    /// Rule flow topology name
     /// </summary>
-    string Provider { get; }
+    string Name { get; }
 
     /// <summary>
     /// Get rule flow topology config 
