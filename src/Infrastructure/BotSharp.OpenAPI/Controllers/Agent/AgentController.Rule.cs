@@ -27,7 +27,11 @@ public partial class AgentController
         foreach (var flow in flows)
         {
             var config = await flow.GetTopologyConfigAsync();
-            dict[config.TopologyName.ToLower()] = config;
+            if (string.IsNullOrEmpty(config.TopologyName))
+            {
+                continue;
+            }
+            dict[config.TopologyName] = config;
         }
 
         return dict;
