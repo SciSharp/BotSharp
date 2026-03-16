@@ -10,4 +10,5 @@ public static class Gpt4xModelConstants
     public const string GPT_4_1_Nano = "gpt-4.1-nano";
     public const string GPT_4o_Mini_Realtime_Preview = "gpt-4o-mini-realtime-preview";
     public const string GPT_4o_Realtime_Preview = "gpt-4o-realtime-preview";
+    public const string GPT_4o_Search_Preview = "gpt-4o-search-preview";
 }
