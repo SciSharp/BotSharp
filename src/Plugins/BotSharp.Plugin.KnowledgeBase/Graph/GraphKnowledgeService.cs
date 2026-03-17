@@ -20,17 +20,9 @@ public partial class GraphKnowledgeService : IGraphKnowledgeService
 
     public async Task<GraphQueryResult> ExecuteQueryAsync(string query, GraphQueryOptions? options = null)
     {
-        try
-        {
-            var db = GetGraphDb(options?.Provider);
-            var result = await db.ExecuteQueryAsync(query, options);
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error when searching graph knowledge (Query: {query}).");
-            return new GraphQueryResult();
-        }
+        var db = GetGraphDb(options?.Provider);
+        var result = await db.ExecuteQueryAsync(query, options);
+        return result;
     }
 
 

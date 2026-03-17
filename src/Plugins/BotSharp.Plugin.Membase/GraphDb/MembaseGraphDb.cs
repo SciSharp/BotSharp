@@ -55,7 +55,7 @@ public partial class MembaseGraphDb : IGraphDb
         {
             var argLogs = args.Select(x => (new KeyValue(x.Key, x.Value.ConvertToString(BotSharpOptions.defaultJsonOptions))).ToString());
             _logger.LogError(ex, $"Error when executing query in {Provider} graph db. (Query: {query}), (Argments: \r\n{string.Join("\r\n", argLogs)})");
-            return new();
+            throw;
         }
     }
 }
