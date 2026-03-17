@@ -3,12 +3,6 @@ namespace BotSharp.Abstraction.Rules.Options;
 public class RuleFlowOptions
 {
     /// <summary>
-    /// Flow topology provider
-    /// </summary>
-    [JsonPropertyName("topology_provider")]
-    public string? TopologyProvider { get; set; }
-
-    /// <summary>
     /// Flow topology name
     /// </summary>
     [JsonPropertyName("topology_name")]

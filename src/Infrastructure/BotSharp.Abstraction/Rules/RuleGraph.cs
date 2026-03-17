@@ -112,7 +112,7 @@ public class RuleGraph
                 Type = payload.Type,
                 Labels = [.. payload.Labels ?? []],
                 Weight = payload.Weight,
-                Purpose = payload.Purpose,
+                Description = payload.Description,
                 Config = new(payload.Config ?? [])
             });
         }
@@ -174,7 +174,7 @@ public class RuleNode : GraphItem
 
     public override string ToString()
     {
-        return $"Node ({Id}): {Name} ({Type} => {Purpose})";
+        return $"Node ({Id}): {Name} ({Type} => {Description})";
     }
 }
 
@@ -202,7 +202,7 @@ public class RuleEdge : GraphItem
 
     public override string ToString()
     {
-        return $"Edge ({Id}): {Name} ({Type} => {Purpose}), Connects from Node ({From?.Name}) to Node ({To?.Name})";
+        return $"Edge ({Id}): {Name} ({Type} => {Description}), Connects from Node ({From?.Name}) to Node ({To?.Name})";
     }
 }
 
@@ -213,7 +213,7 @@ public class GraphItem
     public virtual string Type { get; set; } = null!;
     public virtual IEnumerable<string> Labels { get; set; } = [];
     public virtual double Weight { get; set; } = 1.0;
-    public virtual string? Purpose { get; set; }
+    public virtual string? Description { get; set; }
     public virtual Dictionary<string, string?> Config { get; set; } = [];
 }
 
