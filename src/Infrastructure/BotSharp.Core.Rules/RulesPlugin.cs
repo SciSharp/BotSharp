@@ -26,11 +26,11 @@ public class RulesPlugin : IBotSharpPlugin
         services.AddScoped<IRuleAction, HttpRuleAction>();
         services.AddScoped<IRuleAction, FunctionCallRuleAction>();
 
-#if DEBUG
         // Register rule conditions
         services.AddScoped<IRuleCondition, LoopingCondition>();
         services.AddScoped<IRuleCondition, AllVisitedRuleCondition>();
 
+#if DEBUG
         // Register rule trigger
         services.AddScoped<IRuleTrigger, DemoRuleTrigger>();
 #endif
