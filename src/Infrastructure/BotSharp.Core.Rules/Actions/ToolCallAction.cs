@@ -2,20 +2,20 @@ using BotSharp.Abstraction.Functions;
 
 namespace BotSharp.Core.Rules.Actions;
 
-public sealed class FunctionCallRuleAction : IRuleAction
+public sealed class ToolCallAction : IRuleAction
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<FunctionCallRuleAction> _logger;
+    private readonly ILogger<ToolCallAction> _logger;
 
-    public FunctionCallRuleAction(
+    public ToolCallAction(
         IServiceProvider services,
-        ILogger<FunctionCallRuleAction> logger)
+        ILogger<ToolCallAction> logger)
     {
         _services = services;
         _logger = logger;
     }
 
-    public string Name => "function_call";
+    public string Name => "tool_call";
 
     public async Task<RuleNodeResult> ExecuteAsync(
         Agent agent,
@@ -45,7 +45,7 @@ public sealed class FunctionCallRuleAction : IRuleAction
             Response = funcArg?.RichContent?.Message?.Text ?? funcArg?.Content,
             Data = new()
             {
-                ["function_name"] = funcName!,
+                ["function_name"] = func.Name!,
                 ["function_argument"] = funcArg?.ConvertToString() ?? "{}",
                 ["function_call_result"] = funcArg?.RichContent?.Message?.Text ?? funcArg?.Content ?? string.Empty
             }

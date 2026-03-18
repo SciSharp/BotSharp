@@ -87,7 +87,7 @@ public class RuleGraph
         }
     }
 
-    public void AddEdge(RuleNode from, RuleNode to, GraphItemPayload payload)
+    public void AddEdge(RuleNode from, RuleNode to, EdgeItemPayload payload)
     {
         var sourceFound = _nodes.Exists(x => x.Id.IsEqualTo(from.Id));
         var targetFound = _nodes.Exists(x => x.Id.IsEqualTo(to.Id));
@@ -112,6 +112,7 @@ public class RuleGraph
                 Type = payload.Type,
                 Labels = [.. payload.Labels ?? []],
                 Weight = payload.Weight,
+                Purpose = payload.Purpose,
                 Description = payload.Description,
                 Config = new(payload.Config ?? [])
             });
@@ -213,12 +214,29 @@ public class GraphItem
     public virtual string Type { get; set; } = null!;
     public virtual IEnumerable<string> Labels { get; set; } = [];
     public virtual double Weight { get; set; } = 1.0;
+    public virtual string? Purpose { get; set; }
     public virtual string? Description { get; set; }
     public virtual Dictionary<string, string?> Config { get; set; } = [];
 }
 
-public class GraphItemPayload : GraphItem
+public class NodeItem : GraphItem
 {
+
+}
+
+public class EdgeItem : GraphItem
+{
+
+}
+
+public class NodeItemPayload : GraphItem
+{
+
+}
+
+public class EdgeItemPayload : GraphItem
+{
+
 }
 
 public class RuleGraphInfo

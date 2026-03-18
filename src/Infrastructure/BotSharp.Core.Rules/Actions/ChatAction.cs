@@ -1,13 +1,13 @@
 namespace BotSharp.Core.Rules.Actions;
 
-public sealed class ChatRuleAction : IRuleAction
+public sealed class ChatAction : IRuleAction
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<ChatRuleAction> _logger;
+    private readonly ILogger<ChatAction> _logger;
 
-    public ChatRuleAction(
+    public ChatAction(
         IServiceProvider services,
-        ILogger<ChatRuleAction> logger)
+        ILogger<ChatAction> logger)
     {
         _services = services;
         _logger = logger;

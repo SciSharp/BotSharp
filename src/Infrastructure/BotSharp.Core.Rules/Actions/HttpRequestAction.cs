@@ -4,15 +4,15 @@ using System.Web;
 
 namespace BotSharp.Core.Rules.Actions;
 
-public sealed class HttpRuleAction : IRuleAction
+public sealed class HttpRequestAction : IRuleAction
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<HttpRuleAction> _logger;
+    private readonly ILogger<HttpRequestAction> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
 
-    public HttpRuleAction(
+    public HttpRequestAction(
         IServiceProvider services,
-        ILogger<HttpRuleAction> logger,
+        ILogger<HttpRequestAction> logger,
         IHttpClientFactory httpClientFactory)
     {
         _services = services;

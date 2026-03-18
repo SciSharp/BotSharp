@@ -22,9 +22,9 @@ public class RulesPlugin : IBotSharpPlugin
         services.AddScoped<IRuleEngine, RuleEngine>();
 
         // Register rule actions
-        services.AddScoped<IRuleAction, ChatRuleAction>();
-        services.AddScoped<IRuleAction, HttpRuleAction>();
-        services.AddScoped<IRuleAction, FunctionCallRuleAction>();
+        services.AddScoped<IRuleAction, ChatAction>();
+        services.AddScoped<IRuleAction, HttpRequestAction>();
+        services.AddScoped<IRuleAction, ToolCallAction>();
 
         // Register rule conditions
         services.AddScoped<IRuleCondition, LoopingCondition>();

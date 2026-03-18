@@ -172,7 +172,8 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
                 Weight = sourceNodeWeight,
                 Name = GetGraphItemAttribute(sourceNodeProps, key: "name", defaultValue: "node"),
                 Type = GetGraphItemAttribute(sourceNodeProps, key: "type", defaultValue: "action"),
-                Description = GetGraphItemAttribute(sourceNodeProps, key: "description", defaultValue: "unknown"),
+                Purpose = GetGraphItemAttribute(sourceNodeProps, key: "purpose", defaultValue: ""),
+                Description = GetGraphItemAttribute(sourceNodeProps, key: "description", defaultValue: ""),
                 Config = GetConfig(sourceNodeProps)
             };
 
@@ -184,17 +185,19 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
                 Weight = targetNodeWeight,
                 Name = GetGraphItemAttribute(targetNodeProps, key: "name", defaultValue: "node"),
                 Type = GetGraphItemAttribute(targetNodeProps, key: "type", defaultValue: "action"),
-                Description = GetGraphItemAttribute(targetNodeProps, key: "description", defaultValue: "unknown"),
+                Purpose = GetGraphItemAttribute(targetNodeProps, key: "purpose", defaultValue: ""),
+                Description = GetGraphItemAttribute(targetNodeProps, key: "description", defaultValue: ""),
                 Config = GetConfig(targetNodeProps)
             };
 
             // Create edge payload
-            var edgePayload = new GraphItemPayload()
+            var edgePayload = new EdgeItemPayload()
             {
                 Id = edgeId ?? Guid.NewGuid().ToString(),
                 Name = GetGraphItemAttribute(edgeProps, key: "name", defaultValue: "edge"),
                 Type = GetGraphItemAttribute(edgeProps, key: "type", defaultValue: "next"),
-                Description = GetGraphItemAttribute(edgeProps, key: "description", defaultValue: "unknown"),
+                Purpose = GetGraphItemAttribute(edgeProps, key: "purpose", defaultValue: ""),
+                Description = GetGraphItemAttribute(edgeProps, key: "description", defaultValue: ""),
                 Weight = edgeWeight,
                 Config = GetConfig(edgeProps)
             };
