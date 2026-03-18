@@ -80,18 +80,24 @@ public partial class ConversationService
 
             if (agent.Type == AgentType.Routing)
             {
+                await routing.Context.Push(agent.Id, reason: "request started", updateLazyRouting: false);
+
                 // Check the routing mode
                 var states = _services.GetRequiredService<IConversationStateService>();
                 var routingMode = states.GetState(StateConst.ROUTING_MODE, agent.Mode ?? RoutingMode.Eager);
-                await routing.Context.Push(agent.Id, reason: "request started", updateLazyRouting: false);
+                var lazyRoutingAgentId = states.GetState(StateConst.LAZY_ROUTING_AGENT_ID);
 
-                if (routingMode == RoutingMode.Lazy)
+                if (routingMode == RoutingMode.Lazy && !string.IsNullOrEmpty(lazyRoutingAgentId))
                 {
-                    message.CurrentAgentId = states.GetState(StateConst.LAZY_ROUTING_AGENT_ID, message.CurrentAgentId);
+                    message.CurrentAgentId = lazyRoutingAgentId;
+                    agent = await agentService.LoadAgent(message.CurrentAgentId);
                     await routing.Context.Push(message.CurrentAgentId, reason: "lazy routing", updateLazyRouting: false);
+                    response = await routing.InstructDirect(agent, message, dialogs);
                 }
-
-                response = await routing.InstructLoop(agent, message, dialogs);
+                else
+                {
+                    response = await routing.InstructLoop(agent, message, dialogs);
+                }
             }
             else
             {
