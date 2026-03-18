@@ -22,7 +22,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
         _logger = logger;
     }
 
-    public string Name => "One Flow";
+    public string Name => "Demo";
 
     public async Task<RuleConfigModel> GetTopologyConfigAsync(RuleFlowConfigOptions? options = null)
     {
