@@ -33,7 +33,7 @@ public class MembasePlugin : IBotSharpPlugin
                 .ConfigureHttpClient(c =>
                 {
                     c.BaseAddress = new Uri(settings.Host);
-                    c.Timeout = TimeSpan.FromSeconds(5);
+                    c.Timeout = TimeSpan.FromSeconds(settings.TimeoutSecond);
                 });
 
         services.AddScoped<IGraphDb, MembaseGraphDb>();
