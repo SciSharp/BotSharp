@@ -158,6 +158,7 @@ public sealed class LoopingCondition : IRuleCondition
         context.Parameters?.Remove(PARAM_ITERATE_INDEX);
         context.Parameters?.Remove(PARAM_ITERATE_ITEM_KEY);
         context.Parameters?.Remove(PARAM_ITERATE_NEXT_ITEM);
+        context.Parameters?.Remove(PARAM_LIST_ITEMS_KEY);
 
         if (!string.IsNullOrEmpty(itemKey))
         {

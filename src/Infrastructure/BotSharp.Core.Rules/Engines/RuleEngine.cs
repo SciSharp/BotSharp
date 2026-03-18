@@ -228,7 +228,7 @@ public class RuleEngine : IRuleEngine
             if (RuleConstant.CONDITION_NODE_TYPES.Contains(nextNode.Type))
             {
                 // Execute condition node
-                var conditionResult = await ExecuteCondition(nextNode, graph, agent, trigger, context);
+                var conditionResult = await ExecuteCondition(nextNode, edge, graph, agent, trigger, context);
                 if (conditionResult == null)
                 {
                     results.Add(RuleFlowStepResult.FromResult(new()
@@ -255,7 +255,7 @@ public class RuleEngine : IRuleEngine
             else if (RuleConstant.ACTION_NODE_TYPES.Contains(nextNode.Type))
             {
                 // Execute action node
-                var actionResult = await ExecuteAction(nextNode, graph, agent, trigger, context);
+                var actionResult = await ExecuteAction(nextNode, edge, graph, agent, trigger, context);
                 if (actionResult == null)
                 {
                     results.Add(RuleFlowStepResult.FromResult(new()
@@ -337,7 +337,7 @@ public class RuleEngine : IRuleEngine
             if (RuleConstant.CONDITION_NODE_TYPES.Contains(nextNode.Type))
             {
                 // Execute condition node
-                var conditionResult = await ExecuteCondition(nextNode, graph, agent, trigger, context);
+                var conditionResult = await ExecuteCondition(nextNode, nextEdge, graph, agent, trigger, context);
                 innerData = new(context.Parameters ?? []);
 
                 if (conditionResult == null)
@@ -369,7 +369,7 @@ public class RuleEngine : IRuleEngine
             else if (RuleConstant.ACTION_NODE_TYPES.Contains(nextNode.Type))
             {
                 // Execute action node
-                var actionResult = await ExecuteAction(nextNode, graph, agent, trigger, context);
+                var actionResult = await ExecuteAction(nextNode, nextEdge, graph, agent, trigger, context);
                 innerData = new(context.Parameters ?? []);
 
                 if (actionResult == null)
@@ -413,6 +413,7 @@ public class RuleEngine : IRuleEngine
     #region Action
     private async Task<RuleNodeResult?> ExecuteAction(
         RuleNode node,
+        RuleEdge incomingEdge,
         RuleGraph graph,
         Agent agent,
         IRuleTrigger trigger,
@@ -435,7 +436,7 @@ public class RuleEngine : IRuleEngine
             var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
             foreach (var hook in hooks)
             {
-                await hook.BeforeRuleActionExecuting(agent, node, trigger, context);
+                await hook.BeforeRuleActionExecuting(agent, node, incomingEdge, trigger, context);
             }
 
             // Execute action
@@ -444,7 +445,7 @@ public class RuleEngine : IRuleEngine
 
             foreach (var hook in hooks)
             {
-                await hook.AfterRuleActionExecuted(agent, node, trigger, context, result);
+                await hook.AfterRuleActionExecuted(agent, node, incomingEdge, trigger, context, result);
             }
 
             return result;
@@ -499,6 +500,7 @@ public class RuleEngine : IRuleEngine
     #region Condition
     private async Task<RuleNodeResult?> ExecuteCondition(
         RuleNode node,
+        RuleEdge incomingEdge,
         RuleGraph graph,
         Agent agent,
         IRuleTrigger trigger,
@@ -521,7 +523,7 @@ public class RuleEngine : IRuleEngine
             var hooks = _services.GetHooks<IRuleTriggerHook>(agent.Id);
             foreach (var hook in hooks)
             {
-                await hook.BeforeRuleConditionExecuting(agent, node, trigger, context);
+                await hook.BeforeRuleConditionExecuting(agent, node, incomingEdge, trigger, context);
             }
 
             // Execute condition
@@ -530,7 +532,7 @@ public class RuleEngine : IRuleEngine
 
             foreach (var hook in hooks)
             {
-                await hook.AfterRuleConditionExecuted(agent, node, trigger, context, result);
+                await hook.AfterRuleConditionExecuted(agent, node, incomingEdge, trigger, context, result);
             }
 
             return result;
