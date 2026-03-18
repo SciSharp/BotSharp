@@ -4,4 +4,5 @@ public class CodeExecutionContext
 {
     public AgentCodeScript CodeScript { get; set; }
     public List<KeyValue> Arguments { get; set; } = [];
+    public string? InvokeFrom { get; set; }
 }

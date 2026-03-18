@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Rules;
+using BotSharp.Abstraction.Rules.Models;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -18,9 +18,22 @@ public partial class AgentController
         }).OrderBy(x => x.TriggerName);
     }
 
-    [HttpGet("/rule/formalization")]
-    public async Task<string> GetFormalizedRuleDefinition([FromBody] AgentRule rule)
+    [HttpGet("/rule/config/options")]
+    public async Task<IDictionary<string, RuleConfigModel>> GetRuleConfigOptions()
     {
-        return "{}";
+        var dict = new Dictionary<string, RuleConfigModel>();
+        var flows = _services.GetServices<IRuleFlow<RuleGraph>>();
+
+        foreach (var flow in flows)
+        {
+            var config = await flow.GetTopologyConfigAsync();
+            if (string.IsNullOrEmpty(config.TopologyName))
+            {
+                continue;
+            }
+            dict[config.TopologyName] = config;
+        }
+
+        return dict;
     }
 }

@@ -8,6 +8,13 @@ public class AgentRule
     [JsonPropertyName("disabled")]
     public bool Disabled { get; set; }
 
-    [JsonPropertyName("criteria")]
-    public string Criteria { get; set; } = string.Empty;
+    [JsonPropertyName("config")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RuleConfig? Config { get; set; }
+}
+
+public class RuleConfig
+{
+    [JsonPropertyName("topology_name")]
+    public string? TopologyName { get; set; }
 }

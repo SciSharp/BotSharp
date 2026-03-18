@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Graph.Models;
+
 namespace BotSharp.Plugin.Membase.Settings;
 
 public class MembaseSettings
@@ -6,4 +8,5 @@ public class MembaseSettings
     public string ProjectId { get; set; } = string.Empty;
     public string ApiKey { get; set; } = string.Empty;
     public int TimeoutSecond { get; set; } = 10;
+    public GraphInstance[] GraphInstances { get; set; } = [];
 }
