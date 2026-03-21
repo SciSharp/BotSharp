@@ -41,6 +41,7 @@ public partial class AgentService
         record.Samples = agent.Samples ?? [];
         record.Utilities = agent.Utilities ?? [];
         record.McpTools = agent.McpTools ?? [];
+        record.Skills = agent.Skills ?? [];
         record.KnowledgeBases = agent.KnowledgeBases ?? [];
         record.Rules = agent.Rules ?? [];
         if (agent.LlmConfig != null && !agent.LlmConfig.IsInherit)

@@ -1,0 +1,246 @@
+using BotSharp.Plugin.AgentSkills.Settings;
+using BotSharp.Plugin.AgentSkills.Skills;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
+using System.Text;
+
+namespace BotSharp.Plugin.AgentSkills.Services;
+
+/// <summary>
+/// Service implementation for managing Agent Skills.
+/// Encapsulates AgentSkillsDotNet library and provides unified skill access.
+/// Implements requirements: FR-1.1, FR-1.2, FR-1.3, FR-2.1, FR-3.1, NFR-1.1, NFR-4.2
+/// </summary>
+public class SkillService : ISkillService
+{
+    private readonly AgentSkillsFactory _factory;
+    private readonly IServiceProvider _serviceProvider;
+    private AgentSkillsSettings _settings;
+    private readonly ILogger<SkillService> _logger;
+    private Skills.AgentSkills? _agentSkills;
+    private readonly object _lock = new object();
+
+    /// <summary>
+    /// Initializes a new instance of the SkillService class.
+    /// Implements requirement: FR-1.1 (Skill Discovery and Loading)
+    /// </summary>
+    /// <param name="factory">The AgentSkillsFactory for creating skill instances.</param>
+    /// <param name="logger">The logger for recording operations.</param>
+    public SkillService(
+        AgentSkillsFactory factory,
+        IServiceProvider serviceProvider,
+        ILogger<SkillService> logger)
+    {
+        _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        // Initialize skills on construction
+        InitializeSkills();
+    }
+
+    /// <summary>
+    /// Initializes skill loading from configured directories.
+    /// Implements requirements: FR-1.1, FR-1.2, FR-1.3, NFR-1.1
+    /// </summary>
+    private void InitializeSkills()
+    {
+        lock (_lock)
+        {
+            try
+            {
+                _settings = _serviceProvider.GetRequiredService<AgentSkillsSettings>();
+
+                _logger.LogInformation("Initializing Agent Skills...");
+
+                // FR-1.2: Load project-level skills
+                if (_settings.EnableProjectSkills)
+                {
+                    var projectSkillsDir = _settings.GetProjectSkillsDirectory();
+                    _logger.LogInformation("Loading project skills from {Directory}", projectSkillsDir);
+
+                    if (Directory.Exists(projectSkillsDir))
+                    {
+                        _agentSkills = _factory.GetAgentSkills(projectSkillsDir);
+                        var skillCount = _agentSkills.GetInstructions().Split("<skill>").Length - 1;
+                        _logger.LogInformation("Loaded {Count} project skills", skillCount);
+                    }
+                    else
+                    {
+                        // FR-1.3: Directory not found - log warning but continue
+                        _logger.LogWarning("Project skills directory not found: {Directory}", projectSkillsDir);
+                    }
+                }
+
+                // FR-1.2: Load user-level skills (if enabled)
+                // Note: Currently AgentSkillsDotNet doesn't support merging multiple directories
+                // If both are enabled, project skills take precedence
+                if (_settings.EnableUserSkills && _agentSkills == null)
+                {
+                    var userSkillsDir = _settings.GetUserSkillsDirectory();
+                    _logger.LogInformation("Loading user skills from {Directory}", userSkillsDir);
+
+                    if (Directory.Exists(userSkillsDir))
+                    {
+                        _agentSkills = _factory.GetAgentSkills(userSkillsDir);
+                        var skillCount = _agentSkills.GetInstructions().Split("<skill>").Length - 1;
+                        _logger.LogInformation("Loaded {Count} user skills", skillCount);
+                    }
+                    else
+                    {
+                        // FR-1.3: Directory not found - log warning but continue
+                        _logger.LogWarning("User skills directory not found: {Directory}", userSkillsDir);
+                    }
+                }              
+
+                _logger.LogInformation("Agent Skills initialization completed successfully");
+            }
+            catch (Exception ex)
+            {
+                // FR-1.3: Loading failure should not interrupt application startup
+                _logger.LogError(ex, "Failed to initialize Agent Skills");
+                _agentSkills = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets all loaded skills.
+    /// Implements requirement: FR-1.1
+    /// </summary>
+    public IList<Skills.AgentSkill> GetAgentSkills()
+    {
+        return _agentSkills?.Skills ?? new List<Skills.AgentSkill>();
+    }
+
+    /// <summary>
+    /// Gets all loaded skills.
+    /// Implements requirement: FR-1.1
+    /// </summary>
+    public IList<Skills.AgentSkill> GetAgentSkills(Agent agent)
+    {
+        var agentskills = new List<Skills.AgentSkill>();
+        if (_agentSkills == null)
+        {
+            throw new InvalidOperationException("Skills not loaded. Check logs for initialization errors.");
+        }
+
+        foreach (var skill in agent.Skills)
+        {
+            if (!_agentSkills.Skills.Any(s => s.Name.Equals(skill.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                _logger.LogWarning("Agent {AgentName} has skill '{Skill}' which is not available in loaded skills", agent.Name, skill);
+            }
+            else
+            {
+                var agentSkill = _agentSkills.Skills.FirstOrDefault(s => s.Name.Equals(skill.Name, StringComparison.OrdinalIgnoreCase));
+               if(agentSkill != null)
+                {
+                    agentskills.Add(agentSkill);
+                }
+            }
+        } 
+        return agentskills;
+    }
+
+    /// <summary>
+    /// Gets skill instructions text for injection into Agent prompts.
+    /// Implements requirement: FR-2.1
+    /// </summary>
+    public string GetInstructions(Agent agent)
+    {
+        if (_agentSkills == null)
+        {
+            _logger.LogWarning("GetInstructions called but no skills are loaded");
+            return string.Empty;
+        }
+
+        try
+        {
+            var agentskills = _agentSkills.Skills;
+            if (agentskills == null)
+            {
+                _logger.LogWarning("GetInstructions called but no skills are available in AgentSkills");
+                return string.Empty;
+            }
+            else
+            {
+                StringBuilder availableSkillToolBuilder = new();
+                availableSkillToolBuilder.AppendLine("<available_skills>");
+
+                _logger.LogDebug("Generating instructions for {Count} skills", agentskills.Count);
+                foreach (var skill in agent.Skills)
+                {
+                    if (!agentskills.Any(s => s.Name.Equals(skill.Name, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        _logger.LogWarning("Agent {AgentName} has skill '{Skill}' which is not available in loaded skills", agent.Name, skill);
+                    }
+                    else
+                    {
+                        var agentSkill = agentskills.FirstOrDefault(s => s.Name.Equals(skill.Name, StringComparison.OrdinalIgnoreCase));
+                        availableSkillToolBuilder.AppendLine("\t<skill>");
+                        availableSkillToolBuilder.AppendLine($"\t\t<name>{agentSkill.Name}</name>");
+                        availableSkillToolBuilder.AppendLine($"\t\t<description>{agentSkill.Description}</description>");
+                        availableSkillToolBuilder.AppendLine($"\t\t<location>{agentSkill.FolderPath}</location>");
+                        availableSkillToolBuilder.AppendLine("\t</skill>");
+                    }
+                }
+
+                var instructions = availableSkillToolBuilder.AppendLine("</available_skills>").ToString();
+                var skillCount = instructions.Split("<skill>").Length - 1;
+                _logger.LogDebug("Generated instructions for {Count} skills", skillCount);
+                return instructions ?? string.Empty;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to generate skill instructions");
+            return string.Empty;
+        }
+    }  
+
+
+    /// <summary>
+    /// Reloads all skills from configured directories.
+    /// Implements requirement: NFR-4.2
+    /// </summary>
+    public async System.Threading.Tasks.Task ReloadSkillsAsync()
+    {
+        _logger.LogInformation("Reloading Agent Skills...");
+
+        await System.Threading.Tasks.Task.Run(() =>
+        {
+            try
+            {
+                InitializeSkills();
+                _logger.LogInformation("Agent Skills reloaded successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to reload Agent Skills");
+                throw;
+            }
+        });
+    }
+
+    /// <summary>
+    /// Gets the count of loaded skills.
+    /// Implements requirement: NFR-2.2
+    /// </summary>
+    public int GetSkillCount()
+    {
+        if (_agentSkills == null)
+        {
+            return 0;
+        }
+
+        try
+        {
+            var instructions = _agentSkills.GetInstructions();
+            return instructions.Split("<skill>").Length - 1;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+}
