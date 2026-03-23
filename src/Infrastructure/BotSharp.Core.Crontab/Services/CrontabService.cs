@@ -116,6 +116,8 @@ public class CrontabService : ICrontabService, ITaskFeeder
     {
         _logger.LogDebug($"ScheduledTimeArrived {item}");
 
+        if (!await HasEnabledTriggerRule(item)) return;
+
         await HookEmitter.Emit<ICrontabHook>(_services, async hook =>
         {
             if (hook.Triggers == null || hook.Triggers.Contains(item.Title))
@@ -126,5 +128,20 @@ public class CrontabService : ICrontabService, ITaskFeeder
                 await hook.OnTaskExecuted(item);
             }
         }, item.AgentId);
+    }
+
+    private async Task<bool> HasEnabledTriggerRule(CrontabItem item)
+    {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        if(string.IsNullOrEmpty(item.AgentId)) return true;
+
+        var agent = await agentService.GetAgent(item.AgentId);
+        if (agent == null)
+        {
+            _logger.LogWarning("Agent {AgentId} is not found", item.AgentId);
+            return false;
+        }
+
+        return agent.Rules.Any(r => r.TriggerName == item.Title && !r.Disabled);
     }
 }
