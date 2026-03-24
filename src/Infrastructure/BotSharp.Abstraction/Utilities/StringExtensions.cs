@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Options;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -185,5 +186,26 @@ public static partial class StringExtensions
 
         var str = JsonSerializer.Serialize(value, jsonOptions);
         return str;
+    }
+
+    /// <summary>
+    /// Get MD5 hash of a string
+    /// </summary>
+    /// <param name="text"></param>
+    /// <returns></returns>
+    public static string GetMd5Hash(this string text)
+    {
+        using MD5 md5 = MD5.Create();
+        byte[] inputBytes = Encoding.UTF8.GetBytes(text);
+        byte[] hashBytes = md5.ComputeHash(inputBytes);
+
+        // Convert byte array to a 32-character hex string
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < hashBytes.Length; i++)
+        {
+            sb.Append(hashBytes[i].ToString("x2")); // "x2" for lowercase hex
+        }
+
+        return sb.ToString();
     }
 }
