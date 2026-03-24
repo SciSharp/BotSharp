@@ -130,10 +130,15 @@ public class CrontabService : ICrontabService, ITaskFeeder
         }, item.AgentId);
     }
 
+    /// <summary>
+    /// Returns whether the trigger is treated as enabled for this schedule: <c>true</c> unless a rule with the
+    /// same trigger name exists and is explicitly disabled (opt-out). Missing rules do not block.
+    /// </summary>
     private async Task<bool> HasEnabledTriggerRule(CrontabItem item)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        if(string.IsNullOrEmpty(item.AgentId)) return true;
+        // No agent context: do not gate (legacy / callers without AgentId).
+        if (string.IsNullOrEmpty(item.AgentId)) return true;
 
         var agent = await agentService.GetAgent(item.AgentId);
         if (agent == null)
@@ -142,6 +147,7 @@ public class CrontabService : ICrontabService, ITaskFeeder
             return false;
         }
 
-        return agent.Rules.Any(r => r.TriggerName == item.Title && !r.Disabled);
+        // Opt-out only: block when a matching trigger rule exists and Disabled is true.
+        return !agent.Rules.Any(r => r.TriggerName == item.Title && r.Disabled);
     }
 }
