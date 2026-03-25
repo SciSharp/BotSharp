@@ -15,6 +15,7 @@
 ******************************************************************************/
 
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Tasks;
@@ -126,5 +127,63 @@ public class CrontabService : ICrontabService, ITaskFeeder
                 await hook.OnTaskExecuted(item);
             }
         }, item.AgentId);
+    }
+
+    public async Task ExecuteTimeArrivedItemWithReentryProtection(CrontabItem item)
+    {
+        if (!item.ReentryProtection)
+        {
+            await ExecuteTimeArrivedItem(item);
+            return;
+        }
+
+        var lockKey = $"crontab:execution:{item.Title}";
+        using var scope = _services.CreateScope();
+        var locker = scope.ServiceProvider.GetRequiredService<IDistributedLocker>();
+        var acquired = false;
+        var lockAcquired = false;
+
+        try
+        {
+            acquired = await locker.LockAsync(lockKey, async () =>
+            {
+                lockAcquired = true;
+                _logger.LogInformation("Crontab: {0}, Distributed lock acquired, beginning execution...", item.Title);
+                await ExecuteTimeArrivedItem(item);
+            }, timeout: 600);
+
+            if (!acquired)
+            {
+                _logger.LogWarning("Crontab: {0}, Failed to acquire distributed lock, task is still executing, skipping this occurrence to prevent re-entry.", item.Title);
+            }
+        }
+        catch (Exception ex)
+        {
+            if (!lockAcquired)
+            {
+                _logger.LogWarning("Crontab: {0}, Redis exception occurred before acquiring lock: {1}, executing without lock protection (re-entry protection disabled).", item.Title, ex.Message);
+                await ExecuteTimeArrivedItem(item);
+            }
+            else
+            {
+                _logger.LogWarning("Crontab: {0}, Redis exception occurred after lock acquired: {1}, task execution completed but lock release failed.", item.Title, ex.Message);
+            }
+        }
+    } 
+    
+    private async Task<bool> ExecuteTimeArrivedItem(CrontabItem item)
+    {
+        try
+        {
+            _logger.LogInformation($"Start running crontab {item.Title}");
+            await ScheduledTimeArrived(item);
+            _logger.LogInformation($"Complete running crontab {item.Title}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when running crontab {item.Title}");
+            return false;
+        }
     }
 }
