@@ -33,7 +33,8 @@ public class MembasePlugin : IBotSharpPlugin
                 .ConfigureHttpClient(c =>
                 {
                     c.BaseAddress = new Uri(settings.Host);
-                    c.Timeout = TimeSpan.FromSeconds(settings.TimeoutSecond);
+                    // Timeout is set by MembaseGrapbDb internally, but we set it here as well to ensure that the Refit client does not timeout before the graph db does.
+                    c.Timeout = TimeSpan.FromSeconds(90);
                 });
 
         services.AddScoped<IGraphDb, MembaseGraphDb>();
