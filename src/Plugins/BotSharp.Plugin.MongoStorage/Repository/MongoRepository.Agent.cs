@@ -84,6 +84,9 @@ public partial class MongoRepository
             case AgentField.MaxMessageCount:
                 await UpdateAgentMaxMessageCount(agent.Id, agent.MaxMessageCount);
                 break;
+            case AgentField.Skills:
+                await UpdateAgentSkills(agent.Id, agent.Skills);
+                break;
             case AgentField.All:
                 await UpdateAgentAllFields(agent);
                 break;
@@ -396,6 +399,26 @@ public partial class MongoRepository
         await _dc.Agents.UpdateOneAsync(filter, update);
     }
 
+
+    private async Task UpdateAgentSkills(string agentId, List<AgentSkill> skills)
+    {
+        if (skills == null)
+        {
+            return;
+        }
+
+        var elements = skills?.Select(x => AgentSkillMongoElement.ToMongoElement(x))?.ToList() ?? [];
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+
+        var update = Builders<AgentDocument>.Update
+            .Set(x => x.Skills, elements)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        await _dc.Agents.UpdateOneAsync(filter, update);
+ 
+    }
+
+
     private async Task UpdateAgentAllFields(Agent agent)
     {
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agent.Id);
@@ -422,6 +445,7 @@ public partial class MongoRepository
             .Set(x => x.KnowledgeBases, agent.KnowledgeBases.Select(u => AgentKnowledgeBaseMongoElement.ToMongoElement(u)).ToList())
             .Set(x => x.Rules, agent.Rules.Select(e => AgentRuleMongoElement.ToMongoElement(e)).ToList())
             .Set(x => x.LlmConfig, AgentLlmConfigMongoModel.ToMongoModel(agent.LlmConfig))
+            .Set(x => x.Skills, agent.Skills.Select( u=> AgentSkillMongoElement.ToMongoElement(u)).ToList())
             .Set(x => x.IsPublic, agent.IsPublic)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 

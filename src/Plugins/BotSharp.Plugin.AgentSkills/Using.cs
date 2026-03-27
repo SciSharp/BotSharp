@@ -1,0 +1,9 @@
+global using BotSharp.Abstraction.Agents.Models;
+global using BotSharp.Abstraction.Plugins;
+global using BotSharp.Plugin.AgentSkills.Hooks;
+global using BotSharp.Plugin.AgentSkills.Settings;
+global using Microsoft.Extensions.DependencyInjection;
+global using System;
+global using System.Collections.Generic;
+global using System.IO;
+global using System.Linq;
