@@ -24,31 +24,6 @@ public partial class MembaseGraphDb : IGraphDb
 
     private const int RetryCount = 3;
 
-    private AsyncPolicy BuildRetryPolicy()
-    {
-        var settings = _services.GetRequiredService<MembaseSettings>();
-        var timeoutSeconds = (double)settings.TimeoutSecond / RetryCount;
-
-        var timeoutPolicy = Policy.TimeoutAsync(TimeSpan.FromSeconds(timeoutSeconds));
-
-        var retryPolicy = Policy
-            .Handle<HttpRequestException>()
-            .Or<TaskCanceledException>()
-            .Or<TimeoutRejectedException>()
-            .Or<ApiException>(ex => ex.StatusCode == HttpStatusCode.ServiceUnavailable)
-            .WaitAndRetryAsync(
-                retryCount: RetryCount,
-                sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                onRetry: (ex, timespan, retryAttempt, _) =>
-                {
-                    _logger.LogWarning(ex,
-                        "CypherQueryAsync retry {RetryAttempt}/{MaxRetries} after {Delay}s. Exception: {Message}",
-                        retryAttempt, RetryCount, timespan.TotalSeconds, ex.Message);
-                });
-
-        return Policy.WrapAsync(retryPolicy, timeoutPolicy);
-    }
-
     public async Task<GraphQueryResult> ExecuteQueryAsync(string query, GraphQueryExecuteOptions? options = null)
     {
         if (string.IsNullOrEmpty(options?.GraphId))
@@ -86,5 +61,31 @@ public partial class MembaseGraphDb : IGraphDb
             _logger.LogError(ex, $"Error when executing query in {Provider} graph db. (Query: {query}), (Argments: \r\n{argLogs})");
             throw;
         }
+    }
+
+
+    private AsyncPolicy BuildRetryPolicy()
+    {
+        var settings = _services.GetRequiredService<MembaseSettings>();
+        var timeoutSeconds = (double)settings.TimeoutSecond / RetryCount;
+
+        var timeoutPolicy = Policy.TimeoutAsync(TimeSpan.FromSeconds(timeoutSeconds));
+
+        var retryPolicy = Policy
+            .Handle<HttpRequestException>()
+            .Or<TaskCanceledException>()
+            .Or<TimeoutRejectedException>()
+            .Or<ApiException>(ex => ex.StatusCode == HttpStatusCode.ServiceUnavailable)
+            .WaitAndRetryAsync(
+                retryCount: RetryCount,
+                sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                onRetry: (ex, timespan, retryAttempt, _) =>
+                {
+                    _logger.LogWarning(ex,
+                        "CypherQueryAsync retry {RetryAttempt}/{MaxRetries} after {Delay}s. Exception: {Message}",
+                        retryAttempt, RetryCount, timespan.TotalSeconds, ex.Message);
+                });
+
+        return Policy.WrapAsync(retryPolicy, timeoutPolicy);
     }
 }

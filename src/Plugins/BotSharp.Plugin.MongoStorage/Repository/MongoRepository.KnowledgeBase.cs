@@ -116,7 +116,9 @@ public partial class MongoRepository
         });
     }
 
+#if !DEBUG
     [SharpCache(10)]
+#endif
     public async Task<VectorCollectionConfig> GetKnowledgeCollectionConfig(string collectionName, string vectorStroageProvider)
     {
         var configs = await GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter

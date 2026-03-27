@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Graph.Models;
-
 namespace BotSharp.Plugin.Membase.Settings;
 
 public class MembaseSettings
