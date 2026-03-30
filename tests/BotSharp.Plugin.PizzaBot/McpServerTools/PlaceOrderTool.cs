@@ -1,15 +1,10 @@
-using ModelContextProtocol;
-using ModelContextProtocol.Server;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-
 namespace BotSharp.PizzaBot.MCPServer.Tools;
 
 [McpServerToolType]
-public static class PlaceOrder
+public class PlaceOrderTool
 {
     [McpServerTool(Name = "place_an_order"), Description("Place an order when user has confirmed the pizza type and quantity.")]
-    public static string PlaceAnOrder(
+    public string PlaceAnOrder(
       [Description("The pizza type."), Required] string pizza_type,
       [Description("quantity of pizza"), Required] int quantity,
       [Description("pizza unit price"),Required] double unit_price)

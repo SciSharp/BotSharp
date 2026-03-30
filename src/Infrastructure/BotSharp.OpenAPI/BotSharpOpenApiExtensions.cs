@@ -1,18 +1,19 @@
 using BotSharp.Abstraction.Messaging.JsonConverters;
+using BotSharp.Core.MCP.Settings;
 using BotSharp.Core.Users.Services;
+using BotSharp.OpenAPI.BackgroundServices;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
-using Microsoft.IdentityModel.JsonWebTokens;
-using BotSharp.OpenAPI.BackgroundServices;
-using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.OpenApi;
+using System.Text.Json.Serialization;
 #if NET8_0
 using Microsoft.OpenApi.Models;
 #endif

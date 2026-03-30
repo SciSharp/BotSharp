@@ -1,12 +1,13 @@
+using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Core;
 using BotSharp.Core.MCP;
-using BotSharp.OpenAPI;
 using BotSharp.Logger;
+using BotSharp.OpenAPI;
+using BotSharp.PizzaBot.MCPServer.Tools;
 using BotSharp.Plugin.ChatHub;
-using Serilog;
-using BotSharp.Abstraction.Messaging.JsonConverters;
-using StackExchange.Redis;
 using BotSharp.Plugin.MultiTenancy.Extensions;
+using Serilog;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,13 @@ builder.Services.AddSignalR()
     {
         o.Configuration.ChannelPrefix = RedisChannel.Literal("botsharp");
     })*/;
+
+builder.Services.AddMcpServer()
+    .WithHttpTransport()
+    .WithTools<MakePaymentTool>()
+    .WithTools<PizzaPricesTool>()
+    .WithTools<PlaceOrderTool>();
+
 var app = builder.Build();
 
 app.UseWebSockets();
@@ -59,5 +67,8 @@ app.UseMultiTenancy();
 app.UseBotSharp()
     .UseBotSharpOpenAPI(app.Environment)
     .UseBotSharpUI();
+
+// Map MCP endpoint – clients connect to: https://<host>/mcp
+app.MapMcp("/mcp");
 
 app.Run();
