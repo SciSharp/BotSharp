@@ -14,7 +14,7 @@
   limitations under the License.
 ******************************************************************************/
 
-using BotSharp.Abstraction.SideCar.Options;
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Core.SideCar.Services;
@@ -54,16 +54,20 @@ public class BotSharpConversationSideCar : IConversationSideCar
         await Task.CompletedTask;
     }
 
-    public async Task<List<DialogElement>> GetConversationDialogs(string conversationId)
+    public async Task<List<DialogElement>> GetConversationDialogs(string conversationId, ConversationDialogFilter? filter = null)
     {
         if (!IsValid(conversationId))
         {
-            return new List<DialogElement>();
+            return [];
         }
 
-        await Task.CompletedTask;
+        var dialogs = _contextStack.Peek().Dialogs ?? [];
+        if (filter?.Order == "desc")
+        {
+            dialogs = dialogs.OrderByDescending(x => x.MetaData?.CreatedTime).ToList();
+        }
 
-        return _contextStack.Peek().Dialogs;
+        return await Task.FromResult(dialogs);
     }
 
     public async Task UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
@@ -87,9 +91,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         }
 
         var top = _contextStack.Peek().Breakpoints;
-
-        await Task.CompletedTask;
-        return top.LastOrDefault();
+        return await Task.FromResult(top.LastOrDefault());
     }
 
     public async Task UpdateConversationStates(string conversationId, List<StateKeyValue> states)

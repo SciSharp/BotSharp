@@ -72,6 +72,17 @@ public class ChatCompletionProvider : IChatCompletion
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
+        else if (candidate?.FinishReason == FinishReason.MAX_TOKENS)
+        {
+            _logger.LogWarning($"Action: {nameof(GetChatCompletions)}, Reason: {candidate.FinishReason}, Agent: {agent.Name}, MaxOutputTokens: {request.GenerationConfig?.MaxOutputTokens}, Content:{text}");
+
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                StopCompletion = true
+            };
+        }
         else
         {
             responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
@@ -165,13 +176,27 @@ public class ChatCompletionProvider : IChatCompletion
             };
 
             // Somethings LLM will generate a function name with agent name.
-            if (!string.IsNullOrEmpty(funcContextIn.FunctionName))
-            {
-                funcContextIn.FunctionName = funcContextIn.FunctionName.Split('.').Last();
-            }
+            funcContextIn.FunctionName = funcContextIn.FunctionName.NormalizeFunctionName();
 
             // Execute functions
             await onFunctionExecuting(funcContextIn);
+        }
+        else if (candidate?.FinishReason == FinishReason.MAX_TOKENS)
+        {
+            _logger.LogWarning($"Action: {nameof(GetChatCompletionsAsync)}, Reason: {candidate.FinishReason}, Agent: {agent.Name}, MaxOutputTokens: {messages.GenerationConfig?.MaxOutputTokens}, Content:{text}");
+
+            msg = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                StopCompletion = true,
+                MetaData = new Dictionary<string, string?>
+                {
+                    [Constants.ThoughtSignature] = part?.ThoughtSignature
+                },
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
+            };
+            await onMessageReceived(msg);
         }
         else
         {

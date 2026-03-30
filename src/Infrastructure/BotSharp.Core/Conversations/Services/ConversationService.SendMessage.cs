@@ -62,7 +62,7 @@ public partial class ConversationService
             if (message.StopCompletion)
             {
                 stopCompletion = true;
-                routing.Context.Pop();
+                await routing.Context.Pop();
                 break;
             }
         }
@@ -80,18 +80,24 @@ public partial class ConversationService
 
             if (agent.Type == AgentType.Routing)
             {
+                await routing.Context.Push(agent.Id, reason: "request started", updateLazyRouting: false);
+
                 // Check the routing mode
                 var states = _services.GetRequiredService<IConversationStateService>();
                 var routingMode = states.GetState(StateConst.ROUTING_MODE, agent.Mode ?? RoutingMode.Eager);
-                routing.Context.Push(agent.Id, reason: "request started", updateLazyRouting: false);
+                var lazyRoutingAgentId = states.GetState(StateConst.LAZY_ROUTING_AGENT_ID);
 
-                if (routingMode == RoutingMode.Lazy)
+                if (routingMode == RoutingMode.Lazy && !string.IsNullOrEmpty(lazyRoutingAgentId))
                 {
-                    message.CurrentAgentId = states.GetState(StateConst.LAZY_ROUTING_AGENT_ID, message.CurrentAgentId);
-                    routing.Context.Push(message.CurrentAgentId, reason: "lazy routing", updateLazyRouting: false);
+                    message.CurrentAgentId = lazyRoutingAgentId;
+                    agent = await agentService.LoadAgent(message.CurrentAgentId);
+                    await routing.Context.Push(message.CurrentAgentId, reason: "lazy routing", updateLazyRouting: false);
+                    response = await routing.InstructDirect(agent, message, dialogs);
                 }
-
-                response = await routing.InstructLoop(agent, message, dialogs);
+                else
+                {
+                    response = await routing.InstructLoop(agent, message, dialogs);
+                }
             }
             else
             {
@@ -153,7 +159,7 @@ public partial class ConversationService
         if (response.Instruction != null)
         {
             var conversation = _services.GetRequiredService<IConversationService>();
-            var updatedConversation = await conversation.UpdateConversationTitle(_conversationId, response.Instruction.NextActionReason);
+            await conversation.UpdateConversationTitle(_conversationId, response.Instruction.NextActionReason);
 
             // Emit conversation ending hook
             if (response.Instruction.ConversationEnd)

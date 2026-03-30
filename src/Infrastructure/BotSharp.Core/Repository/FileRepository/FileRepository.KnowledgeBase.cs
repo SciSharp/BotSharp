@@ -111,7 +111,9 @@ public partial class FileRepository
         return configs;
     }
 
+#if !DEBUG
     [SharpCache(10)]
+#endif
     public async Task<VectorCollectionConfig> GetKnowledgeCollectionConfig(string collectionName, string vectorStroageProvider)
     {
         var configs = await GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
@@ -121,7 +123,7 @@ public partial class FileRepository
         });
         return configs?.FirstOrDefault();
     }
-    #endregion
+#endregion
 
 
     #region Documents

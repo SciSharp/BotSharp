@@ -1,3 +1,6 @@
+using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Settings;
+
 namespace BotSharp.Plugin.AudioHandler.Functions;
 
 public class ReadAudioFn : IFunctionCallback
@@ -149,6 +152,7 @@ public class ReadAudioFn : IFunctionCallback
     {
         var provider = agent?.LlmConfig?.AudioTranscription?.Provider;
         var model = agent?.LlmConfig?.AudioTranscription?.Model;
+        var settingService = _services.GetRequiredService<ISettingService>();
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {
@@ -164,7 +168,7 @@ public class ReadAudioFn : IFunctionCallback
         }
 
         provider = "openai";
-        model = "gpt-4o-mini-transcribe";
+        model = settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o_Mini_Transcribe);
 
         return (provider, model);
     }

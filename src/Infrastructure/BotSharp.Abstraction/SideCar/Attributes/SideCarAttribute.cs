@@ -62,13 +62,13 @@ public class SideCarAttribute : AsyncMoAttribute
         try
         {
             var sidecar = serviceProvider.GetService<IConversationSideCar>();
-            var argTypes = args.Select(x => x.GetType()).ToArray();
+            var argTypes = args.Select(x => x != null ? x.GetType() : null).ToArray();
             var sidecarMethod = sidecar?.GetType()?.GetMethods(BindingFlags.Public | BindingFlags.Instance)
                                                    .FirstOrDefault(x => x.Name == methodName
                                                    && x.ReturnType == retType
                                                    && x.GetParameters().Length == argTypes.Length
                                                    && x.GetParameters().Select(p => p.ParameterType)
-                                                       .Zip(argTypes, (paramType, argType) => paramType.IsAssignableFrom(argType)).All(y => y));
+                                                       .Zip(argTypes, (paramType, argType) => IsParameterTypeMatch(paramType, argType)).All(y => y));
 
             return (sidecar, sidecarMethod);
         }
@@ -76,6 +76,28 @@ public class SideCarAttribute : AsyncMoAttribute
         {
             return (null, null);
         }
+    }
+
+    private static bool IsParameterTypeMatch(Type paramType, Type? argType)
+    {
+        // If argument is null, check if parameter type is nullable
+        if (argType == null)
+        {
+            // Check if it's a nullable value type (e.g., int?)
+            if (paramType.IsGenericType && paramType.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return true;
+            }
+            // Check if it's a reference type (which are inherently nullable)
+            if (!paramType.IsValueType)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        // Normal type matching
+        return paramType.IsAssignableFrom(argType);
     }
 
     private async Task<(bool, object?)> CallAsyncMethod(IConversationSideCar instance, MethodInfo method, Type retType, object[] args)

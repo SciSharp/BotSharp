@@ -14,6 +14,9 @@
   limitations under the License.
 ******************************************************************************/
 
+using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Settings;
+
 namespace BotSharp.Plugin.Planner.Sequential;
 
 /// <summary>
@@ -130,23 +133,23 @@ public class SequentialPlanner : ITaskPlanner
         return Task.FromResult(true);
     }
 
-    public Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         var context = _services.GetRequiredService<IRoutingContext>();
 
         if (message.StopCompletion)
         {
-            context.Empty(reason: $"Agent queue is cleared by {nameof(SequentialPlanner)}");
-            return Task.FromResult(false);
+            await context.Empty(reason: $"Agent queue is cleared by {nameof(SequentialPlanner)}");
+            return false;
         }
 
         // Handover to Router;
-        context.Pop();
+        await context.Pop();
 
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.ResetRecursiveCounter();
 
-        return Task.FromResult(true);
+        return true;
     }
 
     private string GetNextStepPrompt(Agent router)
@@ -166,7 +169,8 @@ public class SequentialPlanner : ITaskPlanner
         var inst = new DecomposedStep();
 
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var model = llmProviderService.GetProviderModel("openai", "gpt-4o");
+        var settingService = _services.GetRequiredService<ISettingService>();
+        var model = llmProviderService.GetProviderModel("openai", settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o));
 
         // chat completion
         var completion = CompletionProvider.GetChatCompletion(_services,

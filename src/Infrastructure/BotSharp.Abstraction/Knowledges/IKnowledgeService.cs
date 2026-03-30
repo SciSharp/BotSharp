@@ -26,10 +26,6 @@ public interface IKnowledgeService
     Task<bool> UpsertVectorCollectionData(string collectionName, VectorUpdateModel update);
     #endregion
 
-    #region Graph
-    Task<GraphSearchResult> SearchGraphKnowledge(string query, GraphSearchOptions options);
-    #endregion
-
     #region Document
     /// <summary>
     /// Save documents and their contents to knowledgebase

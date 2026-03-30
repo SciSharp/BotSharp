@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Settings;
 
 namespace BotSharp.Core.WebSearch.Functions;
 
@@ -70,7 +72,8 @@ public class WebIntelligentSearchFn : IFunctionCallback
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-
+        var settingService = _services.GetRequiredService<ISettingService>();
+        
         var provider = state.GetState("web_search_llm_provider");
         var model = state.GetState("web_search_llm_model");
 
@@ -80,7 +83,7 @@ public class WebIntelligentSearchFn : IFunctionCallback
         }
 
         provider = "openai";
-        model = "gpt-4o-mini-search-preview";
+        model = settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o_Mini_Search_Preview);
 
         var models = llmProviderService.GetProviderModels(provider);
         var foundModel = models.FirstOrDefault(x => x.WebSearch?.IsDefault == true)

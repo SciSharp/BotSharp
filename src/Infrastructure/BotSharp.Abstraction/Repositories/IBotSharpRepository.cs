@@ -70,9 +70,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #region Agent
     Task UpdateAgent(Agent agent, AgentField field)
         => throw new NotImplementedException();
-    Agent? GetAgent(string agentId, bool basicsOnly = false)
-        => throw new NotImplementedException();
-    Task<Agent?> GetAgentAsync(string agentId, bool basicsOnly = false)
+    Task<Agent?> GetAgent(string agentId, bool basicsOnly = false)
         => throw new NotImplementedException();
     Task<List<Agent>> GetAgents(AgentFilter filter)
         => throw new NotImplementedException();
@@ -131,7 +129,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     Task<bool> DeleteConversations(IEnumerable<string> conversationIds)
         => throw new NotImplementedException();
-    Task<List<DialogElement>> GetConversationDialogs(string conversationId)
+    Task<List<DialogElement>> GetConversationDialogs(string conversationId, ConversationDialogFilter? filter = null)
         => throw new NotImplementedException();
     Task AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
         => throw new NotImplementedException();
@@ -171,6 +169,12 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     Task<bool> MigrateConvsersationLatestStates(string conversationId)
          => throw new NotImplementedException();
+    Task<List<ConversationFile>> GetConversationFiles(ConversationFileFilter filter)
+        => throw new NotImplementedException();
+    Task<bool> SaveConversationFiles(List<ConversationFile> files)
+        => throw new NotImplementedException();
+    Task<bool> DeleteConversationFiles(List<string> conversationIds)
+        => throw new NotImplementedException();
     #endregion
 
     #region LLM Completion Log

@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.MLTasks.Settings;
+using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Settings;
 
 namespace BotSharp.Core.Infrastructures;
 
@@ -140,6 +142,7 @@ public class CompletionProvider
         string? provider = null,
         string? model = null)
     {
+        var settingService = services.GetRequiredService<ISettingService>();
         var completions = services.GetServices<IAudioTranscription>();
         var completer = completions.FirstOrDefault(x => x.Provider == (provider ?? "openai"));
         if (completer == null)
@@ -149,7 +152,7 @@ public class CompletionProvider
             return default!;
         }
 
-        completer.SetModelName(model ?? "gpt-4o-mini-transcribe");
+        completer.SetModelName(model ?? settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o_Mini_Transcribe));
         return completer;
     }
 
@@ -158,6 +161,7 @@ public class CompletionProvider
         string? provider = null,
         string? model = null)
     {
+        var settingService = services.GetRequiredService<ISettingService>();
         var completions = services.GetServices<IAudioSynthesis>();
         var completer = completions.FirstOrDefault(x => x.Provider == (provider ?? "openai"));
         if (completer == null)
@@ -167,7 +171,7 @@ public class CompletionProvider
             return default!;
         }
 
-        completer.SetModelName(model ?? "gpt-4o-mini-tts");
+        completer.SetModelName(model ?? settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o_Mini_Tts));
         return completer;
     }
 

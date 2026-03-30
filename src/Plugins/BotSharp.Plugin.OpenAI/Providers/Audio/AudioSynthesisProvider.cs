@@ -22,7 +22,7 @@ public class AudioSynthesisProvider : IAudioSynthesis
 
     public async Task<BinaryData> GenerateAudioAsync(string text, string? voice = "alloy", string? format = "mp3", string? instructions = null)
     {
-        var audioClient = ProviderHelper.GetClient(Provider, _model, _services)
+        var audioClient = ProviderHelper.GetClient(Provider, _model, apiKey: null, _services)
                                         .GetAudioClient(_model);
 
         var (speechVoice, options) = PrepareGenerationOptions(voice: voice, format: format);

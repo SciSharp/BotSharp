@@ -1,8 +1,11 @@
-using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.Graph.Models;
+using BotSharp.Plugin.Membase.Interfaces;
+using BotSharp.Plugin.Membase.Models.Graph;
 
 namespace BotSharp.Plugin.Membase.Services;
 
-public class MembaseService : ICypherGraphService
+[Obsolete]
+public class MembaseService
 {
     private readonly IServiceProvider _services;
     private readonly IMembaseApi _membase;
@@ -23,12 +26,12 @@ public class MembaseService : ICypherGraphService
 
         return new GraphQueryResult
         {
-            Columns = response.Columns,
-            Items = response.Data
+            Keys = response.Columns,
+            Values = response.Data
         };
     }
 
-    public async Task<GraphNode> MergeNode(string graphId, GraphNode node)
+    public async Task<Node> MergeNode(string graphId, Node node)
     {
         var newNode = await _membase.MergeNodeAsync(graphId, node.Id, new NodeUpdateModel
         {

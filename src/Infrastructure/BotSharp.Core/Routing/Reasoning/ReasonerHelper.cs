@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Utilities;
+
 namespace BotSharp.Core.Routing.Reasoning;
 
 public static class ReasonerHelper
@@ -6,13 +8,14 @@ public static class ReasonerHelper
     /// Sometimes LLM hallucinates and fails to set function names correctly.
     /// </summary>
     /// <param name="args"></param>
-    public static void FixMalformedResponse(IServiceProvider services, FunctionCallFromLlm args)
+    public static async Task FixMalformedResponse(IServiceProvider services, FunctionCallFromLlm args)
     {
         var agentService = services.GetRequiredService<IAgentService>();
-        var agents = agentService.GetAgents(new AgentFilter
+        var agentsResult = await agentService.GetAgents(new AgentFilter
         {
             Types = [AgentType.Task]
-        }).ConfigureAwait(false).GetAwaiter().GetResult().Items.ToList();
+        });
+        var agents = agentsResult.Items.ToList();
         var malformed = false;
 
         // Sometimes it populate malformed Function in Agent name
@@ -42,10 +45,10 @@ public static class ReasonerHelper
         }
 
         // Function name shouldn't contain dot symbol
-        if (!string.IsNullOrEmpty(args.Function) &&
-            args.Function.Contains('.'))
+        var normalizedFunction = args.Function.NormalizeFunctionName();
+        if (normalizedFunction != args.Function)
         {
-            args.Function = args.Function.Split('.').Last();
+            args.Function = normalizedFunction;
             malformed = true;
         }
 

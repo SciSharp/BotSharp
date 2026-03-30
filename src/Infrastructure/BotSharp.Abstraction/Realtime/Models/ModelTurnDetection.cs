@@ -11,6 +11,6 @@ public class ModelTurnDetection
 
 public class AudioTranscription
 {
-    public string Model { get; set; } = "gpt-4o-mini-transcribe";
+    public string Model { get; set; } = Gpt4xModelConstants.GPT_4o_Mini_Transcribe;
     public string? Language { get; set; }
 }

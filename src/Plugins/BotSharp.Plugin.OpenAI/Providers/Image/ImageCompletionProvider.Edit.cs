@@ -18,7 +18,7 @@ public partial class ImageCompletionProvider
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
 
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, apiKey: null, _services);
         var (prompt, imageCount, options) = PrepareEditOptions(message, settings?.Image?.Edit);
         var imageClient = client.GetImageClient(_model);
 
@@ -70,7 +70,7 @@ public partial class ImageCompletionProvider
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
 
-        var client = ProviderHelper.GetClient(Provider, _model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, apiKey: null, _services);
         var (prompt, imageCount, options) = PrepareEditOptions(message, settings?.Image?.Edit);
         var imageClient = client.GetImageClient(_model);
 

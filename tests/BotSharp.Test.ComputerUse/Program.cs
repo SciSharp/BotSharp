@@ -47,7 +47,7 @@ var tools = new List<Anthropic.SDK.Common.Tool>()
 var parameters = new MessageParameters()
 {
     Messages = messages,
-    Model = AnthropicModels.Claude35Sonnet,
+    Model = AnthropicModels.Claude46Sonnet,
     Stream = false,
     Tools = tools,
     System = new List<SystemMessage>()

@@ -36,6 +36,8 @@ public class McpService : IMcpService
             {
                 Id = config.Id,
                 Name = config.Name,
+                IconUrl = config.IconUrl,
+                Description = config.Description,
                 Tools = tools.Select(x => x.Name)
             });
         }

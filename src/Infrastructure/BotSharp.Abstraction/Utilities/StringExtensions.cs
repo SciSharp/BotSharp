@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Options;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -64,16 +65,52 @@ public static partial class StringExtensions
         return str.Replace(" ", "").Replace("\t", "").Replace("\n", "").Replace("\r", "");
     }
 
-    [GeneratedRegex(@"[^\u0000-\u007F]")]
-    private static partial Regex NonAsciiCharactersRegex();
+    /// <summary>
+    /// Normalizes function name by removing namespace/agent prefixes.
+    /// LLM sometimes returns function names like "AgentName.FunctionName" or "Namespace.FunctionName".
+    /// This method extracts the actual function name. Returns original input if normalization would
+    /// yield empty/whitespace (e.g. "Agent." or "Agent/ ") to avoid downstream invalid function lookup.
+    /// </summary>
+    /// <param name="functionName">The raw function name from LLM response</param>
+    /// <returns>The normalized function name, or original if normalized would be empty/whitespace</returns>
+    public static string? NormalizeFunctionName(this string? functionName)
+    {
+        functionName = functionName?.Trim();
+        if (string.IsNullOrEmpty(functionName))
+        {
+            return functionName;
+        }
+
+        foreach (var separator in new[] { '.', '/' })
+        {
+            if (!functionName.Contains(separator))
+            {
+                continue;
+            }
+
+            var segments = functionName.Split(separator);
+            var normalized = segments.LastOrDefault()?.Trim();
+
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                return functionName;
+            }
+
+            Console.WriteLine($"NormalizeFunctionName: {functionName} -> {normalized}");
+            return normalized;
+        }
+
+        return functionName;
+    }
 
     public static string CleanJsonStr(this string? str)
     {
-        if (string.IsNullOrWhiteSpace(str)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(str))
+        {
+            return string.Empty;
+        }
 
-        str = str.Replace("```json", string.Empty).Replace("```", string.Empty).Trim();
-
-        return NonAsciiCharactersRegex().Replace(str, "");
+        return str.Replace("```json", string.Empty).Replace("```", string.Empty).Trim();
     }
 
     public static T? Json<T>(this string text)
@@ -149,5 +186,26 @@ public static partial class StringExtensions
 
         var str = JsonSerializer.Serialize(value, jsonOptions);
         return str;
+    }
+
+    /// <summary>
+    /// Get MD5 hash of a string
+    /// </summary>
+    /// <param name="text"></param>
+    /// <returns></returns>
+    public static string GetMd5Hash(this string text)
+    {
+        using MD5 md5 = MD5.Create();
+        byte[] inputBytes = Encoding.UTF8.GetBytes(text);
+        byte[] hashBytes = md5.ComputeHash(inputBytes);
+
+        // Convert byte array to a 32-character hex string
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < hashBytes.Length; i++)
+        {
+            sb.Append(hashBytes[i].ToString("x2")); // "x2" for lowercase hex
+        }
+
+        return sb.ToString();
     }
 }

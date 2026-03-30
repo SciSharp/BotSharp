@@ -21,7 +21,7 @@ public partial class RoutingService
 
         var reasoner = GetReasoner(_router);
 
-        _context.Push(_router.Id);
+        await _context.Push(_router.Id);
 
         // Handle multi-language for input
         var agentSettings = _services.GetRequiredService<AgentSettings>();

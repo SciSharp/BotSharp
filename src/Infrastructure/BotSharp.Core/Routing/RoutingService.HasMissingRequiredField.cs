@@ -9,19 +9,20 @@ public partial class RoutingService
     /// If the target agent needs some required fields but the
     /// </summary>
     /// <returns></returns>
-    public (bool, string) HasMissingRequiredField(RoleDialogModel message, out string agentId)
+    public async Task<(bool hasMissing, string reason, string agentId)> HasMissingRequiredField(RoleDialogModel message)
     {
         var reason = string.Empty;
+        var agentId = string.Empty;
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
         var routing = _services.GetRequiredService<IRoutingService>();
 
-        var routingRules = routing.GetRulesByAgentName(args.AgentName);
-
-        if (routingRules == null || !routingRules.Any())
+        var routingRules = (await routing.GetRulesByAgentName(args.AgentName)).ToList();
+        if (routingRules.IsNullOrEmpty())
         {
             agentId = message.CurrentAgentId;
-            return (false, reason);
+            return (false, reason, agentId);
         }
+        await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingRulesLoaded(routingRules[0].AgentId, routingRules), routingRules[0].AgentId);
 
         agentId = routingRules.First().AgentId;
         // Add routed agent
@@ -78,19 +79,27 @@ public partial class RoutingService
 
             // Handle redirect
             var routingRule = routingRules.FirstOrDefault(x => missingFields.Contains(x.Field));
-            if (!string.IsNullOrEmpty(routingRule.RedirectTo))
+            if (!string.IsNullOrEmpty(routingRule?.RedirectTo))
             {
                 var db = _services.GetRequiredService<IBotSharpRepository>();
-                var record = db.GetAgent(routingRule.RedirectTo);
+                var record = await db.GetAgent(routingRule.RedirectTo);
 
-                // Add redirected agent
-                message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "redirect_to", record.Name);
-                agentId = routingRule.RedirectTo;
+                if (record != null)
+                {
+                    // Add redirected agent
+                    message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "redirect_to", record.Name);
+                    agentId = routingRule.RedirectTo;
 #if DEBUG
-                Console.WriteLine($"*** Routing redirect to {record.Name.ToUpper()} ***");
+                    Console.WriteLine($"*** Routing redirect to {record.Name.ToUpper()} ***");
 #else
-                logger.LogInformation($"*** Routing redirect to {record.Name.ToUpper()} ***");
+                    logger.LogInformation($"*** Routing redirect to {record.Name.ToUpper()} ***");
 #endif
+                }
+                else
+                {
+                    // back to router
+                    agentId = message.CurrentAgentId;
+                }
             }
             else
             {
@@ -99,7 +108,7 @@ public partial class RoutingService
             }
         }
 
-        return (missingFields.Any(), reason);
+        return (missingFields.Any(), reason, agentId);
     }
 
     private string AppendPropertyToArgs(string args, string key, string value)

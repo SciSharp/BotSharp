@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Models;
+
 namespace BotSharp.Plugin.OpenAI.Models.Realtime;
 
 public class RealtimeSessionBody
@@ -82,7 +84,7 @@ public class RealtimeSessionTurnDetection
 public class InputAudioTranscription
 {
     [JsonPropertyName("model")]
-    public string Model { get; set; } = "gpt-4o-transcribe";
+    public string Model { get; set; } = Gpt4xModelConstants.GPT_4o_Transcribe;
 
     [JsonPropertyName("language")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

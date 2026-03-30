@@ -18,7 +18,7 @@ public partial class RoutingService
         {
             message.StopCompletion = true;
             message.Content = $"Can't find function implementation of {name}.";
-            _logger.LogError(message.Content);
+            _logger.LogError($"{message.Content}, stackInfo:{DiagnosticHelper.GetCurrentStackTrace()}");
             return false;
         }
 

@@ -23,7 +23,7 @@ public class TranslationController : ControllerBase
     public async Task<TranslationResponseModel> Translate([FromBody] TranslationRequestModel model)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var agent = await db.GetAgentAsync(BuiltInAgentId.AIAssistant);
+        var agent = await db.GetAgent(BuiltInAgentId.AIAssistant);
         var translator = _services.GetRequiredService<ITranslationService>();
         var states = _services.GetRequiredService<IConversationStateService>();
         states.SetState("max_tokens", "8192");
@@ -38,7 +38,7 @@ public class TranslationController : ControllerBase
     public async Task SendMessageSse([FromBody] TranslationLongTextRequestModel model)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var agent = await db.GetAgentAsync(BuiltInAgentId.AIAssistant);
+        var agent = await db.GetAgent(BuiltInAgentId.AIAssistant);
         var translator = _services.GetRequiredService<ITranslationService>();
 
         Response.StatusCode = 200;

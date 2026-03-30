@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Loggers;
@@ -131,10 +132,7 @@ public class ChatCompletionProvider : IChatCompletion
             };
 
             // Somethings LLM will generate a function name with agent name.
-            if (!string.IsNullOrEmpty(funcContextIn.FunctionName))
-            {
-                funcContextIn.FunctionName = funcContextIn.FunctionName.Split('.').Last();
-            }
+            funcContextIn.FunctionName = funcContextIn.FunctionName.NormalizeFunctionName();
 
             // Execute functions
             await onFunctionExecuting(funcContextIn);

@@ -20,7 +20,7 @@ public class BasicHttpRequestHook : IHttpRequestHook
         _context = context;
     }
 
-    public void OnAddHttpHeaders(HttpHeaders headers, Uri uri)
+    public Task OnAddHttpHeaders(HttpHeaders headers, Uri uri)
     {
         var settings = _services.GetRequiredService<HttpHandlerSettings>();
 
@@ -36,5 +36,6 @@ public class BasicHttpRequestHook : IHttpRequestHook
         {
             headers.Add(ORIGIN, origin);
         }
+        return Task.CompletedTask;
     }
 }

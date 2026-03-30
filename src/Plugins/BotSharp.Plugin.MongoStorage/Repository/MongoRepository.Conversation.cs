@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver.Linq;
 using System.Text.Json;
 
@@ -74,6 +75,7 @@ public partial class MongoRepository
         var filterContentLog = Builders<ConversationContentLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterStateLog = Builders<ConversationStateLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var conbTabItems = Builders<CrontabItemDocument>.Filter.In(x => x.ConversationId, conversationIds);
+        //var filterConvFile = Builders<ConversationFileDocument>.Filter.In(x => x.ConversationId, conversationIds);
 
         var promptLogDeleted = await _dc.LlmCompletionLogs.DeleteManyAsync(filterPromptLog);
         var contentLogDeleted = await _dc.ContentLogs.DeleteManyAsync(filterContentLog);
@@ -81,25 +83,37 @@ public partial class MongoRepository
         var statesDeleted = await _dc.ConversationStates.DeleteManyAsync(filterSates);
         var dialogDeleted = await _dc.ConversationDialogs.DeleteManyAsync(filterDialog);
         var cronDeleted = await _dc.CrontabItems.DeleteManyAsync(conbTabItems);
+        //var fileDeleted = await _dc.ConversationFiles.DeleteManyAsync(filterConvFile);
         var convDeleted = await _dc.Conversations.DeleteManyAsync(filterConv);
 
         return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0
             || promptLogDeleted.DeletedCount > 0 || contentLogDeleted.DeletedCount > 0
-            || stateLogDeleted.DeletedCount > 0 || convDeleted.DeletedCount > 0;
+            || stateLogDeleted.DeletedCount > 0
+            || convDeleted.DeletedCount > 0;
     }
 
     [SideCar]
-    public async Task<List<DialogElement>> GetConversationDialogs(string conversationId)
+    public async Task<List<DialogElement>> GetConversationDialogs(string conversationId, ConversationDialogFilter? filter = null)
     {
         var dialogs = new List<DialogElement>();
-        if (string.IsNullOrEmpty(conversationId)) return dialogs;
+        if (string.IsNullOrEmpty(conversationId))
+        {
+            return dialogs;
+        }
 
-        var filter = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var foundDialog = await _dc.ConversationDialogs.Find(filter).FirstOrDefaultAsync();
-        if (foundDialog == null) return dialogs;
+        var dialogFilter = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var foundDialog = await _dc.ConversationDialogs.Find(dialogFilter).FirstOrDefaultAsync();
+        if (foundDialog == null)
+        {
+            return dialogs;
+        }
 
-        var formattedDialog = foundDialog.Dialogs?.Select(x => DialogMongoElement.ToDomainElement(x))?.ToList();
-        return formattedDialog ?? new List<DialogElement>();
+        var formattedDialog = foundDialog.Dialogs?.Select(x => DialogMongoElement.ToDomainElement(x))?.ToList() ?? [];
+        if (filter?.Order == "desc")
+        {
+            formattedDialog = formattedDialog.OrderByDescending(x => x.MetaData?.CreatedTime).ToList();
+        }
+        return formattedDialog ?? [];
     }
 
     [SideCar]
@@ -634,8 +648,7 @@ public partial class MongoRepository
                         continue;
                     }
 
-                    var values = state.Values.Where(x => x.MessageId != messageId)
-                                             .Where(x => x.UpdateTime < refTime)
+                    var values = state.Values.Where(x => x.MessageId != messageId && x.UpdateTime < refTime)
                                              .ToList();
                     if (values.Count == 0) continue;
 
@@ -764,6 +777,88 @@ public partial class MongoRepository
 
         return true;
     }
+
+    #region Files
+    public async Task<List<ConversationFile>> GetConversationFiles(ConversationFileFilter filter)
+    {
+        if (filter == null || filter.ConversationIds.IsNullOrEmpty())
+        {
+            return [];
+        }
+
+        var builder = Builders<ConversationFileDocument>.Filter;
+        var fileFilter = builder.In(x => x.ConversationId, filter.ConversationIds);
+
+        var fileDocs = await _dc.ConversationFiles.Find(fileFilter).ToListAsync();
+        var files = fileDocs.Select(x => ConversationFileDocument.ToDomainModel(x)).ToList();
+        return files;
+    }
+
+    public async Task<bool> SaveConversationFiles(List<ConversationFile> files)
+    {
+        if (files.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        try
+        {
+            var builder = Builders<ConversationFileDocument>.Filter;
+            var ops = files.Where(x => !string.IsNullOrEmpty(x.ConversationId))
+                           .Select(file =>
+                           {
+                               var updateBuilder = Builders<ConversationFileDocument>.Update
+                                   .Set(y => y.Thumbnail, file.Thumbnail)
+                                   .Set(y => y.UpdatedTime, DateTime.UtcNow)
+                                   .SetOnInsert(y => y.Id, Guid.NewGuid().ToString())
+                                   .SetOnInsert(y => y.ConversationId, file.ConversationId)
+                                   .SetOnInsert(y => y.CreatedTime, DateTime.UtcNow);
+
+                               var filter = builder.Eq(y => y.ConversationId, file.ConversationId);
+
+                               return new UpdateOneModel<ConversationFileDocument>(
+                                   filter,
+                                   updateBuilder
+                               ) { IsUpsert = true };
+                           })
+                           .ToList();
+
+            if (!ops.IsNullOrEmpty())
+            {
+                await _dc.ConversationFiles.BulkWriteAsync(ops, new BulkWriteOptions { IsOrdered = false });
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error when saving conversation files.");
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteConversationFiles(List<string> conversationIds)
+    {
+        if (conversationIds.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        try
+        {
+            var builder = Builders<ConversationFileDocument>.Filter;
+            var filter = builder.In(x => x.ConversationId, conversationIds);
+            var result = await _dc.ConversationFiles.DeleteManyAsync(filter);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error when deleting conversation files.");
+            return false;
+        }
+    }
+    #endregion
+
 
     #region Private methods
     private string ConvertSnakeCaseToPascalCase(string snakeCase)

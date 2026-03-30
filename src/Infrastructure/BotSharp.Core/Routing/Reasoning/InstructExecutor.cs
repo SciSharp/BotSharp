@@ -31,7 +31,7 @@ public class InstructExecutor : IExecutor
         }
 
         message.FunctionArgs = JsonSerializer.Serialize(inst);
-        if (message.FunctionName != null)
+        if (!string.IsNullOrEmpty(message.FunctionName))
         {
             var msg = RoleDialogModel.From(message, role: AgentRole.Function);
             await routing.InvokeFunction(message.FunctionName, msg, options: new() { From = InvokeSource.Routing });

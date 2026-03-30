@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Models;
+using BotSharp.Plugin.SqlDriver.Constants;
 using BotSharp.Plugin.SqlDriver.Controllers.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,8 +31,8 @@ public class SqlDriverController : ControllerBase
         var conv = _services.GetRequiredService<IConversationService>();
         await conv.SetConversationId(conversationId, 
             [
-                new MessageState("database_type", sqlQueryRequest.DbType),
-                new MessageState("data_source_name", sqlQueryRequest.DataSource),
+                new MessageState(StateKeys.DBType, sqlQueryRequest.DbType),
+                new MessageState(StateKeys.DataSource, sqlQueryRequest.DataSource),
             ]);
         
         var msg = new RoleDialogModel(AgentRole.User, sqlQueryRequest.SqlStatement)
@@ -48,23 +49,14 @@ public class SqlDriverController : ControllerBase
         });
         var result = await fn.InvokeFunction("execute_sql", msg);
 
-        // insert sql result to conversation dialogs as function response
-        if (!sqlQueryRequest.IsEphemeral)
+        if (result)
         {
-            var storage = _services.GetService<IConversationStorage>();
-            if (storage != null)
-            {
-                var dialog = new RoleDialogModel(AgentRole.Assistant, msg.Content)
-                {
-                    CurrentAgentId = msg.CurrentAgentId,
-                    MessageId = msg.MessageId,
-                    CreatedAt = DateTime.UtcNow
-                };
-                await storage.Append(conversationId, dialog);
-            }
+            return Ok(msg.Content);
         }
-
-        return Ok(msg.Content);
+        else
+        {
+            return StatusCode(500, msg.Content);
+        }
     }
 
     [HttpPost]
@@ -78,7 +70,9 @@ public class SqlDriverController : ControllerBase
         var dialog = new RoleDialogModel(AgentRole.Assistant, sqlQueryResult.Results)
         {
             CurrentAgentId = sqlQueryResult.AgentId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            MessageId = sqlQueryResult.SqlUniqueId,
+            MessageLabel = "sql_query_result"
         };
         await storage.Append(conversationId, dialog);
 

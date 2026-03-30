@@ -15,6 +15,9 @@ public interface IChatCompletion
     /// <param name="model">deployment name</param>
     void SetModelName(string model);
 
+    string? ApiKey => null;
+    void SetApiKey(string apiKey) { }
+
     Task<RoleDialogModel> GetChatCompletions(Agent agent,
         List<RoleDialogModel> conversations) => throw new NotImplementedException();
 
