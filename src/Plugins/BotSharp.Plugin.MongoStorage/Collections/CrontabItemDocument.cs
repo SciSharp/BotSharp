@@ -18,6 +18,8 @@ public class CrontabItemDocument : MongoBase
     public bool LessThan60Seconds { get; set; } = false;
     public IEnumerable<CronTaskMongoElement> Tasks { get; set; } = [];
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
+    public int TriggerType { get; set; }
+    public bool ReentryProtection { get; set; } = true;
 
     public static CrontabItem ToDomainModel(CrontabItemDocument item)
     {
@@ -36,7 +38,9 @@ public class CrontabItemDocument : MongoBase
             LastExecutionTime = item.LastExecutionTime,
             LessThan60Seconds = item.LessThan60Seconds,
             Tasks = item.Tasks?.Select(x => CronTaskMongoElement.ToDomainElement(x))?.ToArray() ?? [],
-            CreatedTime = item.CreatedTime
+            CreatedTime = item.CreatedTime,
+            TriggerType = (CronTabItemTriggerType)item.TriggerType,
+            ReentryProtection = item.ReentryProtection
         };
     }
 
@@ -57,7 +61,9 @@ public class CrontabItemDocument : MongoBase
             LastExecutionTime = item.LastExecutionTime,
             LessThan60Seconds = item.LessThan60Seconds,
             Tasks = item.Tasks?.Select(x => CronTaskMongoElement.ToMongoElement(x))?.ToList() ?? [],
-            CreatedTime = item.CreatedTime
+            CreatedTime = item.CreatedTime,
+            TriggerType = (int)item.TriggerType,
+            ReentryProtection = item.ReentryProtection
         };
     }
 }

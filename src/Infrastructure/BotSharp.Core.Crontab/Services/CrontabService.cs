@@ -117,7 +117,12 @@ public class CrontabService : ICrontabService, ITaskFeeder
     {
         _logger.LogDebug($"ScheduledTimeArrived {item}");
 
-        if (!await HasEnabledTriggerRule(item)) return;
+        var triggerEnabled = await HasEnabledTriggerRule(item);
+        if (!triggerEnabled) 
+        {
+            _logger.LogWarning("Crontab: {0}, Trigger is not enabled, skipping this occurrence.", item.Title);
+            return;
+        }
 
         await HookEmitter.Emit<ICrontabHook>(_services, async hook =>
         {
