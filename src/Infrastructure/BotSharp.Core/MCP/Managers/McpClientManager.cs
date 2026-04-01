@@ -22,7 +22,7 @@ public class McpClientManager : IDisposable
         {
             var settings = _services.GetRequiredService<McpSettings>();
             var config = settings.McpServerConfigs.Where(x => x.Id == serverId).FirstOrDefault();
-            if (config == null)
+            if (config == null || !config.Enabled)
             {
                 return null;
             }

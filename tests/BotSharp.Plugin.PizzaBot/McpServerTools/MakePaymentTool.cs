@@ -1,15 +1,10 @@
-using ModelContextProtocol;
-using ModelContextProtocol.Server;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-
 namespace BotSharp.PizzaBot.MCPServer.Tools;
 
 [McpServerToolType]
-public static class MakePayment
+public class MakePaymentTool
 {
     [McpServerTool(Name = "make_payment"), Description("call this function to make payment.")]
-    public static string Make_Payment(
+    public string Make_Payment(
         [Description("order number"),Required] string order_number,
         [Description("total amount"),Required] int total_amount)
     {

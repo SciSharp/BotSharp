@@ -12,6 +12,21 @@ public class McpServerConfigModel
     /// </summary>
     public string Name { get; set; } = null!;
 
+    /// <summary>
+    /// Indicates whether this server is enabled.
+    /// </summary>
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// URL of the icon to display for this server.
+    /// </summary>
+    public string? IconUrl { get; set; }
+
+    /// <summary>
+    /// Short description of this server.
+    /// </summary>
+    public string? Description { get; set; }
+
     public McpSseServerConfig? SseConfig { get; set; }
     public McpStdioServerConfig? StdioConfig { get; set; }
 }

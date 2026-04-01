@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Polly" />
     <PackageReference Include="Refit" />
     <PackageReference Include="Refit.HttpClientFactory" />
   </ItemGroup>

@@ -117,6 +117,8 @@ public class CrontabService : ICrontabService, ITaskFeeder
     {
         _logger.LogDebug($"ScheduledTimeArrived {item}");
 
+        if (!await HasEnabledTriggerRule(item)) return;
+
         await HookEmitter.Emit<ICrontabHook>(_services, async hook =>
         {
             if (hook.Triggers == null || hook.Triggers.Contains(item.Title))
@@ -127,6 +129,27 @@ public class CrontabService : ICrontabService, ITaskFeeder
                 await hook.OnTaskExecuted(item);
             }
         }, item.AgentId);
+    }
+
+    /// <summary>
+    /// Returns whether the trigger is treated as enabled for this schedule: <c>true</c> unless a rule with the
+    /// same trigger name exists and is explicitly disabled (opt-out). Missing rules do not block.
+    /// </summary>
+    private async Task<bool> HasEnabledTriggerRule(CrontabItem item)
+    {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        // No agent context: do not gate (legacy / callers without AgentId).
+        if (string.IsNullOrEmpty(item.AgentId)) return true;
+
+        var agent = await agentService.GetAgent(item.AgentId);
+        if (agent == null)
+        {
+            _logger.LogWarning("Agent {AgentId} is not found", item.AgentId);
+            return false;
+        }
+
+        // Opt-out only: block when a matching trigger rule exists and Disabled is true.
+        return !agent.Rules.Any(r => r.TriggerName == item.Title && r.Disabled);
     }
 
     public async Task ExecuteTimeArrivedItemWithReentryProtection(CrontabItem item)

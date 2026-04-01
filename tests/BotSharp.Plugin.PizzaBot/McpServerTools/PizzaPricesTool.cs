@@ -1,14 +1,10 @@
-using ModelContextProtocol;
-using ModelContextProtocol.Server;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.Dynamic;
 using System.Text.Json;
 
 namespace BotSharp.PizzaBot.MCPServer.Tools;
 
 [McpServerToolType]
-public static class PizzaPrices
+public class PizzaPricesTool
 {
     [McpServerTool(Name = "get_pizza_prices"), Description("call this function to get pizza unit price.")]
     public static string GetPizzaPrices(
