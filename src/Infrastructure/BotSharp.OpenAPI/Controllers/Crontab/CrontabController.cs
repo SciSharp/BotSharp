@@ -10,13 +10,16 @@ namespace BotSharp.OpenAPI.Controllers;
 public class CrontabController : ControllerBase
 {
     private readonly IServiceProvider _services;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<CrontabController> _logger;
 
     public CrontabController(
         IServiceProvider services,
+        IServiceScopeFactory scopeFactory,
         ILogger<CrontabController> logger)
     {
         _services = services;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
@@ -60,8 +63,8 @@ public class CrontabController : ControllerBase
         {
             if (item.CheckNextOccurrenceEveryOneMinute())
             {
-                _logger.LogInformation("Crontab: {0}, One occurrence was matched, Beginning execution...", item.Title);
-                Task.Run(() => ExecuteTimeArrivedItem(item, _services));
+                _logger.LogInformation($"Crontab: {item.Title}, One occurrence was matched, attempting to execute...");
+                Task.Run(() => ExecuteTimeArrivedItem(item));
                 result.OccurrenceMatchedItems.Add(item.Title);
             }
         }
@@ -84,21 +87,10 @@ public class CrontabController : ControllerBase
         return allowedCrons.Where(cron => cron.Title.IsEqualTo(title)).ToList();
     }
 
-    private async Task<bool> ExecuteTimeArrivedItem(CrontabItem item, IServiceProvider services)
+    private async Task ExecuteTimeArrivedItem(CrontabItem item)
     {
-        try
-        {
-            using var scope = services.CreateScope();
-            var crontabService = scope.ServiceProvider.GetRequiredService<ICrontabService>();
-            _logger.LogInformation($"Start running crontab {item.Title}");
-            await crontabService.ScheduledTimeArrived(item);
-            _logger.LogInformation($"Complete running crontab {item.Title}");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error when running crontab {item.Title}");
-            return false;
-        }
+        using var scope = _scopeFactory.CreateScope();
+        var crontabService = scope.ServiceProvider.GetRequiredService<ICrontabService>();
+        await crontabService.ExecuteTimeArrivedItemWithReentryProtection(item);
     }
 }

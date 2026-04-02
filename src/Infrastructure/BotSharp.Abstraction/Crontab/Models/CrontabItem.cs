@@ -32,6 +32,9 @@ public class CrontabItem : ScheduleTaskArgs
     [JsonPropertyName("trigger_type")]
     public CronTabItemTriggerType TriggerType { get; set; } = CronTabItemTriggerType.BackgroundWatcher;
 
+    [JsonPropertyName("reentry_protection")]
+    public bool ReentryProtection { get; set; }
+
     public override string ToString()
     {
         return $"{Title}: {Description} [AgentId: {AgentId}, UserId: {UserId}]";
