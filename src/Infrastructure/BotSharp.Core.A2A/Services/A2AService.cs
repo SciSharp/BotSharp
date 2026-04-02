@@ -1,6 +1,5 @@
 using A2A;
 using Microsoft.Extensions.Logging;
-using System.Net.ServerSentEvents;
 using System.Text.Json;
 
 namespace BotSharp.Core.A2A.Services;
@@ -20,6 +19,20 @@ public class A2AService : IA2AService
         _logger = logger;
     }
 
+    private async Task<A2AClient> CreateClientAsync(string agentEndpoint, CancellationToken cancellationToken = default)
+    {
+        if (_clientCache.TryGetValue(agentEndpoint, out var cachedClient))
+        {
+            return cachedClient;
+        }
+
+        var agentCard = await GetCapabilitiesAsync(agentEndpoint, cancellationToken);
+        var clientEndpoint = agentCard.SupportedInterfaces.FirstOrDefault()?.Url ?? agentEndpoint;
+        var client = new A2AClient(new Uri(clientEndpoint), _httpClientFactory.CreateClient());
+        _clientCache[agentEndpoint] = client;
+        return client;
+    }
+
     public async Task<AgentCard> GetCapabilitiesAsync(string agentEndpoint, CancellationToken cancellationToken = default)
     {
         var resolver = new A2ACardResolver(new Uri(agentEndpoint));
@@ -28,53 +41,32 @@ public class A2AService : IA2AService
 
     public async Task<string> SendMessageAsync(string agentEndpoint, string text, string contextId, CancellationToken cancellationToken)
     {
+        var client = await CreateClientAsync(agentEndpoint, cancellationToken);
 
-        if (!_clientCache.TryGetValue(agentEndpoint, out var client))
+        var messagePayload = new Message
         {
-            HttpClient httpclient = _httpClientFactory.CreateClient();
-
-            client = new A2AClient(new Uri(agentEndpoint), httpclient);
-            _clientCache[agentEndpoint] = client;
-        }
-
-        var messagePayload = new AgentMessage
-        {
-            Role = MessageRole.User, 
+            MessageId = Guid.NewGuid().ToString("N"),
+            Role = Role.User,
             ContextId = contextId,           
-            Parts = new List<Part>
-            {
-                new TextPart { Text = text }
-            }
+            Parts = [Part.FromText(text)]
         };
 
-        var sendParams = new MessageSendParams
-        {
+        var sendRequest = new SendMessageRequest
+        {    
             Message = messagePayload
         };
 
         try
         {
             _logger.LogInformation($"Sending A2A message to {agentEndpoint}. ContextId: {contextId}");          
-            var responseBase = await client.SendMessageAsync(sendParams, cancellationToken);
+            var response = await client.SendMessageAsync(sendRequest, cancellationToken);
 
-            if (responseBase is AgentMessage responseMsg)
-            {                
-                if (responseMsg.Parts != null && responseMsg.Parts.Any())
-                {
-                    var textPart = responseMsg.Parts.First() as TextPart;
-                    return textPart?.Text ?? string.Empty;
-                }
-            }
-            else if( responseBase is AgentTask atask)
+            return response.PayloadCase switch
             {
-                return $"Task created with ID: {atask.Id}, Status: {atask.Status}";
-            }
-            else
-            {
-                return "Unexpected task type.";
-            }
-
-            return string.Empty;
+                SendMessageResponseCase.Message => response.Message?.Parts?.FirstOrDefault()?.Text ?? string.Empty,
+                SendMessageResponseCase.Task => $"Task created with ID: {response.Task?.Id}, Status: {response.Task?.Status}",
+                _ => "Unexpected task type."
+            };
         }
         catch (HttpRequestException ex)
         {
@@ -88,27 +80,26 @@ public class A2AService : IA2AService
         }
     }
 
-    public async Task SendMessageStreamingAsync(string endPoint, List<Part> parts, Func<SseItem<A2AEvent>, Task>? onStreamingEventReceived, CancellationToken cancellationToken = default)
+    public async Task SendMessageStreamingAsync(string endPoint, List<Part> parts, Func<StreamResponse, Task>? onStreamingEventReceived, CancellationToken cancellationToken = default)
     {
-        A2ACardResolver cardResolver = new(new Uri(endPoint));
-        AgentCard agentCard = await cardResolver.GetAgentCardAsync();
-        A2AClient client = new A2AClient(new Uri(agentCard.Url));
+        A2AClient client = await CreateClientAsync(endPoint, cancellationToken);
 
-        AgentMessage userMessage = new()
+        Message userMessage = new()
         {
-            Role = MessageRole.User,
+            MessageId = Guid.NewGuid().ToString("N"),
+            Role = Role.User,
             Parts = parts
         };
 
-        await foreach (SseItem<A2AEvent> sseItem in client.SendMessageStreamingAsync(new MessageSendParams { Message = userMessage }))
+        await foreach (StreamResponse streamResponse in client.SendStreamingMessageAsync(new SendMessageRequest { Message = userMessage }, cancellationToken))
         {
-            await onStreamingEventReceived?.Invoke(sseItem);
+            await onStreamingEventReceived?.Invoke(streamResponse);
         }
 
         Console.WriteLine(" Streaming completed.");
     }
 
-    public async Task ListenForTaskEventAsync(string endPoint, string taskId, Func<SseItem<A2AEvent>, ValueTask>? onTaskEventReceived = null, CancellationToken cancellationToken = default)
+    public async Task ListenForTaskEventAsync(string endPoint, string taskId, Func<StreamResponse, ValueTask>? onTaskEventReceived = null, CancellationToken cancellationToken = default)
     {
 
         if (onTaskEventReceived == null)
@@ -116,43 +107,36 @@ public class A2AService : IA2AService
             return;
         }
 
-        A2ACardResolver cardResolver = new(new Uri(endPoint));
-        AgentCard agentCard = await cardResolver.GetAgentCardAsync();
-        A2AClient client = new A2AClient(new Uri(agentCard.Url));
+        A2AClient client = await CreateClientAsync(endPoint, cancellationToken);
 
-        await foreach (SseItem<A2AEvent> sseItem in client.SubscribeToTaskAsync(taskId))
+        await foreach (StreamResponse streamResponse in client.SubscribeToTaskAsync(new SubscribeToTaskRequest { Id = taskId }, cancellationToken))
         {
-            await onTaskEventReceived.Invoke(sseItem);
-            Console.WriteLine(" Task event received: " + JsonSerializer.Serialize(sseItem.Data));
+            await onTaskEventReceived.Invoke(streamResponse);
+            Console.WriteLine(" Task event received: " + JsonSerializer.Serialize(streamResponse));
         }
 
     }
 
-    public async Task SetPushNotifications(string endPoint, PushNotificationConfig config, CancellationToken cancellationToken = default)
+    public async Task SetPushNotifications(string endPoint, string taskId, PushNotificationConfig config, CancellationToken cancellationToken = default)
     {
-        A2ACardResolver cardResolver = new(new Uri(endPoint));
-        AgentCard agentCard = await cardResolver.GetAgentCardAsync();
-        A2AClient client = new A2AClient(new Uri(agentCard.Url));
-        await client.SetPushNotificationAsync(new TaskPushNotificationConfig()
+        A2AClient client = await CreateClientAsync(endPoint, cancellationToken);
+        await client.CreateTaskPushNotificationConfigAsync(new CreateTaskPushNotificationConfigRequest()
         {
-            PushNotificationConfig = config
-        });
+            TaskId = taskId,
+            Config = config
+        }, cancellationToken);
     }
 
     public async Task<AgentTask> CancelTaskAsync(string endPoint, string taskId, CancellationToken cancellationToken = default)
     {
-        A2ACardResolver cardResolver = new(new Uri(endPoint));
-        AgentCard agentCard = await cardResolver.GetAgentCardAsync();
-        A2AClient client = new A2AClient(new Uri(agentCard.Url));
-        return await client.CancelTaskAsync(taskId);
+        A2AClient client = await CreateClientAsync(endPoint, cancellationToken);
+        return await client.CancelTaskAsync(new CancelTaskRequest { Id = taskId }, cancellationToken);
     }
 
     public async Task<AgentTask> GetTaskAsync(string endPoint, string taskId, CancellationToken cancellationToken = default)
     {
-        A2ACardResolver cardResolver = new(new Uri(endPoint));
-        AgentCard agentCard = await cardResolver.GetAgentCardAsync();
-        A2AClient client = new A2AClient(new Uri(agentCard.Url));
-        return await client.GetTaskAsync(taskId);
+        A2AClient client = await CreateClientAsync(endPoint, cancellationToken);
+        return await client.GetTaskAsync(new GetTaskRequest { Id = taskId }, cancellationToken);
     }
 
 }
