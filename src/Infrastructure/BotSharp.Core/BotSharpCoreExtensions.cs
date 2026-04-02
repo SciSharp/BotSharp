@@ -49,6 +49,7 @@ public static class BotSharpCoreExtensions
         config.Bind("SharpCache", cacheSettings);
         services.AddSingleton(x => cacheSettings);
 
+        services.AddSingleton<RedisCacheService>();
         services.AddSingleton<ICacheService>(sp => cacheSettings.CacheType switch
         {
             CacheType.RedisCache => ActivatorUtilities.CreateInstance<RedisCacheService>(sp),
