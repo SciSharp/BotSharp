@@ -34,11 +34,13 @@ namespace BotSharp.Core.Crontab.Services;
 public class CrontabService : ICrontabService, ITaskFeeder
 {
     private readonly IServiceProvider _services;
+    private readonly IServiceScopeFactory _scopeFactory;
     private ILogger _logger;
 
-    public CrontabService(IServiceProvider services, ILogger<CrontabService> logger)
+    public CrontabService(IServiceProvider services, IServiceScopeFactory scopeFactory, ILogger<CrontabService> logger)
     {
         _services = services;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
@@ -166,7 +168,7 @@ public class CrontabService : ICrontabService, ITaskFeeder
         }
 
         var lockKey = $"crontab:execution:{item.Title}";
-        using var scope = _services.CreateScope();
+        using var scope = _scopeFactory.CreateScope();
         var locker = scope.ServiceProvider.GetRequiredService<IDistributedLocker>();
         var acquired = false;
         var lockAcquired = false;

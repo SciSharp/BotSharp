@@ -10,13 +10,16 @@ namespace BotSharp.OpenAPI.Controllers;
 public class CrontabController : ControllerBase
 {
     private readonly IServiceProvider _services;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<CrontabController> _logger;
 
     public CrontabController(
         IServiceProvider services,
+        IServiceScopeFactory scopeFactory,
         ILogger<CrontabController> logger)
     {
         _services = services;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
@@ -61,7 +64,7 @@ public class CrontabController : ControllerBase
             if (item.CheckNextOccurrenceEveryOneMinute())
             {
                 _logger.LogInformation($"Crontab: {item.Title}, One occurrence was matched, attempting to execute...");
-                Task.Run(() => ExecuteTimeArrivedItem(item, _services));
+                Task.Run(() => ExecuteTimeArrivedItem(item));
                 result.OccurrenceMatchedItems.Add(item.Title);
             }
         }
@@ -84,9 +87,9 @@ public class CrontabController : ControllerBase
         return allowedCrons.Where(cron => cron.Title.IsEqualTo(title)).ToList();
     }
 
-    private async Task ExecuteTimeArrivedItem(CrontabItem item, IServiceProvider services)
+    private async Task ExecuteTimeArrivedItem(CrontabItem item)
     {
-        using var scope = services.CreateScope();
+        using var scope = _scopeFactory.CreateScope();
         var crontabService = scope.ServiceProvider.GetRequiredService<ICrontabService>();
         await crontabService.ExecuteTimeArrivedItemWithReentryProtection(item);
     }

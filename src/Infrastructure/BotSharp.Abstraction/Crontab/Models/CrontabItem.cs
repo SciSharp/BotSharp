@@ -33,7 +33,7 @@ public class CrontabItem : ScheduleTaskArgs
     public CronTabItemTriggerType TriggerType { get; set; } = CronTabItemTriggerType.BackgroundWatcher;
 
     [JsonPropertyName("reentry_protection")]
-    public bool ReentryProtection { get; set; } = true;
+    public bool ReentryProtection { get; set; }
 
     public override string ToString()
     {

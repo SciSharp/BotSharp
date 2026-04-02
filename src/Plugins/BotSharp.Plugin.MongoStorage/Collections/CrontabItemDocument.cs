@@ -19,7 +19,7 @@ public class CrontabItemDocument : MongoBase
     public IEnumerable<CronTaskMongoElement> Tasks { get; set; } = [];
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
     public int TriggerType { get; set; }
-    public bool ReentryProtection { get; set; } = true;
+    public bool ReentryProtection { get; set; }
 
     public static CrontabItem ToDomainModel(CrontabItemDocument item)
     {
