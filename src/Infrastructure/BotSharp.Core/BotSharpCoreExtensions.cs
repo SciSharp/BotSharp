@@ -55,7 +55,6 @@ public static class BotSharpCoreExtensions
         if (!string.IsNullOrEmpty(dbSettings.Redis))
         {
             services.AddSingleton<RedisCacheService>();
-            return;
         }
         
         services.AddSingleton<ICacheService>(sp => cacheSettings.CacheType switch
