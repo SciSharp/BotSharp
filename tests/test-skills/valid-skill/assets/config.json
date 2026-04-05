@@ -1,0 +1,27 @@
+{
+  "skill": {
+    "name": "valid-skill",
+    "version": "1.0.0",
+    "enabled": true
+  },
+  "settings": {
+    "maxRetries": 3,
+    "timeout": 30,
+    "logLevel": "info"
+  },
+  "features": {
+    "caching": true,
+    "validation": true,
+    "logging": true
+  },
+  "paths": {
+    "scripts": "./scripts",
+    "references": "./references",
+    "assets": "./assets"
+  },
+  "metadata": {
+    "created": "2026-01-28",
+    "author": "BotSharp Test Suite",
+    "description": "Sample configuration for testing"
+  }
+}
