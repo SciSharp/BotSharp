@@ -173,35 +173,45 @@ public class ChatCompletionProvider : IChatCompletion
 
         using var textStream = new RealtimeTextStream();
 
-        await foreach (StreamedChatResponse response in client.ChatAsStreamAsync(modelVersion: _settings.ModelVersion, messages, functions: funcall.Length == 0 ? null : funcall))
-        {
-            if (response.FunctionCall != null)
-            {
-                responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
-                {
-                    CurrentAgentId = agent.Id,
-                    MessageId = messageId,
-                    ToolCallId = response.FunctionCall.Name,
-                    FunctionName = response.FunctionCall.Name,
-                    FunctionArgs = response.FunctionCall.Arguments
-                };
-            }
-            else
-            {
-                textStream.Collect(response.Text);
-                responseMessage = new RoleDialogModel(AgentRole.Assistant, response.Text)
-                {
-                    CurrentAgentId = agent.Id,
-                    MessageId = messageId
-                };
+        var streamingCancellation = _services.GetRequiredService<IConversationCancellationService>();
+        var cancellationToken = streamingCancellation.GetToken(conv.ConversationId);
 
-                hub.Push(new()
+        try
+        {
+            await foreach (StreamedChatResponse response in client.ChatAsStreamAsync(modelVersion: _settings.ModelVersion, messages, functions: funcall.Length == 0 ? null : funcall).WithCancellation(cancellationToken))
+            {
+                if (response.FunctionCall != null)
                 {
-                    EventName = ChatEvent.OnReceiveLlmStreamMessage,
-                    RefId = conv.ConversationId,
-                    Data = responseMessage
-                });
-            } 
+                    responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
+                    {
+                        CurrentAgentId = agent.Id,
+                        MessageId = messageId,
+                        ToolCallId = response.FunctionCall.Name,
+                        FunctionName = response.FunctionCall.Name,
+                        FunctionArgs = response.FunctionCall.Arguments
+                    };
+                }
+                else
+                {
+                    textStream.Collect(response.Text);
+                    responseMessage = new RoleDialogModel(AgentRole.Assistant, response.Text)
+                    {
+                        CurrentAgentId = agent.Id,
+                        MessageId = messageId
+                    };
+
+                    hub.Push(new()
+                    {
+                        EventName = ChatEvent.OnReceiveLlmStreamMessage,
+                        RefId = conv.ConversationId,
+                        Data = responseMessage
+                    });
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Streaming was cancelled for conversation {ConversationId}", conv.ConversationId);
         }
 
         if (responseMessage.Role == AgentRole.Assistant)

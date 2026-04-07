@@ -216,72 +216,94 @@ public class ChatCompletionProvider : IChatCompletion
             MessageId = messageId
         };
 
-        await foreach (var choice in client.Messages.StreamClaudeMessageAsync(parameters))
+        var streamingCancellation = _services.GetRequiredService<IConversationCancellationService>();
+        var cancellationToken = streamingCancellation.GetToken(conv.ConversationId);
+
+        try
         {
-            var startMsg = choice.StreamStartMessage;
-            var contentBlock = choice.ContentBlock;
-            var delta = choice.Delta;
-
-            tokenUsage = delta?.Usage ?? startMsg?.Usage ?? choice.Usage;
-
-            if (delta != null)
+            await foreach (var choice in client.Messages.StreamClaudeMessageAsync(parameters).WithCancellation(cancellationToken))
             {
-                if (delta.StopReason == StopReason.ToolUse)
-                {
-                    var toolCall = choice.ToolCalls.FirstOrDefault();
-                    responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
-                    {
-                        CurrentAgentId = agent.Id,
-                        MessageId = messageId,
-                        ToolCallId = toolCall?.Id,
-                        FunctionName = toolCall?.Name,
-                        FunctionArgs = toolCall?.Arguments?.ToString()?.IfNullOrEmptyAs("{}") ?? "{}"
-                    };
+                var startMsg = choice.StreamStartMessage;
+                var contentBlock = choice.ContentBlock;
+                var delta = choice.Delta;
 
-#if DEBUG
-                    _logger.LogDebug($"Tool Call (id: {toolCall?.Id}) => {toolCall?.Name}({toolCall?.Arguments})");
-#endif
-                }
-                else if (delta.StopReason == StopReason.EndTurn)
-                {
-                    var allText = textStream.GetText();
-                    responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
-                    {
-                        CurrentAgentId = agent.Id,
-                        MessageId = messageId,
-                        IsStreaming = true
-                    };
+                tokenUsage = delta?.Usage ?? startMsg?.Usage ?? choice.Usage;
 
-#if DEBUG
-                    _logger.LogDebug($"Stream text Content: {allText}");
-#endif
-                }
-                else if (!string.IsNullOrEmpty(delta.StopReason))
+                if (delta != null)
                 {
-                    responseMessage = new RoleDialogModel(AgentRole.Assistant, delta.StopReason)
+                    if (delta.StopReason == StopReason.ToolUse)
                     {
-                        CurrentAgentId = agent.Id,
-                        MessageId = messageId,
-                        IsStreaming = true
-                    };
-                }
-                else
-                {
-                    var deltaText = delta.Text ?? string.Empty;
-                    textStream.Collect(deltaText);
-
-                    hub.Push(new()
-                    {
-                        EventName = ChatEvent.OnReceiveLlmStreamMessage,
-                        RefId = conv.ConversationId,
-                        Data = new RoleDialogModel(AgentRole.Assistant, deltaText)
+                        var toolCall = choice.ToolCalls.FirstOrDefault();
+                        responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
                         {
                             CurrentAgentId = agent.Id,
-                            MessageId = messageId
-                        }
-                    });
+                            MessageId = messageId,
+                            ToolCallId = toolCall?.Id,
+                            FunctionName = toolCall?.Name,
+                            FunctionArgs = toolCall?.Arguments?.ToString()?.IfNullOrEmptyAs("{}") ?? "{}"
+                        };
+
+#if DEBUG
+                        _logger.LogDebug($"Tool Call (id: {toolCall?.Id}) => {toolCall?.Name}({toolCall?.Arguments})");
+#endif
+                    }
+                    else if (delta.StopReason == StopReason.EndTurn)
+                    {
+                        var allText = textStream.GetText();
+                        responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
+                        {
+                            CurrentAgentId = agent.Id,
+                            MessageId = messageId,
+                            IsStreaming = true
+                        };
+
+#if DEBUG
+                        _logger.LogDebug($"Stream text Content: {allText}");
+#endif
+                    }
+                    else if (!string.IsNullOrEmpty(delta.StopReason))
+                    {
+                        responseMessage = new RoleDialogModel(AgentRole.Assistant, delta.StopReason)
+                        {
+                            CurrentAgentId = agent.Id,
+                            MessageId = messageId,
+                            IsStreaming = true
+                        };
+                    }
+                    else
+                    {
+                        var deltaText = delta.Text ?? string.Empty;
+                        textStream.Collect(deltaText);
+
+                        hub.Push(new()
+                        {
+                            EventName = ChatEvent.OnReceiveLlmStreamMessage,
+                            RefId = conv.ConversationId,
+                            Data = new RoleDialogModel(AgentRole.Assistant, deltaText)
+                            {
+                                CurrentAgentId = agent.Id,
+                                MessageId = messageId
+                            }
+                        });
+                    }
                 }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Streaming was cancelled for conversation {ConversationId}", conv.ConversationId);
+        }
+
+        // Build responseMessage from collected text when cancelled before FinishReason
+        if (cancellationToken.IsCancellationRequested && string.IsNullOrEmpty(responseMessage.Content))
+        {
+            var allText = textStream.GetText();
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = messageId,
+                IsStreaming = true
+            };
         }
 
         hub.Push(new()

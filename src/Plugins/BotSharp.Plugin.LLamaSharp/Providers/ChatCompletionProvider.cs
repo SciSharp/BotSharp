@@ -206,22 +206,32 @@ public class ChatCompletionProvider : IChatCompletion
             MessageId = messageId
         };
 
-        await foreach (var response in executor.InferAsync(agent.Instruction, inferenceParams))
-        {
-            Console.Write(response);
-            textStream.Collect(response);
+        var streamingCancellation = _services.GetRequiredService<IConversationCancellationService>();
+        var cancellationToken = streamingCancellation.GetToken(conv.ConversationId);
 
-            var content = new RoleDialogModel(AgentRole.Assistant, response)
+        try
+        {
+            await foreach (var response in executor.InferAsync(agent.Instruction, inferenceParams).WithCancellation(cancellationToken))
             {
-                CurrentAgentId = agent.Id,
-                MessageId = messageId
-            };
-            hub.Push(new()
-            {
-                EventName = ChatEvent.OnReceiveLlmStreamMessage,
-                RefId = conv.ConversationId,
-                Data = content
-            });
+                Console.Write(response);
+                textStream.Collect(response);
+
+                var content = new RoleDialogModel(AgentRole.Assistant, response)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = messageId
+                };
+                hub.Push(new()
+                {
+                    EventName = ChatEvent.OnReceiveLlmStreamMessage,
+                    RefId = conv.ConversationId,
+                    Data = content
+                });
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Streaming was cancelled for conversation {ConversationId}", conv.ConversationId);
         }
 
         responseMessage = new RoleDialogModel(AgentRole.Assistant, textStream.GetText())

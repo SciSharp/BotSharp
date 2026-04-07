@@ -1,6 +1,5 @@
 #pragma warning disable OPENAI001
 using BotSharp.Abstraction.MessageHub.Models;
-using BotSharp.Abstraction.Utilities;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
 using OpenAI.Chat;
@@ -261,82 +260,104 @@ public class ChatCompletionProvider : IChatCompletion
             MessageId = messageId
         };
 
-        await foreach (var choice in chatClient.CompleteChatStreamingAsync(messages, options))
+        var streamingCancellation = _services.GetRequiredService<IConversationCancellationService>();
+        var cancellationToken = streamingCancellation.GetToken(conv.ConversationId);
+
+        try
         {
-            tokenUsage = choice.Usage;
-
-            if (!choice.ToolCallUpdates.IsNullOrEmpty())
+            await foreach (var choice in chatClient.CompleteChatStreamingAsync(messages, options, cancellationToken))
             {
-                toolCalls.AddRange(choice.ToolCallUpdates);
-            }
+                tokenUsage = choice.Usage;
 
-            if (!choice.ContentUpdate.IsNullOrEmpty())
-            {
-                var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
-                textStream.Collect(text);
+                if (!choice.ToolCallUpdates.IsNullOrEmpty())
+                {
+                    toolCalls.AddRange(choice.ToolCallUpdates);
+                }
+
+                if (!choice.ContentUpdate.IsNullOrEmpty())
+                {
+                    var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
+                    textStream.Collect(text);
 #if DEBUG
-                _logger.LogDebug($"Stream Content update: {text}");
+                    _logger.LogDebug($"Stream Content update: {text}");
 #endif
 
-                hub.Push(new()
+                    hub.Push(new()
+                    {
+                        EventName = ChatEvent.OnReceiveLlmStreamMessage,
+                        RefId = conv.ConversationId,
+                        Data = new RoleDialogModel(AgentRole.Assistant, text)
+                        {
+                            CurrentAgentId = agent.Id,
+                            MessageId = messageId
+                        }
+                    });
+                }
+
+                if (choice.FinishReason == ChatFinishReason.ToolCalls || choice.FinishReason == ChatFinishReason.FunctionCall)
                 {
-                    EventName = ChatEvent.OnReceiveLlmStreamMessage,
-                    RefId = conv.ConversationId,
-                    Data = new RoleDialogModel(AgentRole.Assistant, text)
+                    var meta = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName));
+                    var functionName = meta?.FunctionName;
+                    var toolCallId = meta?.ToolCallId;
+                    var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
+                    var functionArguments = string.Join(string.Empty, args);
+
+#if DEBUG
+                    _logger.LogDebug($"Tool Call (id: {toolCallId}) => {functionName}({functionArguments})");
+#endif
+
+                    responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
                     {
                         CurrentAgentId = agent.Id,
-                        MessageId = messageId
-                    }
-                });
-            }
-
-            if (choice.FinishReason == ChatFinishReason.ToolCalls || choice.FinishReason == ChatFinishReason.FunctionCall)
-            {
-                var meta = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName));
-                var functionName = meta?.FunctionName;
-                var toolCallId = meta?.ToolCallId;
-                var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
-                var functionArguments = string.Join(string.Empty, args);
-
+                        MessageId = messageId,
+                        ToolCallId = toolCallId,
+                        FunctionName = functionName,
+                        FunctionArgs = functionArguments
+                    };
+                }
+                else if (choice.FinishReason == ChatFinishReason.Stop)
+                {
+                    var allText = textStream.GetText();
 #if DEBUG
-                _logger.LogDebug($"Tool Call (id: {toolCallId}) => {functionName}({functionArguments})");
+                    _logger.LogDebug($"Stream text Content: {allText}");
 #endif
 
-                responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
+                    responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
+                    {
+                        CurrentAgentId = agent.Id,
+                        MessageId = messageId,
+                        IsStreaming = true
+                    };
+                }
+                else if (choice.FinishReason.HasValue)
                 {
-                    CurrentAgentId = agent.Id,
-                    MessageId = messageId,
-                    ToolCallId = toolCallId,
-                    FunctionName = functionName,
-                    FunctionArgs = functionArguments
-                };
+                    var text = choice.FinishReason == ChatFinishReason.Length ? "Model reached the maximum number of tokens allowed."
+                        : choice.FinishReason == ChatFinishReason.ContentFilter ? "Content is omitted due to content filter rule."
+                        : choice.FinishReason.Value.ToString();
+                    responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
+                    {
+                        CurrentAgentId = agent.Id,
+                        MessageId = messageId,
+                        IsStreaming = true
+                    };
+                }
             }
-            else if (choice.FinishReason == ChatFinishReason.Stop)
-            {
-                var allText = textStream.GetText();
-#if DEBUG
-                _logger.LogDebug($"Stream text Content: {allText}");
-#endif
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Streaming was cancelled for conversation {ConversationId}", conv.ConversationId);
+        }
 
-                responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
-                {
-                    CurrentAgentId = agent.Id,
-                    MessageId = messageId,
-                    IsStreaming = true
-                };
-            }
-            else if (choice.FinishReason.HasValue)
+        // Build responseMessage from collected text when cancelled before FinishReason
+        if (cancellationToken.IsCancellationRequested && string.IsNullOrEmpty(responseMessage.Content))
+        {
+            var allText = textStream.GetText();
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
             {
-                var text = choice.FinishReason == ChatFinishReason.Length ? "Model reached the maximum number of tokens allowed."
-                    : choice.FinishReason == ChatFinishReason.ContentFilter ? "Content is omitted due to content filter rule."
-                    : choice.FinishReason.Value.ToString();
-                responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
-                {
-                    CurrentAgentId = agent.Id,
-                    MessageId = messageId,
-                    IsStreaming = true
-                };
-            }
+                CurrentAgentId = agent.Id,
+                MessageId = messageId,
+                IsStreaming = true
+            };
         }
 
         hub.Push(new()

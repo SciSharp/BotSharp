@@ -254,70 +254,92 @@ public class ChatCompletionProvider : IChatCompletion
             MessageId = messageId
         };
 
-        await foreach (var choice in chatClient.CompleteChatStreamingAsync(messages, options))
+        var streamingCancellation = _services.GetRequiredService<IConversationCancellationService>();
+        var cancellationToken = streamingCancellation.GetToken(conv.ConversationId);
+
+        try
         {
-            tokenUsage = choice.Usage;
-
-            if (!choice.ToolCallUpdates.IsNullOrEmpty())
+            await foreach (var choice in chatClient.CompleteChatStreamingAsync(messages, options).WithCancellation(cancellationToken))
             {
-                toolCalls.AddRange(choice.ToolCallUpdates);
-            }
+                tokenUsage = choice.Usage;
 
-            if (!choice.ContentUpdate.IsNullOrEmpty())
-            {
-                var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
-                textStream.Collect(text);
+                if (!choice.ToolCallUpdates.IsNullOrEmpty())
+                {
+                    toolCalls.AddRange(choice.ToolCallUpdates);
+                }
+
+                if (!choice.ContentUpdate.IsNullOrEmpty())
+                {
+                    var text = choice.ContentUpdate[0]?.Text ?? string.Empty;
+                    textStream.Collect(text);
 
 #if DEBUG
-                _logger.LogCritical($"Content update: {text}");
+                    _logger.LogCritical($"Content update: {text}");
 #endif
 
-                var content = new RoleDialogModel(AgentRole.Assistant, text)
-                {
-                    CurrentAgentId = agent.Id,
-                    MessageId = messageId
-                };
-                hub.Push(new()
-                {
-                    EventName = ChatEvent.OnReceiveLlmStreamMessage,
-                    RefId = conv.ConversationId,
-                    Data = content
-                });
-            }
+                    var content = new RoleDialogModel(AgentRole.Assistant, text)
+                    {
+                        CurrentAgentId = agent.Id,
+                        MessageId = messageId
+                    };
+                    hub.Push(new()
+                    {
+                        EventName = ChatEvent.OnReceiveLlmStreamMessage,
+                        RefId = conv.ConversationId,
+                        Data = content
+                    });
+                }
 
-            if (choice.FinishReason == ChatFinishReason.ToolCalls || choice.FinishReason == ChatFinishReason.FunctionCall)
-            {
-                var meta = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName));
-                var functionName = meta?.FunctionName;
-                var toolCallId = meta?.ToolCallId;
-                var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
-                var functionArgument = string.Join(string.Empty, args);
+                if (choice.FinishReason == ChatFinishReason.ToolCalls || choice.FinishReason == ChatFinishReason.FunctionCall)
+                {
+                    var meta = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName));
+                    var functionName = meta?.FunctionName;
+                    var toolCallId = meta?.ToolCallId;
+                    var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
+                    var functionArgument = string.Join(string.Empty, args);
 
 #if DEBUG
-                _logger.LogCritical($"Tool Call (id: {toolCallId}) => {functionName}({functionArgument})");
+                    _logger.LogCritical($"Tool Call (id: {toolCallId}) => {functionName}({functionArgument})");
 #endif
 
-                responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
+                    responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
+                    {
+                        CurrentAgentId = agent.Id,
+                        MessageId = messageId,
+                        ToolCallId = toolCallId,
+                        FunctionName = functionName,
+                        FunctionArgs = functionArgument
+                    };
+                }
+                else if (choice.FinishReason.HasValue)
                 {
-                    CurrentAgentId = agent.Id,
-                    MessageId = messageId,
-                    ToolCallId = toolCallId,
-                    FunctionName = functionName,
-                    FunctionArgs = functionArgument
-                };
-            }
-            else if (choice.FinishReason.HasValue)
-            {
-                var allText = textStream.GetText();
-                _logger.LogCritical($"Text Content: {allText}");
+                    var allText = textStream.GetText();
+                    _logger.LogCritical($"Text Content: {allText}");
 
-                responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
-                {
-                    CurrentAgentId = agent.Id,
-                    MessageId = messageId,
-                    IsStreaming = true
-                };
+                    responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
+                    {
+                        CurrentAgentId = agent.Id,
+                        MessageId = messageId,
+                        IsStreaming = true
+                    };
+                }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Streaming was cancelled for conversation {ConversationId}", conv.ConversationId);
+        }
+
+        // Build responseMessage from collected text when cancelled before FinishReason
+        if (cancellationToken.IsCancellationRequested && string.IsNullOrEmpty(responseMessage.Content))
+        {
+            var allText = textStream.GetText();
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = messageId,
+                IsStreaming = true
+            };
         }
 
         hub.Push(new()
