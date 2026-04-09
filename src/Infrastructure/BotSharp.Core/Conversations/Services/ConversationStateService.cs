@@ -38,6 +38,7 @@ public class ConversationStateService : IConversationStateService
     /// States in the previous rounds of conversation
     /// </summary>
     private ConversationState _historyStates;
+    private bool _isReadOnly;
 
     public ConversationStateService(
         IServiceProvider services,
@@ -153,7 +154,8 @@ public class ConversationStateService : IConversationStateService
 
     public async Task<Dictionary<string, string>> Load(string conversationId, bool isReadOnly = false)
     {
-        _conversationId = !isReadOnly ? conversationId : null;
+        _isReadOnly = isReadOnly;
+        _conversationId = conversationId;
         Reset();
 
         var endNodes = new Dictionary<string, string>();
@@ -232,7 +234,7 @@ public class ConversationStateService : IConversationStateService
 
     public async Task Save()
     {
-        if (_conversationId == null || _sidecar?.IsEnabled == true)
+        if (_conversationId == null || _sidecar?.IsEnabled == true || _isReadOnly == true)
         {
             return;
         }
