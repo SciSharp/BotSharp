@@ -234,7 +234,7 @@ public class ConversationStateService : IConversationStateService
 
     public async Task Save()
     {
-        if (_conversationId == null || _sidecar?.IsEnabled == true || _isReadOnly == true)
+        if (_conversationId == null || _sidecar?.IsEnabled == true || _isReadOnly)
         {
             return;
         }
