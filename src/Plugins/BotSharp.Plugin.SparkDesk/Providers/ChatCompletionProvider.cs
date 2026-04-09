@@ -178,7 +178,7 @@ public class ChatCompletionProvider : IChatCompletion
 
         try
         {
-            await foreach (StreamedChatResponse response in client.ChatAsStreamAsync(modelVersion: _settings.ModelVersion, messages, functions: funcall.Length == 0 ? null : funcall).WithCancellation(cancellationToken))
+            await foreach (StreamedChatResponse response in client.ChatAsStreamAsync(modelVersion: _settings.ModelVersion, messages, functions: funcall.Length == 0 ? null : funcall, cancellationToken: cancellationToken))
             {
                 if (response.FunctionCall != null)
                 {

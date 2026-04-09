@@ -211,7 +211,7 @@ public class ChatCompletionProvider : IChatCompletion
 
         try
         {
-            await foreach (var response in executor.InferAsync(agent.Instruction, inferenceParams).WithCancellation(cancellationToken))
+            await foreach (var response in executor.InferAsync(agent.Instruction, inferenceParams, cancellationToken))
             {
                 Console.Write(response);
                 textStream.Collect(response);

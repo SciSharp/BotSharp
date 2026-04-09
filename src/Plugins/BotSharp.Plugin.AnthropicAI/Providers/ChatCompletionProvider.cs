@@ -221,7 +221,7 @@ public class ChatCompletionProvider : IChatCompletion
 
         try
         {
-            await foreach (var choice in client.Messages.StreamClaudeMessageAsync(parameters).WithCancellation(cancellationToken))
+            await foreach (var choice in client.Messages.StreamClaudeMessageAsync(parameters, cancellationToken))
             {
                 var startMsg = choice.StreamStartMessage;
                 var contentBlock = choice.ContentBlock;

@@ -259,7 +259,7 @@ public class ChatCompletionProvider : IChatCompletion
 
         try
         {
-            await foreach (var choice in chatClient.CompleteChatStreamingAsync(messages, options).WithCancellation(cancellationToken))
+            await foreach (var choice in chatClient.CompleteChatStreamingAsync(messages, options, cancellationToken))
             {
                 tokenUsage = choice.Usage;
 
