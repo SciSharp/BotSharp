@@ -56,6 +56,7 @@ public partial class InstructService
     private async Task<Agent> BuildInnerAgent(InstructOptions? options)
     {
         Agent? agent = null;
+        AgentLlmConfig? llmConfig = null;
         string? instruction = null;
         
         if (!string.IsNullOrWhiteSpace(options?.AgentId))
@@ -65,8 +66,19 @@ public partial class InstructService
             
             if (!string.IsNullOrWhiteSpace(options?.TemplateName))
             {
-                var template = agent?.Templates?.FirstOrDefault(x => x.Name == options.TemplateName)?.Content ?? string.Empty;
-                instruction = BuildInstruction(template, options?.Data ?? []);
+                var template = agent?.Templates?.FirstOrDefault(x => x.Name == options.TemplateName);
+                instruction = BuildInstruction(template?.Content ?? string.Empty, options?.Data ?? []);
+                var templateLlmConfig = template?.LlmConfig;
+                if (templateLlmConfig?.IsValid == true)
+                {
+                    llmConfig = new AgentLlmConfig
+                    {
+                        Provider = templateLlmConfig.Provider,
+                        Model = templateLlmConfig.Model,
+                        MaxOutputTokens = templateLlmConfig.MaxOutputTokens,
+                        ReasoningEffortLevel = templateLlmConfig.ReasoningEffortLevel
+                    };
+                }
             }
         }
 
@@ -75,7 +87,7 @@ public partial class InstructService
             Id = agent?.Id ?? Guid.Empty.ToString(),
             Name = agent?.Name ?? "Unknown",
             Instruction = instruction,
-            LlmConfig = agent?.LlmConfig ?? new()
+            LlmConfig = llmConfig ?? agent?.LlmConfig ?? new()
         };
     }
 

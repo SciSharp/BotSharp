@@ -38,5 +38,4 @@ public class AgentTemplateConfig
 
 public class AgentTemplateLlmConfig : LlmConfigBase
 {
-
 }
