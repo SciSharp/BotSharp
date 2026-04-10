@@ -8,7 +8,7 @@ public class LlmConfigBase : LlmProviderModel
     public int? MaxOutputTokens { get; set; }
 
     /// <summary>
-    /// Llm reasoning effort level
+    /// Llm reasoning effort level, thinking level
     /// </summary>
     public string? ReasoningEffortLevel { get; set; }
 }

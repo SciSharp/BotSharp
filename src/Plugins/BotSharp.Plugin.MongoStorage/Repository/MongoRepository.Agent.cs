@@ -553,6 +553,24 @@ public partial class MongoRepository
         return agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName))?.Content ?? string.Empty;
     }
 
+    public async Task<AgentTemplate> GetAgentTemplateDetail(string agentId, string templateName)
+    {
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var agent = await _dc.Agents.Find(filter).FirstOrDefaultAsync();
+        if (agent == null)
+        {
+            return new AgentTemplate { Name = templateName };
+        }
+
+        var foundTemplate = agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName));
+        if (foundTemplate == null)
+        {
+            return new AgentTemplate { Name = templateName };
+        }
+
+        return AgentTemplateMongoElement.ToDomainElement(foundTemplate);
+    }
+
     public async Task<bool> PatchAgentTemplate(string agentId, AgentTemplate template)
     {
         if (string.IsNullOrEmpty(agentId) || template == null)

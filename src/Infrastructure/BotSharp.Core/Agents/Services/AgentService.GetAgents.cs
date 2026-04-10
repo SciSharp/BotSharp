@@ -105,6 +105,14 @@ public partial class AgentService
         agent.ChannelInstructions = instructions;
     }
 
+#if !DEBUG
+    [SharpCache(10, perInstanceCache: true)]
+#endif
+    public async Task<AgentTemplate> GetAgentTemplateDetail(string agentId, string templateName)
+    {
+        return await _db.GetAgentTemplateDetail(agentId, templateName);
+    }
+
     public async Task InheritAgent(Agent agent)
     {
         if (string.IsNullOrWhiteSpace(agent?.InheritAgentId))

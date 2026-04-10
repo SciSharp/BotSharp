@@ -53,7 +53,8 @@ public interface IAgentService
     /// <param name="id"></param>
     /// <returns>Original agent information</returns>
     Task<Agent> GetAgent(string id);
-    
+    Task<AgentTemplate> GetAgentTemplateDetail(string agentId, string templateName);
+
     Task<bool> DeleteAgent(string id, AgentDeleteOptions? options = null);
     Task UpdateAgent(Agent agent, AgentField updateField);
 

@@ -59,6 +59,8 @@ public partial class FileRepository : IBotSharpRepository
     private const string CRON_FILE = "cron.json";
     private const string INSTRUCTION_LOG_FOLDER = "instruction-logs";
 
+    private const string AGENT_TEMPLATE_CONFIG_FILE = "templates.json";
+
     public FileRepository(
         IServiceProvider services,
         BotSharpDatabaseSettings dbSettings,
@@ -387,6 +389,16 @@ public partial class FileRepository : IBotSharpRepository
         var templateDir = Path.Combine(fileDir, AGENT_TEMPLATES_FOLDER);
         if (!Directory.Exists(templateDir)) return templates;
 
+        // Load template configs
+        var configFile = Path.Combine(fileDir, AGENT_TEMPLATE_CONFIG_FILE);
+        var configs = new List<AgentTemplateConfig>();
+        if (File.Exists(configFile))
+        {
+            var configJson = File.ReadAllText(configFile);
+            configs = JsonSerializer.Deserialize<List<AgentTemplateConfig>>(configJson, _options) ?? [];
+        }
+
+        // Load templates
         foreach (var file in Directory.GetFiles(templateDir))
         {
             var fileName = Path.GetFileName(file);
@@ -396,7 +408,14 @@ public partial class FileRepository : IBotSharpRepository
             if (extension.Equals(_agentSettings.TemplateFormat, StringComparison.OrdinalIgnoreCase))
             {
                 var content = File.ReadAllText(file);
-                templates.Add(new AgentTemplate(name, content));
+                var template = new AgentTemplate(name, content);
+                var config = configs.FirstOrDefault(x => x.Name.IsEqualTo(name));
+                if (config != null)
+                {
+                    template.ResponseFormat = config.ResponseFormat;
+                    template.LlmConfig = config.LlmConfig;
+                }
+                templates.Add(template);
             }
         }
 
