@@ -132,7 +132,7 @@ public partial class AgentService
             }
         }
 
-        return template;
+        return template.DeepClone();
     }
 
     public async Task InheritAgent(Agent agent)

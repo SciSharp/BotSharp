@@ -592,6 +592,8 @@ public partial class MongoRepository
         }
 
         foundTemplate.Content = template.Content;
+        foundTemplate.ResponseFormat = template.ResponseFormat;
+        foundTemplate.LlmConfig = AgentTemplateLlmConfigMongoModel.ToMongoModel(template.LlmConfig);
         var update = Builders<AgentDocument>.Update.Set(x => x.Templates, agent.Templates);
         await _dc.Agents.UpdateOneAsync(filter, update);
         return true;

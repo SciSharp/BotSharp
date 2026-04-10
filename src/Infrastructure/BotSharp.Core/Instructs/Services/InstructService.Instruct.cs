@@ -66,7 +66,7 @@ public partial class InstructService
             
             if (!string.IsNullOrWhiteSpace(options?.TemplateName))
             {
-                var template = agent?.Templates?.FirstOrDefault(x => x.Name == options.TemplateName);
+                var template = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(options.TemplateName));
                 instruction = BuildInstruction(template?.Content ?? string.Empty, options?.Data ?? []);
                 var templateLlmConfig = template?.LlmConfig;
                 if (templateLlmConfig?.IsValid == true)
