@@ -68,6 +68,7 @@
     <None Remove="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\functions\human_intervention_needed.json" />
 
     <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\agent.json" />
+    <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\template_configs.json" />
     <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\instructions\instruction.liquid" />
     <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_weather.json" />
     <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\functions\get_fun_events.json" />
@@ -129,6 +130,9 @@
     </Content>
 
     <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\template_configs.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\instructions\instruction.liquid">

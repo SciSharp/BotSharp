@@ -754,18 +754,14 @@ namespace BotSharp.Core.Repository
                 }
             }
 
-            // Get template config
+            // Get template configs
+            var (configs, _) = GetAgentTemplateConfigs(baseDir);
             var configFile = Path.Combine(baseDir, AGENT_TEMPLATE_CONFIG_FILE);
-            if (File.Exists(configFile))
+            var found = configs?.FirstOrDefault(x => x.Name.IsEqualTo(templateName));
+            if (found != null)
             {
-                var configJson = await File.ReadAllTextAsync(configFile);
-                var configs = JsonSerializer.Deserialize<List<AgentTemplate>>(configJson, _options);
-                var matched = configs?.FirstOrDefault(x => x.Name.IsEqualTo(templateName));
-                if (matched != null)
-                {
-                    template.ResponseFormat = matched.ResponseFormat;
-                    template.LlmConfig = matched.LlmConfig;
-                }
+                template.ResponseFormat = found.ResponseFormat;
+                template.LlmConfig = found.LlmConfig;
             }
 
             return template;
@@ -800,13 +796,7 @@ namespace BotSharp.Core.Repository
             await File.WriteAllTextAsync(foundTemplate, template.Content);
 
             // Update template config
-            var configFile = Path.Combine(baseDir, AGENT_TEMPLATE_CONFIG_FILE);
-            var configs = new List<AgentTemplateConfig>();
-            if (File.Exists(configFile))
-            {
-                var configJson = await File.ReadAllTextAsync(configFile);
-                configs = JsonSerializer.Deserialize<List<AgentTemplateConfig>>(configJson, _options) ?? [];
-            }
+            var (configs, configFile) = GetAgentTemplateConfigs(baseDir);
 
             var existingConfig = configs.FirstOrDefault(x => x.Name.IsEqualTo(template.Name));
             if (existingConfig != null)

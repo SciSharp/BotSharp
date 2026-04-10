@@ -108,9 +108,31 @@ public partial class AgentService
 #if !DEBUG
     [SharpCache(10, perInstanceCache: true)]
 #endif
-    public async Task<AgentTemplate> GetAgentTemplateDetail(string agentId, string templateName)
+    public async Task<AgentTemplate?> GetAgentTemplateDetail(string agentId, string templateName)
     {
-        return await _db.GetAgentTemplateDetail(agentId, templateName);
+        var template = await _db.GetAgentTemplateDetail(agentId, templateName);
+        if (template == null)
+        {
+            return template;
+        }
+
+        if (template.LlmConfig == null)
+        {
+            var agent = await _db.GetAgent(agentId);
+            if (!string.IsNullOrEmpty(agent?.LlmConfig?.Provider)
+                && !string.IsNullOrEmpty(agent?.LlmConfig?.Model))
+            {
+                template.LlmConfig = new AgentTemplateLlmConfig
+                {
+                    Provider = agent.LlmConfig.Provider,
+                    Model = agent.LlmConfig.Model,
+                    MaxOutputTokens = agent.LlmConfig.MaxOutputTokens,
+                    ReasoningEffortLevel = agent.LlmConfig.ReasoningEffortLevel
+                };
+            }
+        }
+
+        return template;
     }
 
     public async Task InheritAgent(Agent agent)

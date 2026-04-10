@@ -98,6 +98,9 @@ public partial class AgentService
         var templateDir = Path.Combine(fileDir, "templates");
         if (!Directory.Exists(templateDir)) return templates;
 
+        // Load template configs
+        var configs = GetAgentTemplateConfigs(fileDir);
+
         foreach (var file in Directory.GetFiles(templateDir))
         {
             var extension = Path.GetExtension(file).Substring(1);
@@ -105,11 +108,39 @@ public partial class AgentService
             {
                 var name = Path.GetFileNameWithoutExtension(file);
                 var content = File.ReadAllText(file);
-                templates.Add(new AgentTemplate(name, content));
+                var template = new AgentTemplate(name, content);
+                var config = configs.FirstOrDefault(x => x.Name.IsEqualTo(name));
+                if (config != null)
+                {
+                    template.ResponseFormat = config.ResponseFormat;
+                    template.LlmConfig = config.LlmConfig;
+                }
+                templates.Add(template);
             }
         }
-        
+
         return templates;
+    }
+
+    private IEnumerable<AgentTemplateConfig> GetAgentTemplateConfigs(string baseDir)
+    {
+        var configFile = Path.Combine(baseDir, "template_configs.json");
+        var configs = new List<AgentTemplateConfig>();
+
+        try
+        {
+            if (File.Exists(configFile))
+            {
+                var configJson = File.ReadAllText(configFile);
+                configs = JsonSerializer.Deserialize<List<AgentTemplateConfig>>(configJson, _options.JsonSerializerOptions) ?? [];
+            }
+            return configs;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error when loading template configs in {configFile}", configFile);
+            return configs;
+        }
     }
 
     private List<FunctionDef> GetFunctionsFromFile(string fileDir)
