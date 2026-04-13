@@ -26,5 +26,5 @@ public interface IRuleTrigger
     /// Optional list of agent IDs this trigger is associated with.
     /// Used for display/filtering in UI only (not used in execution logic).
     /// </summary>
-    string[] AgentIds => [];
+    string[]? AgentIds => null;
 }
