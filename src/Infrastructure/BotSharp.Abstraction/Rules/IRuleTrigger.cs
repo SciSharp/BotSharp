@@ -21,4 +21,10 @@ public interface IRuleTrigger
     /// Explain the purpose of rule trigger (display purpose)
     /// </summary>
     string Statement => string.Empty;
+
+    /// <summary>
+    /// Optional list of agent IDs this trigger is associated with.
+    /// Used for display/filtering in UI only (not used in execution logic).
+    /// </summary>
+    string[] AgentIds => [];
 }
