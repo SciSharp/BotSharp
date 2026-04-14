@@ -28,10 +28,18 @@ public class McpServerConfigModel
     public string? Description { get; set; }
 
     public McpSseServerConfig? SseConfig { get; set; }
+    public McpHttpServerConfig? HttpConfig { get; set; }
     public McpStdioServerConfig? StdioConfig { get; set; }
 }
 
 public class McpSseServerConfig
+{
+    public string EndPoint { get; set; } = null!;
+    public TimeSpan ConnectionTimeout { get; init; } = TimeSpan.FromSeconds(30);
+    public Dictionary<string, string>? AdditionalHeaders { get; set; }
+}
+
+public class McpHttpServerConfig
 {
     public string EndPoint { get; set; } = null!;
     public TimeSpan ConnectionTimeout { get; init; } = TimeSpan.FromSeconds(30);
