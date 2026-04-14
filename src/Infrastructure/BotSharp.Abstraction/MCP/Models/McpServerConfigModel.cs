@@ -50,6 +50,6 @@ public class McpStdioServerConfig
 {
     public string Command { get; set; } = null!;
     public IList<string>? Arguments { get; set; }
-    public Dictionary<string, string>? EnvironmentVariables { get; set; }
+    public Dictionary<string, string?>? EnvironmentVariables { get; set; }
     public TimeSpan ShutdownTimeout { get; set; } = TimeSpan.FromSeconds(5);
 }
