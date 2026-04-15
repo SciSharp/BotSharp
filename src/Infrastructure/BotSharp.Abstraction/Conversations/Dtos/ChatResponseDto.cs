@@ -46,6 +46,10 @@ public class ChatResponseDto : InstructResult
     [JsonPropertyName("is_streaming")]
     public bool IsStreaming { get; set; }
 
+    [JsonPropertyName("meta_data")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string?>? MetaData { get; set; }
+
     [JsonPropertyName("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
