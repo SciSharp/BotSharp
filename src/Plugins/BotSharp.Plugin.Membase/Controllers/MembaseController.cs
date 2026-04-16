@@ -8,6 +8,7 @@ namespace BotSharp.Plugin.Membase.Controllers;
 [ApiController]
 public class MembaseController : ControllerBase
 {
+    private const string GraphDbProvider = "membase";
     private readonly IServiceProvider _services;
     private readonly IMembaseApi _membaseApi;
 
@@ -78,7 +79,7 @@ public class MembaseController : ControllerBase
 
         try
         {
-            var graph = _services.GetServices<IGraphDb>().First(x => x.Provider == "membase");
+            var graph = _services.GetServices<IGraphDb>().First(x => x.Provider == GraphDbProvider);
             var result = await graph.ExecuteQueryAsync(query: request.Query, options: new()
             {
                 GraphId = graphId,
@@ -125,7 +126,8 @@ public class MembaseController : ControllerBase
 
         try
         {
-            var node = await _membaseApi.GetNodeAsync(graphId, nodeId);
+            var graph = _services.GetServices<IGraphDb>().First(x => x.Provider == GraphDbProvider);
+            var node = await graph.GetNodeAsync(graphId, nodeId);
             return Ok(node);
         }
         catch (Exception ex)
@@ -163,7 +165,14 @@ public class MembaseController : ControllerBase
 
         try
         {
-            var node = await _membaseApi.CreateNodeAsync(graphId, request);
+            var graph = _services.GetServices<IGraphDb>().First(x => x.Provider == GraphDbProvider);
+            var node = await graph.CreateNodeAsync(graphId, new GraphNodeCreationRequest
+            {
+                Id = request.Id,
+                Labels = request.Labels,
+                Properties = request.Properties,
+                Time = request.Time
+            });
             return Ok(node);
         }
         catch (Exception ex)
@@ -201,7 +210,14 @@ public class MembaseController : ControllerBase
 
         try
         {
-            var node = await _membaseApi.MergeNodeAsync(graphId, request.Id, request);
+            var graph = _services.GetServices<IGraphDb>().First(x => x.Provider == GraphDbProvider);
+            var node = await graph.MergeNodeAsync(graphId, request.Id, new GraphNodeUpdateRequest
+            {
+                Id = request.Id,
+                Labels = request.Labels,
+                Properties = request.Properties,
+                Time = request.Time
+            });
             return Ok(node);
         }
         catch (Exception ex)
@@ -239,7 +255,8 @@ public class MembaseController : ControllerBase
 
         try
         {
-            await _membaseApi.DeleteNodeAsync(graphId, nodeId);
+            var graph = _services.GetServices<IGraphDb>().First(x => x.Provider == GraphDbProvider);
+            await graph.DeleteNodeAsync(graphId, nodeId);
             return Ok("done");
         }
         catch (Exception ex)
@@ -277,7 +294,8 @@ public class MembaseController : ControllerBase
 
         try
         {
-            var edge = await _membaseApi.GetEdgeAsync(graphId, edgeId);
+            var graph = _services.GetServices<IGraphDb>().First(x => x.Provider == GraphDbProvider);
+            var edge = await graph.GetEdgeAsync(graphId, edgeId);
             return Ok(edge);
         }
         catch (Exception ex)
@@ -330,7 +348,17 @@ public class MembaseController : ControllerBase
 
         try
         {
-            var edge = await _membaseApi.CreateEdgeAsync(graphId, request);
+            var graph = _services.GetServices<IGraphDb>().First(x => x.Provider == GraphDbProvider);
+            var edge = await graph.CreateEdgeAsync(graphId, new GraphEdgeCreationRequest
+            {
+                Id = request.Id,
+                SourceNodeId = request.SourceNodeId,
+                TargetNodeId = request.TargetNodeId,
+                Type = request.Type,
+                Directed = request.Directed,
+                Weight = request.Weight,
+                Properties = request.Properties
+            });
             return Ok(edge);
         }
         catch (Exception ex)
@@ -368,7 +396,12 @@ public class MembaseController : ControllerBase
 
         try
         {
-            var edge = await _membaseApi.UpdateEdgeAsync(graphId, request.Id, request);
+            var graph = _services.GetServices<IGraphDb>().First(x => x.Provider == GraphDbProvider);
+            var edge = await graph.UpdateEdgeAsync(graphId, request.Id, new GraphEdgeUpdateRequest
+            {
+                Id = request.Id,
+                Properties = request.Properties
+            });
             return Ok(edge);
         }
         catch (Exception ex)
@@ -406,7 +439,8 @@ public class MembaseController : ControllerBase
 
         try
         {
-            await _membaseApi.DeleteEdgeAsync(graphId, edgeId);
+            var graph = _services.GetServices<IGraphDb>().First(x => x.Provider == GraphDbProvider);
+            await graph.DeleteEdgeAsync(graphId, edgeId);
             return Ok("done");
         }
         catch (Exception ex)
