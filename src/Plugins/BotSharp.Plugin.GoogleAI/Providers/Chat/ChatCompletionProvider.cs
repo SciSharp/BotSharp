@@ -107,7 +107,7 @@ public class ChatCompletionProvider : IChatCompletion
             };
         }
 
-        if (responseMessage != null && thoughtPart != null)
+        if (thoughtPart != null)
         {
             responseMessage.MetaData ??= [];
             responseMessage.MetaData[Constants.ThinkingText] = thoughtPart.Text;
