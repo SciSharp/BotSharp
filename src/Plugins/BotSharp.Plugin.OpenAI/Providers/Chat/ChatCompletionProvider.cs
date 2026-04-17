@@ -27,6 +27,47 @@ public partial class ChatCompletionProvider : IChatCompletion
         _state = state;
     }
 
+
+    public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
+    {
+        if (_settings.UseResponseApi)
+        {
+            return await InnerGetResponse(agent, conversations);
+        }
+        else
+        {
+            return await InnerGetChatCompletions(agent, conversations);
+        }
+    }
+
+    public async Task<bool> GetChatCompletionsAsync(Agent agent,
+        List<RoleDialogModel> conversations,
+        Func<RoleDialogModel, Task> onMessageReceived,
+        Func<RoleDialogModel, Task> onFunctionExecuting)
+    {
+        if (_settings.UseResponseApi)
+        {
+            return await InnerGetResponseAsync(agent, conversations, onMessageReceived, onFunctionExecuting);
+        }
+        else
+        {
+            return await InnerGetChatCompletionsAsync(agent, conversations, onMessageReceived, onFunctionExecuting);
+        }
+    }
+
+    public async Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
+    {
+        if (_settings.UseResponseApi)
+        {
+            return await InnerGetResponseStreamingAsync(agent, conversations);
+        }
+        else
+        {
+            return await InnerGetChatCompletionsStreamingAsync(agent, conversations);
+        }
+    }
+
+
     public void SetModelName(string model)
     {
         _model = model;

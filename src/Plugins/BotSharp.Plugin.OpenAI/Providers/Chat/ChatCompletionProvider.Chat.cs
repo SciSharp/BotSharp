@@ -9,7 +9,7 @@ namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
 public partial class ChatCompletionProvider
 {
-    public async Task<RoleDialogModel> GetChatCompletions123(Agent agent, List<RoleDialogModel> conversations)
+    private async Task<RoleDialogModel> InnerGetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
         var contentHooks = _services.GetHooks<IContentGeneratingHook>(agent.Id);
 
@@ -32,7 +32,7 @@ public partial class ChatCompletionProvider
         RoleDialogModel responseMessage;
         if (reason == ChatFinishReason.FunctionCall || reason == ChatFinishReason.ToolCalls)
         {
-            _logger.LogInformation($"Action: {nameof(GetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, ToolCalls: {string.Join(",", value.ToolCalls.Select(x => x.FunctionName))}");
+            _logger.LogInformation($"Action: {nameof(InnerGetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, ToolCalls: {string.Join(",", value.ToolCalls.Select(x => x.FunctionName))}");
 
             var toolCall = value.ToolCalls.FirstOrDefault();
             responseMessage = new RoleDialogModel(AgentRole.Function, text)
@@ -50,7 +50,7 @@ public partial class ChatCompletionProvider
         }
         else if (reason == ChatFinishReason.Length)
         {
-            _logger.LogWarning($"Action: {nameof(GetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{text}");
+            _logger.LogWarning($"Action: {nameof(InnerGetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{text}");
 
             responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
             {
@@ -96,8 +96,8 @@ public partial class ChatCompletionProvider
         return responseMessage;
     }
 
-    
-    public async Task<bool> GetChatCompletionsAsync123(Agent agent,
+
+    private async Task<bool> InnerGetChatCompletionsAsync(Agent agent,
         List<RoleDialogModel> conversations,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting)
@@ -166,7 +166,7 @@ public partial class ChatCompletionProvider
         }
         else if (reason == ChatFinishReason.Length)
         {
-            _logger.LogWarning($"Action: {nameof(GetChatCompletionsAsync)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{text}");
+            _logger.LogWarning($"Action: {nameof(InnerGetChatCompletionsAsync)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{text}");
 
             msg = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
             {
@@ -199,7 +199,7 @@ public partial class ChatCompletionProvider
         return true;
     }
 
-    public async Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
+    private async Task<RoleDialogModel> InnerGetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
         var client = ProviderHelper.GetClient(Provider, _model, apiKey: _apiKey, _services);
         var chatClient = client.GetChatClient(_model);

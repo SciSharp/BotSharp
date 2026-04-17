@@ -263,7 +263,7 @@ public class ChatCompletionProvider : IChatCompletion
         });
 
         using var textStream = new RealtimeTextStream();
-        using var thinkingTextStream = new RealtimeTextStream();
+        using var thinkingStream = new RealtimeTextStream();
         ChatThoughtModel? thoughtModel = null;
         UsageMetadata? tokenUsage = null;
 
@@ -301,7 +301,7 @@ public class ChatCompletionProvider : IChatCompletion
                 if (!string.IsNullOrEmpty(thoughtPart?.Text))
                 {
                     var text = thoughtPart.Text;
-                    thinkingTextStream.Collect(text);
+                    thinkingStream.Collect(text);
                     hub.Push(new()
                     {
                         EventName = ChatEvent.OnReceiveLlmStreamMessage,
@@ -419,7 +419,7 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         // Set thinking text in metadata
-        var thinkingText = thinkingTextStream.GetText();
+        var thinkingText = thinkingStream.GetText();
         if (!string.IsNullOrEmpty(thinkingText))
         {
             responseMessage.MetaData ??= [];
