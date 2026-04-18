@@ -131,6 +131,7 @@ public partial class ConversationController : ControllerBase
                     Data = message.Data,
                     Sender = UserDto.FromUser(user),
                     Payload = message.Payload,
+                    Thought = message.Thought,
                     MetaData = message.MetaData,
                     HasMessageFiles = files.Any(x => x.MessageId.IsEqualTo(message.MessageId) && x.FileSource == FileSource.User)
                 });
@@ -147,6 +148,7 @@ public partial class ConversationController : ControllerBase
                     Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Function = message.FunctionName,
                     Data = message.Data,
+                    Thought = message.Thought,
                     MetaData = message.MetaData,
                     Sender = new()
                     {
@@ -419,6 +421,7 @@ public partial class ConversationController : ControllerBase
                     response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                     response.Instruction = msg.Instruction;
                     response.Data = msg.Data;
+                    response.Thought = msg.Thought;
                     response.MetaData = msg.MetaData;
                 });
         }
@@ -486,6 +489,7 @@ public partial class ConversationController : ControllerBase
                     response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                     response.Instruction = msg.Instruction;
                     response.Data = msg.Data;
+                    response.Thought = msg.Thought;
                     response.MetaData = msg.MetaData;
                     response.States = state.GetStates();
 

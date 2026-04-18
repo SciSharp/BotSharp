@@ -72,6 +72,9 @@ public class RoleDialogModel : ITrackableMessage
     public string? ToolCallId { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string?>? Thought { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string?>? MetaData { get; set; }
 
     /// <summary>
@@ -135,7 +138,6 @@ public class RoleDialogModel : ITrackableMessage
 
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public bool IsStreaming { get; set; }
-
 
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public bool IsFromUser => Role == AgentRole.User;
@@ -204,6 +206,7 @@ public class RoleDialogModel : ITrackableMessage
             Data = source.Data,
             IsStreaming = source.IsStreaming,
             Annotations = source.Annotations,
+            Thought = source.Thought != null ? new(source.Thought) : null,
             MetaData = source.MetaData != null ? new(source.MetaData) : null
         };
     }

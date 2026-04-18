@@ -69,8 +69,8 @@ public partial class ChatCompletionProvider
 
         if (!string.IsNullOrEmpty(thinkingText))
         {
-            responseMessage.MetaData ??= [];
-            responseMessage.MetaData[Constants.ThinkingText] = thinkingText;
+            responseMessage.Thought ??= [];
+            responseMessage.Thought[Constants.ThinkingText] = thinkingText;
         }
 
         var tokenUsage = value?.Usage;
@@ -157,8 +157,8 @@ public partial class ChatCompletionProvider
 
         if (!string.IsNullOrEmpty(thinkingText))
         {
-            responseMessage.MetaData ??= [];
-            responseMessage.MetaData[Constants.ThinkingText] = thinkingText;
+            responseMessage.Thought ??= [];
+            responseMessage.Thought[Constants.ThinkingText] = thinkingText;
         }
 
         var tokenUsage = value?.Usage;
@@ -276,7 +276,7 @@ public partial class ChatCompletionProvider
                                     {
                                         CurrentAgentId = agent.Id,
                                         MessageId = messageId,
-                                        MetaData = new Dictionary<string, string?>
+                                        Thought = new Dictionary<string, string?>
                                         {
                                             [Constants.ThinkingText] = text
                                         }
@@ -299,7 +299,7 @@ public partial class ChatCompletionProvider
                                     {
                                         CurrentAgentId = agent.Id,
                                         MessageId = messageId,
-                                        MetaData = new Dictionary<string, string?>
+                                        Thought = new Dictionary<string, string?>
                                         {
                                             [Constants.ThinkingText] = text
                                         }
@@ -385,8 +385,8 @@ public partial class ChatCompletionProvider
 
         if (!string.IsNullOrEmpty(thinkingText))
         {
-            responseMessage.MetaData ??= [];
-            responseMessage.MetaData[Constants.ThinkingText] = thinkingText;
+            responseMessage.Thought ??= [];
+            responseMessage.Thought[Constants.ThinkingText] = thinkingText;
         }
 
         hub.Push(new()

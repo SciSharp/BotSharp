@@ -75,7 +75,7 @@ public class ChatCompletionProvider : IChatCompletion
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.Name,
                 FunctionArgs = toolCall?.Args?.ToJsonString(),
-                MetaData = new Dictionary<string, string?>
+                Thought = new Dictionary<string, string?>
                 {
                     [Constants.ThoughtSignature] = thoughtSignature
                 },
@@ -99,7 +99,7 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                MetaData = new Dictionary<string, string?>
+                Thought = new Dictionary<string, string?>
                 {
                     [Constants.ThoughtSignature] = thoughtSignature
                 },
@@ -109,8 +109,8 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (thoughtPart != null)
         {
-            responseMessage.MetaData ??= [];
-            responseMessage.MetaData[Constants.ThinkingText] = thoughtPart.Text;
+            responseMessage.Thought ??= [];
+            responseMessage.Thought[Constants.ThinkingText] = thoughtPart.Text;
         }
 
         // After chat completion hook
@@ -158,7 +158,7 @@ public class ChatCompletionProvider : IChatCompletion
         var msg = new RoleDialogModel(AgentRole.Assistant, text)
         {
             CurrentAgentId = agent.Id,
-            MetaData = new Dictionary<string, string?>
+            Thought = new Dictionary<string, string?>
             {
                 [Constants.ThoughtSignature] = thoughtSignature
             },
@@ -167,7 +167,7 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (thoughtPart != null)
         {
-            msg.MetaData[Constants.ThinkingText] = thoughtPart.Text;
+            msg.Thought[Constants.ThinkingText] = thoughtPart.Text;
         }
 
         // After chat completion hook
@@ -195,7 +195,7 @@ public class ChatCompletionProvider : IChatCompletion
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.Name,
                 FunctionArgs = toolCall?.Args?.ToJsonString(),
-                MetaData = new Dictionary<string, string?>
+                Thought = new Dictionary<string, string?>
                 {
                     [Constants.ThoughtSignature] = thoughtSignature
                 },
@@ -217,7 +217,7 @@ public class ChatCompletionProvider : IChatCompletion
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 StopCompletion = true,
-                MetaData = new Dictionary<string, string?>
+                Thought = new Dictionary<string, string?>
                 {
                     [Constants.ThoughtSignature] = thoughtSignature
                 },
@@ -310,7 +310,7 @@ public class ChatCompletionProvider : IChatCompletion
                         {
                             CurrentAgentId = agent.Id,
                             MessageId = messageId,
-                            MetaData = new()
+                            Thought = new()
                             {
                                 [Constants.ThinkingText] = text
                             }
@@ -352,7 +352,7 @@ public class ChatCompletionProvider : IChatCompletion
                             ToolCallId = functionCall.Id,
                             FunctionName = functionCall.Name,
                             FunctionArgs = functionCall.Args?.ToJsonString(),
-                            MetaData = new Dictionary<string, string?>
+                            Thought = new Dictionary<string, string?>
                             {
                                 [Constants.ThoughtSignature] = thought?.ThoughtSignature
                             }
@@ -374,7 +374,7 @@ public class ChatCompletionProvider : IChatCompletion
                             CurrentAgentId = agent.Id,
                             MessageId = messageId,
                             IsStreaming = true,
-                            MetaData = new Dictionary<string, string?>
+                            Thought = new Dictionary<string, string?>
                             {
                                 [Constants.ThoughtSignature] = thoughtSignature
                             }
@@ -391,7 +391,7 @@ public class ChatCompletionProvider : IChatCompletion
                         CurrentAgentId = agent.Id,
                         MessageId = messageId,
                         IsStreaming = true,
-                        MetaData = new Dictionary<string, string?>
+                        Thought = new Dictionary<string, string?>
                         {
                             [Constants.ThoughtSignature] = part?.ThoughtSignature
                         }
@@ -418,12 +418,12 @@ public class ChatCompletionProvider : IChatCompletion
             };
         }
 
-        // Set thinking text in metadata
+        // Set thinking text in thought and metadata
         var thinkingText = thinkingStream.GetText();
         if (!string.IsNullOrEmpty(thinkingText))
         {
-            responseMessage.MetaData ??= [];
-            responseMessage.MetaData[Constants.ThinkingText] = thinkingText;
+            responseMessage.Thought ??= [];
+            responseMessage.Thought[Constants.ThinkingText] = thinkingText;
         }
 
         hub.Push(new()
@@ -528,7 +528,7 @@ public class ChatCompletionProvider : IChatCompletion
                 contents.Add(new Content([
                     new Part()
                     {
-                        ThoughtSignature = message.MetaData?.GetValueOrDefault(Constants.ThoughtSignature, null),
+                        ThoughtSignature = message.Thought?.GetValueOrDefault(Constants.ThoughtSignature, null),
                         FunctionCall = new FunctionCall
                         {
                             Id = message.ToolCallId,
@@ -541,7 +541,7 @@ public class ChatCompletionProvider : IChatCompletion
                 contents.Add(new Content([
                     new Part()
                     {
-                        ThoughtSignature = message.MetaData?.GetValueOrDefault(Constants.ThoughtSignature, null),
+                        ThoughtSignature = message.Thought?.GetValueOrDefault(Constants.ThoughtSignature, null),
                         FunctionResponse = new FunctionResponse
                         {
                             Id = message.ToolCallId,
@@ -564,7 +564,7 @@ public class ChatCompletionProvider : IChatCompletion
                     new()
                     {
                         Text = text,
-                        ThoughtSignature = message.MetaData?.GetValueOrDefault(Constants.ThoughtSignature, null)
+                        ThoughtSignature = message.Thought?.GetValueOrDefault(Constants.ThoughtSignature, null)
                     }
                 };
 
@@ -583,7 +583,7 @@ public class ChatCompletionProvider : IChatCompletion
                     new()
                     {
                         Text = text,
-                        ThoughtSignature = message.MetaData?.GetValueOrDefault(Constants.ThoughtSignature, null)
+                        ThoughtSignature = message.Thought?.GetValueOrDefault(Constants.ThoughtSignature, null)
                     }
                 };
 
