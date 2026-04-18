@@ -419,6 +419,7 @@ public partial class ConversationController : ControllerBase
                     response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                     response.Instruction = msg.Instruction;
                     response.Data = msg.Data;
+                    response.MetaData = msg.MetaData;
                 });
         }
         catch (OperationCanceledException) when (input.IsStreamingMessage)
@@ -485,6 +486,7 @@ public partial class ConversationController : ControllerBase
                     response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                     response.Instruction = msg.Instruction;
                     response.Data = msg.Data;
+                    response.MetaData = msg.MetaData;
                     response.States = state.GetStates();
 
                     await OnChunkReceived(Response, response);

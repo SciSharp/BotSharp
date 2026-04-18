@@ -32,7 +32,7 @@ public partial class ChatCompletionProvider : IChatCompletion
     {
         if (_settings.UseResponseApi)
         {
-            return await InnerGetResponse(agent, conversations);
+            return await InnerCreateResponse(agent, conversations);
         }
         else
         {
@@ -47,7 +47,7 @@ public partial class ChatCompletionProvider : IChatCompletion
     {
         if (_settings.UseResponseApi)
         {
-            return await InnerGetResponseAsync(agent, conversations, onMessageReceived, onFunctionExecuting);
+            return await InnerCreateResponseAsync(agent, conversations, onMessageReceived, onFunctionExecuting);
         }
         else
         {
@@ -59,7 +59,7 @@ public partial class ChatCompletionProvider : IChatCompletion
     {
         if (_settings.UseResponseApi)
         {
-            return await InnerGetResponseStreamingAsync(agent, conversations);
+            return await InnerCreateResponseStreamingAsync(agent, conversations);
         }
         else
         {
