@@ -73,8 +73,8 @@ public interface IKnowledgeService
     #endregion
 
     #region Index
-    Task<SuccessFailResponse<string>> CreateVectorCollectionPayloadIndexes(string collectionName, IEnumerable<CreateVectorCollectionIndexOptions> options);
-    Task<SuccessFailResponse<string>> DeleteVectorCollectionPayloadIndexes(string collectionName, IEnumerable<DeleteVectorCollectionIndexOptions> options);
+    Task<SuccessFailResponse<string>> CreateVectorCollectionPayloadIndexes(string collectionName, IEnumerable<CollectionIndexOptions> options);
+    Task<SuccessFailResponse<string>> DeleteVectorCollectionPayloadIndexes(string collectionName, IEnumerable<CollectionIndexOptions> options);
     #endregion
 
     #region Common

@@ -4,10 +4,10 @@ namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
 public class CreateVectorCollectionIndexRequest
 {
-    public IEnumerable<CreateVectorCollectionIndexOptions> Options { get; set; } = [];
+    public IEnumerable<CollectionIndexOptions> Options { get; set; } = [];
 }
 
 public class DeleteVectorCollectionIndexRequest
 {
-    public IEnumerable<DeleteVectorCollectionIndexOptions> Options { get; set; } = [];
+    public IEnumerable<CollectionIndexOptions> Options { get; set; } = [];
 }

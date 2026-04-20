@@ -346,7 +346,7 @@ public class QdrantDb : IVectorDb
     #endregion
 
     #region Payload index
-    public async Task<bool> CreateCollectionPayloadIndex(string collectionName, CreateVectorCollectionIndexOptions options)
+    public async Task<bool> CreateCollectionPayloadIndex(string collectionName, CollectionIndexOptions options)
     {
         var exist = await DoesCollectionExist(collectionName);
         if (!exist)
@@ -360,7 +360,7 @@ public class QdrantDb : IVectorDb
         return result.Status == UpdateStatus.Completed;
     }
 
-    public async Task<bool> DeleteCollectionPayloadIndex(string collectionName, DeleteVectorCollectionIndexOptions options)
+    public async Task<bool> DeleteCollectionPayloadIndex(string collectionName, CollectionIndexOptions options)
     {
         var exist = await DoesCollectionExist(collectionName);
         if (!exist)

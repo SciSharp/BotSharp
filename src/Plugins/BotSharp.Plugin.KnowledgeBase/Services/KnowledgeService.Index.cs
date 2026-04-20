@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public partial class KnowledgeService
 {
-    public async Task<SuccessFailResponse<string>> CreateVectorCollectionPayloadIndexes(string collectionName, IEnumerable<CreateVectorCollectionIndexOptions> options)
+    public async Task<SuccessFailResponse<string>> CreateVectorCollectionPayloadIndexes(string collectionName, IEnumerable<CollectionIndexOptions> options)
     {
         try
         {
@@ -40,7 +40,7 @@ public partial class KnowledgeService
         }
     }
 
-    public async Task<SuccessFailResponse<string>> DeleteVectorCollectionPayloadIndexes(string collectionName, IEnumerable<DeleteVectorCollectionIndexOptions> options)
+    public async Task<SuccessFailResponse<string>> DeleteVectorCollectionPayloadIndexes(string collectionName, IEnumerable<CollectionIndexOptions> options)
     {
         try
         {
