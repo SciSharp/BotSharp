@@ -607,9 +607,10 @@ public partial class ChatCompletionProvider
             {
                 var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
                 contentType = contentType.IfNullOrEmptyAs(file.ContentType);
+                var typedBinary = BinaryData.FromBytes(binary.ToArray(), contentType);
                 var contentPart = IsImageContentType(contentType)
-                    ? ResponseContentPart.CreateInputImagePart(binary, imageDetailLevel)
-                    : ResponseContentPart.CreateInputFilePart(binary, contentType, file.FileFullName);
+                    ? ResponseContentPart.CreateInputImagePart(typedBinary, imageDetailLevel)
+                    : ResponseContentPart.CreateInputFilePart(typedBinary, contentType, file.FileFullName);
                 contentParts.Add(contentPart);
             }
             else if (!string.IsNullOrEmpty(file.FileStorageUrl))
@@ -617,9 +618,10 @@ public partial class ChatCompletionProvider
                 var fileStorage = _services.GetRequiredService<IFileStorageService>();
                 var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
                 var contentType = FileUtility.GetFileContentType(file.FileStorageUrl).IfNullOrEmptyAs(file.ContentType);
+                var typedBinary = BinaryData.FromBytes(binary.ToArray(), contentType);
                 var contentPart = IsImageContentType(contentType)
-                    ? ResponseContentPart.CreateInputImagePart(binary, imageDetailLevel)
-                    : ResponseContentPart.CreateInputFilePart(binary, contentType, file.FileFullName);
+                    ? ResponseContentPart.CreateInputImagePart(typedBinary, imageDetailLevel)
+                    : ResponseContentPart.CreateInputFilePart(typedBinary, contentType, file.FileFullName);
                 contentParts.Add(contentPart);
             }
             else if (!string.IsNullOrEmpty(file.FileUrl))
