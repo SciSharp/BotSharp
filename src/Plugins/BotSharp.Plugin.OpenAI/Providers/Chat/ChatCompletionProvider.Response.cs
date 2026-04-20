@@ -601,36 +601,56 @@ public partial class ChatCompletionProvider
 
     private void CollectResponseContentParts(List<ResponseContentPart> contentParts, List<BotSharpFile> files, ResponseImageDetailLevel imageDetailLevel)
     {
+        ResponseContentPart? contentPart;
+
         foreach (var file in files)
         {
+            contentPart = null;
+
             if (!string.IsNullOrEmpty(file.FileData))
             {
                 var (contentType, binary) = FileUtility.GetFileInfoFromData(file.FileData);
                 contentType = contentType.IfNullOrEmptyAs(file.ContentType);
-                var typedBinary = BinaryData.FromBytes(binary.ToArray(), contentType);
-                var contentPart = IsImageContentType(contentType)
-                    ? ResponseContentPart.CreateInputImagePart(typedBinary, imageDetailLevel)
-                    : ResponseContentPart.CreateInputFilePart(typedBinary, contentType, file.FileFullName);
-                contentParts.Add(contentPart);
+                if (IsImageContentType(contentType))
+                {
+                    var typedBinary = BinaryData.FromBytes(binary.ToArray(), contentType);
+                    contentPart = ResponseContentPart.CreateInputImagePart(typedBinary, imageDetailLevel);
+                }
+                else
+                {
+                    contentPart = ResponseContentPart.CreateInputFilePart(binary, contentType, file.FileFullName);
+                }
             }
             else if (!string.IsNullOrEmpty(file.FileStorageUrl))
             {
-                var fileStorage = _services.GetRequiredService<IFileStorageService>();
-                var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
+                var binary = _fileStorage.GetFileBytes(file.FileStorageUrl);
                 var contentType = FileUtility.GetFileContentType(file.FileStorageUrl).IfNullOrEmptyAs(file.ContentType);
-                var typedBinary = BinaryData.FromBytes(binary.ToArray(), contentType);
-                var contentPart = IsImageContentType(contentType)
-                    ? ResponseContentPart.CreateInputImagePart(typedBinary, imageDetailLevel)
-                    : ResponseContentPart.CreateInputFilePart(typedBinary, contentType, file.FileFullName);
-                contentParts.Add(contentPart);
+                if (IsImageContentType(contentType))
+                {
+                    var typedBinary = BinaryData.FromBytes(binary.ToArray(), contentType);
+                    contentPart = ResponseContentPart.CreateInputImagePart(typedBinary, imageDetailLevel);
+                }
+                else
+                {
+                    contentPart = ResponseContentPart.CreateInputFilePart(binary, contentType, file.FileFullName);
+                }
             }
             else if (!string.IsNullOrEmpty(file.FileUrl))
             {
                 var uri = new Uri(file.FileUrl);
                 var contentType = FileUtility.GetFileContentType(file.FileUrl).IfNullOrEmptyAs(file.ContentType);
-                var contentPart = IsImageContentType(contentType)
-                    ? ResponseContentPart.CreateInputImagePart(uri, imageDetailLevel)
-                    : ResponseContentPart.CreateInputFilePart(uri);
+                if (IsImageContentType(contentType))
+                {
+                    contentPart = ResponseContentPart.CreateInputImagePart(uri, imageDetailLevel);
+                }
+                else
+                {
+                    contentPart = ResponseContentPart.CreateInputFilePart(uri);
+                }
+            }
+
+            if (contentPart != null)
+            {
                 contentParts.Add(contentPart);
             }
         }

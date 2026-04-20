@@ -18,6 +18,8 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly IServiceProvider _services;
     private readonly ILogger<ChatCompletionProvider> _logger;
     private readonly IConversationStateService _state;
+    private readonly IFileStorageService _fileStorage;
+
     private List<string> renderedInstructions = [];
 
     private string _model;
@@ -31,12 +33,14 @@ public class ChatCompletionProvider : IChatCompletion
         IServiceProvider services,
         GoogleAiSettings googleSettings,
         ILogger<ChatCompletionProvider> logger,
-        IConversationStateService state)
+        IConversationStateService state,
+        IFileStorageService fileStorage)
     {
         _settings = googleSettings;
         _services = services;
         _logger = logger;
         _state = state;
+        _fileStorage = fileStorage;
     }
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
@@ -458,7 +462,6 @@ public class ChatCompletionProvider : IChatCompletion
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var googleSettings = _services.GetRequiredService<GoogleAiSettings>();
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
         var allowMultiModal = settings != null && settings.MultiModal;
@@ -627,8 +630,6 @@ public class ChatCompletionProvider : IChatCompletion
 
     private void CollectMessageContentParts(List<Part> contentParts, List<BotSharpFile> files)
     {
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
-
         foreach (var file in files)
         {
             if (!string.IsNullOrEmpty(file.FileData))
@@ -646,7 +647,7 @@ public class ChatCompletionProvider : IChatCompletion
             else if (!string.IsNullOrEmpty(file.FileStorageUrl))
             {
                 var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
-                var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
+                var binary = _fileStorage.GetFileBytes(file.FileStorageUrl);
                 contentParts.Add(new Part()
                 {
                     InlineData = new()

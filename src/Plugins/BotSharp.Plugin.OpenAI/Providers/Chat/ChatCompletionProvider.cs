@@ -6,6 +6,7 @@ public partial class ChatCompletionProvider : IChatCompletion
     protected readonly IServiceProvider _services;
     protected readonly ILogger<ChatCompletionProvider> _logger;
     protected readonly IConversationStateService _state;
+    protected readonly IFileStorageService _fileStorage;
 
     protected string _model;
     protected string? _apiKey;
@@ -19,12 +20,14 @@ public partial class ChatCompletionProvider : IChatCompletion
         OpenAiSettings settings,
         ILogger<ChatCompletionProvider> logger,
         IServiceProvider services,
-        IConversationStateService state)
+        IConversationStateService state,
+        IFileStorageService fileStorage)
     {
         _settings = settings;
         _logger = logger;
         _services = services;
         _state = state;
+        _fileStorage = fileStorage;
     }
 
 
