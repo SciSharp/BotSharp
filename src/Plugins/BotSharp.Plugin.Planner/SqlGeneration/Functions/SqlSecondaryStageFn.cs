@@ -21,7 +21,6 @@ public class SqlSecondaryStageFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
         var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
         var states = _services.GetRequiredService<IConversationStateService>();
 
