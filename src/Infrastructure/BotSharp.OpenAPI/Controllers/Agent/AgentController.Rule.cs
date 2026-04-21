@@ -5,6 +5,20 @@ namespace BotSharp.OpenAPI.Controllers;
 
 public partial class AgentController
 {
+    [HttpGet("/rule/triggers/{agentId}")]
+    public IEnumerable<AgentRuleViewModel> GetRuleTriggers(string agentId)
+    {
+        var triggers = _services.GetServices<IRuleTrigger>();
+        triggers = triggers.Where(x => x.AgentIds == null || !x.AgentIds.Any() || x.AgentIds.Contains(agentId));
+        return triggers.Select(x => new AgentRuleViewModel
+        {
+            TriggerName = x.Name,
+            Channel = x.Channel,
+            Statement = x.Statement,
+            OutputArgs = x.OutputArgs
+        }).OrderBy(x => x.TriggerName);
+    }
+
     [HttpGet("/rule/triggers")]
     public IEnumerable<AgentRuleViewModel> GetRuleTriggers()
     {
