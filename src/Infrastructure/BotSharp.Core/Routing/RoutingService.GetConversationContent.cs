@@ -8,8 +8,8 @@ public partial class RoutingService
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var conversation = "";
-        var contentDialogs = dialogs.Where(x => x.MessageType != MessageTypeName.RecordOnly).TakeLast(maxDialogCount).ToList();
-        foreach (var dialog in contentDialogs)
+        var conversationDialogs = dialogs.Where(x => x.MessageType != MessageTypeName.RecordOnly).TakeLast(maxDialogCount).ToList();
+        foreach (var dialog in conversationDialogs)
         {
             var role = dialog.Role;
             if (role != AgentRole.User)
