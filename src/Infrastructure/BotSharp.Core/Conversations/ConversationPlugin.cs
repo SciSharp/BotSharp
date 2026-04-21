@@ -48,6 +48,9 @@ public class ConversationPlugin : IBotSharpPlugin
             return settingService.Bind<GoogleApiSettings>("GoogleApi");
         });
 
+        // Streaming cancellation
+        services.AddSingleton<IConversationCancellationService, ConversationCancellationService>();
+
         // Observer and observable
         services.AddSingleton<MessageHub<HubObserveData<RoleDialogModel>>>();
         services.AddScoped<ObserverSubscriptionContainer<HubObserveData<RoleDialogModel>>>();
