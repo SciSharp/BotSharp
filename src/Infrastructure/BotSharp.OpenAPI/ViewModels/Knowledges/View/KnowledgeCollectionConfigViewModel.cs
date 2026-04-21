@@ -2,11 +2,11 @@ using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
-public class VectorCollectionConfigViewModel : VectorCollectionConfig
+public class KnowledgeCollectionConfigViewModel : VectorCollectionConfig
 {
-    public static VectorCollectionConfigViewModel From(VectorCollectionConfig model)
+    public static KnowledgeCollectionConfigViewModel From(VectorCollectionConfig model)
     {
-        return new VectorCollectionConfigViewModel
+        return new KnowledgeCollectionConfigViewModel
         {
             Name = model.Name,
             Type = model.Type,

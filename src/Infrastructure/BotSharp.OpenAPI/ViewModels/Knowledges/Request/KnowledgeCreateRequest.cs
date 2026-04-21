@@ -10,4 +10,7 @@ public class KnowledgeCreateRequest
 
     [JsonPropertyName("payload")]
     public Dictionary<string, VectorPayloadValue>? Payload { get; set; }
+
+    [JsonPropertyName("knowledge_type")]
+    public string KnowledgeType { get; set; } = null!;
 }

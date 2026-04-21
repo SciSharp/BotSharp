@@ -2,13 +2,13 @@ using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
-public class VectorCollectionDetailsViewModel : VectorCollectionDetails
+public class KnowledgeCollectionDetailsViewModel : VectorCollectionDetails
 {
-    public static VectorCollectionDetailsViewModel? From(VectorCollectionDetails? model)
+    public static KnowledgeCollectionDetailsViewModel? From(VectorCollectionDetails? model)
     {
         if (model == null) return null;
 
-        return new VectorCollectionDetailsViewModel
+        return new KnowledgeCollectionDetailsViewModel
         {
             Status = model.Status,
             OptimizerStatus = model.OptimizerStatus,

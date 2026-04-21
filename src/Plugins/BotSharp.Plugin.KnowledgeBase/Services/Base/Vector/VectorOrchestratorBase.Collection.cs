@@ -88,7 +88,7 @@ public abstract partial class VectorOrchestratorBase
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var configs = await db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
         {
-            CollectionTypes = !string.IsNullOrEmpty(KnowledgeType) ? [KnowledgeType] : null,
+            CollectionTypes = options?.IncludeAllTypes == true ? null : [KnowledgeType],
             VectorStorageProviders = [vectorDb.Provider]
         });
         

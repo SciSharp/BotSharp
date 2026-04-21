@@ -19,11 +19,20 @@ public class MemorizeKnowledgeFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<ExtractedKnowledge>(message.FunctionArgs ?? "{}");
 
-        var collectionName = !string.IsNullOrEmpty(args.RefinedCollection) 
-            ? args.RefinedCollection 
+        var collectionName = !string.IsNullOrEmpty(args.RefinedCollection)
+            ? args.RefinedCollection
             : _settings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
-        var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
-        var result = await knowledgeService.CreateVectorCollectionData(collectionName, new VectorCreateModel
+
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(KnowledgeBaseType.QuestionAnswer));
+
+        if (orchestrator == null)
+        {
+            message.Content = "I forgot it";
+            return true;
+        }
+
+        var result = await orchestrator.CreateCollectionData(collectionName, new KnowledgeCreateModel
         {
             Text = args.Question,
             Payload = new Dictionary<string, VectorPayloadValue>

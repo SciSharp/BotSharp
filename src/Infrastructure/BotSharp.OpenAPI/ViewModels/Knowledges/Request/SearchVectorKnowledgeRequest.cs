@@ -25,4 +25,7 @@ public class SearchVectorKnowledgeRequest
 
     [JsonPropertyName("search_param")]
     public VectorSearchParamModel? SearchParam { get; set; }
+
+    [JsonPropertyName("knowledge_type")]
+    public string KnowledgeType { get; set; } = null!;
 }

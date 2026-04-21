@@ -1,9 +1,10 @@
+using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
-public class VectorKnowledgeViewModel
+public class KnowledgeKnowledgeViewModel
 {
     [JsonPropertyName("id")]
     public string Id { get; set; }
@@ -23,9 +24,9 @@ public class VectorKnowledgeViewModel
     public int? VectorDimension { get; set; }
 
 
-    public static VectorKnowledgeViewModel From(VectorSearchResult result)
+    public static KnowledgeKnowledgeViewModel From(VectorSearchResult result)
     {
-        return new VectorKnowledgeViewModel
+        return new KnowledgeKnowledgeViewModel
         {
             Id = result.Id,
             Data = result.Data,
@@ -35,9 +36,32 @@ public class VectorKnowledgeViewModel
         };
     }
 
-    public static VectorKnowledgeViewModel From(VectorCollectionData data)
+    public static KnowledgeKnowledgeViewModel From(VectorCollectionData data)
     {
-        return new VectorKnowledgeViewModel
+        return new KnowledgeKnowledgeViewModel
+        {
+            Id = data.Id,
+            Data = data.Data,
+            Payload = data.Payload,
+            VectorDimension = data.Vector?.Length
+        };
+    }
+
+    public static KnowledgeKnowledgeViewModel From(KnowledgeSearchResult result)
+    {
+        return new KnowledgeKnowledgeViewModel
+        {
+            Id = result.Id,
+            Data = result.Data,
+            Payload = result.Payload,
+            Score = result.Score,
+            VectorDimension = result.Vector?.Length
+        };
+    }
+
+    public static KnowledgeKnowledgeViewModel From(KnowledgeCollectionData data)
+    {
+        return new KnowledgeKnowledgeViewModel
         {
             Id = data.Id,
             Data = data.Data,

@@ -3,8 +3,6 @@ using BotSharp.Abstraction.Graph;
 using BotSharp.Abstraction.Graph.Options;
 using BotSharp.Abstraction.Knowledges.Options;
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.VectorStorage.Models;
-using BotSharp.Abstraction.VectorStorage.Options;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -13,63 +11,93 @@ namespace BotSharp.OpenAPI.Controllers;
 [ApiController]
 public partial class KnowledgeBaseController : ControllerBase
 {
-    private readonly IKnowledgeService _knowledgeService;
     private readonly IGraphKnowledgeService _graphKnowledgeService;
     private readonly IServiceProvider _services;
 
     public KnowledgeBaseController(
-        IKnowledgeService knowledgeService,
         IGraphKnowledgeService graphKnowledgeService,
         IServiceProvider services)
     {
-        _knowledgeService = knowledgeService;
         _graphKnowledgeService = graphKnowledgeService;
         _services = services;
     }
 
-    #region Vector
-    [HttpGet("knowledge/vector/{collection}/exist")]
-    public async Task<bool> ExistVectorCollection([FromRoute] string collection)
+    #region Collection
+    [HttpGet("knowledge/collection/{collection}/exist")]
+    public async Task<bool> ExistCollection([FromRoute] string collection, [FromQuery] string knowledgeType)
     {
-        return await _knowledgeService.ExistVectorCollection(collection);
-    }
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
-    [HttpGet("knowledge/vector/collections")]
-    public async Task<IEnumerable<VectorCollectionConfigViewModel>> GetVectorCollections([FromQuery] string? type = null)
-    {
-        var collections = await _knowledgeService.GetVectorCollections(type);
-        return collections.Select(x => VectorCollectionConfigViewModel.From(x));
-    }
-
-    [HttpGet("knowledge/vector/{collection}/details")]
-    public async Task<VectorCollectionDetailsViewModel?> GetVectorCollectionDetails([FromRoute] string collection)
-    {
-        var details = await _knowledgeService.GetVectorCollectionDetails(collection);
-        return VectorCollectionDetailsViewModel.From(details);
-    }
-
-    [HttpPost("knowledge/vector/create-collection")]
-    public async Task<bool> CreateVectorCollection([FromBody] CreateCollectionRequest request)
-    {
-        var options = new VectorCollectionCreateOptions
+        if (orchestrator == null)
         {
-            Provider = request.Provider,
-            Model = request.Model,
-            Dimension = request.Dimension
+            return false;
+        }
+
+        return await orchestrator.ExistCollection(collection, new KnowledgeCollectionOptions());
+    }
+
+    [HttpGet("knowledge/collections")]
+    public async Task<IEnumerable<KnowledgeCollectionConfigViewModel>> GetCollections([FromQuery] string knowledgeType)
+    {
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+
+        if (orchestrator == null)
+        {
+            return [];
+        }
+
+        var collections = await orchestrator.GetCollections(new KnowledgeCollectionOptions());
+        return collections.Select(x => KnowledgeCollectionConfigViewModel.From(x));
+    }
+
+    [HttpPost("knowledge/collection")]
+    public async Task<bool> CreateCollection([FromBody] CreateCollectionRequest request)
+    {
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+
+        if (orchestrator == null)
+        {
+            return false;
+        }
+
+        var options = new CollectionCreateOptions
+        {
+            LlmProvider = request.Provider,
+            LlmModel = request.Model,
+            EmbeddingDimension = request.Dimension
         };
-        return await _knowledgeService.CreateVectorCollection(request.CollectionName, request.CollectionType, options);
+        return await orchestrator.CreateCollection(request.CollectionName, options);
     }
 
-    [HttpDelete("knowledge/vector/{collection}/delete-collection")]
-    public async Task<bool> DeleteVectorCollection([FromRoute] string collection)
+    [HttpDelete("knowledge/collection/{collection}")]
+    public async Task<bool> DeleteCollection([FromRoute] string collection, [FromQuery] string knowledgeType)
     {
-        return await _knowledgeService.DeleteVectorCollection(collection);
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+
+        if (orchestrator == null)
+        {
+            return false;
+        }
+
+        return await orchestrator.DeleteCollection(collection, new KnowledgeCollectionOptions());
     }
 
-    [HttpPost("/knowledge/vector/{collection}/search")]
-    public async Task<IEnumerable<VectorKnowledgeViewModel>> SearchKnowledge([FromRoute] string collection, [FromBody] SearchVectorKnowledgeRequest request)
+    [HttpPost("/knowledge/collection/{collection}/search")]
+    public async Task<IEnumerable<KnowledgeKnowledgeViewModel>> SearchKnowledge([FromRoute] string collection, [FromBody] SearchVectorKnowledgeRequest request)
     {
-        var options = new VectorSearchOptions
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+
+        if (orchestrator == null)
+        {
+            return [];
+        }
+
+        var options = new KnowledgeSearchOptions
         {
             Fields = request?.Fields,
             FilterGroups = request?.FilterGroups,
@@ -79,17 +107,25 @@ public partial class KnowledgeBaseController : ControllerBase
             SearchParam = request?.SearchParam
         };
 
-        var results = await _knowledgeService.SearchVectorKnowledge(request?.Text ?? string.Empty, collection, options);
-        return results.Select(x => VectorKnowledgeViewModel.From(x)).ToList();
+        var results = await orchestrator.Search(request?.Text ?? string.Empty, collection, options);
+        return results.Select(x => KnowledgeKnowledgeViewModel.From(x)).ToList();
     }
 
-    [HttpPost("/knowledge/vector/{collection}/page")]
-    public async Task<StringIdPagedItems<VectorKnowledgeViewModel>> GetPagedCollectionData([FromRoute] string collection, [FromBody] VectorFilter filter)
+    [HttpPost("/knowledge/collection/{collection}/page")]
+    public async Task<StringIdPagedItems<KnowledgeKnowledgeViewModel>> GetPagedCollectionData([FromRoute] string collection, [FromQuery] string knowledgeType, [FromBody] KnowledgeFilter filter)
     {
-        var data = await _knowledgeService.GetPagedVectorCollectionData(collection, filter);
-        var items = data.Items?.Select(x => VectorKnowledgeViewModel.From(x))?.ToList() ?? [];
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
-        return new StringIdPagedItems<VectorKnowledgeViewModel>
+        if (orchestrator == null)
+        {
+            return new StringIdPagedItems<KnowledgeKnowledgeViewModel>();
+        }
+
+        var data = await orchestrator.GetPagedCollectionData(collection, filter);
+        var items = data.Items?.Select(x => KnowledgeKnowledgeViewModel.From(x))?.ToList() ?? [];
+
+        return new StringIdPagedItems<KnowledgeKnowledgeViewModel>
         {
             Count = data.Count,
             NextId = data.NextId,
@@ -97,62 +133,102 @@ public partial class KnowledgeBaseController : ControllerBase
         };
     }
 
-    [HttpPost("/knowledge/vector/{collection}/create")]
-    public async Task<bool> CreateVectorKnowledge([FromRoute] string collection, [FromBody] KnowledgeCreateRequest request)
+    [HttpPost("/knowledge/collection/{collection}/data")]
+    public async Task<bool> CreateCollectionData([FromRoute] string collection, [FromBody] KnowledgeCreateRequest request)
     {
-        var create = new VectorCreateModel
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+
+        if (orchestrator == null)
+        {
+            return false;
+        }
+
+        var create = new KnowledgeCreateModel
         {
             Text = request.Text,
             Payload = request.Payload
         };
 
-        var created = await _knowledgeService.CreateVectorCollectionData(collection, create);
+        var created = await orchestrator.CreateCollectionData(collection, create);
         return created;
     }
 
-    [HttpGet("/knowledge/vector/{collection}/points")]
-    public async Task<IEnumerable<VectorKnowledgeViewModel>> GetCollectionData([FromRoute] string collection, [FromQuery] QueryVectorDataRequest request)
+    [HttpGet("/knowledge/collection/{collection}/data")]
+    public async Task<IEnumerable<KnowledgeKnowledgeViewModel>> GetCollectionData([FromRoute] string collection, [FromQuery] string knowledgeType, [FromQuery] QueryVectorDataRequest request)
     {
-        var options = new VectorQueryOptions
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+
+        if (orchestrator == null)
+        {
+            return [];
+        }
+
+        var options = new KnowledgeQueryOptions
         {
             WithPayload = request.WithPayload,
             WithVector = request.WithVector
         };
 
-        var points = await _knowledgeService.GetVectorCollectionData(collection, request.Ids, options);
-        return points.Select(x => VectorKnowledgeViewModel.From(x));
+        var points = await orchestrator.GetCollectionData(collection, request.Ids, options);
+        return points.Select(x => KnowledgeKnowledgeViewModel.From(x));
     }
 
-    [HttpPut("/knowledge/vector/{collection}/update")]
+    [HttpPut("/knowledge/collection/{collection}/data")]
     public async Task<bool> UpdateCollectionData([FromRoute] string collection, [FromBody] KnowledgeUpdateRequest request)
     {
-        var update = new VectorUpdateModel
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+
+        if (orchestrator == null)
+        {
+            return false;
+        }
+
+        var update = new KnowledgeUpdateModel
         {
             Id = request.Id,
             Text = request.Text,
             Payload = request.Payload
         };
 
-        var updated = await _knowledgeService.UpdateVectorCollectionData(collection, update);
+        var updated = await orchestrator.UpdateCollectionData(collection, update);
         return updated;
     }
 
-    [HttpDelete("/knowledge/vector/{collection}/data/{id}")]
-    public async Task<bool> DeleteCollectionData([FromRoute] string collection, [FromRoute] string id)
+    [HttpDelete("/knowledge/collection/{collection}/data/{id}")]
+    public async Task<bool> DeleteCollectionData([FromRoute] string collection, [FromRoute] string id, [FromQuery] string knowledgeType)
     {
-        return await _knowledgeService.DeleteVectorCollectionData(collection, id);
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+
+        if (orchestrator == null)
+        {
+            return false;
+        }
+
+        return await orchestrator.DeleteCollectionData(collection, id, new KnowledgeCollectionOptions());
     }
 
-    [HttpDelete("/knowledge/vector/{collection}/data")]
-    public async Task<bool> DeleteCollectionAllData([FromRoute] string collection)
+    [HttpDelete("/knowledge/collection/{collection}/data")]
+    public async Task<bool> DeleteCollectionAllData([FromRoute] string collection, [FromQuery] string knowledgeType)
     {
-        return await _knowledgeService.DeleteVectorCollectionAllData(collection);
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+
+        if (orchestrator == null)
+        {
+            return false;
+        }
+
+        return await orchestrator.DeleteCollectionData(collection, new KnowledgeCollectionOptions());
     }
     #endregion
 
 
     #region Index
-    [HttpPost("/knowledge/{collection}/indexes")]
+    [HttpPost("/knowledge/collection/{collection}/indexes")]
     public async Task<SuccessFailResponse<string>> CreateCollectionIndexes([FromRoute] string collection, [FromBody] CreateCollectionIndexRequest request)
     {
         var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
@@ -170,7 +246,7 @@ public partial class KnowledgeBaseController : ControllerBase
         return await orchestrator.CreateIndexes(collection, options);
     }
 
-    [HttpDelete("/knowledge/{collection}/indexes")]
+    [HttpDelete("/knowledge/collection/{collection}/indexes")]
     public async Task<SuccessFailResponse<string>> DeleteCollectionIndexes([FromRoute] string collection, [FromBody] DeleteCollectionIndexRequest request)
     {
         var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
@@ -191,8 +267,8 @@ public partial class KnowledgeBaseController : ControllerBase
 
 
     #region Snapshot
-    [HttpGet("/knowledge/{collection}/snapshots")]
-    public async Task<IEnumerable<VectorCollectionSnapshotViewModel>> GetCollectionSnapshots([FromRoute] string collection, [FromQuery] string knowledgeType)
+    [HttpGet("/knowledge/collection/{collection}/snapshots")]
+    public async Task<IEnumerable<KnowledgeCollectionSnapshotViewModel>> GetCollectionSnapshots([FromRoute] string collection, [FromQuery] string knowledgeType)
     {
         var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
                                     .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
@@ -203,11 +279,11 @@ public partial class KnowledgeBaseController : ControllerBase
         }
 
         var snapshots = await orchestrator.GetCollectionSnapshots(collection);
-        return snapshots.Select(x => VectorCollectionSnapshotViewModel.From(x)!);
+        return snapshots.Select(x => KnowledgeCollectionSnapshotViewModel.From(x)!);
     }
 
-    [HttpPost("/knowledge/{collection}/snapshot")]
-    public async Task<VectorCollectionSnapshotViewModel?> CreateCollectionSnapshot([FromRoute] string collection, [FromQuery] string knowledgeType)
+    [HttpPost("/knowledge/collection/{collection}/snapshot")]
+    public async Task<KnowledgeCollectionSnapshotViewModel?> CreateCollectionSnapshot([FromRoute] string collection, [FromQuery] string knowledgeType)
     {
         var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
                                     .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
@@ -218,10 +294,10 @@ public partial class KnowledgeBaseController : ControllerBase
         }
 
         var snapshot = await orchestrator.CreateCollectionSnapshot(collection);
-        return VectorCollectionSnapshotViewModel.From(snapshot);
+        return KnowledgeCollectionSnapshotViewModel.From(snapshot);
     }
 
-    [HttpGet("/knowledge/{collection}/snapshot")]
+    [HttpGet("/knowledge/collection/{collection}/snapshot")]
     public async Task<IActionResult> GetCollectionSnapshot([FromRoute] string collection, [FromQuery] string snapshotFileName, [FromQuery] string knowledgeType)
     {
         var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
@@ -236,7 +312,7 @@ public partial class KnowledgeBaseController : ControllerBase
         return BuildFileResult(snapshotFileName, snapshot);
     }
 
-    [HttpPost("/knowledge/{collection}/snapshot/recover")]
+    [HttpPost("/knowledge/collection/{collection}/snapshot/recover")]
     public async Task<bool> RecoverCollectionFromSnapshot([FromRoute] string collection, IFormFile snapshotFile, [FromQuery] string knowledgeType)
     {
         var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
@@ -253,7 +329,7 @@ public partial class KnowledgeBaseController : ControllerBase
         return done;
     }
 
-    [HttpDelete("/knowledge/{collection}/snapshot")]
+    [HttpDelete("/knowledgecollection/{collection}/snapshot")]
     public async Task<bool> DeleteCollectionSnapshots([FromRoute] string collection, [FromBody] DeleteCollectionSnapshotRequest request)
     {
         var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()

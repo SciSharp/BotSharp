@@ -1,29 +1,19 @@
 using BotSharp.Abstraction.Graph.Options;
-using BotSharp.Abstraction.VectorStorage.Options;
 
 namespace BotSharp.Plugin.KnowledgeBase.Hooks;
 
 public class KnowledgeHook : IKnowledgeHook
 {
-    private readonly IKnowledgeService _knowledgeService;
-    private readonly IGraphKnowledgeService _graphKnowledgeService;
     private readonly IServiceProvider _services;
+    private readonly IGraphKnowledgeService _graphKnowledgeService;
+    
 
     public KnowledgeHook(
-        IKnowledgeService knowledgeService,
-        IGraphKnowledgeService graphKnowledgeService,
-        IServiceProvider services)
+        IServiceProvider services,
+        IGraphKnowledgeService graphKnowledgeService)
     {
-        _knowledgeService = knowledgeService;
-        _graphKnowledgeService = graphKnowledgeService;
         _services = services;
-    }
-
-    private async Task<List<AgentKnowledgeBase>> GetKnowledgeBaseNameByAgentIdAsync(string agentId)
-    {
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.GetAgent(agentId);
-        return agent.KnowledgeBases;
+        _graphKnowledgeService = graphKnowledgeService;
     }
 
     public async Task<List<string>> GetDomainKnowledges(RoleDialogModel message, string text)
@@ -46,32 +36,33 @@ public class KnowledgeHook : IKnowledgeHook
             }
             else if (knowledgeBase.Type == "document")
             {
-                var options = new VectorSearchOptions
+                var orchestrator = GetKnowledgeOrchestrator(knowledgeBase.Type);
+                var options = new KnowledgeSearchOptions
                 {
                     Fields = null,
                     Limit = 5,
                     Confidence = 0.25f,
                     WithVector = true
                 };
-                var result = await _knowledgeService.SearchVectorKnowledge(text, knowledgeBase.Name, options);
+                var result = await orchestrator.Search(text, knowledgeBase.Name, options);
                 results.AddRange(result.Where(x => x.Data != null && x.Data.ContainsKey("text"))
                                .Select(x => x.Data["text"].ToString())
                                .Where(x => x != null)!);
             }
             else
             {
-                var options = new VectorSearchOptions
+                var orchestrator = GetKnowledgeOrchestrator(knowledgeBase.Type);
+                var options = new KnowledgeSearchOptions
                 {
                     Fields = null,
                     Limit = 5,
                     Confidence = 0.5f,
                     WithVector = true
                 };
-                var result = await _knowledgeService.SearchVectorKnowledge(text, knowledgeBase.Name, options);
+                var result = await orchestrator.Search(text, knowledgeBase.Name, options);
                 results.AddRange(result.Where(x => x.Data != null && (x.Data.ContainsKey("text") || x.Data.ContainsKey("answer")))
                                .Select(x => x.Data.ContainsKey("answer") ? x.Data["text"].ToString() + "\r\n\r\n" + x.Data["answer"].ToString() : x.Data["text"].ToString())
                                .Where(x => x != null)!);
-
             }
         }
 
@@ -84,7 +75,8 @@ public class KnowledgeHook : IKnowledgeHook
         var results = new List<string>();
 
         // Get all knowledge bases
-        var knowledgeBases = await _knowledgeService.GetVectorCollections();
+        var orchestrator = GetKnowledgeOrchestrator();
+        var knowledgeBases = await orchestrator.GetCollections(new KnowledgeCollectionOptions { IncludeAllTypes = true });
 
         foreach (var knowledgeBase in knowledgeBases)
         {
@@ -100,14 +92,15 @@ public class KnowledgeHook : IKnowledgeHook
             }
             else
             {
-                var options = new VectorSearchOptions
+                var searchOrchestrator = GetKnowledgeOrchestrator(knowledgeBase.Type);
+                var options = new KnowledgeSearchOptions
                 {
                     Fields = null,
                     Limit = 5,
                     Confidence = 0.5f,
                     WithVector = true
                 };
-                var result = await _knowledgeService.SearchVectorKnowledge(text, knowledgeBase.Name, options);
+                var result = await searchOrchestrator.Search(text, knowledgeBase.Name, options);
                 results.AddRange(result.Where(x => x.Data != null && (x.Data.ContainsKey("text") || x.Data.ContainsKey("answer")))
                                .Select(x => x.Data.ContainsKey("answer") ? x.Data["text"].ToString() + "\r\n\r\n" + x.Data["answer"].ToString() : x.Data["text"].ToString())
                                .Where(x => x != null)!);
@@ -120,5 +113,23 @@ public class KnowledgeHook : IKnowledgeHook
     public async Task<List<KnowledgeChunk>> CollectChunkedKnowledge()
     {
         return new List<KnowledgeChunk>();
+    }
+
+
+    private async Task<List<AgentKnowledgeBase>> GetKnowledgeBaseNameByAgentIdAsync(string agentId)
+    {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(agentId);
+        return agent.KnowledgeBases;
+    }
+
+    private IKnowledgeOrchestrator GetKnowledgeOrchestrator(string? type = null)
+    {
+        var orchestrators = _services.GetServices<IKnowledgeOrchestrator>();
+        if (!string.IsNullOrWhiteSpace(type))
+        {
+            return orchestrators.First(x => x.KnowledgeType == type);
+        }
+        return orchestrators.First();
     }
 }

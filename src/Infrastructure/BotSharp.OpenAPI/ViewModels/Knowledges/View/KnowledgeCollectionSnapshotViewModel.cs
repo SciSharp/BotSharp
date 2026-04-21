@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
-public class VectorCollectionSnapshotViewModel
+public class KnowledgeCollectionSnapshotViewModel
 {
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
@@ -18,14 +18,14 @@ public class VectorCollectionSnapshotViewModel
     [JsonPropertyName("check_sum")]
     public string? CheckSum { get; set; }
 
-    public static VectorCollectionSnapshotViewModel? From(VectorCollectionSnapshot? model)
+    public static KnowledgeCollectionSnapshotViewModel? From(VectorCollectionSnapshot? model)
     {
         if (model == null)
         {
             return null;
         }
 
-        return new VectorCollectionSnapshotViewModel
+        return new KnowledgeCollectionSnapshotViewModel
         {
             Name = model.Name,
             Size = model.Size,
@@ -34,14 +34,14 @@ public class VectorCollectionSnapshotViewModel
         };
     }
 
-    public static VectorCollectionSnapshotViewModel? From(KnowledgeCollectionSnapshot? model)
+    public static KnowledgeCollectionSnapshotViewModel? From(KnowledgeCollectionSnapshot? model)
     {
         if (model == null)
         {
             return null;
         }
 
-        return new VectorCollectionSnapshotViewModel
+        return new KnowledgeCollectionSnapshotViewModel
         {
             Name = model.Name,
             Size = model.Size,

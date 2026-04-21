@@ -7,8 +7,8 @@ public class CreateCollectionRequest
     [JsonPropertyName("collection_name")]
     public string CollectionName { get; set; }
 
-    [JsonPropertyName("collection_type")]
-    public string CollectionType { get; set; }
+    [JsonPropertyName("knowledge_type")]
+    public string KnowledgeType { get; set; }
 
     [JsonPropertyName("provider")]
     public string Provider { get; set; }
