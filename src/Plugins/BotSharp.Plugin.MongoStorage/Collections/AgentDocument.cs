@@ -28,6 +28,7 @@ public class AgentDocument : MongoBase
     public List<AgentRuleMongoElement> Rules { get; set; }
     public AgentLlmConfigMongoModel? LlmConfig { get; set; }
 
+    public List<AgentSkillMongoElement>? Skills { get; set; }
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }
 }

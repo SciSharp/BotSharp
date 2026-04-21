@@ -1,0 +1,21 @@
+{
+  "max_file_size_mb": 50,
+  "ocr_language": "eng",
+  "output_encoding": "utf-8",
+  "table_detection": {
+    "sensitivity": "medium",
+    "min_words_vertical": 3,
+    "min_words_horizontal": 1,
+    "snap_tolerance": 3
+  },
+  "text_extraction": {
+    "layout_mode": "normal",
+    "strip_whitespace": true,
+    "preserve_formatting": false
+  },
+  "performance": {
+    "max_pages_per_batch": 10,
+    "enable_caching": true,
+    "cache_ttl_seconds": 3600
+  }
+}

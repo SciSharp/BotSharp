@@ -72,6 +72,7 @@ public class AgentCreationModel
     public List<AgentKnowledgeBase> KnowledgeBases { get; set; } = new();
     public List<AgentRule> Rules { get; set; } = new();
     public AgentLlmConfig? LlmConfig { get; set; }
+    public List<AgentSkill> Skills { get; set; }
 
     public Agent ToAgent()
     {
@@ -100,6 +101,7 @@ public class AgentCreationModel
             KnowledgeBases = KnowledgeBases,
             Rules = Rules,
             RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? [],
+            Skills = Skills ?? new List<AgentSkill>(),
         };
     }
 }
