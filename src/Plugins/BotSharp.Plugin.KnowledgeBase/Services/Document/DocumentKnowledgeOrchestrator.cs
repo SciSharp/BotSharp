@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public partial class DocumentKnowledgeOrchestrator : VectorOrchestratorBase, IKnowledgeOrchestrator
 {
-    public override string Type => KnowledgeType.Document;
+    public override string KnowledgeType => KnowledgeBaseType.Document;
 
     public DocumentKnowledgeOrchestrator(
         IServiceProvider services,

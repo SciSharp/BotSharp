@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
-public class VectorKnowledgeCreateRequest
+public class KnowledgeCreateRequest
 {
     [JsonPropertyName("text")]
     public string Text { get; set; }

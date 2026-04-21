@@ -9,45 +9,45 @@ public interface IKnowledgeFileOrchestrator
     string Provider { get; }
 
     /// <summary>
-    /// Save documents and their contents to knowledgebase
+    /// Save files and their contents to knowledgebase
     /// </summary>
     /// <param name="collectionName"></param>
     /// <param name="files"></param>
-    /// <param name="option"></param>
+    /// <param name="options"></param>
     /// <returns></returns>
-    Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(string collectionName, IEnumerable<ExternalFileModel> files, KnowledgeFileHandleOptions? options = null);
+    Task<UploadKnowledgeResponse> UploadFilesToKnowledge(string collectionName, IEnumerable<ExternalFileModel> files, KnowledgeFileHandleOptions? options = null);
     
     /// <summary>
-    /// Delete one document and its related knowledge in the collection
+    /// Delete one file and its related knowledge in the collection
     /// </summary>
     /// <param name="collectionName"></param>
     /// <param name="fileId"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    Task<bool> DeleteKnowledgeDocument(string collectionName, Guid fileId, KnowledgeFileOptions? options = null);
+    Task<bool> DeleteKnowledgeFile(string collectionName, Guid fileId, KnowledgeFileOptions? options = null);
     
     /// <summary>
-    /// Delete all documents and their related knowledge in the collection
+    /// Delete all files and their related knowledge in the collection
     /// </summary>
     /// <param name="collectionName"></param>
     /// <param name="filter"></param>
     /// <returns></returns>
-    Task<bool> DeleteKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter);
+    Task<bool> DeleteKnowledgeFiles(string collectionName, KnowledgeFileFilter filter);
 
     /// <summary>
-    /// Get knowlege documents by pagination
+    /// Get knowledge files by pagination
     /// </summary>
     /// <param name="collectionName"></param>
     /// <param name="filter"></param>
     /// <returns></returns>
-    Task<PagedItems<KnowledgeFileModel>> GetPagedKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter);
+    Task<PagedItems<KnowledgeFileModel>> GetPagedKnowledgeFiles(string collectionName, KnowledgeFileFilter filter);
 
     /// <summary>
-    /// Get knowledge document binary data
+    /// Get knowledge file binary data
     /// </summary>
     /// <param name="collectionName"></param>
     /// <param name="fileId"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    Task<FileBinaryDataModel> GetKnowledgeDocumentBinaryData(string collectionName, Guid fileId, KnowledgeFileOptions? options = null);
+    Task<FileBinaryDataModel> GetKnowledgeFileBinaryData(string collectionName, Guid fileId, KnowledgeFileOptions? options = null);
 }

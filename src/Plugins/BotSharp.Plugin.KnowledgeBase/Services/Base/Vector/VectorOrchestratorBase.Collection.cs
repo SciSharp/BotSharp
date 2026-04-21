@@ -23,7 +23,7 @@ public abstract partial class VectorOrchestratorBase
         var configs = await db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
         {
             CollectionNames = [collectionName],
-            VectorStorageProviders = [_settings.VectorDb.Provider]
+            VectorStorageProviders = [vectorDb.Provider]
         });
 
         return !configs.IsNullOrEmpty();
@@ -36,16 +36,22 @@ public abstract partial class VectorOrchestratorBase
             return false;
         }
 
+        var vectorDb = GetVectorDb(options.DbProvider);
+        if (vectorDb == null)
+        {
+            return false;
+        }
+
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var created = await db.AddKnowledgeCollectionConfigs(new List<VectorCollectionConfig>
         {
             new VectorCollectionConfig
             {
                 Name = collectionName,
-                Type = Type,
+                Type = KnowledgeType,
                 VectorStore = new VectorStoreConfig
                 {
-                    Provider = options.DbProvider.IfNullOrEmptyAs(_settings.VectorDb.Provider)!
+                    Provider = vectorDb.Provider
                 },
                 TextEmbedding = new KnowledgeEmbeddingConfig
                 {
@@ -57,12 +63,6 @@ public abstract partial class VectorOrchestratorBase
         });
 
         if (!created)
-        {
-            return false;
-        }
-
-        var vectorDb = GetVectorDb(options.DbProvider);
-        if (vectorDb == null)
         {
             return false;
         }
@@ -79,18 +79,19 @@ public abstract partial class VectorOrchestratorBase
 
     public virtual async Task<IEnumerable<KnowledgeCollectionConfig>> GetCollections(KnowledgeCollectionOptions options)
     {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        var configs = await db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
-        {
-            CollectionTypes = !string.IsNullOrEmpty(Type) ? [Type] : null,
-            VectorStorageProviders = [_settings.VectorDb.Provider]
-        });
-
-        var vectorDb = GetVectorDb();
+        var vectorDb = GetVectorDb(options?.DbProvider);
         if (vectorDb == null)
         {
             return [];
         }
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var configs = await db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+        {
+            CollectionTypes = !string.IsNullOrEmpty(KnowledgeType) ? [KnowledgeType] : null,
+            VectorStorageProviders = [vectorDb.Provider]
+        });
+        
         var dbCollections = await vectorDb.GetCollections();
         return configs.Where(x => dbCollections.Contains(x.Name)).Select(x => new KnowledgeCollectionConfig
         {
@@ -120,11 +121,10 @@ public abstract partial class VectorOrchestratorBase
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
-            var vectorStoreProvider = options?.DbProvider.IfNullOrEmptyAs(_settings.VectorDb.Provider) ?? _settings.VectorDb.Provider;
 
             await db.DeleteKnowledgeCollectionConfig(collectionName);
-            fileStorage.DeleteKnowledgeFile(collectionName, vectorStoreProvider);
-            await db.DeleteKnolwedgeBaseFileMeta(collectionName, vectorStoreProvider);
+            fileStorage.DeleteKnowledgeFile(collectionName, vectorDb.Provider);
+            await db.DeleteKnolwedgeBaseFileMeta(collectionName, vectorDb.Provider);
         }
 
         return deleted;

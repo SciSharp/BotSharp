@@ -21,7 +21,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
         _logger = logger;
     }
 
-    public async Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(
+    public async Task<UploadKnowledgeResponse> UploadFilesToKnowledge(
         string collectionName,
         IEnumerable<ExternalFileModel> files,
         KnowledgeFileHandleOptions? options = null)
@@ -121,7 +121,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
         };
     }
 
-    public async Task<bool> DeleteKnowledgeDocument(string collectionName, Guid fileId, KnowledgeFileOptions? options = null)
+    public async Task<bool> DeleteKnowledgeFile(string collectionName, Guid fileId, KnowledgeFileOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
         {
@@ -167,7 +167,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
         }
     }
 
-    public async Task<bool> DeleteKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter)
+    public async Task<bool> DeleteKnowledgeFiles(string collectionName, KnowledgeFileFilter filter)
     {
         if (string.IsNullOrWhiteSpace(collectionName)) return false;
 
@@ -182,7 +182,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
             ContentTypes = filter.ContentTypes
         };
 
-        var pageData = await GetPagedKnowledgeDocuments(collectionName, innerFilter);
+        var pageData = await GetPagedKnowledgeFiles(collectionName, innerFilter);
 
         var total = pageData.Count;
         if (total == 0) return false;
@@ -194,7 +194,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
         {
             if (page > 1)
             {
-                pageData = await GetPagedKnowledgeDocuments(collectionName, innerFilter);
+                pageData = await GetPagedKnowledgeFiles(collectionName, innerFilter);
             }
 
             var fileIds = pageData.Items.Select(x => x.FileId).ToList();
@@ -202,7 +202,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
             {
                 try
                 {
-                    await DeleteKnowledgeDocument(collectionName, fileId);
+                    await DeleteKnowledgeFile(collectionName, fileId);
                 }
                 catch
                 {
@@ -216,7 +216,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
         return true;
     }
 
-    public async Task<PagedItems<KnowledgeFileModel>> GetPagedKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter)
+    public async Task<PagedItems<KnowledgeFileModel>> GetPagedKnowledgeFiles(string collectionName, KnowledgeFileFilter filter)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
         {
@@ -248,14 +248,14 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
         };
     }
 
-    public async Task<FileBinaryDataModel> GetKnowledgeDocumentBinaryData(string collectionName, Guid fileId, KnowledgeFileOptions? options = null)
+    public async Task<FileBinaryDataModel> GetKnowledgeFileBinaryData(string collectionName, Guid fileId, KnowledgeFileOptions? options = null)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var vectorStoreProvider = options?.DbProvider.IfNullOrEmptyAs(_settings.VectorDb.Provider) ?? _settings.VectorDb.Provider;
+        var knwoledgebaseProvider = options?.DbProvider.IfNullOrEmptyAs(_settings.VectorDb.Provider) ?? _settings.VectorDb.Provider;
 
         // Get doc binary data
-        var pageData = await db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
+        var pageData = await db.GetKnowledgeBaseFileMeta(collectionName, knwoledgebaseProvider, new KnowledgeFileFilter
         {
             Size = 1,
             FileIds = [fileId]
@@ -272,7 +272,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
             };
         };
 
-        var binaryData = fileStorage.GetKnowledgeBaseFileBinaryData(collectionName, vectorStoreProvider, fileId, metaData.FileName);
+        var binaryData = fileStorage.GetKnowledgeBaseFileBinaryData(collectionName, knwoledgebaseProvider, fileId, metaData.FileName);
         return new FileBinaryDataModel
         {
             FileName = metaData.FileName,

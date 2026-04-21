@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
-public class CreateVectorCollectionRequest
+public class CreateCollectionRequest
 {
     [JsonPropertyName("collection_name")]
     public string CollectionName { get; set; }

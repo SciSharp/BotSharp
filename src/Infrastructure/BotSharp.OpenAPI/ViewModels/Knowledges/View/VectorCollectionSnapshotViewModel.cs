@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 using System.Text.Json.Serialization;
 
@@ -18,6 +19,22 @@ public class VectorCollectionSnapshotViewModel
     public string? CheckSum { get; set; }
 
     public static VectorCollectionSnapshotViewModel? From(VectorCollectionSnapshot? model)
+    {
+        if (model == null)
+        {
+            return null;
+        }
+
+        return new VectorCollectionSnapshotViewModel
+        {
+            Name = model.Name,
+            Size = model.Size,
+            CreatedTime = model.CreatedTime,
+            CheckSum = model.CheckSum
+        };
+    }
+
+    public static VectorCollectionSnapshotViewModel? From(KnowledgeCollectionSnapshot? model)
     {
         if (model == null)
         {

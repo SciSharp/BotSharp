@@ -6,7 +6,7 @@ public abstract partial class VectorOrchestratorBase : IKnowledgeOrchestrator
     protected readonly ILogger _logger;
     protected readonly KnowledgeBaseSettings _settings;
 
-    public abstract string Type { get; }
+    public abstract string KnowledgeType { get; }
 
     protected VectorOrchestratorBase(
         IServiceProvider services,

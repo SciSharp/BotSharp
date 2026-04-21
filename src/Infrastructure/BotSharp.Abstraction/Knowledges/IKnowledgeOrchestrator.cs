@@ -5,7 +5,7 @@ namespace BotSharp.Abstraction.Knowledges;
 
 public interface IKnowledgeOrchestrator
 {
-    string Type { get; }
+    string KnowledgeType { get; }
 
     #region Collection
     Task<bool> ExistCollection(string collectionName, KnowledgeCollectionOptions options);
