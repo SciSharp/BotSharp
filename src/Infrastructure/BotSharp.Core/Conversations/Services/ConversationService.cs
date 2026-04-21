@@ -169,7 +169,8 @@ public partial class ConversationService : IConversationService
         }
         else
         {
-            dialogs = dialogs.Where(x => string.IsNullOrEmpty(x.MessageType) || x.MessageType.IsEqualTo(MessageTypeName.Plain)).ToList();
+            var defaultMessageTypes = new List<string> { MessageTypeName.Plain, MessageTypeName.RecordOnly };
+            dialogs = dialogs.Where(x => string.IsNullOrEmpty(x.MessageType) || defaultMessageTypes.Contains(x.MessageType)).ToList();
         }
 
         if (fromBreakpoint)
