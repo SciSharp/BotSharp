@@ -3,18 +3,18 @@ using BotSharp.Abstraction.VectorStorage.Filters;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
-public class KnowledgeDocOrchestrator : IKnowledgeDocOrchestrator
+public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
 {
     private readonly IServiceProvider _services;
     private readonly KnowledgeBaseSettings _settings;
-    private readonly ILogger<KnowledgeDocOrchestrator> _logger;
+    private readonly ILogger<KnowledgeFileOrchestrator> _logger;
 
     public string Provider => "botsharp-knowledge-doc";
 
-    public KnowledgeDocOrchestrator(
+    public KnowledgeFileOrchestrator(
         IServiceProvider services,
         KnowledgeBaseSettings settings,
-        ILogger<KnowledgeDocOrchestrator> logger)
+        ILogger<KnowledgeFileOrchestrator> logger)
     {
         _services = services;
         _settings = settings;

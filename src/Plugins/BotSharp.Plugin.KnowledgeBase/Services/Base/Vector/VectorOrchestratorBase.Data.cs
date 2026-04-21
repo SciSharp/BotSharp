@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 public abstract partial class VectorOrchestratorBase
 {
     #region Collection data
-    public async Task<bool> CreateCollectionData(string collectionName, KnowledgeCreateModel create)
+    public virtual async Task<bool> CreateCollectionData(string collectionName, KnowledgeCreateModel create)
     {
         if (string.IsNullOrWhiteSpace(collectionName) || string.IsNullOrWhiteSpace(create.Text))
         {
@@ -32,7 +32,7 @@ public abstract partial class VectorOrchestratorBase
         return await vectorDb.Upsert(collectionName, guid, vector, create.Text, payload);
     }
 
-    public async Task<bool> DeleteCollectionData(string collectionName, string id, KnowledgeCollectionOptions? options)
+    public virtual async Task<bool> DeleteCollectionData(string collectionName, string id, KnowledgeCollectionOptions? options)
     {
         if (!Guid.TryParse(id, out var guid))
         {
@@ -48,7 +48,7 @@ public abstract partial class VectorOrchestratorBase
         return await vectorDb.DeleteCollectionData(collectionName, [guid]);
     }
 
-    public async Task<bool> DeleteCollectionData(string collectionName, KnowledgeCollectionOptions? options)
+    public virtual async Task<bool> DeleteCollectionData(string collectionName, KnowledgeCollectionOptions? options)
     {
         var vectorDb = GetVectorDb(options?.DbProvider);
         if (vectorDb == null)
@@ -59,7 +59,7 @@ public abstract partial class VectorOrchestratorBase
         return await vectorDb.DeleteCollectionAllData(collectionName);
     }
 
-    public async Task<IEnumerable<KnowledgeCollectionData>> GetCollectionData(string collectionName, IEnumerable<string> ids, KnowledgeQueryOptions? options = null)
+    public virtual async Task<IEnumerable<KnowledgeCollectionData>> GetCollectionData(string collectionName, IEnumerable<string> ids, KnowledgeQueryOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName) || ids.IsNullOrEmpty())
         {
@@ -93,7 +93,7 @@ public abstract partial class VectorOrchestratorBase
         });
     }
 
-    public async Task<StringIdPagedItems<KnowledgeSearchResult>> GetPagedCollectionData(string collectionName, KnowledgeFilter filter)
+    public virtual async Task<StringIdPagedItems<KnowledgeSearchResult>> GetPagedCollectionData(string collectionName, KnowledgeFilter filter)
     {
         var vectorDb = GetVectorDb(filter.DbProvider);
         if (vectorDb == null)
@@ -126,7 +126,7 @@ public abstract partial class VectorOrchestratorBase
         };
     }
 
-    public async Task<bool> UpdateCollectionData(string collectionName, KnowledgeUpdateModel update)
+    public virtual async Task<bool> UpdateCollectionData(string collectionName, KnowledgeUpdateModel update)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(update.Text)
@@ -159,7 +159,7 @@ public abstract partial class VectorOrchestratorBase
         return await vectorDb.Upsert(collectionName, guid, vector, update.Text, payload);
     }
 
-    public async Task<bool> UpsertCollectionData(string collectionName, KnowledgeUpdateModel update)
+    public virtual async Task<bool> UpsertCollectionData(string collectionName, KnowledgeUpdateModel update)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(update.Text)
@@ -197,7 +197,7 @@ public abstract partial class VectorOrchestratorBase
     }
     #endregion
 
-    public async Task<IEnumerable<KnowledgeSearchResult>> Search(string query, string collectionName, KnowledgeSearchOptions options)
+    public virtual async Task<IEnumerable<KnowledgeSearchResult>> Search(string query, string collectionName, KnowledgeSearchOptions options)
     {
         var vectorDb = GetVectorDb(options.DbProvider);
         if (vectorDb == null)

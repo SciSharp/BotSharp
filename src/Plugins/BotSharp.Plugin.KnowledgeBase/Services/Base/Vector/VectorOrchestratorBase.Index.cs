@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 public abstract partial class VectorOrchestratorBase
 {
     #region Index
-    public async Task<SuccessFailResponse<string>> CreateIndexes(string collectionName, KnowledgeIndexOptions options)
+    public virtual async Task<SuccessFailResponse<string>> CreateIndexes(string collectionName, KnowledgeIndexOptions options)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
         {
@@ -42,7 +42,7 @@ public abstract partial class VectorOrchestratorBase
         return response;
     }
 
-    public async Task<SuccessFailResponse<string>> DeleteIndexes(string collectionName, KnowledgeIndexOptions options)
+    public virtual async Task<SuccessFailResponse<string>> DeleteIndexes(string collectionName, KnowledgeIndexOptions options)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
         {

@@ -3,7 +3,7 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 public abstract partial class VectorOrchestratorBase
 {
     #region Snapshot
-    public async Task<IEnumerable<KnowledgeCollectionSnapshot>> GetCollectionSnapshots(string collectionName, KnowledgeSnapshotOptions? options = null)
+    public virtual async Task<IEnumerable<KnowledgeCollectionSnapshot>> GetCollectionSnapshots(string collectionName, KnowledgeSnapshotOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
         {
@@ -20,7 +20,7 @@ public abstract partial class VectorOrchestratorBase
         return snapshots.Select(x => KnowledgeCollectionSnapshot.CopyFrom(x)!);
     }
 
-    public async Task<KnowledgeCollectionSnapshot?> CreateCollectionSnapshot(string collectionName, KnowledgeSnapshotOptions? options = null)
+    public virtual async Task<KnowledgeCollectionSnapshot?> CreateCollectionSnapshot(string collectionName, KnowledgeSnapshotOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
         {
@@ -37,7 +37,7 @@ public abstract partial class VectorOrchestratorBase
         return KnowledgeCollectionSnapshot.CopyFrom(snapshot);
     }
 
-    public async Task<BinaryData> DownloadCollectionSnapshot(string collectionName, string snapshotFileName, KnowledgeSnapshotOptions? options = null)
+    public virtual async Task<BinaryData> DownloadCollectionSnapshot(string collectionName, string snapshotFileName, KnowledgeSnapshotOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName) || string.IsNullOrWhiteSpace(snapshotFileName))
         {
@@ -54,7 +54,7 @@ public abstract partial class VectorOrchestratorBase
         return snapshot;
     }
 
-    public async Task<bool> RecoverCollectionFromSnapshot(string collectionName, string snapshotFileName, BinaryData snapshotData, KnowledgeSnapshotOptions? options = null)
+    public virtual async Task<bool> RecoverCollectionFromSnapshot(string collectionName, string snapshotFileName, BinaryData snapshotData, KnowledgeSnapshotOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
         {
@@ -71,7 +71,7 @@ public abstract partial class VectorOrchestratorBase
         return done;
     }
 
-    public async Task<bool> DeleteCollectionSnapshot(string collectionName, string snapshotName, KnowledgeSnapshotOptions? options = null)
+    public virtual async Task<bool> DeleteCollectionSnapshot(string collectionName, string snapshotName, KnowledgeSnapshotOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName) || string.IsNullOrWhiteSpace(snapshotName))
         {

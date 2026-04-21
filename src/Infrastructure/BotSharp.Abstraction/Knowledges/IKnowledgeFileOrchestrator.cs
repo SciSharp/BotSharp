@@ -4,7 +4,7 @@ using BotSharp.Abstraction.Knowledges.Responses;
 
 namespace BotSharp.Abstraction.Knowledges;
 
-public interface IKnowledgeDocOrchestrator
+public interface IKnowledgeFileOrchestrator
 {
     string Provider { get; }
 

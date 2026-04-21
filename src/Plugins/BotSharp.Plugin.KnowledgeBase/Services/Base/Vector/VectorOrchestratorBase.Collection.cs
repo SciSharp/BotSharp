@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 public abstract partial class VectorOrchestratorBase
 {
     #region Collection
-    public async Task<bool> ExistCollection(string collectionName, KnowledgeCollectionOptions options)
+    public virtual async Task<bool> ExistCollection(string collectionName, KnowledgeCollectionOptions options)
     {
         var vectorDb = GetVectorDb(options?.DbProvider);
         if (vectorDb == null)
@@ -29,7 +29,7 @@ public abstract partial class VectorOrchestratorBase
         return !configs.IsNullOrEmpty();
     }
 
-    public async Task<bool> CreateCollection(string collectionName, CollectionCreateOptions options)
+    public virtual async Task<bool> CreateCollection(string collectionName, CollectionCreateOptions options)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
         {
@@ -77,7 +77,7 @@ public abstract partial class VectorOrchestratorBase
         return created;
     }
 
-    public async Task<IEnumerable<KnowledgeCollectionConfig>> GetCollections(KnowledgeCollectionOptions options)
+    public virtual async Task<IEnumerable<KnowledgeCollectionConfig>> GetCollections(KnowledgeCollectionOptions options)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var configs = await db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
@@ -101,7 +101,7 @@ public abstract partial class VectorOrchestratorBase
         });
     }
 
-    public async Task<bool> DeleteCollection(string collectionName, KnowledgeCollectionOptions options)
+    public virtual async Task<bool> DeleteCollection(string collectionName, KnowledgeCollectionOptions options)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
         {
