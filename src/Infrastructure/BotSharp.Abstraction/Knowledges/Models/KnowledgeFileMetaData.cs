@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Knowledges.Models;
 
-public class KnowledgeDocMetaData
+public class KnowledgeFileMetaData
 {
     [JsonPropertyName("collection")]
     public string Collection { get; set; }

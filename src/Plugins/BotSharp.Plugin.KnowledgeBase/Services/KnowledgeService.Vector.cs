@@ -17,7 +17,7 @@ public partial class KnowledgeService
         var configs = await db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
         {
             CollectionNames = [collectionName],
-            VectorStroageProviders = [_settings.VectorDb.Provider]
+            VectorStorageProviders = [_settings.VectorDb.Provider]
         });
 
         return !configs.IsNullOrEmpty();
@@ -75,7 +75,7 @@ public partial class KnowledgeService
             var configs = await db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
             {
                 CollectionTypes = !string.IsNullOrEmpty(type) ? [type] : null,
-                VectorStroageProviders = [_settings.VectorDb.Provider]
+                VectorStorageProviders = [_settings.VectorDb.Provider]
             });
 
             var vectorDb = GetVectorDb();

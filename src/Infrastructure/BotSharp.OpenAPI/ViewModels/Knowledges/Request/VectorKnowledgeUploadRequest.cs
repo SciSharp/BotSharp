@@ -9,5 +9,5 @@ public class VectorKnowledgeUploadRequest
     public IEnumerable<ExternalFileModel> Files { get; set; } = new List<ExternalFileModel>();
 
     [JsonPropertyName("options")]
-    public KnowledgeDocOptions? Options { get; set; }
+    public KnowledgeFileHandleOptions? Options { get; set; }
 }

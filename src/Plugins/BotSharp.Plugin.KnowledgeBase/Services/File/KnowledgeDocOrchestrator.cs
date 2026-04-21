@@ -1,9 +1,26 @@
 using System.Net.Http;
+using BotSharp.Abstraction.VectorStorage.Filters;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
-public partial class KnowledgeService
+public class KnowledgeDocOrchestrator : IKnowledgeDocOrchestrator
 {
+    private readonly IServiceProvider _services;
+    private readonly KnowledgeBaseSettings _settings;
+    private readonly ILogger<KnowledgeDocOrchestrator> _logger;
+
+    public string Provider => "botsharp-knowledge-doc";
+
+    public KnowledgeDocOrchestrator(
+        IServiceProvider services,
+        KnowledgeBaseSettings settings,
+        ILogger<KnowledgeDocOrchestrator> logger)
+    {
+        _services = services;
+        _settings = settings;
+        _logger = logger;
+    }
+
     public async Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(
         string collectionName,
         IEnumerable<ExternalFileModel> files,
@@ -20,14 +37,13 @@ public partial class KnowledgeService
             return res;
         }
 
-        var exist = await ExistVectorCollection(collectionName);
+        var knowledgebaseProvider = options?.DbProvider ?? _settings.VectorDb.Provider;
+        var exist = await ExistCollection(collectionName, knowledgebaseProvider);
         if (!exist)
         {
             return res;
         }
 
-        var fileStoreage = _services.GetRequiredService<IFileStorageService>();
-        var vectorStoreProvider = _settings.VectorDb.Provider;
         var knowledgeFiles = new List<FileKnowledgeWrapper>();
         var successFiles = new List<string>();
         var failedFiles = new List<string>();
@@ -97,7 +113,7 @@ public partial class KnowledgeService
             }
         }
 
-        var response = await HandleKnowledgeFiles(collectionName, vectorStoreProvider, knowledgeFiles, saveFile: true);
+        var response = await HandleKnowledgeFiles(collectionName, knowledgebaseProvider, knowledgeFiles, saveFile: true);
         return new UploadKnowledgeResponse
         {
             Success = successFiles.Concat(response.Success).Distinct(),
@@ -105,70 +121,7 @@ public partial class KnowledgeService
         };
     }
 
-
-    public async Task<bool> ImportDocumentContentToKnowledge(string collectionName, string fileName, string fileSource,
-        IEnumerable<string> contents, DocMetaRefData? refData = null, Dictionary<string, VectorPayloadValue>? payload = null)
-    {
-        if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(fileName)
-            || contents.IsNullOrEmpty())
-        {
-            return false;
-        }
-
-        try
-        {
-            var exist = await ExistVectorCollection(collectionName);
-            if (!exist) return false;
-
-            var db = _services.GetRequiredService<IBotSharpRepository>();
-            var userId = await GetUserId();
-            var vectorStoreProvider = _settings.VectorDb.Provider;
-            var fileId = Guid.NewGuid();
-            var contentType = FileUtility.GetFileContentType(fileName);
-
-            var innerPayload = new Dictionary<string, VectorPayloadValue>(payload ?? []);
-            innerPayload[KnowledgePayloadName.DataSource] = (VectorPayloadValue)VectorDataSource.File;
-            innerPayload[KnowledgePayloadName.FileId] = (VectorPayloadValue)fileId.ToString();
-            innerPayload[KnowledgePayloadName.FileName] = (VectorPayloadValue)fileName;
-            innerPayload[KnowledgePayloadName.FileSource] = (VectorPayloadValue)fileSource;
-
-            if (!string.IsNullOrWhiteSpace(refData?.Url))
-            {
-                innerPayload[KnowledgePayloadName.FileUrl] = (VectorPayloadValue)refData.Url;
-            }
-
-            var kgFile = new FileKnowledgeWrapper
-            {
-                FileId = fileId,
-                FileSource = fileSource,
-                FileData = new()
-                {
-                    FileName = fileName,
-                    ContentType = contentType,
-                    FileBinaryData = BinaryData.Empty
-                },
-                FileKnowledges = new List<FileKnowledgeModel>
-                {
-                    new()
-                    {
-                        Contents = contents,
-                        Payload = innerPayload
-                    }
-                }
-            };
-            await HandleKnowledgeFiles(collectionName, vectorStoreProvider, [kgFile], saveFile: false);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error when importing doc content to knowledgebase ({collectionName}-{fileName})");
-            return false;
-        }
-    }
-
-
-    public async Task<bool> DeleteKnowledgeDocument(string collectionName, Guid fileId)
+    public async Task<bool> DeleteKnowledgeDocument(string collectionName, Guid fileId, KnowledgeFileOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
         {
@@ -179,19 +132,23 @@ public partial class KnowledgeService
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
-            var vectorDb = GetVectorDb();
-            var vectorStoreProvider = _settings.VectorDb.Provider;
+            var knowledgebaseProvider = options?.DbProvider ?? _settings.VectorDb.Provider;
+            var vectorDb = GetVectorDb(knowledgebaseProvider);
+            if (vectorDb == null)
+            {
+                return false;
+            }
 
             // Get doc meta data
-            var pageData = await db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
+            var pageData = await db.GetKnowledgeBaseFileMeta(collectionName, knowledgebaseProvider, new KnowledgeFileFilter
             {
                 Size = 1,
-                FileIds = [ fileId ]
+                FileIds = [fileId]
             });
 
             // Delete doc
-            fileStorage.DeleteKnowledgeFile(collectionName, vectorStoreProvider, fileId);
-            
+            fileStorage.DeleteKnowledgeFile(collectionName, knowledgebaseProvider, fileId);
+
             var found = pageData?.Items?.FirstOrDefault();
             if (found != null && !found.VectorDataIds.IsNullOrEmpty())
             {
@@ -199,7 +156,7 @@ public partial class KnowledgeService
                 await vectorDb.DeleteCollectionData(collectionName, guids);
             }
 
-            await db.DeleteKnolwedgeBaseFileMeta(collectionName, vectorStoreProvider, fileId);
+            await db.DeleteKnolwedgeBaseFileMeta(collectionName, knowledgebaseProvider, fileId);
             return true;
         }
         catch (Exception ex)
@@ -214,7 +171,6 @@ public partial class KnowledgeService
     {
         if (string.IsNullOrWhiteSpace(collectionName)) return false;
 
-        
         var pageSize = filter.Size;
         var innerFilter = new KnowledgeFileFilter
         {
@@ -260,7 +216,6 @@ public partial class KnowledgeService
         return true;
     }
 
-
     public async Task<PagedItems<KnowledgeFileModel>> GetPagedKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
@@ -270,10 +225,10 @@ public partial class KnowledgeService
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var vectorStoreProvider = _settings.VectorDb.Provider;
+        var knowledgebaseProvider = filter?.DbProvider ?? _settings.VectorDb.Provider;
 
         // Get doc meta data
-        var pagedData = await db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, filter);
+        var pagedData = await db.GetKnowledgeBaseFileMeta(collectionName, knowledgebaseProvider, filter);
 
         var files = pagedData.Items?.Select(x => new KnowledgeFileModel
         {
@@ -282,9 +237,9 @@ public partial class KnowledgeService
             FileSource = x.FileSource,
             FileExtension = Path.GetExtension(x.FileName),
             ContentType = x.ContentType,
-            FileUrl = fileStorage.GetKnowledgeBaseFileUrl(collectionName, vectorStoreProvider, x.FileId, x.FileName),
+            FileUrl = fileStorage.GetKnowledgeBaseFileUrl(collectionName, knowledgebaseProvider, x.FileId, x.FileName),
             RefData = x.RefData
-        })?.ToList() ?? new List<KnowledgeFileModel>();
+        })?.ToList() ?? [];
 
         return new PagedItems<KnowledgeFileModel>
         {
@@ -293,17 +248,17 @@ public partial class KnowledgeService
         };
     }
 
-    public async Task<FileBinaryDataModel> GetKnowledgeDocumentBinaryData(string collectionName, Guid fileId)
+    public async Task<FileBinaryDataModel> GetKnowledgeDocumentBinaryData(string collectionName, Guid fileId, KnowledgeFileOptions? options = null)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var vectorStoreProvider = _settings.VectorDb.Provider;
+        var vectorStoreProvider = options?.DbProvider.IfNullOrEmptyAs(_settings.VectorDb.Provider) ?? _settings.VectorDb.Provider;
 
         // Get doc binary data
         var pageData = await db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
         {
             Size = 1,
-            FileIds = [ fileId ]
+            FileIds = [fileId]
         });
 
         var metaData = pageData?.Items?.FirstOrDefault();
@@ -328,11 +283,47 @@ public partial class KnowledgeService
 
 
     #region Private methods
-    /// <summary>
-    /// Get file content type and file bytes
-    /// </summary>
-    /// <param name="file"></param>
-    /// <returns></returns>
+    private IVectorDb? GetVectorDb(string? dbProvider = null)
+    {
+        var provider = dbProvider.IfNullOrEmptyAs(_settings.VectorDb.Provider);
+        var db = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Provider == provider);
+        return db;
+    }
+
+    private async Task<ITextEmbedding> GetTextEmbedding(string collectionName)
+    {
+        return await KnowledgeSettingHelper.GetTextEmbeddingSetting(_services, collectionName);
+    }
+
+    private async Task<string> GetUserId()
+    {
+        var userIdentity = _services.GetRequiredService<IUserIdentity>();
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(userIdentity.Id);
+        return user.Id;
+    }
+
+    private async Task<bool> ExistCollection(string collectionName, string? dbProvider)
+    {
+        var vectorDb = GetVectorDb(dbProvider);
+        if (vectorDb == null)
+        {
+            return false;
+        }
+
+        var exist = await vectorDb.DoesCollectionExist(collectionName);
+        if (exist) return true;
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var configs = await db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+        {
+            CollectionNames = [collectionName],
+            VectorStorageProviders = [vectorDb.Provider]
+        });
+
+        return !configs.IsNullOrEmpty();
+    }
+
     private async Task<(string, BinaryData)> GetFileInfo(ExternalFileModel file)
     {
         if (file == null)
@@ -357,7 +348,6 @@ public partial class KnowledgeService
         return (string.Empty, BinaryData.Empty);
     }
 
-    #region Read doc content
     private async Task<IEnumerable<FileKnowledgeModel>> GetFileKnowledge(FileBinaryDataModel file, KnowledgeFileHandleOptions? options)
     {
         var processor = _services.GetServices<IKnowledgeProcessor>().FirstOrDefault(x => x.Provider.IsEqualTo(options?.Processor));
@@ -369,17 +359,15 @@ public partial class KnowledgeService
         var response = await processor.GetFileKnowledgeAsync(file, options: options);
         return response?.Success == true ? response.Knowledges ?? [] : [];
     }
-    #endregion
 
-
-    private bool SaveDocument(string collectionName, string vectorStoreProvider, Guid fileId, string fileName, BinaryData binary)
+    private bool SaveDocument(string collectionName, string knowledgebaseProvider, Guid fileId, string fileName, BinaryData binary)
     {
-        var fileStoreage = _services.GetRequiredService<IFileStorageService>();
-        var saved = fileStoreage.SaveKnowledgeBaseFile(collectionName, vectorStoreProvider, fileId, fileName, binary);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var saved = fileStorage.SaveKnowledgeBaseFile(collectionName, knowledgebaseProvider, fileId, fileName, binary);
         return saved;
     }
 
-    private async Task<IEnumerable<string>> SaveToVectorDb(string collectionName, IEnumerable<string> contents, Dictionary<string, VectorPayloadValue>? payload = null)
+    private async Task<IEnumerable<string>> SaveToKnowledgebase(string collectionName, string knowledgebaseProvider, IEnumerable<string> contents, Dictionary<string, VectorPayloadValue>? payload = null)
     {
         if (contents.IsNullOrEmpty())
         {
@@ -387,7 +375,7 @@ public partial class KnowledgeService
         }
 
         var dataIds = new List<string>();
-        var vectorDb = GetVectorDb();
+        var vectorDb = GetVectorDb(knowledgebaseProvider);
         var textEmbedding = await GetTextEmbedding(collectionName);
 
         for (int i = 0; i < contents.Count(); i++)
@@ -418,7 +406,7 @@ public partial class KnowledgeService
 
     private async Task<UploadKnowledgeResponse> HandleKnowledgeFiles(
         string collectionName,
-        string vectorStore,
+        string knowledgebaseProvider,
         IEnumerable<FileKnowledgeWrapper> knowledgeFiles,
         bool saveFile = false)
     {
@@ -439,7 +427,7 @@ public partial class KnowledgeService
             // Save document
             if (saveFile)
             {
-                var saved = SaveDocument(collectionName, vectorStore, item.FileId, file.FileName, file.FileBinaryData);
+                var saved = SaveDocument(collectionName, knowledgebaseProvider, item.FileId, file.FileName, file.FileBinaryData);
                 if (!saved)
                 {
                     _logger.LogWarning($"Failed to save knowledge file: {file.FileName} to collection {collectionName}.");
@@ -452,7 +440,7 @@ public partial class KnowledgeService
             var dataIds = new List<string>();
             foreach (var kg in item.FileKnowledges)
             {
-                var ids = await SaveToVectorDb(collectionName, kg.Contents, kg.Payload?.ToDictionary());
+                var ids = await SaveToKnowledgebase(collectionName, knowledgebaseProvider, kg.Contents, kg.Payload?.ToDictionary());
                 dataIds.AddRange(ids);
             }
 
@@ -465,7 +453,7 @@ public partial class KnowledgeService
                     FileName = file.FileName,
                     FileSource = item.FileSource ?? VectorDataSource.File,
                     ContentType = file.ContentType,
-                    VectorStoreProvider = vectorStore,
+                    VectorStoreProvider = knowledgebaseProvider,
                     VectorDataIds = dataIds,
                     CreateDate = DateTime.UtcNow,
                     CreateUserId = userId

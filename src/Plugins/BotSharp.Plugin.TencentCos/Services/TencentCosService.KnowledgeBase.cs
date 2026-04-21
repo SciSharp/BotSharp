@@ -2,17 +2,17 @@ namespace BotSharp.Plugin.TencentCos.Services;
 
 public partial class TencentCosService
 {
-    public bool SaveKnowledgeBaseFile(string collectionName, string vectorStoreProvider, Guid fileId, string fileName, BinaryData fileData)
+    public bool SaveKnowledgeBaseFile(string collectionName, string knowledgebaseProvider, Guid fileId, string fileName, BinaryData fileData)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider))
+            || string.IsNullOrWhiteSpace(knowledgebaseProvider))
         {
             return false;
         }
 
         try
         {
-            var docDir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+            var docDir = BuildKnowledgeCollectionFileDir(collectionName, knowledgebaseProvider);
             var dir = $"{docDir}/{fileId}";
             if (ExistDirectory(dir))
             {
@@ -26,20 +26,20 @@ public partial class TencentCosService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, $"Error when saving knowledge file " +
-                $"(Vector store provider: {vectorStoreProvider}, Collection: {collectionName}, File name: {fileName}).");
+                $"(Vector store provider: {knowledgebaseProvider}, Collection: {collectionName}, File name: {fileName}).");
             return false;
         }
     }
 
-    public bool DeleteKnowledgeFile(string collectionName, string vectorStoreProvider, Guid? fileId = null)
+    public bool DeleteKnowledgeFile(string collectionName, string knowledgebaseProvider, Guid? fileId = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider))
+            || string.IsNullOrWhiteSpace(knowledgebaseProvider))
         {
             return false;
         }
 
-        var dir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+        var dir = BuildKnowledgeCollectionFileDir(collectionName, knowledgebaseProvider);
         if (!ExistDirectory(dir)) return false;
 
         if (fileId == null)
@@ -58,16 +58,16 @@ public partial class TencentCosService
         return true;
     }
 
-    public string GetKnowledgeBaseFileUrl(string collectionName, string vectorStoreProvider, Guid fileId, string fileName)
+    public string GetKnowledgeBaseFileUrl(string collectionName, string knowledgebaseProvider, Guid fileId, string fileName)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider)
+            || string.IsNullOrWhiteSpace(knowledgebaseProvider)
             || string.IsNullOrWhiteSpace(fileName))
         {
             return string.Empty;
         }
 
-        var docDir = BuildKnowledgeCollectionFileDir(vectorStoreProvider, collectionName);
+        var docDir = BuildKnowledgeCollectionFileDir(knowledgebaseProvider, collectionName);
         var fileDir = $"{docDir}/{fileId}";
         if (!ExistDirectory(fileDir))
         {
@@ -77,10 +77,10 @@ public partial class TencentCosService
         return $"https://{_fullBuketName}.cos.{_settings.Region}.myqcloud.com/{fileDir}/{fileName}"; ;
     }
 
-    public BinaryData GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, Guid fileId, string fileName)
+    public BinaryData GetKnowledgeBaseFileBinaryData(string collectionName, string knowledgebaseProvider, Guid fileId, string fileName)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider)
+            || string.IsNullOrWhiteSpace(knowledgebaseProvider)
             || string.IsNullOrWhiteSpace(fileName))
         {
             return BinaryData.Empty;
@@ -88,7 +88,7 @@ public partial class TencentCosService
 
         try
         {
-            var docDir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+            var docDir = BuildKnowledgeCollectionFileDir(collectionName, knowledgebaseProvider);
             var fileDir = $"{docDir}/{fileId}";
             if (!ExistDirectory(fileDir))
             {
@@ -106,7 +106,7 @@ public partial class TencentCosService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Error when downloading collection file ({collectionName}-{vectorStoreProvider}-{fileId}-{fileName})");
+            _logger.LogWarning(ex, $"Error when downloading collection file ({collectionName}-{knowledgebaseProvider}-{fileId}-{fileName})");
             return BinaryData.Empty;
         }
     }

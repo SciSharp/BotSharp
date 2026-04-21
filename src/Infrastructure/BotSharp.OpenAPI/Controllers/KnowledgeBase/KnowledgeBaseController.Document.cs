@@ -26,7 +26,7 @@ public partial class KnowledgeBaseController
     public async Task<UploadKnowledgeResponse> UploadKnowledgeDocuments(
         [FromRoute] string collection,
         [FromForm] IEnumerable<IFormFile> files,
-        [FromForm] KnowledgeDocOptions? options = null)
+        [FromForm] KnowledgeFileHandleOptions? options = null)
     {
         if (files.IsNullOrEmpty())
         {

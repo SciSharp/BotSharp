@@ -99,9 +99,9 @@ public partial class MongoRepository
             filters.Add(builder.In(x => x.Type, filter.CollectionTypes));
         }
 
-        if (!filter.VectorStroageProviders.IsNullOrEmpty())
+        if (!filter.VectorStorageProviders.IsNullOrEmpty())
         {
-            filters.Add(builder.In(x => x.VectorStore.Provider, filter.VectorStroageProviders));
+            filters.Add(builder.In(x => x.VectorStore.Provider, filter.VectorStorageProviders));
         }
 
         // Get data
@@ -119,19 +119,19 @@ public partial class MongoRepository
 #if !DEBUG
     [SharpCache(10)]
 #endif
-    public async Task<VectorCollectionConfig> GetKnowledgeCollectionConfig(string collectionName, string vectorStroageProvider)
+    public async Task<VectorCollectionConfig> GetKnowledgeCollectionConfig(string collectionName, string knowledgebaseProvider)
     {
         var configs = await GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
         {
             CollectionNames = [collectionName],
-            VectorStroageProviders = [vectorStroageProvider]
+            VectorStorageProviders = [knowledgebaseProvider]
         });
         return configs?.FirstOrDefault();
     }
     #endregion
 
     #region Documents
-    public async Task<bool> SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData)
+    public async Task<bool> SaveKnolwedgeBaseFileMeta(KnowledgeFileMetaData metaData)
     {
         if (metaData == null
             || string.IsNullOrWhiteSpace(metaData.Collection)
@@ -159,10 +159,10 @@ public partial class MongoRepository
         return true;
     }
 
-    public async Task<bool> DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null)
+    public async Task<bool> DeleteKnolwedgeBaseFileMeta(string collectionName, string knowledgebaseProvider, Guid? fileId = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider))
+            || string.IsNullOrWhiteSpace(knowledgebaseProvider))
         {
             return false;
         }
@@ -171,7 +171,7 @@ public partial class MongoRepository
         var filters = new List<FilterDefinition<KnowledgeCollectionFileMetaDocument>>()
         {
             builder.Eq(x => x.Collection, collectionName),
-            builder.Eq(x => x.VectorStoreProvider, vectorStoreProvider)
+            builder.Eq(x => x.VectorStoreProvider, knowledgebaseProvider)
         };
 
         if (fileId != null)
@@ -183,19 +183,19 @@ public partial class MongoRepository
         return res.DeletedCount > 0;
     }
 
-    public async Task<PagedItems<KnowledgeDocMetaData>> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
+    public async Task<PagedItems<KnowledgeFileMetaData>> GetKnowledgeBaseFileMeta(string collectionName, string knowledgebaseProvider, KnowledgeFileFilter filter)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider))
+            || string.IsNullOrWhiteSpace(knowledgebaseProvider))
         {
-            return new PagedItems<KnowledgeDocMetaData>();
+            return new PagedItems<KnowledgeFileMetaData>();
         }
 
         var builder = Builders<KnowledgeCollectionFileMetaDocument>.Filter;
         var docFilters = new List<FilterDefinition<KnowledgeCollectionFileMetaDocument>>()
         {
             builder.Eq(x => x.Collection, collectionName),
-            builder.Eq(x => x.VectorStoreProvider, vectorStoreProvider)
+            builder.Eq(x => x.VectorStoreProvider, knowledgebaseProvider)
         };
         
         // Apply filters
@@ -237,7 +237,7 @@ public partial class MongoRepository
         var docs = docsTask.Result.ToList();
         var count = countTask.Result;
 
-        var files = docs?.Select(x => new KnowledgeDocMetaData
+        var files = docs?.Select(x => new KnowledgeFileMetaData
         {
             Collection = x.Collection,
             FileId = x.FileId,
@@ -251,7 +251,7 @@ public partial class MongoRepository
             CreateUserId = x.CreateUserId
         })?.ToList() ?? [];
 
-        return new PagedItems<KnowledgeDocMetaData>
+        return new PagedItems<KnowledgeFileMetaData>
         {
             Items = files,
             Count = count
