@@ -4,7 +4,7 @@ public class NodeCreationModel
 {
     public string? Id { get; set; }
     public string[]? Labels { get; set; }
-    public object? Properties { get; set; }
+    public Dictionary<string, object>? Properties { get; set; }
     public NodeEmbedding? Embedding { get; set; }
     public DateTime? Time { get; set; }
 }
