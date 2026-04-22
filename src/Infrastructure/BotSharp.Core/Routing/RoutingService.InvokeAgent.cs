@@ -38,7 +38,7 @@ public partial class RoutingService
 
         RoleDialogModel response;
         var message = dialogs.Last();
-        var conversationDialogs = dialogs.Where(x => x.MessageType != MessageTypeName.RecordOnly).ToList();
+        var conversationDialogs = dialogs.Where(x => !x.ExcludeFromContext).ToList();
         if (options?.UseStream == true)
         {
             response = await chatCompletion.GetChatCompletionsStreamingAsync(agent, conversationDialogs);
