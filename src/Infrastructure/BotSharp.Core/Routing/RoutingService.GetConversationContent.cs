@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Conversations.Enums;
-
 namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
@@ -8,7 +6,7 @@ public partial class RoutingService
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var conversation = "";
-        var conversationDialogs = dialogs.Where(x => x.MessageType != MessageTypeName.RecordOnly).TakeLast(maxDialogCount).ToList();
+        var conversationDialogs = dialogs.Where(x => !x.ExcludeFromContext).TakeLast(maxDialogCount).ToList();
         foreach (var dialog in conversationDialogs)
         {
             var role = dialog.Role;
