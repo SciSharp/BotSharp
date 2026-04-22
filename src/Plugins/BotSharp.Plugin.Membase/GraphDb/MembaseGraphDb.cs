@@ -1,3 +1,4 @@
+using System.Net;
 using BotSharp.Plugin.Membase.Models.Graph;
 using Polly;
 using Polly.Timeout;
@@ -54,7 +55,7 @@ public partial class MembaseGraphDb : IGraphDb
         }
         catch (ApiException ex)
         {
-            _logger.LogError($"Error when executing query in {Provider} graph db:\r\n{ex.Content}\r\n{query}\r\n{argLogs}");
+            _logger.LogError(ex, $"Error when executing query in {Provider} graph db:\r\n{ex.Content}\r\n{query}\r\n{argLogs}");
             throw;
         }
         catch (Exception ex)
@@ -154,7 +155,7 @@ public partial class MembaseGraphDb : IGraphDb
             .Handle<HttpRequestException>()
             .Or<TaskCanceledException>()
             .Or<TimeoutRejectedException>()
-            .Or<ApiException>(ex => ex.StatusCode == HttpStatusCode.ServiceUnavailable)
+            .Or<ApiException>(ex => ex.StatusCode == HttpStatusCode.ServiceUnavailable || ex.StatusCode == HttpStatusCode.InternalServerError)
             .WaitAndRetryAsync(
                 retryCount: RETRY_COUNT,
                 sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
