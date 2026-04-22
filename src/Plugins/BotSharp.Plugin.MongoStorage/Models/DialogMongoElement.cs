@@ -52,6 +52,7 @@ public class DialogMetaDataMongoElement
     public string? FunctionArgs { get; set; }
     public Dictionary<string, string?>? MetaData { get; set; }
     public string? SenderId { get; set; }
+    public bool ExcludeFromContext { get; set; }
     public DateTime CreateTime { get; set; }
 
     public static DialogMetaData ToDomainElement(DialogMetaDataMongoElement meta)
@@ -68,6 +69,7 @@ public class DialogMetaDataMongoElement
             FunctionArgs = meta.FunctionArgs,
             MetaData = meta.MetaData,
             SenderId = meta.SenderId,
+            ExcludeFromContext = meta.ExcludeFromContext,
             CreatedTime = meta.CreateTime
         };
     }
@@ -86,6 +88,7 @@ public class DialogMetaDataMongoElement
             FunctionArgs = meta.FunctionArgs,
             MetaData = meta.MetaData,
             SenderId = meta.SenderId,
+            ExcludeFromContext = meta.ExcludeFromContext,
             CreateTime = meta.CreatedTime
         };
     }
