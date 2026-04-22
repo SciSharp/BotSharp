@@ -1,3 +1,4 @@
+using System.Net;
 using Polly;
 using Polly.Timeout;
 using Refit;
@@ -75,7 +76,7 @@ public partial class MembaseGraphDb : IGraphDb
             .Handle<HttpRequestException>()
             .Or<TaskCanceledException>()
             .Or<TimeoutRejectedException>()
-            .Or<ApiException>(ex => ex.StatusCode == HttpStatusCode.ServiceUnavailable)
+            .Or<ApiException>(ex => ex.StatusCode == HttpStatusCode.ServiceUnavailable || ex.StatusCode == HttpStatusCode.InternalServerError)
             .WaitAndRetryAsync(
                 retryCount: RetryCount,
                 sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
