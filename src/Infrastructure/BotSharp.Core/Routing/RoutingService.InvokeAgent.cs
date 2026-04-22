@@ -38,13 +38,14 @@ public partial class RoutingService
 
         RoleDialogModel response;
         var message = dialogs.Last();
+        var conversationDialogs = dialogs.Where(x => !x.ExcludeFromContext).ToList();
         if (options?.UseStream == true)
         {
-            response = await chatCompletion.GetChatCompletionsStreamingAsync(agent, dialogs);
+            response = await chatCompletion.GetChatCompletionsStreamingAsync(agent, conversationDialogs);
         }
         else
         {
-            response = await chatCompletion.GetChatCompletions(agent, dialogs);
+            response = await chatCompletion.GetChatCompletions(agent, conversationDialogs);
         }
 
         if (response.Role == AgentRole.Function && !string.IsNullOrEmpty(response.FunctionName))

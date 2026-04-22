@@ -125,6 +125,12 @@ public class DialogMetaData
     [JsonPropertyName("sender_id")]
     public string? SenderId { get; set; }
 
+    /// <summary>
+    /// When true, message is persisted but omitted from default LLM dialog history and routing conversation text.
+    /// </summary>
+    [JsonPropertyName("exclude_from_context")]
+    public bool ExcludeFromContext { get; set; }
+
     [JsonPropertyName("create_at")]
     public DateTime CreatedTime { get; set; }
 }
