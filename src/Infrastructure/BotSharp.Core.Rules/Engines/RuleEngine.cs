@@ -225,7 +225,7 @@ public class RuleEngine : IRuleEngine
                 JsonOptions = options?.JsonOptions
             };
 
-            if (RuleConstant.CONDITION_NODE_TYPES.Contains(nextNode.Type))
+            if (RuleConstant.CONDITION_NODE_TYPES.Contains(nextNode.Type, StringComparer.OrdinalIgnoreCase))
             {
                 // Execute condition node
                 var conditionResult = await ExecuteCondition(nextNode, edge, graph, agent, trigger, context);
@@ -252,7 +252,7 @@ public class RuleEngine : IRuleEngine
                         nextNode.Name, agent.Name, trigger.Name);
                 }
             }
-            else if (RuleConstant.ACTION_NODE_TYPES.Contains(nextNode.Type))
+            else if (RuleConstant.ACTION_NODE_TYPES.Contains(nextNode.Type, StringComparer.OrdinalIgnoreCase))
             {
                 // Execute action node
                 var actionResult = await ExecuteAction(nextNode, edge, graph, agent, trigger, context);
@@ -334,7 +334,7 @@ public class RuleEngine : IRuleEngine
                 JsonOptions = options?.JsonOptions
             };
 
-            if (RuleConstant.CONDITION_NODE_TYPES.Contains(nextNode.Type))
+            if (RuleConstant.CONDITION_NODE_TYPES.Contains(nextNode.Type, StringComparer.OrdinalIgnoreCase))
             {
                 // Execute condition node
                 var conditionResult = await ExecuteCondition(nextNode, nextEdge, graph, agent, trigger, context);
@@ -366,7 +366,7 @@ public class RuleEngine : IRuleEngine
                         nextNode.Name, agent.Name, trigger.Name);
                 }
             }
-            else if (RuleConstant.ACTION_NODE_TYPES.Contains(nextNode.Type))
+            else if (RuleConstant.ACTION_NODE_TYPES.Contains(nextNode.Type, StringComparer.OrdinalIgnoreCase))
             {
                 // Execute action node
                 var actionResult = await ExecuteAction(nextNode, nextEdge, graph, agent, trigger, context);
