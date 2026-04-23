@@ -1,6 +1,6 @@
-namespace BotSharp.Plugin.Membase.Models;
+namespace BotSharp.Abstraction.Graph.Requests;
 
-public class EdgeCreationModel
+public class GraphEdgeCreationRequest
 {
     public string? Id { get; set; }
     public string SourceNodeId { get; set; } = null!;

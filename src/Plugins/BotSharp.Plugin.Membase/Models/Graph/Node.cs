@@ -15,4 +15,15 @@ public class Node
         var labelsString = Labels.Count > 0 ? string.Join(", ", Labels) : "No Labels";
         return $"Node ({labelsString}: {Id})";
     }
+
+    public static GraphNodeModel ToGraphNodeModel(Node node)
+    {
+        return new GraphNodeModel
+        {
+            Id = node.Id,
+            Labels = node.Labels,
+            Properties = node.Properties,
+            Time = node.Time
+        };
+    }
 }
