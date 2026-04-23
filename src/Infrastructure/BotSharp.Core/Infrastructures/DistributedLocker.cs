@@ -37,7 +37,6 @@ public class DistributedLocker : IDistributedLocker
         {
             if (handle == null) 
             {
-                _logger.LogWarning($"Acquire lock for {resource} failed due to after {acquireTimeout}s timeout.");
                 return false;
             }
             
@@ -66,7 +65,6 @@ public class DistributedLocker : IDistributedLocker
         {
             if (handle == null)
             {
-                _logger.LogWarning($"Acquire lock for {resource} failed due to after {acquireTimeout}s timeout.");
                 return false;
             }
             else
