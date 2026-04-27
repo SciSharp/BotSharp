@@ -43,7 +43,7 @@ public class GraphKnowledgeOrchestrator : IKnowledgeOrchestrator
             {
                 var payload = value.ToDictionary(
                     kvp => kvp.Key,
-                    kvp => VectorPayloadValue.BuildStringValue(kvp.Value?.ToString() ?? string.Empty)
+                    kvp => new VectorPayloadValue(kvp.Value, VectorPayloadDataType.Unknown)
                 );
 
                 return new KnowledgeSearchResult
@@ -55,7 +55,7 @@ public class GraphKnowledgeOrchestrator : IKnowledgeOrchestrator
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error when searching graph knowledge. (Query: {query}, Collection: {collectionName})");
+            _logger.LogError(ex, $"Error when searching graph knowledge. (Query: {query})");
         }
 
         return results;
