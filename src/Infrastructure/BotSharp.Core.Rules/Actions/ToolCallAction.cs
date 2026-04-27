@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Functions;
 
 namespace BotSharp.Core.Rules.Actions;
 
-public sealed class ToolCallAction : IRuleAction
+public class ToolCallAction : IRuleAction
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<ToolCallAction> _logger;
@@ -16,6 +16,25 @@ public sealed class ToolCallAction : IRuleAction
     }
 
     public string Name => "tool_call";
+
+    public FlowUnitSchema? InputSchema => new(
+        properties: new()
+        {
+            ["function_name"] = new("string", "The name of the function to call"),
+            ["function_argument"] = new("object", "The function argument as a RoleDialogModel JSON")
+        },
+        required: ["function_name"]
+    );
+
+    public FlowUnitSchema? OutputSchema => new(
+        properties: new()
+        {
+            ["function_name"] = new("string", "The executed function name"),
+            ["function_argument"] = new("string", "The function argument as JSON string"),
+            ["function_call_result"] = new("string", "The function call result text")
+        },
+        required: ["function_name", "function_argument", "function_call_result"]
+    );
 
     public async Task<RuleNodeResult> ExecuteAsync(
         Agent agent,

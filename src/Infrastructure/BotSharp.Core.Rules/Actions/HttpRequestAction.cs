@@ -4,7 +4,7 @@ using System.Web;
 
 namespace BotSharp.Core.Rules.Actions;
 
-public sealed class HttpRequestAction : IRuleAction
+public class HttpRequestAction : IRuleAction
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<HttpRequestAction> _logger;
@@ -22,11 +22,26 @@ public sealed class HttpRequestAction : IRuleAction
 
     public string Name => "http_request";
 
-    // Default configuration example:
-    // {
-    //     "http_url": "https://dummy.example.com/api/v1/employees",
-    //     "http_method": "GET"
-    // }
+    public FlowUnitSchema? InputSchema => new(
+        properties: new()
+        {
+            ["http_url"] = new("string", "The HTTP URL to request"),
+            ["http_method"] = new("string", "HTTP method: GET, POST, PUT, DELETE, PATCH"),
+            ["http_query_params"] = new("array", "Query parameters as key-value pairs"),
+            ["http_request_headers"] = new("array", "Request headers as key-value pairs"),
+            ["http_request_body"] = new("string", "Request body (JSON string)")
+        },
+        required: ["http_url", "http_method"]
+    );
+
+    public FlowUnitSchema? OutputSchema => new(
+        properties: new()
+        {
+            ["http_response"] = new("string", "The HTTP response body"),
+            ["http_response_headers"] = new("string", "The HTTP response headers as JSON")
+        },
+        required: ["http_response", "http_response_headers"]
+    );
 
     public async Task<RuleNodeResult> ExecuteAsync(
         Agent agent,

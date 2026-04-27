@@ -1,6 +1,6 @@
 namespace BotSharp.Core.Rules.Actions;
 
-public sealed class ChatAction : IRuleAction
+public class ChatAction : IRuleAction
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<ChatAction> _logger;
@@ -14,6 +14,17 @@ public sealed class ChatAction : IRuleAction
     }
 
     public string Name => "send_message_to_agent";
+
+    public FlowUnitSchema? InputSchema => new();
+
+    public FlowUnitSchema? OutputSchema => new(
+        properties: new()
+        {
+            ["agent_id"] = new("string", "The agent ID"),
+            ["conversation_id"] = new("string", "The created conversation ID")
+        },
+        required: ["agent_id", "conversation_id"]
+    );
 
     public async Task<RuleNodeResult> ExecuteAsync(
         Agent agent,
