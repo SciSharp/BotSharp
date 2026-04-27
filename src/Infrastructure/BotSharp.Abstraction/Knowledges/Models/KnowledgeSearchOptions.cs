@@ -8,10 +8,12 @@ public class KnowledgeSearchOptions
     public string? DbProvider { get; set; }
     public IEnumerable<string>? Fields { get; set; } = [KnowledgePayloadName.Text, KnowledgePayloadName.Answer];
     public IEnumerable<VectorFilterGroup>? FilterGroups { get; set; }
+    public IEnumerable<string>? DataProviders { get; set; }
+    public Dictionary<string, string>? SearchParam { get; set; }
+
     public int? Limit { get; set; } = 5;
     public float? Confidence { get; set; } = 0.5f;
     public bool WithVector { get; set; }
-    public VectorSearchParamModel? SearchParam { get; set; }
 
     public static KnowledgeSearchOptions Default()
     {

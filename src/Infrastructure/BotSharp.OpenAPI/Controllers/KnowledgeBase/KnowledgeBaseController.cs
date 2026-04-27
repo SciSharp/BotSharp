@@ -87,7 +87,7 @@ public partial class KnowledgeBaseController : ControllerBase
     }
 
     [HttpPost("/knowledge/collection/{collection}/search")]
-    public async Task<IEnumerable<KnowledgeKnowledgeViewModel>> SearchKnowledge([FromRoute] string collection, [FromBody] SearchVectorKnowledgeRequest request)
+    public async Task<IEnumerable<KnowledgeKnowledgeViewModel>> SearchKnowledge([FromRoute] string collection, [FromBody] SearchKnowledgeRequest request)
     {
         var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
                                     .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
@@ -99,11 +99,13 @@ public partial class KnowledgeBaseController : ControllerBase
 
         var options = new KnowledgeSearchOptions
         {
+            DbProvider = request?.DbProvider,
             Fields = request?.Fields,
             FilterGroups = request?.FilterGroups,
             Limit = request?.Limit ?? 5,
             Confidence = request?.Confidence ?? 0.5f,
             WithVector = request?.WithVector ?? false,
+            DataProviders = request?.DataProviders,
             SearchParam = request?.SearchParam
         };
 

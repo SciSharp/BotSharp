@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.Plugins;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,7 @@ public class FuzzySharpPlugin : IBotSharpPlugin
         services.AddScoped<IResultProcessor, ResultProcessor>();
         services.AddScoped<IEntityAnalyzer, FuzzySharpEntityAnalyzer>();
         services.AddScoped<IEntityDataLoader, CsvNERDataLoader>();
+        services.AddScoped<IKnowledgeOrchestrator, TaxonomyKnowledgeOrchestrator>();
 
         services.AddScoped<ITokenMatcher, ExactMatcher>();
         services.AddScoped<ITokenMatcher, SynonymMatcher>();

@@ -832,17 +832,18 @@ public class QdrantDb : IVectorDb
         };
     }
 
-    private SearchParams? BuildSearchParam(VectorSearchParamModel? param)
+    private SearchParams? BuildSearchParam(Dictionary<string, string>? param)
     {
         if (param == null
-            || param.ExactSearch == null)
+            || !param.TryGetValue("exact_search", out var exactSearchStr)
+            || !bool.TryParse(exactSearchStr, out var exactSearch))
         {
             return null;
         }
 
         var search = new SearchParams
         {
-            Exact = param.ExactSearch.Value
+            Exact = exactSearch
         };
         return search;
     }

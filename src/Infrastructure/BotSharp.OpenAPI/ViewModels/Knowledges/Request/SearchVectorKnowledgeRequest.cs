@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
-public class SearchVectorKnowledgeRequest
+public class SearchKnowledgeRequest
 {
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
@@ -24,7 +24,15 @@ public class SearchVectorKnowledgeRequest
     public bool WithVector { get; set; }
 
     [JsonPropertyName("search_param")]
-    public VectorSearchParamModel? SearchParam { get; set; }
+    public Dictionary<string, string>? SearchParam { get; set; }
+
+    [JsonPropertyName("data_providers")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? DataProviders { get; set; }
+
+    [JsonPropertyName("db_provider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DbProvider { get; set; }
 
     [JsonPropertyName("knowledge_type")]
     public string KnowledgeType { get; set; } = null!;

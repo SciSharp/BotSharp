@@ -7,7 +7,7 @@ public class EntityAnalysisOptions
     /// </summary>
     [JsonPropertyName("data_providers")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<string>? DataProviders { get; set; }
+    public IEnumerable<string>? DataProviders { get; set; }
 
     /// <summary>
     /// Maximum n-gram size
