@@ -4,7 +4,7 @@ namespace BotSharp.Core.Rules.Engines;
 /// Abstraction over the data structure that drives graph traversal order.
 /// Stack → DFS, Queue → BFS.  Swap the frontier mid-traversal to switch strategy.
 /// </summary>
-internal interface IFrontier<T>
+public interface IFrontier<T>
 {
     void Add(T item);
     T Remove();
@@ -19,7 +19,7 @@ internal interface IFrontier<T>
 /// <summary>
 /// LIFO frontier – produces depth-first traversal.
 /// </summary>
-internal sealed class StackFrontier<T> : IFrontier<T>
+public sealed class StackFrontier<T> : IFrontier<T>
 {
     private readonly Stack<T> _stack = new();
 
@@ -46,7 +46,7 @@ internal sealed class StackFrontier<T> : IFrontier<T>
 /// <summary>
 /// FIFO frontier – produces breadth-first traversal.
 /// </summary>
-internal sealed class QueueFrontier<T> : IFrontier<T>
+public sealed class QueueFrontier<T> : IFrontier<T>
 {
     private readonly Queue<T> _queue = new();
 
