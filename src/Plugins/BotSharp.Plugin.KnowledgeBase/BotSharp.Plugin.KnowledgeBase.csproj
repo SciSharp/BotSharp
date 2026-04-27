@@ -61,4 +61,9 @@
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\Graph\" />
+    <Folder Include="Services\Taxonomy\" />
+  </ItemGroup>
+
 </Project>

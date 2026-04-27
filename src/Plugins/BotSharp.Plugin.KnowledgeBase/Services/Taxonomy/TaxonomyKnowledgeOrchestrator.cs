@@ -1,12 +1,7 @@
-using BotSharp.Abstraction.Knowledges;
-using BotSharp.Abstraction.Knowledges.Enums;
-using BotSharp.Abstraction.Knowledges.Models;
-using BotSharp.Abstraction.Utilities;
-using BotSharp.Abstraction.VectorStorage.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using BotSharp.Abstraction.Entity;
+using BotSharp.Abstraction.Entity.Models;
 
-namespace BotSharp.Plugin.FuzzySharp.Services;
+namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public class TaxonomyKnowledgeOrchestrator : IKnowledgeOrchestrator
 {
@@ -38,15 +33,13 @@ public class TaxonomyKnowledgeOrchestrator : IKnowledgeOrchestrator
                 return results;
             }
 
+            var taxonomyOptions = options as TaxonomyKnowledgeSearchOptions;
             var analysisOptions = new EntityAnalysisOptions
             {
-                DataProviders = options.DataProviders,
+                DataProviders = taxonomyOptions?.DataProviders,
                 Cutoff = options.Confidence.HasValue ? (double)options.Confidence.Value : null,
                 TopK = options.Limit,
-                MaxNgram = options.SearchParam != null
-                    && options.SearchParam.TryGetValue("max_ngram", out var maxNgramStr)
-                    && int.TryParse(maxNgramStr, out var maxNgram)
-                    ? maxNgram : null
+                MaxNgram = taxonomyOptions?.MaxNgram
             };
 
             var response = await analyzer.AnalyzeAsync(query, analysisOptions);

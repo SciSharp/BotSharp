@@ -28,6 +28,7 @@ global using BotSharp.Abstraction.Files.Models;
 global using BotSharp.Abstraction.Files;
 global using BotSharp.Abstraction.VectorStorage.Enums;
 global using BotSharp.Abstraction.Knowledges.Models;
+global using BotSharp.Abstraction.Knowledges.Options;
 global using BotSharp.Abstraction.Chart.Models;
 global using BotSharp.Abstraction.Entity;
 global using BotSharp.Abstraction.Entity.Models;

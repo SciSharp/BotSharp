@@ -5,4 +5,5 @@ public static class KnowledgeBaseType
     public static string QuestionAnswer = "question-answer";
     public static string Document = "document";
     public static string Taxonomy = "taxonomy";
+    public static string SemanticGraph = "semantic_graph";
 }

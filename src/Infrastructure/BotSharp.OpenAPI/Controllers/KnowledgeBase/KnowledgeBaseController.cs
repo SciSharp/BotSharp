@@ -1,7 +1,7 @@
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Graph;
 using BotSharp.Abstraction.Graph.Options;
-using BotSharp.Abstraction.Knowledges.Options;
+using BotSharp.Abstraction.Knowledges.Enums;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
 
@@ -97,18 +97,7 @@ public partial class KnowledgeBaseController : ControllerBase
             return [];
         }
 
-        var options = new KnowledgeSearchOptions
-        {
-            DbProvider = request?.DbProvider,
-            Fields = request?.Fields,
-            FilterGroups = request?.FilterGroups,
-            Limit = request?.Limit ?? 5,
-            Confidence = request?.Confidence ?? 0.5f,
-            WithVector = request?.WithVector ?? false,
-            DataProviders = request?.DataProviders,
-            SearchParam = request?.SearchParam
-        };
-
+        var options = BuildSearchOptions(orchestrator, request);
         var results = await orchestrator.Search(request?.Text ?? string.Empty, collection, options);
         return results.Select(x => KnowledgeKnowledgeViewModel.From(x)).ToList();
     }
@@ -390,6 +379,46 @@ public partial class KnowledgeBaseController : ControllerBase
         var stream = fileData.ToStream();
         stream.Position = 0;
         return File(stream, "application/octet-stream", Path.GetFileName(fileName));
+    }
+
+    private KnowledgeSearchOptions BuildSearchOptions(IKnowledgeOrchestrator orchestrator, SearchKnowledgeRequest? request)
+    {
+        if (orchestrator.KnowledgeType.IsEqualTo(KnowledgeBaseType.SemanticGraph))
+        {
+            return new GraphKnowledgeSearchOptions
+            {
+                DbProvider = request?.DbProvider,
+                SearchParam = request?.SearchParam,
+                SearchArguments = request?.SearchArguments,
+                GraphId = request?.GraphId
+            };
+        }
+
+        if (orchestrator.KnowledgeType.IsEqualTo(KnowledgeBaseType.Taxonomy))
+        {
+            return new TaxonomyKnowledgeSearchOptions
+            {
+                DbProvider = request?.DbProvider,
+                Limit = request?.Limit ?? 5,
+                Confidence = request?.Confidence ?? 0.5f,
+                SearchParam = request?.SearchParam,
+                SearchArguments = request?.SearchArguments,
+                DataProviders = request?.DataProviders,
+                MaxNgram = request?.MaxNgram
+            };
+        }
+
+        return new KnowledgeSearchOptions
+        {
+            DbProvider = request?.DbProvider,
+            Fields = request?.Fields,
+            FilterGroups = request?.FilterGroups,
+            Limit = request?.Limit ?? 5,
+            Confidence = request?.Confidence ?? 0.5f,
+            WithVector = request?.WithVector ?? false,
+            SearchParam = request?.SearchParam,
+            SearchArguments = request?.SearchArguments
+        };
     }
     #endregion
 }

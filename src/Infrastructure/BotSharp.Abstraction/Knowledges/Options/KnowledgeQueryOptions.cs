@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.Knowledges.Models;
+namespace BotSharp.Abstraction.Knowledges.Options;
 
 public class KnowledgeQueryOptions
 {

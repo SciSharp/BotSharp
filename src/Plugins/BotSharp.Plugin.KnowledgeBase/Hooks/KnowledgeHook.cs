@@ -1,19 +1,13 @@
-using BotSharp.Abstraction.Graph.Options;
-
 namespace BotSharp.Plugin.KnowledgeBase.Hooks;
 
 public class KnowledgeHook : IKnowledgeHook
 {
     private readonly IServiceProvider _services;
-    private readonly IGraphKnowledgeService _graphKnowledgeService;
-    
 
     public KnowledgeHook(
-        IServiceProvider services,
-        IGraphKnowledgeService graphKnowledgeService)
+        IServiceProvider services)
     {
         _services = services;
-        _graphKnowledgeService = graphKnowledgeService;
     }
 
     public async Task<List<string>> GetDomainKnowledges(RoleDialogModel message, string text)
@@ -24,17 +18,7 @@ public class KnowledgeHook : IKnowledgeHook
 
         foreach (var knowledgeBase in knowledgeBases)
         {
-            if (knowledgeBase.Type == "relationships")
-            {
-                var options = new GraphQueryOptions
-                {
-                    Provider = "Remote",
-                    Method = "local"
-                };
-                var result = await _graphKnowledgeService.ExecuteQueryAsync(text, options);
-                results.Add(result.Result);
-            }
-            else if (knowledgeBase.Type == "document")
+            if (knowledgeBase.Type == KnowledgeBaseType.Document)
             {
                 var orchestrator = GetKnowledgeOrchestrator(knowledgeBase.Type);
                 var options = new KnowledgeSearchOptions
@@ -49,7 +33,7 @@ public class KnowledgeHook : IKnowledgeHook
                                .Select(x => x.Data["text"].ToString())
                                .Where(x => x != null)!);
             }
-            else
+            else if (knowledgeBase.Type == KnowledgeBaseType.QuestionAnswer)
             {
                 var orchestrator = GetKnowledgeOrchestrator(knowledgeBase.Type);
                 var options = new KnowledgeSearchOptions
@@ -80,17 +64,8 @@ public class KnowledgeHook : IKnowledgeHook
 
         foreach (var knowledgeBase in knowledgeBases)
         {
-            if (knowledgeBase.Type == "relationships")
-            {
-                var options = new GraphQueryOptions
-                {
-                    Provider = "Remote",
-                    Method = "local"
-                };
-                var result = await _graphKnowledgeService.ExecuteQueryAsync(text, options);
-                results.Add(result.Result);
-            }
-            else
+            if (knowledgeBase.Type == KnowledgeBaseType.Document
+                || knowledgeBase.Type == KnowledgeBaseType.QuestionAnswer)
             {
                 var searchOrchestrator = GetKnowledgeOrchestrator(knowledgeBase.Type);
                 var options = new KnowledgeSearchOptions

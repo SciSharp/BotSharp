@@ -26,6 +26,8 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
 
         services.AddScoped<IKnowledgeOrchestrator, DocumentKnowledgeOrchestrator>();
         services.AddScoped<IKnowledgeOrchestrator, QuestionAnswerKnowledgeOrchestrator>();
+        services.AddScoped<IKnowledgeOrchestrator, GraphKnowledgeOrchestrator>();
+        services.AddScoped<IKnowledgeOrchestrator, TaxonomyKnowledgeOrchestrator>();
         services.AddScoped<IKnowledgeFileOrchestrator, KnowledgeFileOrchestrator>();
 
         services.AddScoped<IGraphKnowledgeService, GraphKnowledgeService>();

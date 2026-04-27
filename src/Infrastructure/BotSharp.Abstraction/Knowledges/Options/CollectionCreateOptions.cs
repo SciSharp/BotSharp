@@ -1,6 +1,4 @@
-using BotSharp.Abstraction.Knowledges.Options;
-
-namespace BotSharp.Abstraction.Knowledges.Models;
+namespace BotSharp.Abstraction.Knowledges.Options;
 
 public class CollectionCreateOptions : KnowledgeOptionBase
 {
