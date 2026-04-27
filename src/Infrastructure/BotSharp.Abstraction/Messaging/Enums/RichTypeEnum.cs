@@ -6,6 +6,7 @@ public static class RichTypeEnum
     public const string MultiSelectTemplate = "multi-select_template";
     public const string CouponTemplate = "coupon_template";
     public const string GenericTemplate = "generic_template";
+    public const string EmbeddingTemplate = "embedding_template";
     public const string QuickReply = "quick_reply";
     public const string Text = "text";
     public const string Attachment = "attachment";

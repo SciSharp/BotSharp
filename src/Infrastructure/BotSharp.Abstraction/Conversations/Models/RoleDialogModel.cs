@@ -20,6 +20,11 @@ public class RoleDialogModel : ITrackableMessage
     public string MessageType { get; set; } = MessageTypeName.Plain;
 
     /// <summary>
+    /// When true, message is stored but omitted from default LLM history and routing <c>[CONVERSATION]</c> (orthogonal to <see cref="MessageType"/>).
+    /// </summary>
+    public bool ExcludeFromContext { get; set; }
+
+    /// <summary>
     /// The message label
     /// </summary>
     public string? MessageLabel { get; set; }
@@ -191,6 +196,7 @@ public class RoleDialogModel : ITrackableMessage
             CurrentAgentId = source.CurrentAgentId,
             MessageId = source.MessageId,
             MessageType = source.MessageType,
+            ExcludeFromContext = source.ExcludeFromContext,
             MessageLabel = source.MessageLabel,
             ToolCallId = source.ToolCallId,
             FunctionName = source.FunctionName,

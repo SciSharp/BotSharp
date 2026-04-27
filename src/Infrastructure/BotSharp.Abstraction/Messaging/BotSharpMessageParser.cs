@@ -42,6 +42,10 @@ public static class BotSharpMessageParser
             {
                 targetType = typeof(ProgramCodeTemplateMessage);
             }
+            else if (richType == RichTypeEnum.EmbeddingTemplate)
+            {
+                targetType = typeof(EmbeddingTemplateMessage);
+            }
             else if (richType == RichTypeEnum.GenericTemplate)
             {
                 if (root.TryGetProperty("element_type", out element))
@@ -91,6 +95,10 @@ public static class BotSharpMessageParser
             else if (templateType == TemplateTypeEnum.ProgramCode)
             {
                 targetType = typeof(ProgramCodeTemplateMessage);
+            }
+            else if (templateType == TemplateTypeEnum.Embedding)
+            {
+                targetType = typeof(EmbeddingTemplateMessage);
             }
             else if (templateType == TemplateTypeEnum.Generic)
             {
