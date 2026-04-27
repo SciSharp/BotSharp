@@ -39,18 +39,10 @@ public class GraphKnowledgeOrchestrator : IKnowledgeOrchestrator
 
             var graphResult = await graphDb.ExecuteQueryAsync(query, graphOptions);
 
-            results = graphResult?.Values?.Select(value =>
+            results = graphResult?.Values?.Select(value => new KnowledgeSearchResult
             {
-                var payload = value.ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => new VectorPayloadValue(kvp.Value, VectorPayloadDataType.Unknown)
-                );
-
-                return new KnowledgeSearchResult
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Payload = payload
-                };
+                Id = Guid.NewGuid().ToString(),
+                Payload = value.ToDictionary(kvp => kvp.Key, kvp => new VectorPayloadValue(kvp.Value))
             })?.ToList() ?? [];
         }
         catch (Exception ex)
