@@ -31,6 +31,13 @@ public class SearchKnowledgeRequest
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, object>? SearchArguments { get; set; }
 
+    [JsonPropertyName("knowledge_type")]
+    public string KnowledgeType { get; set; } = null!;
+
+    [JsonPropertyName("db_provider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DbProvider { get; set; }
+
     [JsonPropertyName("data_providers")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<string>? DataProviders { get; set; }
@@ -38,13 +45,6 @@ public class SearchKnowledgeRequest
     [JsonPropertyName("max_ngram")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? MaxNgram { get; set; }
-
-    [JsonPropertyName("db_provider")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? DbProvider { get; set; }
-
-    [JsonPropertyName("knowledge_type")]
-    public string KnowledgeType { get; set; } = null!;
 
     [JsonPropertyName("graph_id")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
