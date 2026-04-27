@@ -425,7 +425,8 @@ namespace BotSharp.Core.Repository
                 return;
             }
 
-            var templateDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_TEMPLATES_FOLDER);
+            var baseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
+            var templateDir = Path.Combine(baseDir, AGENT_TEMPLATES_FOLDER);
             DeleteBeforeCreateDirectory(templateDir);
 
             foreach (var template in templates)
@@ -433,6 +434,18 @@ namespace BotSharp.Core.Repository
                 var file = Path.Combine(templateDir, $"{template.Name}.{_agentSettings.TemplateFormat}");
                 await File.WriteAllTextAsync(file, template.Content);
             }
+
+            // Save template configs
+            var configFile = Path.Combine(baseDir, AGENT_TEMPLATE_CONFIG_FILE);
+            var configs = templates.Select(t => new AgentTemplateConfig
+            {
+                Name = t.Name,
+                ResponseFormat = t.ResponseFormat,
+                LlmConfig = t.LlmConfig
+            }).ToList();
+
+            var configJson = JsonSerializer.Serialize(configs, _options);
+            await File.WriteAllTextAsync(configFile, configJson);
         }
 
         private async Task UpdateAgentResponses(string agentId, List<AgentResponse> responses)
@@ -710,6 +723,50 @@ namespace BotSharp.Core.Repository
             return string.Empty;
         }
 
+        public async Task<AgentTemplate> GetAgentTemplateDetail(string agentId, string templateName)
+        {
+            var template = new AgentTemplate { Name = templateName };
+
+            if (string.IsNullOrWhiteSpace(agentId)
+            || string.IsNullOrWhiteSpace(templateName))
+            {
+                return template;
+            }
+
+            var baseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
+            var dir = Path.Combine(baseDir, AGENT_TEMPLATES_FOLDER);
+            if (!Directory.Exists(dir))
+            {
+                return template;
+            }
+
+            // Get template content
+            foreach (var file in Directory.EnumerateFiles(dir))
+            {
+                var fileName = file.Split(Path.DirectorySeparatorChar).Last();
+                var splitIdx = fileName.LastIndexOf(".");
+                var name = fileName.Substring(0, splitIdx);
+                var extension = fileName.Substring(splitIdx + 1);
+                if (name.IsEqualTo(templateName) && extension.IsEqualTo(_agentSettings.TemplateFormat))
+                {
+                    template.Content = await File.ReadAllTextAsync(file);
+                    break;
+                }
+            }
+
+            // Get template configs
+            var (configs, _) = GetAgentTemplateConfigs(baseDir);
+            var configFile = Path.Combine(baseDir, AGENT_TEMPLATE_CONFIG_FILE);
+            var found = configs?.FirstOrDefault(x => x.Name.IsEqualTo(templateName));
+            if (found != null)
+            {
+                template.ResponseFormat = found.ResponseFormat;
+                template.LlmConfig = found.LlmConfig;
+            }
+
+            return template;
+        }
+
         public async Task<bool> PatchAgentTemplate(string agentId, AgentTemplate template)
         {
             if (string.IsNullOrEmpty(agentId) || template == null)
@@ -717,7 +774,8 @@ namespace BotSharp.Core.Repository
                 return false;
             }
 
-            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_TEMPLATES_FOLDER);
+            var baseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
+            var dir = Path.Combine(baseDir, AGENT_TEMPLATES_FOLDER);
             if (!Directory.Exists(dir))
             {
                 return false;
@@ -736,6 +794,28 @@ namespace BotSharp.Core.Repository
             }
 
             await File.WriteAllTextAsync(foundTemplate, template.Content);
+
+            // Update template config
+            var (configs, configFile) = GetAgentTemplateConfigs(baseDir);
+
+            var existingConfig = configs.FirstOrDefault(x => x.Name.IsEqualTo(template.Name));
+            if (existingConfig != null)
+            {
+                existingConfig.ResponseFormat = template.ResponseFormat;
+                existingConfig.LlmConfig = template.LlmConfig;
+            }
+            else
+            {
+                configs.Add(new AgentTemplateConfig
+                {
+                    Name = template.Name,
+                    ResponseFormat = template.ResponseFormat,
+                    LlmConfig = template.LlmConfig
+                });
+            }
+
+            var updatedJson = JsonSerializer.Serialize(configs, _options);
+            await File.WriteAllTextAsync(configFile, updatedJson);
             return true;
         }
 
