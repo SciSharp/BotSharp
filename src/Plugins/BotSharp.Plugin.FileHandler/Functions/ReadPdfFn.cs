@@ -108,7 +108,9 @@ public class ReadPdfFn : IFunctionCallback
             {
                 ContentType = x.ContentType,
                 FileUrl = x.FileUrl,
-                FileStorageUrl = x.FileStorageUrl
+                FileStorageUrl = x.FileStorageUrl,
+                FileName = x.FileName,
+                FileExtension = x.FileExtension
             }).ToList();
         }
 
