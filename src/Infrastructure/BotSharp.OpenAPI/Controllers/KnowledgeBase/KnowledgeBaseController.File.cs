@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Files.Utilities;
-using BotSharp.Abstraction.Knowledges.Options;
 using BotSharp.Abstraction.Knowledges.Processors;
 using BotSharp.Abstraction.Knowledges.Responses;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
@@ -15,7 +14,7 @@ public partial class KnowledgeBaseController
         return _services.GetServices<IKnowledgeProcessor>().Select(x => x.Provider);
     }
 
-    [HttpPost("/knowledge/file/{collection}/upload")]
+    [HttpPost("/knowledge/collection/{collection}/file/upload")]
     public async Task<UploadKnowledgeResponse> UploadKnowledgeFiles([FromRoute] string collection, [FromBody] KnowledgeUploadRequest request)
     {
         var fileOrchestrator = GetKnowledgeFileOrchestrator(request.Orchestrator);
@@ -23,7 +22,7 @@ public partial class KnowledgeBaseController
         return response;
     }
 
-    [HttpPost("/knowledge/file/{collection}/form")]
+    [HttpPost("/knowledge/collection/{collection}/file/form")]
     public async Task<UploadKnowledgeResponse> UploadKnowledgeFiles(
         [FromRoute] string collection,
         [FromForm] IEnumerable<IFormFile> files,
@@ -51,7 +50,7 @@ public partial class KnowledgeBaseController
         return response;
     }
 
-    [HttpDelete("/knowledge/file/{collection}/delete/{fileId}")]
+    [HttpDelete("/knowledge/collection/{collection}/file/{fileId}")]
     public async Task<bool> DeleteKnowledgeFile([FromRoute] string collection, [FromRoute] Guid fileId, [FromQuery] KnowledgeFileRequest? request = null)
     {
         var fileOrchestrator = GetKnowledgeFileOrchestrator(request?.Orchestrator);
@@ -60,7 +59,7 @@ public partial class KnowledgeBaseController
         return response;
     }
 
-    [HttpDelete("/knowledge/file/{collection}/delete")]
+    [HttpDelete("/knowledge/collection/{collection}/file")]
     public async Task<bool> DeleteKnowledgeFiles([FromRoute] string collection, [FromBody] GetKnowledgeFilesRequest request)
     {
         var fileOrchestrator = GetKnowledgeFileOrchestrator(request.Orchestrator);
@@ -68,7 +67,7 @@ public partial class KnowledgeBaseController
         return response;
     }
 
-    [HttpPost("/knowledge/file/{collection}/page")]
+    [HttpPost("/knowledge/collection/{collection}/file/page")]
     public async Task<PagedItems<KnowledgeFileViewModel>> GetPagedKnowledgeFiles([FromRoute] string collection, [FromBody] GetKnowledgeFilesRequest request)
     {
         var fileOrchestrator = GetKnowledgeFileOrchestrator(request.Orchestrator);
@@ -81,7 +80,7 @@ public partial class KnowledgeBaseController
         };
     }
 
-    [HttpGet("/knowledge/file/{collection}/{fileId}")]
+    [HttpGet("/knowledge/collection/{collection}/file/{fileId}")]
     public async Task<IActionResult> GetKnowledgeFile([FromRoute] string collection, [FromRoute] Guid fileId, [FromQuery] KnowledgeFileRequest? request = null)
     {
         var fileOrchestrator = GetKnowledgeFileOrchestrator(request?.Orchestrator);

@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Knowledges.Options;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;

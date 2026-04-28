@@ -102,7 +102,7 @@ public partial class KnowledgeBaseController : ControllerBase
         return results.Select(x => KnowledgeKnowledgeViewModel.From(x)).ToList();
     }
 
-    [HttpPost("/knowledge/collection/{collection}/page")]
+    [HttpPost("/knowledge/collection/{collection}/data/page")]
     public async Task<StringIdPagedItems<KnowledgeKnowledgeViewModel>> GetPagedCollectionData([FromRoute] string collection, [FromQuery] string knowledgeType, [FromBody] KnowledgeFilter filter)
     {
         var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
@@ -320,7 +320,7 @@ public partial class KnowledgeBaseController : ControllerBase
         return done;
     }
 
-    [HttpDelete("/knowledgecollection/{collection}/snapshot")]
+    [HttpDelete("/knowledge/collection/{collection}/snapshot")]
     public async Task<bool> DeleteCollectionSnapshots([FromRoute] string collection, [FromBody] DeleteCollectionSnapshotRequest request)
     {
         var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()

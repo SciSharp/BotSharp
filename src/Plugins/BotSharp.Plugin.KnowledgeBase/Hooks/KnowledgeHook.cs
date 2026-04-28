@@ -60,7 +60,7 @@ public class KnowledgeHook : IKnowledgeHook
 
         // Get all knowledge bases
         var orchestrator = GetKnowledgeOrchestrator();
-        var knowledgeBases = await orchestrator.GetCollections(new KnowledgeCollectionOptions { IncludeAllTypes = true });
+        var knowledgeBases = await orchestrator.GetCollections(new() { IncludeAllTypes = true });
 
         foreach (var knowledgeBase in knowledgeBases)
         {

@@ -19,7 +19,7 @@ public partial class KnowledgeService : IKnowledgeService
         _logger = logger;
     }
 
-    private IVectorDb GetVectorDb()
+    private IVectorDb? GetVectorDb()
     {
         var db = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Provider == _settings.VectorDb.Provider);
         return db;
