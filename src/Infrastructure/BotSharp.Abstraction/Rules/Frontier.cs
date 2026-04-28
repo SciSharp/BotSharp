@@ -31,11 +31,18 @@ public sealed class StackFrontier<T> : IFrontier<T>
 
     public void DrainTo(IFrontier<T> other)
     {
-        // Reverse so the item that was on top is added first and
-        // therefore ends up at the same "priority" position in the target.
-        var items = _stack.ToList();
-        items.Reverse();
-        _stack.Clear();
+        // Pop gives items in priority order (highest-weight first).
+        var items = new List<T>();
+        while (_stack.Count > 0)
+        {
+            items.Add(_stack.Pop());
+        }
+
+        if (other is StackFrontier<T>)
+        {
+            items.Reverse();
+        }
+
         foreach (var item in items)
         {
             other.Add(item);
@@ -58,9 +65,21 @@ public sealed class QueueFrontier<T> : IFrontier<T>
 
     public void DrainTo(IFrontier<T> other)
     {
+        // Dequeue gives items in priority order (highest-weight first).
+        var items = new List<T>();
         while (_queue.Count > 0)
         {
-            other.Add(_queue.Dequeue());
+            items.Add(_queue.Dequeue());
+        }
+
+        if (other is StackFrontier<T>)
+        {
+            items.Reverse();
+        }
+
+        foreach (var item in items)
+        {
+            other.Add(item);
         }
     }
 }

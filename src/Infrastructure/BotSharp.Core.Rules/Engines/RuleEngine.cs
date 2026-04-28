@@ -211,11 +211,7 @@ public class RuleEngine : IRuleEngine
             ? new QueueFrontier<(RuleNode, RuleEdge)>()
             : new StackFrontier<(RuleNode, RuleEdge)>();
 
-        // Seed the frontier with root's children
-        foreach (var child in graph.GetChildrenNodes(root))
-        {
-            frontier.Add(child);
-        }
+        EnqueueChildren(frontier, graph, root);
 
         while (frontier.Count > 0)
         {
@@ -345,7 +341,8 @@ public class RuleEngine : IRuleEngine
         RuleGraph graph,
         RuleNode parent)
     {
-        foreach (var child in graph.GetChildrenNodes(parent))
+        var sortAscending = frontier is StackFrontier<(RuleNode, RuleEdge)>;
+        foreach (var child in graph.GetChildrenNodes(parent, sortAscending))
         {
             frontier.Add(child);
         }
