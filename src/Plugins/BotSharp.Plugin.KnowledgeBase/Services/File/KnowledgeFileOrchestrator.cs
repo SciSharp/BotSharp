@@ -9,7 +9,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
     private readonly KnowledgeBaseSettings _settings;
     private readonly ILogger<KnowledgeFileOrchestrator> _logger;
 
-    public string Provider => "botsharp-knowledge-doc";
+    public string Provider => "botsharp-knowledge-file";
 
     public KnowledgeFileOrchestrator(
         IServiceProvider services,

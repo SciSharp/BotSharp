@@ -94,7 +94,7 @@ public partial class KnowledgeBaseController
 
     private IKnowledgeFileOrchestrator? GetKnowledgeFileOrchestrator(string? provider)
     {
-        provider ??= "botsharp-knowledge-doc";
+        provider ??= "botsharp-knowledge-file";
         var found = _services.GetServices<IKnowledgeFileOrchestrator>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
         return found;
     }
