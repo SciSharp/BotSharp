@@ -46,9 +46,9 @@ public class SettingService : ISettingService
         {
             return string.Empty;
         }
-        value = value.Substring(0, value.Length / 2 - 1) 
-            + string.Join("", Enumerable.Repeat("*", value.Length / 2));
-        return value;
+        int keepLength = (value.Length - 1) / 2;
+        return value.Substring(0, keepLength) 
+            + string.Join("", Enumerable.Repeat("*", value.Length - keepLength));
     }
 
     public string GetUpgradeModel(string oldModelName)

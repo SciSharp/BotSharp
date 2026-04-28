@@ -2,6 +2,7 @@ global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
 global using System.Text;
+global using System.Text.Json;
 
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Plugins;
@@ -30,4 +31,4 @@ global using BotSharp.Abstraction.Coding.Utils;
 global using BotSharp.Abstraction.Coding.Settings;
 global using BotSharp.Abstraction.Hooks;
 
-global using BotSharp.Core.Rules.Constants;
+global using BotSharp.Abstraction.Rules.Constants;
