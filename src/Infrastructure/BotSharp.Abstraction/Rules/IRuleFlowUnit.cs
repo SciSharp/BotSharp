@@ -18,4 +18,16 @@ public interface IRuleFlowUnit
     /// The trigger names
     /// </summary>
     IEnumerable<string>? Triggers => null;
+
+    /// <summary>
+    /// Schema describing the expected input parameters.
+    /// Used for validating that upstream nodes produce the required fields.
+    /// </summary>
+    FlowUnitSchema? InputSchema => null;
+
+    /// <summary>
+    /// Schema describing the output this unit produces.
+    /// Used for validating that downstream nodes receive the expected fields.
+    /// </summary>
+    FlowUnitSchema? OutputSchema => null;
 }

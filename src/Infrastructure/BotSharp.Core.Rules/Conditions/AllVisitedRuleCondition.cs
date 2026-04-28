@@ -12,6 +12,10 @@ public class AllVisitedRuleCondition : IRuleCondition
 
     public string Name => "all_visited";
 
+    public FlowUnitSchema? InputSchema => new();
+
+    public FlowUnitSchema? OutputSchema => new();
+
     public async Task<RuleNodeResult> EvaluateAsync(
         Agent agent,
         IRuleTrigger trigger,

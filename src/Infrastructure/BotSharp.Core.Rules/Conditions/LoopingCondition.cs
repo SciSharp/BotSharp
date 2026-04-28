@@ -14,7 +14,7 @@ namespace BotSharp.Core.Rules.Conditions;
 ///   Action Node → LoopCondition → (true) → back to Action Node
 ///                                → (false) → resets list_items, iterate_index, iterate_current_item and continues
 /// </summary>
-public sealed class LoopingCondition : IRuleCondition
+public class LoopingCondition : IRuleCondition
 {
     private const string PARAM_LIST_ITEMS = "list_items";
     private const string PARAM_LIST_ITEMS_KEY = "list_items_key";
@@ -30,6 +30,25 @@ public sealed class LoopingCondition : IRuleCondition
     }
 
     public string Name => "looping";
+
+    public FlowUnitSchema? InputSchema => new(
+        properties: new()
+        {
+            ["list_items"] = new("array", "A JSON array of items to iterate over"),
+            ["list_items_key"] = new("string", "Alternative parameter key holding the list items"),
+            ["iterate_index"] = new("number", "The current iteration index (auto-managed)"),
+            ["iterate_item_key"] = new("string", "Property key to extract from each object item")
+        }
+    );
+
+    public FlowUnitSchema? OutputSchema => new(
+        properties: new()
+        {
+            ["iterate_next_item"] = new("string", "The next item being processed"),
+            ["iterate_index"] = new("number", "The current iteration index")
+        },
+        required: ["iterate_next_item", "iterate_index"]
+    );
 
     public async Task<RuleNodeResult> EvaluateAsync(
         Agent agent,
