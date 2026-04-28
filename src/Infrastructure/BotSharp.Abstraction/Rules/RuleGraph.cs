@@ -121,20 +121,24 @@ public class RuleGraph
         }
     }
 
-    public IEnumerable<(RuleNode, RuleEdge)> GetParentNodes(RuleNode node)
+    public IEnumerable<(RuleNode, RuleEdge)> GetParentNodes(RuleNode node, bool ascending = false)
     {
-        return _edges.Where(e => e.To != null && e.To.Id.IsEqualTo(node.Id))
-                     .OrderByDescending(e => e.Weight)
-                     .Select(e => (e.From, e))
-                     .ToList();
+        var filtered = _edges.Where(e => e.To != null && e.To.Id.IsEqualTo(node.Id));
+        var ordered = ascending
+            ? filtered.OrderBy(e => e.Weight)
+            : filtered.OrderByDescending(e => e.Weight);
+
+        return ordered.Select(e => (e.From, e)).ToList();
     }
 
-    public IEnumerable<(RuleNode, RuleEdge)> GetChildrenNodes(RuleNode node)
+    public IEnumerable<(RuleNode, RuleEdge)> GetChildrenNodes(RuleNode node, bool ascending = false)
     {
-        return _edges.Where(e => e.From != null && e.From.Id.IsEqualTo(node.Id))
-                     .OrderByDescending(e => e.Weight)
-                     .Select(e => (e.To, e))
-                     .ToList();
+        var filtered = _edges.Where(e => e.From != null && e.From.Id.IsEqualTo(node.Id));
+        var ordered = ascending
+            ? filtered.OrderBy(e => e.Weight)
+            : filtered.OrderByDescending(e => e.Weight);
+
+        return ordered.Select(e => (e.To, e)).ToList();
     }
 
     public RuleGraphInfo GetGraphInfo()
