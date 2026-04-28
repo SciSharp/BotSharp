@@ -21,6 +21,18 @@ public class RuleFlowOptions
     public string TraversalAlgorithm { get; set; } = "dfs";
 
     /// <summary>
+    /// Whether to skip validation when loading the graph
+    /// </summary>
+    [JsonPropertyName("skip_validation")]
+    public bool SkipValidation { get; set; }
+
+    /// <summary>
+    /// Maximum number of nodes to visit
+    /// </summary>
+    [JsonPropertyName("max_recursion")]
+    public int? MaxRecursion { get; set; }
+
+    /// <summary>
     /// Additional custom parameters, e.g., root_node_name, max_recursion
     /// </summary>
     [JsonPropertyName("parameters")]
