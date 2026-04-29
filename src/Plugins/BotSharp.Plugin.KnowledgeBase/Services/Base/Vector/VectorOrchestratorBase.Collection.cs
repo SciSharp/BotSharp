@@ -102,6 +102,32 @@ public abstract partial class VectorOrchestratorBase
         });
     }
 
+    public virtual async Task<KnowledgeCollectionDetails?> GetCollectionDetails(string collectionName, KnowledgeCollectionOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(collectionName))
+        {
+            return null;
+        }
+
+        var vectorDb = GetVectorDb(options?.DbProvider);
+        if (vectorDb == null)
+        {
+            return null;
+        }
+
+        var details = await vectorDb.GetCollectionDetails(collectionName);
+        if (details == null)
+        {
+            return null;
+        }
+
+        return new KnowledgeCollectionDetails
+        {
+            Status = details.Status,
+            PayloadSchema = details.PayloadSchema
+        };
+    }
+
     public virtual async Task<bool> DeleteCollection(string collectionName, KnowledgeCollectionOptions options)
     {
         if (string.IsNullOrWhiteSpace(collectionName))

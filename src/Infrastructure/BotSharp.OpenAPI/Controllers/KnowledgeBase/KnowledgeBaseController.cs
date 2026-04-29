@@ -52,6 +52,20 @@ public partial class KnowledgeBaseController : ControllerBase
         return collections.Select(x => KnowledgeCollectionConfigViewModel.From(x));
     }
 
+    [HttpGet("knowledge/collection/{collection}/details")]
+    public async Task<KnowledgeCollectionDetails?> GetCollectionDetails([FromRoute] string collection, [FromQuery] string knowledgeType)
+    {
+        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+
+        if (orchestrator == null)
+        {
+            return null;
+        }
+
+        return await orchestrator.GetCollectionDetails(collection, new KnowledgeCollectionOptions());
+    }
+
     [HttpPost("knowledge/collection")]
     public async Task<bool> CreateCollection([FromBody] CreateCollectionRequest request)
     {

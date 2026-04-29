@@ -16,6 +16,8 @@ public interface IKnowledgeOrchestrator
         => Task.FromResult(false);
     Task<IEnumerable<KnowledgeCollectionConfig>> GetCollections(KnowledgeCollectionOptions options)
         => Task.FromResult(Enumerable.Empty<KnowledgeCollectionConfig>());
+    Task<KnowledgeCollectionDetails?> GetCollectionDetails(string collectionName, KnowledgeCollectionOptions options)
+        => Task.FromResult<KnowledgeCollectionDetails?>(null);
     #endregion
 
     #region Data
