@@ -39,4 +39,5 @@ global using BotSharp.Core.Session;
 global using BotSharp.Plugin.OpenAI.Models.Text;
 global using BotSharp.Plugin.OpenAI.Models.Realtime;
 global using BotSharp.Plugin.OpenAI.Models.Image;
+global using BotSharp.Plugin.OpenAI.Models.Web;
 global using BotSharp.Plugin.OpenAI.Settings;
