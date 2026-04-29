@@ -4,5 +4,5 @@ namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
 public class GetKnowledgeFilesRequest : KnowledgeFileFilter
 {
-    public string? Orchestrator { get; set; }
+    public string? FileOrchestrator { get; set; }
 }

@@ -71,7 +71,7 @@ public abstract partial class VectorOrchestratorBase
                           .Select(x => x.ParseResult)
                           .ToList();
 
-        var vectorDb = GetVectorDb();
+        var vectorDb = GetVectorDb(options?.DbProvider);
         if (vectorDb == null)
         {
             return [];
