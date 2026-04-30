@@ -234,7 +234,7 @@ public class RuleEngine : IRuleEngine
                 Edge = nextEdge,
                 Graph = graph,
                 Text = text,
-                Parameters = BuildParameters(nextNode.Config, states, innerData),
+                Parameters = BuildParameters(states, innerData),
                 PrevStepResults = results,
                 JsonOptions = options?.JsonOptions
             };
@@ -702,16 +702,10 @@ public class RuleEngine : IRuleEngine
 
     #region Private methods
     private Dictionary<string, string?> BuildParameters(
-        Dictionary<string, string?>? config,
         IEnumerable<MessageState>? states,
         Dictionary<string, string?>? param = null)
     {
         var dict = new Dictionary<string, string?>();
-
-        if (config != null)
-        {
-            dict = new(config);
-        }
 
         if (!states.IsNullOrEmpty())
         {

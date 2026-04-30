@@ -114,7 +114,7 @@ public class RuleGraph
                 Type = payload.Type,
                 Labels = [.. payload.Labels ?? []],
                 Weight = payload.Weight,
-                Purpose = payload.Purpose,
+                Alias = payload.Alias,
                 Description = payload.Description,
                 Config = new(payload.Config ?? [])
             });
@@ -234,9 +234,15 @@ public class GraphItem
     public virtual string Type { get; set; } = null!;
     public virtual IEnumerable<string> Labels { get; set; } = [];
     public virtual double Weight { get; set; } = 1.0;
-    public virtual string? Purpose { get; set; }
     public virtual string? Description { get; set; }
     public virtual Dictionary<string, string?> Config { get; set; } = [];
+
+    private string? _alias;
+    public virtual string Alias
+    {
+        get => string.IsNullOrEmpty(_alias) ? Name : _alias;
+        set => _alias = value;
+    }
 }
 
 public class NodeItem : GraphItem
