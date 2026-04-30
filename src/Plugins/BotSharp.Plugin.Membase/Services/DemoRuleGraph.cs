@@ -168,7 +168,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
                 Weight = sourceNodeWeight,
                 Name = GetGraphItemAttribute(sourceNodeProps, key: "name", defaultValue: "node"),
                 Type = GetGraphItemAttribute(sourceNodeProps, key: "type", defaultValue: "action"),
-                Purpose = GetGraphItemAttribute(sourceNodeProps, key: "purpose", defaultValue: ""),
+                Alias = GetGraphItemAttribute(sourceNodeProps, key: "alias", defaultValue: ""),
                 Description = GetGraphItemAttribute(sourceNodeProps, key: "description", defaultValue: ""),
                 Config = GetConfig(sourceNodeProps)
             };
@@ -181,7 +181,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
                 Weight = targetNodeWeight,
                 Name = GetGraphItemAttribute(targetNodeProps, key: "name", defaultValue: "node"),
                 Type = GetGraphItemAttribute(targetNodeProps, key: "type", defaultValue: "action"),
-                Purpose = GetGraphItemAttribute(targetNodeProps, key: "purpose", defaultValue: ""),
+                Alias = GetGraphItemAttribute(targetNodeProps, key: "alias", defaultValue: ""),
                 Description = GetGraphItemAttribute(targetNodeProps, key: "description", defaultValue: ""),
                 Config = GetConfig(targetNodeProps)
             };
@@ -192,7 +192,7 @@ public class DemoRuleGraph : IRuleFlow<RuleGraph>
                 Id = edgeId ?? Guid.NewGuid().ToString(),
                 Name = GetGraphItemAttribute(edgeProps, key: "name", defaultValue: "edge"),
                 Type = GetGraphItemAttribute(edgeProps, key: "type", defaultValue: "next"),
-                Purpose = GetGraphItemAttribute(edgeProps, key: "purpose", defaultValue: ""),
+                Alias = GetGraphItemAttribute(edgeProps, key: "alias", defaultValue: ""),
                 Description = GetGraphItemAttribute(edgeProps, key: "description", defaultValue: ""),
                 Weight = edgeWeight,
                 Config = GetConfig(edgeProps)
