@@ -1,4 +1,3 @@
-using System.Text.Json;
 using BotSharp.Core.Rules.Models;
 
 namespace BotSharp.Core.Rules.Conditions;
@@ -16,11 +15,13 @@ namespace BotSharp.Core.Rules.Conditions;
 ///   (A AND B) OR (C AND NOT D)
 ///
 /// Leaf node format:
-///   { "node": "node_name", "key": "data_key" }
-///   - "node": The Name of a parent condition node whose result to inspect.
-///   - "key":  The key in the parent node's RuleNodeResult.Data dictionary that holds
-///             a boolean string ("true"/"false"). If omitted, falls back to the parent
-///             node's RuleNodeResult.Success flag.
+///   { "node_alias": "node_alias", "key": "data_key" }
+///   - "node_alias": The Alias of a parent condition node whose result to inspect.
+///                   Using Alias instead of Name avoids collisions when multiple nodes
+///                   share the same Name (e.g. several "http_request" nodes).
+///   - "key":   The key in the parent node's RuleNodeResult.Data dictionary that holds
+///              a boolean string ("true"/"false"). If omitted, falls back to the parent
+///              node's RuleNodeResult.Success flag.
 ///
 /// Node config:
 ///   "expression" - A JSON-encoded LogicExpression tree.
@@ -30,20 +31,20 @@ namespace BotSharp.Core.Rules.Conditions;
 /// Example: work_order_valid AND (client_name_valid OR NOT affiliate_name_valid)
 ///
 ///   Given three parent condition nodes:
-///     - Node A ("check_work_order")  returns Data["work_order_valid"] = "true"
-///     - Node B ("check_client")      returns Data["client_name_valid"] = "false"
-///     - Node C ("check_affiliate")   returns Data["affiliate_name_valid"] = "false"
+///     - Node A (node_alias "check_work_order")  returns Data["work_order_valid"] = "true"
+///     - Node B (node_alias "check_client")      returns Data["client_name_valid"] = "false"
+///     - Node C (node_alias "check_affiliate")   returns Data["affiliate_name_valid"] = "false"
 ///
 ///   The gate node config would be:
 ///     {
 ///       "expression": {
 ///         "op": "and",
 ///         "children": [
-///           { "node": "check_work_order", "key": "work_order_valid" },
+///           { "node_alias": "check_work_order", "key": "work_order_valid" },
 ///           { "op": "or", "children": [
-///               { "node": "check_client", "key": "client_name_valid" },
+///               { "node_alias": "check_client", "key": "client_name_valid" },
 ///               { "op": "not", "children": [
-///                   { "node": "check_affiliate", "key": "affiliate_name_valid" }
+///                   { "node_alias": "check_affiliate", "key": "affiliate_name_valid" }
 ///               ]}
 ///           ]}
 ///         ]
@@ -142,10 +143,10 @@ public class LogicGateCondition : IRuleCondition
 
         var defaultValue = currentNode.Config?.GetValueOrDefault("default_value") ?? "false";
 
-        // 3. Build lookup: parent node name → its latest RuleFlowStepResult
+        // 3. Build lookup: parent node alias → its latest RuleFlowStepResult
         var parentResults = (context.PrevStepResults ?? [])
             .Where(r => parentNodeIds.Contains(r.Node.Id))
-            .GroupBy(r => r.Node.Name, StringComparer.OrdinalIgnoreCase)
+            .GroupBy(r => r.Node.Alias, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.Last(), StringComparer.OrdinalIgnoreCase);
 
         // 4. Evaluate the expression tree
@@ -167,13 +168,13 @@ public class LogicGateCondition : IRuleCondition
         Dictionary<string, RuleFlowStepResult> parentResults,
         string defaultValue)
     {
-        // Leaf node: look up a specific parent's result
-        if (!string.IsNullOrEmpty(expr.Node))
+        // Leaf node: look up a specific parent's result by alias
+        if (!string.IsNullOrEmpty(expr.NodeAlias))
         {
-            if (!parentResults.TryGetValue(expr.Node, out var stepResult))
+            if (!parentResults.TryGetValue(expr.NodeAlias, out var stepResult))
             {
-                _logger.LogWarning("Logic gate: parent node '{Node}' not found in results, using default '{Default}'.",
-                    expr.Node, defaultValue);
+                _logger.LogWarning("Logic gate: parent node alias '{Alias}' not found in results, using default '{Default}'.",
+                    expr.NodeAlias, defaultValue);
                 return ParseBool(defaultValue);
             }
 
