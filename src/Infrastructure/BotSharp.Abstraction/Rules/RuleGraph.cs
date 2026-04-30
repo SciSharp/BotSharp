@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Rules.Models;
+
 namespace BotSharp.Abstraction.Rules;
 
 public class RuleGraph
@@ -112,27 +114,31 @@ public class RuleGraph
                 Type = payload.Type,
                 Labels = [.. payload.Labels ?? []],
                 Weight = payload.Weight,
-                Purpose = payload.Purpose,
+                Alias = payload.Alias,
                 Description = payload.Description,
                 Config = new(payload.Config ?? [])
             });
         }
     }
 
-    public IEnumerable<(RuleNode, RuleEdge)> GetParentNodes(RuleNode node)
+    public IEnumerable<(RuleNode, RuleEdge)> GetParentNodes(RuleNode node, bool ascending = false)
     {
-        return _edges.Where(e => e.To != null && e.To.Id.IsEqualTo(node.Id))
-                     .OrderByDescending(e => e.Weight)
-                     .Select(e => (e.From, e))
-                     .ToList();
+        var filtered = _edges.Where(e => e.To != null && e.To.Id.IsEqualTo(node.Id));
+        var ordered = ascending
+            ? filtered.OrderBy(e => e.Weight)
+            : filtered.OrderByDescending(e => e.Weight);
+
+        return ordered.Select(e => (e.From, e)).ToList();
     }
 
-    public IEnumerable<(RuleNode, RuleEdge)> GetChildrenNodes(RuleNode node)
+    public IEnumerable<(RuleNode, RuleEdge)> GetChildrenNodes(RuleNode node, bool ascending = false)
     {
-        return _edges.Where(e => e.From != null && e.From.Id.IsEqualTo(node.Id))
-                     .OrderByDescending(e => e.Weight)
-                     .Select(e => (e.To, e))
-                     .ToList();
+        var filtered = _edges.Where(e => e.From != null && e.From.Id.IsEqualTo(node.Id));
+        var ordered = ascending
+            ? filtered.OrderBy(e => e.Weight)
+            : filtered.OrderByDescending(e => e.Weight);
+
+        return ordered.Select(e => (e.To, e)).ToList();
     }
 
     public RuleGraphInfo GetGraphInfo()
@@ -172,6 +178,20 @@ public class RuleNode : GraphItem
     /// Node type: root, criteria, action, etc.
     /// </summary>
     public override string Type { get; set; } = "action";
+
+    /// <summary>
+    /// Input schema loaded from node config. Overrides the code-defined schema on IRuleFlowUnit.
+    /// </summary>
+    [JsonPropertyName("input_schema")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public FlowUnitSchema? InputSchema { get; set; }
+
+    /// <summary>
+    /// Output schema loaded from node config. Overrides the code-defined schema on IRuleFlowUnit.
+    /// </summary>
+    [JsonPropertyName("output_schema")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public FlowUnitSchema? OutputSchema { get; set; }
 
     public override string ToString()
     {
@@ -214,9 +234,15 @@ public class GraphItem
     public virtual string Type { get; set; } = null!;
     public virtual IEnumerable<string> Labels { get; set; } = [];
     public virtual double Weight { get; set; } = 1.0;
-    public virtual string? Purpose { get; set; }
     public virtual string? Description { get; set; }
     public virtual Dictionary<string, string?> Config { get; set; } = [];
+
+    private string? _alias;
+    public virtual string Alias
+    {
+        get => string.IsNullOrEmpty(_alias) ? Name : _alias;
+        set => _alias = value;
+    }
 }
 
 public class NodeItem : GraphItem

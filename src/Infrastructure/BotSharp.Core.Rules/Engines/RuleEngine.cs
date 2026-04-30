@@ -139,11 +139,25 @@ public class RuleEngine : IRuleEngine
             param["agent_id"] = param.GetValueOrDefault("agent_id", agent.Id);
             param["trigger"] = param.GetValueOrDefault("trigger", trigger.Name);
 
-            return await flow.GetTopologyAsync(topologyId, options: new()
+            var graph = await flow.GetTopologyAsync(topologyId, options: new()
             {
                 Query = options?.Query,
                 Parameters = param
             });
+
+            if (graph != null)
+            {
+                // Apply input/output schemas from node config to the node
+                LoadConfigSchemas(graph);
+
+                // Validate input/output schema compatibility between connected nodes
+                if (options?.SkipValidation != true)
+                {
+                    ValidateGraphSchema(graph);
+                }
+            }
+
+            return graph;
         }
         catch (Exception ex)
         {
@@ -165,129 +179,18 @@ public class RuleEngine : IRuleEngine
     {
         try
         {
-            if (options?.Flow?.TraversalAlgorithm?.IsEqualTo("bfs") == true)
-            {
-                await ExecuteGraphNodeBfs(node, graph, agent, trigger, text, states, data, options, results);
-            }
-            else
-            {
-                await ExecuteGraphNodeDfs(node, graph, agent, trigger, text, states, data, options, results);
-            }
+            await ExecuteGraphTraversal(node, graph, agent, trigger, text, states, data, options, results);
         }
         catch { }
     }
 
-    private async Task ExecuteGraphNodeDfs(
-        RuleNode node,
-        RuleGraph graph,
-        Agent agent,
-        IRuleTrigger trigger,
-        string text,
-        IEnumerable<MessageState>? states,
-        Dictionary<string, string?>? data,
-        RuleTriggerOptions? options,
-        List<RuleFlowStepResult> results)
-    {
-        // Check whether the action nodes have been visited more than limit
-        var visited = results.Count();
-        var param = options?.Flow?.Parameters ?? [];
-        var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion")?.ToString(), out var depth) && depth > 0
-            ? depth : RuleConstant.MAX_GRAPH_RECURSION;
-
-        var innerData = new Dictionary<string, string?>(data ?? []);
-
-        if (visited >= maxRecursion)
-        {
-            _logger.LogWarning("Exceed max graph recursion {MaxRecursion} (agent {Agent} and trigger {Trigger}).",
-                maxRecursion, agent.Name, trigger.Name);
-            return;
-        }
-
-        // Get current node successors
-        var nextNodes = graph.GetChildrenNodes(node);
-        if (nextNodes.IsNullOrEmpty())
-        {
-            return;
-        }
-
-        // Visit neighbor nodes
-        foreach (var (nextNode, edge) in nextNodes)
-        {
-            // Build context
-            var context = new RuleFlowContext
-            {
-                Node = nextNode,
-                Edge = edge,
-                Graph = graph,
-                Text = text,
-                Parameters = BuildParameters(nextNode.Config, states, innerData),
-                PrevStepResults = results,
-                JsonOptions = options?.JsonOptions
-            };
-
-            if (RuleConstant.CONDITION_NODE_TYPES.Contains(nextNode.Type))
-            {
-                // Execute condition node
-                var conditionResult = await ExecuteCondition(nextNode, edge, graph, agent, trigger, context);
-                if (conditionResult == null)
-                {
-                    results.Add(RuleFlowStepResult.FromResult(new()
-                    {
-                        Success = false,
-                        ErrorMessage = $"Unable to find condition {nextNode.Name}."
-                    }, nextNode));
-                    continue;
-                }
-
-                results.Add(RuleFlowStepResult.FromResult(conditionResult, nextNode));
-
-                // If condition result is true, then execute the next node, otherwise skip
-                if (conditionResult.Success)
-                {
-                    await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, context.Parameters, options, results);
-                }
-                else
-                {
-                    _logger.LogInformation("Condition {ConditionName} evaluated to false, skipping next node (agent {Agent} and trigger {Trigger}).",
-                        nextNode.Name, agent.Name, trigger.Name);
-                }
-            }
-            else if (RuleConstant.ACTION_NODE_TYPES.Contains(nextNode.Type))
-            {
-                // Execute action node
-                var actionResult = await ExecuteAction(nextNode, edge, graph, agent, trigger, context);
-                if (actionResult == null)
-                {
-                    results.Add(RuleFlowStepResult.FromResult(new()
-                    {
-                        Success = false,
-                        ErrorMessage = $"Unable to find action {nextNode.Name}."
-                    }, nextNode));
-                    continue;
-                }
-
-                results.Add(RuleFlowStepResult.FromResult(actionResult, nextNode));
-
-                if (actionResult.IsDelayed)
-                {
-                    continue;
-                }
-
-                await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, context.Parameters, options, results);
-            }
-            else
-            {
-                results.Add(RuleFlowStepResult.FromResult(new()
-                {
-                    Success = true,
-                    Response = $"Pass through node {nextNode.Name}."
-                }, nextNode));
-                await ExecuteGraphNodeDfs(nextNode, graph, agent, trigger, text, states, context.Parameters, options, results);
-            }
-        }
-    }
-
-    private async Task ExecuteGraphNodeBfs(
+    /// <summary>
+    /// Unified graph traversal that uses a swappable frontier.
+    /// Stack frontier → DFS, Queue frontier → BFS.
+    /// A node or edge can request a mid-traversal switch via its
+    /// <c>Config["traversal_algorithm"]</c> value ("dfs" or "bfs").
+    /// </summary>
+    private async Task ExecuteGraphTraversal(
         RuleNode root,
         RuleGraph graph,
         Agent agent,
@@ -298,45 +201,46 @@ public class RuleEngine : IRuleEngine
         RuleTriggerOptions? options,
         List<RuleFlowStepResult> results)
     {
-        var param = options?.Flow?.Parameters ?? [];
-        var maxRecursion = int.TryParse(param.GetValueOrDefault("max_recursion")?.ToString(), out var depth) && depth > 0
-            ? depth : RuleConstant.MAX_GRAPH_RECURSION;
-
+        var flow = options?.Flow;
+        var maxRecursion = flow?.MaxRecursion > 0 ? flow.MaxRecursion : RuleConstant.MAX_GRAPH_RECURSION;
         var innerData = new Dictionary<string, string?>(data ?? []);
 
-        // Each queue entry is (node-to-process, edge-that-leads-to-it)
-        var queue = new Queue<(RuleNode Node, RuleEdge Edge)>();
+        // Choose initial frontier based on the global option
+        var useBfs = options?.Flow?.TraversalAlgorithm?.IsEqualTo("bfs") == true;
+        IFrontier<(RuleNode Node, RuleEdge Edge)> frontier = useBfs
+            ? new QueueFrontier<(RuleNode, RuleEdge)>()
+            : new StackFrontier<(RuleNode, RuleEdge)>();
 
-        foreach (var (childNode, edge) in graph.GetChildrenNodes(root))
-        {
-            queue.Enqueue((childNode, edge));
-        }
+        EnqueueChildren(frontier, graph, root);
 
-        while (queue.Count > 0)
+        while (frontier.Count > 0)
         {
             if (results.Count >= maxRecursion)
             {
-                _logger.LogWarning("Exceed max graph nodes {MaxNodes} during BFS (agent {Agent} and trigger {Trigger}).",
+                _logger.LogWarning("Exceed max graph nodes {MaxNodes} (agent {Agent} and trigger {Trigger}).",
                     maxRecursion, agent.Name, trigger.Name);
                 break;
             }
 
-            var (nextNode, nextEdge) = queue.Dequeue();
+            var (nextNode, nextEdge) = frontier.Remove();
 
+            // Check whether node requests a traversal switch
+            frontier = SwitchFrontier(frontier, nextNode);
+
+            // Build context
             var context = new RuleFlowContext
             {
                 Node = nextNode,
                 Edge = nextEdge,
                 Graph = graph,
                 Text = text,
-                Parameters = BuildParameters(nextNode.Config, states, innerData),
+                Parameters = BuildParameters(states, innerData),
                 PrevStepResults = results,
                 JsonOptions = options?.JsonOptions
             };
 
-            if (RuleConstant.CONDITION_NODE_TYPES.Contains(nextNode.Type))
+            if (RuleConstant.CONDITION_NODE_TYPES.Contains(nextNode.Type, StringComparer.OrdinalIgnoreCase))
             {
-                // Execute condition node
                 var conditionResult = await ExecuteCondition(nextNode, nextEdge, graph, agent, trigger, context);
                 innerData = new(context.Parameters ?? []);
 
@@ -352,13 +256,9 @@ public class RuleEngine : IRuleEngine
 
                 results.Add(RuleFlowStepResult.FromResult(conditionResult, nextNode));
 
-                // If condition is true, enqueue children; otherwise skip the branch
                 if (conditionResult.Success)
                 {
-                    foreach (var (childNode, childEdge) in graph.GetChildrenNodes(nextNode))
-                    {
-                        queue.Enqueue((childNode, childEdge));
-                    }
+                    EnqueueChildren(frontier, graph, nextNode);
                 }
                 else
                 {
@@ -366,9 +266,10 @@ public class RuleEngine : IRuleEngine
                         nextNode.Name, agent.Name, trigger.Name);
                 }
             }
-            else if (RuleConstant.ACTION_NODE_TYPES.Contains(nextNode.Type))
+            else if (RuleConstant.ACTION_NODE_TYPES.Contains(nextNode.Type, StringComparer.OrdinalIgnoreCase)
+                  || RuleConstant.ROOT_NODE_TYPES.Contains(nextNode.Type, StringComparer.OrdinalIgnoreCase)
+                  || RuleConstant.END_NODE_TYPES.Contains(nextNode.Type, StringComparer.OrdinalIgnoreCase))
             {
-                // Execute action node
                 var actionResult = await ExecuteAction(nextNode, nextEdge, graph, agent, trigger, context);
                 innerData = new(context.Parameters ?? []);
 
@@ -386,10 +287,7 @@ public class RuleEngine : IRuleEngine
 
                 if (!actionResult.IsDelayed)
                 {
-                    foreach (var (childNode, childEdge) in graph.GetChildrenNodes(nextNode))
-                    {
-                        queue.Enqueue((childNode, childEdge));
-                    }
+                    EnqueueChildren(frontier, graph, nextNode);
                 }
             }
             else
@@ -400,14 +298,232 @@ public class RuleEngine : IRuleEngine
                     Response = $"Pass through node {nextNode.Name}."
                 }, nextNode));
 
-                foreach (var (childNode, childEdge) in graph.GetChildrenNodes(nextNode))
+                EnqueueChildren(frontier, graph, nextNode);
+            }
+        }
+    }
+
+    /// <summary>
+    /// If the node carries a <c>traversal_algorithm</c> config value
+    /// that differs from the current frontier type, swap to the requested one
+    /// and drain all pending items into the new frontier.
+    /// </summary>
+    private static IFrontier<(RuleNode, RuleEdge)> SwitchFrontier(
+        IFrontier<(RuleNode, RuleEdge)> current,
+        RuleNode? node)
+    {
+        // Edge config takes precedence over node config
+        var hint = node?.Config?.GetValueOrDefault("traversal_algorithm");
+
+        if (string.IsNullOrEmpty(hint))
+        {
+            return current;
+        }
+
+        var requireBfs = hint.Equals("bfs", StringComparison.OrdinalIgnoreCase);
+        var currentBfs = current is QueueFrontier<(RuleNode, RuleEdge)>;
+
+        if (requireBfs == currentBfs)
+        {
+            return current;
+        }
+
+        IFrontier<(RuleNode, RuleEdge)> next = requireBfs
+            ? new QueueFrontier<(RuleNode, RuleEdge)>()
+            : new StackFrontier<(RuleNode, RuleEdge)>();
+
+        current.DrainTo(next);
+        return next;
+    }
+
+    private static void EnqueueChildren(
+        IFrontier<(RuleNode Node, RuleEdge Edge)> frontier,
+        RuleGraph graph,
+        RuleNode parent)
+    {
+        var sortAscending = frontier is StackFrontier<(RuleNode, RuleEdge)>;
+        foreach (var child in graph.GetChildrenNodes(parent, sortAscending))
+        {
+            frontier.Add(child);
+        }
+    }
+    #endregion
+
+
+    #region Schema Validation
+    /// <summary>
+    /// Reads "input_schema" and "output_schema" from each node's Config,
+    /// deserializes them into FlowUnitSchema, and sets them on the RuleNode.
+    /// If a node has no config schema, the code-defined schema from the
+    /// resolved IRuleFlowUnit is used as fallback during validation.
+    /// </summary>
+    private void LoadConfigSchemas(RuleGraph graph)
+    {
+        var nodes = graph.GetNodes();
+        if (nodes == null)
+        {
+            return;
+        }
+
+        foreach (var node in nodes)
+        {
+            if (node.Config.IsNullOrEmpty())
+            {
+                continue;
+            }
+
+            if (node.Config!.TryGetValue(RuleConstant.INPUT_SCHEMA_KEY, out var inputJson)
+                && !string.IsNullOrEmpty(inputJson))
+            {
+                try
                 {
-                    queue.Enqueue((childNode, childEdge));
+                    node.InputSchema = JsonSerializer.Deserialize<FlowUnitSchema>(inputJson);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to deserialize input_schema from config of node [{NodeName}].", node.Name);
+                }
+            }
+
+            if (node.Config!.TryGetValue(RuleConstant.OUTPUT_SCHEMA_KEY, out var outputJson)
+                && !string.IsNullOrEmpty(outputJson))
+            {
+                try
+                {
+                    node.OutputSchema = JsonSerializer.Deserialize<FlowUnitSchema>(outputJson);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to deserialize output_schema from config of node [{NodeName}].", node.Name);
                 }
             }
         }
     }
-    #endregion
+
+    /// <summary>
+    /// Validates that for every edge in the graph, the downstream node's required input fields
+    /// can be satisfied by the upstream node's output or the downstream node's own config.
+    /// Node-level schemas (from config) take precedence over code-defined schemas.
+    /// </summary>
+    private void ValidateGraphSchema(RuleGraph graph)
+    {
+        var edges = graph.GetEdges();
+        if (edges == null || !edges.Any())
+        {
+            return;
+        }
+
+        foreach (var edge in edges)
+        {
+            if (edge.From == null || edge.To == null)
+            {
+                continue;
+            }
+
+            var sourceUnit = ResolveFlowUnit(edge.From);
+            var targetUnit = ResolveFlowUnit(edge.To);
+
+            // Config-defined schema on the node takes precedence over code-defined
+            var targetInputSchema = edge.To.InputSchema ?? targetUnit?.InputSchema;
+            if (targetInputSchema?.Required == null || targetInputSchema.Required.Count == 0)
+            {
+                continue;
+            }
+
+            // Collect available keys from upstream output and downstream node's own config
+            var availableKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            var sourceOutputSchema = edge.From.OutputSchema ?? sourceUnit?.OutputSchema;
+            if (sourceOutputSchema?.Properties != null && !sourceOutputSchema.Properties.Keys.IsNullOrEmpty())
+            {
+                foreach (var key in sourceOutputSchema.Properties.Keys)
+                {
+                    availableKeys.Add(key);
+                }
+            }
+
+            if (edge.To.Config != null && !edge.To.Config.Keys.IsNullOrEmpty())
+            {
+                foreach (var key in edge.To.Config.Keys)
+                {
+                    availableKeys.Add(key);
+                }
+            }
+
+            // Check each required input field
+            foreach (var key in targetInputSchema.Required)
+            {
+                if (!availableKeys.Contains(key))
+                {
+                    _logger.Log(
+#if DEBUG
+                        LogLevel.Critical,
+#else
+                        LogLevel.Warning,
+#endif
+                        "Schema validation: edge [{SourceNode}] -> [{TargetNode}]: " +
+                        "required input '{Key}' is not provided by upstream output or node config.",
+                        edge.From.Name, edge.To.Name, key);
+                }
+                // Validate type compatibility when both schemas define the property
+                else if (sourceOutputSchema?.Properties != null
+                    && sourceOutputSchema.Properties.TryGetValue(key, out var sourceProp)
+                    && targetInputSchema.Properties.TryGetValue(key, out var targetProp)
+                    && !string.IsNullOrEmpty(sourceProp.Type)
+                    && !string.IsNullOrEmpty(targetProp.Type)
+                    && !sourceProp.Type.Equals(targetProp.Type, StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.Log(
+#if DEBUG
+                        LogLevel.Critical,
+#else
+                        LogLevel.Warning,
+#endif
+                        "Schema validation: edge [{SourceNode}] -> [{TargetNode}]: " +
+                        "type mismatch for '{Key}' — upstream produces '{SourceType}' but downstream expects '{TargetType}'.",
+                        edge.From.Name, edge.To.Name, key, sourceProp.Type, targetProp.Type);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Resolves the IRuleFlowUnit (action or condition) implementation for a given node.
+    /// </summary>
+    private IRuleFlowUnit? ResolveFlowUnit(RuleNode node)
+    {
+        if (node == null || string.IsNullOrEmpty(node.Name))
+        {
+            return null;
+        }
+
+        if (RuleConstant.ROOT_NODE_TYPES.Contains(node.Type, StringComparer.OrdinalIgnoreCase))
+        {
+            return _services.GetServices<IRuleRoot>()
+                            .FirstOrDefault(x => x.Name.IsEqualTo(node.Name));
+        }
+
+        if (RuleConstant.END_NODE_TYPES.Contains(node.Type, StringComparer.OrdinalIgnoreCase))
+        {
+            return _services.GetServices<IRuleEnd>()
+                            .FirstOrDefault(x => x.Name.IsEqualTo(node.Name));
+        }
+
+        if (RuleConstant.ACTION_NODE_TYPES.Contains(node.Type, StringComparer.OrdinalIgnoreCase))
+        {
+            return _services.GetServices<IRuleAction>()
+                            .FirstOrDefault(x => x.Name.IsEqualTo(node.Name));
+        }
+
+        if (RuleConstant.CONDITION_NODE_TYPES.Contains(node.Type, StringComparer.OrdinalIgnoreCase))
+        {
+            return _services.GetServices<IRuleCondition>()
+                            .FirstOrDefault(x => x.Name.IsEqualTo(node.Name));
+        }
+
+        return null;
+    }
+#endregion
 
 
     #region Action
@@ -586,16 +702,10 @@ public class RuleEngine : IRuleEngine
 
     #region Private methods
     private Dictionary<string, string?> BuildParameters(
-        Dictionary<string, string?>? config,
         IEnumerable<MessageState>? states,
         Dictionary<string, string?>? param = null)
     {
         var dict = new Dictionary<string, string?>();
-
-        if (config != null)
-        {
-            dict = new(config);
-        }
 
         if (!states.IsNullOrEmpty())
         {

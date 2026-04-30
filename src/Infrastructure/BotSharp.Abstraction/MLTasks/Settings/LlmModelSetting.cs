@@ -99,7 +99,10 @@ public class ReasoningSetting
 public class WebSearchSetting
 {
     public bool IsDefault { get; set; }
+
+    [Obsolete("Set SearchContextSize in Parameters")]
     public string? SearchContextSize { get; set; }
+    public Dictionary<string, ModelParamSetting>? Parameters { get; set; }
 }
 #endregion
 

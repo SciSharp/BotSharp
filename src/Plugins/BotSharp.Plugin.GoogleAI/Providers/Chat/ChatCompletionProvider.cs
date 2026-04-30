@@ -18,6 +18,8 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly IServiceProvider _services;
     private readonly ILogger<ChatCompletionProvider> _logger;
     private readonly IConversationStateService _state;
+    private readonly IFileStorageService _fileStorage;
+
     private List<string> renderedInstructions = [];
 
     private string _model;
@@ -31,12 +33,14 @@ public class ChatCompletionProvider : IChatCompletion
         IServiceProvider services,
         GoogleAiSettings googleSettings,
         ILogger<ChatCompletionProvider> logger,
-        IConversationStateService state)
+        IConversationStateService state,
+        IFileStorageService fileStorage)
     {
         _settings = googleSettings;
         _services = services;
         _logger = logger;
         _state = state;
+        _fileStorage = fileStorage;
     }
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
@@ -75,7 +79,7 @@ public class ChatCompletionProvider : IChatCompletion
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.Name,
                 FunctionArgs = toolCall?.Args?.ToJsonString(),
-                MetaData = new Dictionary<string, string?>
+                Thought = new Dictionary<string, string?>
                 {
                     [Constants.ThoughtSignature] = thoughtSignature
                 },
@@ -99,7 +103,7 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                MetaData = new Dictionary<string, string?>
+                Thought = new Dictionary<string, string?>
                 {
                     [Constants.ThoughtSignature] = thoughtSignature
                 },
@@ -107,10 +111,10 @@ public class ChatCompletionProvider : IChatCompletion
             };
         }
 
-        if (responseMessage != null && thoughtPart != null)
+        if (thoughtPart != null)
         {
-            responseMessage.MetaData ??= [];
-            responseMessage.MetaData[Constants.ThinkingText] = thoughtPart.Text;
+            responseMessage.Thought ??= [];
+            responseMessage.Thought[Constants.ThinkingText] = thoughtPart.Text;
         }
 
         // After chat completion hook
@@ -158,7 +162,7 @@ public class ChatCompletionProvider : IChatCompletion
         var msg = new RoleDialogModel(AgentRole.Assistant, text)
         {
             CurrentAgentId = agent.Id,
-            MetaData = new Dictionary<string, string?>
+            Thought = new Dictionary<string, string?>
             {
                 [Constants.ThoughtSignature] = thoughtSignature
             },
@@ -167,7 +171,7 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (thoughtPart != null)
         {
-            msg.MetaData[Constants.ThinkingText] = thoughtPart.Text;
+            msg.Thought[Constants.ThinkingText] = thoughtPart.Text;
         }
 
         // After chat completion hook
@@ -195,7 +199,7 @@ public class ChatCompletionProvider : IChatCompletion
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.Name,
                 FunctionArgs = toolCall?.Args?.ToJsonString(),
-                MetaData = new Dictionary<string, string?>
+                Thought = new Dictionary<string, string?>
                 {
                     [Constants.ThoughtSignature] = thoughtSignature
                 },
@@ -217,7 +221,7 @@ public class ChatCompletionProvider : IChatCompletion
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 StopCompletion = true,
-                MetaData = new Dictionary<string, string?>
+                Thought = new Dictionary<string, string?>
                 {
                     [Constants.ThoughtSignature] = thoughtSignature
                 },
@@ -263,7 +267,7 @@ public class ChatCompletionProvider : IChatCompletion
         });
 
         using var textStream = new RealtimeTextStream();
-        using var thinkingTextStream = new RealtimeTextStream();
+        using var thinkingStream = new RealtimeTextStream();
         ChatThoughtModel? thoughtModel = null;
         UsageMetadata? tokenUsage = null;
 
@@ -301,7 +305,7 @@ public class ChatCompletionProvider : IChatCompletion
                 if (!string.IsNullOrEmpty(thoughtPart?.Text))
                 {
                     var text = thoughtPart.Text;
-                    thinkingTextStream.Collect(text);
+                    thinkingStream.Collect(text);
                     hub.Push(new()
                     {
                         EventName = ChatEvent.OnReceiveLlmStreamMessage,
@@ -310,7 +314,7 @@ public class ChatCompletionProvider : IChatCompletion
                         {
                             CurrentAgentId = agent.Id,
                             MessageId = messageId,
-                            MetaData = new()
+                            Thought = new()
                             {
                                 [Constants.ThinkingText] = text
                             }
@@ -352,7 +356,7 @@ public class ChatCompletionProvider : IChatCompletion
                             ToolCallId = functionCall.Id,
                             FunctionName = functionCall.Name,
                             FunctionArgs = functionCall.Args?.ToJsonString(),
-                            MetaData = new Dictionary<string, string?>
+                            Thought = new Dictionary<string, string?>
                             {
                                 [Constants.ThoughtSignature] = thought?.ThoughtSignature
                             }
@@ -374,7 +378,7 @@ public class ChatCompletionProvider : IChatCompletion
                             CurrentAgentId = agent.Id,
                             MessageId = messageId,
                             IsStreaming = true,
-                            MetaData = new Dictionary<string, string?>
+                            Thought = new Dictionary<string, string?>
                             {
                                 [Constants.ThoughtSignature] = thoughtSignature
                             }
@@ -391,7 +395,7 @@ public class ChatCompletionProvider : IChatCompletion
                         CurrentAgentId = agent.Id,
                         MessageId = messageId,
                         IsStreaming = true,
-                        MetaData = new Dictionary<string, string?>
+                        Thought = new Dictionary<string, string?>
                         {
                             [Constants.ThoughtSignature] = part?.ThoughtSignature
                         }
@@ -418,12 +422,12 @@ public class ChatCompletionProvider : IChatCompletion
             };
         }
 
-        // Set thinking text in metadata
-        var thinkingText = thinkingTextStream.GetText();
+        // Set thinking text in thought and metadata
+        var thinkingText = thinkingStream.GetText();
         if (!string.IsNullOrEmpty(thinkingText))
         {
-            responseMessage.MetaData ??= [];
-            responseMessage.MetaData[Constants.ThinkingText] = thinkingText;
+            responseMessage.Thought ??= [];
+            responseMessage.Thought[Constants.ThinkingText] = thinkingText;
         }
 
         hub.Push(new()
@@ -458,7 +462,6 @@ public class ChatCompletionProvider : IChatCompletion
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var googleSettings = _services.GetRequiredService<GoogleAiSettings>();
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
         var allowMultiModal = settings != null && settings.MultiModal;
@@ -528,7 +531,7 @@ public class ChatCompletionProvider : IChatCompletion
                 contents.Add(new Content([
                     new Part()
                     {
-                        ThoughtSignature = message.MetaData?.GetValueOrDefault(Constants.ThoughtSignature, null),
+                        ThoughtSignature = message.Thought?.GetValueOrDefault(Constants.ThoughtSignature, null),
                         FunctionCall = new FunctionCall
                         {
                             Id = message.ToolCallId,
@@ -541,7 +544,7 @@ public class ChatCompletionProvider : IChatCompletion
                 contents.Add(new Content([
                     new Part()
                     {
-                        ThoughtSignature = message.MetaData?.GetValueOrDefault(Constants.ThoughtSignature, null),
+                        ThoughtSignature = message.Thought?.GetValueOrDefault(Constants.ThoughtSignature, null),
                         FunctionResponse = new FunctionResponse
                         {
                             Id = message.ToolCallId,
@@ -564,7 +567,7 @@ public class ChatCompletionProvider : IChatCompletion
                     new()
                     {
                         Text = text,
-                        ThoughtSignature = message.MetaData?.GetValueOrDefault(Constants.ThoughtSignature, null)
+                        ThoughtSignature = message.Thought?.GetValueOrDefault(Constants.ThoughtSignature, null)
                     }
                 };
 
@@ -583,7 +586,7 @@ public class ChatCompletionProvider : IChatCompletion
                     new()
                     {
                         Text = text,
-                        ThoughtSignature = message.MetaData?.GetValueOrDefault(Constants.ThoughtSignature, null)
+                        ThoughtSignature = message.Thought?.GetValueOrDefault(Constants.ThoughtSignature, null)
                     }
                 };
 
@@ -627,8 +630,6 @@ public class ChatCompletionProvider : IChatCompletion
 
     private void CollectMessageContentParts(List<Part> contentParts, List<BotSharpFile> files)
     {
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
-
         foreach (var file in files)
         {
             if (!string.IsNullOrEmpty(file.FileData))
@@ -646,7 +647,7 @@ public class ChatCompletionProvider : IChatCompletion
             else if (!string.IsNullOrEmpty(file.FileStorageUrl))
             {
                 var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
-                var binary = fileStorage.GetFileBytes(file.FileStorageUrl);
+                var binary = _fileStorage.GetFileBytes(file.FileStorageUrl);
                 contentParts.Add(new Part()
                 {
                     InlineData = new()
