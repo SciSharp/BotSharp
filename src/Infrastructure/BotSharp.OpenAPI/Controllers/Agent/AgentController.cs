@@ -37,7 +37,7 @@ public partial class AgentController : ControllerBase
     {
         var pagedAgents = await _agentService.GetAgents(new AgentFilter
         {
-            AgentIds = new List<string> { id }
+            AgentIds = [id]
         });
 
         var foundAgent = pagedAgents.Items.FirstOrDefault();

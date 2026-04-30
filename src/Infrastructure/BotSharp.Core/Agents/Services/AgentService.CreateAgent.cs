@@ -30,7 +30,7 @@ public partial class AgentService
         var userService = _services.GetRequiredService<IUserService>();
         var auth = await userService.GetUserAuthorizations();
 
-        await _db.BulkInsertAgents(new List<Agent> { agentRecord });
+        await _db.BulkInsertAgents([agentRecord]);
         if (auth.IsAdmin || auth.Permissions.Contains(UserPermission.CreateAgent))
         {
             await _db.BulkInsertUserAgents(new List<UserAgent>
@@ -39,7 +39,7 @@ public partial class AgentService
                 {
                     UserId = user.Id,
                     AgentId = agentRecord.Id,
-                    Actions = new List<string> { UserAction.Edit, UserAction.Train, UserAction.Evaluate, UserAction.Chat },
+                    Actions = [UserAction.Edit, UserAction.Train, UserAction.Evaluate, UserAction.Chat],
                     CreatedTime = DateTime.UtcNow,
                     UpdatedTime = DateTime.UtcNow
                 }
@@ -98,6 +98,9 @@ public partial class AgentService
         var templateDir = Path.Combine(fileDir, "templates");
         if (!Directory.Exists(templateDir)) return templates;
 
+        // Load template configs
+        var configs = GetAgentTemplateConfigs(fileDir);
+
         foreach (var file in Directory.GetFiles(templateDir))
         {
             var extension = Path.GetExtension(file).Substring(1);
@@ -105,11 +108,39 @@ public partial class AgentService
             {
                 var name = Path.GetFileNameWithoutExtension(file);
                 var content = File.ReadAllText(file);
-                templates.Add(new AgentTemplate(name, content));
+                var template = new AgentTemplate(name, content);
+                var config = configs.FirstOrDefault(x => x.Name.IsEqualTo(name));
+                if (config != null)
+                {
+                    template.ResponseFormat = config.ResponseFormat;
+                    template.LlmConfig = config.LlmConfig;
+                }
+                templates.Add(template);
             }
         }
-        
+
         return templates;
+    }
+
+    private IEnumerable<AgentTemplateConfig> GetAgentTemplateConfigs(string baseDir)
+    {
+        var configFile = Path.Combine(baseDir, "template_configs.json");
+        var configs = new List<AgentTemplateConfig>();
+
+        try
+        {
+            if (File.Exists(configFile))
+            {
+                var configJson = File.ReadAllText(configFile);
+                configs = JsonSerializer.Deserialize<List<AgentTemplateConfig>>(configJson, _options.JsonSerializerOptions) ?? [];
+            }
+            return configs;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error when loading template configs in {configFile}", configFile);
+            return configs;
+        }
     }
 
     private List<FunctionDef> GetFunctionsFromFile(string fileDir)

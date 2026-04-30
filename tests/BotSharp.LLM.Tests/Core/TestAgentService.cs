@@ -132,5 +132,10 @@ namespace BotSharp.Plugin.Google.Core
         {
             return ResponseFormatType.Text;
         }
+
+        public Task<AgentTemplate> GetAgentTemplateDetail(string agentId, string templateName)
+        {
+            return Task.FromResult(new AgentTemplate { Name = templateName });
+        }
     }
 }
