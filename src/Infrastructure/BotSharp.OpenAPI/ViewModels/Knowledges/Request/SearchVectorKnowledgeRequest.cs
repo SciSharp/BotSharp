@@ -18,10 +18,10 @@ public class SearchKnowledgeRequest : KnowledgeBaseRequestBase
     public bool WithVector { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, string>? SearchParam { get; set; }
+    public Dictionary<string, object?>? SearchParam { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, object>? SearchArguments { get; set; }
+    public Dictionary<string, object?>? SearchArguments { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<string>? DataProviders { get; set; }

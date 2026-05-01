@@ -420,12 +420,14 @@ public partial class KnowledgeBaseController : ControllerBase
 
     private KnowledgeSearchOptions BuildSearchOptions(IKnowledgeOrchestrator orchestrator, SearchKnowledgeRequest? request)
     {
+        var searchParam = request?.SearchParam?.ToDictionary(x => x.Key, x => x.Value?.ConvertToString());
+
         if (orchestrator.KnowledgeType.IsEqualTo(KnowledgeBaseType.SemanticGraph))
         {
             return new GraphKnowledgeSearchOptions
             {
                 DbProvider = request?.DbProvider,
-                SearchParam = request?.SearchParam,
+                SearchParam = searchParam,
                 SearchArguments = request?.SearchArguments,
                 GraphId = request?.GraphId
             };
@@ -438,7 +440,7 @@ public partial class KnowledgeBaseController : ControllerBase
                 DbProvider = request?.DbProvider,
                 Limit = request?.Limit ?? 5,
                 Confidence = request?.Confidence ?? 0.5f,
-                SearchParam = request?.SearchParam,
+                SearchParam = searchParam,
                 SearchArguments = request?.SearchArguments,
                 DataProviders = request?.DataProviders,
                 MaxNgram = request?.MaxNgram
@@ -453,7 +455,7 @@ public partial class KnowledgeBaseController : ControllerBase
             Limit = request?.Limit ?? 5,
             Confidence = request?.Confidence ?? 0.5f,
             WithVector = request?.WithVector ?? false,
-            SearchParam = request?.SearchParam,
+            SearchParam = searchParam,
             SearchArguments = request?.SearchArguments
         };
     }
