@@ -1,6 +1,4 @@
 using BotSharp.Abstraction.Files.Utilities;
-using BotSharp.Abstraction.Graph;
-using BotSharp.Abstraction.Graph.Options;
 using BotSharp.Abstraction.Knowledges.Enums;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
@@ -11,14 +9,11 @@ namespace BotSharp.OpenAPI.Controllers;
 [ApiController]
 public partial class KnowledgeBaseController : ControllerBase
 {
-    private readonly IGraphKnowledgeService _graphKnowledgeService;
     private readonly IServiceProvider _services;
 
     public KnowledgeBaseController(
-        IGraphKnowledgeService graphKnowledgeService,
         IServiceProvider services)
     {
-        _graphKnowledgeService = graphKnowledgeService;
         _services = services;
     }
 
@@ -370,27 +365,6 @@ public partial class KnowledgeBaseController : ControllerBase
 
         var done = await kg.DeleteCollectionSnapshot(collection, request.SnapshotName, new KnowledgeSnapshotOptions { DbProvider = request.DbProvider });
         return done;
-    }
-    #endregion
-
-
-    #region Graph
-    [HttpPost("/knowledge/graph/search")]
-    public async Task<GraphKnowledgeViewModel> SearchGraphKnowledge([FromBody] SearchGraphKnowledgeRequest request)
-    {
-        var options = new GraphQueryOptions
-        {
-            Provider = request.Provider,
-            GraphId = request.GraphId,
-            Arguments = request.Arguments,
-            Method = request.Method
-        };
-
-        var result = await _graphKnowledgeService.ExecuteQueryAsync(request.Query, options);
-        return new GraphKnowledgeViewModel
-        {
-            Result = result.Result
-        };
     }
     #endregion
 
