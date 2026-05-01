@@ -26,15 +26,15 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpGet("knowledge/collection/{collection}/exist")]
     public async Task<bool> ExistCollection([FromRoute] string collection, [FromQuery] string knowledgeType, [FromQuery] string? dbProvider = null)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return false;
         }
 
-        return await orchestrator.ExistCollection(collection, new KnowledgeCollectionOptions { DbProvider = dbProvider });
+        return await kg.ExistCollection(collection, new KnowledgeCollectionOptions { DbProvider = dbProvider });
     }
 
     [HttpGet("knowledge/collections")]
@@ -44,15 +44,15 @@ public partial class KnowledgeBaseController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(knowledgeType))
         {
-            var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+            var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                              .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
-            if (orchestrator == null)
+            if (kg == null)
             {
                 return [];
             }
 
-            var collections = await orchestrator.GetCollections(new KnowledgeCollectionOptions { DbProvider = dbProvider });
+            var collections = await kg.GetCollections(new KnowledgeCollectionOptions { DbProvider = dbProvider });
             results = collections.Select(x => KnowledgeCollectionConfigViewModel.From(x)).ToList();
         }
         else
@@ -72,24 +72,24 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpGet("knowledge/collection/{collection}/details")]
     public async Task<KnowledgeCollectionDetails?> GetCollectionDetails([FromRoute] string collection, [FromQuery] string knowledgeType, [FromQuery] string? dbProvider = null)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return null;
         }
 
-        return await orchestrator.GetCollectionDetails(collection, new KnowledgeCollectionOptions { DbProvider = dbProvider });
+        return await kg.GetCollectionDetails(collection, new KnowledgeCollectionOptions { DbProvider = dbProvider });
     }
 
     [HttpPost("knowledge/collection")]
     public async Task<bool> CreateCollection([FromBody] CreateCollectionRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return false;
         }
@@ -101,36 +101,36 @@ public partial class KnowledgeBaseController : ControllerBase
             LlmModel = request.Model,
             EmbeddingDimension = request.Dimension
         };
-        return await orchestrator.CreateCollection(request.CollectionName, options);
+        return await kg.CreateCollection(request.CollectionName, options);
     }
 
     [HttpDelete("knowledge/collection/{collection}")]
     public async Task<bool> DeleteCollection([FromRoute] string collection, [FromBody] DeleteCollectionRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return false;
         }
 
-        return await orchestrator.DeleteCollection(collection, new KnowledgeCollectionOptions { DbProvider = request.DbProvider });
+        return await kg.DeleteCollection(collection, new KnowledgeCollectionOptions { DbProvider = request.DbProvider });
     }
 
     [HttpPost("/knowledge/collection/{collection}/search")]
     public async Task<IEnumerable<KnowledgeKnowledgeViewModel>> SearchKnowledge([FromRoute] string collection, [FromBody] SearchKnowledgeRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return [];
         }
 
-        var options = BuildSearchOptions(orchestrator, request);
-        var results = await orchestrator.Search(request?.Text ?? string.Empty, collection, options);
+        var options = BuildSearchOptions(kg, request);
+        var results = await kg.Search(request?.Text ?? string.Empty, collection, options);
         return results.Select(x => KnowledgeKnowledgeViewModel.From(x)).ToList();
     }
 
@@ -159,10 +159,10 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpPost("/knowledge/collection/{collection}/data")]
     public async Task<bool> CreateCollectionData([FromRoute] string collection, [FromBody] KnowledgeDataCreateRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return false;
         }
@@ -174,17 +174,17 @@ public partial class KnowledgeBaseController : ControllerBase
             Payload = request.Payload
         };
 
-        var created = await orchestrator.CreateCollectionData(collection, create);
+        var created = await kg.CreateCollectionData(collection, create);
         return created;
     }
 
     [HttpGet("/knowledge/collection/{collection}/data")]
     public async Task<IEnumerable<KnowledgeKnowledgeViewModel>> GetCollectionData([FromRoute] string collection, [FromQuery] string knowledgeType, [FromQuery] QueryCollectionDataRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return [];
         }
@@ -196,17 +196,17 @@ public partial class KnowledgeBaseController : ControllerBase
             WithVector = request.WithVector
         };
 
-        var points = await orchestrator.GetCollectionData(collection, request.Ids, options);
+        var points = await kg.GetCollectionData(collection, request.Ids, options);
         return points.Select(x => KnowledgeKnowledgeViewModel.From(x));
     }
 
     [HttpPut("/knowledge/collection/{collection}/data")]
     public async Task<bool> UpdateCollectionData([FromRoute] string collection, [FromBody] KnowledgeDataUpdateRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return false;
         }
@@ -219,36 +219,36 @@ public partial class KnowledgeBaseController : ControllerBase
             Payload = request.Payload
         };
 
-        var updated = await orchestrator.UpdateCollectionData(collection, update);
+        var updated = await kg.UpdateCollectionData(collection, update);
         return updated;
     }
 
     [HttpDelete("/knowledge/collection/{collection}/data/{id}")]
     public async Task<bool> DeleteCollectionData([FromRoute] string collection, [FromRoute] string id, [FromBody] DeleteCollectionDataRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return false;
         }
 
-        return await orchestrator.DeleteCollectionData(collection, id, new KnowledgeCollectionOptions { DbProvider = request.DbProvider });
+        return await kg.DeleteCollectionData(collection, id, new KnowledgeCollectionOptions { DbProvider = request.DbProvider });
     }
 
     [HttpDelete("/knowledge/collection/{collection}/data")]
     public async Task<bool> DeleteCollectionAllData([FromRoute] string collection, [FromBody] DeleteCollectionDataRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return false;
         }
 
-        return await orchestrator.DeleteCollectionData(collection, new KnowledgeCollectionOptions { DbProvider = request.DbProvider });
+        return await kg.DeleteCollectionData(collection, new KnowledgeCollectionOptions { DbProvider = request.DbProvider });
     }
     #endregion
 
@@ -257,10 +257,10 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpPost("/knowledge/collection/{collection}/indexes")]
     public async Task<SuccessFailResponse<string>> CreateCollectionIndexes([FromRoute] string collection, [FromBody] CreateCollectionIndexRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return new();
         }
@@ -270,16 +270,16 @@ public partial class KnowledgeBaseController : ControllerBase
             DbProvider = request.DbProvider,
             Items = request.Options
         };
-        return await orchestrator.CreateIndexes(collection, options);
+        return await kg.CreateIndexes(collection, options);
     }
 
     [HttpDelete("/knowledge/collection/{collection}/indexes")]
     public async Task<SuccessFailResponse<string>> DeleteCollectionIndexes([FromRoute] string collection, [FromBody] DeleteCollectionIndexRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return new();
         }
@@ -289,7 +289,7 @@ public partial class KnowledgeBaseController : ControllerBase
             DbProvider = request.DbProvider,
             Items = request.Options
         };
-        return await orchestrator.DeleteIndexes(collection, options);
+        return await kg.DeleteIndexes(collection, options);
     }
     #endregion
 
@@ -298,77 +298,77 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpGet("/knowledge/collection/{collection}/snapshots")]
     public async Task<IEnumerable<KnowledgeCollectionSnapshotViewModel>> GetCollectionSnapshots([FromRoute] string collection, [FromQuery] string knowledgeType, [FromQuery] string? dbProvider = null)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return [];
         }
 
-        var snapshots = await orchestrator.GetCollectionSnapshots(collection, new KnowledgeSnapshotOptions { DbProvider = dbProvider });
+        var snapshots = await kg.GetCollectionSnapshots(collection, new KnowledgeSnapshotOptions { DbProvider = dbProvider });
         return snapshots.Select(x => KnowledgeCollectionSnapshotViewModel.From(x)!);
     }
 
     [HttpPost("/knowledge/collection/{collection}/snapshot")]
     public async Task<KnowledgeCollectionSnapshotViewModel?> CreateCollectionSnapshot([FromRoute] string collection, [FromBody] CollectionSnapshotRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return null;
         }
 
-        var snapshot = await orchestrator.CreateCollectionSnapshot(collection, new KnowledgeSnapshotOptions { DbProvider = request.DbProvider });
+        var snapshot = await kg.CreateCollectionSnapshot(collection, new KnowledgeSnapshotOptions { DbProvider = request.DbProvider });
         return KnowledgeCollectionSnapshotViewModel.From(snapshot);
     }
 
     [HttpGet("/knowledge/collection/{collection}/snapshot")]
     public async Task<IActionResult> GetCollectionSnapshot([FromRoute] string collection, [FromQuery] string snapshotFileName, [FromQuery] string knowledgeType, [FromQuery] string? dbProvider = null)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return BuildFileResult(snapshotFileName, BinaryData.Empty);
         }
 
-        var snapshot = await orchestrator.DownloadCollectionSnapshot(collection, snapshotFileName, new KnowledgeSnapshotOptions { DbProvider = dbProvider });
+        var snapshot = await kg.DownloadCollectionSnapshot(collection, snapshotFileName, new KnowledgeSnapshotOptions { DbProvider = dbProvider });
         return BuildFileResult(snapshotFileName, snapshot);
     }
 
     [HttpPost("/knowledge/collection/{collection}/snapshot/recover")]
     public async Task<bool> RecoverCollectionFromSnapshot([FromRoute] string collection, IFormFile snapshotFile, [FromForm] string knowledgeType, [FromForm] string? dbProvider = null)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return false;
         }
 
         var fileName = snapshotFile.FileName;
         var binary = FileUtility.BuildBinaryDataFromFile(snapshotFile);
-        var done = await orchestrator.RecoverCollectionFromSnapshot(collection, fileName, binary, new KnowledgeSnapshotOptions { DbProvider = dbProvider });
+        var done = await kg.RecoverCollectionFromSnapshot(collection, fileName, binary, new KnowledgeSnapshotOptions { DbProvider = dbProvider });
         return done;
     }
 
     [HttpDelete("/knowledge/collection/{collection}/snapshot")]
     public async Task<bool> DeleteCollectionSnapshots([FromRoute] string collection, [FromBody] DeleteCollectionSnapshotRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return false;
         }
 
-        var done = await orchestrator.DeleteCollectionSnapshot(collection, request.SnapshotName, new KnowledgeSnapshotOptions { DbProvider = request.DbProvider });
+        var done = await kg.DeleteCollectionSnapshot(collection, request.SnapshotName, new KnowledgeSnapshotOptions { DbProvider = request.DbProvider });
         return done;
     }
     #endregion
@@ -418,11 +418,11 @@ public partial class KnowledgeBaseController : ControllerBase
         return File(stream, "application/octet-stream", Path.GetFileName(fileName));
     }
 
-    private KnowledgeSearchOptions BuildSearchOptions(IKnowledgeOrchestrator orchestrator, SearchKnowledgeRequest? request)
+    private KnowledgeSearchOptions BuildSearchOptions(IKnowledgeOrchestrator kg, SearchKnowledgeRequest? request)
     {
         var searchParam = request?.SearchParam?.ToDictionary(x => x.Key, x => x.Value?.ConvertToString());
 
-        if (orchestrator.KnowledgeType.IsEqualTo(KnowledgeBaseType.SemanticGraph))
+        if (kg.KnowledgeType.IsEqualTo(KnowledgeBaseType.SemanticGraph))
         {
             return new GraphKnowledgeSearchOptions
             {
@@ -433,7 +433,7 @@ public partial class KnowledgeBaseController : ControllerBase
             };
         }
 
-        if (orchestrator.KnowledgeType.IsEqualTo(KnowledgeBaseType.Taxonomy))
+        if (kg.KnowledgeType.IsEqualTo(KnowledgeBaseType.Taxonomy))
         {
             return new TaxonomyKnowledgeSearchOptions
             {

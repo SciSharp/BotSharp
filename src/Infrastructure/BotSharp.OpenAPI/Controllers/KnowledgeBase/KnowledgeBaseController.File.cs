@@ -92,10 +92,10 @@ public partial class KnowledgeBaseController
         return new FileStreamResult(stream, file.ContentType) { FileDownloadName = file.FileName };
     }
 
-    private IKnowledgeFileOrchestrator? GetKnowledgeFileOrchestrator(string? provider)
+    private IKnowledgeFileOrchestrator GetKnowledgeFileOrchestrator(string? provider)
     {
         provider ??= "botsharp-knowledge-file";
-        var found = _services.GetServices<IKnowledgeFileOrchestrator>().FirstOrDefault(x => x.Provider.IsEqualTo(provider));
+        var found = _services.GetServices<IKnowledgeFileOrchestrator>().First(x => x.Provider.IsEqualTo(provider));
         return found;
     }
     #endregion

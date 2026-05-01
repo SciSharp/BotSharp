@@ -23,16 +23,16 @@ public class MemorizeKnowledgeFn : IFunctionCallback
             ? args.RefinedCollection
             : _settings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
 
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(KnowledgeBaseType.QuestionAnswer));
+        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(KnowledgeBaseType.QuestionAnswer));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             message.Content = "I forgot it";
             return true;
         }
 
-        var result = await orchestrator.CreateCollectionData(collectionName, new KnowledgeCreateModel
+        var result = await kg.CreateCollectionData(collectionName, new KnowledgeCreateModel
         {
             Text = args.Question,
             Payload = new Dictionary<string, VectorPayloadValue>
