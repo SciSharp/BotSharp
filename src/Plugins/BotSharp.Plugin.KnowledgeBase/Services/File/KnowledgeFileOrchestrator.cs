@@ -121,6 +121,72 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
         };
     }
 
+    public async Task<bool> ImportFileContentToKnowledge(
+        string collectionName,
+        string fileName,
+        string fileSource,
+        IEnumerable<string> contents,
+        ImportKnowledgeFileOptions? options = null)
+    {
+        if (string.IsNullOrWhiteSpace(collectionName)
+            || string.IsNullOrWhiteSpace(fileName)
+            || contents.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        try
+        {
+            var knowledgebaseProvider = options?.DbProvider ?? _settings.VectorDb.Provider;
+            var exist = await ExistCollection(collectionName, knowledgebaseProvider);
+            if (!exist) return false;
+
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var userId = await GetUserId();
+            
+            var fileId = Guid.NewGuid();
+            var contentType = FileUtility.GetFileContentType(fileName);
+
+            var innerPayload = new Dictionary<string, VectorPayloadValue>(options?.Payload ?? []);
+            innerPayload[KnowledgePayloadName.DataSource] = (VectorPayloadValue)VectorDataSource.File;
+            innerPayload[KnowledgePayloadName.FileId] = (VectorPayloadValue)fileId.ToString();
+            innerPayload[KnowledgePayloadName.FileName] = (VectorPayloadValue)fileName;
+            innerPayload[KnowledgePayloadName.FileSource] = (VectorPayloadValue)fileSource;
+
+            if (!string.IsNullOrWhiteSpace(options?.FileRefData?.Url))
+            {
+                innerPayload[KnowledgePayloadName.FileUrl] = (VectorPayloadValue)options.FileRefData.Url;
+            }
+
+            var kgFile = new FileKnowledgeWrapper
+            {
+                FileId = fileId,
+                FileSource = fileSource,
+                FileData = new()
+                {
+                    FileName = fileName,
+                    ContentType = contentType,
+                    FileBinaryData = BinaryData.Empty
+                },
+                FileKnowledges = new List<FileKnowledgeModel>
+                {
+                    new()
+                    {
+                        Contents = contents,
+                        Payload = innerPayload
+                    }
+                }
+            };
+            await HandleKnowledgeFiles(collectionName, knowledgebaseProvider, [kgFile], saveFile: false);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error when importing doc content to knowledgebase ({collectionName}-{fileName})");
+            return false;
+        }
+    }
+
     public async Task<bool> DeleteKnowledgeFile(string collectionName, Guid fileId, KnowledgeFileOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
@@ -360,7 +426,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
         return response?.Success == true ? response.Knowledges ?? [] : [];
     }
 
-    private bool SaveDocument(string collectionName, string knowledgebaseProvider, Guid fileId, string fileName, BinaryData binary)
+    private bool SaveFile(string collectionName, string knowledgebaseProvider, Guid fileId, string fileName, BinaryData binary)
     {
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var saved = fileStorage.SaveKnowledgeBaseFile(collectionName, knowledgebaseProvider, fileId, fileName, binary);
@@ -427,7 +493,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
             // Save document
             if (saveFile)
             {
-                var saved = SaveDocument(collectionName, knowledgebaseProvider, item.FileId, file.FileName, file.FileBinaryData);
+                var saved = SaveFile(collectionName, knowledgebaseProvider, item.FileId, file.FileName, file.FileBinaryData);
                 if (!saved)
                 {
                     _logger.LogWarning($"Failed to save knowledge file: {file.FileName} to collection {collectionName}.");

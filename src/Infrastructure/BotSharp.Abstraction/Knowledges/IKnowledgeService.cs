@@ -45,7 +45,7 @@ public interface IKnowledgeService
     ///// <param name="refData"></param>
     ///// <returns></returns>
     //Task<bool> ImportDocumentContentToKnowledge(string collectionName, string fileName, string fileSource, IEnumerable<string> contents,
-    //    DocMetaRefData? refData = null, Dictionary<string, VectorPayloadValue>? payload = null);
+    //    ImportKnowledgeFileOptions? options = null);
     ///// <summary>
     ///// Delete one document and its related knowledge in the collection
     ///// </summary>

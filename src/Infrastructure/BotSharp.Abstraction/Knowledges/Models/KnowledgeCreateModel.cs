@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Knowledges.Options;
 using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Abstraction.Knowledges.Models;

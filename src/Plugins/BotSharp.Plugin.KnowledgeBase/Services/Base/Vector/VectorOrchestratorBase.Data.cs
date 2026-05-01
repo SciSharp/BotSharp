@@ -93,12 +93,12 @@ public abstract partial class VectorOrchestratorBase
         });
     }
 
-    public virtual async Task<StringIdPagedItems<KnowledgeSearchResult>> GetPagedCollectionData(string collectionName, KnowledgeFilter filter)
+    public virtual async Task<StringIdPagedItems<KnowledgeCollectionData>> GetPagedCollectionData(string collectionName, KnowledgeFilter filter)
     {
         var vectorDb = GetVectorDb(filter.DbProvider);
         if (vectorDb == null)
         {
-            return new StringIdPagedItems<KnowledgeSearchResult>();
+            return new StringIdPagedItems<KnowledgeCollectionData>();
         }
 
         var vectorFilter = new VectorFilter
@@ -112,16 +112,16 @@ public abstract partial class VectorOrchestratorBase
         };
 
         var pagedResult = await vectorDb.GetPagedCollectionData(collectionName, vectorFilter);
-        return new StringIdPagedItems<KnowledgeSearchResult>
+        return new StringIdPagedItems<KnowledgeCollectionData>
         {
             Count = pagedResult.Count,
-            Items = pagedResult.Items.Select(x => KnowledgeSearchResult.CopyFrom(new KnowledgeCollectionData
+            Items = pagedResult.Items.Select(x => new KnowledgeCollectionData
             {
                 Id = x.Id,
                 Payload = x.Payload,
                 Score = x.Score,
                 Vector = x.Vector
-            })),
+            }),
             NextId = pagedResult.NextId,
         };
     }
@@ -197,7 +197,7 @@ public abstract partial class VectorOrchestratorBase
     }
     #endregion
 
-    public virtual async Task<IEnumerable<KnowledgeSearchResult>> Search(string query, string collectionName, KnowledgeSearchOptions options)
+    public virtual async Task<IEnumerable<KnowledgeExecuteResult>> ExecuteQuery(string query, string collectionName, KnowledgeExecuteOptions options)
     {
         var vectorDb = GetVectorDb(options.DbProvider);
         if (vectorDb == null)
@@ -219,7 +219,7 @@ public abstract partial class VectorOrchestratorBase
         };
 
         var found = await vectorDb.Search(collectionName, vector, searchOptions);
-        return found.Select(x => KnowledgeSearchResult.CopyFrom(new KnowledgeCollectionData
+        return found.Select(x => KnowledgeExecuteResult.CopyFrom(new KnowledgeCollectionData
         {
             Id = x.Id,
             Payload = x.Payload,

@@ -21,14 +21,14 @@ public class KnowledgeHook : IKnowledgeHook
             if (knowledgeBase.Type == KnowledgeBaseType.Document)
             {
                 var kg = GetKnowledgeService(knowledgeBase.Type);
-                var options = new KnowledgeSearchOptions
+                var options = new KnowledgeExecuteOptions
                 {
                     Fields = null,
                     Limit = 5,
                     Confidence = 0.25f,
                     WithVector = true
                 };
-                var result = await kg.Search(text, knowledgeBase.Name, options);
+                var result = await kg.ExecuteQuery(text, knowledgeBase.Name, options);
                 results.AddRange(result.Where(x => x.Data != null && x.Data.ContainsKey("text"))
                                .Select(x => x.Data["text"].ToString())
                                .Where(x => x != null)!);
@@ -36,14 +36,14 @@ public class KnowledgeHook : IKnowledgeHook
             else if (knowledgeBase.Type == KnowledgeBaseType.QuestionAnswer)
             {
                 var kg = GetKnowledgeService(knowledgeBase.Type);
-                var options = new KnowledgeSearchOptions
+                var options = new KnowledgeExecuteOptions
                 {
                     Fields = null,
                     Limit = 5,
                     Confidence = 0.5f,
                     WithVector = true
                 };
-                var result = await kg.Search(text, knowledgeBase.Name, options);
+                var result = await kg.ExecuteQuery(text, knowledgeBase.Name, options);
                 results.AddRange(result.Where(x => x.Data != null && (x.Data.ContainsKey("text") || x.Data.ContainsKey("answer")))
                                .Select(x => x.Data.ContainsKey("answer") ? x.Data["text"].ToString() + "\r\n\r\n" + x.Data["answer"].ToString() : x.Data["text"].ToString())
                                .Where(x => x != null)!);
@@ -68,14 +68,14 @@ public class KnowledgeHook : IKnowledgeHook
                 || knowledgeBase.Type == KnowledgeBaseType.QuestionAnswer)
             {
                 var kgSearcher = GetKnowledgeService(knowledgeBase.Type);
-                var options = new KnowledgeSearchOptions
+                var options = new KnowledgeExecuteOptions
                 {
                     Fields = null,
                     Limit = 5,
                     Confidence = 0.5f,
                     WithVector = true
                 };
-                var result = await kgSearcher.Search(text, knowledgeBase.Name, options);
+                var result = await kgSearcher.ExecuteQuery(text, knowledgeBase.Name, options);
                 results.AddRange(result.Where(x => x.Data != null && (x.Data.ContainsKey("text") || x.Data.ContainsKey("answer")))
                                .Select(x => x.Data.ContainsKey("answer") ? x.Data["text"].ToString() + "\r\n\r\n" + x.Data["answer"].ToString() : x.Data["text"].ToString())
                                .Where(x => x != null)!);

@@ -130,7 +130,7 @@ public partial class KnowledgeBaseController : ControllerBase
         }
 
         var options = BuildSearchOptions(kg, request);
-        var results = await kg.Search(request?.Text ?? string.Empty, collection, options);
+        var results = await kg.ExecuteQuery(request?.Text ?? string.Empty, collection, options);
         return results.Select(x => KnowledgeKnowledgeViewModel.From(x)).ToList();
     }
 
@@ -418,7 +418,7 @@ public partial class KnowledgeBaseController : ControllerBase
         return File(stream, "application/octet-stream", Path.GetFileName(fileName));
     }
 
-    private KnowledgeSearchOptions BuildSearchOptions(IKnowledgeOrchestrator kg, SearchKnowledgeRequest? request)
+    private KnowledgeExecuteOptions BuildSearchOptions(IKnowledgeOrchestrator kg, SearchKnowledgeRequest? request)
     {
         var searchParam = request?.SearchParam?.ToDictionary(x => x.Key, x => x.Value?.ConvertToString());
 
@@ -447,7 +447,7 @@ public partial class KnowledgeBaseController : ControllerBase
             };
         }
 
-        return new KnowledgeSearchOptions
+        return new KnowledgeExecuteOptions
         {
             DbProvider = request?.DbProvider,
             Fields = request?.Fields,

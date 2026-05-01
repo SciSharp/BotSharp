@@ -17,9 +17,9 @@ public class GraphKnowledgeOrchestrator : IKnowledgeOrchestrator
 
     public string KnowledgeType => KnowledgeBaseType.SemanticGraph;
 
-    public async Task<IEnumerable<KnowledgeSearchResult>> Search(string query, string collectionName, KnowledgeSearchOptions options)
+    public async Task<IEnumerable<KnowledgeExecuteResult>> ExecuteQuery(string query, string collectionName, KnowledgeExecuteOptions options)
     {
-        var results = new List<KnowledgeSearchResult>();
+        var results = new List<KnowledgeExecuteResult>();
 
         try
         {
@@ -39,7 +39,7 @@ public class GraphKnowledgeOrchestrator : IKnowledgeOrchestrator
 
             var graphResult = await graphDb.ExecuteQueryAsync(query, graphOptions);
 
-            results = graphResult?.Values?.Select(value => new KnowledgeSearchResult
+            results = graphResult?.Values?.Select(value => new KnowledgeExecuteResult
             {
                 Id = Guid.NewGuid().ToString(),
                 Payload = value.ToDictionary(kvp => kvp.Key, kvp => new VectorPayloadValue(kvp.Value))

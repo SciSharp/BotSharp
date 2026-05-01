@@ -107,7 +107,7 @@ public partial class KnowledgeService
 
 
     public async Task<bool> ImportDocumentContentToKnowledge(string collectionName, string fileName, string fileSource,
-        IEnumerable<string> contents, DocMetaRefData? refData = null, Dictionary<string, VectorPayloadValue>? payload = null)
+        IEnumerable<string> contents, ImportKnowledgeFileOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(fileName)
@@ -123,19 +123,19 @@ public partial class KnowledgeService
 
             var db = _services.GetRequiredService<IBotSharpRepository>();
             var userId = await GetUserId();
-            var vectorStoreProvider = _settings.VectorDb.Provider;
+            var vectorStoreProvider = options?.DbProvider ?? _settings.VectorDb.Provider;
             var fileId = Guid.NewGuid();
             var contentType = FileUtility.GetFileContentType(fileName);
 
-            var innerPayload = new Dictionary<string, VectorPayloadValue>(payload ?? []);
+            var innerPayload = new Dictionary<string, VectorPayloadValue>(options?.Payload ?? []);
             innerPayload[KnowledgePayloadName.DataSource] = (VectorPayloadValue)VectorDataSource.File;
             innerPayload[KnowledgePayloadName.FileId] = (VectorPayloadValue)fileId.ToString();
             innerPayload[KnowledgePayloadName.FileName] = (VectorPayloadValue)fileName;
             innerPayload[KnowledgePayloadName.FileSource] = (VectorPayloadValue)fileSource;
 
-            if (!string.IsNullOrWhiteSpace(refData?.Url))
+            if (!string.IsNullOrWhiteSpace(options?.FileRefData?.Url))
             {
-                innerPayload[KnowledgePayloadName.FileUrl] = (VectorPayloadValue)refData.Url;
+                innerPayload[KnowledgePayloadName.FileUrl] = (VectorPayloadValue)options.FileRefData.Url;
             }
 
             var kgFile = new FileKnowledgeWrapper

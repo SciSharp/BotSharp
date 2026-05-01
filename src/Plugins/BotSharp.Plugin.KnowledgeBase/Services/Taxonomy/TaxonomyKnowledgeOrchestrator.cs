@@ -18,9 +18,9 @@ public class TaxonomyKnowledgeOrchestrator : IKnowledgeOrchestrator
 
     public string KnowledgeType => KnowledgeBaseType.Taxonomy;
 
-    public async Task<IEnumerable<KnowledgeSearchResult>> Search(string query, string collectionName, KnowledgeSearchOptions options)
+    public async Task<IEnumerable<KnowledgeExecuteResult>> ExecuteQuery(string query, string collectionName, KnowledgeExecuteOptions options)
     {
-        var results = new List<KnowledgeSearchResult>();
+        var results = new List<KnowledgeExecuteResult>();
 
         try
         {
@@ -82,7 +82,7 @@ public class TaxonomyKnowledgeOrchestrator : IKnowledgeOrchestrator
                     }
                 }
 
-                results.Add(new KnowledgeSearchResult
+                results.Add(new KnowledgeExecuteResult
                 {
                     Id = Guid.NewGuid().ToString(),
                     Payload = payload,

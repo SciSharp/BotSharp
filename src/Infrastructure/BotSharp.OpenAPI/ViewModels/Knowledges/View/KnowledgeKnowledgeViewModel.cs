@@ -47,7 +47,7 @@ public class KnowledgeKnowledgeViewModel
         };
     }
 
-    public static KnowledgeKnowledgeViewModel From(KnowledgeSearchResult result)
+    public static KnowledgeKnowledgeViewModel From(KnowledgeExecuteResult result)
     {
         return new KnowledgeKnowledgeViewModel
         {

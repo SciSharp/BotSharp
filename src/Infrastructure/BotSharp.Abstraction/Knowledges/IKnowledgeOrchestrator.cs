@@ -21,10 +21,10 @@ public interface IKnowledgeOrchestrator
     #endregion
 
     #region Data
-    Task<IEnumerable<KnowledgeSearchResult>> Search(string query, string collectionName, KnowledgeSearchOptions options)
-        => Task.FromResult(Enumerable.Empty<KnowledgeSearchResult>());
-    Task<StringIdPagedItems<KnowledgeSearchResult>> GetPagedCollectionData(string collectionName, KnowledgeFilter filter)
-        => Task.FromResult(new StringIdPagedItems<KnowledgeSearchResult>());
+    Task<IEnumerable<KnowledgeExecuteResult>> ExecuteQuery(string query, string collectionName, KnowledgeExecuteOptions options)
+        => Task.FromResult(Enumerable.Empty<KnowledgeExecuteResult>());
+    Task<StringIdPagedItems<KnowledgeCollectionData>> GetPagedCollectionData(string collectionName, KnowledgeFilter filter)
+        => Task.FromResult(new StringIdPagedItems<KnowledgeCollectionData>());
     Task<IEnumerable<KnowledgeCollectionData>> GetCollectionData(string collectionName, IEnumerable<string> ids, KnowledgeQueryOptions? options = null)
         => Task.FromResult(Enumerable.Empty<KnowledgeCollectionData>());
     Task<bool> DeleteCollectionData(string collectionName, string id, KnowledgeCollectionOptions? options)

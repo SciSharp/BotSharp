@@ -1,15 +1,15 @@
 namespace BotSharp.Abstraction.Knowledges.Models;
 
-public class KnowledgeSearchResult : KnowledgeCollectionData
+public class KnowledgeExecuteResult : KnowledgeCollectionData
 {
-    public KnowledgeSearchResult()
+    public KnowledgeExecuteResult()
     {
 
     }
 
-    public static KnowledgeSearchResult CopyFrom(KnowledgeCollectionData data)
+    public static KnowledgeExecuteResult CopyFrom(KnowledgeCollectionData data)
     {
-        return new KnowledgeSearchResult
+        return new KnowledgeExecuteResult
         {
             Id = data.Id,
             Payload = data.Payload,
