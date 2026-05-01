@@ -38,18 +38,35 @@ public partial class KnowledgeBaseController : ControllerBase
     }
 
     [HttpGet("knowledge/collections")]
-    public async Task<IEnumerable<KnowledgeCollectionConfigViewModel>> GetCollections([FromQuery] string knowledgeType, [FromQuery] string? dbProvider = null)
+    public async Task<IEnumerable<KnowledgeCollectionConfigViewModel>> GetCollections([FromQuery] string? knowledgeType, [FromQuery] string? dbProvider = null)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
+        var results = new List<KnowledgeCollectionConfigViewModel>();
+
+        if (!string.IsNullOrWhiteSpace(knowledgeType))
+        {
+            var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
                                     .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
-        if (orchestrator == null)
+            if (orchestrator == null)
+            {
+                return [];
+            }
+
+            var collections = await orchestrator.GetCollections(new KnowledgeCollectionOptions { DbProvider = dbProvider });
+            results = collections.Select(x => KnowledgeCollectionConfigViewModel.From(x)).ToList();
+        }
+        else
         {
-            return [];
+            var kgs = _services.GetServices<IKnowledgeOrchestrator>();
+            foreach (var kg in kgs)
+            {
+                var collections = await kg.GetCollections(new KnowledgeCollectionOptions { DbProvider = dbProvider });
+                var res = collections.Select(x => KnowledgeCollectionConfigViewModel.From(x));
+                results.AddRange(res);
+            }
         }
 
-        var collections = await orchestrator.GetCollections(new KnowledgeCollectionOptions { DbProvider = dbProvider });
-        return collections.Select(x => KnowledgeCollectionConfigViewModel.From(x));
+        return results;
     }
 
     [HttpGet("knowledge/collection/{collection}/details")]
@@ -88,17 +105,17 @@ public partial class KnowledgeBaseController : ControllerBase
     }
 
     [HttpDelete("knowledge/collection/{collection}")]
-    public async Task<bool> DeleteCollection([FromRoute] string collection, [FromQuery] string knowledgeType, [FromQuery] string? dbProvider = null)
+    public async Task<bool> DeleteCollection([FromRoute] string collection, [FromBody] DeleteCollectionRequest request)
     {
         var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
+                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
         if (orchestrator == null)
         {
             return false;
         }
 
-        return await orchestrator.DeleteCollection(collection, new KnowledgeCollectionOptions { DbProvider = dbProvider });
+        return await orchestrator.DeleteCollection(collection, new KnowledgeCollectionOptions { DbProvider = request.DbProvider });
     }
 
     [HttpPost("/knowledge/collection/{collection}/search")]

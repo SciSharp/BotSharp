@@ -225,10 +225,10 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var knowledgebaseProvider = filter?.DbProvider ?? _settings.VectorDb.Provider;
+        var kgDbProvider = filter?.DbProvider ?? _settings.VectorDb.Provider;
 
         // Get doc meta data
-        var pagedData = await db.GetKnowledgeBaseFileMeta(collectionName, knowledgebaseProvider, filter);
+        var pagedData = await db.GetKnowledgeBaseFileMeta(collectionName, kgDbProvider, filter);
 
         var files = pagedData.Items?.Select(x => new KnowledgeFileModel
         {
@@ -237,7 +237,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
             FileSource = x.FileSource,
             FileExtension = Path.GetExtension(x.FileName),
             ContentType = x.ContentType,
-            FileUrl = fileStorage.GetKnowledgeBaseFileUrl(collectionName, knowledgebaseProvider, x.FileId, x.FileName),
+            FileUrl = fileStorage.GetKnowledgeBaseFileUrl(collectionName, kgDbProvider, x.FileId, x.FileName),
             RefData = x.RefData
         })?.ToList() ?? [];
 
@@ -252,10 +252,10 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var knwoledgebaseProvider = options?.DbProvider.IfNullOrEmptyAs(_settings.VectorDb.Provider) ?? _settings.VectorDb.Provider;
+        var kgDbProvider = options?.DbProvider.IfNullOrEmptyAs(_settings.VectorDb.Provider) ?? _settings.VectorDb.Provider;
 
         // Get doc binary data
-        var pageData = await db.GetKnowledgeBaseFileMeta(collectionName, knwoledgebaseProvider, new KnowledgeFileFilter
+        var pageData = await db.GetKnowledgeBaseFileMeta(collectionName, kgDbProvider, new KnowledgeFileFilter
         {
             Size = 1,
             FileIds = [fileId]
@@ -272,7 +272,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
             };
         };
 
-        var binaryData = fileStorage.GetKnowledgeBaseFileBinaryData(collectionName, knwoledgebaseProvider, fileId, metaData.FileName);
+        var binaryData = fileStorage.GetKnowledgeBaseFileBinaryData(collectionName, kgDbProvider, fileId, metaData.FileName);
         return new FileBinaryDataModel
         {
             FileName = metaData.FileName,

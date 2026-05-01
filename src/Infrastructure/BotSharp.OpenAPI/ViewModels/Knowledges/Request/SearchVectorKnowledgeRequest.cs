@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
-public class SearchKnowledgeRequest
+public class SearchKnowledgeRequest : KnowledgeBaseRequestBase
 {
     public string Text { get; set; } = string.Empty;
 
@@ -22,10 +22,6 @@ public class SearchKnowledgeRequest
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, object>? SearchArguments { get; set; }
-    public string KnowledgeType { get; set; } = null!;
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? DbProvider { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<string>? DataProviders { get; set; }

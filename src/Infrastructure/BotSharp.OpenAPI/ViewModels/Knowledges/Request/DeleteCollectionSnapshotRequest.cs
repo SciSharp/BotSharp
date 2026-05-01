@@ -1,13 +1,6 @@
-using System.Text.Json.Serialization;
-
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
-public class DeleteCollectionSnapshotRequest
+public class DeleteCollectionSnapshotRequest : KnowledgeBaseRequestBase
 {
-    public string KnowledgeType { get; set; } = null!;
-
     public string SnapshotName { get; set; } = default!;
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? DbProvider { get; set; }
 }

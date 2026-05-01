@@ -17,7 +17,7 @@ public partial class KnowledgeBaseController
     [HttpPost("/knowledge/collection/{collection}/file/upload")]
     public async Task<UploadKnowledgeResponse> UploadKnowledgeFiles([FromRoute] string collection, [FromBody] KnowledgeUploadRequest request)
     {
-        var fileOrchestrator = GetKnowledgeFileOrchestrator(request.Orchestrator);
+        var fileOrchestrator = GetKnowledgeFileOrchestrator(request.FileOrchestrator);
         var response = await fileOrchestrator.UploadFilesToKnowledge(collection, request.Files, request.Options);
         return response;
     }
