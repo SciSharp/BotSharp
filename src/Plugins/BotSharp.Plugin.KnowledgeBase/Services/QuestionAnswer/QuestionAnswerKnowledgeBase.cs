@@ -1,12 +1,12 @@
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
-public class QuestionAnswerKnowledgeOrchestrator : VectorOrchestratorBase, IKnowledgeOrchestrator
+public class QuestionAnswerKnowledgeBase : VectorKnowledgeBase, IKnowledgeService
 {
     public override string KnowledgeType => KnowledgeBaseType.QuestionAnswer;
 
-    public QuestionAnswerKnowledgeOrchestrator(
+    public QuestionAnswerKnowledgeBase(
         IServiceProvider services,
-        ILogger<QuestionAnswerKnowledgeOrchestrator> logger,
+        ILogger<QuestionAnswerKnowledgeBase> logger,
         KnowledgeBaseSettings settings)
         : base(services, logger, settings)
     {

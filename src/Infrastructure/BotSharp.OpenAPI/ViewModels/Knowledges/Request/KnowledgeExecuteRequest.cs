@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
-public class SearchKnowledgeRequest : KnowledgeBaseRequestBase
+public class KnowledgeExecuteRequest : KnowledgeBaseRequestBase
 {
     public string Text { get; set; } = string.Empty;
 

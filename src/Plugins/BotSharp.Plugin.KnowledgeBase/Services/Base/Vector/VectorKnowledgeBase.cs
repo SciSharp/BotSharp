@@ -1,6 +1,6 @@
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
-public abstract partial class VectorOrchestratorBase : IKnowledgeOrchestrator
+public abstract partial class VectorKnowledgeBase : IKnowledgeService
 {
     protected readonly IServiceProvider _services;
     protected readonly ILogger _logger;
@@ -8,7 +8,7 @@ public abstract partial class VectorOrchestratorBase : IKnowledgeOrchestrator
 
     public abstract string KnowledgeType { get; }
 
-    protected VectorOrchestratorBase(
+    protected VectorKnowledgeBase(
         IServiceProvider services,
         ILogger logger,
         KnowledgeBaseSettings settings)

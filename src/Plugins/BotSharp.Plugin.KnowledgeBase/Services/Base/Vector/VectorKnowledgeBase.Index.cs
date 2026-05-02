@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
-public abstract partial class VectorOrchestratorBase
+public abstract partial class VectorKnowledgeBase
 {
     #region Index
     public virtual async Task<SuccessFailResponse<string>> CreateIndexes(string collectionName, KnowledgeIndexOptions options)

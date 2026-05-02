@@ -23,7 +23,7 @@ public class MemorizeKnowledgeFn : IFunctionCallback
             ? args.RefinedCollection
             : _settings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
 
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(KnowledgeBaseType.QuestionAnswer));
 
         if (kg == null)

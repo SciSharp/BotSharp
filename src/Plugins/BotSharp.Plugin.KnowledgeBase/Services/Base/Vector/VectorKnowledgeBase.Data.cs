@@ -2,7 +2,7 @@ using BotSharp.Abstraction.VectorStorage.Options;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
-public abstract partial class VectorOrchestratorBase
+public abstract partial class VectorKnowledgeBase
 {
     #region Collection data
     public virtual async Task<bool> CreateCollectionData(string collectionName, KnowledgeCreateModel create)

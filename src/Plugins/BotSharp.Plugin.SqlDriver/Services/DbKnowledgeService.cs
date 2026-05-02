@@ -23,8 +23,8 @@ public class DbKnowledgeService
     {
         var sqlDriverSettings = _services.GetRequiredService<SqlDriverSetting>();
         var settingService = _services.GetRequiredService<ISettingService>();
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(KnowledgeBaseType.QuestionAnswer));
+        var kg = _services.GetServices<IKnowledgeService>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(KnowledgeBaseType.QuestionAnswer));
         
         var provider = request.Provider ?? "openai";
         var model = request.Model ?? settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o);
@@ -69,9 +69,9 @@ public class DbKnowledgeService
 
                 foreach (var item in knowledges)
                 {
-                    if (orchestrator == null) continue;
+                    if (kg == null) continue;
 
-                    await orchestrator.CreateCollectionData(collectionName, new KnowledgeCreateModel
+                    await kg.CreateCollectionData(collectionName, new KnowledgeCreateModel
                     {
                         Text = item.Question,
                         Payload = new Dictionary<string, VectorPayloadValue>

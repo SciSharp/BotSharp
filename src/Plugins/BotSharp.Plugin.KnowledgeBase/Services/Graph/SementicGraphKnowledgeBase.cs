@@ -2,14 +2,14 @@ using BotSharp.Abstraction.Graph.Options;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
-public class GraphKnowledgeOrchestrator : IKnowledgeOrchestrator
+public class SementicGraphKnowledgeBase : IKnowledgeService
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<GraphKnowledgeOrchestrator> _logger;
+    private readonly ILogger<SementicGraphKnowledgeBase> _logger;
 
-    public GraphKnowledgeOrchestrator(
+    public SementicGraphKnowledgeBase(
         IServiceProvider services,
-        ILogger<GraphKnowledgeOrchestrator> logger)
+        ILogger<SementicGraphKnowledgeBase> logger)
     {
         _services = services;
         _logger = logger;

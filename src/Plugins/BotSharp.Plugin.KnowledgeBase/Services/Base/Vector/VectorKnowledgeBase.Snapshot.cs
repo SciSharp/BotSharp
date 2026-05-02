@@ -1,6 +1,6 @@
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
-public abstract partial class VectorOrchestratorBase
+public abstract partial class VectorKnowledgeBase
 {
     #region Snapshot
     public virtual async Task<IEnumerable<KnowledgeCollectionSnapshot>> GetCollectionSnapshots(string collectionName, KnowledgeSnapshotOptions? options = null)

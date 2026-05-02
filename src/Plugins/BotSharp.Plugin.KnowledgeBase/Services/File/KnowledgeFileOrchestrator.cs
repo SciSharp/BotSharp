@@ -389,7 +389,7 @@ public class KnowledgeFileOrchestrator : IKnowledgeFileOrchestrator
 
         return !configs.IsNullOrEmpty();
     }
-
+       
     private async Task<(string, BinaryData)> GetFileInfo(ExternalFileModel file)
     {
         if (file == null)

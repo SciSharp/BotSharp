@@ -98,9 +98,9 @@ public class KnowledgeHook : IKnowledgeHook
         return agent.KnowledgeBases;
     }
 
-    private IKnowledgeOrchestrator GetKnowledgeService(string? type = null)
+    private IKnowledgeService GetKnowledgeService(string? type = null)
     {
-        var kgs = _services.GetServices<IKnowledgeOrchestrator>();
+        var kgs = _services.GetServices<IKnowledgeService>();
         if (!string.IsNullOrWhiteSpace(type))
         {
             return kgs.First(x => x.KnowledgeType == type);

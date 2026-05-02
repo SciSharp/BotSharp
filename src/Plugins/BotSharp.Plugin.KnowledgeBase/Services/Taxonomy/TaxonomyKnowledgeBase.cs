@@ -3,14 +3,14 @@ using BotSharp.Abstraction.Entity.Models;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
-public class TaxonomyKnowledgeOrchestrator : IKnowledgeOrchestrator
+public class TaxonomyKnowledgeBase : IKnowledgeService
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<TaxonomyKnowledgeOrchestrator> _logger;
+    private readonly ILogger<TaxonomyKnowledgeBase> _logger;
 
-    public TaxonomyKnowledgeOrchestrator(
+    public TaxonomyKnowledgeBase(
         IServiceProvider services,
-        ILogger<TaxonomyKnowledgeOrchestrator> logger)
+        ILogger<TaxonomyKnowledgeBase> logger)
     {
         _services = services;
         _logger = logger;

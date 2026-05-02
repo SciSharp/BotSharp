@@ -21,7 +21,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpGet("knowledge/collection/{collection}/exist")]
     public async Task<bool> ExistCollection([FromRoute] string collection, [FromQuery] string knowledgeType, [FromQuery] string? dbProvider = null)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
         if (kg == null)
@@ -39,7 +39,7 @@ public partial class KnowledgeBaseController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(knowledgeType))
         {
-            var kg = _services.GetServices<IKnowledgeOrchestrator>()
+            var kg = _services.GetServices<IKnowledgeService>()
                               .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
             if (kg == null)
@@ -52,7 +52,7 @@ public partial class KnowledgeBaseController : ControllerBase
         }
         else
         {
-            var kgs = _services.GetServices<IKnowledgeOrchestrator>();
+            var kgs = _services.GetServices<IKnowledgeService>();
             foreach (var kg in kgs)
             {
                 var collections = await kg.GetCollections(new KnowledgeCollectionOptions { DbProvider = dbProvider });
@@ -67,7 +67,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpGet("knowledge/collection/{collection}/details")]
     public async Task<KnowledgeCollectionDetails?> GetCollectionDetails([FromRoute] string collection, [FromQuery] string knowledgeType, [FromQuery] string? dbProvider = null)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
         if (kg == null)
@@ -81,7 +81,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpPost("knowledge/collection")]
     public async Task<bool> CreateCollection([FromBody] CreateCollectionRequest request)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
         if (kg == null)
@@ -102,7 +102,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpDelete("knowledge/collection/{collection}")]
     public async Task<bool> DeleteCollection([FromRoute] string collection, [FromBody] DeleteCollectionRequest request)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
         if (kg == null)
@@ -113,10 +113,10 @@ public partial class KnowledgeBaseController : ControllerBase
         return await kg.DeleteCollection(collection, new KnowledgeCollectionOptions { DbProvider = request.DbProvider });
     }
 
-    [HttpPost("/knowledge/collection/{collection}/search")]
-    public async Task<IEnumerable<KnowledgeKnowledgeViewModel>> SearchKnowledge([FromRoute] string collection, [FromBody] SearchKnowledgeRequest request)
+    [HttpPost("/knowledge/collection/{collection}/query")]
+    public async Task<IEnumerable<KnowledgeKnowledgeViewModel>> SearchKnowledge([FromRoute] string collection, [FromBody] KnowledgeExecuteRequest request)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
         if (kg == null)
@@ -132,15 +132,15 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpPost("/knowledge/collection/{collection}/data/page")]
     public async Task<StringIdPagedItems<KnowledgeKnowledgeViewModel>> GetPagedCollectionData([FromRoute] string collection, [FromBody] GetPagedCollectionDataRequest request)
     {
-        var orchestrator = _services.GetServices<IKnowledgeOrchestrator>()
-                                    .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
+        var kg = _services.GetServices<IKnowledgeService>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
-        if (orchestrator == null)
+        if (kg == null)
         {
             return new StringIdPagedItems<KnowledgeKnowledgeViewModel>();
         }
 
-        var data = await orchestrator.GetPagedCollectionData(collection, request);
+        var data = await kg.GetPagedCollectionData(collection, request);
         var items = data.Items?.Select(x => KnowledgeKnowledgeViewModel.From(x))?.ToList() ?? [];
 
         return new StringIdPagedItems<KnowledgeKnowledgeViewModel>
@@ -154,7 +154,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpPost("/knowledge/collection/{collection}/data")]
     public async Task<bool> CreateCollectionData([FromRoute] string collection, [FromBody] KnowledgeDataCreateRequest request)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
         if (kg == null)
@@ -176,7 +176,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpGet("/knowledge/collection/{collection}/data")]
     public async Task<IEnumerable<KnowledgeKnowledgeViewModel>> GetCollectionData([FromRoute] string collection, [FromQuery] string knowledgeType, [FromQuery] QueryCollectionDataRequest request)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
         if (kg == null)
@@ -198,7 +198,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpPut("/knowledge/collection/{collection}/data")]
     public async Task<bool> UpdateCollectionData([FromRoute] string collection, [FromBody] KnowledgeDataUpdateRequest request)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
         if (kg == null)
@@ -221,7 +221,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpDelete("/knowledge/collection/{collection}/data/{id}")]
     public async Task<bool> DeleteCollectionData([FromRoute] string collection, [FromRoute] string id, [FromBody] DeleteCollectionDataRequest request)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
         if (kg == null)
@@ -235,7 +235,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpDelete("/knowledge/collection/{collection}/data")]
     public async Task<bool> DeleteCollectionAllData([FromRoute] string collection, [FromBody] DeleteCollectionDataRequest request)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
         if (kg == null)
@@ -252,7 +252,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpPost("/knowledge/collection/{collection}/indexes")]
     public async Task<SuccessFailResponse<string>> CreateCollectionIndexes([FromRoute] string collection, [FromBody] CreateCollectionIndexRequest request)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
         if (kg == null)
@@ -271,7 +271,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpDelete("/knowledge/collection/{collection}/indexes")]
     public async Task<SuccessFailResponse<string>> DeleteCollectionIndexes([FromRoute] string collection, [FromBody] DeleteCollectionIndexRequest request)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
         if (kg == null)
@@ -293,7 +293,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpGet("/knowledge/collection/{collection}/snapshots")]
     public async Task<IEnumerable<KnowledgeCollectionSnapshotViewModel>> GetCollectionSnapshots([FromRoute] string collection, [FromQuery] string knowledgeType, [FromQuery] string? dbProvider = null)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
         if (kg == null)
@@ -308,7 +308,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpPost("/knowledge/collection/{collection}/snapshot")]
     public async Task<KnowledgeCollectionSnapshotViewModel?> CreateCollectionSnapshot([FromRoute] string collection, [FromBody] CollectionSnapshotRequest request)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
         if (kg == null)
@@ -323,7 +323,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpGet("/knowledge/collection/{collection}/snapshot")]
     public async Task<IActionResult> GetCollectionSnapshot([FromRoute] string collection, [FromQuery] string snapshotFileName, [FromQuery] string knowledgeType, [FromQuery] string? dbProvider = null)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
         if (kg == null)
@@ -338,7 +338,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpPost("/knowledge/collection/{collection}/snapshot/recover")]
     public async Task<bool> RecoverCollectionFromSnapshot([FromRoute] string collection, IFormFile snapshotFile, [FromForm] string knowledgeType, [FromForm] string? dbProvider = null)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(knowledgeType));
 
         if (kg == null)
@@ -355,7 +355,7 @@ public partial class KnowledgeBaseController : ControllerBase
     [HttpDelete("/knowledge/collection/{collection}/snapshot")]
     public async Task<bool> DeleteCollectionSnapshots([FromRoute] string collection, [FromBody] DeleteCollectionSnapshotRequest request)
     {
-        var kg = _services.GetServices<IKnowledgeOrchestrator>()
+        var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(request.KnowledgeType));
 
         if (kg == null)
@@ -392,7 +392,7 @@ public partial class KnowledgeBaseController : ControllerBase
         return File(stream, "application/octet-stream", Path.GetFileName(fileName));
     }
 
-    private KnowledgeExecuteOptions BuildSearchOptions(IKnowledgeOrchestrator kg, SearchKnowledgeRequest? request)
+    private KnowledgeExecuteOptions BuildSearchOptions(IKnowledgeService kg, KnowledgeExecuteRequest? request)
     {
         var searchParam = request?.SearchParam?.ToDictionary(x => x.Key, x => x.Value?.ConvertToString());
 
