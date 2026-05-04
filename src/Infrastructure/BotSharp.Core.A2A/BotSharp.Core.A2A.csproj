@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="A2A" />
+    <PackageReference Include="Microsoft.Agents.AI.A2A" />
   </ItemGroup>
 
   <ItemGroup>
