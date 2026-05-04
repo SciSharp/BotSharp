@@ -76,4 +76,9 @@ public class EmbeddingData
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? AppendTokenName { get; set; }
+
+    /// <summary>
+    /// Whether to enable full screen or not
+    /// </summary>
+    public bool FullScreen { get; set; }
 }
