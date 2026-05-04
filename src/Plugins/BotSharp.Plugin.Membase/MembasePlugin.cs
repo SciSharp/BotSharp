@@ -1,9 +1,7 @@
-using BotSharp.Abstraction.Graph;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Rules;
 using BotSharp.Plugin.Membase.GraphDb;
 using BotSharp.Plugin.Membase.Handlers;
-using BotSharp.Plugin.Membase.Interfaces;
 using Refit;
 
 namespace BotSharp.Plugin.Membase;
@@ -13,7 +11,7 @@ public class MembasePlugin : IBotSharpPlugin
     public string Id => "8df12767-9a44-45d9-93cd-12a10adf3933";
     public string Name => "Membase";
     public string Description => "Document Database with Graph Traversal & Vector Search.";
-    public string IconUrl => "https://membase.dev/favicon.png";
+    public string IconUrl => "https://www.membase.dev/favicon.png";
 
     private string _membaseCredential = string.Empty;
     private string _membaseProjectId = string.Empty;
@@ -56,7 +54,9 @@ public class MembasePlugin : IBotSharpPlugin
             {
                 Source = "membase",
                 HtmlTag = "iframe",
-                Url = $"https://console.membase.dev/query-editor/{_membaseProjectId}?token={_membaseCredential}"
+                Url = $"https://console.membase.dev/query-editor/{_membaseProjectId}?token={_membaseCredential}",
+                HtmlStyle = "width: 100%; height: 90%;",
+                FullScreen = true
             }
         });
         return true;
