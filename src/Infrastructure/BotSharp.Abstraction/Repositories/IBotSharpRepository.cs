@@ -239,21 +239,14 @@ public interface IBotSharpRepository : IHaveServiceProvider
          => throw new NotImplementedException();
     Task<IEnumerable<VectorCollectionConfig>> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter)
          => throw new NotImplementedException();
-    Task<VectorCollectionConfig> GetKnowledgeCollectionConfig(string collectionName, string vectorStroageProvider)
+    Task<VectorCollectionConfig> GetKnowledgeCollectionConfig(string collectionName, string knowledgebaseProvider)
          => throw new NotImplementedException();
-    Task<bool> SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData)
+    Task<bool> SaveKnolwedgeBaseFileMeta(KnowledgeFileMetaData metaData)
          => throw new NotImplementedException();
 
-    /// <summary>
-    /// Delete file meta data in a knowledge collection, given the vector store provider. If "fileId" is null, delete all in the collection.
-    /// </summary>
-    /// <param name="collectionName"></param>
-    /// <param name="vectorStoreProvider"></param>
-    /// <param name="fileId"></param>
-    /// <returns></returns>
-    Task<bool> DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null)
+    Task<bool> DeleteKnolwedgeBaseFileMeta(string collectionName, string knowledgebaseProvider, Guid? fileId = null)
          => throw new NotImplementedException();
-    Task<PagedItems<KnowledgeDocMetaData>> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
+    Task<PagedItems<KnowledgeFileMetaData>> GetKnowledgeBaseFileMeta(string collectionName, string knowledgebaseProvider, KnowledgeFileFilter filter)
          => throw new NotImplementedException();
     #endregion
 

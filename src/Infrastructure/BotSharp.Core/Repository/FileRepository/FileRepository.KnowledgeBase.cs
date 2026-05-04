@@ -103,9 +103,9 @@ public partial class FileRepository
             configs = configs.Where(x => filter.CollectionTypes.Contains(x.Type)).ToList();
         }
 
-        if (!filter.VectorStroageProviders.IsNullOrEmpty())
+        if (!filter.VectorStorageProviders.IsNullOrEmpty())
         {
-            configs = configs.Where(x => filter.VectorStroageProviders.Contains(x.VectorStore?.Provider)).ToList();
+            configs = configs.Where(x => filter.VectorStorageProviders.Contains(x.VectorStore?.Provider)).ToList();
         }
 
         return configs;
@@ -114,12 +114,12 @@ public partial class FileRepository
 #if !DEBUG
     [SharpCache(10)]
 #endif
-    public async Task<VectorCollectionConfig> GetKnowledgeCollectionConfig(string collectionName, string vectorStroageProvider)
+    public async Task<VectorCollectionConfig> GetKnowledgeCollectionConfig(string collectionName, string knowledgebaseProvider)
     {
         var configs = await GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
         {
             CollectionNames = [collectionName],
-            VectorStroageProviders = [vectorStroageProvider]
+            VectorStorageProviders = [knowledgebaseProvider]
         });
         return configs?.FirstOrDefault();
     }
@@ -127,7 +127,7 @@ public partial class FileRepository
 
 
     #region Documents
-    public async Task<bool> SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData)
+    public async Task<bool> SaveKnolwedgeBaseFileMeta(KnowledgeFileMetaData metaData)
     {
         if (metaData == null
             || string.IsNullOrWhiteSpace(metaData.Collection)
@@ -149,15 +149,15 @@ public partial class FileRepository
         return true;
     }
 
-    public async Task<bool> DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null)
+    public async Task<bool> DeleteKnolwedgeBaseFileMeta(string collectionName, string knowledgebaseProvider, Guid? fileId = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider))
+            || string.IsNullOrWhiteSpace(knowledgebaseProvider))
         {
             return false;
         }
 
-        var dir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+        var dir = BuildKnowledgeCollectionFileDir(collectionName, knowledgebaseProvider);
         if (!Directory.Exists(dir))
         {
             return false;
@@ -179,21 +179,21 @@ public partial class FileRepository
         return await Task.FromResult(true);
     }
 
-    public async Task<PagedItems<KnowledgeDocMetaData>> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
+    public async Task<PagedItems<KnowledgeFileMetaData>> GetKnowledgeBaseFileMeta(string collectionName, string knowledgebaseProvider, KnowledgeFileFilter filter)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider))
+            || string.IsNullOrWhiteSpace(knowledgebaseProvider))
         {
-            return new PagedItems<KnowledgeDocMetaData>();
+            return new PagedItems<KnowledgeFileMetaData>();
         }
 
-        var dir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+        var dir = BuildKnowledgeCollectionFileDir(collectionName, knowledgebaseProvider);
         if (!Directory.Exists(dir))
         {
-            return new PagedItems<KnowledgeDocMetaData>();
+            return new PagedItems<KnowledgeFileMetaData>();
         }
 
-        var records = new List<KnowledgeDocMetaData>();
+        var records = new List<KnowledgeFileMetaData>();
         foreach (var folder in Directory.EnumerateDirectories(dir))
         {
             var metaFile = Path.Combine(folder, KNOWLEDGE_DOC_META_FILE);
@@ -203,7 +203,7 @@ public partial class FileRepository
             }
 
             var content = await File.ReadAllTextAsync(metaFile);
-            var metaData = JsonSerializer.Deserialize<KnowledgeDocMetaData>(content, _options);
+            var metaData = JsonSerializer.Deserialize<KnowledgeFileMetaData>(content, _options);
             if (metaData == null)
             {
                 continue;
@@ -244,7 +244,7 @@ public partial class FileRepository
             records.Add(metaData);
         }
         
-        return new PagedItems<KnowledgeDocMetaData>
+        return new PagedItems<KnowledgeFileMetaData>
         {
             Items = records.OrderByDescending(x => x.CreateDate).Skip(filter.Offset).Take(filter.Size),
             Count = records.Count

@@ -1,83 +1,61 @@
-using BotSharp.Abstraction.Graph.Models;
-using BotSharp.Abstraction.Graph.Options;
-using BotSharp.Abstraction.Knowledges.Filters;
+using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.Knowledges.Options;
-using BotSharp.Abstraction.Knowledges.Responses;
-using BotSharp.Abstraction.VectorStorage.Models;
-using BotSharp.Abstraction.VectorStorage.Options;
 
 namespace BotSharp.Abstraction.Knowledges;
 
 public interface IKnowledgeService
 {
-    #region Vector
-    Task<bool> ExistVectorCollection(string collectionName);
-    Task<bool> CreateVectorCollection(string collectionName, string collectionType, VectorCollectionCreateOptions options);
-    Task<bool> DeleteVectorCollection(string collectionName);
-    Task<IEnumerable<VectorCollectionConfig>> GetVectorCollections(string? type = null);
-    Task<VectorCollectionDetails?> GetVectorCollectionDetails(string collectionName);
-    Task<IEnumerable<VectorSearchResult>> SearchVectorKnowledge(string query, string collectionName, VectorSearchOptions options);
-    Task<StringIdPagedItems<VectorSearchResult>> GetPagedVectorCollectionData(string collectionName, VectorFilter filter);
-    Task<IEnumerable<VectorCollectionData>> GetVectorCollectionData(string collectionName, IEnumerable<string> ids, VectorQueryOptions? options = null);
-    Task<bool> DeleteVectorCollectionData(string collectionName, string id);
-    Task<bool> DeleteVectorCollectionAllData(string collectionName);
-    Task<bool> CreateVectorCollectionData(string collectionName, VectorCreateModel create);
-    Task<bool> UpdateVectorCollectionData(string collectionName, VectorUpdateModel update);
-    Task<bool> UpsertVectorCollectionData(string collectionName, VectorUpdateModel update);
+    string KnowledgeType { get; }
+
+    #region Collection
+    Task<bool> ExistCollection(string collectionName, KnowledgeCollectionOptions options)
+        => Task.FromResult(false);
+    Task<bool> CreateCollection(string collectionName, CollectionCreateOptions options)
+        => Task.FromResult(false);
+    Task<bool> DeleteCollection(string collectionName, KnowledgeCollectionOptions options)
+        => Task.FromResult(false);
+    Task<IEnumerable<KnowledgeCollectionConfig>> GetCollections(KnowledgeCollectionOptions options)
+        => Task.FromResult(Enumerable.Empty<KnowledgeCollectionConfig>());
+    Task<KnowledgeCollectionDetails?> GetCollectionDetails(string collectionName, KnowledgeCollectionOptions options)
+        => Task.FromResult<KnowledgeCollectionDetails?>(null);
     #endregion
 
-    #region Document
-    /// <summary>
-    /// Save documents and their contents to knowledgebase
-    /// </summary>
-    /// <param name="collectionName"></param>
-    /// <param name="files"></param>
-    /// <param name="option"></param>
-    /// <returns></returns>
-    Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(string collectionName, IEnumerable<ExternalFileModel> files, KnowledgeDocOptions? options = null);
-    /// <summary>
-    /// Save document content to knowledgebase without saving the document
-    /// </summary>
-    /// <param name="collectionName"></param>
-    /// <param name="fileName"></param>
-    /// <param name="fileSource"></param>
-    /// <param name="contents"></param>
-    /// <param name="refData"></param>
-    /// <returns></returns>
-    Task<bool> ImportDocumentContentToKnowledge(string collectionName, string fileName, string fileSource, IEnumerable<string> contents,
-        DocMetaRefData? refData = null, Dictionary<string, VectorPayloadValue>? payload = null);
-    /// <summary>
-    /// Delete one document and its related knowledge in the collection
-    /// </summary>
-    /// <param name="collectionName"></param>
-    /// <param name="fileId"></param>
-    /// <returns></returns>
-    Task<bool> DeleteKnowledgeDocument(string collectionName, Guid fileId);
-    /// <summary>
-    /// Delete all documents and their related knowledge in the collection
-    /// </summary>
-    /// <param name="collectionName"></param>
-    /// <param name="filter"></param>
-    /// <returns></returns>
-    Task<bool> DeleteKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter);
-    Task<PagedItems<KnowledgeFileModel>> GetPagedKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter);
-    Task<FileBinaryDataModel> GetKnowledgeDocumentBinaryData(string collectionName, Guid fileId);
-    #endregion
-
-    #region Snapshot
-    Task<IEnumerable<VectorCollectionSnapshot>> GetVectorCollectionSnapshots(string collectionName);
-    Task<VectorCollectionSnapshot?> CreateVectorCollectionSnapshot(string collectionName);
-    Task<BinaryData> DownloadVectorCollectionSnapshot(string collectionName, string snapshotFileName);
-    Task<bool> RecoverVectorCollectionFromSnapshot(string collectionName, string snapshotFileName, BinaryData snapshotData);
-    Task<bool> DeleteVectorCollectionSnapshot(string collectionName, string snapshotName);
+    #region Data
+    Task<IEnumerable<KnowledgeExecuteResult>> ExecuteQuery(string query, string collectionName, KnowledgeExecuteOptions options)
+        => Task.FromResult(Enumerable.Empty<KnowledgeExecuteResult>());
+    Task<StringIdPagedItems<KnowledgeCollectionData>> GetPagedCollectionData(string collectionName, KnowledgeFilter filter)
+        => Task.FromResult(new StringIdPagedItems<KnowledgeCollectionData>());
+    Task<IEnumerable<KnowledgeCollectionData>> GetCollectionData(string collectionName, IEnumerable<string> ids, KnowledgeQueryOptions? options = null)
+        => Task.FromResult(Enumerable.Empty<KnowledgeCollectionData>());
+    Task<bool> DeleteCollectionData(string collectionName, string id, KnowledgeCollectionOptions? options)
+        => Task.FromResult(false);
+    Task<bool> DeleteCollectionData(string collectionName, KnowledgeCollectionOptions? options)
+        => Task.FromResult(false);
+    Task<bool> CreateCollectionData(string collectionName, KnowledgeCreateModel create)
+        => Task.FromResult(false);
+    Task<bool> UpdateCollectionData(string collectionName, KnowledgeUpdateModel update)
+        => Task.FromResult(false);
+    Task<bool> UpsertCollectionData(string collectionName, KnowledgeUpdateModel update)
+        => Task.FromResult(false);
     #endregion
 
     #region Index
-    Task<SuccessFailResponse<string>> CreateVectorCollectionPayloadIndexes(string collectionName, IEnumerable<CreateVectorCollectionIndexOptions> options);
-    Task<SuccessFailResponse<string>> DeleteVectorCollectionPayloadIndexes(string collectionName, IEnumerable<DeleteVectorCollectionIndexOptions> options);
+    Task<SuccessFailResponse<string>> CreateIndexes(string collectionName, KnowledgeIndexOptions options)
+        => Task.FromResult(new SuccessFailResponse<string>());
+    Task<SuccessFailResponse<string>> DeleteIndexes(string collectionName, KnowledgeIndexOptions options)
+        => Task.FromResult(new SuccessFailResponse<string>());
     #endregion
 
-    #region Common
-    Task<bool> RefreshVectorKnowledgeConfigs(VectorCollectionConfigsModel configs);
+    #region Snapshot
+    Task<IEnumerable<KnowledgeCollectionSnapshot>> GetCollectionSnapshots(string collectionName, KnowledgeSnapshotOptions? options = null)
+        => Task.FromResult(Enumerable.Empty<KnowledgeCollectionSnapshot>());
+    Task<KnowledgeCollectionSnapshot?> CreateCollectionSnapshot(string collectionName, KnowledgeSnapshotOptions? options = null)
+        => Task.FromResult<KnowledgeCollectionSnapshot?>(null);
+    Task<BinaryData> DownloadCollectionSnapshot(string collectionName, string snapshotFileName, KnowledgeSnapshotOptions? options = null)
+        => Task.FromResult(new BinaryData(Array.Empty<byte>()));
+    Task<bool> RecoverCollectionFromSnapshot(string collectionName, string snapshotFileName, BinaryData snapshotData, KnowledgeSnapshotOptions? options = null)
+        => Task.FromResult(false);
+    Task<bool> DeleteCollectionSnapshot(string collectionName, string snapshotName, KnowledgeSnapshotOptions? options = null)
+        => Task.FromResult(false);
     #endregion
 }

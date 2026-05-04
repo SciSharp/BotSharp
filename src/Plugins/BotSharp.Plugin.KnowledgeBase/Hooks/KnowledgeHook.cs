@@ -1,29 +1,13 @@
-using BotSharp.Abstraction.Graph.Options;
-using BotSharp.Abstraction.VectorStorage.Options;
-
 namespace BotSharp.Plugin.KnowledgeBase.Hooks;
 
 public class KnowledgeHook : IKnowledgeHook
 {
-    private readonly IKnowledgeService _knowledgeService;
-    private readonly IGraphKnowledgeService _graphKnowledgeService;
     private readonly IServiceProvider _services;
 
     public KnowledgeHook(
-        IKnowledgeService knowledgeService,
-        IGraphKnowledgeService graphKnowledgeService,
         IServiceProvider services)
     {
-        _knowledgeService = knowledgeService;
-        _graphKnowledgeService = graphKnowledgeService;
         _services = services;
-    }
-
-    private async Task<List<AgentKnowledgeBase>> GetKnowledgeBaseNameByAgentIdAsync(string agentId)
-    {
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.GetAgent(agentId);
-        return agent.KnowledgeBases;
     }
 
     public async Task<List<string>> GetDomainKnowledges(RoleDialogModel message, string text)
@@ -34,44 +18,35 @@ public class KnowledgeHook : IKnowledgeHook
 
         foreach (var knowledgeBase in knowledgeBases)
         {
-            if (knowledgeBase.Type == "relationships")
+            if (knowledgeBase.Type == KnowledgeBaseType.Document)
             {
-                var options = new GraphQueryOptions
-                {
-                    Provider = "Remote",
-                    Method = "local"
-                };
-                var result = await _graphKnowledgeService.ExecuteQueryAsync(text, options);
-                results.Add(result.Result);
-            }
-            else if (knowledgeBase.Type == "document")
-            {
-                var options = new VectorSearchOptions
+                var kg = GetKnowledgeService(knowledgeBase.Type);
+                var options = new KnowledgeExecuteOptions
                 {
                     Fields = null,
                     Limit = 5,
                     Confidence = 0.25f,
                     WithVector = true
                 };
-                var result = await _knowledgeService.SearchVectorKnowledge(text, knowledgeBase.Name, options);
+                var result = await kg.ExecuteQuery(text, knowledgeBase.Name, options);
                 results.AddRange(result.Where(x => x.Data != null && x.Data.ContainsKey("text"))
                                .Select(x => x.Data["text"].ToString())
                                .Where(x => x != null)!);
             }
-            else
+            else if (knowledgeBase.Type == KnowledgeBaseType.QuestionAnswer)
             {
-                var options = new VectorSearchOptions
+                var kg = GetKnowledgeService(knowledgeBase.Type);
+                var options = new KnowledgeExecuteOptions
                 {
                     Fields = null,
                     Limit = 5,
                     Confidence = 0.5f,
                     WithVector = true
                 };
-                var result = await _knowledgeService.SearchVectorKnowledge(text, knowledgeBase.Name, options);
+                var result = await kg.ExecuteQuery(text, knowledgeBase.Name, options);
                 results.AddRange(result.Where(x => x.Data != null && (x.Data.ContainsKey("text") || x.Data.ContainsKey("answer")))
                                .Select(x => x.Data.ContainsKey("answer") ? x.Data["text"].ToString() + "\r\n\r\n" + x.Data["answer"].ToString() : x.Data["text"].ToString())
                                .Where(x => x != null)!);
-
             }
         }
 
@@ -84,30 +59,23 @@ public class KnowledgeHook : IKnowledgeHook
         var results = new List<string>();
 
         // Get all knowledge bases
-        var knowledgeBases = await _knowledgeService.GetVectorCollections();
+        var kg = GetKnowledgeService();
+        var knowledgeBases = await kg.GetCollections(new() { IncludeAllTypes = true });
 
         foreach (var knowledgeBase in knowledgeBases)
         {
-            if (knowledgeBase.Type == "relationships")
+            if (knowledgeBase.Type == KnowledgeBaseType.Document
+                || knowledgeBase.Type == KnowledgeBaseType.QuestionAnswer)
             {
-                var options = new GraphQueryOptions
-                {
-                    Provider = "Remote",
-                    Method = "local"
-                };
-                var result = await _graphKnowledgeService.ExecuteQueryAsync(text, options);
-                results.Add(result.Result);
-            }
-            else
-            {
-                var options = new VectorSearchOptions
+                var kgSearcher = GetKnowledgeService(knowledgeBase.Type);
+                var options = new KnowledgeExecuteOptions
                 {
                     Fields = null,
                     Limit = 5,
                     Confidence = 0.5f,
                     WithVector = true
                 };
-                var result = await _knowledgeService.SearchVectorKnowledge(text, knowledgeBase.Name, options);
+                var result = await kgSearcher.ExecuteQuery(text, knowledgeBase.Name, options);
                 results.AddRange(result.Where(x => x.Data != null && (x.Data.ContainsKey("text") || x.Data.ContainsKey("answer")))
                                .Select(x => x.Data.ContainsKey("answer") ? x.Data["text"].ToString() + "\r\n\r\n" + x.Data["answer"].ToString() : x.Data["text"].ToString())
                                .Where(x => x != null)!);
@@ -120,5 +88,23 @@ public class KnowledgeHook : IKnowledgeHook
     public async Task<List<KnowledgeChunk>> CollectChunkedKnowledge()
     {
         return new List<KnowledgeChunk>();
+    }
+
+
+    private async Task<List<AgentKnowledgeBase>> GetKnowledgeBaseNameByAgentIdAsync(string agentId)
+    {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(agentId);
+        return agent.KnowledgeBases;
+    }
+
+    private IKnowledgeService GetKnowledgeService(string? type = null)
+    {
+        var kgs = _services.GetServices<IKnowledgeService>();
+        if (!string.IsNullOrWhiteSpace(type))
+        {
+            return kgs.First(x => x.KnowledgeType == type);
+        }
+        return kgs.First();
     }
 }

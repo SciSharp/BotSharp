@@ -1,11 +1,7 @@
 using static Dapper.SqlMapper;
-using Microsoft.Extensions.Logging;
-using BotSharp.Core.Infrastructures;
 using MySqlConnector;
-using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Knowledges.Enums;
 using BotSharp.Abstraction.VectorStorage.Models;
-using BotSharp.Plugin.SqlDriver.Models;
 using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Plugin.SqlDriver.Services;
@@ -26,8 +22,10 @@ public class DbKnowledgeService
     public async Task<bool> Import(ImportDbKnowledgeRequest request)
     {
         var sqlDriverSettings = _services.GetRequiredService<SqlDriverSetting>();
-        var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
         var settingService = _services.GetRequiredService<ISettingService>();
+        var kg = _services.GetServices<IKnowledgeService>()
+                          .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(KnowledgeBaseType.QuestionAnswer));
+        
         var provider = request.Provider ?? "openai";
         var model = request.Model ?? settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o);
         var schema = request.Schema;
@@ -71,7 +69,9 @@ public class DbKnowledgeService
 
                 foreach (var item in knowledges)
                 {
-                    await knowledgeService.CreateVectorCollectionData(collectionName, new VectorCreateModel
+                    if (kg == null) continue;
+
+                    await kg.CreateCollectionData(collectionName, new KnowledgeCreateModel
                     {
                         Text = item.Question,
                         Payload = new Dictionary<string, VectorPayloadValue>

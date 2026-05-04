@@ -1,11 +1,5 @@
 namespace BotSharp.Abstraction.VectorStorage.Models;
 
-public class VectorCollectionConfigsModel
-{
-    [JsonPropertyName("collections")]
-    public List<VectorCollectionConfig> Collections { get; set; } = new();
-}
-
 public class VectorCollectionConfig
 {
     /// <summary>

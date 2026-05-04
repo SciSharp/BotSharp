@@ -4,7 +4,7 @@ public class VectorCollectionConfigFilter
 {
     public IEnumerable<string>? CollectionNames { get; set; }
     public IEnumerable<string>? CollectionTypes { get; set; }
-    public IEnumerable<string>? VectorStroageProviders { get; set; }
+    public IEnumerable<string>? VectorStorageProviders { get; set; }
 
     public static VectorCollectionConfigFilter Empty()
     {

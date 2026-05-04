@@ -15,6 +15,7 @@ global using BotSharp.Abstraction.Files.Utilities;
 global using BotSharp.Abstraction.Functions.Models;
 global using BotSharp.Abstraction.Infrastructures.Events;
 global using BotSharp.Abstraction.Knowledges.Models;
+global using BotSharp.Abstraction.Knowledges.Options;
 global using BotSharp.Abstraction.Loggers.Services;
 global using BotSharp.Abstraction.MCP.Models;
 global using BotSharp.Abstraction.MCP.Services;
