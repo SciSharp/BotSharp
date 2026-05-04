@@ -33,7 +33,7 @@ public class TaxonomyKnowledgeBase : IKnowledgeService
                 return results;
             }
 
-            var taxonomyOptions = options as TaxonomyKnowledgeSearchOptions;
+            var taxonomyOptions = options as TaxonomyKnowledgeExecuteOptions;
             var analysisOptions = new EntityAnalysisOptions
             {
                 DataProviders = taxonomyOptions?.DataProviders,

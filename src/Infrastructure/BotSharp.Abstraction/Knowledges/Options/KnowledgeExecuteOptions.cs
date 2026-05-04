@@ -8,7 +8,7 @@ public class KnowledgeExecuteOptions
     public IEnumerable<string>? Fields { get; set; }
     public IEnumerable<VectorFilterGroup>? FilterGroups { get; set; }
     public Dictionary<string, string?>? SearchParam { get; set; }
-    public Dictionary<string, object?>? SearchArguments { get; set; }
+    public Dictionary<string, object>? SearchArguments { get; set; }
 
     public int? Limit { get; set; } = 5;
     public float? Confidence { get; set; } = 0.5f;

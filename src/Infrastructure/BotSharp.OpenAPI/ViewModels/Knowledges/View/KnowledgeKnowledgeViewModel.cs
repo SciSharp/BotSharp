@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 using System.Text.Json.Serialization;
 
@@ -22,30 +21,6 @@ public class KnowledgeKnowledgeViewModel
     [JsonPropertyName("vector_dimension")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? VectorDimension { get; set; }
-
-
-    public static KnowledgeKnowledgeViewModel From(VectorSearchResult result)
-    {
-        return new KnowledgeKnowledgeViewModel
-        {
-            Id = result.Id,
-            Data = result.Data,
-            Payload = result.Payload,
-            Score = result.Score,
-            VectorDimension = result.Vector?.Length
-        };
-    }
-
-    public static KnowledgeKnowledgeViewModel From(VectorCollectionData data)
-    {
-        return new KnowledgeKnowledgeViewModel
-        {
-            Id = data.Id,
-            Data = data.Data,
-            Payload = data.Payload,
-            VectorDimension = data.Vector?.Length
-        };
-    }
 
     public static KnowledgeKnowledgeViewModel From(KnowledgeExecuteResult result)
     {

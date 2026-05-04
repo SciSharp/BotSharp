@@ -30,10 +30,10 @@ public class SementicGraphKnowledgeBase : IKnowledgeService
                 return results;
             }
 
-            var graphSearchOptions = options as GraphKnowledgeSearchOptions;
+            var graphExecuteOptions = options as GraphKnowledgeExecuteOptions;
             var graphOptions = new GraphQueryExecuteOptions
             {
-                GraphId = graphSearchOptions?.GraphId,
+                GraphId = graphExecuteOptions?.GraphId,
                 Arguments = options?.SearchArguments
             };
 

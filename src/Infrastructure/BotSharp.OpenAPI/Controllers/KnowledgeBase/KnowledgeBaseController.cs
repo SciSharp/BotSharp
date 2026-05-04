@@ -398,7 +398,7 @@ public partial class KnowledgeBaseController : ControllerBase
 
         if (kg.KnowledgeType.IsEqualTo(KnowledgeBaseType.SemanticGraph))
         {
-            return new GraphKnowledgeSearchOptions
+            return new GraphKnowledgeExecuteOptions
             {
                 DbProvider = request?.DbProvider,
                 SearchParam = searchParam,
@@ -409,7 +409,7 @@ public partial class KnowledgeBaseController : ControllerBase
 
         if (kg.KnowledgeType.IsEqualTo(KnowledgeBaseType.Taxonomy))
         {
-            return new TaxonomyKnowledgeSearchOptions
+            return new TaxonomyKnowledgeExecuteOptions
             {
                 DbProvider = request?.DbProvider,
                 Limit = request?.Limit ?? 5,
