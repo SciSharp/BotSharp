@@ -140,6 +140,57 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 - [x] Multi-Agent Routing
 - [x] Knowledge Base
 
+
+### FAQ
+
+#### General Questions
+
+**What is BotSharp?**
+BotSharp is an open-source .NET machine learning framework for building AI Bot platforms. It provides out-of-the-box components for natural language understanding, computer vision, and audio processing, enabling enterprise developers to integrate AI into business systems efficiently.
+
+**What .NET versions are supported?**
+BotSharp runs on .NET Core, which is fully cross-platform. It supports .NET 6+ and works on Windows, Linux, and macOS.
+
+**Is BotSharp free to use?**
+Yes, BotSharp is licensed under Apache 2.0, allowing free use in both personal and commercial projects.
+
+#### LLM Provider Configuration
+
+**Which LLM providers are supported?**
+BotSharp supports multiple AI platforms including ChatGPT (3.5/4o/o1), Gemini 2, LLaMA 3, Claude Sonnet 3.5, DeepSeek V3, HuggingFace, and more through its modular plugin system.
+
+**How do I configure a custom LLM provider?**
+Create a plugin that implements the LLM provider interface, or use one of the built-in plugins like `BotSharp.Plugin.OpenAI` or `BotSharp.Plugin.AnthropicAI`. Configure the API keys in your `appsettings.json`.
+
+#### Agent Development
+
+**How do I create a custom agent?**
+Define an agent profile with its responsibilities, then implement the required hooks and plugins. BotSharp's advanced Agent abstraction layer handles the complex orchestration automatically.
+
+**Can multiple agents cooperate on a task?**
+Yes, BotSharp supports multi-agent scenarios where agents with different responsibilities can cooperate to complete complex tasks. The routing and planning system handles agent coordination.
+
+#### MCP Integration
+
+**What is MCP and how does BotSharp support it?**
+MCP (Model Context Protocol) enables large model calls to external tools. BotSharp has built-in MCP integration with visual management capabilities, supporting mainstream services like mcp.so.
+
+#### Deployment
+
+**How do I deploy BotSharp in production?**
+Run the backend service using `dotnet run` and deploy it behind a reverse proxy (Nginx/IIS). The Admin UI (built with SvelteKit) can be deployed separately. See the [documentation](https://botsharp.readthedocs.io) for detailed deployment guides.
+
+**Can I use BotSharp without the UI?**
+Yes, BotSharp provides RESTful Open API and WebSocket real-time communication. You can integrate it directly with your own frontend or messaging channels.
+
+#### Troubleshooting
+
+**BotSharp fails to start with dependency errors**
+Ensure you have .NET 6+ SDK installed and all NuGet packages are restored. Run `dotnet restore` before `dotnet run`.
+
+**LLM calls are timing out**
+Check your API key configuration in `appsettings.json`, verify network connectivity to the LLM provider, and ensure the model name is correct.
+
 ### Documents
 
 Read the docs: https://botsharp.readthedocs.io?wt.mc_id=AI-MVP-5005183
