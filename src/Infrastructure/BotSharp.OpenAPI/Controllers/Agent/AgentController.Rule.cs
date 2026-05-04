@@ -9,7 +9,10 @@ public partial class AgentController
     public IEnumerable<AgentRuleViewModel> GetRuleTriggers(string agentId)
     {
         var triggers = _services.GetServices<IRuleTrigger>();
-        triggers = triggers.Where(x => x.AgentIds == null || !x.AgentIds.Any() || x.AgentIds.Contains(agentId));
+        if (!string.IsNullOrWhiteSpace(agentId))
+        {
+            triggers = triggers.Where(x => x.AgentIds == null || x.AgentIds.Contains(agentId, StringComparer.OrdinalIgnoreCase));
+        }
         return triggers.Select(x => new AgentRuleViewModel
         {
             TriggerName = x.Name,
