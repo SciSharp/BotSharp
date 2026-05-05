@@ -25,11 +25,12 @@ public class A2ADelegationFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
+        var rawArgs = string.IsNullOrWhiteSpace(message.FunctionArgs) ? "{}" : message.FunctionArgs;
+        var args = JsonSerializer.Deserialize<JsonElement>(rawArgs);
         string queryText = string.Empty;
         if (args.TryGetProperty("user_query", out var queryProp))
         {
-            queryText = queryProp.GetString();
+            queryText = queryProp.GetString() ?? string.Empty;
         }
 
         var agentId = message.CurrentAgentId;
@@ -43,6 +44,12 @@ public class A2ADelegationFn : IFunctionCallback
         }
 
         var conversationId = _stateService.GetConversationId();
+        if (string.IsNullOrWhiteSpace(conversationId))
+        {
+            message.Content = "System Error: Conversation context is unavailable for A2A session continuation.";
+            message.StopCompletion = true;
+            return false;
+        }
 
         try
         {
