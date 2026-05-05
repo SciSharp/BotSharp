@@ -54,6 +54,7 @@ public class A2ADelegationFn : IFunctionCallback
             );
 
             message.Content = responseText; 
+            message.StopCompletion = true;
             return true;
         }
         catch (Exception ex)
