@@ -45,4 +45,9 @@ public interface IMembaseApi
     [Delete("/graph/{graphId}/edge/{edgeId}")]
     Task DeleteEdgeAsync(string graphId, string edgeId);
     #endregion
+
+    #region PGT
+    [Post("/graph/{graphId}/pgt-definitions/{definitionId}/simulate")]
+    Task<PgtSimulationResponse> SimulatePgtDefinitionAsync(string graphId, string definitionId, [Body] PgtSimulationRequest request);
+    #endregion
 }

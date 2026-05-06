@@ -448,4 +448,51 @@ public class MembaseController : ControllerBase
                 new { message = "An error occurred while deleting the edge.", error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Simulate a PGT definition
+    /// </summary>
+    /// <param name="graphId">The graph identifier</param>
+    /// <param name="definitionId">The PGT definition identifier</param>
+    /// <param name="request">The simulation request containing start node and options</param>
+    /// <returns>Simulation result with trace log and visited nodes</returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
+    [HttpPost("/membase/{graphId}/pgt-definitions/{definitionId}/simulate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> SimulatePgtDefinition(string graphId, string definitionId, [FromBody] PgtSimulationRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(graphId))
+        {
+            return BadRequest("Graph ID cannot be empty.");
+        }
+
+        if (string.IsNullOrWhiteSpace(definitionId))
+        {
+            return BadRequest("Definition ID cannot be empty.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request?.StartId))
+        {
+            return BadRequest("Start ID cannot be empty.");
+        }
+
+        try
+        {
+            request.Options ??= new();
+            request.Options.RunId = $"sim-{Guid.NewGuid()}";
+            var result = await _membaseApi.SimulatePgtDefinitionAsync(graphId, definitionId, request);
+            result.RunId = request.Options.RunId;
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { message = "An error occurred while simulating the PGT definition.", error = ex.Message });
+        }
+    }
 }
