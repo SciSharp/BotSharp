@@ -82,6 +82,6 @@ public class LlmAudioTranscriptionConfig : LlmProviderModel
 {
 }
 
-public class LlmRealtimeConfig : LlmProviderModel
+public class LlmRealtimeConfig : LlmConfigBase
 {
 }
