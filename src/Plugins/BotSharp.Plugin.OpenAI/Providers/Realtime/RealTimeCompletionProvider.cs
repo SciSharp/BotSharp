@@ -135,17 +135,20 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
             }
-            else if (response.Type == "response.audio_transcript.delta" || response.Type == "response.output_audio_transcript.delta")
+            else if (response.Type == "response.audio_transcript.delta"
+                || response.Type == "response.output_audio_transcript.delta")
             {
                 _logger.LogDebug($"{response.Type}: {receivedText}");
             }
-            else if (response.Type == "response.audio_transcript.done" || response.Type == "response.output_audio_transcript.done")
+            else if (response.Type == "response.audio_transcript.done"
+                || response.Type == "response.output_audio_transcript.done")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
                 var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(receivedText);
                 await _onModelAudioTranscriptDone(data.Transcript);
             }
-            else if (response.Type == "response.audio.delta" || response.Type == "response.output_audio.delta")
+            else if (response.Type == "response.audio.delta"
+                || response.Type == "response.output_audio.delta")
             {
                 var audio = JsonSerializer.Deserialize<ResponseAudioDelta>(receivedText);
                 if (audio?.Delta != null)
@@ -154,7 +157,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     await _onModelAudioDeltaReceived(audio.Delta, audio.ItemId);
                 }
             }
-            else if (response.Type == "response.audio.done" || response.Type == "response.output_audio.done")
+            else if (response.Type == "response.audio.done"
+                || response.Type == "response.output_audio.done")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
                 await _onModelAudioResponseDone();
@@ -378,7 +382,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             };
         }
 
-        UpdateSessionConfig(sessionUpdate.session, realtimeModelSettings);
+        UpdateSessionConfig(agent, sessionUpdate.session, realtimeModelSettings);
 
         await HookEmitter.Emit<IContentGeneratingHook>(_services, async hook =>
         {
@@ -730,7 +734,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         return headers;
     }
 
-    private void UpdateSessionConfig(RealtimeSessionUpdateRequest request, RealtimeModelSettings realtimeModelSettings)
+    private void UpdateSessionConfig(Agent agent, RealtimeSessionUpdateRequest request, RealtimeModelSettings realtimeModelSettings)
     {
         if (_openAiSettings.UseGAApiModels?.Contains(_model) != true)
         {
@@ -756,7 +760,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
         };
 
-        var reasoningEffort = GetReasoningEffort();
+        var reasoningEffort = GetReasoningEffort(agent);
         request.Reasoning = !string.IsNullOrWhiteSpace(reasoningEffort) ? new RealtimeReasoningConfig
         {
             Effort = reasoningEffort
@@ -805,24 +809,28 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         return result;
     }
 
-    private string? GetReasoningEffort()
+    private string? GetReasoningEffort(Agent agent)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         var reasoningEffort = state.GetState("reasoning_effort_level");
-        if (!string.IsNullOrWhiteSpace(reasoningEffort))
+
+        if (string.IsNullOrEmpty(reasoningEffort) && _model == agent?.LlmConfig?.Realtime?.Model)
         {
-            return reasoningEffort;
+            reasoningEffort = agent?.LlmConfig?.Realtime?.ReasoningEffortLevel;
         }
 
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = llmProviderService.GetSetting(Provider, _model)?.Reasoning;
-
-        reasoningEffort = settings?.EffortLevel;
-        if (settings?.Parameters != null
-            && settings.Parameters.TryGetValue("EffortLevel", out var settingValue)
-            && !string.IsNullOrEmpty(settingValue?.Default))
+        if (string.IsNullOrEmpty(reasoningEffort))
         {
-            reasoningEffort = settingValue.Default;
+            var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+            var settings = llmProviderService.GetSetting(Provider, _model)?.Reasoning;
+
+            reasoningEffort = settings?.EffortLevel;
+            if (settings?.Parameters != null
+                && settings.Parameters.TryGetValue("EffortLevel", out var settingValue)
+                && !string.IsNullOrEmpty(settingValue?.Default))
+            {
+                reasoningEffort = settingValue.Default;
+            }
         }
 
         return reasoningEffort;
