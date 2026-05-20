@@ -40,7 +40,7 @@ public class McpHttpServerConfig : McpHttpServerConfigBase
 {
 }
 
-public class McpHttpServerConfigBase
+public abstract class McpHttpServerConfigBase
 {
     public string EndPoint { get; set; } = null!;
     public TimeSpan ConnectionTimeout { get; init; } = TimeSpan.FromSeconds(30);

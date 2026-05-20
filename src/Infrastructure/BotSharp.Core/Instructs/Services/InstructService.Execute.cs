@@ -242,12 +242,31 @@ public partial class InstructService
         var result = string.Empty;
 
         // Render prompt
-        var prompt = string.IsNullOrEmpty(templateName) ?
-            agentService.RenderInstruction(agent) :
-            agentService.RenderTemplate(agent, templateName);
+        var prompt = string.Empty;
+        var llmConfig = agent.LlmConfig;
+
+        if (!string.IsNullOrEmpty(templateName))
+        {
+            prompt = agentService.RenderTemplate(agent, templateName);
+            var templateLlmConfig = agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName))?.LlmConfig;
+            if (templateLlmConfig?.IsValid == true)
+            {
+                llmConfig = new AgentLlmConfig
+                {
+                    Provider = templateLlmConfig.Provider,
+                    Model = templateLlmConfig.Model,
+                    MaxOutputTokens = templateLlmConfig.MaxOutputTokens,
+                    ReasoningEffortLevel = templateLlmConfig.ReasoningEffortLevel
+                };
+            }
+        }
+        else
+        {
+            prompt = agentService.RenderInstruction(agent);
+        }
 
         var completer = CompletionProvider.GetCompletion(_services,
-            agentConfig: agent.LlmConfig);
+            agentConfig: llmConfig);
 
         if (completer is ITextCompletion textCompleter)
         {
@@ -292,7 +311,7 @@ public partial class InstructService
             }
             else
             {
-                result = await GetChatCompletion(chatCompleter, agent, instruction, prompt, message.MessageId, files);
+                result = await GetChatCompletion(chatCompleter, agent, instruction, prompt, message.MessageId, llmConfig, files);
             }
 
             // Repair JSON format if needed
@@ -343,6 +362,7 @@ public partial class InstructService
         string instruction,
         string text,
         string messageId,
+        AgentLlmConfig? llmConfig = null,
         IEnumerable<InstructFileModel>? files = null)
     {
         var result = await chatCompleter.GetChatCompletions(new Agent
@@ -350,7 +370,7 @@ public partial class InstructService
             Id = agent.Id,
             Name = agent.Name,
             Instruction = instruction,
-            LlmConfig = agent.LlmConfig
+            LlmConfig = llmConfig ?? agent.LlmConfig
         }, new List<RoleDialogModel>
         {
             new RoleDialogModel(AgentRole.User, text)

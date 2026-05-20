@@ -40,8 +40,8 @@ public interface IVectorDb
     Task<bool> DeleteCollectionShapshot(string collectionName, string snapshotName)
         => throw new NotImplementedException();
 
-    Task<bool> CreateCollectionPayloadIndex(string collectionName, CreateVectorCollectionIndexOptions options)
+    Task<bool> CreateCollectionPayloadIndex(string collectionName, CollectionIndexOptions options)
         => throw new NotImplementedException();
-    Task<bool> DeleteCollectionPayloadIndex(string collectionName, DeleteVectorCollectionIndexOptions options)
+    Task<bool> DeleteCollectionPayloadIndex(string collectionName, CollectionIndexOptions options)
         => throw new NotImplementedException();
 }

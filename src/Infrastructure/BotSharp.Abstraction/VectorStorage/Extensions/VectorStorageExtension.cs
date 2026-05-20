@@ -5,7 +5,7 @@ namespace BotSharp.Abstraction.VectorStorage.Extensions;
 
 public static class VectorStorageExtension
 {
-    public static string ToQuestionAnswer(this VectorSearchResult data)
+    public static string ToQuestionAnswer(this KnowledgeExecuteResult data)
     {
         if (data?.Data == null) return string.Empty;
 

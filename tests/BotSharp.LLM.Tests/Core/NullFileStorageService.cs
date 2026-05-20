@@ -114,23 +114,23 @@ namespace BotSharp.Plugin.Google.Core
             return BinaryData.FromBytes(new byte[] { 0x03, 0x04, 0x05 });
         }
 
-        public bool SaveKnowledgeBaseFile(string collectionName, string vectorStoreProvider, Guid fileId, string fileName,
+        public bool SaveKnowledgeBaseFile(string collectionName, string knowledgebaseProvider, Guid fileId, string fileName,
             BinaryData fileData)
         {
             return true;
         }
 
-        public bool DeleteKnowledgeFile(string collectionName, string vectorStoreProvider, Guid? fileId = null)
+        public bool DeleteKnowledgeFile(string collectionName, string knowledgebaseProvider, Guid? fileId = null)
         {
             return true;
         }
 
-        public string GetKnowledgeBaseFileUrl(string collectionName, string vectorStoreProvider, Guid fileId, string fileName)
+        public string GetKnowledgeBaseFileUrl(string collectionName, string knowledgebaseProvider, Guid fileId, string fileName)
         {
             return $"https://fakeurl.com/{fileName}";
         }
 
-        public BinaryData GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, Guid fileId,
+        public BinaryData GetKnowledgeBaseFileBinaryData(string collectionName, string knowledgebaseProvider, Guid fileId,
             string fileName)
         {
             return BinaryData.FromBytes(new byte[] { 0x06, 0x07, 0x08 });

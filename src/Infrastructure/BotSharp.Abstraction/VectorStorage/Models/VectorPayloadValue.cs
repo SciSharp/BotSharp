@@ -15,7 +15,7 @@ public class VectorPayloadValue
         
     }
 
-    public VectorPayloadValue(object data, VectorPayloadDataType dataType)
+    public VectorPayloadValue(object data, VectorPayloadDataType dataType = VectorPayloadDataType.Unknown)
     {
         DataValue = data;
         DataType = dataType;

@@ -2,6 +2,7 @@
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
+using OpenAI.Chat;
 using OpenAI.Responses;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
@@ -471,6 +472,7 @@ public partial class ChatCompletionProvider
         }
 
         AddBuiltInTools(options.Tools, settings);
+        AddResponseToolChoice(options);
 
         if (!string.IsNullOrEmpty(agent.Knowledges))
         {
@@ -751,5 +753,19 @@ public partial class ChatCompletionProvider
         return null;
     }
     #endregion
+
+    private void AddResponseToolChoice(CreateResponseOptions options)
+    {
+        if (options.Tools.IsNullOrEmpty())
+        {
+            return;
+        }
+
+        // Apply tool_choice only when tools are present; tool_choice is rejected by the API otherwise.
+        if (_state.GetState("tool_choice").IsEqualTo("required"))
+        {
+            options.ToolChoice = ResponseToolChoice.CreateRequiredChoice();
+        }
+    }
     #endregion
 }

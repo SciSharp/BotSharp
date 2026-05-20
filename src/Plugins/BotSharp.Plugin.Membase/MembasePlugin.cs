@@ -1,11 +1,11 @@
 using BotSharp.Abstraction.Plugins.Models;
-using BotSharp.Abstraction.Rules;
 using BotSharp.Plugin.Membase.GraphDb;
 using BotSharp.Plugin.Membase.Handlers;
 using Refit;
 
 namespace BotSharp.Plugin.Membase;
 
+[PluginDependency("BotSharp.Plugin.KnowledgeBase")]
 public class MembasePlugin : IBotSharpPlugin
 {
     public string Id => "8df12767-9a44-45d9-93cd-12a10adf3933";
@@ -39,10 +39,6 @@ public class MembasePlugin : IBotSharpPlugin
 
         _membaseCredential = config.GetValue<string>("Membase:ApiKey") ?? string.Empty;
         _membaseProjectId = config.GetValue<string>("Membase:ProjectId") ?? string.Empty;
-
-#if DEBUG
-        services.AddScoped<IRuleFlow<RuleGraph>, DemoRuleGraph>();
-#endif
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)
@@ -55,7 +51,7 @@ public class MembasePlugin : IBotSharpPlugin
                 Source = "membase",
                 HtmlTag = "iframe",
                 Url = $"https://console.membase.dev/query-editor/{_membaseProjectId}?token={_membaseCredential}",
-                HtmlStyle = "width: 100%; height: 90%;",
+                HtmlStyle = "width: 100%; height: 98%;",
                 FullScreen = true
             }
         });

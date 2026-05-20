@@ -65,6 +65,19 @@ public static class FileUtility
 
     public static string GetFileContentType(string fileName)
     {
+        if (string.IsNullOrEmpty(fileName))
+        {
+            return string.Empty;
+        }
+
+        // For URLs (e.g. signed S3/CloudFront URLs with query strings), extract the path portion
+        // so that FileExtensionContentTypeProvider can correctly resolve the extension.
+        if (Uri.TryCreate(fileName, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+        {
+            fileName = uri.AbsolutePath;
+        }
+
         string contentType;
         var provider = new FileExtensionContentTypeProvider();
         if (!provider.TryGetContentType(fileName, out contentType))

@@ -1,27 +1,7 @@
-using BotSharp.OpenAPI.ViewModels.Knowledges;
-
 namespace BotSharp.OpenAPI.Controllers;
 
 public partial class KnowledgeBaseController
 {
-    /// <summary>
-    /// Entity analyis with options
-    /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    [HttpPost("knowledge/entity/analyze")]
-    public async Task<EntityAnalysisResponse?> EntityAnalyze([FromBody] EntityAnalysisRequest request)
-    {
-        var analyzer = _services.GetServices<IEntityAnalyzer>()
-                                .FirstOrDefault(x => x.Provider.IsEqualTo(request.Provider));
-
-        if (analyzer == null)
-        {
-            return null;
-        }
-        return await analyzer.AnalyzeAsync(request.Text, request.Options);
-    }
-
     /// <summary>
     /// Get entity analyzers
     /// </summary>

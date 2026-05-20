@@ -20,6 +20,7 @@ global using BotSharp.Abstraction.Agents;
 global using BotSharp.Abstraction.Utilities;
 global using BotSharp.Abstraction.Knowledges;
 global using BotSharp.Abstraction.Knowledges.Models;
+global using BotSharp.Abstraction.Knowledges.Options;
 global using BotSharp.Abstraction.Settings;
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Instructs;

@@ -4,17 +4,17 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class LocalFileStorageService
 {
-    public bool SaveKnowledgeBaseFile(string collectionName, string vectorStoreProvider, Guid fileId, string fileName, BinaryData fileData)
+    public bool SaveKnowledgeBaseFile(string collectionName, string knowledgebaseProvider, Guid fileId, string fileName, BinaryData fileData)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider))
+            || string.IsNullOrWhiteSpace(knowledgebaseProvider))
         {
             return false;
         }
 
         try
         {
-            var docDir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+            var docDir = BuildKnowledgeCollectionFileDir(collectionName, knowledgebaseProvider);
             var dir = Path.Combine(docDir, fileId.ToString());
             if (ExistDirectory(dir))
             {
@@ -32,20 +32,20 @@ public partial class LocalFileStorageService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, $"Error when saving knowledge file " +
-                $"(Vector store provider: {vectorStoreProvider}, Collection: {collectionName}, File name: {fileName}).");
+                $"(Vector store provider: {knowledgebaseProvider}, Collection: {collectionName}, File name: {fileName}).");
             return false;
         }
     }
 
-    public bool DeleteKnowledgeFile(string collectionName, string vectorStoreProvider, Guid? fileId = null)
+    public bool DeleteKnowledgeFile(string collectionName, string knowledgebaseProvider, Guid? fileId = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider))
+            || string.IsNullOrWhiteSpace(knowledgebaseProvider))
         {
             return false;
         }
 
-        var dir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+        var dir = BuildKnowledgeCollectionFileDir(collectionName, knowledgebaseProvider);
         if (!ExistDirectory(dir))
         {
             return false;
@@ -67,16 +67,16 @@ public partial class LocalFileStorageService
         return true;
     }
 
-    public string GetKnowledgeBaseFileUrl(string collectionName, string vectorStoreProvider, Guid fileId, string fileName)
+    public string GetKnowledgeBaseFileUrl(string collectionName, string knowledgebaseProvider, Guid fileId, string fileName)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider)
+            || string.IsNullOrWhiteSpace(knowledgebaseProvider)
             || string.IsNullOrWhiteSpace(fileName))
         {
             return string.Empty;
         }
 
-        var docDir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+        var docDir = BuildKnowledgeCollectionFileDir(collectionName, knowledgebaseProvider);
         var file = Path.Combine(docDir, fileId.ToString(), fileName);
         if (!File.Exists(file))
         {
@@ -86,16 +86,16 @@ public partial class LocalFileStorageService
         return $"/knowledge/document/{collectionName}/file/{fileId}";
     }
 
-    public BinaryData GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, Guid fileId, string fileName)
+    public BinaryData GetKnowledgeBaseFileBinaryData(string collectionName, string knowledgebaseProvider, Guid fileId, string fileName)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider)
+            || string.IsNullOrWhiteSpace(knowledgebaseProvider)
             || string.IsNullOrWhiteSpace(fileName))
         {
             return BinaryData.Empty;
         }
 
-        var docDir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+        var docDir = BuildKnowledgeCollectionFileDir(collectionName, knowledgebaseProvider);
         var file = Path.Combine(docDir, fileId.ToString(), fileName);
 
         if (!File.Exists(file))
@@ -111,9 +111,9 @@ public partial class LocalFileStorageService
 
 
     #region Private methods
-    private string BuildKnowledgeCollectionFileDir(string collectionName, string vectorStoreProvider)
+    private string BuildKnowledgeCollectionFileDir(string collectionName, string knowledgebaseProvider)
     {
-        return Path.Combine(_baseDir, KNOWLEDGE_FOLDER, KNOWLEDGE_DOC_FOLDER, vectorStoreProvider.CleanStr(), collectionName.CleanStr());
+        return Path.Combine(_baseDir, KNOWLEDGE_FOLDER, KNOWLEDGE_DOC_FOLDER, knowledgebaseProvider.CleanStr(), collectionName.CleanStr());
     }
     #endregion
 }

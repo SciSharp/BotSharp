@@ -128,6 +128,8 @@ public class LlmAudioTranscriptionConfigMongoModel : LlmProviderModelMongoModel
 [BsonIgnoreExtraElements(Inherited = true)]
 public class LlmRealtimeConfigMongoModel : LlmProviderModelMongoModel
 {
+    public string? ReasoningEffortLevel { get; set; }
+
     public static LlmRealtimeConfig? ToDomainModel(LlmRealtimeConfigMongoModel? config)
     {
         if (config == null)
@@ -138,7 +140,8 @@ public class LlmRealtimeConfigMongoModel : LlmProviderModelMongoModel
         return new LlmRealtimeConfig
         {
             Provider = config.Provider,
-            Model = config.Model
+            Model = config.Model,
+            ReasoningEffortLevel = config.ReasoningEffortLevel
         };
     }
 
@@ -152,7 +155,8 @@ public class LlmRealtimeConfigMongoModel : LlmProviderModelMongoModel
         return new LlmRealtimeConfigMongoModel
         {
             Provider = config.Provider,
-            Model = config.Model
+            Model = config.Model,
+            ReasoningEffortLevel = config.ReasoningEffortLevel
         };
     }
 }
