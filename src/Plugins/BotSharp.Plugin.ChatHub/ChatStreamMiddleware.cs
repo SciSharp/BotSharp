@@ -66,8 +66,10 @@ public class ChatStreamMiddleware
         // load conversation and state
         var convService = services.GetRequiredService<IConversationService>();
         var state = services.GetRequiredService<IConversationStateService>();
+        var routing = services.GetRequiredService<IRoutingService>();
         await convService.SetConversationId(conversationId, []);
         await convService.GetConversationRecordOrCreateNew(agentId);
+        await routing.Context.Push(agentId);
 
         await foreach (ChatSessionUpdate update in session.ReceiveUpdatesAsync(CancellationToken.None))
         {
