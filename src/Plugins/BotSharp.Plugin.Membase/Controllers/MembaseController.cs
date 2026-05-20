@@ -448,4 +448,150 @@ public class MembaseController : ControllerBase
                 new { message = "An error occurred while deleting the edge.", error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Simulate a PGT definition
+    /// </summary>
+    /// <param name="graphId">The graph identifier</param>
+    /// <param name="definitionId">The PGT definition identifier</param>
+    /// <param name="request">The simulation request containing start node and options</param>
+    /// <returns>Simulation result with trace log and visited nodes</returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
+    [HttpPost("/membase/{graphId}/pgt-definitions/{definitionId}/simulate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> SimulatePgtDefinition(string graphId, string definitionId, [FromBody] PgtSimulationRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(graphId))
+        {
+            return BadRequest("Graph ID cannot be empty.");
+        }
+
+        if (string.IsNullOrWhiteSpace(definitionId))
+        {
+            return BadRequest("Definition ID cannot be empty.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request?.StartId))
+        {
+            return BadRequest("Start ID cannot be empty.");
+        }
+
+        try
+        {
+            request.Options ??= new();
+            if (string.IsNullOrEmpty(request.Options.RunId))
+            {
+                request.Options.RunId = $"sim-{Guid.NewGuid()}";
+            }
+            
+            var result = await _membaseApi.SimulatePgtDefinitionAsync(graphId, definitionId, request);
+            result.RunId = request.Options.RunId;
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { message = "An error occurred while simulating the PGT definition.", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Traverse a PGT definition
+    /// </summary>
+    /// <param name="graphId">The graph identifier</param>
+    /// <param name="definitionId">The PGT definition identifier</param>
+    /// <param name="request">The traversal request containing start node and options</param>
+    /// <returns>Traversal result with context, visited nodes, and trace log</returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
+    [HttpPost("/membase/{graphId}/pgt-definitions/{definitionId}/traverse")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> TraversePgtDefinition(string graphId, string definitionId, [FromBody] PgtTraversalRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(graphId))
+        {
+            return BadRequest("Graph ID cannot be empty.");
+        }
+
+        if (string.IsNullOrWhiteSpace(definitionId))
+        {
+            return BadRequest("Definition ID cannot be empty.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request?.StartId))
+        {
+            return BadRequest("Start ID cannot be empty.");
+        }
+
+        try
+        {
+            request.Options ??= new();
+            if (string.IsNullOrEmpty(request.Options.RunId))
+            {
+                request.Options.RunId = $"trv-{Guid.NewGuid()}";
+            }
+
+            var result = await _membaseApi.TraversePgtDefinitionAsync(graphId, definitionId, request);
+            result.RunId = request.Options.RunId;
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { message = "An error occurred while traversing the PGT definition.", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Validate a PGT definition
+    /// </summary>
+    /// <param name="graphId">The graph identifier</param>
+    /// <param name="definitionId">The PGT definition identifier</param>
+    /// <param name="request">The validation request containing start node and options</param>
+    /// <returns>Validation result with valid flag, errors, warnings, and stats</returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
+    [HttpPost("/membase/{graphId}/pgt-definitions/{definitionId}/validate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ValidatePgtDefinition(string graphId, string definitionId, [FromBody] PgtValidationRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(graphId))
+        {
+            return BadRequest("Graph ID cannot be empty.");
+        }
+
+        if (string.IsNullOrWhiteSpace(definitionId))
+        {
+            return BadRequest("Definition ID cannot be empty.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request?.StartId))
+        {
+            return BadRequest("Start ID cannot be empty.");
+        }
+
+        try
+        {
+            var result = await _membaseApi.ValidatePgtDefinitionAsync(graphId, definitionId, request);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { message = "An error occurred while validating the PGT definition.", error = ex.Message });
+        }
+    }
 }
