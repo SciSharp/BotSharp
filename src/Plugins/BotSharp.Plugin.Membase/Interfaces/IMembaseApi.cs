@@ -49,5 +49,11 @@ public interface IMembaseApi
     #region PGT
     [Post("/graph/{graphId}/pgt-definitions/{definitionId}/simulate")]
     Task<PgtSimulationResponse> SimulatePgtDefinitionAsync(string graphId, string definitionId, [Body] PgtSimulationRequest request);
+
+    [Post("/graph/{graphId}/pgt-definitions/{definitionId}/traverse")]
+    Task<PgtTraversalResponse> TraversePgtDefinitionAsync(string graphId, string definitionId, [Body] PgtTraversalRequest request);
+
+    [Post("/graph/{graphId}/pgt-definitions/{definitionId}/validate")]
+    Task<PgtValidationResponse> ValidatePgtDefinitionAsync(string graphId, string definitionId, [Body] PgtValidationRequest request);
     #endregion
 }

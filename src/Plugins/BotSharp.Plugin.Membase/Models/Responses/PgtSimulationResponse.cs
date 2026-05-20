@@ -8,7 +8,7 @@ public class PgtSimulationResponse
     public PgtSimulationDataItem[] Data { get; set; } = [];
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public PgtSimulationStatistics? Statistics { get; set; }
+    public PgtStatistics? Statistics { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public object? ExecutionPlan { get; set; }
@@ -73,7 +73,7 @@ public class PgtTraceLogEntry
     public Dictionary<string, object>? Input { get; set; }
 }
 
-public class PgtSimulationStatistics
+public class PgtStatistics
 {
     public long ExecutionTimeMs { get; set; }
 }
