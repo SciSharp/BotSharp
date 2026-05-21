@@ -30,7 +30,7 @@ public class ChatStreamMiddleware
                 try
                 {
                     var services = httpContext.RequestServices;
-                    var segments = request.Path.Value.Split("/");
+                    var segments = request.Path.Value!.Split("/", StringSplitOptions.RemoveEmptyEntries);
                     var agentId = segments[segments.Length - 2];
                     var conversationId = segments[segments.Length - 1];
 
