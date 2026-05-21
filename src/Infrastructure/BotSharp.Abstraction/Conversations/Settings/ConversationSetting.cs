@@ -23,6 +23,8 @@ public class CleanConversationSetting
     public int BatchSize { get; set; }
     public int MessageLimit { get; set; }
     public int BufferHours { get; set; }
+    public int LogRetentionDays { get; set; }
+    public int LogBatchSize { get; set; } = 2000;
     public IEnumerable<string> ExcludeAgentIds { get; set; } = new List<string>();
 }
 

@@ -198,6 +198,11 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     #endregion
 
+    #region Log Cleanup
+    Task<int> DeleteOldConversationLogs(int retentionDays, int batchSize)
+        => throw new NotImplementedException();
+    #endregion
+
     #region Instruction Log
     Task<bool> SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
         => throw new NotImplementedException();

@@ -37,6 +37,7 @@ public static class BotSharpOpenApiExtensions
     {
         services.AddScoped<IUserIdentity, UserIdentity>();
         services.AddHostedService<ConversationTimeoutService>();
+        services.AddHostedService<ConversationLogCleanupService>();
 
         // Add bearer authentication
         var schema = "MIXED_SCHEME";
