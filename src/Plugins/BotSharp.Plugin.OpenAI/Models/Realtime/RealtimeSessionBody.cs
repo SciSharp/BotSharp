@@ -17,16 +17,24 @@ public class RealtimeSessionBody
     public string Model { get; set; } = null!;
 
     [JsonPropertyName("temperature")]
-    public float Temperature { get; set; } = 0.8f;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public float? Temperature { get; set; } = 0.8f;
 
     [JsonPropertyName("modalities")]
-    public string[] Modalities { get; set; } = ["audio", "text"];
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string[]? Modalities { get; set; } = ["audio", "text"];
+
+    [JsonPropertyName("output_modalities")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string[]? OutputModalities { get; set; } = ["audio"];
 
     [JsonPropertyName("input_audio_format")]
-    public string InputAudioFormat { get; set; } = null!;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? InputAudioFormat { get; set; }
 
     [JsonPropertyName("output_audio_format")]
-    public string OutputAudioFormat { get; set; } = null!;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? OutputAudioFormat { get; set; }
 
     [JsonPropertyName("input_audio_transcription")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -36,10 +44,20 @@ public class RealtimeSessionBody
     public string Instructions { get; set; } = "You are a friendly assistant.";
 
     [JsonPropertyName("voice")]
-    public string Voice { get; set; } = "sage";
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Voice { get; set; } = "saga";
+
+    [JsonPropertyName("type")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Type { get; set; }
 
     [JsonPropertyName("max_response_output_tokens")]
-    public int MaxResponseOutputTokens { get; set; } = 512;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? MaxResponseOutputTokens { get; set; } = 512;
+
+    [JsonPropertyName("max_output_tokens")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? MaxOutputTokens { get; set; }
 
     [JsonPropertyName("tool_choice")]
     public string ToolChoice { get; set; } = "auto";
@@ -48,16 +66,30 @@ public class RealtimeSessionBody
     public FunctionDef[] Tools { get; set; } = [];
 
     [JsonPropertyName("turn_detection")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RealtimeSessionTurnDetection? TurnDetection { get; set; } = new();
 
     [JsonPropertyName("input_audio_noise_reduction")]
-    public InputAudioNoiseReduction InputAudioNoiseReduction { get; set; } = new();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InputAudioNoiseReduction? InputAudioNoiseReduction { get; set; } = new();
+
+    [JsonPropertyName("audio")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RealtimeAudioConfig? Audio { get; set; }
+
+    [JsonPropertyName("reasoning")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RealtimeReasoningConfig? Reasoning { get; set; }
 }
 
 public class RealtimeSessionTurnDetection
 {
     [JsonPropertyName("interrupt_response")]
     public bool InterruptResponse { get; set; } = true;
+
+    [JsonPropertyName("create_response")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? CreateResponse { get; set; }
 
     /// <summary>
     /// Milliseconds
@@ -77,6 +109,9 @@ public class RealtimeSessionTurnDetection
     [JsonPropertyName("type")]
     public string Type { get; set; } = "semantic_vad";
 
+    /// <summary>
+    /// For semantic_vad
+    /// </summary>
     [JsonPropertyName("eagerness")]
     public string Eagerness { get;set; } = "auto";
 }
@@ -93,6 +128,10 @@ public class InputAudioTranscription
     [JsonPropertyName("prompt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Prompt { get; set; }
+
+    [JsonPropertyName("delay")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Delay { get; set; }
 }
 
 public class InputAudioNoiseReduction
@@ -100,4 +139,64 @@ public class InputAudioNoiseReduction
     [JsonPropertyName("type")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Type { get; set; } = "far_field";
+}
+
+public class RealtimeAudioConfig
+{
+    [JsonPropertyName("input")]
+    public RealtimeAudioConfigInput Input { get; set; } = new();
+
+    [JsonPropertyName("output")]
+    public RealtimeAudioConfigOutput Output { get; set; } = new();
+}
+
+public class RealtimeAudioConfigInput
+{
+    [JsonPropertyName("format")]
+    public RealtimeAudioFormat Format { get; set; } = new();
+
+    [JsonPropertyName("noise_reduction")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InputAudioNoiseReduction? NoiseReduction { get; set; }
+
+    [JsonPropertyName("transcription")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InputAudioTranscription? Transcription { get; set; }
+
+    [JsonPropertyName("turn_detection")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RealtimeSessionTurnDetection? TurnDetection { get; set; }
+}
+
+public class RealtimeAudioConfigOutput
+{
+    [JsonPropertyName("format")]
+    public RealtimeAudioFormat Format { get; set; } = new();
+
+    [JsonPropertyName("voice")]
+    public string Voice { get; set; } = "alloy";
+
+    [JsonPropertyName("speed")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public float? Speed { get; set; }
+}
+
+public class RealtimeAudioFormat
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = null!;
+
+    [JsonPropertyName("rate")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? Rate { get; set; }
+}
+
+public class RealtimeReasoningConfig
+{
+    /// <summary>
+    /// "minimal", "low", "medium", "high", "xhigh" 
+    /// </summary>
+    [JsonPropertyName("effort")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Effort { get; set; }
 }

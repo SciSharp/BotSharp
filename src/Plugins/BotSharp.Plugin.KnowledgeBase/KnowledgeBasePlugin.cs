@@ -40,8 +40,10 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
             Roles = new List<string> { UserRole.Root, UserRole.Admin, UserRole.Engineer },
             SubMenu = new List<PluginMenuDef>
             {
-                //new PluginMenuDef("Q & A", link: "page/knowledge-base/question-answer"),
-                //new PluginMenuDef("Documents", link: "page/knowledge-base/documents"),
+#if DEBUG
+                new PluginMenuDef("Q & A", link: "page/knowledge-base/question-answer"),
+                new PluginMenuDef("Documents", link: "page/knowledge-base/documents"),
+#endif
                 new PluginMenuDef("Dictionary", link: "page/knowledge-base/dictionary")
             }
         });
