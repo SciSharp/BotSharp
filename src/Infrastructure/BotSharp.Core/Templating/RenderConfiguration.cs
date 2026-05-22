@@ -164,9 +164,10 @@ public class RenderConfiguration : IRenderConfiguration
         {
             var value = await expression.EvaluateAsync(context);
             var spec = AsSpec(value);
-            var resolverProvider = spec.Name;
+            var resolverName = spec.Name;
 
-            var resolver = GetServiceProvider(context)?.GetServices<IInstructionResolver>().FirstOrDefault(x => x.Provider.IsEqualTo(resolverProvider));
+            var resolver = GetServiceProvider(context)?.GetServices<IInstructionResolver>()
+                            .FirstOrDefault(x => x.Name.IsEqualTo(resolverName));
             var passThrough = resolver != null;
 
             using var blockWriter = new StringWriter();
