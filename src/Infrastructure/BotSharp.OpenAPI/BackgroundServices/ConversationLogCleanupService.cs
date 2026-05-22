@@ -43,7 +43,7 @@ namespace BotSharp.OpenAPI.BackgroundServices
                     var delay = Task.Delay(TimeSpan.FromHours(24), stoppingToken);
                     try
                     {
-                        await CleanOldLogsAsync();
+                        await CleanOldLogsAsync(stoppingToken);
                     }
                     catch (Exception ex)
                     {
@@ -61,7 +61,7 @@ namespace BotSharp.OpenAPI.BackgroundServices
             await base.StopAsync(stoppingToken);
         }
 
-        private async Task CleanOldLogsAsync()
+        private async Task CleanOldLogsAsync(CancellationToken stoppingToken)
         {
             using var scope = _services.CreateScope();
             var settings = scope.ServiceProvider.GetRequiredService<ConversationSetting>();
@@ -73,16 +73,16 @@ namespace BotSharp.OpenAPI.BackgroundServices
             var lockResource = nameof(ConversationLogCleanupService);
             await locker.LockAsync(lockResource, async () =>
             {
-                await ExecuteCleanup(scope.ServiceProvider, cleanSetting.LogRetentionDays, cleanSetting.LogBatchSize);
+                await ExecuteCleanup(scope.ServiceProvider, cleanSetting.LogRetentionDays, cleanSetting.LogBatchSize, stoppingToken);
             }, timeout: 3600); // 1 hour lock timeout to prevent other pods from running it
         }
 
-        private async Task ExecuteCleanup(IServiceProvider serviceProvider, int retentionDays, int batchSize)
+        private async Task ExecuteCleanup(IServiceProvider serviceProvider, int retentionDays, int batchSize, CancellationToken stoppingToken)
         {
             var db = serviceProvider.GetRequiredService<IBotSharpRepository>();
             int totalDeleted = 0;
             
-            while (true)
+            while (!stoppingToken.IsCancellationRequested)
             {
                 var deletedCount = await db.DeleteOldConversationLogs(retentionDays, batchSize);
                 if (deletedCount == 0) break;
@@ -91,7 +91,7 @@ namespace BotSharp.OpenAPI.BackgroundServices
                 _logger.LogInformation($"Cleaned {deletedCount} conversation logs older than {retentionDays} days in this batch.");
                 
                 // Sleep slightly to yield database resources
-                await Task.Delay(1000);
+                await Task.Delay(1000, stoppingToken);
             }
 
             if (totalDeleted > 0)
