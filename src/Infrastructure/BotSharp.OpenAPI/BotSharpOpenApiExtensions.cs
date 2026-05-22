@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Core.MCP.Settings;
 using BotSharp.Core.Users.Services;
-using BotSharp.OpenAPI.BackgroundServices;
 using BotSharp.OpenAPI.Hooks;
 using BotSharp.OpenAPI.RuleTriggers;
 using Microsoft.AspNetCore.Authentication;
@@ -40,7 +39,6 @@ public static class BotSharpOpenApiExtensions
         bool enableValidation)
     {
         services.AddScoped<IUserIdentity, UserIdentity>();
-        services.AddHostedService<ConversationTimeoutService>();
         
         services.AddCrontabServices();
 
@@ -231,6 +229,8 @@ public static class BotSharpOpenApiExtensions
 
     public static IServiceCollection AddCrontabServices(this IServiceCollection services)
     {
+        services.AddScoped<ICrontabHook, IdleConversationCleanupCrontabHook>();
+        services.AddScoped<ICrontabSource, IdleConversationCleanupRuleTrigger>();
         services.AddScoped<ICrontabHook, ConversationLogCleanupCrontabHook>();
         services.AddScoped<ICrontabSource, ConversationLogCleanupRuleTrigger>();
         return services;
