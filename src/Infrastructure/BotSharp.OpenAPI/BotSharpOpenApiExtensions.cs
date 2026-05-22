@@ -16,6 +16,8 @@ using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi;
 using System.Text.Json.Serialization;
 using BotSharp.Abstraction.Crontab;
+using BotSharp.Abstraction.Rules;
+
 
 #if NET8_0
 using Microsoft.OpenApi.Models;
@@ -231,8 +233,11 @@ public static class BotSharpOpenApiExtensions
     {
         services.AddScoped<ICrontabHook, IdleConversationCleanupCrontabHook>();
         services.AddScoped<ICrontabSource, IdleConversationCleanupRuleTrigger>();
+        services.AddScoped<IRuleTrigger, IdleConversationCleanupRuleTrigger>();
+
         services.AddScoped<ICrontabHook, ConversationLogCleanupCrontabHook>();
         services.AddScoped<ICrontabSource, ConversationLogCleanupRuleTrigger>();
+        services.AddScoped<IRuleTrigger, ConversationLogCleanupRuleTrigger>();
         return services;
     }
 
