@@ -109,7 +109,7 @@ public class RenderConfiguration : IRenderConfiguration
         try
         {
             var value = await expression.EvaluateAsync(context);
-            var spec = AsTagSpec(value);
+            var spec = AsSpec(value);
 
             var templateName = spec.Name;
             var agentName = spec.AgentName;
@@ -163,10 +163,10 @@ public class RenderConfiguration : IRenderConfiguration
         try
         {
             var value = await expression.EvaluateAsync(context);
-            var spec = AsTagSpec(value);
-            var name = spec.Name;
+            var spec = AsSpec(value);
+            var resolverProvider = spec.Name;
 
-            var resolver = GetServiceProvider(context)?.GetService<IInstructionResolver>();
+            var resolver = GetServiceProvider(context)?.GetServices<IInstructionResolver>().FirstOrDefault(x => x.Provider.IsEqualTo(resolverProvider));
             var passThrough = resolver != null;
 
             using var blockWriter = new StringWriter();
@@ -236,9 +236,9 @@ public class RenderConfiguration : IRenderConfiguration
         FilterArguments arguments,
         TemplateContext context)
     {
-        var spec = AsTagSpec(input);
+        var spec = AsSpec(input);
         spec.AgentName = arguments.At(0).ToStringValue();
-        return new ValueTask<FluidValue>(new TagSpecValue(spec));
+        return new ValueTask<FluidValue>(new SpecValue(spec));
     }
 
     private static ValueTask<FluidValue> WithArgsFilter(
@@ -246,7 +246,7 @@ public class RenderConfiguration : IRenderConfiguration
         FilterArguments arguments,
         TemplateContext context)
     {
-        var spec = AsTagSpec(input);
+        var spec = AsSpec(input);
 
         var positionalArgs = new List<object?>(arguments.Count);
         for (int i = 0; i < arguments.Count; i++)
@@ -262,16 +262,16 @@ public class RenderConfiguration : IRenderConfiguration
 
         spec.PositionalArgs = positionalArgs;
         spec.NamedArgs = namedArgs;
-        return new ValueTask<FluidValue>(new TagSpecValue(spec));
+        return new ValueTask<FluidValue>(new SpecValue(spec));
     }
 
-    private static TagSpec AsTagSpec(FluidValue? input)
+    private static Spec AsSpec(FluidValue? input)
     {
-        if (input is TagSpecValue carrier)
+        if (input is SpecValue carrier)
         {
             return carrier.Spec;
         }
-        return new TagSpec { Name = input?.ToStringValue() ?? string.Empty };
+        return new Spec { Name = input?.ToStringValue() ?? string.Empty };
     }
 
 
@@ -294,7 +294,7 @@ public class RenderConfiguration : IRenderConfiguration
 
 
     #region Private classes
-    private sealed class TagSpec
+    private sealed class Spec
     {
         public string Name { get; set; } = string.Empty;
         public string? AgentName { get; set; }
@@ -302,11 +302,11 @@ public class RenderConfiguration : IRenderConfiguration
         public IReadOnlyDictionary<string, object?>? NamedArgs { get; set; }
     }
 
-    private sealed class TagSpecValue : FluidValue
+    private sealed class SpecValue : FluidValue
     {
-        public TagSpec Spec { get; }
+        public Spec Spec { get; }
 
-        public TagSpecValue(TagSpec spec) => Spec = spec;
+        public SpecValue(Spec spec) => Spec = spec;
 
         public override FluidValues Type => FluidValues.Object;
 
