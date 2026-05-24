@@ -118,6 +118,7 @@ The main documentation for the site is organized into the following sections:
    architecture/agent-utility
    architecture/logging
    architecture/data-persistence
+   architecture/codeact-opensandbox-guide
 
 If you feel that this project is helpful to you, please Star us on the project, we will be very grateful.
 
