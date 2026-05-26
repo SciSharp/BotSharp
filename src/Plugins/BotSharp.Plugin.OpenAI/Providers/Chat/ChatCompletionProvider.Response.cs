@@ -434,13 +434,12 @@ public partial class ChatCompletionProvider
             MaxOutputTokenCount = maxTokens
         };
 
-        var (_, reasoningEffortLevel) = ParseReasoning(settings?.Reasoning, agent);
-        var responseReasoningLevel = ParseResponseReasoningEffortLevel(reasoningEffortLevel?.ToString());
-        if (responseReasoningLevel.HasValue)
+        var (_, reasoningEffortLevel) = ParseResponseReasoning(settings?.Reasoning, agent);
+        if (reasoningEffortLevel.HasValue)
         {
             options.ReasoningOptions = new ResponseReasoningOptions
             {
-                ReasoningEffortLevel = responseReasoningLevel.Value,
+                ReasoningEffortLevel = reasoningEffortLevel.Value,
                 ReasoningSummaryVerbosity = ResponseReasoningSummaryVerbosity.Auto
             };
         }
@@ -575,9 +574,36 @@ public partial class ChatCompletionProvider
         return sb.ToString();
     }
 
+    private (float?, ResponseReasoningEffortLevel?) ParseResponseReasoning(ReasoningSetting? settings, Agent agent)
+    {
+        float? temperature = null;
+        ResponseReasoningEffortLevel? reasoningEffortLevel = null;
+
+        var level = _state.GetState("reasoning_effort_level");
+
+        if (string.IsNullOrEmpty(level) && _model == agent?.LlmConfig?.Model)
+        {
+            level = agent?.LlmConfig?.ReasoningEffortLevel;
+        }
+
+        if (settings == null)
+        {
+            reasoningEffortLevel = ParseResponseReasoningEffortLevel(level);
+            return (temperature, reasoningEffortLevel);
+        }
+
+        if (settings.Temperature.HasValue)
+        {
+            temperature = settings.Temperature;
+        }
+
+        reasoningEffortLevel = ParseResponseReasoningEffortLevel(level);
+        return (temperature, reasoningEffortLevel);
+    }
+
     private ResponseReasoningEffortLevel? ParseResponseReasoningEffortLevel(string? level)
     {
-        if (string.IsNullOrWhiteSpace(level))
+        if (string.IsNullOrWhiteSpace(level) || level.IsEqualTo("disable"))
         {
             return null;
         }

@@ -701,24 +701,13 @@ public class ChatCompletionProvider : IChatCompletion
             level = agent?.LlmConfig?.ReasoningEffortLevel;
         }
 
-        if (string.IsNullOrEmpty(level))
-        {
-            level = settings?.EffortLevel;
-            if (settings?.Parameters != null
-                && settings.Parameters.TryGetValue("EffortLevel", out var settingValue)
-                && !string.IsNullOrEmpty(settingValue?.Default))
-            {
-                level = settingValue.Default;
-            }
-        }
-
         var thinkingLevel = ParseThinkingLevel(level);
         return thinkingLevel;
     }
 
     private ThinkingLevel? ParseThinkingLevel(string? level)
     {
-        if (string.IsNullOrWhiteSpace(level))
+        if (string.IsNullOrWhiteSpace(level) || level.IsEqualTo("disable"))
         {
             return null;
         }

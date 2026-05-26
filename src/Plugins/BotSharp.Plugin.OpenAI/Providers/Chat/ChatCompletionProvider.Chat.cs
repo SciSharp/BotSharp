@@ -656,24 +656,13 @@ public partial class ChatCompletionProvider
             temperature = settings.Temperature;
         }
 
-        if (string.IsNullOrEmpty(level))
-        {
-            level = settings?.EffortLevel;
-            if (settings?.Parameters != null
-                && settings.Parameters.TryGetValue("EffortLevel", out var settingValue)
-                && !string.IsNullOrEmpty(settingValue?.Default))
-            {
-                level = settingValue.Default;
-            }
-        }
-
         reasoningEffortLevel = ParseReasoningEffortLevel(level);
         return (temperature, reasoningEffortLevel);
     }
 
     private ChatReasoningEffortLevel? ParseReasoningEffortLevel(string? level)
     {
-        if (string.IsNullOrWhiteSpace(level))
+        if (string.IsNullOrWhiteSpace(level) || level.IsEqualTo("disable"))
         {
             return null;
         }
