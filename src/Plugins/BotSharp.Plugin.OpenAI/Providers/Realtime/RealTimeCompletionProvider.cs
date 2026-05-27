@@ -773,9 +773,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     private string? GetReasoningEffort(Agent agent)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        var llmService = _services.GetRequiredService<ILlmProviderService>();
         var reasoningEffort = state.GetState("reasoning_effort_level");
-        var settings = llmService.GetSetting(Provider, _model)?.Reasoning;
 
         if (string.IsNullOrEmpty(reasoningEffort) && _model == agent?.LlmConfig?.Realtime?.Model)
         {
@@ -784,6 +782,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         if (string.IsNullOrEmpty(reasoningEffort))
         {
+            var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+            var settings = llmProviderService.GetSetting(Provider, _model)?.Reasoning;
+
             reasoningEffort = settings?.EffortLevel;
             if (settings?.Parameters != null
                 && settings.Parameters.TryGetValue("EffortLevel", out var settingValue)
