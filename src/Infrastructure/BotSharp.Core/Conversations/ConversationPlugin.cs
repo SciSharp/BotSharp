@@ -37,7 +37,7 @@ public class ConversationPlugin : IBotSharpPlugin
         services.AddScoped(provider =>
         {
             var settingService = provider.GetRequiredService<ISettingService>();
-            var render = provider.GetRequiredService<ITemplateRender>();
+            var render = provider.GetRequiredService<IRenderConfiguration>();
             render.RegisterType(typeof(ConversationSetting));
             return settingService.Bind<ConversationSetting>("Conversation");
         });
