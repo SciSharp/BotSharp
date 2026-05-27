@@ -429,12 +429,12 @@ public partial class ChatCompletionProvider
                         ? tokens
                         : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
-        var options = new CreateResponseOptions(_model, new List<ResponseItem>())
+        var options = new CreateResponseOptions(_model, [])
         {
             MaxOutputTokenCount = maxTokens
         };
 
-        var (_, reasoningEffortLevel) = ParseResponseReasoning(settings?.Reasoning, agent);
+        var reasoningEffortLevel = ParseResponseReasoning(settings?.Reasoning, agent);
         if (reasoningEffortLevel.HasValue)
         {
             options.ReasoningOptions = new ResponseReasoningOptions
@@ -574,31 +574,29 @@ public partial class ChatCompletionProvider
         return sb.ToString();
     }
 
-    private (float?, ResponseReasoningEffortLevel?) ParseResponseReasoning(ReasoningSetting? settings, Agent agent)
+    private ResponseReasoningEffortLevel? ParseResponseReasoning(ReasoningSetting? settings, Agent agent)
     {
-        float? temperature = null;
         ResponseReasoningEffortLevel? reasoningEffortLevel = null;
 
         var level = _state.GetState("reasoning_effort_level");
-
         if (string.IsNullOrEmpty(level) && _model == agent?.LlmConfig?.Model)
         {
             level = agent?.LlmConfig?.ReasoningEffortLevel;
         }
 
-        if (settings == null)
+        if (string.IsNullOrEmpty(level))
         {
-            reasoningEffortLevel = ParseResponseReasoningEffortLevel(level);
-            return (temperature, reasoningEffortLevel);
-        }
-
-        if (settings.Temperature.HasValue)
-        {
-            temperature = settings.Temperature;
+            level = settings?.EffortLevel;
+            if (settings?.Parameters != null
+                && settings.Parameters.TryGetValue("EffortLevel", out var settingValue)
+                && !string.IsNullOrEmpty(settingValue?.Default))
+            {
+                level = settingValue.Default;
+            }
         }
 
         reasoningEffortLevel = ParseResponseReasoningEffortLevel(level);
-        return (temperature, reasoningEffortLevel);
+        return reasoningEffortLevel;
     }
 
     private ResponseReasoningEffortLevel? ParseResponseReasoningEffortLevel(string? level)
