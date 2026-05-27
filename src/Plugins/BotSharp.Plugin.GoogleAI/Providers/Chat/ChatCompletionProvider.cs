@@ -694,11 +694,22 @@ public class ChatCompletionProvider : IChatCompletion
     #region Thinking level
     private ThinkingLevel? ParseThinking(ReasoningSetting? settings, Agent agent)
     {
-        var level = _state.GetState("thyinking_level");
+        var level = _state.GetState("thinking_level");
 
         if (string.IsNullOrEmpty(level) && _model == agent?.LlmConfig?.Model)
         {
             level = agent?.LlmConfig?.ReasoningEffortLevel;
+        }
+
+        if (string.IsNullOrEmpty(level))
+        {
+            level = settings?.EffortLevel;
+            if (settings?.Parameters != null
+                && settings.Parameters.TryGetValue("EffortLevel", out var settingValue)
+                && !string.IsNullOrEmpty(settingValue?.Default))
+            {
+                level = settingValue.Default;
+            }
         }
 
         var thinkingLevel = ParseThinkingLevel(level);
