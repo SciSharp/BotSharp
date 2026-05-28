@@ -1,6 +1,4 @@
-using System.Text.Json.Serialization;
-
-namespace BotSharp.Abstraction.Rules.Models;
+namespace BotSharp.Abstraction.Graph.Models;
 
 /// <summary>
 /// Describes the input or output contract of a rule flow unit (action or condition).

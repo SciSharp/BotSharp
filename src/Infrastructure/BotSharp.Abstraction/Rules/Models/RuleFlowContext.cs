@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Graph;
 using System.Text.Json;
 
 namespace BotSharp.Abstraction.Rules.Models;
@@ -11,8 +12,8 @@ public class RuleFlowContext
     public Dictionary<string, string?> Parameters { get; set; } = [];
     public IEnumerable<RuleFlowStepResult> PrevStepResults { get; set; } = [];
     public JsonSerializerOptions? JsonOptions { get; set; }
-    public RuleNode Node { get; set; }
-    public RuleEdge Edge { get; set; }
-    public RuleGraph Graph { get; set; }
+    public FlowNode Node { get; set; }
+    public FlowEdge Edge { get; set; }
+    public FlowGraph Graph { get; set; }
 }
 

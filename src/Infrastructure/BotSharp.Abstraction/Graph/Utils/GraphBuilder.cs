@@ -7,9 +7,9 @@ namespace BotSharp.Abstraction.Graph.Utils;
 
 public static class GraphBuilder
 {
-    public static RuleGraph Build(GraphQueryResult result, IDictionary<string, string>? data = null)
+    public static FlowGraph Build(GraphQueryResult result, IDictionary<string, string>? data = null)
     {
-        var graph = RuleGraph.Init();
+        var graph = FlowGraph.Init();
         if (result.Values.IsNullOrEmpty())
         {
             return graph;
@@ -50,7 +50,7 @@ public static class GraphBuilder
                 : default;
 
             // Create source node
-            var sourceNode = new RuleNode()
+            var sourceNode = new FlowNode()
             {
                 Id = sourceNodeId ?? Guid.NewGuid().ToString(),
                 Labels = sourceNodeLabels,
@@ -61,7 +61,7 @@ public static class GraphBuilder
             };
 
             // Create target node
-            var targetNode = new RuleNode()
+            var targetNode = new FlowNode()
             {
                 Id = targetNodeId ?? Guid.NewGuid().ToString(),
                 Labels = targetNodeLabels,
