@@ -2,7 +2,6 @@
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
-using OpenAI.Chat;
 using OpenAI.Responses;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
@@ -425,12 +424,14 @@ public partial class ChatCompletionProvider
         var allowMultiModal = settings != null && settings.MultiModal;
         renderedInstructions = [];
 
+        float? temperature = float.Parse(_state.GetState("temperature", "0.0"));
         var maxTokens = int.TryParse(_state.GetState("max_tokens"), out var tokens)
                         ? tokens
                         : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
         var options = new CreateResponseOptions(_model, [])
         {
+            Temperature = temperature,
             MaxOutputTokenCount = maxTokens
         };
 
@@ -442,6 +443,11 @@ public partial class ChatCompletionProvider
                 ReasoningEffortLevel = reasoningEffortLevel.Value,
                 ReasoningSummaryVerbosity = ResponseReasoningSummaryVerbosity.Auto
             };
+
+            if (reasoningEffortLevel != ResponseReasoningEffortLevel.None)
+            {
+                options.Temperature = null;
+            }
         }
 
         // Prepare instruction and functions
