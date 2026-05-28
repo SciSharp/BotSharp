@@ -25,7 +25,8 @@ public static class BotSharpCoreExtensions
     {
         services.AddSingleton<IDistributedLocker, DistributedLocker>();
         // Register template render
-        services.AddSingleton<ITemplateRender, TemplateRender>();
+        services.AddSingleton<IRenderConfiguration, RenderConfiguration>();
+        services.AddScoped<ITemplateRender, TemplateRender>();
 
         services.AddScoped<ISettingService, SettingService>();
         services.AddScoped<IRoleService, RoleService>();

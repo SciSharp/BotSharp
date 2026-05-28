@@ -4,8 +4,8 @@ namespace BotSharp.Abstraction.Realtime.Settings;
 
 public class RealtimeModelSettings
 {
-    public string Provider { get; set; } = "openai";
-    public string Model { get; set; } = Gpt4xModelConstants.GPT_4o_Mini_Realtime_Preview;
+    public string Provider { get; set; }
+    public string Model { get; set; }
     public string[] Modalities { get; set; } = ["text", "audio"];
     public bool InterruptResponse { get; set; } = true;
     public string InputAudioFormat { get; set; } = "g711_ulaw";

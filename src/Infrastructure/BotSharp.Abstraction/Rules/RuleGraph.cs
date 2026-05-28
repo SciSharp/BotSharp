@@ -177,6 +177,7 @@ public class RuleNode : GraphItem
     /// <summary>
     /// Node type: root, criteria, action, etc.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public override string Type { get; set; } = "action";
 
     /// <summary>
@@ -229,15 +230,28 @@ public class RuleEdge : GraphItem
 
 public class GraphItem
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual string Id { get; set; } = Guid.NewGuid().ToString();
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual string Name { get; set; } = null!;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual string Type { get; set; } = null!;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual IEnumerable<string> Labels { get; set; } = [];
     public virtual double Weight { get; set; } = 1.0;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual string? Description { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual Dictionary<string, string?> Config { get; set; } = [];
 
     private string? _alias;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual string Alias
     {
         get => string.IsNullOrEmpty(_alias) ? Name : _alias;
@@ -267,6 +281,8 @@ public class EdgeItemPayload : GraphItem
 
 public class RuleGraphInfo
 {
+    [JsonPropertyName("graph_id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string GraphId { get; set; }
     public IEnumerable<RuleNode> Nodes { get; set; } = [];
     public IEnumerable<RuleEdge> Edges { get; set; } = [];

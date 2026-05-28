@@ -178,6 +178,15 @@ public partial class FileRepository
     }
     #endregion
 
+    #region Log Cleanup
+    public async Task<int> DeleteOldConversationLogs(int retentionDays, int batchSize = 2000)
+    {
+        // For file repository, we might not need to implement this fully or we can just return 0
+        // as it's typically used for local dev. Implementing it would require iterating all conversations.
+        return await Task.FromResult(0);
+    }
+    #endregion
+
     #region Instruction Log
     public async Task<bool> SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
     {

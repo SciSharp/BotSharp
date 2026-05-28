@@ -12,9 +12,4 @@ public class OpenAiSettings
     /// Conversation state keys take precedence over these values at runtime.
     /// </summary>
     public WebSearchSettings? WebSearch { get; set; }
-
-    /// <summary>
-    /// Models to use GA realtime Api
-    /// </summary>
-    public IEnumerable<string> UseGAApiModels { get; set; } = ["gpt-realtime-2"];
 }

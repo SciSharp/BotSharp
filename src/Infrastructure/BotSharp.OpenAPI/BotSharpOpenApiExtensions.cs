@@ -1,7 +1,8 @@
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Core.MCP.Settings;
 using BotSharp.Core.Users.Services;
-using BotSharp.OpenAPI.BackgroundServices;
+using BotSharp.OpenAPI.Hooks;
+using BotSharp.OpenAPI.RuleTriggers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -14,6 +15,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi;
 using System.Text.Json.Serialization;
+using BotSharp.Abstraction.Crontab;
+using BotSharp.Abstraction.Rules;
+
+
 #if NET8_0
 using Microsoft.OpenApi.Models;
 #endif
@@ -36,7 +41,8 @@ public static class BotSharpOpenApiExtensions
         bool enableValidation)
     {
         services.AddScoped<IUserIdentity, UserIdentity>();
-        services.AddHostedService<ConversationTimeoutService>();
+        
+        services.AddCrontabServices();
 
         // Add bearer authentication
         var schema = "MIXED_SCHEME";
@@ -221,6 +227,18 @@ public static class BotSharpOpenApiExtensions
         {
             await hook.OAuthCompleted(context);
         }
+    }
+
+    public static IServiceCollection AddCrontabServices(this IServiceCollection services)
+    {
+        services.AddScoped<ICrontabHook, IdleConversationCleanupCrontabHook>();
+        services.AddScoped<ICrontabSource, IdleConversationCleanupRuleTrigger>();
+        services.AddScoped<IRuleTrigger, IdleConversationCleanupRuleTrigger>();
+
+        services.AddScoped<ICrontabHook, ConversationLogCleanupCrontabHook>();
+        services.AddScoped<ICrontabSource, ConversationLogCleanupRuleTrigger>();
+        services.AddScoped<IRuleTrigger, ConversationLogCleanupRuleTrigger>();
+        return services;
     }
 
     /// <summary>
