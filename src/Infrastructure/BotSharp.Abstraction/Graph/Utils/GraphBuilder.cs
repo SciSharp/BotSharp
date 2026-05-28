@@ -1,8 +1,9 @@
+using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Rules;
-using BotSharp.Abstraction.Utilities;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace BotSharp.Plugin.Membase.Utils;
+namespace BotSharp.Abstraction.Graph.Utils;
 
 public static class GraphBuilder
 {

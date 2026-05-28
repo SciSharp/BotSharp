@@ -22,7 +22,8 @@ global using BotSharp.Abstraction.Graph;
 global using BotSharp.Abstraction.Graph.Models;
 global using BotSharp.Abstraction.Graph.Options;
 global using BotSharp.Abstraction.Graph.Requests;
+global using BotSharp.Abstraction.Graph.Utils;
 global using BotSharp.Abstraction.Options;
+
 global using BotSharp.Plugin.Membase.Interfaces;
-global using BotSharp.Plugin.Membase.Utils;
 global using BotSharp.Plugin.Membase.Services;
