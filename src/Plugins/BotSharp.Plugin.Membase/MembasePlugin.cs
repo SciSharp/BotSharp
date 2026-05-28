@@ -1,6 +1,8 @@
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Plugin.Membase.GraphDb;
 using BotSharp.Plugin.Membase.Handlers;
+using BotSharp.Plugin.Membase.Hooks;
 using Refit;
 
 namespace BotSharp.Plugin.Membase;
@@ -36,6 +38,8 @@ public class MembasePlugin : IBotSharpPlugin
                 });
 
         services.AddScoped<IGraphDb, MembaseGraphDb>();
+        services.AddScoped<IAgentUtilityHook, MembaseUtilityHook>();
+        services.AddScoped<IInstructionResolver, MembaseInstructionResolver>();
 
         _membaseCredential = config.GetValue<string>("Membase:ApiKey") ?? string.Empty;
         _membaseProjectId = config.GetValue<string>("Membase:ProjectId") ?? string.Empty;

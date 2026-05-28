@@ -46,9 +46,9 @@ public class RenderConfiguration : IRenderConfiguration
             return RenderLinkTag(expression, writer, encoder, context);
         });
 
-        _parser.RegisterExpressionBlock("resolve", (Expression expression, IReadOnlyList<Statement> statements, TextWriter writer, TextEncoder encoder, TemplateContext context) =>
+        _parser.RegisterExpressionBlock("render_graph", (Expression expression, IReadOnlyList<Statement> statements, TextWriter writer, TextEncoder encoder, TemplateContext context) =>
         {
-            return RenderResolveBlock(expression, statements, writer, encoder, context);
+            return RenderGraphBlock(expression, statements, writer, encoder, context);
         });
     }
 
@@ -153,7 +153,7 @@ public class RenderConfiguration : IRenderConfiguration
         return Completion.Normal;
     }
 
-    private static async ValueTask<Completion> RenderResolveBlock(
+    private static async ValueTask<Completion> RenderGraphBlock(
         Expression expression,
         IReadOnlyList<Statement> statements,
         TextWriter writer,
@@ -164,10 +164,10 @@ public class RenderConfiguration : IRenderConfiguration
         {
             var value = await expression.EvaluateAsync(context);
             var spec = AsSpec(value);
-            var resolverName = spec.Name;
+            var provider = spec.Name;
 
             var resolver = GetServiceProvider(context)?.GetServices<IInstructionResolver>()
-                            .FirstOrDefault(x => x.Name.IsEqualTo(resolverName));
+                            .FirstOrDefault(x => x.Provider.IsEqualTo(provider));
             var passThrough = resolver != null;
 
             using var blockWriter = new StringWriter();
