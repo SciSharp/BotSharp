@@ -4,10 +4,103 @@ namespace BotSharp.Plugin.Membase.Models;
 
 public class PgtTraversalRequest
 {
+    [JsonPropertyName("startId")]
     public string StartId { get; set; } = string.Empty;
 
     [JsonPropertyName("options")]
     public PgtTraversalOptions? Options { get; set; }
+
+    /// <summary>
+    /// Builds a traverse request from a fetched <see cref="PgtDefinition"/>,
+    /// merging caller overrides on top of stored config values.
+    /// </summary>
+    public static PgtTraversalRequest FromDefinition(
+        PgtDefinition definition,
+        string? runId = null,
+        Dictionary<string, object?>? environmentOverrides = null,
+        Dictionary<string, object?>? initialContextOverrides = null,
+        bool stream = false,
+        bool debug = false,
+        string[]? pauseOn = null,
+        int? debugIdleTimeoutMs = null)
+    {
+        var cfg = definition.Config;
+
+        return new PgtTraversalRequest
+        {
+            StartId = cfg.StartId ?? string.Empty,
+            Options = new PgtTraversalOptions
+            {
+                MaxDepth = cfg.MaxDepth,
+                MaxVisitsPerNode = cfg.MaxVisitsPerNode,
+                TimeoutMs = cfg.TimeoutMs,
+                MaxSubGrapNesting = cfg.MaxSubgraphNesting,
+                Strategy = cfg.Strategy,
+                RecordTrace = cfg.RecordTrace,
+                PersistRun = cfg.PersistRun,
+                RunId = runId,
+                Stream = stream,
+                Debug = debug,
+                PauseOn = pauseOn,
+                DebugIdleTimeoutMs = debugIdleTimeoutMs,
+                Actors = ParseActorsJson(cfg.ActorsJson),
+                Environment = MergeJsonDict(cfg.EnvironmentJson, environmentOverrides),
+                InitialContext = MergeJsonDict(cfg.InitialContextJson, initialContextOverrides),
+            },
+        };
+    }
+
+    private static Dictionary<string, object>? ParseActorsJson(string? actorsJson)
+    {
+        if (string.IsNullOrWhiteSpace(actorsJson))
+            return null;
+
+        var array = JsonSerializer.Deserialize<JsonElement[]>(actorsJson);
+        if (array is null || array.Length == 0)
+            return null;
+
+        var dict = new Dictionary<string, object>(StringComparer.Ordinal);
+        foreach (var element in array)
+        {
+            if (!element.TryGetProperty("actor_id", out var idProp))
+                continue;
+
+            var actorId = idProp.GetString() ?? string.Empty;
+            dict[actorId] = JsonSerializer.Deserialize<object>(element.GetRawText()) ?? element;
+        }
+
+        return dict.Count > 0 ? dict : null;
+    }
+
+    private static Dictionary<string, object>? MergeJsonDict(
+        string? existingJson,
+        Dictionary<string, object?>? overrides)
+    {
+        var merged = new Dictionary<string, object>(StringComparer.Ordinal);
+
+        if (!string.IsNullOrWhiteSpace(existingJson))
+        {
+            var existing = JsonSerializer.Deserialize<Dictionary<string, object>>(existingJson);
+            if (existing is not null)
+            {
+                foreach (var kv in existing)
+                    merged[kv.Key] = kv.Value;
+            }
+        }
+
+        if (overrides is not null && overrides.Count > 0)
+        {
+            foreach (var kv in overrides)
+            {
+                if (kv.Value is null)
+                    merged.Remove(kv.Key);
+                else
+                    merged[kv.Key] = kv.Value;
+            }
+        }
+
+        return merged.Count > 0 ? merged : null;
+    }
 }
 
 public class PgtTraversalOptions
