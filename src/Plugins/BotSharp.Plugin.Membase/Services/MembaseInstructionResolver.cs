@@ -29,9 +29,9 @@ public class MembaseInstructionResolver : IInstructionResolver
 
     public async Task<string> ResolveAsync(Agent agent, string instruction, IEnumerable<object?> args, IDictionary<string, object?> kwArgs)
     {
-        string? graphId = kwArgs?.TryGetValue("graphId", out string? gId) == true ? gId : null;
+        string? graphId = kwArgs?.TryGetValue("graph_id", out string? gId) == true ? gId : null;
         string? format = kwArgs?.TryGetValue("format", out string? f) == true ? f : null;
-        string? startNodeId = kwArgs?.TryGetValue("startNodeId", out string? s) == true ? s : null;
+        string? startNodeId = kwArgs?.TryGetValue("start_node_id", out string? s) == true ? s : null;
         int hop = kwArgs?.TryGetValue("hop", out var h) == true && h != null ? Convert.ToInt32(h) : 0;
 
         if (string.IsNullOrEmpty(startNodeId))
