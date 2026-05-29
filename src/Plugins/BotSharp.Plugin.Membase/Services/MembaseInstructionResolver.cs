@@ -39,6 +39,7 @@ public class MembaseInstructionResolver : IInstructionResolver
             return instruction;
         }
 
+        var prevStartNodeId = _states.GetState("start_node_id");
         _states.SetState("start_node_id", startNodeId);
         var graphDb = _services.GetServices<IGraphDb>().First(x => x.Provider.IsEqualTo(Provider));
 
@@ -74,7 +75,7 @@ public class MembaseInstructionResolver : IInstructionResolver
         else if (format.IsEqualTo("partial graph"))
         {
             var nextNodeId = _states.GetState("next_node_id");
-            if (string.IsNullOrEmpty(nextNodeId))
+            if (string.IsNullOrEmpty(nextNodeId) || !prevStartNodeId.IsEqualTo(startNodeId))
             {
                 nextNodeId = startNodeId;
                 _states.SetState("next_node_id", nextNodeId);
