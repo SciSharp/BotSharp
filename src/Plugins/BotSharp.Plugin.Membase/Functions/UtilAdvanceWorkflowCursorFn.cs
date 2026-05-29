@@ -29,13 +29,6 @@ public class UtilAdvanceWorkflowCursorFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<WorkflowCursorArgs>(message.FunctionArgs ?? "{}");
         var nextNodeId = args?.NextNodeId;
-
-        if (string.IsNullOrWhiteSpace(nextNodeId))
-        {
-            nextNodeId = _states.GetState("start_node_id", "");
-            _states.SetState("next_node_id", nextNodeId);
-        }
-
         message.Content = $"The next node id is '{nextNodeId}'";
         return true;
     }

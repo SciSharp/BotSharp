@@ -72,7 +72,12 @@ public class RenderConfiguration : IRenderConfiguration
     {
         if (type == null || IsStringType(type)) return;
 
-        if (IsListType(type))
+        if (TryGetDictionaryValueType(type, out var keyType, out var valueType))
+        {
+            RegisterType(keyType);
+            RegisterType(valueType);
+        }
+        else if (IsListType(type))
         {
             if (type.IsGenericType)
             {
@@ -285,6 +290,33 @@ public class RenderConfiguration : IRenderConfiguration
     {
         var interfaces = type.GetTypeInfo().ImplementedInterfaces;
         return type.IsArray || interfaces.Any(x => x.Name == typeof(IEnumerable).Name);
+    }
+
+    private static bool TryGetDictionaryValueType(Type type, out Type keyType, out Type valueType)
+    {
+        keyType = null!;
+        valueType = null!;
+
+        var dictionaryType = type.IsGenericType && IsDictionaryType(type)
+            ? type
+            : type.GetTypeInfo().ImplementedInterfaces.FirstOrDefault(x => x.IsGenericType && IsDictionaryType(x));
+
+        if (dictionaryType == null)
+        {
+            return false;
+        }
+
+        keyType = dictionaryType.GetGenericArguments()[0];
+        valueType = dictionaryType.GetGenericArguments()[1];
+        return true;
+    }
+
+    private static bool IsDictionaryType(Type type)
+    {
+        var genericType = type.GetGenericTypeDefinition();
+        return genericType == typeof(IDictionary<,>)
+            || genericType == typeof(IReadOnlyDictionary<,>)
+            || genericType == typeof(Dictionary<,>);
     }
 
     private static bool IsTrackToNextLevel(Type type)
