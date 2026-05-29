@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Graph.Models;
+
 namespace BotSharp.Core.Rules.Engines;
 
 public class RuleEngine : IRuleEngine
@@ -83,7 +85,7 @@ public class RuleEngine : IRuleEngine
         return newConversationIds;
     }
 
-    public async Task ExecuteGraphNode(RuleNode node, RuleGraph graph, string agentId, IRuleTrigger trigger, RuleNodeExecutionOptions options)
+    public async Task ExecuteGraphNode(FlowNode node, FlowGraph graph, string agentId, IRuleTrigger trigger, RuleNodeExecutionOptions options)
     {
         if (node == null || graph == null || options == null)
         {
@@ -112,9 +114,9 @@ public class RuleEngine : IRuleEngine
     }
 
     #region Graph
-    private async Task<RuleGraph?> LoadGraph(string name, Agent agent, IRuleTrigger trigger, RuleFlowOptions? options)
+    private async Task<FlowGraph?> LoadGraph(string name, Agent agent, IRuleTrigger trigger, RuleFlowOptions? options)
     {
-        var flow = _services.GetServices<IRuleFlow<RuleGraph>>().FirstOrDefault(x => x.Name.IsEqualTo(name));
+        var flow = _services.GetServices<IRuleFlow<FlowGraph>>().FirstOrDefault(x => x.Name.IsEqualTo(name));
         if (flow == null)
         {
             return null;
@@ -167,8 +169,8 @@ public class RuleEngine : IRuleEngine
     }
 
     private async Task ExecuteGraphNode(
-        RuleNode node,
-        RuleGraph graph,
+        FlowNode node,
+        FlowGraph graph,
         Agent agent,
         IRuleTrigger trigger,
         string text,
@@ -191,8 +193,8 @@ public class RuleEngine : IRuleEngine
     /// <c>Config["traversal_algorithm"]</c> value ("dfs" or "bfs").
     /// </summary>
     private async Task ExecuteGraphTraversal(
-        RuleNode root,
-        RuleGraph graph,
+        FlowNode root,
+        FlowGraph graph,
         Agent agent,
         IRuleTrigger trigger,
         string text,
@@ -207,9 +209,9 @@ public class RuleEngine : IRuleEngine
 
         // Choose initial frontier based on the global option
         var useBfs = options?.Flow?.TraversalAlgorithm?.IsEqualTo("bfs") == true;
-        IFrontier<(RuleNode Node, RuleEdge Edge)> frontier = useBfs
-            ? new QueueFrontier<(RuleNode, RuleEdge)>()
-            : new StackFrontier<(RuleNode, RuleEdge)>();
+        IFrontier<(FlowNode Node, FlowEdge Edge)> frontier = useBfs
+            ? new QueueFrontier<(FlowNode, FlowEdge)>()
+            : new StackFrontier<(FlowNode, FlowEdge)>();
 
         EnqueueChildren(frontier, graph, root);
 
@@ -308,9 +310,9 @@ public class RuleEngine : IRuleEngine
     /// that differs from the current frontier type, swap to the requested one
     /// and drain all pending items into the new frontier.
     /// </summary>
-    private static IFrontier<(RuleNode, RuleEdge)> SwitchFrontier(
-        IFrontier<(RuleNode, RuleEdge)> current,
-        RuleNode? node)
+    private static IFrontier<(FlowNode, FlowEdge)> SwitchFrontier(
+        IFrontier<(FlowNode, FlowEdge)> current,
+        FlowNode? node)
     {
         // Edge config takes precedence over node config
         var hint = node?.Config?.GetValueOrDefault("traversal_algorithm");
@@ -321,27 +323,27 @@ public class RuleEngine : IRuleEngine
         }
 
         var requireBfs = hint.Equals("bfs", StringComparison.OrdinalIgnoreCase);
-        var currentBfs = current is QueueFrontier<(RuleNode, RuleEdge)>;
+        var currentBfs = current is QueueFrontier<(FlowNode, FlowEdge)>;
 
         if (requireBfs == currentBfs)
         {
             return current;
         }
 
-        IFrontier<(RuleNode, RuleEdge)> next = requireBfs
-            ? new QueueFrontier<(RuleNode, RuleEdge)>()
-            : new StackFrontier<(RuleNode, RuleEdge)>();
+        IFrontier<(FlowNode, FlowEdge)> next = requireBfs
+            ? new QueueFrontier<(FlowNode, FlowEdge)>()
+            : new StackFrontier<(FlowNode, FlowEdge)>();
 
         current.DrainTo(next);
         return next;
     }
 
     private static void EnqueueChildren(
-        IFrontier<(RuleNode Node, RuleEdge Edge)> frontier,
-        RuleGraph graph,
-        RuleNode parent)
+        IFrontier<(FlowNode Node, FlowEdge Edge)> frontier,
+        FlowGraph graph,
+        FlowNode parent)
     {
-        var sortAscending = frontier is StackFrontier<(RuleNode, RuleEdge)>;
+        var sortAscending = frontier is StackFrontier<(FlowNode, FlowEdge)>;
         foreach (var child in graph.GetChildrenNodes(parent, sortAscending))
         {
             frontier.Add(child);
@@ -353,11 +355,11 @@ public class RuleEngine : IRuleEngine
     #region Schema Validation
     /// <summary>
     /// Reads "input_schema" and "output_schema" from each node's Config,
-    /// deserializes them into FlowUnitSchema, and sets them on the RuleNode.
+    /// deserializes them into FlowUnitSchema, and sets them on the FlowNode.
     /// If a node has no config schema, the code-defined schema from the
     /// resolved IRuleFlowUnit is used as fallback during validation.
     /// </summary>
-    private void LoadConfigSchemas(RuleGraph graph)
+    private void LoadConfigSchemas(FlowGraph graph)
     {
         var nodes = graph.GetNodes();
         if (nodes == null)
@@ -405,7 +407,7 @@ public class RuleEngine : IRuleEngine
     /// can be satisfied by the upstream node's output or the downstream node's own config.
     /// Node-level schemas (from config) take precedence over code-defined schemas.
     /// </summary>
-    private void ValidateGraphSchema(RuleGraph graph)
+    private void ValidateGraphSchema(FlowGraph graph)
     {
         var edges = graph.GetEdges();
         if (edges == null || !edges.Any())
@@ -490,7 +492,7 @@ public class RuleEngine : IRuleEngine
     /// <summary>
     /// Resolves the IRuleFlowUnit (action or condition) implementation for a given node.
     /// </summary>
-    private IRuleFlowUnit? ResolveFlowUnit(RuleNode node)
+    private IRuleFlowUnit? ResolveFlowUnit(FlowNode node)
     {
         if (node == null || string.IsNullOrEmpty(node.Name))
         {
@@ -528,9 +530,9 @@ public class RuleEngine : IRuleEngine
 
     #region Action
     private async Task<RuleNodeResult?> ExecuteAction(
-        RuleNode node,
-        RuleEdge incomingEdge,
-        RuleGraph graph,
+        FlowNode node,
+        FlowEdge incomingEdge,
+        FlowGraph graph,
         Agent agent,
         IRuleTrigger trigger,
         RuleFlowContext context)
@@ -578,7 +580,7 @@ public class RuleEngine : IRuleEngine
     }
 
     // Find the matching action
-    private IRuleAction? GetRuleAction(RuleNode node, Agent agent, IRuleTrigger trigger)
+    private IRuleAction? GetRuleAction(FlowNode node, Agent agent, IRuleTrigger trigger)
     {
         var actions = _services.GetServices<IRuleAction>()
                                .Where(x => x.Name.IsEqualTo(node?.Name))
@@ -615,9 +617,9 @@ public class RuleEngine : IRuleEngine
 
     #region Condition
     private async Task<RuleNodeResult?> ExecuteCondition(
-        RuleNode node,
-        RuleEdge incomingEdge,
-        RuleGraph graph,
+        FlowNode node,
+        FlowEdge incomingEdge,
+        FlowGraph graph,
         Agent agent,
         IRuleTrigger trigger,
         RuleFlowContext context)
@@ -665,7 +667,7 @@ public class RuleEngine : IRuleEngine
     }
 
     // Find the matching condition
-    private IRuleCondition? GetRuleCondition(RuleNode node, Agent agent, IRuleTrigger trigger)
+    private IRuleCondition? GetRuleCondition(FlowNode node, Agent agent, IRuleTrigger trigger)
     {
         var conditions = _services.GetServices<IRuleCondition>()
                                .Where(x => x.Name.IsEqualTo(node?.Name))

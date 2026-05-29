@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Graph.Models;
 using System.Text.Json;
 
 namespace BotSharp.Core.Rules.Conditions;

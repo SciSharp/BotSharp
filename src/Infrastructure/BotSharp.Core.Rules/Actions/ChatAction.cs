@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Graph.Models;
+
 namespace BotSharp.Core.Rules.Actions;
 
 public class ChatAction : IRuleAction

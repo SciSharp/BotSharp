@@ -46,9 +46,9 @@ public class RenderConfiguration : IRenderConfiguration
             return RenderLinkTag(expression, writer, encoder, context);
         });
 
-        _parser.RegisterExpressionBlock("resolve", (Expression expression, IReadOnlyList<Statement> statements, TextWriter writer, TextEncoder encoder, TemplateContext context) =>
+        _parser.RegisterExpressionBlock("render_graph", (Expression expression, IReadOnlyList<Statement> statements, TextWriter writer, TextEncoder encoder, TemplateContext context) =>
         {
-            return RenderResolveBlock(expression, statements, writer, encoder, context);
+            return RenderGraphBlock(expression, statements, writer, encoder, context);
         });
     }
 
@@ -72,7 +72,12 @@ public class RenderConfiguration : IRenderConfiguration
     {
         if (type == null || IsStringType(type)) return;
 
-        if (IsListType(type))
+        if (TryGetDictionaryValueType(type, out var keyType, out var valueType))
+        {
+            RegisterType(keyType);
+            RegisterType(valueType);
+        }
+        else if (IsListType(type))
         {
             if (type.IsGenericType)
             {
@@ -153,7 +158,7 @@ public class RenderConfiguration : IRenderConfiguration
         return Completion.Normal;
     }
 
-    private static async ValueTask<Completion> RenderResolveBlock(
+    private static async ValueTask<Completion> RenderGraphBlock(
         Expression expression,
         IReadOnlyList<Statement> statements,
         TextWriter writer,
@@ -164,10 +169,10 @@ public class RenderConfiguration : IRenderConfiguration
         {
             var value = await expression.EvaluateAsync(context);
             var spec = AsSpec(value);
-            var resolverName = spec.Name;
+            var provider = spec.Name;
 
             var resolver = GetServiceProvider(context)?.GetServices<IInstructionResolver>()
-                            .FirstOrDefault(x => x.Name.IsEqualTo(resolverName));
+                            .FirstOrDefault(x => x.Provider.IsEqualTo(provider));
             var passThrough = resolver != null;
 
             using var blockWriter = new StringWriter();
@@ -285,6 +290,33 @@ public class RenderConfiguration : IRenderConfiguration
     {
         var interfaces = type.GetTypeInfo().ImplementedInterfaces;
         return type.IsArray || interfaces.Any(x => x.Name == typeof(IEnumerable).Name);
+    }
+
+    private static bool TryGetDictionaryValueType(Type type, out Type keyType, out Type valueType)
+    {
+        keyType = null!;
+        valueType = null!;
+
+        var dictionaryType = type.IsGenericType && IsDictionaryType(type)
+            ? type
+            : type.GetTypeInfo().ImplementedInterfaces.FirstOrDefault(x => x.IsGenericType && IsDictionaryType(x));
+
+        if (dictionaryType == null)
+        {
+            return false;
+        }
+
+        keyType = dictionaryType.GetGenericArguments()[0];
+        valueType = dictionaryType.GetGenericArguments()[1];
+        return true;
+    }
+
+    private static bool IsDictionaryType(Type type)
+    {
+        var genericType = type.GetGenericTypeDefinition();
+        return genericType == typeof(IDictionary<,>)
+            || genericType == typeof(IReadOnlyDictionary<,>)
+            || genericType == typeof(Dictionary<,>);
     }
 
     private static bool IsTrackToNextLevel(Type type)
