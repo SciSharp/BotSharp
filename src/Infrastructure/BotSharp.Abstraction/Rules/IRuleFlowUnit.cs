@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Rules.Models;
+using BotSharp.Abstraction.Graph.Models;
 
 namespace BotSharp.Abstraction.Rules;
 

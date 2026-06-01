@@ -1,13 +1,15 @@
+using BotSharp.Abstraction.Graph;
+
 namespace BotSharp.Abstraction.Rules.Models;
 
 public class RuleFlowStepResult : RuleNodeResult
 {
-    public RuleNode Node { get; set; }
+    public FlowNode Node { get; set; }
 
     /// <summary>
-    /// Create a RuleFlowStepResult from a RuleNodeResult and a RuleNode
+    /// Create a RuleFlowStepResult from a RuleNodeResult and a FlowNode
     /// </summary>
-    public static RuleFlowStepResult FromResult(RuleNodeResult result, RuleNode node)
+    public static RuleFlowStepResult FromResult(RuleNodeResult result, FlowNode node)
     {
         return new RuleFlowStepResult
         {

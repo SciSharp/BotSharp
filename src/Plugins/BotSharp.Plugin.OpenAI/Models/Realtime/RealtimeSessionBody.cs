@@ -16,44 +16,16 @@ public class RealtimeSessionBody
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Model { get; set; } = null!;
 
-    [JsonPropertyName("temperature")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public float? Temperature { get; set; } = 0.8f;
-
-    [JsonPropertyName("modalities")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string[]? Modalities { get; set; } = ["audio", "text"];
-
     [JsonPropertyName("output_modalities")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string[]? OutputModalities { get; set; } = ["audio"];
 
-    [JsonPropertyName("input_audio_format")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? InputAudioFormat { get; set; }
-
-    [JsonPropertyName("output_audio_format")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? OutputAudioFormat { get; set; }
-
-    [JsonPropertyName("input_audio_transcription")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public InputAudioTranscription? InputAudioTranscription { get; set; }
-
     [JsonPropertyName("instructions")]
     public string Instructions { get; set; } = "You are a friendly assistant.";
-
-    [JsonPropertyName("voice")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Voice { get; set; } = "saga";
 
     [JsonPropertyName("type")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Type { get; set; }
-
-    [JsonPropertyName("max_response_output_tokens")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? MaxResponseOutputTokens { get; set; } = 512;
 
     [JsonPropertyName("max_output_tokens")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -64,14 +36,6 @@ public class RealtimeSessionBody
 
     [JsonPropertyName("tools")]
     public FunctionDef[] Tools { get; set; } = [];
-
-    [JsonPropertyName("turn_detection")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public RealtimeSessionTurnDetection? TurnDetection { get; set; } = new();
-
-    [JsonPropertyName("input_audio_noise_reduction")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public InputAudioNoiseReduction? InputAudioNoiseReduction { get; set; } = new();
 
     [JsonPropertyName("audio")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -144,13 +108,13 @@ public class InputAudioNoiseReduction
 public class RealtimeAudioConfig
 {
     [JsonPropertyName("input")]
-    public RealtimeAudioConfigInput Input { get; set; } = new();
+    public RealtimeInputAudioConfig Input { get; set; } = new();
 
     [JsonPropertyName("output")]
-    public RealtimeAudioConfigOutput Output { get; set; } = new();
+    public RealtimeOutputAudioConfig Output { get; set; } = new();
 }
 
-public class RealtimeAudioConfigInput
+public class RealtimeInputAudioConfig
 {
     [JsonPropertyName("format")]
     public RealtimeAudioFormat Format { get; set; } = new();
@@ -168,7 +132,7 @@ public class RealtimeAudioConfigInput
     public RealtimeSessionTurnDetection? TurnDetection { get; set; }
 }
 
-public class RealtimeAudioConfigOutput
+public class RealtimeOutputAudioConfig
 {
     [JsonPropertyName("format")]
     public RealtimeAudioFormat Format { get; set; } = new();

@@ -2,7 +2,6 @@
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
-using OpenAI.Chat;
 using OpenAI.Responses;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
@@ -425,24 +424,30 @@ public partial class ChatCompletionProvider
         var allowMultiModal = settings != null && settings.MultiModal;
         renderedInstructions = [];
 
+        float? temperature = float.Parse(_state.GetState("temperature", "0.0"));
         var maxTokens = int.TryParse(_state.GetState("max_tokens"), out var tokens)
                         ? tokens
                         : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
-        var options = new CreateResponseOptions(_model, new List<ResponseItem>())
+        var options = new CreateResponseOptions(_model, [])
         {
+            Temperature = temperature,
             MaxOutputTokenCount = maxTokens
         };
 
-        var (_, reasoningEffortLevel) = ParseReasoning(settings?.Reasoning, agent);
-        var responseReasoningLevel = ParseResponseReasoningEffortLevel(reasoningEffortLevel?.ToString());
-        if (responseReasoningLevel.HasValue)
+        var reasoningEffortLevel = ParseResponseReasoning(settings?.Reasoning, agent);
+        if (reasoningEffortLevel.HasValue)
         {
             options.ReasoningOptions = new ResponseReasoningOptions
             {
-                ReasoningEffortLevel = responseReasoningLevel.Value,
+                ReasoningEffortLevel = reasoningEffortLevel.Value,
                 ReasoningSummaryVerbosity = ResponseReasoningSummaryVerbosity.Auto
             };
+
+            if (reasoningEffortLevel != ResponseReasoningEffortLevel.None)
+            {
+                options.Temperature = null;
+            }
         }
 
         // Prepare instruction and functions
@@ -575,9 +580,34 @@ public partial class ChatCompletionProvider
         return sb.ToString();
     }
 
+    private ResponseReasoningEffortLevel? ParseResponseReasoning(ReasoningSetting? settings, Agent agent)
+    {
+        ResponseReasoningEffortLevel? reasoningEffortLevel = null;
+
+        var level = _state.GetState("reasoning_effort_level");
+        if (string.IsNullOrEmpty(level) && _model == agent?.LlmConfig?.Model)
+        {
+            level = agent?.LlmConfig?.ReasoningEffortLevel;
+        }
+
+        if (string.IsNullOrEmpty(level))
+        {
+            level = settings?.EffortLevel;
+            if (settings?.Parameters != null
+                && settings.Parameters.TryGetValue("EffortLevel", out var settingValue)
+                && !string.IsNullOrEmpty(settingValue?.Default))
+            {
+                level = settingValue.Default;
+            }
+        }
+
+        reasoningEffortLevel = ParseResponseReasoningEffortLevel(level);
+        return reasoningEffortLevel;
+    }
+
     private ResponseReasoningEffortLevel? ParseResponseReasoningEffortLevel(string? level)
     {
-        if (string.IsNullOrWhiteSpace(level))
+        if (string.IsNullOrWhiteSpace(level) || level.IsEqualTo("disable"))
         {
             return null;
         }

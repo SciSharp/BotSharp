@@ -1,26 +1,26 @@
-using BotSharp.Abstraction.Rules.Models;
+using BotSharp.Abstraction.Graph.Models;
 
 namespace BotSharp.Abstraction.Rules;
 
-public class RuleGraph
+public class FlowGraph
 {
     private string _id = Guid.NewGuid().ToString();
-    private List<RuleNode> _nodes = [];
-    private List<RuleEdge> _edges = [];
+    private List<FlowNode> _nodes = [];
+    private List<FlowEdge> _edges = [];
 
-    public RuleGraph()
+    public FlowGraph()
     {
         _id = Guid.NewGuid().ToString();
         _nodes = [];
         _edges = [];
     }
 
-    public static RuleGraph Init()
+    public static FlowGraph Init()
     {
-        return new RuleGraph();
+        return new FlowGraph();
     }
 
-    public RuleNode? GetRootNode(string? name = null)
+    public FlowNode? GetRootNode(string? name = null)
     {
         if (!string.IsNullOrEmpty(name))
         {
@@ -30,7 +30,7 @@ public class RuleGraph
         return _nodes.FirstOrDefault(x => x.Type.IsEqualTo("root") || x.Type.IsEqualTo("start"));
     }
 
-    public (RuleNode? Node, IEnumerable<RuleEdge> IncomingEdges, IEnumerable<RuleEdge> OutgoingEdges) GetNode(string id)
+    public (FlowNode? Node, IEnumerable<FlowEdge> IncomingEdges, IEnumerable<FlowEdge> OutgoingEdges) GetNode(string id)
     {
         var node = _nodes.FirstOrDefault(x => x.Id.IsEqualTo(id));
         if (node == null)
@@ -55,12 +55,12 @@ public class RuleGraph
         return _id;
     }
 
-    public IEnumerable<RuleNode> GetNodes(Func<RuleNode, bool>? filter = null)
+    public IEnumerable<FlowNode> GetNodes(Func<FlowNode, bool>? filter = null)
     {
         return filter == null ? [.. _nodes] : [.. _nodes.Where(filter)];
     }
 
-    public IEnumerable<RuleEdge> GetEdges(Func<RuleEdge, bool>? filter = null)
+    public IEnumerable<FlowEdge> GetEdges(Func<FlowEdge, bool>? filter = null)
     {
         return filter == null ? [.. _edges] : [.. _edges.Where(filter)];
     }
@@ -70,17 +70,17 @@ public class RuleGraph
         _id = id;
     }
 
-    public void SetNodes(IEnumerable<RuleNode> nodes)
+    public void SetNodes(IEnumerable<FlowNode> nodes)
     {
         _nodes = [.. nodes?.ToList() ?? []];
     }
 
-    public void SetEdges(IEnumerable<RuleEdge> edges)
+    public void SetEdges(IEnumerable<FlowEdge> edges)
     {
         _edges = [.. edges?.ToList() ?? []];
     }
 
-    public void AddNode(RuleNode node)
+    public void AddNode(FlowNode node)
     {
         var found = _nodes.Exists(x => x.Id.IsEqualTo(node.Id));
         if (!found)
@@ -89,7 +89,7 @@ public class RuleGraph
         }
     }
 
-    public void AddEdge(RuleNode from, RuleNode to, EdgeItemPayload payload)
+    public void AddEdge(FlowNode from, FlowNode to, EdgeItemPayload payload)
     {
         var sourceFound = _nodes.Exists(x => x.Id.IsEqualTo(from.Id));
         var targetFound = _nodes.Exists(x => x.Id.IsEqualTo(to.Id));
@@ -107,7 +107,7 @@ public class RuleGraph
 
         if (!edgeFound)
         {
-            _edges.Add(new RuleEdge(from, to)
+            _edges.Add(new FlowEdge(from, to)
             {
                 Id = payload.Id,
                 Name = payload.Name,
@@ -121,7 +121,7 @@ public class RuleGraph
         }
     }
 
-    public IEnumerable<(RuleNode, RuleEdge)> GetParentNodes(RuleNode node, bool ascending = false)
+    public IEnumerable<(FlowNode, FlowEdge)> GetParentNodes(FlowNode node, bool ascending = false)
     {
         var filtered = _edges.Where(e => e.To != null && e.To.Id.IsEqualTo(node.Id));
         var ordered = ascending
@@ -131,7 +131,7 @@ public class RuleGraph
         return ordered.Select(e => (e.From, e)).ToList();
     }
 
-    public IEnumerable<(RuleNode, RuleEdge)> GetChildrenNodes(RuleNode node, bool ascending = false)
+    public IEnumerable<(FlowNode, FlowEdge)> GetChildrenNodes(FlowNode node, bool ascending = false)
     {
         var filtered = _edges.Where(e => e.From != null && e.From.Id.IsEqualTo(node.Id));
         var ordered = ascending
@@ -141,7 +141,7 @@ public class RuleGraph
         return ordered.Select(e => (e.To, e)).ToList();
     }
 
-    public RuleGraphInfo GetGraphInfo()
+    public FlowGraphInfo GetGraphInfo()
     {
         return new()
         {
@@ -157,9 +157,9 @@ public class RuleGraph
         _edges = [];
     }
 
-    public static RuleGraph FromGraphInfo(RuleGraphInfo graphInfo)
+    public static FlowGraph FromGraphInfo(FlowGraphInfo graphInfo)
     {
-        var graph = new RuleGraph();
+        var graph = new FlowGraph();
         graph.SetGraphId(graphInfo.GraphId.IfNullOrEmptyAs(Guid.NewGuid().ToString())!);
         graph.SetNodes(graphInfo.Nodes);
         graph.SetEdges(graphInfo.Edges);
@@ -172,11 +172,12 @@ public class RuleGraph
     }
 }
 
-public class RuleNode : GraphItem
+public class FlowNode : GraphItem
 {
     /// <summary>
     /// Node type: root, criteria, action, etc.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public override string Type { get; set; } = "action";
 
     /// <summary>
@@ -199,22 +200,22 @@ public class RuleNode : GraphItem
     }
 }
 
-public class RuleEdge : GraphItem
+public class FlowEdge : GraphItem
 {
     /// <summary>
     /// Edge type: is_next, etc.
     /// </summary>
     public override string Type { get; set; } = "next";
 
-    public RuleNode From { get; set; }
-    public RuleNode To { get; set; }
+    public FlowNode From { get; set; }
+    public FlowNode To { get; set; }
 
-    public RuleEdge() : base()
+    public FlowEdge() : base()
     {
-        
+
     }
 
-    public RuleEdge(RuleNode from, RuleNode to) : base()
+    public FlowEdge(FlowNode from, FlowNode to) : base()
     {
         Id = Guid.NewGuid().ToString();
         From = from;
@@ -229,15 +230,28 @@ public class RuleEdge : GraphItem
 
 public class GraphItem
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual string Id { get; set; } = Guid.NewGuid().ToString();
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual string Name { get; set; } = null!;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual string Type { get; set; } = null!;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual IEnumerable<string> Labels { get; set; } = [];
     public virtual double Weight { get; set; } = 1.0;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual string? Description { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual Dictionary<string, string?> Config { get; set; } = [];
 
     private string? _alias;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual string Alias
     {
         get => string.IsNullOrEmpty(_alias) ? Name : _alias;
@@ -265,9 +279,11 @@ public class EdgeItemPayload : GraphItem
 
 }
 
-public class RuleGraphInfo
+public class FlowGraphInfo
 {
+    [JsonPropertyName("graph_id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string GraphId { get; set; }
-    public IEnumerable<RuleNode> Nodes { get; set; } = [];
-    public IEnumerable<RuleEdge> Edges { get; set; } = [];
+    public IEnumerable<FlowNode> Nodes { get; set; } = [];
+    public IEnumerable<FlowEdge> Edges { get; set; } = [];
 }

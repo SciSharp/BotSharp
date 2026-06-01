@@ -1,0 +1,16 @@
+{
+  "name": "util-workflow-advance_workflow_cursor",
+  "description": "Call this when you finish the current workflow step and transition to a next one in the same turn. Do NOT call it if you remain on the current step (e.g., asking a clarifying question or repeating because input was unclear). Call it once per transition, not once per step you ultimately want to reach.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "next_node_id": {
+        "type": "string",
+        "description": "The id of the workflow node you are moving INTO. Must be a node id present in the workflow view or the overall start node id."
+      }
+    },
+    "required": [
+      "next_node_id"
+    ]
+  }
+}

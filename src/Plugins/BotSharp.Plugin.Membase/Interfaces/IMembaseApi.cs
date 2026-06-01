@@ -47,6 +47,9 @@ public interface IMembaseApi
     #endregion
 
     #region PGT
+    [Get("/graph/{graphId}/pgt-definitions/{definitionId}")]
+    Task<PgtDefinition> GetPgtDefinitionAsync(string graphId, string definitionId);
+
     [Post("/graph/{graphId}/pgt-definitions/{definitionId}/simulate")]
     Task<PgtSimulationResponse> SimulatePgtDefinitionAsync(string graphId, string definitionId, [Body] PgtSimulationRequest request);
 

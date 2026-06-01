@@ -251,13 +251,7 @@ public partial class InstructService
             var templateLlmConfig = agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName))?.LlmConfig;
             if (templateLlmConfig?.IsValid == true)
             {
-                llmConfig = new AgentLlmConfig
-                {
-                    Provider = templateLlmConfig.Provider,
-                    Model = templateLlmConfig.Model,
-                    MaxOutputTokens = templateLlmConfig.MaxOutputTokens,
-                    ReasoningEffortLevel = templateLlmConfig.ReasoningEffortLevel
-                };
+                llmConfig = new AgentLlmConfig(templateLlmConfig);
             }
         }
         else

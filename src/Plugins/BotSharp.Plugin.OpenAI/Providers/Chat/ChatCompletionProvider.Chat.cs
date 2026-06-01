@@ -673,7 +673,7 @@ public partial class ChatCompletionProvider
 
     private ChatReasoningEffortLevel? ParseReasoningEffortLevel(string? level)
     {
-        if (string.IsNullOrWhiteSpace(level))
+        if (string.IsNullOrWhiteSpace(level) || level.IsEqualTo("disable"))
         {
             return null;
         }
