@@ -58,5 +58,8 @@ public interface IMembaseApi
 
     [Post("/graph/{graphId}/pgt-definitions/{definitionId}/validate")]
     Task<PgtValidationResponse> ValidatePgtDefinitionAsync(string graphId, string definitionId, [Body] PgtValidationRequest request);
+
+    [Post("/graph/{graphId}/pgt-external/{correlationId}/complete")]
+    Task<PgtExternalCompleteResponse> CompletePgtExternalAsync(string graphId, string correlationId);
     #endregion
 }
