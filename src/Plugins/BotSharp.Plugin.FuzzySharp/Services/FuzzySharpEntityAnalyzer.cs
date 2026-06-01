@@ -66,11 +66,14 @@ public class FuzzySharpEntityAnalyzer : IEntityAnalyzer
             // Tokenize the text
             var tokens = TokenHelper.Tokenize(text);
 
+            // Build loader context once and reuse for both calls
+            var loaderCtx = BuildLoaderContext(options);
+
             // Load vocabulary
-            var vocabulary = await LoadAllVocabularyAsync(options?.DataProviders);
+            var vocabulary = await LoadAllVocabularyAsync(options?.DataProviders, loaderCtx);
 
             // Load synonym mapping
-            var synonymMapping = await LoadAllSynonymMappingAsync(options?.DataProviders);
+            var synonymMapping = await LoadAllSynonymMappingAsync(options?.DataProviders, loaderCtx);
 
             // Analyze text
             var flaggedItems = AnalyzeTokens(tokens, vocabulary, synonymMapping, options);
@@ -99,10 +102,11 @@ public class FuzzySharpEntityAnalyzer : IEntityAnalyzer
         }
     }
 
-    public async Task<Dictionary<string, HashSet<string>>> LoadAllVocabularyAsync(IEnumerable<string>? dataProviders = null)
+    public async Task<Dictionary<string, HashSet<string>>> LoadAllVocabularyAsync(IEnumerable<string>? dataProviders = null, EntityDataLoadContext? ctx = null)
     {
+        ctx ??= new EntityDataLoadContext();
         var dataLoaders = _tokenDataLoaders.Where(x => dataProviders == null || dataProviders.Contains(x.Provider));
-        var results = await Task.WhenAll(dataLoaders.Select(c => c.LoadVocabularyAsync()));
+        var results = await Task.WhenAll(dataLoaders.Select(c => c.LoadVocabularyAsync(ctx)));
         var merged = new Dictionary<string, HashSet<string>>();
 
         foreach (var dict in results)
@@ -123,10 +127,11 @@ public class FuzzySharpEntityAnalyzer : IEntityAnalyzer
         return merged;
     }
 
-    public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadAllSynonymMappingAsync(IEnumerable<string>? dataProviders = null)
+    public async Task<Dictionary<string, (string DbPath, string CanonicalForm)>> LoadAllSynonymMappingAsync(IEnumerable<string>? dataProviders = null, EntityDataLoadContext? ctx = null)
     {
+        ctx ??= new EntityDataLoadContext();
         var dataLoaders = _tokenDataLoaders.Where(x => dataProviders == null || dataProviders.Contains(x.Provider));
-        var results = await Task.WhenAll(dataLoaders.Select(c => c.LoadSynonymMappingAsync()));
+        var results = await Task.WhenAll(dataLoaders.Select(c => c.LoadSynonymMappingAsync(ctx)));
         var merged = new Dictionary<string, (string DbPath, string CanonicalForm)>();
 
         foreach (var dict in results)
@@ -138,6 +143,22 @@ public class FuzzySharpEntityAnalyzer : IEntityAnalyzer
         }
 
         return merged;
+    }
+
+    private static EntityDataLoadContext BuildLoaderContext(EntityAnalysisOptions? options)
+    {
+        var ctx = new EntityDataLoadContext();
+        if (options?.LoaderParameters is { } src)
+        {
+            foreach (var kvp in src)
+            {
+                if (!string.IsNullOrEmpty(kvp.Key))
+                {
+                    ctx.Parameters[kvp.Key] = kvp.Value;
+                }
+            }
+        }
+        return ctx;
     }
 
     /// <summary>
