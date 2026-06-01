@@ -139,6 +139,37 @@ public partial class MongoRepository
     }
     #endregion
 
+    #region Log Cleanup
+    public async Task<int> DeleteOldConversationLogs(int retentionDays, int batchSize)
+    {
+        if (retentionDays <= 0) return 0;
+        var threshold = DateTime.UtcNow.AddDays(-retentionDays);
+
+        var contentLogFilter = Builders<ConversationContentLogDocument>.Filter.Lt(x => x.CreatedTime, threshold);
+        var stateLogFilter = Builders<ConversationStateLogDocument>.Filter.Lt(x => x.CreatedTime, threshold);
+
+        var contentDocsToDelete = await _dc.ContentLogs.Find(contentLogFilter).Limit(batchSize).Project(x => x.Id).ToListAsync();
+        long contentDeletedCount = 0;
+        if (contentDocsToDelete.Any())
+        {
+            var deleteFilter = Builders<ConversationContentLogDocument>.Filter.In(x => x.Id, contentDocsToDelete);
+            var contentDeleted = await _dc.ContentLogs.DeleteManyAsync(deleteFilter);
+            contentDeletedCount = contentDeleted.DeletedCount;
+        }
+
+        var stateDocsToDelete = await _dc.StateLogs.Find(stateLogFilter).Limit(batchSize).Project(x => x.Id).ToListAsync();
+        long stateDeletedCount = 0;
+        if (stateDocsToDelete.Any())
+        {
+            var deleteFilter = Builders<ConversationStateLogDocument>.Filter.In(x => x.Id, stateDocsToDelete);
+            var stateDeleted = await _dc.StateLogs.DeleteManyAsync(deleteFilter);
+            stateDeletedCount = stateDeleted.DeletedCount;
+        }
+
+        return (int)(contentDeletedCount + stateDeletedCount);
+    }
+    #endregion
+
     #region Instruction Log
     public async Task<bool> SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
     {
