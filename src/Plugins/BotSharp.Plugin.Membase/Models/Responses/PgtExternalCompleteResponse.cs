@@ -28,15 +28,9 @@ public class PgtExternalTask
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public object? Error { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
 
     public long NotBefore { get; set; }
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTime? ClaimedAt { get; set; }
 }
