@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Entity.Models;
+
 namespace BotSharp.Abstraction.Entity;
 
 public interface IEntityDataLoader
@@ -15,4 +17,18 @@ public interface IEntityDataLoader
     /// </summary>
     /// <returns></returns>
     Task<Dictionary<string, (string DataSource, string CanonicalForm)>> LoadSynonymMappingAsync();
+
+    /// <summary>
+    /// Context-aware vocabulary load. Default implementation delegates to the
+    /// parameterless version for loaders that don't need runtime parameters.
+    /// </summary>
+    Task<Dictionary<string, HashSet<string>>> LoadVocabularyAsync(EntityDataLoadContext ctx)
+        => LoadVocabularyAsync();
+
+    /// <summary>
+    /// Context-aware synonym load. Default implementation delegates to the
+    /// parameterless version for loaders that don't need runtime parameters.
+    /// </summary>
+    Task<Dictionary<string, (string DataSource, string CanonicalForm)>> LoadSynonymMappingAsync(EntityDataLoadContext ctx)
+        => LoadSynonymMappingAsync();
 }

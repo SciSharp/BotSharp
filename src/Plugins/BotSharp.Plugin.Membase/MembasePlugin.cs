@@ -24,6 +24,7 @@ public class MembasePlugin : IBotSharpPlugin
         config.Bind("Membase", settings);
         services.AddSingleton(sp => settings);
 
+        services.AddHttpContextAccessor();
         services.AddTransient<MembaseAuthHandler>();
         services.AddRefitClient<IMembaseApi>(new RefitSettings
                 {
