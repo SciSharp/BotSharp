@@ -37,16 +37,19 @@ namespace BotSharp.Plugin.SemanticKernel
         public string Model => string.Empty;
 
         /// <inheritdoc/>
-        public async Task<float[]> GetVectorAsync(string text)
+        public async Task<float[]> GetVectorAsync(string text, int? dimension = null)
         {
+            if (dimension.HasValue) SetDimension(dimension.Value);
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             return (await this._embedding.GenerateEmbeddingAsync(text)).ToArray();
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         }
 
         /// <inheritdoc/>
-        public async Task<List<float[]>> GetVectorsAsync(List<string> texts)
+        public async Task<List<float[]>> GetVectorsAsync(List<string> texts, int? dimension = null)
         {
+            if (dimension.HasValue) SetDimension(dimension.Value);
+
             var embeddings = await this._embedding.GenerateEmbeddingsAsync(texts);
             return embeddings.Select(_ => _.ToArray())
                              .ToList();
