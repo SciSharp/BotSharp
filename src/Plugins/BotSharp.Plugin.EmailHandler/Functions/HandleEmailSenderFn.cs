@@ -29,7 +29,7 @@ public class HandleEmailSenderFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs, _options.JsonSerializerOptions);
-        var recipient = args?.ToAddress;
+        var recipients = args?.ToAddresses?.Where(x => !string.IsNullOrWhiteSpace(x)) ?? [];
         var body = args?.Content;
         var subject = args?.Subject;
         var isNeedAttachments = args?.IsNeedAttachemnts ?? false;
@@ -39,7 +39,12 @@ public class HandleEmailSenderFn : IFunctionCallback
         {
             var mailMessage = new MimeMessage();
             mailMessage.From.Add(new MailboxAddress(_emailSettings.Name, _emailSettings.EmailAddress));
-            mailMessage.To.Add(new MailboxAddress("", recipient));
+
+            foreach (var recipient in recipients)
+            {
+                mailMessage.To.Add(new MailboxAddress("", recipient));
+            }
+
             mailMessage.Subject = subject;
             bodyBuilder.TextBody = body;
 
@@ -53,7 +58,7 @@ public class HandleEmailSenderFn : IFunctionCallback
             var response = await SendEmailBySMTP(mailMessage);
             message.Content = response;
 
-            _logger.LogWarning($"Email successfully send over to {recipient}. Email Subject: {subject} [{response}]");
+            _logger.LogWarning($"Email successfully send over to {string.Join(",", recipients)}. Email Subject: {subject} [{response}]");
             return true;
         }
         catch (Exception ex)

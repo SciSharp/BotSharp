@@ -4,8 +4,8 @@ namespace BotSharp.Plugin.EmailHandler.LlmContexts;
 
 public class LlmContextIn
 {
-    [JsonPropertyName("to_address")]
-    public string? ToAddress { get; set; }
+    [JsonPropertyName("to_address_list")]
+    public IEnumerable<string>? ToAddresses { get; set; }
 
     [JsonPropertyName("email_content")]
     public string? Content { get; set; }
