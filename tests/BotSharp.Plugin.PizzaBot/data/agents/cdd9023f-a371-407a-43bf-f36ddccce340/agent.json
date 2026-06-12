@@ -1,14 +1,14 @@
 {
   "id": "cdd9023f-a371-407a-43bf-f36ddccce340",
-  "name": "SportKiosk",
-  "description": "Answers questions about sport events",
+  "name": "OpenClaw",
+  "description": "Microsoft Agent Framework orchestration backend for OpenClaw",
   "type": "a2a-remote",
   "disabled": false,
   "isPublic": true,
   "profiles": [ "pizza" ],
   "labels": [ "experiment" ],
   "llmConfig": {
-    "provider": "openai",
-    "model": "gpt-5-nano"
+    "provider": "azure-openai",
+    "model": "gpt-4.1"
   }
 }

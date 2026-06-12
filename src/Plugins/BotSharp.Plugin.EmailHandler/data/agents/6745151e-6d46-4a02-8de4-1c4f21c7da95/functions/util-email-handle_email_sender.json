@@ -4,9 +4,12 @@
   "parameters": {
     "type": "object",
     "properties": {
-      "to_address": {
-        "type": "string",
-        "description": "The email address to which the email should be sent to. It needs to be a valid email address in the correct string format."
+      "to_address_list": {
+        "type": "array",
+        "description": "The email addresses to which the email should be sent. Each item needs to be a valid and unique email address in the correct string format.",
+        "items": {
+          "type": "string"
+        }
       },
       "email_content": {
         "type": "string",
@@ -21,6 +24,6 @@
         "description": "If the user request to send email with attachemnt(s) or file(s), then this value should be True. Otherwise, this value should be False."
       }
     },
-    "required": [ "to_address", "email_content", "subject", "is_need_attachments" ]
+    "required": [ "to_address_list", "email_content", "subject", "is_need_attachments" ]
   }
 }
