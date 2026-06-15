@@ -432,7 +432,7 @@ public partial class ChatCompletionProvider
         var options = new CreateResponseOptions(_model, [])
         {
             Temperature = temperature,
-            MaxOutputTokenCount = maxTokens
+            MaxOutputTokenCount = maxTokens,
         };
 
         var reasoningEffortLevel = ParseResponseReasoning(settings?.Reasoning, agent);
@@ -448,6 +448,16 @@ public partial class ChatCompletionProvider
             {
                 options.Temperature = null;
             }
+        }
+
+        // Response format
+        var textFormat = GetResponseTextFormat(agent.LlmConfig?.ResponseFormat);
+        if (textFormat != null)
+        {
+            options.TextOptions = new ResponseTextOptions
+            {
+                TextFormat = textFormat
+            };
         }
 
         // Prepare instruction and functions
@@ -578,6 +588,16 @@ public partial class ChatCompletionProvider
         }
 
         return sb.ToString();
+    }
+
+    private static ResponseTextFormat? GetResponseTextFormat(string? format)
+    {
+        return format?.ToLower() switch
+        {
+            "json" or "json_object" => ResponseTextFormat.CreateJsonObjectFormat(),
+            "text" => ResponseTextFormat.CreateTextFormat(),
+            _ => null
+        };
     }
 
     private ResponseReasoningEffortLevel? ParseResponseReasoning(ReasoningSetting? settings, Agent agent)

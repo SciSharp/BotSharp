@@ -4,12 +4,13 @@ public class AgentLlmConfig
 {
     public AgentLlmConfig() { }
 
-    public AgentLlmConfig(AgentTemplateLlmConfig templateLlmConfig) 
+    public AgentLlmConfig(AgentTemplateConfig templateConfig)
     {
-        Provider = templateLlmConfig.Provider;
-        Model = templateLlmConfig.Model;
-        MaxOutputTokens = templateLlmConfig.MaxOutputTokens;
-        ReasoningEffortLevel = templateLlmConfig.ReasoningEffortLevel;
+        Provider = templateConfig.LlmConfig?.Provider;
+        Model = templateConfig.LlmConfig?.Model;
+        MaxOutputTokens = templateConfig.LlmConfig?.MaxOutputTokens;
+        ReasoningEffortLevel = templateConfig.LlmConfig?.ReasoningEffortLevel;
+        ResponseFormat = templateConfig.ResponseFormat;
     }
 
     /// <summary>
@@ -72,6 +73,13 @@ public class AgentLlmConfig
     [JsonPropertyName("realtime")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public LlmRealtimeConfig? Realtime { get; set; }
+
+    /// <summary>
+    /// Response format: json, xml, markdown, yaml, etc.
+    /// </summary>
+    [JsonPropertyName("response_format")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ResponseFormat { get; set; }
 }
 
 public class LlmImageCompositionConfig : LlmProviderModel

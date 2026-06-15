@@ -618,12 +618,29 @@ public partial class ChatCompletionProvider
                         ? tokens
                         : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
-        return new ChatCompletionOptions()
+        var options = new ChatCompletionOptions()
         {
             Temperature = temperature,
             MaxOutputTokenCount = maxTokens,
             ReasoningEffortLevel = reasoningEffortLevel,
             WebSearchOptions = webSearchOptions
+        };
+
+        if (webSearchOptions == null)
+        {
+            options.ResponseFormat = GetChatResponseFormat(agent.LlmConfig?.ResponseFormat);
+        }
+
+        return options;
+    }
+
+    private static ChatResponseFormat? GetChatResponseFormat(string? format)
+    {
+        return format?.ToLower() switch
+        {
+            "json" or "json_object" => ChatResponseFormat.CreateJsonObjectFormat(),
+            "text" => ChatResponseFormat.CreateTextFormat(),
+            _ => null
         };
     }
 
