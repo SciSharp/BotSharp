@@ -54,7 +54,7 @@ public partial class RoutingService
                 agent.Id);
 
             // Save states
-            //states.SaveStateByArgs(inst.Arguments);         
+            states.SaveStateByArgs(inst.Arguments);
 
             _logger.LogDebug($"*** Next Instruction *** {inst}");
 
