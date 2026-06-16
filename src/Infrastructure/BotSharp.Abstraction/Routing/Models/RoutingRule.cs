@@ -23,6 +23,9 @@ public class RoutingRule
 
     public bool Required { get; set; }
 
+    [JsonPropertyName("allow_llm_fill")]
+    public bool AllowLlmFill { get; set; } = true;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? RedirectTo { get; set; }
 
@@ -51,6 +54,7 @@ public class RoutingRule
         Description = Description,
         FieldType = FieldType,
         Required = Required,
+        AllowLlmFill = AllowLlmFill,
         RedirectTo = RedirectTo,
         RedirectToAgentName = RedirectToAgentName
     };
