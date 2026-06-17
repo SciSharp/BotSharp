@@ -7,6 +7,7 @@ public static class ConversationChannel
     public const string Phone = "phone";
     public const string SMS = "sms";
     public const string Messenger = "messenger";
+    public const string Teams = "teams";
     public const string Email = "email";
     public const string Crontab = "crontab";
     public const string Database = "database";

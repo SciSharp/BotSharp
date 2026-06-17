@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "<AZURE_BOT_APP_ID>",
+  "developer": {
+    "name": "BotSharp",
+    "websiteUrl": "https://botsharp.org",
+    "privacyUrl": "https://botsharp.org/privacy",
+    "termsOfUseUrl": "https://botsharp.org/terms"
+  },
+  "name": {
+    "short": "BotSharp",
+    "full": "BotSharp AI Assistant"
+  },
+  "description": {
+    "short": "AI assistant powered by BotSharp.",
+    "full": "Conversational AI assistant powered by BotSharp, integrated with Microsoft Teams."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#2A6FF3",
+  "bots": [
+    {
+      "botId": "<AZURE_BOT_APP_ID>",
+      "scopes": [ "personal", "team", "groupchat" ],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "permissions": [ "identity", "messageTeamMembers" ],
+  "validDomains": [ "<YOUR_HOST>" ]
+}
