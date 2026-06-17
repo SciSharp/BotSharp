@@ -152,7 +152,7 @@ public class CompletionProvider
             return default!;
         }
 
-        completer.SetModelName(model ?? settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o_Mini_Transcribe));
+        completer.SetModelName(model ?? Gpt4xModelConstants.GPT_4o_Mini_Transcribe);
         return completer;
     }
 
@@ -171,7 +171,7 @@ public class CompletionProvider
             return default!;
         }
 
-        completer.SetModelName(model ?? settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o_Mini_Tts));
+        completer.SetModelName(model ?? Gpt4xModelConstants.GPT_4o_Mini_Tts);
         return completer;
     }
 

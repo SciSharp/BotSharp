@@ -170,7 +170,7 @@ public class SequentialPlanner : ITaskPlanner
 
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
         var settingService = _services.GetRequiredService<ISettingService>();
-        var model = llmProviderService.GetProviderModel("openai", settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o));
+        var model = llmProviderService.GetProviderModel("openai", Gpt4xModelConstants.GPT_4o);
 
         // chat completion
         var completion = CompletionProvider.GetChatCompletion(_services,

@@ -43,7 +43,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         _botsharpOptions = botsharpOptions;
 
         var settingService = _services.GetRequiredService<ISettingService>();
-        _model = settingService.GetUpgradeModel(_model);
     }
 
     public async Task Connect(
@@ -72,7 +71,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var realtimeSettings = _services.GetRequiredService<RealtimeModelSettings>();
         var settingService = _services.GetRequiredService<ISettingService>();
 
-        _model ??= settingService.GetUpgradeModel(realtimeSettings.Model);
+        _model ??= realtimeSettings.Model;
         _session = new LlmRealtimeSession(_services, new ChatSessionOptions
         {
             Provider = Provider,
@@ -388,7 +387,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
             sessionUpdate.session.Audio.Input.Transcription = new InputAudioTranscription
             {
-                Model = settingService.GetUpgradeModel(realtimeModelSettings.InputAudioTranscription.Model),
+                Model = realtimeModelSettings.InputAudioTranscription.Model,
                 Language = realtimeModelSettings.InputAudioTranscription.Language,
                 Prompt = string.Join(", ", words.Select(x => x.ToLower().Trim()).Distinct()).SubstringMax(1024)
             };
