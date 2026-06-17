@@ -25,14 +25,18 @@ public class fastTextEmbeddingProvider : ITextEmbedding
         _services = services;
     }
 
-    public Task<float[]> GetVectorAsync(string text)
+    public Task<float[]> GetVectorAsync(string text, int? dimension = null)
     {
+        if (dimension.HasValue) SetDimension(dimension.Value);
+
         LoadModel();
         return Task.FromResult(_fastText.GetSentenceVector(text));
     }
 
-    public async Task<List<float[]>> GetVectorsAsync(List<string> texts)
+    public async Task<List<float[]>> GetVectorsAsync(List<string> texts, int? dimension = null)
     {
+        if (dimension.HasValue) SetDimension(dimension.Value);
+
         LoadModel();
         var vectors = new List<float[]>();
         for (int i = 0; i < texts.Count; i++)

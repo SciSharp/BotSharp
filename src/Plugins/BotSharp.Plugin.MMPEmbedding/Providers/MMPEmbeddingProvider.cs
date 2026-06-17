@@ -33,8 +33,10 @@ public class MMPEmbeddingProvider : ITextEmbedding
     /// <summary>
     /// Gets a single embedding vector using mean-max pooling
     /// </summary>
-    public async Task<float[]> GetVectorAsync(string text)
+    public async Task<float[]> GetVectorAsync(string text, int? dimension = null)
     {
+        if (dimension.HasValue) SetDimension(dimension.Value);
+
         if (string.IsNullOrWhiteSpace(text))
         {
             return new float[_dimension];
@@ -59,8 +61,10 @@ public class MMPEmbeddingProvider : ITextEmbedding
     /// <summary>
     /// Gets multiple embedding vectors using mean-max pooling
     /// </summary>
-    public async Task<List<float[]>> GetVectorsAsync(List<string> texts)
+    public async Task<List<float[]>> GetVectorsAsync(List<string> texts, int? dimension = null)
     {
+        if (dimension.HasValue) SetDimension(dimension.Value);
+
         var results = new List<float[]>();
 
         foreach (var text in texts)

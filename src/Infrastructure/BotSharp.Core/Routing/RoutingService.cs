@@ -113,13 +113,13 @@ public partial class RoutingService : IRoutingService
             Type = x.Type,
             Profiles = x.Profiles,
             RequiredFields = x.RoutingRules
-                .Where(p => p.Required)
+                .Where(p => p.Required && p.AllowLlmFill)
                 .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.FieldType)
                 {
                     Required = p.Required
                 }).ToList(),
             OptionalFields = x.RoutingRules
-                .Where(p => !p.Required)
+                .Where(p => !p.Required && p.AllowLlmFill)
                 .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.FieldType)
                 {
                     Required = p.Required

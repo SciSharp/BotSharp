@@ -11,6 +11,8 @@ public class RoutingRuleUpdateModel
     [JsonPropertyName("field_type")]
     public string? FieldType { get; set; }
     public bool Required { get; set; }
+    [JsonPropertyName("allow_llm_fill")]
+    public bool? AllowLlmFill { get; set; }
     public string? RedirectTo { get; set; }
 
     public RoutingRuleUpdateModel()
@@ -27,6 +29,7 @@ public class RoutingRuleUpdateModel
             Type = model.Type,
             FieldType = model.FieldType,
             Required = model.Required,
+            AllowLlmFill = model.AllowLlmFill ?? true,
             RedirectTo = model.RedirectTo
         };
     }

@@ -20,8 +20,10 @@ public class TextEmbeddingProvider : ITextEmbedding
         _settings = settings;
     }
 
-    public async Task<float[]> GetVectorAsync(string text)
+    public async Task<float[]> GetVectorAsync(string text, int? dimension = null)
     {
+        if (dimension.HasValue) SetDimension(dimension.Value);
+
         if (_embedder == null)
         {
             var path = Path.Combine(_settings.ModelDir, _settings.DefaultModel);
@@ -33,8 +35,10 @@ public class TextEmbeddingProvider : ITextEmbedding
         return (await _embedder.GetEmbeddings(text)).First();
     }
 
-    public async Task<List<float[]>> GetVectorsAsync(List<string> texts)
+    public async Task<List<float[]>> GetVectorsAsync(List<string> texts, int? dimension = null)
     {
+        if (dimension.HasValue) SetDimension(dimension.Value);
+
         throw new NotImplementedException();
     }
 

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 
@@ -32,7 +33,7 @@ public partial class AgentService
         record.FuncVisMode = agent.FuncVisMode;
         record.Profiles = agent.Profiles ?? [];
         record.Labels = agent.Labels ?? [];
-        record.RoutingRules = agent.RoutingRules ?? [];
+        record.RoutingRules = MergeRoutingRules(record.RoutingRules, agent.RoutingRules);
         record.Instruction = agent.Instruction ?? string.Empty;
         record.ChannelInstructions = agent.ChannelInstructions ?? [];
         record.Functions = agent.Functions ?? [];
@@ -52,6 +53,28 @@ public partial class AgentService
 
         Utilities.ClearCache();
         await Task.CompletedTask;
+    }
+
+    private static List<RoutingRule> MergeRoutingRules(List<RoutingRule>? existingRules, List<RoutingRule>? incomingRules)
+    {
+        if (incomingRules == null)
+        {
+            return [];
+        }
+
+        foreach (var incomingRule in incomingRules)
+        {
+            var existingRule = existingRules?.FirstOrDefault(x =>
+                string.Equals(x.Field, incomingRule.Field, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(x.Type, incomingRule.Type, StringComparison.OrdinalIgnoreCase));
+
+            if (existingRule != null)
+            {
+                incomingRule.AllowLlmFill = existingRule.AllowLlmFill;
+            }
+        }
+
+        return incomingRules;
     }
 
 

@@ -25,8 +25,10 @@ public class TextEmbeddingProvider : ITextEmbedding
         _services = services;
     }
 
-    public async Task<float[]> GetVectorAsync(string text)
+    public async Task<float[]> GetVectorAsync(string text, int? dimension = null)
     {
+        if (dimension.HasValue) SetDimension(dimension.Value);
+
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var embeddingClient = client.GetEmbeddingClient(_model);
         var options = PrepareOptions();
@@ -35,8 +37,10 @@ public class TextEmbeddingProvider : ITextEmbedding
         return value.ToFloats().ToArray();
     }
 
-    public async Task<List<float[]>> GetVectorsAsync(List<string> texts)
+    public async Task<List<float[]>> GetVectorsAsync(List<string> texts, int? dimension = null)
     {
+        if (dimension.HasValue) SetDimension(dimension.Value);
+
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var embeddingClient = client.GetEmbeddingClient(_model);
         var options = PrepareOptions();

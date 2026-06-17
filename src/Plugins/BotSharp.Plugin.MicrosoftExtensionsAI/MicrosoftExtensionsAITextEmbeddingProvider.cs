@@ -26,12 +26,17 @@ public sealed class MicrosoftExtensionsAITextEmbeddingProvider : ITextEmbedding
     public string Model => _model;
 
     /// <inheritdoc/>
-    public async Task<float[]> GetVectorAsync(string text) =>
-        (await _generator.GenerateVectorAsync(text, CreateOptions())).ToArray();
+    public async Task<float[]> GetVectorAsync(string text, int? dimension = null)
+    {
+        if (dimension.HasValue) SetDimension(dimension.Value);
+        return (await _generator.GenerateVectorAsync(text, CreateOptions())).ToArray();
+    }
 
     /// <inheritdoc/>
-    public async Task<List<float[]>> GetVectorsAsync(List<string> texts)
+    public async Task<List<float[]>> GetVectorsAsync(List<string> texts, int? dimension = null)
     {
+        if (dimension.HasValue) SetDimension(dimension.Value);
+
         var embeddings = await _generator.GenerateAsync(texts, CreateOptions());
         return embeddings.Select(e => e.Vector.ToArray()).ToList();
     }

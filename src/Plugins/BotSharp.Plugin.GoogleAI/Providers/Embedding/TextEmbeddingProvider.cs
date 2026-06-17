@@ -27,8 +27,10 @@ public class TextEmbeddingProvider : ITextEmbedding
         _services = services;
     }
 
-    public async Task<float[]> GetVectorAsync(string text)
+    public async Task<float[]> GetVectorAsync(string text, int? dimension = null)
     {
+        if (dimension.HasValue) SetDimension(dimension.Value);
+
         var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         var embeddingClient = client.CreateEmbeddingModel(_model);
       
@@ -37,8 +39,10 @@ public class TextEmbeddingProvider : ITextEmbedding
         return value.ToArray();
     }
 
-    public async Task<List<float[]>> GetVectorsAsync(List<string> texts)
+    public async Task<List<float[]>> GetVectorsAsync(List<string> texts, int? dimension = null)
     {
+        if (dimension.HasValue) SetDimension(dimension.Value);
+
         var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         var embeddingClient = client.CreateEmbeddingModel(_model);
       
