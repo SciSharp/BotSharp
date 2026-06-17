@@ -90,7 +90,7 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         var realtimeModelSettings = _services.GetRequiredService<RealtimeModelSettings>();
         var settingService = _services.GetRequiredService<ISettingService>();
 
-        _model ??= settingService.GetUpgradeModel(realtimeModelSettings.Model);
+        _model ??= realtimeModelSettings.Model;
         var modelSettings = settingsService.GetSetting(Provider, _model);
 
         Reset();

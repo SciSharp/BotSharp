@@ -168,7 +168,7 @@ public class ReadAudioFn : IFunctionCallback
         }
 
         provider = "openai";
-        model = settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o_Mini_Transcribe);
+        model = Gpt4xModelConstants.GPT_4o_Mini_Transcribe;
 
         return (provider, model);
     }
