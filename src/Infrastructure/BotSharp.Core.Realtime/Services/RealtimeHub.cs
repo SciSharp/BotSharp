@@ -201,7 +201,7 @@ public class RealtimeHub : IRealtimeHub
         }
 
         provider = _settings.Provider;
-        model = settingService.GetUpgradeModel(_settings.Model);
+        model = _settings.Model;
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {

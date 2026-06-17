@@ -63,7 +63,7 @@ public partial class ConversationService
         var providerService = _services.GetRequiredService<ILlmProviderService>();
         var settingService = _services.GetRequiredService<ISettingService>();
         var modelSettings = providerService.GetProviderModels(provider);
-        var defaultModel = settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o);
+        var defaultModel = Gpt4xModelConstants.GPT_4o;
         var modelSetting = modelSettings.FirstOrDefault(x => x.Name.IsEqualTo(defaultModel));
 
         if (modelSetting != null)

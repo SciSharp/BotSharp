@@ -27,7 +27,7 @@ public class DbKnowledgeService
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(KnowledgeBaseType.QuestionAnswer));
         
         var provider = request.Provider ?? "openai";
-        var model = request.Model ?? settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o);
+        var model = request.Model ?? Gpt4xModelConstants.GPT_4o;
         var schema = request.Schema;
         var collectionName = request.KnowledgebaseCollection;
 

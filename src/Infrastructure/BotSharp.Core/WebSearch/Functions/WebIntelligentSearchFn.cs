@@ -83,7 +83,7 @@ public class WebIntelligentSearchFn : IFunctionCallback
         }
 
         provider = "openai";
-        model = settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o_Mini_Search_Preview);
+        model = Gpt4xModelConstants.GPT_4o_Mini_Search_Preview;
 
         var models = llmProviderService.GetProviderModels(provider);
         var foundModel = models.FirstOrDefault(x => x.WebSearch?.IsDefault == true)

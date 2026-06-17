@@ -10,6 +10,4 @@ public interface ISettingService
     T Bind<T>(string path) where T : new();
 
     Task<object> GetDetail(string settingName, bool mask = false);
-
-    string GetUpgradeModel(string oldModelName);
 }

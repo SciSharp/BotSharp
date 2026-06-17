@@ -64,7 +64,7 @@ public class SqlValidateFn : IFunctionCallback
                 new InstructOptions
                 {
                     Provider = "openai",
-                    Model = settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o),
+                    Model = Gpt4xModelConstants.GPT_4o,
                     AgentId = BuiltInAgentId.SqlDriver,
                     TemplateName = "sql_statement_correctness",
                     Data = new Dictionary<string, object>

@@ -11,7 +11,7 @@ internal static class AiResponseHelper
 
         var settingService = services.GetRequiredService<ISettingService>();
         var provider = agent?.LlmConfig?.Provider ?? "openai";
-        var model = agent?.LlmConfig?.Model ?? settingService.GetUpgradeModel(Gpt4xModelConstants.GPT_4o_Mini);
+        var model = agent?.LlmConfig?.Model ?? Gpt4xModelConstants.GPT_4o_Mini;
         var completion = CompletionProvider.GetChatCompletion(services, provider: provider, model: model);
         var response = await completion.GetChatCompletions(agent, [new RoleDialogModel(AgentRole.User, text)]);
         return response.Content.IfNullOrEmptyAs(GetDefaultResponse(files)) ?? string.Empty;
