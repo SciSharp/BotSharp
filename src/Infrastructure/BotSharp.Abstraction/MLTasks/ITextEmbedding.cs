@@ -14,6 +14,14 @@ public interface ITextEmbedding
     void SetApiKey(string apiKey) { }
 
     /// <summary>
+    /// Optional task/prompt hint for prompt-conditioned ("asymmetric") embedding models such as
+    /// EmbeddingGemma, which embed a search query and a stored document with different prompt prefixes.
+    /// Pass <c>"query"</c> when embedding a search query and <c>"document"</c> when embedding content to
+    /// be stored/indexed. Symmetric providers (e.g. OpenAI) ignore this. Defaults to <c>"document"</c>.
+    /// </summary>
+    void SetTaskType(string taskType) { }
+
+    /// <summary>
     /// Generates an embedding vector for the given text.
     /// </summary>
     /// <param name="text">The text to embed.</param>
