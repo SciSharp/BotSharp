@@ -440,7 +440,6 @@ namespace BotSharp.Core.Repository
             var configs = templates.Select(t => new AgentTemplateConfig
             {
                 Name = t.Name,
-                ResponseFormat = t.ResponseFormat,
                 LlmConfig = t.LlmConfig
             }).ToList();
 
@@ -765,7 +764,6 @@ namespace BotSharp.Core.Repository
                 var found = configs?.FirstOrDefault(x => x.Name.IsEqualTo(templateName));
                 if (found != null)
                 {
-                    template.ResponseFormat = found.ResponseFormat;
                     template.LlmConfig = found.LlmConfig;
                 }
             }
@@ -807,7 +805,6 @@ namespace BotSharp.Core.Repository
             var existingConfig = configs.FirstOrDefault(x => x.Name.IsEqualTo(template.Name));
             if (existingConfig != null)
             {
-                existingConfig.ResponseFormat = template.ResponseFormat;
                 existingConfig.LlmConfig = template.LlmConfig;
             }
             else
@@ -815,7 +812,6 @@ namespace BotSharp.Core.Repository
                 configs.Add(new AgentTemplateConfig
                 {
                     Name = template.Name,
-                    ResponseFormat = template.ResponseFormat,
                     LlmConfig = template.LlmConfig
                 });
             }

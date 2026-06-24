@@ -248,10 +248,10 @@ public partial class InstructService
         if (!string.IsNullOrEmpty(templateName))
         {
             prompt = agentService.RenderTemplate(agent, templateName);
-            var template = agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName));
-            if (template?.LlmConfig?.IsValid == true)
+            var templateLlmConfig = agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName))?.LlmConfig;
+            if (templateLlmConfig?.IsValid == true)
             {
-                llmConfig = new AgentLlmConfig(template);
+                llmConfig = new AgentLlmConfig(templateLlmConfig);
             }
         }
         else

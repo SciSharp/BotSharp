@@ -15,6 +15,13 @@ public class LlmConfigBase : LlmProviderModel
     [JsonPropertyName("reasoning_effort_level")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ReasoningEffortLevel { get; set; }
+
+    /// <summary>
+    /// Response format: json, xml, markdown, yaml, etc.
+    /// </summary>
+    [JsonPropertyName("response_format")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ResponseFormat { get; set; }
 }
 
 public class LlmProviderModel

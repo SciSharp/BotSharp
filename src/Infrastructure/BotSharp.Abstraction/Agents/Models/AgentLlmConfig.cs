@@ -4,13 +4,13 @@ public class AgentLlmConfig
 {
     public AgentLlmConfig() { }
 
-    public AgentLlmConfig(AgentTemplateConfig templateConfig)
+    public AgentLlmConfig(AgentTemplateLlmConfig templateLlmConfig)
     {
-        Provider = templateConfig.LlmConfig?.Provider;
-        Model = templateConfig.LlmConfig?.Model;
-        MaxOutputTokens = templateConfig.LlmConfig?.MaxOutputTokens;
-        ReasoningEffortLevel = templateConfig.LlmConfig?.ReasoningEffortLevel;
-        ResponseFormat = templateConfig.ResponseFormat;
+        Provider = templateLlmConfig?.Provider;
+        Model = templateLlmConfig?.Model;
+        MaxOutputTokens = templateLlmConfig?.MaxOutputTokens;
+        ReasoningEffortLevel = templateLlmConfig?.ReasoningEffortLevel;
+        ResponseFormat = templateLlmConfig?.ResponseFormat;
     }
 
     /// <summary>
@@ -54,6 +54,13 @@ public class AgentLlmConfig
     public string? ReasoningEffortLevel { get; set; }
 
     /// <summary>
+    /// Response format: json, xml, markdown, yaml, etc.
+    /// </summary>
+    [JsonPropertyName("response_format")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ResponseFormat { get; set; }
+
+    /// <summary>
     /// Image composition config
     /// </summary>
     [JsonPropertyName("image_composition")]
@@ -73,13 +80,6 @@ public class AgentLlmConfig
     [JsonPropertyName("realtime")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public LlmRealtimeConfig? Realtime { get; set; }
-
-    /// <summary>
-    /// Response format: json, xml, markdown, yaml, etc.
-    /// </summary>
-    [JsonPropertyName("response_format")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? ResponseFormat { get; set; }
 }
 
 public class LlmImageCompositionConfig : LlmProviderModel

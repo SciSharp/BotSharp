@@ -406,7 +406,6 @@ public partial class FileRepository : IBotSharpRepository
                 var config = configs.FirstOrDefault(x => x.Name.IsEqualTo(name));
                 if (config != null)
                 {
-                    template.ResponseFormat = config.ResponseFormat;
                     template.LlmConfig = config.LlmConfig;
                 }
                 templates.Add(template);

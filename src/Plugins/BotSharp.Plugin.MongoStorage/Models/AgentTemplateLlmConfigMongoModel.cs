@@ -8,6 +8,7 @@ public class AgentTemplateLlmConfigMongoModel
     public string? Model { get; set; }
     public int? MaxOutputTokens { get; set; }
     public string? ReasoningEffortLevel { get; set; }
+    public string? ResponseFormat { get; set; }
 
     public static AgentTemplateLlmConfigMongoModel? ToMongoModel(AgentTemplateLlmConfig? config)
     {
@@ -21,7 +22,8 @@ public class AgentTemplateLlmConfigMongoModel
             Provider = config.Provider,
             Model = config.Model,
             MaxOutputTokens = config.MaxOutputTokens,
-            ReasoningEffortLevel = config.ReasoningEffortLevel
+            ReasoningEffortLevel = config.ReasoningEffortLevel,
+            ResponseFormat = config.ResponseFormat
         };
     }
 
@@ -37,7 +39,8 @@ public class AgentTemplateLlmConfigMongoModel
             Provider = config.Provider,
             Model = config.Model,
             MaxOutputTokens = config.MaxOutputTokens,
-            ReasoningEffortLevel = config.ReasoningEffortLevel
+            ReasoningEffortLevel = config.ReasoningEffortLevel,
+            ResponseFormat = config.ResponseFormat
         };
     }
 }
