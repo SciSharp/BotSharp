@@ -68,10 +68,9 @@ public partial class InstructService
             {
                 var template = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(options.TemplateName));
                 instruction = BuildInstruction(template?.Content ?? string.Empty, options?.Data ?? []);
-                var templateLlmConfig = template?.LlmConfig;
-                if (templateLlmConfig?.IsValid == true)
+                if (template?.LlmConfig?.IsValid == true)
                 {
-                    llmConfig = new AgentLlmConfig(templateLlmConfig);
+                    llmConfig = new AgentLlmConfig(template);
                 }
             }
         }
