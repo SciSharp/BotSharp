@@ -451,14 +451,12 @@ public partial class ChatCompletionProvider
         }
 
         // Response format
-        var textFormat = GetResponseTextFormat(agent.LlmConfig?.ResponseFormat);
-        if (textFormat != null)
+        var format = _state.GetState("response_format").IfNullOrEmptyAs(agent.LlmConfig?.ResponseFormat);
+        var responseFormat = GetResponseTextFormat(format);
+        options.TextOptions = responseFormat != null ? new ResponseTextOptions
         {
-            options.TextOptions = new ResponseTextOptions
-            {
-                TextFormat = textFormat
-            };
-        }
+            TextFormat = responseFormat
+        } : null;
 
         // Prepare instruction and functions
         var renderData = agentService.CollectRenderData(agent);

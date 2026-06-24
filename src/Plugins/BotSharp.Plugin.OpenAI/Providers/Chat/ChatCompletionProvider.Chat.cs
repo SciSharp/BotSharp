@@ -628,7 +628,8 @@ public partial class ChatCompletionProvider
 
         if (webSearchOptions == null)
         {
-            options.ResponseFormat = GetChatResponseFormat(agent.LlmConfig?.ResponseFormat);
+            var format = _state.GetState("response_format").IfNullOrEmptyAs(agent.LlmConfig?.ResponseFormat);
+            options.ResponseFormat = GetChatResponseFormat(format);
         }
 
         return options;
