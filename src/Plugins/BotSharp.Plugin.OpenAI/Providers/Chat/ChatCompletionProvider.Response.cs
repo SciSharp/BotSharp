@@ -435,6 +435,7 @@ public partial class ChatCompletionProvider
             MaxOutputTokenCount = maxTokens,
         };
 
+        // Reasoning level
         var reasoningEffortLevel = ParseResponseReasoning(settings?.Reasoning, agent);
         if (reasoningEffortLevel.HasValue)
         {
@@ -451,14 +452,7 @@ public partial class ChatCompletionProvider
         }
 
         // Response format
-        var textFormat = GetResponseTextFormat(agent.LlmConfig?.ResponseFormat);
-        if (textFormat != null)
-        {
-            options.TextOptions = new ResponseTextOptions
-            {
-                TextFormat = textFormat
-            };
-        }
+        SetResponseFormat(options, agent.LlmConfig);
 
         // Prepare instruction and functions
         var renderData = agentService.CollectRenderData(agent);
@@ -816,6 +810,16 @@ public partial class ChatCompletionProvider
         {
             options.ToolChoice = ResponseToolChoice.CreateRequiredChoice();
         }
+    }
+
+    private void SetResponseFormat(CreateResponseOptions options, AgentLlmConfig? llmConfig)
+    {
+        var format = _state.GetState("response_format").IfNullOrEmptyAs(llmConfig?.ResponseFormat);
+        var responseFormat = GetResponseTextFormat(format);
+        options.TextOptions = responseFormat != null ? new ResponseTextOptions
+        {
+            TextFormat = responseFormat
+        } : null;
     }
     #endregion
 }

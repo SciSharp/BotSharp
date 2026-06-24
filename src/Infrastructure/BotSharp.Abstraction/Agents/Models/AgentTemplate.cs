@@ -24,13 +24,6 @@ public class AgentTemplateConfig
 {
     public string Name { get; set; }
 
-    /// <summary>
-    /// Response format: json, xml, markdown, yaml, etc.
-    /// </summary>
-    [JsonPropertyName("response_format")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? ResponseFormat { get; set; }
-
     [JsonPropertyName("llm_config")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AgentTemplateLlmConfig? LlmConfig { get; set; }
