@@ -62,4 +62,9 @@ public interface IMembaseApi
     [Post("/graph/{graphId}/pgt-external/{correlationId}/complete")]
     Task<PgtExternalCompleteResponse> CompletePgtExternalAsync(string graphId, string correlationId, [FromBody] object emptyBody);
     #endregion
+
+    #region Procedure
+    [Post("/graph/{graphId}/procedures/{procedureName}/execute")]
+    Task<ProcedureExecuteResponse> ExecuteProcedureAsync(string graphId, string procedureName, [Body] ProcedureExecuteRequest? request = null);
+    #endregion
 }
