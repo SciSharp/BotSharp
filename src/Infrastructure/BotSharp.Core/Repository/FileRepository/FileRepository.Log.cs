@@ -185,12 +185,6 @@ public partial class FileRepository
         // as it's typically used for local dev. Implementing it would require iterating all conversations.
         return await Task.FromResult(0);
     }
-
-    public async Task<int> DeleteOldInstructionLogs(int retentionDays, int batchSize = 2000)
-    {
-        // For file repository, keep the same cleanup behavior as conversation logs.
-        return await Task.FromResult(0);
-    }
     #endregion
 
     #region Instruction Log

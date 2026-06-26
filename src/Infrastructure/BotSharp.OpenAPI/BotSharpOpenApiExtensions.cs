@@ -238,10 +238,6 @@ public static class BotSharpOpenApiExtensions
         services.AddScoped<ICrontabHook, ConversationLogCleanupCrontabHook>();
         services.AddScoped<ICrontabSource, ConversationLogCleanupRuleTrigger>();
         services.AddScoped<IRuleTrigger, ConversationLogCleanupRuleTrigger>();
-
-        services.AddScoped<ICrontabHook, InstructionLogCleanupCrontabHook>();
-        services.AddScoped<ICrontabSource, InstructionLogCleanupRuleTrigger>();
-        services.AddScoped<IRuleTrigger, InstructionLogCleanupRuleTrigger>();
         return services;
     }
 

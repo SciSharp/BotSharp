@@ -168,23 +168,6 @@ public partial class MongoRepository
 
         return (int)(contentDeletedCount + stateDeletedCount);
     }
-
-    public async Task<int> DeleteOldInstructionLogs(int retentionDays, int batchSize)
-    {
-        if (retentionDays <= 0) return 0;
-        var threshold = DateTime.UtcNow.AddDays(-retentionDays);
-
-        var filter = Builders<InstructionLogDocument>.Filter.Lt(x => x.CreatedTime, threshold);
-        var docsToDelete = await _dc.InstructionLogs.Find(filter).Limit(batchSize).Project(x => x.Id).ToListAsync();
-        if (!docsToDelete.Any())
-        {
-            return 0;
-        }
-
-        var deleteFilter = Builders<InstructionLogDocument>.Filter.In(x => x.Id, docsToDelete);
-        var deleted = await _dc.InstructionLogs.DeleteManyAsync(deleteFilter);
-        return (int)deleted.DeletedCount;
-    }
     #endregion
 
     #region Instruction Log
