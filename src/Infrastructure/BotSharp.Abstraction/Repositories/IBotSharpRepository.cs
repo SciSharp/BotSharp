@@ -201,9 +201,6 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #region Log Cleanup
     Task<int> DeleteOldConversationLogs(int retentionDays, int batchSize)
         => throw new NotImplementedException();
-
-    Task<int> DeleteOldInstructionLogs(int retentionDays, int batchSize)
-        => throw new NotImplementedException();
     #endregion
 
     #region Instruction Log
