@@ -101,7 +101,9 @@
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="ModelContextProtocol" Version="1.2.0" />
     <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="1.2.0" />
-	<PackageVersion Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.22.7" />
+	<PackageVersion Include="Microsoft.Agents.Hosting.AspNetCore" Version="1.6.150" />
+	<PackageVersion Include="Microsoft.Agents.Builder" Version="1.6.150" />
+	<PackageVersion Include="Microsoft.Agents.Authentication.Msal" Version="1.6.150" />
     <PackageVersion Include="AdaptiveCards" Version="3.1.0" />
   </ItemGroup>
   <ItemGroup>

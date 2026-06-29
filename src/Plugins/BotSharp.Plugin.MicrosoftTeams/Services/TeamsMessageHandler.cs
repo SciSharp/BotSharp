@@ -1,4 +1,4 @@
-using Microsoft.Bot.Schema;
+using Microsoft.Agents.Core.Models;
 
 namespace BotSharp.Plugin.MicrosoftTeams.Services;
 

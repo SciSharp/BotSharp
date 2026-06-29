@@ -1,10 +1,12 @@
-using Microsoft.Bot.Builder;
+using Microsoft.Agents.Authentication;
+using Microsoft.Agents.Builder;
+using Microsoft.Agents.Core.Models;
 
 namespace BotSharp.Plugin.MicrosoftTeams.Services;
 
 public class TeamsNotificationService : ITeamsNotificationService
 {
-    private readonly TeamsAdapter _adapter;
+    private readonly IChannelAdapter _adapter;
     private readonly IConversationReferenceStore _referenceStore;
     private readonly AdaptiveCardConverter _cardConverter;
     private readonly MicrosoftTeamsSetting _setting;
@@ -12,7 +14,7 @@ public class TeamsNotificationService : ITeamsNotificationService
     private readonly ILogger<TeamsNotificationService> _logger;
 
     public TeamsNotificationService(
-        TeamsAdapter adapter,
+        IChannelAdapter adapter,
         IConversationReferenceStore referenceStore,
         AdaptiveCardConverter cardConverter,
         MicrosoftTeamsSetting setting,
@@ -36,7 +38,8 @@ public class TeamsNotificationService : ITeamsNotificationService
             return false;
         }
 
-        await _adapter.ContinueConversationAsync(_setting.AppId, reference,
+        var identity = AgentClaims.CreateIdentity(_setting.AppId, true, null);
+        await _adapter.ContinueConversationAsync(identity, reference,
             async (turnContext, ct) => await turnContext.SendActivityAsync(MessageFactory.Text(text), ct),
             cancellationToken);
         return true;
@@ -51,7 +54,8 @@ public class TeamsNotificationService : ITeamsNotificationService
             return false;
         }
 
-        await _adapter.ContinueConversationAsync(_setting.AppId, reference,
+        var identity = AgentClaims.CreateIdentity(_setting.AppId, true, null);
+        await _adapter.ContinueConversationAsync(identity, reference,
             async (turnContext, ct) =>
             {
                 // Proactive turns run outside the request scope — create a fresh DI scope.

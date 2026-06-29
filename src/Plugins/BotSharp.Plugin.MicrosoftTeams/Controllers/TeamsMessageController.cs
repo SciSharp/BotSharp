@@ -1,45 +1,25 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Bot.Builder;
-using Microsoft.Bot.Builder.Integration.AspNet.Core;
 
 namespace BotSharp.Plugin.MicrosoftTeams.Controllers;
 
+/// <summary>
+/// Inbound Teams activities are handled by MapAgentApplicationEndpoints() registered in
+/// MicrosoftTeamsPlugin.Configure — no controller action needed for that path.
+/// This controller only exposes the outbound proactive-push API.
+/// </summary>
 [ApiController]
 public class TeamsMessageController : ControllerBase
 {
-    private readonly IBotFrameworkHttpAdapter _adapter;
-    private readonly IBot _bot;
-    private readonly TeamsRequestState _requestState;
     private readonly ITeamsNotificationService _notification;
     private readonly MicrosoftTeamsSetting _setting;
 
     public TeamsMessageController(
-        IBotFrameworkHttpAdapter adapter,
-        IBot bot,
-        TeamsRequestState requestState,
         ITeamsNotificationService notification,
         MicrosoftTeamsSetting setting)
     {
-        _adapter = adapter;
-        _bot = bot;
-        _requestState = requestState;
         _notification = notification;
         _setting = setting;
-    }
-
-    /// <summary>
-    /// Inbound endpoint registered as the Azure Bot "messaging endpoint".
-    /// Authentication is performed by the Bot Framework JWT pipeline inside the adapter,
-    /// so the action itself is anonymous.
-    /// https://learn.microsoft.com/azure/bot-service/bot-builder-basics
-    /// </summary>
-    [AllowAnonymous]
-    [HttpPost("/teams/messages/{agentId}")]
-    public async Task PostAsync([FromRoute] string agentId)
-    {
-        _requestState.AgentId = agentId;
-        await _adapter.ProcessAsync(Request, Response, _bot);
     }
 
     /// <summary>

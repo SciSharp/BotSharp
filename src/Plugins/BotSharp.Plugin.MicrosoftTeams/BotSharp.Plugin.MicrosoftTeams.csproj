@@ -15,7 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" />
+    <PackageReference Include="Microsoft.Agents.Hosting.AspNetCore" />
+    <PackageReference Include="Microsoft.Agents.Builder" />
+    <PackageReference Include="Microsoft.Agents.Authentication.Msal" />
     <PackageReference Include="AdaptiveCards" />
   </ItemGroup>
 

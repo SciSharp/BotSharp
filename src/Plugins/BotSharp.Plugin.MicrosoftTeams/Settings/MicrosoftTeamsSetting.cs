@@ -31,4 +31,11 @@ public class MicrosoftTeamsSetting
     /// Default agent used by the proactive notification API when none is supplied.
     /// </summary>
     public string AgentId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Set to true to skip Azure Bot Service JWT validation on the inbound endpoint.
+    /// Use this for local debugging with Agents Playground (emulator mode).
+    /// Must be false in production.
+    /// </summary>
+    public bool AllowUnauthenticated { get; set; } = false;
 }

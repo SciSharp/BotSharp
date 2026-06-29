@@ -1,31 +1,32 @@
-using Microsoft.Bot.Builder;
-using Microsoft.Bot.Schema;
+using Microsoft.Agents.Builder;
+using Microsoft.Agents.Builder.Compat;
+using Microsoft.Agents.Core.Models;
 using Newtonsoft.Json.Linq;
 
 namespace BotSharp.Plugin.MicrosoftTeams.Services;
 
 /// <summary>
-/// Receives Bot Framework activities from the Teams channel. Every turn captures a
+/// Receives activities from the Teams channel. Every turn captures a
 /// <see cref="ConversationReference"/> (so the bot can push proactive messages later) and routes
 /// message activities into the BotSharp conversation engine.
 /// </summary>
 public class TeamsActivityBot : ActivityHandler
 {
     private readonly IServiceProvider _services;
-    private readonly TeamsRequestState _requestState;
+    private readonly MicrosoftTeamsSetting _setting;
     private readonly IConversationReferenceStore _referenceStore;
     private readonly AdaptiveCardConverter _cardConverter;
     private readonly ILogger<TeamsActivityBot> _logger;
 
     public TeamsActivityBot(
         IServiceProvider services,
-        TeamsRequestState requestState,
+        MicrosoftTeamsSetting setting,
         IConversationReferenceStore referenceStore,
         AdaptiveCardConverter cardConverter,
         ILogger<TeamsActivityBot> logger)
     {
         _services = services;
-        _requestState = requestState;
+        _setting = setting;
         _referenceStore = referenceStore;
         _cardConverter = cardConverter;
         _logger = logger;
@@ -61,7 +62,7 @@ public class TeamsActivityBot : ActivityHandler
             return;
         }
 
-        var agentId = _requestState.AgentId;
+        var agentId = _setting.AgentId;
         if (string.IsNullOrEmpty(agentId))
         {
             _logger.LogWarning("Teams: no agentId on the request route, dropping message.");
@@ -73,7 +74,8 @@ public class TeamsActivityBot : ActivityHandler
         // Show the typing indicator while the agent is thinking.
         await turnContext.SendActivityAsync(new Activity { Type = ActivityTypes.Typing }, cancellationToken);
 
-        var handler = _services.GetRequiredService<TeamsMessageHandler>();
+        using var scope = _services.CreateScope();
+        var handler = scope.ServiceProvider.GetRequiredService<TeamsMessageHandler>();
         await handler.Handle(userId, agentId, text,
             activity => turnContext.SendActivityAsync(activity, cancellationToken));
     }
@@ -99,13 +101,16 @@ public class TeamsActivityBot : ActivityHandler
     /// </summary>
     private async Task SendWelcomeAsync(ITurnContext turnContext, CancellationToken cancellationToken)
     {
-        var agentId = _requestState.AgentId;
+        var agentId = _setting.AgentId;
         if (string.IsNullOrEmpty(agentId))
         {
             return;
         }
 
-        var agentService = _services.GetRequiredService<IAgentService>();
+        using var scope = _services.CreateScope();
+        var sp = scope.ServiceProvider;
+
+        var agentService = sp.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(agentId);
 
         var welcomeTemplate = agent?.Templates?.FirstOrDefault(x => x.Name == ".welcome");
@@ -114,14 +119,14 @@ public class TeamsActivityBot : ActivityHandler
             return;
         }
 
-        var templating = _services.GetRequiredService<ITemplateRender>();
-        var user = _services.GetRequiredService<IUserIdentity>();
+        var templating = sp.GetRequiredService<ITemplateRender>();
+        var user = sp.GetRequiredService<IUserIdentity>();
         var content = templating.Render(welcomeTemplate.Content, new Dictionary<string, object>
         {
             { "user", user }
         });
 
-        var richContentService = _services.GetRequiredService<IRichContentService>();
+        var richContentService = sp.GetRequiredService<IRichContentService>();
         var messages = richContentService.ConvertToMessages(content);
 
         foreach (var message in messages)
