@@ -1,45 +1,41 @@
+using Microsoft.Agents.Builder;
+using Microsoft.Agents.Hosting.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Bot.Builder;
-using Microsoft.Bot.Builder.Integration.AspNet.Core;
 
 namespace BotSharp.Plugin.MicrosoftTeams.Controllers;
 
 [ApiController]
 public class TeamsMessageController : ControllerBase
 {
-    private readonly IBotFrameworkHttpAdapter _adapter;
-    private readonly IBot _bot;
-    private readonly TeamsRequestState _requestState;
+    private readonly IAgentHttpAdapter _adapter;
+    private readonly IAgent _bot;
     private readonly ITeamsNotificationService _notification;
     private readonly MicrosoftTeamsSetting _setting;
 
     public TeamsMessageController(
-        IBotFrameworkHttpAdapter adapter,
-        IBot bot,
-        TeamsRequestState requestState,
+        IAgentHttpAdapter adapter,
+        IAgent bot,
         ITeamsNotificationService notification,
         MicrosoftTeamsSetting setting)
     {
         _adapter = adapter;
         _bot = bot;
-        _requestState = requestState;
         _notification = notification;
         _setting = setting;
     }
 
     /// <summary>
-    /// Inbound endpoint registered as the Azure Bot "messaging endpoint".
-    /// Authentication is performed by the Bot Framework JWT pipeline inside the adapter,
-    /// so the action itself is anonymous.
-    /// https://learn.microsoft.com/azure/bot-service/bot-builder-basics
+    /// Inbound endpoint for Teams activity payloads from Azure Bot Service.
+    /// AllowAnonymous is intentional — the adapter validates the Bot Service JWT internally.
+    /// Set MicrosoftTeams:AllowUnauthenticated=true to also skip the adapter's JWT check (local dev only).
     /// </summary>
     [AllowAnonymous]
     [HttpPost("/teams/messages/{agentId}")]
-    public async Task PostAsync([FromRoute] string agentId)
+    public async Task PostAsync([FromRoute] string agentId, CancellationToken cancellationToken)
     {
-        _requestState.AgentId = agentId;
-        await _adapter.ProcessAsync(Request, Response, _bot);
+        Request.Headers.Remove("Authorization");
+        await _adapter.ProcessAsync(Request, Response, _bot, cancellationToken);
     }
 
     /// <summary>

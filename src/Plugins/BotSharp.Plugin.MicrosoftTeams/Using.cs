@@ -21,6 +21,8 @@ global using BotSharp.Abstraction.Templating;
 global using BotSharp.Abstraction.Users;
 global using BotSharp.Abstraction.Messaging.Models.RichContent;
 global using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
+global using BotSharp.Abstraction.Repositories;
+global using BotSharp.Abstraction.Users.Models;
 global using BotSharp.Plugin.MicrosoftTeams.Models;
 global using BotSharp.Plugin.MicrosoftTeams.Services;
 global using BotSharp.Plugin.MicrosoftTeams.Settings;

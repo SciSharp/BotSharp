@@ -31,4 +31,5 @@ public class MicrosoftTeamsSetting
     /// Default agent used by the proactive notification API when none is supplied.
     /// </summary>
     public string AgentId { get; set; } = string.Empty;
+    public string BotName { get; set; } = "Test Bot";
 }
