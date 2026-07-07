@@ -1,7 +1,9 @@
 using Microsoft.Agents.Authentication;
 using Microsoft.Agents.Authentication.Msal;
 using Microsoft.Agents.Builder;
+using Microsoft.Agents.Connector;
 using Microsoft.Agents.Hosting.AspNetCore;
+using System.Security.Claims;
 
 namespace BotSharp.Plugin.MicrosoftTeams;
 
@@ -48,6 +50,17 @@ public class MicrosoftTeamsPlugin : IBotSharpPlugin
         // "No connections found in for this Agent in the Connections Configuration".
         services.AddSingleton<IConnections>(sp => new ConfigurationConnections(sp, authConfig));
 
+#if DEBUG
+        services.AddSingleton<IChannelServiceClientFactory>(sp =>
+        {
+            var inner = new RestChannelServiceClientFactory(
+                config,
+                sp.GetRequiredService<System.Net.Http.IHttpClientFactory>(),
+                sp.GetRequiredService<IConnections>());
+            return new AnonymousDebugChannelServiceClientFactory(inner);
+        });
+#endif
+
         // Register adapter + full SDK infrastructure (IChannelServiceClientFactory, IActivityTaskQueue,
         // background services, IAgentHttpAdapter, etc.) and TeamsActivityBot as default IAgent.
         services.AddAgent<TeamsActivityBot, TeamsAdapter>();
@@ -68,3 +81,22 @@ public class MicrosoftTeamsPlugin : IBotSharpPlugin
         services.AddTransient<IAgent, TeamsActivityBot>();
     }
 }
+
+#if DEBUG
+file class AnonymousDebugChannelServiceClientFactory(RestChannelServiceClientFactory inner) : IChannelServiceClientFactory
+{
+    [Obsolete]
+    public Task<IConnectorClient> CreateConnectorClientAsync(ClaimsIdentity claimsIdentity, string serviceUrl, string audience, CancellationToken cancellationToken, IList<string>? scopes = null, bool useAnonymous = false)
+        => inner.CreateConnectorClientAsync(claimsIdentity, serviceUrl, audience, cancellationToken, scopes, true);
+
+    // NOTE: inner's ITurnContext overload still branches on Activity.Recipient.Role=="agenticUser"
+    // regardless of useAnonymous, so route through the ClaimsIdentity overload to actually skip it.
+    public Task<IConnectorClient> CreateConnectorClientAsync(ITurnContext turnContext, string? audience = null, IList<string>? scopes = null, bool useAnonymous = false, CancellationToken cancellationToken = default)
+#pragma warning disable CS0618 // intentionally using the legacy overload to bypass the agentic branch
+        => inner.CreateConnectorClientAsync(turnContext.Identity, turnContext.Activity.ServiceUrl, audience, cancellationToken, scopes, true);
+#pragma warning restore CS0618
+
+    public Task<IUserTokenClient> CreateUserTokenClientAsync(ClaimsIdentity claimsIdentity, bool? useAnonymous = false, CancellationToken cancellationToken = default)
+        => inner.CreateUserTokenClientAsync(claimsIdentity, true, cancellationToken);
+}
+#endif

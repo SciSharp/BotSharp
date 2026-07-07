@@ -51,6 +51,8 @@ public class TeamsActivityBot : ActivityHandler
 
     public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default)
     {
+        _httpContextAccessor.HttpContext ??= new DefaultHttpContext();
+
         var aadId = GetUserId(turnContext.Activity);
         if (!string.IsNullOrEmpty(aadId))
         {
@@ -250,7 +252,8 @@ public class TeamsActivityBot : ActivityHandler
 
     /// <summary>
     /// Populates HttpContext.User with the BotSharp user's claims so that IUserIdentity
-    /// resolves correctly for all downstream scoped services during this turn.
+    /// resolves correctly for all downstream scoped services during this turn. The HttpContext
+    /// is the turn-owned one created in <see cref="OnTurnAsync"/> (the SDK provides none).
     /// </summary>
     private void SetHttpContextUser(User user)
     {
@@ -264,7 +267,7 @@ public class TeamsActivityBot : ActivityHandler
             new Claim(ClaimTypes.Role, user.Role ?? string.Empty),
         };
         var identity = new ClaimsIdentity(claims, authenticationType: "Teams");
-        _httpContextAccessor.HttpContext!.User = new System.Security.Principal.GenericPrincipal(identity, roles: null);
+        _httpContextAccessor.HttpContext!.User = new ClaimsPrincipal(identity);
     }
 
     private async Task<User?> FindUserByEmailAsync(string email, CancellationToken cancellationToken)
