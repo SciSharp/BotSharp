@@ -353,6 +353,8 @@ public partial class MongoRepository
             Dialogs = dialogElements,
             States = curStates,
             DialogCount = conv.DialogCount,
+            LastCompactedMessageId = conv.LastCompactedMessageId,
+            CompactedDialogCount = conv.CompactedDialogCount,
             Tags = conv.Tags,
             CreatedTime = conv.CreatedTime,
             UpdatedTime = conv.UpdatedTime
@@ -706,6 +708,50 @@ public partial class MongoRepository
         }
 
         return deletedMessageIds;
+    }
+
+    public async Task<int> CompactConversationDialogs(string conversationId, string cutMessageId, DialogElement summaryDialog, bool archiveRawDialogs = true)
+    {
+        if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(cutMessageId) || summaryDialog == null)
+        {
+            return 0;
+        }
+
+        var dialogFilter = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var foundDialog = await _dc.ConversationDialogs.Find(dialogFilter).FirstOrDefaultAsync();
+        if (foundDialog == null || foundDialog.Dialogs.IsNullOrEmpty())
+        {
+            return 0;
+        }
+
+        var foundIdx = foundDialog.Dialogs.FindIndex(x => x.MetaData?.MessageId == cutMessageId);
+        // Nothing to compact if the cut point is missing or already at the head.
+        if (foundIdx <= 0)
+        {
+            return 0;
+        }
+
+        var archived = foundDialog.Dialogs.Where((x, idx) => idx < foundIdx).ToList();
+        var kept = foundDialog.Dialogs.Where((x, idx) => idx >= foundIdx).ToList();
+
+        var compacted = new List<DialogMongoElement> { DialogMongoElement.ToMongoElement(summaryDialog) };
+        compacted.AddRange(kept);
+        foundDialog.Dialogs = compacted;
+        if (archiveRawDialogs)
+        {
+            foundDialog.ArchivedDialogs = (foundDialog.ArchivedDialogs ?? []).Concat(archived).ToList();
+        }
+        foundDialog.UpdatedTime = DateTime.UtcNow;
+        await _dc.ConversationDialogs.ReplaceOneAsync(dialogFilter, foundDialog);
+
+        // DialogCount stays the true lifetime total; compaction progress is tracked separately.
+        var convFilter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
+        var updateConv = Builders<ConversationDocument>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow)
+                                                              .Set(x => x.LastCompactedMessageId, cutMessageId)
+                                                              .Inc(x => x.CompactedDialogCount, archived.Count);
+        await _dc.Conversations.UpdateOneAsync(convFilter, updateConv);
+
+        return archived.Count;
     }
 
 #if !DEBUG

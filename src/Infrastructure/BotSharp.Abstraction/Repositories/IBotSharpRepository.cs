@@ -165,6 +165,18 @@ public interface IBotSharpRepository : IHaveServiceProvider
          => throw new NotImplementedException();
     Task<List<string>> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
          => throw new NotImplementedException();
+    /// <summary>
+    /// Compact a conversation's dialog history: archive every dialog before <paramref name="cutMessageId"/>
+    /// and replace them in the hot dialog record with <paramref name="summaryDialog"/>. Stale versioned
+    /// state history older than the cut is also trimmed (the latest value of each key is preserved).
+    /// </summary>
+    /// <param name="conversationId"></param>
+    /// <param name="cutMessageId">First message to KEEP; everything strictly before it is archived.</param>
+    /// <param name="summaryDialog">Summary dialog inserted at the head of the kept messages.</param>
+    /// <param name="archiveRawDialogs">When true, archived dialogs are retained; otherwise discarded.</param>
+    /// <returns>Number of dialogs archived, or 0 when nothing was compacted.</returns>
+    Task<int> CompactConversationDialogs(string conversationId, string cutMessageId, DialogElement summaryDialog, bool archiveRawDialogs = true)
+         => throw new NotImplementedException();
     Task<List<string>> GetConversationStateSearchKeys(ConversationStateKeysFilter filter)
          => throw new NotImplementedException();
     Task<List<string>> GetConversationsToMigrate(int batchSize = 100)

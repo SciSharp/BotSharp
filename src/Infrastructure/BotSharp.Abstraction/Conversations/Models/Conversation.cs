@@ -32,6 +32,17 @@ public class Conversation
 
     public int DialogCount { get; set; }
 
+    /// <summary>
+    /// MessageId of the cut point of the last auto-compression. Everything before it has been
+    /// summarized/archived. Null when the conversation has never been compressed.
+    /// </summary>
+    public string? LastCompactedMessageId { get; set; }
+
+    /// <summary>
+    /// Number of raw dialogs that have been archived out of the hot dialog record by auto-compression.
+    /// </summary>
+    public int CompactedDialogCount { get; set; }
+
     public List<string> Tags { get; set; } = [];
 
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;

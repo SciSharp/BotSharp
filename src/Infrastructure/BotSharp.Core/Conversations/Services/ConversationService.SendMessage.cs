@@ -110,7 +110,41 @@ public partial class ConversationService
         await HandleAssistantMessage(response, onMessageReceived);
         statistics.PrintStatistics();
 
+        TriggerAutoCompression(_conversationId);
+
         return true;
+    }
+
+    /// <summary>
+    /// Fire-and-forget auto-compression on a fresh DI scope so it never adds latency to the
+    /// user-facing turn and does not use the (soon-to-be-disposed) request scope.
+    /// </summary>
+    private void TriggerAutoCompression(string conversationId)
+    {
+        if (!_settings.AutoCompression.Enabled || string.IsNullOrEmpty(conversationId))
+        {
+            return;
+        }
+
+        var scopeFactory = _services.GetService<IServiceScopeFactory>();
+        if (scopeFactory == null)
+        {
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var scope = scopeFactory.CreateScope();
+                var conv = scope.ServiceProvider.GetRequiredService<IConversationService>();
+                await conv.AutoCompressIfNeeded(conversationId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Background auto-compression failed for conversation {conversationId}.");
+            }
+        });
     }
 
     private async Task HandleAssistantMessage(RoleDialogModel response, Func<RoleDialogModel, Task> onResponseReceived)
