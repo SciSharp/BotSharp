@@ -7,8 +7,8 @@
     <PackageVersion Include="Microsoft.Agents.AI.A2A" Version="1.3.0-preview.260423.1" />
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="FuzzySharp" Version="2.0.2" />
-    <PackageVersion Include="Google_GenerativeAI" Version="3.6.4" />
-    <PackageVersion Include="Google_GenerativeAI.Live" Version="3.6.4" />
+    <PackageVersion Include="Google_GenerativeAI" Version="3.6.6" />
+    <PackageVersion Include="Google_GenerativeAI.Live" Version="3.6.6" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="Polly" Version="8.4.2" />
     <PackageVersion Include="RabbitMQ.Client" Version="7.2.0" />
@@ -34,7 +34,7 @@
     <PackageVersion Include="Whisper.net.Runtime" Version="1.8.1" />
     <PackageVersion Include="NCrontab" Version="3.3.3" />
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.7.0-beta.1" />
-    <PackageVersion Include="OpenAI" Version="2.10.0" />
+    <PackageVersion Include="OpenAI" Version="2.12.0" />
     <PackageVersion Include="MailKit" Version="4.14.1" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.0" />
     <PackageVersion Include="MySql.Data" Version="9.5.0" />
@@ -101,9 +101,9 @@
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="ModelContextProtocol" Version="1.2.0" />
     <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="1.2.0" />
-	<PackageVersion Include="Microsoft.Agents.Hosting.AspNetCore" Version="1.6.150" />
-	<PackageVersion Include="Microsoft.Agents.Builder" Version="1.6.150" />
-	<PackageVersion Include="Microsoft.Agents.Authentication.Msal" Version="1.6.150" />
+    <PackageVersion Include="Microsoft.Agents.Hosting.AspNetCore" Version="1.6.150" />
+    <PackageVersion Include="Microsoft.Agents.Builder" Version="1.6.150" />
+    <PackageVersion Include="Microsoft.Agents.Authentication.Msal" Version="1.6.150" />
     <PackageVersion Include="AdaptiveCards" Version="3.1.0" />
   </ItemGroup>
   <ItemGroup>
