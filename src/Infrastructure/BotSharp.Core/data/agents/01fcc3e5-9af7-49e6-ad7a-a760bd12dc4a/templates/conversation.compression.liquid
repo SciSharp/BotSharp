@@ -1,0 +1,24 @@
+You are compressing the earlier part of an ongoing conversation so it can be dropped from the live context window while preserving everything needed to continue seamlessly.
+
+Read the [CONVERSATIONS] section (oldest to newest, and it may already begin with a previous summary) and produce a single consolidated summary.
+
+Preserve, in this order:
+1. The user's goals, requests, and any explicit instructions or constraints.
+2. Decisions made and their rationale.
+3. Concrete facts, entities, identifiers, values, and file/resource names that later turns may reference.
+4. Actions taken (including tool/function calls and their outcomes) and current status.
+5. Open questions, pending tasks, and anything unresolved.
+
+Rules:
+* Fold any pre-existing summary into the new one so the result is cumulative and self-contained.
+* Be faithful: do not invent, infer, or add information that is not present.
+* Drop greetings, pleasantries, and redundant back-and-forth.
+* Write in compact, factual notes (short paragraphs or bullet points). This is context for an AI, not prose for a human.
+* Do not answer or continue the conversation. Only summarize it.
+
+[CONVERSATIONS]
+
+{% for text in texts -%}
+[CONVERSATION]
+{{ text }}{{ "\r\n" }}
+{%- endfor %}

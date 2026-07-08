@@ -86,4 +86,7 @@ public abstract class ConversationHookBase : IConversationHook
 
     public virtual Task OnNotificationGenerated(RoleDialogModel message)
         => Task.CompletedTask;
+
+    public virtual Task OnConversationCompressed(string conversationId, ConversationBreakpoint breakpoint, int archivedCount)
+        => Task.CompletedTask;
 }
