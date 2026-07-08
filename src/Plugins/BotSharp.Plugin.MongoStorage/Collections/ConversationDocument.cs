@@ -13,6 +13,8 @@ public class ConversationDocument : MongoBase
     public int DialogCount { get; set; }
     public string? LastCompactedMessageId { get; set; }
     public int CompactedDialogCount { get; set; }
+    public bool IsCompressing { get; set; }
+    public DateTime? CompressingStartedTime { get; set; }
     public List<string> Tags { get; set; } = [];
 
     public DateTime CreatedTime { get; set; }

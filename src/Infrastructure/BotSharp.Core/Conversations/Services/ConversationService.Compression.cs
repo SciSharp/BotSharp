@@ -4,11 +4,9 @@ namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService
 {
-    // Conversations currently being compressed. Compression runs fire-and-forget after every turn,
-    // and summarization is a slow LLM call, so multiple runs can overlap for the same conversation.
-    // This guard lets only one run per conversation proceed; overlapping ones skip and are picked up
-    // by the next turn's trigger once the in-flight run finishes.
-    private static readonly ConcurrentDictionary<string, byte> _compressingConversations = new();
+    // Conversations currently being compressed on THIS instance. A cheap local fast-path in front of
+    // the persisted (authoritative, cross-instance) compressing flag.
+    private static readonly ConcurrentDictionary<string, byte> _localCompressing = new();
 
     public async Task<bool> AutoCompressIfNeeded(string conversationId)
     {
@@ -18,15 +16,27 @@ public partial class ConversationService
             return false;
         }
 
-        // Skip if a compaction for this conversation is already running.
-        if (!_compressingConversations.TryAdd(conversationId, 0))
+        // Local fast-path guard: skip if a compaction for this conversation is already running on
+        // this instance, avoiding a redundant DB acquire round-trip. Non-blocking (skip, not queue).
+        if (!_localCompressing.TryAdd(conversationId, 0))
         {
+            return false;
+        }
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        // Persisted guard: atomically turn the conversation's compressing flag on. If another
+        // compaction is already running (flag on and not stale), skip this request. A flag left on
+        // longer than CompressionTimeoutSeconds (e.g. a crashed run) is treated as stale and taken over.
+        var staleAfter = TimeSpan.FromSeconds(Math.Max(60, setting.CompressionTimeoutSeconds));
+        if (!await db.UpdateConversationCompressing(conversationId, true, staleAfter))
+        {
+            _localCompressing.TryRemove(conversationId, out _);
             return false;
         }
 
         try
         {
-            var db = _services.GetRequiredService<IBotSharpRepository>();
             var conv = await db.GetConversation(conversationId);
             if (conv == null)
             {
@@ -128,7 +138,10 @@ public partial class ConversationService
         }
         finally
         {
-            _compressingConversations.TryRemove(conversationId, out _);
+            // Release both guards so the next turn can compress again. Runs only because we acquired
+            // them above (a failed acquire returns before entering this try).
+            await db.UpdateConversationCompressing(conversationId, false);
+            _localCompressing.TryRemove(conversationId, out _);
         }
     }
 

@@ -75,6 +75,7 @@ public partial class MongoRepository
         var filterContentLog = Builders<ConversationContentLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterStateLog = Builders<ConversationStateLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var conbTabItems = Builders<CrontabItemDocument>.Filter.In(x => x.ConversationId, conversationIds);
+        //var filterArchive = Builders<ConversationArchiveDocument>.Filter.In(x => x.ConversationId, conversationIds);
         //var filterConvFile = Builders<ConversationFileDocument>.Filter.In(x => x.ConversationId, conversationIds);
 
         var promptLogDeleted = await _dc.LlmCompletionLogs.DeleteManyAsync(filterPromptLog);
@@ -83,6 +84,7 @@ public partial class MongoRepository
         var statesDeleted = await _dc.ConversationStates.DeleteManyAsync(filterSates);
         var dialogDeleted = await _dc.ConversationDialogs.DeleteManyAsync(filterDialog);
         var cronDeleted = await _dc.CrontabItems.DeleteManyAsync(conbTabItems);
+        //var archiveDeleted = await _dc.ConversationArchives.DeleteManyAsync(filterArchive);
         //var fileDeleted = await _dc.ConversationFiles.DeleteManyAsync(filterConvFile);
         var convDeleted = await _dc.Conversations.DeleteManyAsync(filterConv);
 
@@ -355,6 +357,8 @@ public partial class MongoRepository
             DialogCount = conv.DialogCount,
             LastCompactedMessageId = conv.LastCompactedMessageId,
             CompactedDialogCount = conv.CompactedDialogCount,
+            IsCompressing = conv.IsCompressing,
+            CompressingStartedTime = conv.CompressingStartedTime,
             Tags = conv.Tags,
             CreatedTime = conv.CreatedTime,
             UpdatedTime = conv.UpdatedTime
@@ -710,6 +714,45 @@ public partial class MongoRepository
         return deletedMessageIds;
     }
 
+    public async Task<bool> UpdateConversationCompressing(string conversationId, bool isCompressing, TimeSpan? staleAfter = null)
+    {
+        if (string.IsNullOrEmpty(conversationId))
+        {
+            return false;
+        }
+
+        var utcNow = DateTime.UtcNow;
+        var builder = Builders<ConversationDocument>.Filter;
+
+        if (isCompressing)
+        {
+            // Acquire when the flag is off/missing, or when it is on but was started before the
+            // staleness cutoff (a crashed run) so we can take it over. Single atomic update.
+            var acquirable = builder.Ne(x => x.IsCompressing, true);
+            if (staleAfter.HasValue)
+            {
+                var cutoff = utcNow - staleAfter.Value;
+                acquirable = builder.Or(acquirable, builder.Lte(x => x.CompressingStartedTime, cutoff));
+            }
+
+            var filter = builder.And(builder.Eq(x => x.Id, conversationId), acquirable);
+            var update = Builders<ConversationDocument>.Update.Set(x => x.IsCompressing, true)
+                                                              .Set(x => x.CompressingStartedTime, utcNow)
+                                                              .Set(x => x.UpdatedTime, utcNow);
+            var result = await _dc.Conversations.UpdateOneAsync(filter, update);
+            return result.ModifiedCount > 0;
+        }
+        else
+        {
+            var filter = builder.Eq(x => x.Id, conversationId);
+            var update = Builders<ConversationDocument>.Update.Set(x => x.IsCompressing, false)
+                                                              .Set(x => x.CompressingStartedTime, (DateTime?)null)
+                                                              .Set(x => x.UpdatedTime, utcNow);
+            await _dc.Conversations.UpdateOneAsync(filter, update);
+            return true;
+        }
+    }
+
     public async Task<int> CompactConversationDialogs(string conversationId, string cutMessageId, DialogElement summaryDialog, bool archiveRawDialogs = true)
     {
         if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(cutMessageId) || summaryDialog == null)
@@ -731,27 +774,98 @@ public partial class MongoRepository
             return 0;
         }
 
-        var archived = foundDialog.Dialogs.Where((x, idx) => idx < foundIdx).ToList();
+        var archivedDialogs = foundDialog.Dialogs.Where((x, idx) => idx < foundIdx).ToList();
         var kept = foundDialog.Dialogs.Where((x, idx) => idx >= foundIdx).ToList();
+        // Boundary time of the cut message; used to trim state version history below.
+        var cutTime = foundDialog.Dialogs[foundIdx].MetaData?.CreateTime ?? DateTime.MinValue;
+        if (cutTime == DateTime.MinValue)
+        {
+            return 0;
+        }
 
+        // Trim versioned state history older than the cut, always preserving the latest value of
+        // each key so the conversation's current state is intact.
+        var stateFilter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var foundStates = await _dc.ConversationStates.Find(stateFilter).FirstOrDefaultAsync();
+        var removedStates = new List<StateMongoElement>();
+        if (foundStates != null && !foundStates.States.IsNullOrEmpty())
+        {
+            foreach (var state in foundStates.States)
+            {
+                if (!state.Versioning || state.Values == null || state.Values.Count <= 1)
+                {
+                    continue;
+                }
+
+                var lastIndex = state.Values.Count - 1;
+                var keptValues = new List<StateValueMongoElement>();
+                var trimmedValues = new List<StateValueMongoElement>();
+                for (var i = 0; i < state.Values.Count; i++)
+                {
+                    var value = state.Values[i];
+                    // Always keep the newest value (current state); keep anything at/after the cut.
+                    if (i == lastIndex || value.UpdateTime >= cutTime)
+                    {
+                        keptValues.Add(value);
+                    }
+                    else
+                    {
+                        trimmedValues.Add(value);
+                    }
+                }
+
+                if (trimmedValues.Count > 0)
+                {
+                    removedStates.Add(new StateMongoElement
+                    {
+                        Key = state.Key,
+                        Versioning = state.Versioning,
+                        Readonly = state.Readonly,
+                        Values = trimmedValues
+                    });
+                    state.Values = keptValues;
+                }
+            }
+        }
+
+        // Archive the removed dialogs and state versions into the dedicated archive collection.
+        if (archiveRawDialogs)
+        {
+            var archiveDoc = new ConversationArchiveDocument
+            {
+                Id = Guid.NewGuid().ToString(),
+                ConversationId = conversationId,
+                AgentId = foundDialog.AgentId,
+                CutMessageId = cutMessageId,
+                ArchivedTime = DateTime.UtcNow,
+                Dialogs = archivedDialogs,
+                States = removedStates
+            };
+            await _dc.ConversationArchives.InsertOneAsync(archiveDoc);
+        }
+
+        // Rewrite the hot dialog record as [summary] + kept.
         var compacted = new List<DialogMongoElement> { DialogMongoElement.ToMongoElement(summaryDialog) };
         compacted.AddRange(kept);
         foundDialog.Dialogs = compacted;
-        if (archiveRawDialogs)
-        {
-            foundDialog.ArchivedDialogs = (foundDialog.ArchivedDialogs ?? []).Concat(archived).ToList();
-        }
         foundDialog.UpdatedTime = DateTime.UtcNow;
         await _dc.ConversationDialogs.ReplaceOneAsync(dialogFilter, foundDialog);
+
+        // Persist the trimmed states. The latest value per key is unchanged, so LatestStates is left as-is.
+        if (removedStates.Count > 0)
+        {
+            foundStates!.UpdatedTime = DateTime.UtcNow;
+            await _dc.ConversationStates.ReplaceOneAsync(stateFilter, foundStates);
+        }
 
         // DialogCount stays the true lifetime total; compaction progress is tracked separately.
         var convFilter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
         var updateConv = Builders<ConversationDocument>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow)
                                                               .Set(x => x.LastCompactedMessageId, cutMessageId)
-                                                              .Inc(x => x.CompactedDialogCount, archived.Count);
+                                                              .Inc(x => x.CompactedDialogCount, archivedDialogs.Count);
         await _dc.Conversations.UpdateOneAsync(convFilter, updateConv);
 
-        return archived.Count;
+        return archivedDialogs.Count;
     }
 
 #if !DEBUG

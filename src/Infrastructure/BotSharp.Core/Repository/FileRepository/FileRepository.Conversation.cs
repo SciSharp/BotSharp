@@ -430,30 +430,48 @@ public partial class FileRepository
         }
 
         var convFile = Path.Combine(convDir, CONVERSATION_FILE);
-        var content = await File.ReadAllTextAsync(convFile);
-        var record = JsonSerializer.Deserialize<Conversation>(content, _options);
-
-        var dialogFile = Path.Combine(convDir, DIALOG_FILE);
-        if (record != null)
+        if (!File.Exists(convFile))
         {
-            record.Dialogs = await CollectDialogElements(dialogFile);
+            return null;
         }
 
-        if (isLoadStates)
+        Conversation? record;
+        try
         {
-            var latestStateFile = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
-            if (record != null && File.Exists(latestStateFile))
+            var content = await File.ReadAllTextAsync(convFile);
+            record = JsonSerializer.Deserialize<Conversation>(content, _options);
+            if (record == null)
             {
-                var stateJson = await File.ReadAllTextAsync(latestStateFile);
-                var states = JsonSerializer.Deserialize<Dictionary<string, JsonDocument>>(stateJson, _options) ?? [];
-                record.States = states.ToDictionary(x => x.Key, x =>
-                {
-                    var elem = x.Value.RootElement.GetProperty("data");
-                    return elem.ValueKind != JsonValueKind.Null ? elem.ToString() : null;
-                });
+                return null;
             }
+
+            var dialogFile = Path.Combine(convDir, DIALOG_FILE);
+            if (record != null)
+            {
+                record.Dialogs = await CollectDialogElements(dialogFile);
+            }
+
+            if (isLoadStates)
+            {
+                var latestStateFile = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
+                if (record != null && File.Exists(latestStateFile))
+                {
+                    var stateJson = await File.ReadAllTextAsync(latestStateFile);
+                    var states = JsonSerializer.Deserialize<Dictionary<string, JsonDocument>>(stateJson, _options) ?? [];
+                    record.States = states.ToDictionary(x => x.Key, x =>
+                    {
+                        var elem = x.Value.RootElement.GetProperty("data");
+                        return elem.ValueKind != JsonValueKind.Null ? elem.ToString() : null;
+                    });
+                }
+            }
+            return record;
         }
-        return record;
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Failed to read conversation record for conversation {conversationId}.");
+            return null;
+        }
     }
 
     public async Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
@@ -776,6 +794,65 @@ public partial class FileRepository
         }
 
         return deletedMessageIds;
+    }
+
+    public async Task<bool> UpdateConversationCompressing(string conversationId, bool isCompressing, TimeSpan? staleAfter = null)
+    {
+        var convDir = FindConversationDirectory(conversationId);
+        if (string.IsNullOrEmpty(convDir))
+        {
+            return false;
+        }
+
+        var convFile = Path.Combine(convDir, CONVERSATION_FILE);
+        if (!File.Exists(convFile))
+        {
+            return false;
+        }
+
+        // Serialize the flag read-modify-write on the same lock the append path uses for conversation.json.
+        await _dialogLock.WaitAsync();
+        try
+        {
+            var json = await File.ReadAllTextAsync(convFile);
+            var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
+            if (conv == null)
+            {
+                return false;
+            }
+
+            var utcNow = DateTime.UtcNow;
+            if (isCompressing)
+            {
+                // Atomic acquire: fail if a compaction is already in progress and still fresh. A flag
+                // older than staleAfter is treated as abandoned (crashed run) and taken over.
+                if (conv.IsCompressing)
+                {
+                    var stale = staleAfter.HasValue
+                        && conv.CompressingStartedTime.HasValue
+                        && utcNow - conv.CompressingStartedTime.Value >= staleAfter.Value;
+                    if (!stale)
+                    {
+                        return false;
+                    }
+                }
+                conv.IsCompressing = true;
+                conv.CompressingStartedTime = utcNow;
+            }
+            else
+            {
+                conv.IsCompressing = false;
+                conv.CompressingStartedTime = null;
+            }
+
+            conv.UpdatedTime = utcNow;
+            await File.WriteAllTextAsync(convFile, JsonSerializer.Serialize(conv, _options));
+            return true;
+        }
+        finally
+        {
+            _dialogLock.Release();
+        }
     }
 
     public async Task<int> CompactConversationDialogs(string conversationId, string cutMessageId, DialogElement summaryDialog, bool archiveRawDialogs = true)

@@ -43,6 +43,18 @@ public class Conversation
     /// </summary>
     public int CompactedDialogCount { get; set; }
 
+    /// <summary>
+    /// True while an auto-compression is in progress for this conversation. Used as a guard so a new
+    /// compaction request is skipped while one is already running; cleared when the run finishes.
+    /// </summary>
+    public bool IsCompressing { get; set; }
+
+    /// <summary>
+    /// When the current compaction was marked in progress. Used to detect and take over a stale flag
+    /// left behind by a crashed run.
+    /// </summary>
+    public DateTime? CompressingStartedTime { get; set; }
+
     public List<string> Tags { get; set; } = [];
 
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;

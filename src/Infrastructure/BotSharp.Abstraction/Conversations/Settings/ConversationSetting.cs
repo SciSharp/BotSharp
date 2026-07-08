@@ -57,6 +57,12 @@ public class AutoCompressionSetting
     /// Template used to generate the compression summary.
     /// </summary>
     public string SummaryTemplateName { get; set; } = "conversation.compression";
+
+    /// <summary>
+    /// Staleness guard for the persisted compressing flag: if a compaction has been marked in progress
+    /// for longer than this (e.g. the process crashed mid-run), the next request is allowed to take over.
+    /// </summary>
+    public int CompressionTimeoutSeconds { get; set; } = 300;
 }
 
 public class CleanConversationSetting

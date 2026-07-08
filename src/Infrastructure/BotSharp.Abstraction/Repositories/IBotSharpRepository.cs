@@ -177,6 +177,15 @@ public interface IBotSharpRepository : IHaveServiceProvider
     /// <returns>Number of dialogs archived, or 0 when nothing was compacted.</returns>
     Task<int> CompactConversationDialogs(string conversationId, string cutMessageId, DialogElement summaryDialog, bool archiveRawDialogs = true)
          => throw new NotImplementedException();
+    /// <summary>
+    /// Set the conversation's auto-compression flag.
+    /// When <paramref name="isCompressing"/> is true this is an atomic acquire: it returns true only if the
+    /// flag was previously off — or was on but older than <paramref name="staleAfter"/> (a crashed run) so
+    /// this caller takes it over — and false if a compaction is already running and still fresh.
+    /// When false it clears the flag (release) and returns true.
+    /// </summary>
+    Task<bool> UpdateConversationCompressing(string conversationId, bool isCompressing, TimeSpan? staleAfter = null)
+         => throw new NotImplementedException();
     Task<List<string>> GetConversationStateSearchKeys(ConversationStateKeysFilter filter)
          => throw new NotImplementedException();
     Task<List<string>> GetConversationsToMigrate(int batchSize = 100)
