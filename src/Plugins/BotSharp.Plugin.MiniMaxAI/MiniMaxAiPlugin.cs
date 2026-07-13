@@ -1,8 +1,11 @@
-using BotSharp.Plugin.MiniMaxAI.Providers.Chat;
-using BotSharp.Plugin.MiniMaxAI.Providers.Text;
+using AnthropicChatCompletionProvider = BotSharp.Plugin.MiniMaxAI.Providers.Chat.AnthropicChatCompletionProvider;
+using AnthropicCnChatCompletionProvider = BotSharp.Plugin.MiniMaxAI.Providers.Chat.AnthropicCnChatCompletionProvider;
+using OpenAiChatCompletionProvider = BotSharp.Plugin.MiniMaxAI.Providers.Chat.ChatCompletionProvider;
+using OpenAiCnChatCompletionProvider = BotSharp.Plugin.MiniMaxAI.Providers.Chat.OpenAiCnChatCompletionProvider;
 
 namespace BotSharp.Plugin.MiniMaxAI;
 
+[PluginDependency("BotSharp.Plugin.OpenAI", "BotSharp.Plugin.AnthropicAI")]
 public class MiniMaxAiPlugin : IBotSharpPlugin
 {
     public string Id => "8a4ebd68-4d7d-4c5c-aed9-263946cc3a0d";
@@ -12,7 +15,9 @@ public class MiniMaxAiPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped<ITextCompletion, TextCompletionProvider>();
-        services.AddScoped<IChatCompletion, ChatCompletionProvider>();
+        services.AddScoped<IChatCompletion, OpenAiChatCompletionProvider>();
+        services.AddScoped<IChatCompletion, OpenAiCnChatCompletionProvider>();
+        services.AddScoped<IChatCompletion, AnthropicChatCompletionProvider>();
+        services.AddScoped<IChatCompletion, AnthropicCnChatCompletionProvider>();
     }
 }

@@ -7,6 +7,10 @@ public static class ProviderHelper
         var settingsService = services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(provider, model);
         var client = new AnthropicClient(new APIAuthentication(settings.ApiKey));
+        if (!string.IsNullOrWhiteSpace(settings.Endpoint))
+        {
+            client.ApiUrlFormat = $"{settings.Endpoint.TrimEnd('/')}/{{0}}/{{1}}";
+        }
         return client;
     }
 }

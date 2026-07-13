@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BotSharp.Plugin.AnthropicAI\BotSharp.Plugin.AnthropicAI.csproj" />
     <ProjectReference Include="..\BotSharp.Plugin.OpenAI\BotSharp.Plugin.OpenAI.csproj" />
   </ItemGroup>
 
