@@ -126,11 +126,26 @@ public class CrontabService : ICrontabService, ITaskFeeder
             return;
         }
 
-        await HookEmitter.Emit<ICrontabHook>(_services, async hook =>
+        // Phase 1 - Authenticate. Use the SYNCHRONOUS Emit overload: OnAuthenticate runs as a plain
+        // synchronous delegate call (no async state machine, so no ExecutionContext capture/restore).
+        // The identity a hook writes to the ambient AsyncLocal (IHttpContextAccessor /
+        // Thread.CurrentPrincipal) therefore persists in this method's context and flows DOWN into the
+        // Phase 2 OnCronTriggered awaits below. If authentication ran inside the awaited (async) Emit
+        // overload, the async state machine would restore the ExecutionContext on each hook's
+        // completion and discard the identity before the work runs.
+        HookEmitter.Emit<ICrontabHook>(_services, hook =>
         {
             if (hook.Triggers == null || hook.Triggers.Contains(item.Title))
             {
                 hook.OnAuthenticate(item);
+            }
+        }, item.AgentId);
+
+        // Phase 2 - Execute.
+        await HookEmitter.Emit<ICrontabHook>(_services, async hook =>
+        {
+            if (hook.Triggers == null || hook.Triggers.Contains(item.Title))
+            {
                 await hook.OnTaskExecuting(item);
                 await hook.OnCronTriggered(item);
                 await hook.OnTaskExecuted(item);

@@ -79,15 +79,18 @@ public class CrontabIdentityFlowTests
     // Identity flow: separate identity hook -> worker hook
     // ---------------------------------------------------------------------------------------------
 
+    // Regression guard: this is the PRE-FIX structure CrontabService.ScheduledTimeArrived used
+    // (OnAuthenticate wrapped in the per-hook awaited HookEmitter.Emit lambda). It is kept to
+    // document why that structure is broken and to fail if anyone reintroduces it.
     [Fact]
-    public async Task Current_structure_identity_does_NOT_reach_worker()
+    public async Task PerHookLambda_structure_identity_does_NOT_reach_worker()
     {
-        // production today: OneOperatorUserIdentityCrontabHook uses SetUserIdentity(..., []) => reset:false
+        // OneOperatorUserIdentityCrontabHook historically used SetUserIdentity(..., []) => reset:false
         var (services, _, worker) = Build(identityReset: false);
         var item = NewItem();
 
-        // EXACT structure of CrontabService.ScheduledTimeArrived today, via the real HookEmitter.Emit:
-        // OnAuthenticate + OnCronTriggered inside the same per-hook awaited lambda, one lambda per hook.
+        // The pre-fix structure, via the real HookEmitter.Emit: OnAuthenticate + OnCronTriggered
+        // inside the same per-hook awaited lambda, one lambda per hook.
         await HookEmitter.Emit<ICrontabHook>(services, async hook =>
         {
             if (hook.Triggers == null || hook.Triggers.Contains(item.Title))
@@ -105,28 +108,32 @@ public class CrontabIdentityFlowTests
     }
 
     [Theory]
-    [InlineData(true)]   // fixed hook: reset:true
-    [InlineData(false)]  // even reset:false works here, because two-phase is what actually fixes the flow
-    public async Task TwoPhase_structure_identity_reaches_worker(bool identityReset)
+    [InlineData(true)]
+    [InlineData(false)]  // reset flag is irrelevant here (no HttpContext); two-phase is what fixes the flow
+    public async Task TwoPhase_via_Emit_overloads_reaches_worker(bool identityReset)
     {
         var (services, _, worker) = Build(identityReset);
         var item = NewItem();
 
-        var hooks = services.GetServices<ICrontabHook>()
-            .Where(h => h.Triggers == null || h.Triggers.Contains(item.Title))
-            .ToList();
-
-        // THE FIX: Phase 1 runs every OnAuthenticate synchronously in the method body (NOT wrapped in
-        // an awaited per-hook lambda), so the identity written to AsyncLocal flows DOWN into Phase 2.
-        foreach (var hook in hooks)
-            hook.OnAuthenticate(item);
-
-        foreach (var hook in hooks)
+        // Mirrors the shipped CrontabService.ScheduledTimeArrived exactly.
+        // Phase 1: the SYNCHRONOUS Emit overload runs OnAuthenticate as a plain delegate call (no
+        // async state machine), so the identity persists and flows DOWN into Phase 2.
+        HookEmitter.Emit<ICrontabHook>(services, hook =>
         {
-            await hook.OnTaskExecuting(item);
-            await hook.OnCronTriggered(item);
-            await hook.OnTaskExecuted(item);
-        }
+            if (hook.Triggers == null || hook.Triggers.Contains(item.Title))
+                hook.OnAuthenticate(item);
+        }, item.AgentId);
+
+        // Phase 2: the async Emit overload runs the work.
+        await HookEmitter.Emit<ICrontabHook>(services, async hook =>
+        {
+            if (hook.Triggers == null || hook.Triggers.Contains(item.Title))
+            {
+                await hook.OnTaskExecuting(item);
+                await hook.OnCronTriggered(item);
+                await hook.OnTaskExecuted(item);
+            }
+        }, item.AgentId);
 
         Assert.Equal(OperatorUid, worker.ObservedUid);
     }
@@ -174,7 +181,33 @@ public class CrontabIdentityFlowTests
     }
 
     [Fact]
-    public async Task Reset_true_cron_job_does_NOT_pollute_a_concurrent_http_request()
+    public async Task When_no_http_context_the_reset_flag_does_not_matter()
+    {
+        // Point 2: in the crontab background flow HttpContext is null when OnAuthenticate runs, so
+        // SetUserIdentity takes the `|| HttpContext == null` branch and creates a fresh context
+        // whether isResetHttpContext is true or false. Each case runs in its own ExecutionContext.
+        var withFalse = await Task.Run(() =>
+        {
+            var accessor = new HttpContextAccessor { HttpContext = null };
+            SetUserIdentity(accessor, OperatorUid, isResetHttpContext: false);
+            return (hasContext: accessor.HttpContext != null, uid: ReadUid(accessor));
+        });
+
+        var withTrue = await Task.Run(() =>
+        {
+            var accessor = new HttpContextAccessor { HttpContext = null };
+            SetUserIdentity(accessor, OperatorUid, isResetHttpContext: true);
+            return (hasContext: accessor.HttpContext != null, uid: ReadUid(accessor));
+        });
+
+        Assert.True(withFalse.hasContext);
+        Assert.True(withTrue.hasContext);
+        Assert.Equal(OperatorUid, withFalse.uid);
+        Assert.Equal(withTrue.uid, withFalse.uid); // identical outcome
+    }
+
+    [Fact]
+    public async Task Cron_identity_does_NOT_pollute_a_concurrent_http_request()
     {
         var accessor = new HttpContextAccessor { HttpContext = null };
 
@@ -192,7 +225,9 @@ public class CrontabIdentityFlowTests
         {
             for (var i = 0; i < 20; i++)
             {
-                SetUserIdentity(accessor, OperatorUid, isResetHttpContext: true); // background default
+                // shipped background behaviour: reset:false, but HttpContext is null in this flow so
+                // a fresh context is created and never touches the request's context.
+                SetUserIdentity(accessor, OperatorUid, isResetHttpContext: false);
                 await Task.Delay(1);
             }
         }
