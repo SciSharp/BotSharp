@@ -41,8 +41,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         _logger = logger;
         _services = services;
         _botsharpOptions = botsharpOptions;
-
-        var settingService = _services.GetRequiredService<ISettingService>();
     }
 
     public async Task Connect(
