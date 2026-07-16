@@ -31,6 +31,11 @@ public class InstructExecutor : IExecutor
         }
 
         message.FunctionArgs = JsonSerializer.Serialize(inst);
+        if (!string.IsNullOrEmpty(inst.FunctionArgs))
+        {
+            message.FunctionArgs = inst.FunctionArgs;
+        }
+
         if (!string.IsNullOrEmpty(message.FunctionName))
         {
             var msg = RoleDialogModel.From(message, role: AgentRole.Function);
@@ -56,7 +61,7 @@ public class InstructExecutor : IExecutor
             message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: content);
             dialogs.Add(message);
         }
-        else
+        else if (!message.StopCompletion)
         {
             var state = _services.GetRequiredService<IConversationStateService>();
             var useStreamMsg = state.GetState("use_stream_message");
@@ -71,6 +76,7 @@ public class InstructExecutor : IExecutor
         var response = dialogs.Last();
         
         response.Instruction = inst;
+        response.StopCompletion = message.StopCompletion;
 
         return response;
     }
