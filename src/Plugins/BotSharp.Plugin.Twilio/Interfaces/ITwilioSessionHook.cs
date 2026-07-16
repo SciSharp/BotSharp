@@ -8,6 +8,13 @@ namespace BotSharp.Plugin.Twilio.Interfaces;
 public interface ITwilioSessionHook : IHookBase
 {
     /// <summary>
+    /// Runs synchronously before any session hook, so identity writes (AsyncLocal)
+    /// set here survive into the subsequent async hooks.
+    /// </summary>
+    /// <param name="request"></param>
+    void OnAuthenticate(ConversationalVoiceRequest request);
+
+    /// <summary>
     /// Before session creating
     /// </summary>
     /// <param name="request"></param>

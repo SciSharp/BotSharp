@@ -62,6 +62,9 @@ public class TwilioVoiceController : TwilioController
             ActionOnEmptyResult = true
         };
 
+        // Authenticate (synchronous, so identity writes survive into the async session hooks)
+        HookEmitter.Emit<ITwilioSessionHook>(_services, hook => hook.OnAuthenticate(request), request.AgentId);
+
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
             await hook.OnSessionCreating(request, instruction);
@@ -343,6 +346,7 @@ public class TwilioVoiceController : TwilioController
     {
         var twilio = _services.GetRequiredService<TwilioService>();
 
+        HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnAuthenticate(request), request.AgentId);
         switch (request.CallStatus)
         {
             case "completed":
