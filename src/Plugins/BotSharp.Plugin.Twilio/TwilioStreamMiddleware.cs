@@ -7,10 +7,8 @@ using BotSharp.Abstraction.Realtime.Options;
 using BotSharp.Abstraction.Realtime.Sessions;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Utilities;
-using BotSharp.Core.Infrastructures;
 using BotSharp.Core.Session;
 using BotSharp.Plugin.Twilio.Interfaces;
-using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Models.Stream;
 using Microsoft.AspNetCore.Http;
 using System.Net.WebSockets;
@@ -81,15 +79,7 @@ public class TwilioStreamMiddleware
         var convService = services.GetRequiredService<IConversationService>();
         await convService.SetConversationId(conversationId, []);
 
-        // No onebrain identity arrives on the Twilio media stream. Authenticate synchronously
-        // (so AsyncLocal identity writes survive) before the streaming session hooks run.
-        var request = new ConversationalVoiceRequest
-        {
-            AgentId = agentId,
-            ConversationId = conversationId
-        };
-        HookEmitter.Emit<ITwilioSessionHook>(services, hook => hook.OnAuthenticate(request), agentId);
-
+        // No OnAuthenticate before these hooks — identity is established only at the HTTP entry points.
         var hooks = services.GetHooks<ITwilioSessionHook>(agentId);
         foreach (var hook in hooks)
         {
