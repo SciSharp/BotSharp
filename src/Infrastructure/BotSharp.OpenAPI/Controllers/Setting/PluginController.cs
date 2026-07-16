@@ -59,7 +59,7 @@ public class PluginController(IServiceProvider services, IUserIdentity user, Plu
             {
                 continue;
             }
-            plugin.Module.AttachMenu(menu);
+            await plugin.Module.AttachMenu(menu, services);
         }
 
         var userService = services.GetRequiredService<IUserService>();

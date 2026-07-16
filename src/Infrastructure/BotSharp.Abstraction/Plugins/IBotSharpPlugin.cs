@@ -26,4 +26,11 @@ public interface IBotSharpPlugin
     void RegisterDI(IServiceCollection services, IConfiguration config);
 
     bool AttachMenu(List<PluginMenuDef> menu) => true;
+
+    /// <summary>
+    /// Service-aware menu attachment invoked with the request-scoped service provider,
+    /// so plugins can build per-user menu entries. Defaults to the sync overload.
+    /// </summary>
+    Task<bool> AttachMenu(List<PluginMenuDef> menu, IServiceProvider services)
+        => Task.FromResult(AttachMenu(menu));
 }
