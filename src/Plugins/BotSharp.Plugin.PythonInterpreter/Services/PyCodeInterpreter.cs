@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Templating;
 using Microsoft.Extensions.Logging;
 using Python.Runtime;
 using System.Diagnostics;
@@ -41,8 +42,8 @@ public class PyCodeInterpreter : ICodeProcessor
     {
         Agent? agent = null;
 
-        var agentId = options?.AgentId;
-        var templateName = options?.TemplateName;
+        var agentId = options?.AgentId ?? BuiltInAgentId.AIProgrammer;
+        var templateName = options?.TemplateName ?? "rule-trigger-code-generate_instruction";
 
         if (!string.IsNullOrEmpty(agentId))
         {
@@ -50,26 +51,42 @@ public class PyCodeInterpreter : ICodeProcessor
             agent = await agentService.GetAgent(agentId);
         }
 
-        var instruction = string.Empty;
-        if (agent != null && !string.IsNullOrEmpty(templateName))
+        var template = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName));
+        var llmConfig = agent?.LlmConfig;
+        if (template?.LlmConfig?.IsValid == true)
         {
-            instruction = agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName))?.Content;
+            llmConfig = new AgentLlmConfig(template.LlmConfig);
         }
 
-        var (provider, model) = GetLlmProviderModel();
+        if (llmConfig == null)
+        {
+            var (provider, model) = GetLlmProviderModel();
+            llmConfig = new AgentLlmConfig
+            {
+                Provider = provider,
+                Model = model
+            };
+        }
+
+        var instruction = template?.Content ?? agent?.Instruction;
+        if (string.IsNullOrWhiteSpace(instruction))
+        {
+            return new CodeGenerationResult
+            {
+                Success = false
+            };
+        }
+
+        var renderData = CollectRenderData(options?.Data);
+        var render = _services.GetRequiredService<ITemplateRender>();
+        var rendered = render.Render(instruction, renderData);
         var innerAgent = new Agent
         {
-            Id = agent?.Id ?? BuiltInAgentId.AIProgrammer,
-            Name = agent?.Name ?? "AI Programmer",
-            Instruction = instruction,
-            LlmConfig = new AgentLlmConfig
-            {
-                Provider = options?.Provider ?? provider,
-                Model = options?.Model ?? model,
-                MaxOutputTokens = options?.MaxOutputTokens ?? _settings?.CodeGeneration?.MaxOutputTokens,
-                ReasoningEffortLevel = options?.ReasoningEffortLevel ?? _settings?.CodeGeneration?.ReasoningEffortLevel
-            },
-            TemplateDict = options?.Data ?? new()
+            Id = agent!.Id,
+            Name = agent!.Name,
+            Instruction = rendered,
+            LlmConfig = llmConfig,
+            TemplateDict = renderData
         };
 
         text = text.IfNullOrEmptyAs("Please follow the instruction to generate code script.")!;
@@ -324,6 +341,20 @@ public class PyCodeInterpreter : ICodeProcessor
             }
             catch { }
         }
+    }
+
+    private Dictionary<string, object> CollectRenderData(Dictionary<string, object>? data = null)
+    {
+        var renderData = new Dictionary<string, object>(data ?? []);
+
+        var stateService = _services.GetRequiredService<IConversationStateService>();
+        var states = stateService.GetStates();
+        foreach (var state in states)
+        {
+            renderData[state.Key] = state.Value;
+        }
+
+        return renderData;
     }
 
     private (string, string) GetLlmProviderModel()

@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Coding.Options;
 
-public class CodeGenerationOptions : LlmConfigBase
+public class CodeGenerationOptions
 {
     /// <summary>
     /// Agent id to get instruction
