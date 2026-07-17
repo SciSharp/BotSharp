@@ -8,8 +8,7 @@ namespace BotSharp.Plugin.Twilio.Interfaces;
 public interface ITwilioSessionHook : IHookBase
 {
     /// <summary>
-    /// Runs synchronously before any session hook, so identity writes (AsyncLocal)
-    /// set here survive into the subsequent async hooks.
+    /// Establishes the operator identity synchronously at the HTTP entry points only; the WebSocket and background flows manage identity separately.
     /// </summary>
     /// <param name="request"></param>
     void OnAuthenticate(ConversationalVoiceRequest request);

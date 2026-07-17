@@ -6,6 +6,10 @@ namespace BotSharp.Plugin.Twilio.Interfaces;
 
 public interface ITwilioCallStatusHook : IHookBase
 {
+    /// <summary>
+    /// Establishes the operator identity synchronously at the call-status webhook entry, before any status hook method runs.
+    /// </summary>
+    /// <param name="request"></param>
     void OnAuthenticate(ConversationalVoiceRequest request);
     Task OnVoicemailLeft(ConversationalVoiceRequest request) => Task.CompletedTask;
     Task OnUserDisconnected(ConversationalVoiceRequest request) => Task.CompletedTask;
