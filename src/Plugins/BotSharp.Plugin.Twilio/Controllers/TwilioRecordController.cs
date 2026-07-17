@@ -36,6 +36,7 @@ public class TwilioRecordController : TwilioController
             });
             await convService.SaveStates();
 
+            HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnAuthenticate(request), request.AgentId);
             // recording completed
             await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnRecordingCompleted(request), request.AgentId);
         }

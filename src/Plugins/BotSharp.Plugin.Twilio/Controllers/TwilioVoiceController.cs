@@ -62,6 +62,9 @@ public class TwilioVoiceController : TwilioController
             ActionOnEmptyResult = true
         };
 
+        // Authenticate (synchronous, so identity writes survive into the async session hooks)
+        HookEmitter.Emit<ITwilioSessionHook>(_services, hook => hook.OnAuthenticate(request), request.AgentId);
+
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
             await hook.OnSessionCreating(request, instruction);
@@ -112,6 +115,9 @@ public class TwilioVoiceController : TwilioController
     [HttpPost("twilio/voice/receive/{seqNum}")]
     public async Task<TwiMLResult> ReceiveCallerMessage(ConversationalVoiceRequest request)
     {
+        // Authenticate (synchronous, so identity writes survive into the async session hooks)
+        HookEmitter.Emit<ITwilioSessionHook>(_services, hook => hook.OnAuthenticate(request), request.AgentId);
+
         var twilio = _services.GetRequiredService<TwilioService>();
         var messageQueue = _services.GetRequiredService<TwilioMessageQueue>();
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
@@ -203,6 +209,9 @@ public class TwilioVoiceController : TwilioController
     [HttpPost("twilio/voice/reply/{seqNum}")]
     public async Task<TwiMLResult> ReplyCallerMessage(ConversationalVoiceRequest request)
     {
+        // Authenticate (synchronous, so identity writes survive into the async session hooks)
+        HookEmitter.Emit<ITwilioSessionHook>(_services, hook => hook.OnAuthenticate(request), request.AgentId);
+
         var nextSeqNum = request.SeqNum + 1;
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
         var twilio = _services.GetRequiredService<TwilioService>();
@@ -342,6 +351,9 @@ public class TwilioVoiceController : TwilioController
     public async Task<ActionResult> PhoneCallStatus(ConversationalVoiceRequest request)
     {
         var twilio = _services.GetRequiredService<TwilioService>();
+
+        // Authenticate (synchronous, so identity writes survive into the async status hooks)
+        HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnAuthenticate(request), request.AgentId);
 
         switch (request.CallStatus)
         {
