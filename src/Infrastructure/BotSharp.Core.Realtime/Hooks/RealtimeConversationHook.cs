@@ -6,6 +6,9 @@ namespace BotSharp.Core.Realtime.Hooks;
 public class RealtimeConversationHook : ConversationHookBase, IConversationHook
 {
     private readonly IServiceProvider _services;
+
+    public override string SelfId => string.Empty;
+
     public RealtimeConversationHook(IServiceProvider services)
     {
         _services = services;
