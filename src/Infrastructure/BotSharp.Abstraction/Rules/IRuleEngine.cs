@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Graph;
-using BotSharp.Abstraction.Rules.Models;
-
 namespace BotSharp.Abstraction.Rules;
 
 public interface IRuleEngine
@@ -17,14 +14,14 @@ public interface IRuleEngine
     Task<IEnumerable<string>> Triggered(IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null, RuleTriggerOptions? options = null)
         => throw new NotImplementedException();
 
-    /// <summary>
-    /// Execute rule graph node
-    /// </summary>
-    /// <param name="node"></param>
-    /// <param name="graph"></param>
-    /// <param name="agentId"></param>
-    /// <param name="trigger"></param>
-    /// <param name="options"></param>
-    /// <returns></returns>
-    Task ExecuteGraphNode(FlowNode node, FlowGraph graph, string agentId, IRuleTrigger trigger, RuleNodeExecutionOptions options);
+    ///// <summary>
+    ///// Execute rule graph node
+    ///// </summary>
+    ///// <param name="node"></param>
+    ///// <param name="graph"></param>
+    ///// <param name="agentId"></param>
+    ///// <param name="trigger"></param>
+    ///// <param name="options"></param>
+    ///// <returns></returns>
+    //Task ExecuteGraphNode(FlowNode node, FlowGraph graph, string agentId, IRuleTrigger trigger, RuleNodeExecutionOptions options);
 }
