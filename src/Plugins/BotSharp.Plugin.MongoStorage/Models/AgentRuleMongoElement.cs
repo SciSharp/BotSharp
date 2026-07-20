@@ -33,7 +33,7 @@ public class AgentRuleMongoElement
 [BsonIgnoreExtraElements(Inherited = true)]
 public class RuleConfigMongoModel
 {
-    public string? TopologyName { get; set; }
+    public string? Criteria { get; set; }
 
     public static RuleConfigMongoModel? ToMongoModel(RuleConfig? config)
     {
@@ -44,7 +44,7 @@ public class RuleConfigMongoModel
 
         return new RuleConfigMongoModel
         {
-            TopologyName = config.TopologyName
+            Criteria = config.Criteria
         };
     }
 
@@ -57,7 +57,7 @@ public class RuleConfigMongoModel
 
         return new RuleConfig
         {
-            TopologyName = config.TopologyName
+            Criteria = config.Criteria
         };
     }
 }
