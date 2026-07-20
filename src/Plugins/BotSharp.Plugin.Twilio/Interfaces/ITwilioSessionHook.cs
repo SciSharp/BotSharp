@@ -8,6 +8,12 @@ namespace BotSharp.Plugin.Twilio.Interfaces;
 public interface ITwilioSessionHook : IHookBase
 {
     /// <summary>
+    /// Establishes the operator identity synchronously at the HTTP entry points only; the WebSocket and background flows manage identity separately.
+    /// </summary>
+    /// <param name="request"></param>
+    void OnAuthenticate(ConversationalVoiceRequest request);
+
+    /// <summary>
     /// Before session creating
     /// </summary>
     /// <param name="request"></param>
