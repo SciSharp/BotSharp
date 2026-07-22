@@ -15,6 +15,15 @@ public interface IRoutingHook : IHookBase
     Task OnRoutingInstructionReceived(FunctionCallFromLlm instruct, RoleDialogModel message)
         => Task.CompletedTask;
 
+    /// <summary>
+    /// Routing instruction execution is completed
+    /// </summary>
+    /// <param name="instruct"></param>
+    /// <param name="message"></param>
+    /// <returns></returns>
+    Task OnRoutingInstructionCompleted(FunctionCallFromLlm instruct, RoleDialogModel message)
+        => Task.CompletedTask;
+
     Task OnRoutingInstructionRevised(FunctionCallFromLlm instruct, RoleDialogModel message)
         => Task.CompletedTask;
 
