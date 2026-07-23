@@ -34,13 +34,6 @@ public partial class RouteToAgentFn : IFunctionCallback
             {
                 states.SetState("user_goal_agent", args.OriginalAgent, isNeedVersion: true);
             }
-            //Using AI results, no correction is needed.
-            //else if (args.OriginalAgent == args.AgentName && args.OriginalAgent != goalAgentInState)
-            //{
-            //    // Correct to original agent
-            //    args.OriginalAgent = goalAgentInState;
-            //    correctToOriginalAgent = true;
-            //}
             else if (args.OriginalAgent != args.AgentName && args.OriginalAgent != goalAgentInState)
             {
                 // Correct to original agent
