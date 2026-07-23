@@ -14,7 +14,7 @@
       },
       "user_goal_agent": {
         "type": "string",
-        "description": "Agent who can acheive user initial task."
+        "description": "Agent who can achieve the user's active request."
       },
       "conversation_end": {
         "type": "boolean",

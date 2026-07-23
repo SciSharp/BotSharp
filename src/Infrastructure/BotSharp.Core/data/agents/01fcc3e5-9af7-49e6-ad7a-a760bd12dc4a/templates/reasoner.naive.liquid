@@ -8,5 +8,6 @@ Next action agent is inferred based on user lastest response.
 {% if expected_user_goal_agent != empty  -%}
 Expected user goal agent is {{ expected_user_goal_agent }}. 
 {%- else -%}
-User goal agent is inferred based on user initial request.
+User goal agent is inferred based on the user's active request.
+If the latest user message starts a new request, use the latest request; otherwise keep the existing active request.
 {%- endif %}
