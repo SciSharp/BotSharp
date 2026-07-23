@@ -30,8 +30,10 @@ public class LlmModelSetting
 
     public string ApiKey { get; set; } = null!;
     public string? Endpoint { get; set; }
+    public long? ContextWindow { get; set; }
     public LlmModelType Type { get; set; } = LlmModelType.Chat;
     public List<LlmModelCapability> Capabilities { get; set; } = [];
+    public List<string> InputModalities { get; set; } = [];
 
     /// <summary>
     /// If true, allow sending images/videos to this model
@@ -183,7 +185,10 @@ public class LlmCostSetting
     #region Text token
     public float TextInputCost { get; set; } = 0f;
     public float CachedTextInputCost { get; set; } = 0f;
+    public float CachedTextInputWriteCost { get; set; } = 0f;
     public float TextOutputCost { get; set; } = 0f;
+    public string DefaultServiceTier { get; set; } = "standard";
+    public IList<LlmTextTokenCostTier>? TextTokenCostTiers { get; set; }
     #endregion
 
     #region Audio token
@@ -201,6 +206,29 @@ public class LlmCostSetting
     #region Image
     public IList<LlmImageCost>? ImageCosts { get; set; }
     #endregion
+
+    public LlmTextTokenCostTier? GetTextTokenCostTier(long inputTokens, string? serviceTier = null)
+    {
+        var selectedServiceTier = string.IsNullOrWhiteSpace(serviceTier)
+            ? DefaultServiceTier
+            : serviceTier;
+
+        return TextTokenCostTiers?.FirstOrDefault(x =>
+            string.Equals(x.ServiceTier, selectedServiceTier, StringComparison.OrdinalIgnoreCase)
+            && (!x.InputTokensGreaterThan.HasValue || inputTokens > x.InputTokensGreaterThan.Value)
+            && (!x.InputTokensLessThanOrEqual.HasValue || inputTokens <= x.InputTokensLessThanOrEqual.Value));
+    }
+}
+
+public class LlmTextTokenCostTier
+{
+    public string ServiceTier { get; set; } = "standard";
+    public long? InputTokensGreaterThan { get; set; }
+    public long? InputTokensLessThanOrEqual { get; set; }
+    public float TextInputCost { get; set; }
+    public float CachedTextInputCost { get; set; }
+    public float CachedTextInputWriteCost { get; set; }
+    public float TextOutputCost { get; set; }
 }
 
 public class LlmImageCost

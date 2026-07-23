@@ -8,7 +8,7 @@ namespace BotSharp.Plugin.AnthropicAI.Providers;
 
 public class ChatCompletionProvider : IChatCompletion
 {
-    public string Provider => "anthropic";
+    public virtual string Provider => "anthropic";
     public string Model => _model;
 
     protected readonly AnthropicSettings _settings;
@@ -94,7 +94,10 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
+                ServiceTier = tokenUsage?.ServiceTier.ToString(),
                 TextInputTokens = tokenUsage?.InputTokens ?? 0,
+                CachedTextInputTokens = tokenUsage?.CacheReadInputTokens ?? 0,
+                CachedTextInputWriteTokens = tokenUsage?.CacheCreationInputTokens ?? 0,
                 TextOutputTokens = tokenUsage?.OutputTokens ?? 0
             });
         }
@@ -172,7 +175,10 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
+                ServiceTier = tokenUsage?.ServiceTier.ToString(),
                 TextInputTokens = tokenUsage?.InputTokens ?? 0,
+                CachedTextInputTokens = tokenUsage?.CacheReadInputTokens ?? 0,
+                CachedTextInputWriteTokens = tokenUsage?.CacheCreationInputTokens ?? 0,
                 TextOutputTokens = tokenUsage?.OutputTokens ?? 0
             });
         }
@@ -321,7 +327,10 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
+                ServiceTier = tokenUsage?.ServiceTier.ToString(),
                 TextInputTokens = tokenUsage?.InputTokens ?? 0,
+                CachedTextInputTokens = tokenUsage?.CacheReadInputTokens ?? 0,
+                CachedTextInputWriteTokens = tokenUsage?.CacheCreationInputTokens ?? 0,
                 TextOutputTokens = tokenUsage?.OutputTokens ?? 0
             });
         }
@@ -465,8 +474,25 @@ public class ChatCompletionProvider : IChatCompletion
             return null;
         }
 
-        var thinking = new ThinkingParameters();
         var param = settings.Reasoning.Parameters!;
+        var thinkingType = LlmUtility.GetModelParameter(
+            param,
+            "ThinkingType",
+            _state.GetState("thinking_type"));
+        if (thinkingType.IsEqualTo("disabled"))
+        {
+            return null;
+        }
+
+        var thinking = new ThinkingParameters();
+        if (thinkingType.IsEqualTo("adaptive"))
+        {
+            thinking.Type = ThinkingType.adaptive;
+        }
+        else if (thinkingType.IsEqualTo("enabled"))
+        {
+            thinking.Type = ThinkingType.enabled;
+        }
 
         var bt = _state.GetState("budget_tokens");
         if (int.TryParse(bt, out var budgetTokens)
@@ -484,7 +510,11 @@ public class ChatCompletionProvider : IChatCompletion
             thinking.UseInterleavedThinking = useInterleavedThinking;
         }
 
-        return thinking.BudgetTokens > 0 ? thinking : null;
+        return thinkingType.IsEqualTo("adaptive")
+            || thinkingType.IsEqualTo("enabled")
+            || thinking.BudgetTokens > 0
+            ? thinking
+            : null;
     }
 
     private string GetPrompt(MessageParameters parameters)

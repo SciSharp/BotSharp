@@ -1,3 +1,5 @@
+using OpenAI.Chat;
+
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
 public partial class ChatCompletionProvider : IChatCompletion
@@ -15,6 +17,7 @@ public partial class ChatCompletionProvider : IChatCompletion
 
     public virtual string Provider => "openai";
     public string Model => _model;
+    protected virtual bool UseResponseApi => _settings.UseResponseApi;
 
     public ChatCompletionProvider(
         OpenAiSettings settings,
@@ -33,7 +36,7 @@ public partial class ChatCompletionProvider : IChatCompletion
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
-        if (_settings.UseResponseApi)
+        if (UseResponseApi)
         {
             return await InnerCreateResponse(agent, conversations);
         }
@@ -48,7 +51,7 @@ public partial class ChatCompletionProvider : IChatCompletion
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting)
     {
-        if (_settings.UseResponseApi)
+        if (UseResponseApi)
         {
             return await InnerCreateResponseAsync(agent, conversations, onMessageReceived, onFunctionExecuting);
         }
@@ -60,7 +63,7 @@ public partial class ChatCompletionProvider : IChatCompletion
 
     public async Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
-        if (_settings.UseResponseApi)
+        if (UseResponseApi)
         {
             return await InnerCreateResponseStreamingAsync(agent, conversations);
         }
@@ -79,6 +82,12 @@ public partial class ChatCompletionProvider : IChatCompletion
     public void SetApiKey(string apiKey)
     {
         _apiKey = apiKey;
+    }
+
+    protected virtual void ConfigureChatCompletionOptions(
+        ChatCompletionOptions options,
+        LlmModelSetting? settings)
+    {
     }
 
     private static bool IsImageContentType(string? contentType)
