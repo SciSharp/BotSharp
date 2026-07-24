@@ -6,7 +6,7 @@
     "properties": {
       "next_action_agent": {
         "type": "string",
-        "description": "Agent for next action based on user latest response"
+        "description": "Agent for next action based on user's latest response and active goal."
       },
       "next_action_reason": {
         "type": "string",
@@ -14,7 +14,7 @@
       },
       "user_goal_agent": {
         "type": "string",
-        "description": "Agent who can achieve the user's active request."
+        "description": "Agent who can achieve the user's active goal."
       },
       "conversation_end": {
         "type": "boolean",
