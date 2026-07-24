@@ -3,12 +3,12 @@ Route to the last handling agent in priority.
 {% if expected_next_action_agent != empty  -%}
 Expected next action agent is {{ expected_next_action_agent }}. 
 {%- else -%}
-next_action_agent is determined from the latest user message in the context of the active user_goal_agent.
-If the user only provides requested information, keep the previous next_action_agent or fall back to the active user_goal_agent.
+Next action agent is determined from the latest user message in the context of the active user goal.
+If the user only provides requested information, keep the previous next action agent or fall back to the agent for the active user goal.
 {%- endif %}
 {% if expected_user_goal_agent != empty  -%}
 Expected user goal agent is {{ expected_user_goal_agent }}. 
 {%- else -%}
-user_goal_agent is inferred from the user's active goal.
-Keep the existing user_goal_agent unless the latest user message explicitly starts a different task or workflow.
+User goal agent is inferred from the user's active goal.
+Keep the existing user goal agent unless the latest user message explicitly starts a different task or workflow.
 {%- endif %}
