@@ -40,6 +40,10 @@ public class InstructExecutor : IExecutor
         {
             var msg = RoleDialogModel.From(message, role: AgentRole.Function);
             await routing.InvokeFunction(message.FunctionName, msg, options: new() { From = InvokeSource.Routing });
+            if (msg.StopCompletion)
+            {
+                message = RoleDialogModel.From(msg, role: AgentRole.Assistant);
+            }
         }
 
         var agentId = routing.Context.GetCurrentAgentId();
@@ -68,7 +72,7 @@ public class InstructExecutor : IExecutor
             message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: content);
             dialogs.Add(message);
         }
-        else if (!message.StopCompletion)
+        else
         {
             var state = _services.GetRequiredService<IConversationStateService>();
             var useStreamMsg = state.GetState("use_stream_message");
@@ -81,7 +85,6 @@ public class InstructExecutor : IExecutor
         }
 
         var response = dialogs.Last();
-        
         response.Instruction = inst;
         response.StopCompletion = message.StopCompletion;
 
