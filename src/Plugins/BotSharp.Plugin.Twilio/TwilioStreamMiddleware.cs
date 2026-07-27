@@ -79,6 +79,7 @@ public class TwilioStreamMiddleware
         var convService = services.GetRequiredService<IConversationService>();
         await convService.SetConversationId(conversationId, []);
 
+        // No OnAuthenticate before these hooks — identity is established only at the HTTP entry points.
         var hooks = services.GetHooks<ITwilioSessionHook>(agentId);
         foreach (var hook in hooks)
         {

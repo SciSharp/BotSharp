@@ -4,7 +4,6 @@ public static class Gpt4xModelConstants
 {
     public const string GPT_4o = "gpt-4o";
     public const string GPT_4o_Mini = "gpt-4o-mini";
-    public const string GPT_4o_Mini_Realtime_Preview = "gpt-4o-mini-realtime-preview";
     public const string GPT_4o_Mini_Search_Preview = "gpt-4o-mini-search-preview";
     public const string GPT_4o_Mini_Transcribe = "gpt-4o-mini-transcribe";
     public const string GPT_4o_Transcribe = "gpt-4o-transcribe";

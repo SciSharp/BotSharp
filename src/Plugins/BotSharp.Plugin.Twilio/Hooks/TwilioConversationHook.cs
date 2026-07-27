@@ -41,6 +41,7 @@ public class TwilioConversationHook : ConversationHookBase, IConversationHook
             CallSid = sid,
         };
 
+        // No OnAuthenticate before these hooks — identity is established only at the HTTP entry points.
         foreach (var hook in hooks)
         {
             if (await hook.ShouldReconnect(request, message))

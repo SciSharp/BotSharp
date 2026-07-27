@@ -324,7 +324,8 @@ public class TwilioService
                 ActionOnEmptyResult = true
             };
 
-            await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook => await hook.OnWaitingAgentResponse(request, instruction), 
+            // No OnAuthenticate before these hooks — identity is established only at the HTTP entry points.
+            await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook => await hook.OnWaitingAgentResponse(request, instruction),
                 request.AgentId);
 
             response = ReturnInstructions(instruction);

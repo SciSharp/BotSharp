@@ -30,8 +30,10 @@ public class LlmModelSetting
 
     public string ApiKey { get; set; } = null!;
     public string? Endpoint { get; set; }
+    public long? ContextWindow { get; set; }
     public LlmModelType Type { get; set; } = LlmModelType.Chat;
     public List<LlmModelCapability> Capabilities { get; set; } = [];
+    public List<string> InputModalities { get; set; } = [];
 
     /// <summary>
     /// If true, allow sending images/videos to this model
@@ -172,44 +174,6 @@ public class ModelParamSetting
 {
     public string? Default { get; set; }
     public IEnumerable<string>? Options { get; set; }
-}
-
-
-/// <summary>
-/// Cost per 1K tokens
-/// </summary>
-public class LlmCostSetting
-{
-    #region Text token
-    public float TextInputCost { get; set; } = 0f;
-    public float CachedTextInputCost { get; set; } = 0f;
-    public float TextOutputCost { get; set; } = 0f;
-    #endregion
-
-    #region Audio token
-    public float AudioInputCost { get; set; } = 0f;
-    public float CachedAudioInputCost { get; set; } = 0f;
-    public float AudioOutputCost { get; set; } = 0f;
-    #endregion
-
-    #region Image token
-    public float ImageInputCost { get; set; } = 0f;
-    public float CachedImageInputCost { get; set; } = 0f;
-    public float ImageOutputCost { get; set; } = 0f;
-    #endregion
-
-    #region Image
-    public IList<LlmImageCost>? ImageCosts { get; set; }
-    #endregion
-}
-
-public class LlmImageCost
-{
-    /// <summary>
-    /// Attributes: e.g., [quality]: "medium", [size] = "1024x1024"
-    /// </summary>
-    public Dictionary<string, string> Attributes { get; set; } = [];
-    public float Cost { get; set; } = 0f;
 }
 
 public enum LlmModelType

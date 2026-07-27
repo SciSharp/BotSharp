@@ -33,7 +33,9 @@ public class TwilioOutboundController : TwilioController
         if (twilio.MachineDetected(request))
         {
             response = new VoiceResponse();
-            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, 
+            // Authenticate (synchronous, so identity writes survive into the async status hook)
+            HookEmitter.Emit<ITwilioCallStatusHook>(_services, hook => hook.OnAuthenticate(request), request.AgentId);
+            await HookEmitter.Emit<ITwilioCallStatusHook>(_services,
                 async hook => await hook.OnVoicemailStarting(request), request.AgentId);
 
             var url = twilio.GetSpeechPath(request.ConversationId, "voicemail.mp3");
