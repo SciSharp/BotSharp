@@ -88,6 +88,7 @@ public partial class ChatCompletionProvider
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
+                ServiceTier = value.ServiceTier?.ToString(),
                 TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
                 CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
                 TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
@@ -138,6 +139,7 @@ public partial class ChatCompletionProvider
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
+                ServiceTier = value.ServiceTier?.ToString(),
                 TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
                 CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
                 TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
@@ -231,6 +233,7 @@ public partial class ChatCompletionProvider
         using var textStream = new RealtimeTextStream();
         var toolCalls = new List<StreamingChatToolCallUpdate>();
         ChatTokenUsage? tokenUsage = null;
+        string? serviceTier = null;
 
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, string.Empty)
         {
@@ -246,6 +249,7 @@ public partial class ChatCompletionProvider
             await foreach (var choice in chatClient.CompleteChatStreamingAsync(messages, options, cancellationToken))
             {
                 tokenUsage = choice.Usage;
+                serviceTier = choice.ServiceTier?.ToString() ?? serviceTier;
 
                 if (!choice.ToolCallUpdates.IsNullOrEmpty())
                 {
@@ -355,6 +359,7 @@ public partial class ChatCompletionProvider
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
+                ServiceTier = serviceTier,
                 TextInputTokens = (tokenUsage?.InputTokenCount ?? 0) - (inputTokenDetails?.CachedTokenCount ?? 0),
                 CachedTextInputTokens = inputTokenDetails?.CachedTokenCount ?? 0,
                 TextOutputTokens = tokenUsage?.OutputTokenCount ?? 0
@@ -625,6 +630,8 @@ public partial class ChatCompletionProvider
             ReasoningEffortLevel = reasoningEffortLevel,
             WebSearchOptions = webSearchOptions
         };
+
+        ConfigureChatCompletionOptions(options, settings);
 
         if (webSearchOptions == null)
         {

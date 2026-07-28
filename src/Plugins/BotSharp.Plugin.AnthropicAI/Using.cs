@@ -26,6 +26,7 @@ global using BotSharp.Abstraction.Files.Utilities;
 global using BotSharp.Abstraction.Hooks;
 global using BotSharp.Abstraction.MessageHub.Models;
 global using BotSharp.Abstraction.MLTasks.Settings;
+global using BotSharp.Abstraction.MLTasks.Utilities;
 global using BotSharp.Abstraction.Options;
 global using BotSharp.Abstraction.Utilities;
 
