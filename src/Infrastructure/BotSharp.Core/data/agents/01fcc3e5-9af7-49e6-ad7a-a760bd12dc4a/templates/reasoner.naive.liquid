@@ -4,7 +4,7 @@ Route to the last handling agent in priority.
 Expected next action agent is {{ expected_next_action_agent }}. 
 {%- else -%}
 Next action agent is determined from the latest user message in the context of the active user goal.
-If the user only provides requested information, keep the previous next action agent or fall back to the agent for the active user goal.
+If the user only provides requested information, keep the previous next action agent or route to the agent for the active user goal.
 {%- endif %}
 {% if expected_user_goal_agent != empty  -%}
 Expected user goal agent is {{ expected_user_goal_agent }}. 
