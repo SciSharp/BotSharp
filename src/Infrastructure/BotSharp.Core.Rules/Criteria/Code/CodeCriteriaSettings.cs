@@ -30,5 +30,5 @@ public class CodeCriteriaSettings
     /// Json arguments as an input value to the code script.
     /// </summary>
     [JsonPropertyName("argument_content")]
-    public JsonDocument? ArgumentContent { get; set; }
+    public JsonElement? ArgumentContent { get; set; }
 }

@@ -37,7 +37,7 @@ public class CodeCriteriaEvaluator : IRuleCriteriaEvaluator
         var scriptName = settings.CodeScriptName ?? $"{trigger.Name}_rule.py";
         var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
 
-        var msg = $"rule trigger ({trigger.Name}) code script ({scriptName}) in agent ({agent.Name}) => args: {settings.ArgumentContent?.RootElement.GetRawText()}.";
+        var msg = $"rule trigger ({trigger.Name}) code script ({scriptName}) in agent ({agent.Name}) => args: {settings.ArgumentContent?.GetRawText()}.";
 
         if (codeScript == null || string.IsNullOrWhiteSpace(codeScript.Content))
         {
@@ -113,12 +113,12 @@ public class CodeCriteriaEvaluator : IRuleCriteriaEvaluator
         }
     }
 
-    private List<KeyValue> BuildArguments(string? name, JsonDocument? args)
+    private List<KeyValue> BuildArguments(string? name, JsonElement? args)
     {
         var keyValues = new List<KeyValue>();
         if (args != null)
         {
-            keyValues.Add(new KeyValue(name ?? "trigger_args", args.RootElement.GetRawText()));
+            keyValues.Add(new KeyValue(name ?? "trigger_args", args.Value.GetRawText()));
         }
         return keyValues;
     }

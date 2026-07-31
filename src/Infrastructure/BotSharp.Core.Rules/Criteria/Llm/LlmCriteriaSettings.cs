@@ -25,5 +25,5 @@ public class LlmCriteriaSettings
     /// Json arguments as an input value
     /// </summary>
     [JsonPropertyName("argument_content")]
-    public JsonDocument? ArgumentContent { get; set; }
+    public JsonElement? ArgumentContent { get; set; }
 }

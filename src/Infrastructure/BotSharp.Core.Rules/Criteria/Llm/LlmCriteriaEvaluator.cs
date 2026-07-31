@@ -138,7 +138,7 @@ public class LlmCriteriaEvaluator : IRuleCriteriaEvaluator
             sb.AppendLine();
         }
 
-        var arguments = settings.ArgumentContent?.RootElement.GetRawText();
+        var arguments = settings.ArgumentContent?.GetRawText();
         if (!string.IsNullOrWhiteSpace(arguments) && arguments != "{}")
         {
             sb.AppendLine("## Input");
