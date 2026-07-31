@@ -31,8 +31,7 @@ public class RuleEngine : IRuleEngine
         IRuleCriteriaEvaluator? criteriaEvaluator = null;
         if (options?.Criteria != null)
         {
-            criteriaEvaluator = _services.GetServices<IRuleCriteriaEvaluator>()
-                .FirstOrDefault(x => x.Type.IsEqualTo(options.Criteria.Type));
+            criteriaEvaluator = ResolveCriteriaEvaluator(options.Criteria.Type);
             if (criteriaEvaluator == null)
             {
                 _logger.LogWarning($"Unable to find rule criteria evaluator for type ({options.Criteria.Type}).");
@@ -58,7 +57,7 @@ public class RuleEngine : IRuleEngine
                     States = states
                 };
 
-                var isTriggered = await criteriaEvaluator.EvaluateAsync(agent, trigger, criteriaContext);
+                var isTriggered = await EvaluateCriteria(criteriaEvaluator, agent, trigger, criteriaContext);
                 if (!isTriggered)
                 {
                     continue;
@@ -71,6 +70,47 @@ public class RuleEngine : IRuleEngine
 
         return newConversationIds;
     }
+
+    #region Criteria
+    private IRuleCriteriaEvaluator? ResolveCriteriaEvaluator(string type)
+    {
+        return _services.GetServices<IRuleCriteriaEvaluator>().FirstOrDefault(x => x.Type.IsEqualTo(type));
+    }
+
+    /// <summary>
+    /// Runs the criteria evaluator. When a non-llm evaluator cannot produce an answer
+    /// (null result: missing script, failed execution, error), silently fall back to the
+    /// llm evaluator instead of skipping the rule. The llm evaluator is the last resort,
+    /// so a null from it means "not triggered".
+    /// </summary>
+    private async Task<bool> EvaluateCriteria(
+        IRuleCriteriaEvaluator evaluator,
+        Agent agent,
+        IRuleTrigger trigger,
+        RuleCriteriaContext context)
+    {
+        var isTriggered = await evaluator.EvaluateAsync(agent, trigger, context);
+        if (isTriggered != null)
+        {
+            return isTriggered.Value;
+        }
+
+        if (evaluator.Type.IsEqualTo(BuiltInRuleCriteria.Llm))
+        {
+            return false;
+        }
+
+        var llmEvaluator = ResolveCriteriaEvaluator(BuiltInRuleCriteria.Llm);
+        if (llmEvaluator == null)
+        {
+            _logger.LogWarning($"Unable to find llm rule criteria evaluator to fall back to from ({evaluator.Type}).");
+            return false;
+        }
+
+        _logger.LogInformation($"Rule criteria evaluator ({evaluator.Type}) returned no result, falling back to llm for agent ({agent.Name}) and trigger ({trigger.Name}).");
+        return await llmEvaluator.EvaluateAsync(agent, trigger, context) ?? false;
+    }
+    #endregion
 
 //    public async Task ExecuteGraphNode(FlowNode node, FlowGraph graph, string agentId, IRuleTrigger trigger, RuleNodeExecutionOptions options)
 //    {

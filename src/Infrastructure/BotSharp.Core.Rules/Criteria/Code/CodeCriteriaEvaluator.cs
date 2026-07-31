@@ -3,6 +3,9 @@ namespace BotSharp.Core.Rules.Criteria.Code;
 /// <summary>
 /// Evaluates rule trigger criteria by running an agent code script (e.g. Python)
 /// that returns a boolean ("true"/"false") result.
+///
+/// Returns null when no result can be produced (no code processor, no script, failed
+/// execution, or error), which makes the rule engine fall back to the llm evaluator.
 /// </summary>
 public class CodeCriteriaEvaluator : IRuleCriteriaEvaluator
 {
@@ -22,7 +25,7 @@ public class CodeCriteriaEvaluator : IRuleCriteriaEvaluator
 
     public string Type => BuiltInRuleCriteria.Code;
 
-    public async Task<bool> EvaluateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context)
+    public async Task<bool?> EvaluateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context)
     {
         var settings = context.Options.GetData<CodeCriteriaSettings>() ?? new();
         var provider = settings.CodeProcessor ?? BuiltInCodeProcessor.PyInterpreter;
@@ -30,7 +33,7 @@ public class CodeCriteriaEvaluator : IRuleCriteriaEvaluator
         if (processor == null)
         {
             _logger.LogWarning($"Unable to find code processor: {provider}.");
-            return true;
+            return null;
         }
 
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -42,7 +45,7 @@ public class CodeCriteriaEvaluator : IRuleCriteriaEvaluator
         if (codeScript == null || string.IsNullOrWhiteSpace(codeScript.Content))
         {
             _logger.LogWarning($"Unable to find {msg}.");
-            return true;
+            return null;
         }
 
         try
@@ -87,29 +90,19 @@ public class CodeCriteriaEvaluator : IRuleCriteriaEvaluator
             if (response == null || !response.Success)
             {
                 _logger.LogWarning($"Failed to handle {msg}");
-                return false;
+                return null;
             }
 
-            bool result;
-            LogLevel logLevel;
-            if (response.Result.IsEqualTo("true"))
-            {
-                logLevel = LogLevel.Information;
-                result = true;
-            }
-            else
-            {
-                logLevel = LogLevel.Warning;
-                result = false;
-            }
+            var isTriggered = ParseResult(response.Result);
+            var logLevel = isTriggered ? LogLevel.Information : LogLevel.Warning;
 
             _logger.Log(logLevel, $"Code script execution result ({response}) from {msg}");
-            return result;
+            return isTriggered;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error when handling {msg}");
-            return false;
+            return null;
         }
     }
 
@@ -121,5 +114,21 @@ public class CodeCriteriaEvaluator : IRuleCriteriaEvaluator
             keyValues.Add(new KeyValue(name ?? "trigger_args", args.Value.GetRawText()));
         }
         return keyValues;
+    }
+
+    private static bool ParseResult(string answer)
+    {
+        if (answer.IsEqualTo("1") || answer.IsEqualTo("true") || answer.IsEqualTo("yes"))
+        {
+            return true;
+        }
+
+        if (answer.IsEqualTo("0") || answer.IsEqualTo("false") || answer.IsEqualTo("no"))
+        {
+            return false;
+        }
+
+        // Fall back to the leading token; the template constrains output to "1"/"0".
+        return answer.StartsWith("1", StringComparison.Ordinal);
     }
 }

@@ -20,6 +20,10 @@ public interface IRuleCriteriaEvaluator
     /// <param name="agent">The agent whose rule is being considered</param>
     /// <param name="trigger">The rule trigger</param>
     /// <param name="context">The per-request criteria context</param>
-    /// <returns>True if the rule should be executed for this request.</returns>
-    Task<bool> EvaluateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context);
+    /// <returns>
+    /// True if the rule should be executed for this request, false if it should be skipped,
+    /// or null when the evaluator could not produce an answer (missing script/template,
+    /// failed execution, error).
+    /// </returns>
+    Task<bool?> EvaluateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context);
 }

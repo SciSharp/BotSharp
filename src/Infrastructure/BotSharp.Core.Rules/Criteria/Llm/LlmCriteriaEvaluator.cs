@@ -9,7 +9,8 @@ namespace BotSharp.Core.Rules.Criteria.Llm;
 /// the model to answer "1" for met / "0" for not met) as the system prompt and calls
 /// the chat completion provider directly.
 ///
-/// Note: LLM evaluation is non-deterministic and network-dependent. It fails closed
+/// Note: LLM evaluation is non-deterministic and network-dependent. This evaluator is the
+/// last resort the rule engine falls back to, so it never returns null: it fails closed
 /// (returns false) on any error, empty response, or unparseable answer.
 /// </summary>
 public class LlmCriteriaEvaluator : IRuleCriteriaEvaluator
@@ -29,14 +30,15 @@ public class LlmCriteriaEvaluator : IRuleCriteriaEvaluator
 
     public string Type => BuiltInRuleCriteria.Llm;
 
-    public async Task<bool> EvaluateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context)
+    public async Task<bool?> EvaluateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context)
     {
         var settings = context.Options.GetData<LlmCriteriaSettings>() ?? new();
         var rule = agent.Rules.FirstOrDefault(x => x.TriggerName.IsEqualTo(trigger.Name));
 
         // The Rules agent hosts the criteria-check template by default.
         var agentId = !string.IsNullOrWhiteSpace(settings.AgentId) ? settings.AgentId! : BuiltInAgentId.RulesInterpreter;
-        var templateName = !string.IsNullOrWhiteSpace(settings.TemplateName) ? settings.TemplateName! : DefaultTemplateName;
+        var templateName = !string.IsNullOrWhiteSpace(settings.TemplateName)
+                        ? settings.TemplateName! : (agentId == BuiltInAgentId.RulesInterpreter ? DefaultTemplateName : $"{trigger.Name}_rule.py");
 
         var input = BuildInput(rule?.Config, settings);
         var msg = $"rule trigger ({trigger.Name}) llm criteria (agent {agentId}, template {templateName}).";
