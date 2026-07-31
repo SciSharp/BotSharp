@@ -5,10 +5,12 @@ public class TokenStatsModel
     public string Provider { get; set; }
     public string Model { get; set; }
     public string Prompt { get; set; }
+    public string? ServiceTier { get; set; }
 
     #region Text token
     public long TextInputTokens { get; set; }
     public long CachedTextInputTokens { get; set; }
+    public long CachedTextInputWriteTokens { get; set; }
     public long TextOutputTokens { get; set; }
     #endregion
 
@@ -29,7 +31,8 @@ public class TokenStatsModel
     public float ImageGenerationUnitCost { get; set; }
     #endregion
 
-    public long TotalInputTokens => TextInputTokens + CachedTextInputTokens 
+    public long TotalTextInputTokens => TextInputTokens + CachedTextInputTokens + CachedTextInputWriteTokens;
+    public long TotalInputTokens => TotalTextInputTokens
                                 + AudioInputTokens + CachedAudioInputTokens
                                 + ImageInputTokens + CachedImageInputTokens;
     public long TotalOutputTokens => TextOutputTokens + AudioOutputTokens + ImageOutputTokens;

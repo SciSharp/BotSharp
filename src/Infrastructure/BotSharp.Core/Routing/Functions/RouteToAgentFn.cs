@@ -29,20 +29,8 @@ public partial class RouteToAgentFn : IFunctionCallback
         {
             // Correct user goal agent to keep orignal task
             var goalAgentInState = states.GetState("user_goal_agent", string.Empty);
-            bool correctToOriginalAgent = false;
-            if (goalAgentInState == string.Empty)
+            if (args.OriginalAgent != goalAgentInState)
             {
-                states.SetState("user_goal_agent", args.OriginalAgent, isNeedVersion: true);
-            }
-            else if (args.OriginalAgent == args.AgentName && args.OriginalAgent != goalAgentInState)
-            {
-                // Correct to original agent
-                args.OriginalAgent = goalAgentInState;
-                correctToOriginalAgent = true;
-            }
-            else if (args.OriginalAgent != args.AgentName && args.OriginalAgent != goalAgentInState)
-            {
-                // Correct to original agent
                 states.SetState("user_goal_agent", args.OriginalAgent, isNeedVersion: true);
             }
 
@@ -51,7 +39,7 @@ public partial class RouteToAgentFn : IFunctionCallback
             var originalAgent = (await db.GetAgents(filter)).FirstOrDefault();
             if (originalAgent != null)
             {
-                await _context.Push(originalAgent.Id, $"user goal agent{(correctToOriginalAgent ? " " + originalAgent.Name + " & is corrected" : "")}");
+                await _context.Push(originalAgent.Id, "user goal agent");
             }
         }
 
