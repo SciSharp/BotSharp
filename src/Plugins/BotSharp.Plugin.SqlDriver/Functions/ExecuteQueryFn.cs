@@ -22,9 +22,13 @@ public class ExecuteQueryFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
+        var dbHook = _services.GetRequiredService<IText2SqlHook>();
+        // The hook may rewrite message.FunctionArgs (e.g. tag the statements for
+        // traceability), so it must run before the args are deserialized.
+        await dbHook.SqlExecuting(message);
+
         var args = JsonSerializer.Deserialize<ExecuteQueryArgs>(message.FunctionArgs) ?? new();
         //var refinedArgs = await RefineSqlStatement(message, args);
-        var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbType = dbHook.GetDatabaseType(message);
         var connectionString = _setting.Connections.FirstOrDefault(x => x.Name.Equals(args.DataSource, StringComparison.OrdinalIgnoreCase))?.ConnectionString;
         var dbConnectionString = dbHook.GetConnectionString(message, args.DataSource) ?? connectionString ?? throw new Exception("database connection is not found");
