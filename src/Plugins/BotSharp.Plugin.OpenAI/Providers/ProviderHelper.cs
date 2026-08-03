@@ -9,6 +9,10 @@ public class ProviderHelper
     {
         var settingsService = services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(provider, model);
+        if (settings == null && string.IsNullOrEmpty(apiKey))
+        {
+            throw new InvalidOperationException($"No LLM model settings found for '{provider}.{model}'. Register the model under LlmProviders (appsettings/user secrets) or pass an api key.");
+        }
         var options = !string.IsNullOrEmpty(settings?.Endpoint) ?
                         new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint) } : null;
         return new OpenAIClient(new ApiKeyCredential(apiKey ?? settings!.ApiKey), options);
