@@ -1,7 +1,6 @@
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Text.Json;
-using BotSharp.Abstraction.Options;
 
 namespace BotSharp.Abstraction.Utilities;
 
