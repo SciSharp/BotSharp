@@ -37,7 +37,7 @@ public class CodeCriteriaEvaluator : IRuleCriteriaEvaluator
         }
 
         var agentService = _services.GetRequiredService<IAgentService>();
-        var scriptName = settings.CodeScriptName ?? $"{trigger.Name}_rule.py";
+        var scriptName = settings.CodeScriptName ?? $"{trigger.Name}_criteria.py";
         var codeScript = await agentService.GetAgentCodeScript(agent.Id, scriptName, scriptType: AgentCodeScriptType.Src);
 
         var msg = $"rule trigger ({trigger.Name}) code script ({scriptName}) in agent ({agent.Name}) => args: {settings.ArgumentContent?.GetRawText()}.";

@@ -38,7 +38,7 @@ public class LlmCriteriaEvaluator : IRuleCriteriaEvaluator
         // The Rules agent hosts the criteria-check template by default.
         var agentId = !string.IsNullOrWhiteSpace(settings.AgentId) ? settings.AgentId! : BuiltInAgentId.RulesInterpreter;
         var templateName = !string.IsNullOrWhiteSpace(settings.TemplateName)
-                        ? settings.TemplateName! : (agentId == BuiltInAgentId.RulesInterpreter ? DefaultTemplateName : $"{trigger.Name}_rule.py");
+                        ? settings.TemplateName! : (agentId == BuiltInAgentId.RulesInterpreter ? DefaultTemplateName : $"{trigger.Name}_criteria");
 
         var input = BuildInput(rule?.Config, settings);
         var msg = $"rule trigger ({trigger.Name}) llm criteria (agent {agentId}, template {templateName}).";
