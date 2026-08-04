@@ -26,11 +26,7 @@ public class MembasePlugin : IBotSharpPlugin
 
         services.AddHttpContextAccessor();
         services.AddTransient<MembaseAuthHandler>();
-        // Use plain Web options WITHOUT Refit's default ObjectToInferredTypesConverter:
-        // consumers (ObjectExtensions.TryGetValue<JsonElement>, GraphBuilder, GetNodePropertiesOrDefault)
-        // rely on Dictionary<string, object?> values deserializing as JsonElement.
-        services.AddRefitClient<IMembaseApi>(new RefitSettings(
-                new SystemTextJsonContentSerializer(new JsonSerializerOptions(JsonSerializerDefaults.Web)))
+        services.AddRefitClient<IMembaseApi>(new RefitSettings
                 {
                     CollectionFormat = CollectionFormat.Multi
                 })
