@@ -1,5 +1,7 @@
 using BotSharp.Core.Rules.Actions;
 using BotSharp.Core.Rules.Conditions;
+using BotSharp.Core.Rules.Criteria.Code;
+using BotSharp.Core.Rules.Criteria.Llm;
 using BotSharp.Core.Rules.Engines;
 using BotSharp.Core.Rules.Root;
 
@@ -37,6 +39,10 @@ public class RulesPlugin : IBotSharpPlugin
         services.AddScoped<IRuleCondition, LoopingCondition>();
         services.AddScoped<IRuleCondition, AllVisitedRuleCondition>();
         services.AddScoped<IRuleCondition, LogicGateCondition>();
+
+        // Register rule criteria evaluators
+        services.AddScoped<IRuleCriteriaEvaluator, CodeCriteriaEvaluator>();
+        services.AddScoped<IRuleCriteriaEvaluator, LlmCriteriaEvaluator>();
 
 #if DEBUG
         // Register rule trigger
