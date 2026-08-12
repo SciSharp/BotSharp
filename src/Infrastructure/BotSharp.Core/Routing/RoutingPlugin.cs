@@ -1,6 +1,8 @@
+using BotSharp.Abstraction.Routing.Executor;
 using BotSharp.Abstraction.Routing.Reasoning;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Settings;
+using BotSharp.Core.Routing.Executor;
 using BotSharp.Core.Routing.Hooks;
 using BotSharp.Core.Routing.Reasoning;
 using Microsoft.Extensions.Configuration;
@@ -31,6 +33,7 @@ public class RoutingPlugin : IBotSharpPlugin
         });
 
         services.AddScoped<IRoutingService, RoutingService>();
+        services.AddScoped<IFunctionExecutorFactory, FunctionExecutorFactory>();
         services.AddScoped<IAgentHook, RoutingAgentHook>();
 
         services.AddScoped<IRoutingReasoner, NaiveReasoner>();
