@@ -7,11 +7,6 @@ namespace BotSharp.Abstraction.Rules.Models;
 public class RuleCriteriaContext
 {
     /// <summary>
-    /// The trigger message text.
-    /// </summary>
-    public string Text { get; set; } = string.Empty;
-
-    /// <summary>
     /// The criteria options (evaluator type and its arguments).
     /// </summary>
     public CriteriaOptions Options { get; set; } = new();
