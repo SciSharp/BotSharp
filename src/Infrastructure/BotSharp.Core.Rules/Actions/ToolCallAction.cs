@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Graph.Models;
+using BotSharp.Abstraction.Routing.Executor;
 
 namespace BotSharp.Core.Rules.Actions;
 
@@ -43,9 +44,14 @@ public class ToolCallAction : IRuleAction
         RuleFlowContext context)
     {
         var funcName = context.Parameters.TryGetValue("function_name", out var fName) ? fName : null;
-        var func = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name.IsEqualTo(funcName));
+        // 只用注册的 callback 求"规范名"，保留原有的大小写不敏感语义；
+        // 真正的执行必须走工厂，否则 IFunctionExecutorProvider 在规则路径上被旁路。
+        var canonicalName = _services.GetServices<IFunctionCallback>()
+            .FirstOrDefault(x => x.Name.IsEqualTo(funcName))?.Name ?? funcName;
+        var executor = _services.GetRequiredService<IFunctionExecutorFactory>()
+            .Create(canonicalName, agent);
 
-        if (func == null)
+        if (executor == null)
         {
             var errorMsg = $"Unable to find function '{funcName}' when running action {agent.Name}-{trigger.Name}";
             _logger.LogWarning(errorMsg);
@@ -57,7 +63,7 @@ public class ToolCallAction : IRuleAction
         }
 
         var funcArg = context.Parameters.TryGetObjectValueOrDefault<RoleDialogModel>("function_argument", new()) ?? new();
-        await func.Execute(funcArg);
+        await executor.ExecuteAsync(funcArg);
 
         return new RuleNodeResult
         {
@@ -65,7 +71,7 @@ public class ToolCallAction : IRuleAction
             Response = funcArg?.RichContent?.Message?.Text ?? funcArg?.Content,
             Data = new()
             {
-                ["function_name"] = func.Name!,
+                ["function_name"] = canonicalName,
                 ["function_argument"] = funcArg?.ConvertToString() ?? "{}",
                 ["function_call_result"] = funcArg?.RichContent?.Message?.Text ?? funcArg?.Content ?? string.Empty
             }
