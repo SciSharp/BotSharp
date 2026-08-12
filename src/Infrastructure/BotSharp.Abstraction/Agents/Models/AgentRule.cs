@@ -8,13 +8,29 @@ public class AgentRule
     [JsonPropertyName("disabled")]
     public bool Disabled { get; set; }
 
-    [JsonPropertyName("config")]
+    /// <summary>
+    /// Message sent to agent
+    /// </summary>
+    [JsonPropertyName("message")]
+    public string? Message { get; set; }
+
+    [JsonPropertyName("criteria")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public RuleConfig? Config { get; set; }
+    public RuleCriteria? Criteria { get; set; }
 }
 
-public class RuleConfig
+public class RuleCriteria
 {
+    /// <summary>
+    /// Criteria mode: llm, python script, etc.
+    /// Takes precedence over the mode carried on the trigger options.
+    /// </summary>
+    [JsonPropertyName("mode")]
+    public string? Mode { get; set; }
+
+    /// <summary>
+    /// Criteria text
+    /// </summary>
     [JsonPropertyName("criteria")]
     public string? Criteria { get; set; }
 }

@@ -23,7 +23,7 @@ public class CodeCriteriaEvaluator : IRuleCriteriaEvaluator
         _codingSettings = codingSettings;
     }
 
-    public string Type => BuiltInRuleCriteria.Code;
+    public string Type => BuiltInRuleCriteria.PythonScript;
 
     public async Task<bool?> EvaluateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context)
     {

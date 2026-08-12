@@ -10,7 +10,7 @@ public static class BuiltInRuleCriteria
     /// <summary>
     /// Evaluate a code script (e.g. Python) that returns a boolean result.
     /// </summary>
-    public const string Code = "code";
+    public const string PythonScript = "python_script";
 
     /// <summary>
     /// Ask an LLM whether the rule applies to the request.

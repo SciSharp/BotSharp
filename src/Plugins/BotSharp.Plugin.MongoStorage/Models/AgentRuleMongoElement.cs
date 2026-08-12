@@ -7,7 +7,8 @@ public class AgentRuleMongoElement
 {
     public string TriggerName { get; set; } = default!;
     public bool Disabled { get; set; }
-    public RuleConfigMongoModel? Config { get; set; }
+    public string? Message { get; set; }
+    public RuleCriteriaMongoModel? Criteria { get; set; }
 
     public static AgentRuleMongoElement ToMongoElement(AgentRule rule)
     {
@@ -15,7 +16,8 @@ public class AgentRuleMongoElement
         {
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
-            Config = RuleConfigMongoModel.ToMongoModel(rule.Config)
+            Message = rule.Message,
+            Criteria = RuleCriteriaMongoModel.ToMongoModel(rule.Criteria)
         };
     }
 
@@ -25,39 +27,43 @@ public class AgentRuleMongoElement
         {
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
-            Config = RuleConfigMongoModel.ToDomainModel(rule.Config)
+            Message = rule.Message,
+            Criteria = RuleCriteriaMongoModel.ToDomainModel(rule.Criteria)
         };
     }
 }
 
 [BsonIgnoreExtraElements(Inherited = true)]
-public class RuleConfigMongoModel
+public class RuleCriteriaMongoModel
 {
+    public string? Mode { get; set; }
     public string? Criteria { get; set; }
 
-    public static RuleConfigMongoModel? ToMongoModel(RuleConfig? config)
+    public static RuleCriteriaMongoModel? ToMongoModel(RuleCriteria? criteria)
     {
-        if (config == null)
+        if (criteria == null)
         {
             return null;
         }
 
-        return new RuleConfigMongoModel
+        return new RuleCriteriaMongoModel
         {
-            Criteria = config.Criteria
+            Mode = criteria.Mode,
+            Criteria = criteria.Criteria
         };
     }
 
-    public static RuleConfig? ToDomainModel(RuleConfigMongoModel? config)
+    public static RuleCriteria? ToDomainModel(RuleCriteriaMongoModel? criteria)
     {
-        if (config == null)
+        if (criteria == null)
         {
             return null;
         }
 
-        return new RuleConfig
+        return new RuleCriteria
         {
-            Criteria = config.Criteria
+            Mode = criteria.Mode,
+            Criteria = criteria.Criteria
         };
     }
 }
