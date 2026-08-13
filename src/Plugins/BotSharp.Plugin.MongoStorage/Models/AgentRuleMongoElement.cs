@@ -8,7 +8,7 @@ public class AgentRuleMongoElement
     public string TriggerName { get; set; } = default!;
     public bool Disabled { get; set; }
     public string? Message { get; set; }
-    public RuleCriteriaMongoModel? Criteria { get; set; }
+    public RuleCriteriaConfigMongoModel? CriteriaConfig { get; set; }
 
     public static AgentRuleMongoElement ToMongoElement(AgentRule rule)
     {
@@ -17,7 +17,7 @@ public class AgentRuleMongoElement
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
             Message = rule.Message,
-            Criteria = RuleCriteriaMongoModel.ToMongoModel(rule.Criteria)
+            CriteriaConfig = RuleCriteriaConfigMongoModel.ToMongoModel(rule.CriteriaConfig)
         };
     }
 
@@ -28,42 +28,42 @@ public class AgentRuleMongoElement
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
             Message = rule.Message,
-            Criteria = RuleCriteriaMongoModel.ToDomainModel(rule.Criteria)
+            CriteriaConfig = RuleCriteriaConfigMongoModel.ToDomainModel(rule.CriteriaConfig)
         };
     }
 }
 
 [BsonIgnoreExtraElements(Inherited = true)]
-public class RuleCriteriaMongoModel
+public class RuleCriteriaConfigMongoModel
 {
     public string? Mode { get; set; }
     public string? Criteria { get; set; }
 
-    public static RuleCriteriaMongoModel? ToMongoModel(RuleCriteria? criteria)
+    public static RuleCriteriaConfigMongoModel? ToMongoModel(RuleCriteriaConfig? config)
     {
-        if (criteria == null)
+        if (config == null)
         {
             return null;
         }
 
-        return new RuleCriteriaMongoModel
+        return new RuleCriteriaConfigMongoModel
         {
-            Mode = criteria.Mode,
-            Criteria = criteria.Criteria
+            Mode = config.Mode,
+            Criteria = config.Criteria
         };
     }
 
-    public static RuleCriteria? ToDomainModel(RuleCriteriaMongoModel? criteria)
+    public static RuleCriteriaConfig? ToDomainModel(RuleCriteriaConfigMongoModel? config)
     {
-        if (criteria == null)
+        if (config == null)
         {
             return null;
         }
 
-        return new RuleCriteria
+        return new RuleCriteriaConfig
         {
-            Mode = criteria.Mode,
-            Criteria = criteria.Criteria
+            Mode = config.Mode,
+            Criteria = config.Criteria
         };
     }
 }

@@ -52,7 +52,7 @@ public class RuleEngine : IRuleEngine
 
             // The rule's own mode wins over the mode carried on the trigger options, so an agent can
             // pick how its criteria is judged without the caller knowing.
-            var evaluator = ResolveCriteriaEvaluator(rule.Criteria?.Mode) ?? criteriaEvaluator;
+            var evaluator = ResolveCriteriaEvaluator(rule.CriteriaConfig?.Mode) ?? criteriaEvaluator;
             if (evaluator != null && options?.Criteria != null)
             {
                 var criteriaContext = new RuleCriteriaContext

@@ -14,12 +14,12 @@ public class AgentRule
     [JsonPropertyName("message")]
     public string? Message { get; set; }
 
-    [JsonPropertyName("criteria")]
+    [JsonPropertyName("criteria_config")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public RuleCriteria? Criteria { get; set; }
+    public RuleCriteriaConfig? CriteriaConfig { get; set; }
 }
 
-public class RuleCriteria
+public class RuleCriteriaConfig
 {
     /// <summary>
     /// Criteria mode: llm, python script, etc.
