@@ -66,6 +66,26 @@ public class ToolCallActionTests
         public string Name => "stub_trigger";
     }
 
+    /// <summary>
+    /// Mirrors a plausible shape for a future mock/blocking provider keyed by function name (plan
+    /// Task 5): a case-insensitive Dictionary lookup. Unlike HashSet&lt;T&gt;.Contains (which
+    /// tolerates a null reference-type item via its own internal guard, verified separately -
+    /// see the fix report), Dictionary&lt;TKey,TValue&gt; explicitly rejects a null key even for a
+    /// read-only lookup: both TryGetValue and ContainsKey throw ArgumentNullException. So a null
+    /// function_name reaching this provider crashes before it ever gets a chance to decide whether
+    /// it claims the function - exactly the failure mode the null guard in ToolCallAction prevents.
+    /// </summary>
+    private sealed class NullIntolerantProvider : IFunctionExecutorProvider
+    {
+        private static readonly Dictionary<string, bool> _mockedNames =
+            new(StringComparer.OrdinalIgnoreCase) { ["create_work_order"] = true };
+
+        public int Order => 0;
+
+        public IFunctionExecutor? TryResolve(string functionName, Agent agent)
+            => _mockedNames.ContainsKey(functionName) ? throw new InvalidOperationException("unreachable") : null;
+    }
+
     private static (ToolCallAction action, IServiceProvider services) Build(
         IEnumerable<IFunctionCallback> callbacks,
         IEnumerable<IFunctionExecutorProvider> providers)
@@ -115,6 +135,23 @@ public class ToolCallActionTests
         var (action, _) = Build([], []);
 
         var result = await action.ExecuteAsync(new Agent { Name = "a" }, new StubTrigger(), ContextFor("nope"));
+
+        Assert.False(result.Success);
+    }
+
+    /// <summary>
+    /// A missing function_name must fail gracefully instead of reaching the factory seam with a
+    /// null - the old IsEqualTo-based lookup was null-safe and simply matched nothing, and that
+    /// graceful-failure contract must survive routing execution through the factory. The
+    /// NullIntolerantProvider proves this isn't just an assertion on Success: without the guard,
+    /// this test throws ArgumentNullException instead of returning a result at all.
+    /// </summary>
+    [Fact]
+    public async Task Reports_failure_without_throwing_when_function_name_is_missing()
+    {
+        var (action, _) = Build([], [new NullIntolerantProvider()]);
+
+        var result = await action.ExecuteAsync(new Agent { Name = "a" }, new StubTrigger(), new RuleFlowContext());
 
         Assert.False(result.Success);
     }

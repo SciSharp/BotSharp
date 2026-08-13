@@ -44,14 +44,25 @@ public class ToolCallAction : IRuleAction
         RuleFlowContext context)
     {
         var funcName = context.Parameters.TryGetValue("function_name", out var fName) ? fName : null;
-        // 只用注册的 callback 求"规范名"，保留原有的大小写不敏感语义；
-        // 真正的执行必须走工厂，否则 IFunctionExecutorProvider 在规则路径上被旁路。
-        var canonicalName = _services.GetServices<IFunctionCallback>()
-            .FirstOrDefault(x => x.Name.IsEqualTo(funcName))?.Name ?? funcName;
-        var executor = _services.GetRequiredService<IFunctionExecutorFactory>()
-            .Create(canonicalName, agent);
 
-        if (executor == null)
+        // 缺失/空白的 function_name 必须优雅失败——旧的 IsEqualTo 查找对 null 安全，只是匹配不到
+        // 任何 callback；一旦改走工厂，null 就会传到 IFunctionExecutorProvider.TryResolve 这个
+        // 按契约声明为非空 string 的形参上，某些实现（例如按名字做 Dictionary 查找的 mock/阻断
+        // provider）会直接抛 ArgumentNullException，而不是像原来一样返回 Success = false。
+        // 因此在碰工厂之前先挡掉。
+        string? canonicalName = null;
+        IFunctionExecutor? executor = null;
+        if (!string.IsNullOrWhiteSpace(funcName))
+        {
+            // 只用注册的 callback 求"规范名"，保留原有的大小写不敏感语义；
+            // 真正的执行必须走工厂，否则 IFunctionExecutorProvider 在规则路径上被旁路。
+            canonicalName = _services.GetServices<IFunctionCallback>()
+                .FirstOrDefault(x => x.Name.IsEqualTo(funcName))?.Name ?? funcName;
+            executor = _services.GetRequiredService<IFunctionExecutorFactory>()
+                .Create(canonicalName, agent);
+        }
+
+        if (executor == null || canonicalName == null)
         {
             var errorMsg = $"Unable to find function '{funcName}' when running action {agent.Name}-{trigger.Name}";
             _logger.LogWarning(errorMsg);
