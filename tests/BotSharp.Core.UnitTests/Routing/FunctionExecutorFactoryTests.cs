@@ -38,6 +38,28 @@ public class FunctionExecutorFactoryTests
         public StubExecutor Executor { get; } = new();
     }
 
+    /// <summary>
+    /// Mirrors BotSharp.Core.Rules.ToolCallActionTests.NullIntolerantProvider: a case-insensitive
+    /// Dictionary&lt;string,...&gt; lookup, the shape a real mock/blocking provider plausibly takes.
+    /// Dictionary.ContainsKey/TryGetValue throw ArgumentNullException on a null key even for a
+    /// read-only lookup, so this proves the factory's own guard -- not just a lucky provider
+    /// implementation -- is what keeps a null/blank functionName from reaching TryResolve at all.
+    /// </summary>
+    private sealed class NullIntolerantProvider : IFunctionExecutorProvider
+    {
+        private static readonly Dictionary<string, bool> _mockedNames =
+            new(StringComparer.OrdinalIgnoreCase) { ["create_work_order"] = true };
+
+        public int Order => 0;
+        public bool WasAsked { get; private set; }
+
+        public IFunctionExecutor? TryResolve(string functionName, Agent agent)
+        {
+            WasAsked = true;
+            return _mockedNames.ContainsKey(functionName) ? throw new InvalidOperationException("unreachable") : null;
+        }
+    }
+
     private static IFunctionExecutorFactory BuildFactory(
         IEnumerable<IFunctionCallback> callbacks,
         IEnumerable<IFunctionExecutorProvider> providers)
@@ -90,5 +112,26 @@ public class FunctionExecutorFactoryTests
         var factory = BuildFactory([], []);
 
         Assert.Null(factory.Create("no_such_function", new Agent()));
+    }
+
+    /// <summary>
+    /// The factory is documented as the single trusted seam every function-call path must go
+    /// through -- it cannot depend on every current and future caller pre-validating for it.
+    /// RoutingService.InvokeFunction has no guard of its own before calling Create(name, ...), so
+    /// a null/blank name is a real, reachable input here, not a hypothetical.
+    /// </summary>
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Returns_null_for_a_null_or_blank_function_name_without_asking_any_provider(string? functionName)
+    {
+        var provider = new NullIntolerantProvider();
+        var factory = BuildFactory([], [provider]);
+
+        var executor = factory.Create(functionName!, new Agent());
+
+        Assert.Null(executor);
+        Assert.False(provider.WasAsked);
     }
 }
