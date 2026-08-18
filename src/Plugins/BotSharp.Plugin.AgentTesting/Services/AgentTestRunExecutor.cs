@@ -1,0 +1,239 @@
+using BotSharp.Plugin.AgentTesting.Repositories;
+
+namespace BotSharp.Plugin.AgentTesting.Services;
+
+/// <summary>
+/// Run-level orchestration: turns an already-created AgentTestRun into serial execution of every
+/// enabled case in its suite.
+///
+/// This class knows nothing about DI scopes -- it calls the single ICaseRunner instance handed to
+/// its constructor, and the loop below decides how often and when. "A fresh DI scope per case" is
+/// not done here; AgentTestRunQueue achieves it by injecting an ICaseRunner decorator that wraps
+/// IServiceScopeFactory/IServiceProvider (see AgentTestRunQueue.ScopedCaseRunner). That decorator's
+/// RunAsync opens a new scope on every call -- that is, per case -- resolves the real
+/// AgentTestCaseRunner from it, and disposes the scope when the case finishes. As a result BotSharp
+/// scoped services such as IConversationService, IConversationStateService and
+/// TestMockExecutorProvider are never the same instance across two cases of one run. Keeping scope
+/// creation out of this class is also what lets a DI-unaware DelegatingCaseRunner unit-test the
+/// orchestration directly.
+///
+/// One field, CancelRequested, has a writer outside this class (POST .../runs/{id}/cancel), which
+/// makes it the only field a whole-document ReplaceOneAsync could revert to a stale value --
+/// TotalCount/PassedCount/... are written by this class alone. Hence the re-read AFTER each case
+/// rather than before: the object it returns becomes the `run` this method then mutates and
+/// persists, so both "should the next case run" and "will this write clobber an external one" are
+/// decided from the state as of the moment that case finished, not from the copy read at the very
+/// top and never refreshed. One read covers both questions, so no separate check is needed before
+/// it.
+/// </summary>
+public class AgentTestRunExecutor
+{
+    private readonly IAgentTestRepository _repo;
+    private readonly ICaseRunner _caseRunner;
+    private readonly ILogger<AgentTestRunExecutor> _logger;
+
+    public AgentTestRunExecutor(
+        IAgentTestRepository repo,
+        ICaseRunner caseRunner,
+        ILogger<AgentTestRunExecutor> logger)
+    {
+        _repo = repo;
+        _caseRunner = caseRunner;
+        _logger = logger;
+    }
+
+    public async Task ExecuteAsync(string runId, CancellationToken ct)
+    {
+        var run = await _repo.GetRunAsync(runId);
+        if (run == null)
+        {
+            _logger.LogError("Agent test run {RunId} was not found; nothing to execute.", runId);
+            return;
+        }
+
+        var suite = await _repo.GetSuiteAsync(run.SuiteId);
+        if (suite == null)
+        {
+            _logger.LogError(
+                "Agent test run {RunId} references suite {SuiteId}, which no longer exists.",
+                runId, run.SuiteId);
+            run.Status = AgentTestStatus.Error;
+            run.Error = $"The suite this run belongs to ({run.SuiteId}) no longer exists.";
+            run.StartedAt ??= DateTime.UtcNow;
+            run.CompletedAt = DateTime.UtcNow;
+            await _repo.UpdateRunAsync(run);
+            return;
+        }
+
+        // The trigger endpoint (POST .../suites/{id}/run) is the primary place a disabled suite
+        // gets rejected -- a 400, before a run row even exists. This is defense-in-depth for the
+        // race where a suite is disabled AFTER a run was already queued: same shape as the
+        // suite-no-longer-exists branch just above, since "the suite this run belongs to says
+        // don't run me" is the same kind of infrastructure-level stop.
+        if (!suite.Enabled)
+        {
+            _logger.LogError(
+                "Agent test run {RunId} references suite {SuiteId}, which is disabled.",
+                runId, run.SuiteId);
+            run.Status = AgentTestStatus.Error;
+            run.Error = "The suite was disabled after this run was queued, so nothing ran.";
+            run.StartedAt ??= DateTime.UtcNow;
+            run.CompletedAt = DateTime.UtcNow;
+            await _repo.UpdateRunAsync(run);
+            return;
+        }
+
+        var cases = await _repo.ListCasesAsync(run.SuiteId);
+        var enabledCases = cases.Where(c => c.Enabled).ToList();
+
+        // A caller-selected subset (POST .../run's optional caseIds -- e.g. "re-run only the
+        // cases that just failed") narrows the enabled set further. Null/empty means every
+        // enabled case, unchanged from before this field existed.
+        if (run.CaseIds is { Count: > 0 })
+        {
+            var allowed = new HashSet<string>(run.CaseIds, StringComparer.Ordinal);
+            enabledCases = enabledCases.Where(c => allowed.Contains(c.Id)).ToList();
+
+            if (enabledCases.Count == 0)
+            {
+                // Same "nothing executed, reports green" defect AgentTestCaseRunner already
+                // guards for a case with zero turns: FailedCount == 0 && ErrorCount == 0 below is
+                // vacuously true when the loop never runs at all, which is exactly what happens
+                // when every id named by a non-empty CaseIds filter is unknown or disabled in
+                // this suite. End the run as an infrastructure Error instead of a false Passed.
+                _logger.LogError(
+                    "Agent test run {RunId} named {CaseIdCount} case id(s) via CaseIds, but none "
+                    + "of them matched an enabled case in suite {SuiteId}.",
+                    runId, run.CaseIds.Count, run.SuiteId);
+                run.Status = AgentTestStatus.Error;
+                run.Error =
+                    $"None of the {run.CaseIds.Count} selected case(s) could run: each one is either "
+                    + "disabled or no longer in this suite. Enable them and run again.";
+                run.StartedAt ??= DateTime.UtcNow;
+                run.CompletedAt = DateTime.UtcNow;
+                await _repo.UpdateRunAsync(run);
+                return;
+            }
+        }
+
+        run.Status = AgentTestStatus.Running;
+        run.StartedAt = DateTime.UtcNow;
+        run.TotalCount = 0;
+        run.PassedCount = 0;
+        run.FailedCount = 0;
+        run.ErrorCount = 0;
+        await _repo.UpdateRunAsync(run);
+
+        var cancelled = false;
+
+        // The model dimension. An absent/empty Models list means "one pass, using each agent's own
+        // LlmConfig" -- byte-for-byte the behavior from before multi-model existed, which is what
+        // keeps every historical run document and every caller that omits the field working.
+        // Otherwise each enabled case runs once per model, so one run yields a case x model grid.
+        //
+        // Case-major order (case1/modelA, case1/modelB, case2/modelA, ...) so that a long run shows
+        // a complete comparison for the first case early instead of only after the first model has
+        // swept the whole suite.
+        var models = run.Models is { Count: > 0 }
+            ? run.Models.Cast<TestModel?>().ToList()
+            : [null];
+
+        var workItems = enabledCases
+            .SelectMany(testCase => models.Select(model => (Case: testCase, Model: model)))
+            .ToList();
+
+        foreach (var (testCase, model) in workItems)
+        {
+            if (ct.IsCancellationRequested)
+            {
+                // The host itself is shutting down (BackgroundService's stoppingToken), not a
+                // user-requested cancel of THIS run. Leave the row as Running rather than racing
+                // the shutdown grace period to persist a different terminal status here -- the
+                // queue's own startup reconciliation step sweeps any Running row a killed process
+                // left behind into Error the next time it boots.
+                return;
+            }
+
+            // `run` here is either the initial load (for the first case) or the post-case read
+            // from the PREVIOUS iteration (see below) -- either way it is the freshest state this
+            // method has seen, so this check can never miss a cancel that arrived any time up to
+            // "the moment the previous case finished."
+            if (run.CancelRequested)
+            {
+                cancelled = true;
+                break;
+            }
+
+            AgentTestCaseResult result;
+            try
+            {
+                result = await _caseRunner.RunAsync(suite, testCase, runId, model, ct);
+            }
+            catch (Exception ex)
+            {
+                // A single case crashing must not abort the run -- record it as Error and move on
+                // to the next (case, model) pair. One model blowing up (a bad deployment name, a
+                // revoked key) must not cost the comparison the other models' results.
+                _logger.LogError(
+                    ex, "Agent test case {CaseId} crashed under test run {RunId} with model {Model}.",
+                    testCase.Id, runId, model?.ToString() ?? "<agent default>");
+                result = new AgentTestCaseResult
+                {
+                    RunId = runId,
+                    CaseId = testCase.Id,
+                    CaseName = testCase.Name,
+                    // Same reason the runner stamps these up front: an unattributed row is dead
+                    // weight in a grid keyed by model.
+                    Provider = model?.Provider,
+                    Model = model?.Model,
+                    Status = AgentTestStatus.Error,
+                    Error = ex.Message
+                };
+            }
+
+            await _repo.AddCaseResultAsync(result);
+
+            // Re-read AFTER the case ran, not before. This is what picks up a concurrent
+            // POST /runs/{id}/cancel that landed WHILE the case was executing -- both for the
+            // NEXT iteration's check above, and so the persist a few lines down (a whole-document
+            // ReplaceOneAsync) never overwrites that external write with a stale
+            // CancelRequested=false. `run` becomes this fresh object for the remainder of the
+            // method (including the terminal write after the loop, if this was the last case) --
+            // that's what keeps a cancel that arrives during the very last case's own execution
+            // from being silently erased, with no extra read needed after the loop.
+            run = await _repo.GetRunAsync(runId) ?? run;
+
+            run.TotalCount++;
+            switch (result.Status)
+            {
+                case AgentTestStatus.Passed:
+                    run.PassedCount++;
+                    break;
+                case AgentTestStatus.Failed:
+                    run.FailedCount++;
+                    break;
+                default:
+                    // Error, Cancelled (e.g. a per-case timeout inside the real case runner), or
+                    // any other non-Passed/Failed status all count against ErrorCount -- AgentTestRun
+                    // has no separate CancelledCount field, and a per-case timeout is an
+                    // infrastructure failure for THAT case, not a graceful run-level cancellation.
+                    run.ErrorCount++;
+                    break;
+            }
+
+            // Real-time accumulation, per case -- not just at the very end. Without this, GET
+            // /agent-test/runs/{id} shows 0/0/0/0 for the run's entire duration, and a process
+            // death mid-run leaves the startup sweep's Error row claiming zero cases ran even
+            // though N AgentTestCaseResult rows already exist for it.
+            await _repo.UpdateRunAsync(run);
+        }
+
+        run.Status = cancelled
+            ? AgentTestStatus.Cancelled
+            : run.FailedCount == 0 && run.ErrorCount == 0
+                ? AgentTestStatus.Passed
+                : AgentTestStatus.Failed;
+        run.CompletedAt = DateTime.UtcNow;
+        await _repo.UpdateRunAsync(run);
+    }
+}

@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Graph.Models;
+using BotSharp.Abstraction.Routing.Executor;
 
 namespace BotSharp.Core.Rules.Actions;
 
@@ -43,9 +44,27 @@ public class ToolCallAction : IRuleAction
         RuleFlowContext context)
     {
         var funcName = context.Parameters.TryGetValue("function_name", out var fName) ? fName : null;
-        var func = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name.IsEqualTo(funcName));
 
-        if (func == null)
+        // A missing/blank function_name has to fail gracefully. The old IsEqualTo lookup was
+        // null-safe -- it simply matched no callback. Going through the factory instead means null
+        // reaches IFunctionExecutorProvider.TryResolve, whose contract declares a non-null string,
+        // and some implementations (a mock/blocking provider doing a Dictionary lookup by name, for
+        // instance) would throw ArgumentNullException rather than returning Success = false the way
+        // this used to. So it is rejected before the factory is touched at all.
+        string? canonicalName = null;
+        IFunctionExecutor? executor = null;
+        if (!string.IsNullOrWhiteSpace(funcName))
+        {
+            // Registered callbacks are used only to resolve the CANONICAL name, preserving the
+            // original case-insensitive semantics; the execution itself must go through the factory,
+            // or IFunctionExecutorProvider is bypassed on the rule path.
+            canonicalName = _services.GetServices<IFunctionCallback>()
+                .FirstOrDefault(x => x.Name.IsEqualTo(funcName))?.Name ?? funcName;
+            executor = _services.GetRequiredService<IFunctionExecutorFactory>()
+                .Create(canonicalName, agent);
+        }
+
+        if (executor == null || canonicalName == null)
         {
             var errorMsg = $"Unable to find function '{funcName}' when running action {agent.Name}-{trigger.Name}";
             _logger.LogWarning(errorMsg);
@@ -57,7 +76,7 @@ public class ToolCallAction : IRuleAction
         }
 
         var funcArg = context.Parameters.TryGetObjectValueOrDefault<RoleDialogModel>("function_argument", new()) ?? new();
-        await func.Execute(funcArg);
+        await executor.ExecuteAsync(funcArg);
 
         return new RuleNodeResult
         {
@@ -65,7 +84,7 @@ public class ToolCallAction : IRuleAction
             Response = funcArg?.RichContent?.Message?.Text ?? funcArg?.Content,
             Data = new()
             {
-                ["function_name"] = func.Name!,
+                ["function_name"] = canonicalName,
                 ["function_argument"] = funcArg?.ConvertToString() ?? "{}",
                 ["function_call_result"] = funcArg?.RichContent?.Message?.Text ?? funcArg?.Content ?? string.Empty
             }
