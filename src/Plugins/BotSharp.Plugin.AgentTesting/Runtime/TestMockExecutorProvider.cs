@@ -19,7 +19,7 @@ public class TestMockExecutorProvider : IFunctionExecutorProvider
         _logger = logger;
     }
 
-    /// <summary>必须抢在内置解析链之前。</summary>
+    /// <summary>Must be asked before the built-in resolution chain.</summary>
     public int Order => -1000;
 
     public IFunctionExecutor? TryResolve(string functionName, Agent agent)
@@ -27,7 +27,7 @@ public class TestMockExecutorProvider : IFunctionExecutorProvider
         var run = _registry.TryGet(_conversations.ConversationId);
         if (run == null)
         {
-            return null;    // 非测试会话，完全放过
+            return null;    // Not a conversation under test: pass through untouched.
         }
 
         if (run.ForceBlockedFunctions.Contains(functionName))
@@ -37,7 +37,7 @@ public class TestMockExecutorProvider : IFunctionExecutorProvider
 
         if (run.AllowedFunctions.Contains(functionName))
         {
-            return null;    // 控制流：交给真实实现，否则 agent 走不动
+            return null;    // Control flow: leave it to the real implementation, or the agent cannot move.
         }
 
         // P1 only ever ships UnmockedToolPolicies.Block: every other function inside a test

@@ -1,8 +1,9 @@
 namespace BotSharp.Plugin.AgentTesting.Models;
 
 /// <summary>
-/// POST/PUT 建/改一个 Suite 用的请求体。Id/CreateDate/UpdateDate 是服务端字段，
-/// 不出现在这里——创建时由仓储生成，更新时由控制器从既有实体上原样保留。
+/// Body for creating/updating a suite via POST/PUT. Id/CreateDate/UpdateDate are server-owned and
+/// deliberately absent: the repository generates them on create, and on update the controller
+/// carries them over from the stored entity.
 /// </summary>
 public class AgentTestSuiteUpsertRequest
 {
@@ -27,7 +28,10 @@ public class AgentTestSuiteUpsertRequest
     public int CaseTimeoutSeconds { get; set; } = 120;
 }
 
-/// <summary>POST/PUT 建/改一个 Case 用的请求体，字段直接对应 AgentTestCase 的可写部分。</summary>
+/// <summary>
+/// Body for creating/updating a case via POST/PUT; the fields map straight onto the writable part
+/// of AgentTestCase.
+/// </summary>
 public class AgentTestCaseUpsertRequest
 {
     public string SuiteId { get; set; } = string.Empty;
@@ -42,8 +46,8 @@ public class AgentTestCaseUpsertRequest
 }
 
 /// <summary>
-/// POST /agent-test/record 的请求体——从一个真实会话录制一条草稿用例，见
-/// <see cref="BotSharp.Plugin.AgentTesting.Services.AgentTestRecorder.LoadAndBuildAsync"/>。
+/// Body of POST /agent-test/record -- record a draft case from a real conversation, see
+/// <see cref="BotSharp.Plugin.AgentTesting.Services.AgentTestRecorder.LoadAndBuildAsync"/>.
 /// </summary>
 public class AgentTestRecordRequest
 {
@@ -67,11 +71,12 @@ public class AgentTestRecordRequest
 }
 
 /// <summary>
-/// POST /agent-test/suites/{id}/run 的请求体。
+/// Body of POST /agent-test/suites/{id}/run.
 ///
-/// CaseIds 落到 AgentTestRun.CaseIds 上，AgentTestRunExecutor 用它把该 Suite 下启用的 case
-/// 再筛一遍（null/空 = 不筛，跑全部启用 case，和这个字段不存在时行为一致）——"只重跑刚失败的
-/// 那几条"是回归测试台的核心场景，不是可选项。
+/// CaseIds lands on AgentTestRun.CaseIds, which AgentTestRunExecutor uses to narrow the suite's
+/// enabled cases further (null/empty = no filter, run every enabled case, identical to the field not
+/// existing). "Re-run just the ones that failed" is a core regression-harness scenario, not a
+/// nice-to-have.
 ///
 /// Fix wave (project owner decision): this used to also accept Provider/Model, stored verbatim
 /// on AgentTestRun.Provider/Model for "which model did this run use" auditing -- but nothing ever
@@ -98,7 +103,9 @@ public class AgentTestRunTriggerRequest
     public List<TestModel>? Models { get; set; }
 }
 
-/// <summary>GET /agent-test/runs/{id} 的响应体：一个 Run 加上它名下全部的 AgentTestCaseResult。</summary>
+/// <summary>
+/// Body of GET /agent-test/runs/{id}: one run plus every AgentTestCaseResult belonging to it.
+/// </summary>
 public class AgentTestRunDetailDto
 {
     public AgentTestRun Run { get; set; } = default!;

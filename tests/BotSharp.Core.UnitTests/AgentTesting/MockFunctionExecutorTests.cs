@@ -11,11 +11,14 @@ using Xunit;
 namespace BotSharp.Core.UnitTests.AgentTesting;
 
 /// <summary>
-/// mock 的执行语义有三件事必须对：
-/// 1) 命中 mock 时把假返回写进 message.Content（LLM 下一轮就读这个）；
-/// 2) 未 mock 且策略为 Block 时，真实实现一次都不能被调到，且要让本轮明确失败而不是静默继续；
-/// 3) 命中 mock 时要能写会话 state——大量真实函数的"输出"其实是 state 写入，
-///    只给返回值会让后续函数读不到数据而全线崩（见 IFunctionCallback-full-detail-report.md）。
+/// Three things about mock execution semantics have to be right:
+/// 1) on a mock hit, the fake return is written to message.Content, which is what the LLM reads next
+///    turn;
+/// 2) when unmocked under the Block policy, the real implementation must never be reached, and the
+///    turn has to fail explicitly rather than continue silently;
+/// 3) on a mock hit it must be able to write conversation state -- for plenty of real functions the
+///    actual "output" IS the state write, and returning only a value leaves later functions unable to
+///    read what they need and the whole case collapses.
 /// </summary>
 public class MockFunctionExecutorTests
 {
@@ -129,9 +132,11 @@ public class MockFunctionExecutorTests
     [Fact]
     public async Task Advances_the_call_ordinal_across_successive_calls_to_the_same_function()
     {
-        // 只在 ToolMockMatcherTests 里单测 Match(..., callOrdinal) 不够：这里要证明
-        // executor 自己真的把 _run.NextCallOrdinal(_functionName) 接到了 Match 的调用序号参数上，
-        // 不是被谁悄悄改成硬编码 0——硬编码 0 会让下面第二次调用也命中第一个 mock，断言就会炸。
+        // Unit-testing Match(..., callOrdinal) over in ToolMockMatcherTests is not enough. This
+        // proves the executor itself really wires _run.NextCallOrdinal(_functionName) into Match's
+        // ordinal parameter and that nobody quietly replaced it with a hardcoded 0 -- a hardcoded 0
+        // would make the second call below resolve to the first mock too, and the assertion would
+        // catch it.
         var run = Run(UnmockedToolPolicies.Block,
             new TestToolMock { FunctionName = "get_work_order", CallIndex = 0, ResultContent = "first-call" },
             new TestToolMock { FunctionName = "get_work_order", CallIndex = 1, ResultContent = "second-call" });

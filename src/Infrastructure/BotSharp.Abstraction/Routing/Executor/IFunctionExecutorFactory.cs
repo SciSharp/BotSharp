@@ -1,8 +1,9 @@
 namespace BotSharp.Abstraction.Routing.Executor;
 
 /// <summary>
-/// 决定某个函数名由谁执行。所有函数调用路径都必须经过这里，否则 IFunctionExecutorProvider
-/// 的接管会出现旁路（历史上 BotSharp.Core.Rules 的 ToolCallAction 就是这样一条旁路）。
+/// Decides who executes a given function name. Every function-call path has to go through here,
+/// or IFunctionExecutorProvider gets bypassed -- BotSharp.Core.Rules' ToolCallAction used to be
+/// exactly such a bypass.
 /// </summary>
 public interface IFunctionExecutorFactory
 {

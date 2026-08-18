@@ -12,8 +12,10 @@ using Xunit;
 namespace BotSharp.Core.UnitTests.AgentTesting;
 
 /// <summary>
-/// Run 层的编排：用例串行、单个用例失败不影响后续、计数正确、取消及时生效。
-/// 串行不是性能取舍而是安全取舍——用例共享外部依赖，并发跑会互相污染 state。
+/// Run-level orchestration: cases run serially, one failing case does not affect the rest, the counts
+/// are right, and cancellation takes effect promptly. Serial execution is a safety choice rather than
+/// a performance one -- cases share external dependencies, and running them concurrently would let
+/// them pollute each other's state.
 /// </summary>
 public class AgentTestRunExecutorTests
 {
@@ -275,7 +277,7 @@ public class AgentTestRunExecutorTests
         var repo = new InMemoryRepo { Cases = [CaseNamed("a"), CaseNamed("b"), CaseNamed("c")] };
         var executor = Build(repo, c =>
         {
-            repo.Run.CancelRequested = true;      // 第一条跑完后请求取消
+            repo.Run.CancelRequested = true;      // cancel requested once the first case finished
             return new AgentTestCaseResult { CaseId = c.Id, Status = AgentTestStatus.Passed };
         });
 

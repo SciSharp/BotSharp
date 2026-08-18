@@ -1,12 +1,13 @@
 namespace BotSharp.Abstraction.Routing.Executor;
 
 /// <summary>
-/// 让外部接管某个函数的执行。返回 null 表示"我不接管"，交给下一个 provider 或内置解析链。
-/// 典型用途是测试期把真实工具替换成假实现，或按策略阻断某个函数。
+/// Lets an external component take over the execution of a function. Returning null means "not
+/// mine" and hands off to the next provider, or to the built-in resolution chain. The typical use
+/// is swapping a real tool for a fake during a test, or blocking a function by policy.
 /// </summary>
 public interface IFunctionExecutorProvider
 {
-    /// <summary>小的先问。</summary>
+    /// <summary>Lower is asked first.</summary>
     int Order => 0;
 
     IFunctionExecutor? TryResolve(string functionName, Agent agent);

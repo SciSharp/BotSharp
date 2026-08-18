@@ -12,11 +12,14 @@ using Xunit;
 namespace BotSharp.Core.UnitTests.Rules;
 
 /// <summary>
-/// 规则引擎曾是唯一不经过 FunctionExecutorFactory 的函数执行路径。测试集依赖"所有工具调用
-/// 都能被接管"，漏掉这条路意味着规则触发的工具在测试期照样真实执行。
+/// The rule engine used to be the only function-execution path that did not go through
+/// FunctionExecutorFactory. The test set depends on every tool call being interceptable, and
+/// missing this path means rule-triggered tools execute for real during a test.
 ///
-/// 第二个测试钉住的是这次改动最容易悄悄破坏的东西：原实现用 IsEqualTo 做大小写不敏感匹配，
-/// 若换成工厂的大小写敏感匹配，配置里大小写不一致的规则会从"能跑"变成"找不到函数"。
+/// The second test pins the thing this change could most easily have broken quietly: the original
+/// matched names with IsEqualTo, which is case-insensitive. Switching to the factory's
+/// case-sensitive comparison would turn a rule whose configured casing differs from "works" into
+/// "no such function".
 /// </summary>
 public class ToolCallActionTests
 {
@@ -113,7 +116,7 @@ public class ToolCallActionTests
         var result = await action.ExecuteAsync(new Agent { Name = "a" }, new StubTrigger(), ContextFor("create_work_order"));
 
         Assert.True(provider.Claimed);
-        Assert.False(real.Executed);          // 真实实现一次都不能被调到
+        Assert.False(real.Executed);          // the real implementation must never be reached
         Assert.True(result.Success);
     }
 

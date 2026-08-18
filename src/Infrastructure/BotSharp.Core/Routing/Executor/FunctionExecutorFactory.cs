@@ -14,19 +14,22 @@ public class FunctionExecutorFactory : IFunctionExecutorFactory
 
     public IFunctionExecutor? Create(string functionName, Agent agent)
     {
-        // 这是全仓唯一决定"某个函数名由谁执行"的地方（见接口自身的文档注释），因此不能靠每个
-        // 调用方自己先做好校验——RoutingService.InvokeFunction 就没有任何保护，直接把 name 传到
-        // 这里。一个 null/空白的函数名如果真的传给下面注册的 IFunctionExecutorProvider，某些实现
-        // （比如按函数名做 Dictionary 查找的 mock/阻断 provider——ToolCallActionTests 的
-        // NullIntolerantProvider 已经证明这种形状是真实存在的）会直接抛 ArgumentNullException，
-        // 而不是像"找不到函数"那样优雅地返回 null。在这里挡一次，让每个调用方都不必自己重复这
-        // 同一个判断。
+        // This is the one place in the repo that decides who executes a given function name (see
+        // the interface's own doc comment), so it cannot rely on every caller validating first --
+        // RoutingService.InvokeFunction has no guard at all and passes `name` straight through. A
+        // null/blank function name reaching one of the registered IFunctionExecutorProvider
+        // implementations below would make some of them throw ArgumentNullException instead of
+        // returning null the way "no such function" does: a mock/blocking provider doing a
+        // Dictionary lookup by name, for one, and ToolCallActionTests' NullIntolerantProvider
+        // already proves that shape exists. Guarding once here saves every caller from repeating
+        // the same check.
         if (string.IsNullOrWhiteSpace(functionName))
         {
             return null;
         }
 
-        // 先让外部 provider 有机会接管；顺序稳定（Order 升序），不依赖 DI 注册顺序。
+        // Give external providers first refusal. Order is stable (ascending Order), never the DI
+        // registration order.
         var providers = _services.GetServices<IFunctionExecutorProvider>().OrderBy(x => x.Order);
         foreach (var provider in providers)
         {
@@ -37,7 +40,7 @@ public class FunctionExecutorFactory : IFunctionExecutorFactory
             }
         }
 
-        // 以下三段为改动前的原样逻辑，顺序与语义均未变更。
+        // The three stages below are the pre-existing logic verbatim -- same order, same semantics.
         var functionCall = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == functionName);
         if (functionCall != null)
         {

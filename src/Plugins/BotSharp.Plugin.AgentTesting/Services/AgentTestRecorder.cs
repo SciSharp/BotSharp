@@ -5,23 +5,26 @@ using BotSharp.Plugin.AgentTesting.Repositories;
 namespace BotSharp.Plugin.AgentTesting.Services;
 
 /// <summary>
-/// 从一段真实 BotSharp 会话录制出一条可编辑草稿用例——这是这个功能能不能被 QA/PM 真正用起来
-/// 的关键：让人手写工单 agent 的 mock JSON 不现实。
+/// Records an editable draft case from a real BotSharp conversation. This is what decides whether
+/// QA and PM can actually use this feature: hand-writing a work order agent's mock JSON is not
+/// realistic.
 ///
-/// <see cref="BuildDraft"/> 是纯函数：同样的 (suiteId, conversationId, dialogs, states) 永远
-/// 给出同样的 <see cref="AgentTestCase"/>，不做任何 I/O（<paramref name="ILogger"/> 只是一个可选
-/// 的诊断出口，只影响日志，不影响返回值），因此可以脱离 Mongo/BotSharp 直接单测。
-/// <see cref="LoadAndBuildAsync"/> 才是接真实数据源的薄层：读 <see cref="IBotSharpRepository"/>，
-/// 映射成 <see cref="RecordedDialog"/>/<see cref="RecordedState"/>，调 <see cref="BuildDraft"/>，
-/// 再落库。
+/// <see cref="BuildDraft"/> is a pure function: the same (suiteId, conversationId, dialogs, states)
+/// always yields the same <see cref="AgentTestCase"/> with no I/O (the logger is an optional
+/// diagnostic outlet that affects logging only, never the return value), so it can be unit-tested
+/// without Mongo or BotSharp. <see cref="LoadAndBuildAsync"/> is the thin layer that touches the
+/// real data source: read <see cref="IBotSharpRepository"/>, map to
+/// <see cref="RecordedDialog"/>/<see cref="RecordedState"/>, call <see cref="BuildDraft"/>, store.
 ///
-/// 两个刻意的限制（改动前先改 spec，别在这顺手"修"）：
-/// 1) state 写入只能按"整轮增量"提取，挂在该轮最后一个 mock 上——StateValueMongoElement 只有
-///    MessageId（定位到轮）和 Source（external/application/user 三选一），拿不到函数名，无法
-///    自动拆到单个 mock 上；
-/// 2) 不生成任何输出文本类断言（outputContains/outputRegex），也不生成 llmJudge——模型原话做
-///    基线极脆，换个措辞就红，录一条用例就要手改十条断言。只生成 toolCalled/stateEquals 两种
-///    稳定断言。
+/// Two deliberate limitations -- change the spec before "fixing" either of them here:
+/// 1) state writes can only be extracted as a whole-turn delta, attached to that turn's last mock.
+///    StateValueMongoElement carries only MessageId (which locates a turn) and Source (one of
+///    external/application/user), never a function name, so splitting the delta across individual
+///    mocks automatically is not possible;
+/// 2) no output-text assertions (outputContains/outputRegex) and no llmJudge are generated. Using
+///    the model's exact wording as a baseline is extremely brittle -- any rephrasing goes red, and
+///    recording one case would mean hand-editing ten assertions. Only the two stable kinds,
+///    toolCalled and stateEquals, are generated.
 /// </summary>
 public class AgentTestRecorder
 {
@@ -47,7 +50,10 @@ public class AgentTestRecorder
         _segmenter = segmenter;
     }
 
-    /// <summary>从真实会话读数据、建草稿、落库，返回新建的草稿用例（已有 Id）。</summary>
+    /// <summary>
+    /// Reads the real conversation, builds the draft, stores it, and returns the new draft case
+    /// (with its Id already assigned).
+    /// </summary>
     public async Task<AgentTestCase> LoadAndBuildAsync(string suiteId, string conversationId)
     {
         var (dialogs, states) = await LoadAsync(conversationId);
@@ -136,9 +142,10 @@ public class AgentTestRecorder
     }
 
     /// <summary>
-    /// 纯函数：把已经读出来的会话数据变成一条禁用状态的草稿用例。<paramref name="logger"/> 只用
-    /// 于"该轮 state 增量没有 mock 可挂"这一种边界情况的诊断日志，省略它（单测就是这么调的）
-    /// 等价于没有任何日志输出，不影响返回值。
+    /// Pure function: turns already-loaded conversation data into one disabled draft case. The
+    /// <paramref name="logger"/> is used only for the single edge case of "this turn's state delta
+    /// has no mock to attach to"; omitting it (as the unit tests do) means no log output and changes
+    /// nothing about the return value.
     /// </summary>
     public static AgentTestCase BuildDraft(
         string suiteId,
@@ -151,7 +158,7 @@ public class AgentTestRecorder
         {
             SuiteId = suiteId,
             Name = $"Recorded from {conversationId}",
-            Enabled = false,                                   // 人工编辑确认后才启用
+            Enabled = false,                                   // Enabled only after a human reviews it
             SourceConversationId = conversationId,
             UnmockedToolPolicy = UnmockedToolPolicies.Block
         };
@@ -168,7 +175,7 @@ public class AgentTestRecorder
 
         // FunctionName -> FunctionArgs of the nearest preceding assistant call for that function,
         // scoped to the CURRENTLY OPEN TURN ONLY -- cleared every time a new turn opens, per the
-        // brief's "同轮最近一条" rule.
+        // "nearest preceding call within the same turn" rule.
         //
         // OrdinalIgnoreCase, matching ToolMockMatcher.Match/ActiveTestRun's own call-ordinal
         // tracker (both compare function names case-insensitively): two differently-cased
@@ -561,7 +568,10 @@ public class AgentTestRecorder
     }
 }
 
-/// <summary>录制读出的一条对话记录——从真实 <c>DialogElement</c>/<c>DialogMetaData</c> 挑出录制关心的字段。</summary>
+/// <summary>
+/// One dialog entry as recording sees it -- the fields recording cares about, picked out of the real
+/// <c>DialogElement</c>/<c>DialogMetaData</c>.
+/// </summary>
 public class RecordedDialog
 {
     public string Role { get; set; } = string.Empty;
@@ -571,14 +581,20 @@ public class RecordedDialog
     public string? MessageId { get; set; }
 }
 
-/// <summary>录制读出的一个 state key 及其全部历史值——从真实 <c>StateKeyValue</c> 挑出录制关心的字段。</summary>
+/// <summary>
+/// One state key and its full history of values as recording sees it -- the fields recording cares
+/// about, picked out of the real <c>StateKeyValue</c>.
+/// </summary>
 public class RecordedState
 {
     public string Key { get; set; } = string.Empty;
     public List<RecordedStateValue> Values { get; set; } = [];
 }
 
-/// <summary>见 <see cref="RecordedState"/>——对应真实 <c>StateValue</c>/<c>StateValueMongoElement</c> 的一项历史值。</summary>
+/// <summary>
+/// See <see cref="RecordedState"/> -- one historical value, corresponding to a real
+/// <c>StateValue</c>/<c>StateValueMongoElement</c>.
+/// </summary>
 public class RecordedStateValue
 {
     public string? MessageId { get; set; }

@@ -10,19 +10,21 @@ public interface IAgentTestRunQueue
 }
 
 /// <summary>
-/// 进程内、无界、单消费者的 Run 队列：POST .../run 只管把一个 Pending Run 的 id 丢进来就
-/// 立刻返回，真正执行放到这个 BackgroundService 的后台循环里串行处理。
+/// An in-process, unbounded, single-consumer run queue: POST .../run only drops a Pending run's id
+/// in here and returns immediately, and the real execution happens serially in this
+/// BackgroundService's loop.
 ///
-/// DI 形状照 BotSharp.Plugin.WeChat 的 WeChatBackgroundService 那一套（同一份仓库里唯一一个
-/// "既是单例又是 BackgroundService" 的先例）：注册一次具体类型 + AddHostedService 转发同一个
-/// 实例 + 用接口类型再转发一次，三行都指向同一个对象，Enqueue 和后台循环用的是同一份 Channel。
+/// The DI shape follows WeChatBackgroundService elsewhere in this repo -- the one existing
+/// precedent for "both a singleton and a BackgroundService": register the concrete type, have
+/// AddHostedService forward to that same instance, then forward the interface type to it as well.
+/// All three point at one object, so Enqueue and the background loop share a Channel.
 ///
-/// 每个 CASE 一个新 DI scope，而不是每个 RUN 一个：见 ScopedCaseRunner 上的注释。这个类自己
-/// 每次 dequeue 只开一个"跑这一整个 Run 期间"的外层 scope,只用来解析 IAgentTestRepository/
-/// ILogger&lt;AgentTestRunExecutor&gt; 这两个没有跨 case 危险状态的东西；真正会在两个 case 之间
-/// 泄漏 BotSharp scoped 服务（IConversationService/IConversationStateService/
-/// TestMockExecutorProvider 的 ambient conversation id）的那一层，被隔到 ScopedCaseRunner
-/// 自己的、每次 RunAsync 调用都重开一次的内层 scope 里。
+/// A fresh DI scope per CASE, not per RUN -- see the comment on ScopedCaseRunner. Each dequeue here
+/// opens only an outer scope that lives for the whole run, used solely to resolve
+/// IAgentTestRepository and ILogger&lt;AgentTestRunExecutor&gt;, neither of which carries dangerous
+/// cross-case state. The layer that would actually leak BotSharp scoped services between two cases
+/// (IConversationService/IConversationStateService, and TestMockExecutorProvider's ambient
+/// conversation id) is isolated in ScopedCaseRunner's own inner scope, reopened on every RunAsync.
 /// </summary>
 public class AgentTestRunQueue : BackgroundService, IAgentTestRunQueue
 {
@@ -46,8 +48,9 @@ public class AgentTestRunQueue : BackgroundService, IAgentTestRunQueue
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // 进程内队列，一次重启就会把所有还在跑的 Run 冲没——不把它们清成 Error，它们会永远停在
-        // Running，管理页会一直显示"还在跑"。这一步只在 host 每次启动时跑一次。
+        // The queue is in-process, so a restart wipes out every run still in flight. Without
+        // sweeping them to Error they stay Running forever and the admin page keeps claiming they
+        // are still going. Runs once per host start.
         await ReconcileStaleRunningRunsAsync();
 
         while (!stoppingToken.IsCancellationRequested)
@@ -145,23 +148,25 @@ public class AgentTestRunQueue : BackgroundService, IAgentTestRunQueue
     }
 
     /// <summary>
-    /// 这就是"每个 case 一个新 DI scope"真正落地的地方。AgentTestRunExecutor.ExecuteAsync 对
-    /// 启用的每一条用例都会调一次 _caseRunner.RunAsync——它自己完全不知道、也不关心这背后是不
-    /// 是同一个 ICaseRunner 实例。这个包装类利用了这一点：它自己不做任何编排逻辑，只在每次
-    /// RunAsync 被调用时开一个全新的 DI scope、从这个新 scope 里解析真正的 ICaseRunner
-    /// （AgentTestCaseRunner，连同它带出来的 IAgentConversationDriver/IConversationService/
-    /// IConversationStateService/TestMockExecutorProvider 一整条 scoped 依赖链），跑完这一个
-    /// case 就释放这个 scope。
+    /// This is where "a fresh DI scope per case" actually happens.
+    /// AgentTestRunExecutor.ExecuteAsync calls _caseRunner.RunAsync once per enabled case and
+    /// neither knows nor cares whether the same ICaseRunner instance is behind it. This wrapper
+    /// exploits that: it performs no orchestration of its own, and on every RunAsync call it opens
+    /// a brand-new DI scope, resolves the real ICaseRunner from it (AgentTestCaseRunner, along with
+    /// the whole scoped dependency chain it drags in -- IAgentConversationDriver,
+    /// IConversationService, IConversationStateService, TestMockExecutorProvider), and disposes the
+    /// scope once that one case is done.
     ///
-    /// 为什么这么做是必须的、不是洁癖：TestMockExecutorProvider.TryResolve 是按"当前
-    /// ConversationService._conversationId 这个 ambient 值"找 mock，不是按显式传参；
-    /// ConversationStateService 把跨轮的 state 缓存在内存里。如果一个 Run 里的多个 case
-    /// 共用同一个 scope（也就是共用同一个 IConversationService/IConversationStateService
-    /// 实例），后一个 case 的 PrepareAsync 会把 ambient conversation id 重新指到自己头上，
-    /// 这时如果前一个 case 有过一次超时孤儿调用还没跑完，它 unregister 的时候可能摘掉的是
-    /// 后一个 case 刚注册的条目——mock 接缝消失，孤儿调用落到真实工具实现上（真拨电话、真发
-    /// 邮件）。给每个 case 单开一个 scope，这两个 BotSharp scoped 服务在任何两个 case 之间
-    /// 永远不是同一个对象，这条路径就不存在了。
+    /// Why this is necessary rather than fastidious: TestMockExecutorProvider.TryResolve finds
+    /// mocks by the ambient ConversationService._conversationId, not by an explicit argument, and
+    /// ConversationStateService caches cross-turn state in memory. If several cases in one run
+    /// shared a scope -- and therefore one IConversationService/IConversationStateService instance
+    /// -- the next case's PrepareAsync would repoint the ambient conversation id at itself, and an
+    /// orphaned call left over from a previous case's timeout could then unregister the entry the
+    /// NEW case had just registered. The mock seam disappears and the orphaned call lands on the
+    /// real tool implementation: a real phone call, a real email. A scope per case means those two
+    /// BotSharp scoped services are never the same object across two cases, and the path does not
+    /// exist.
     /// </summary>
     private sealed class ScopedCaseRunner : ICaseRunner
     {

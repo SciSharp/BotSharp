@@ -7,13 +7,16 @@ using Xunit;
 namespace BotSharp.Core.UnitTests.AgentTesting;
 
 /// <summary>
-/// 录制是这个功能能不能被 QA/PM 真正用起来的关键：让人手写工单 agent 的 mock JSON 不现实。
+/// Recording is what decides whether QA and PM can actually use this feature: hand-writing a work
+/// order agent's mock JSON is not realistic.
 ///
-/// 两个刻意的限制在这里被钉住，改动它们要先改 spec：
-/// 1) state 写入只能按"整轮增量"提取——StateValueMongoElement 只有 MessageId（定位到轮），
-///    Source 只有 external/application/user，拿不到函数名，所以无法自动拆到单个 mock 上；
-/// 2) 不自动生成 outputContains 类断言——拿模型原话做基线极脆，换个措辞就红，
-///    录一条用例就得手改十条断言。
+/// Two deliberate limitations are pinned here; changing either means changing the spec first:
+/// 1) state writes can only be extracted as a whole-turn delta -- StateValueMongoElement carries only
+///    MessageId (which locates a turn) and a Source of external/application/user, never a function
+///    name, so splitting across individual mocks automatically is not possible;
+/// 2) no outputContains-style assertions are generated -- using the model's exact wording as a
+///    baseline is extremely brittle, any rephrasing goes red, and recording one case would mean
+///    hand-editing ten assertions.
 /// </summary>
 public class AgentTestRecorderTests
 {
@@ -61,7 +64,8 @@ public class AgentTestRecorderTests
     [Fact]
     public void Numbers_repeated_calls_of_the_same_function_so_they_can_be_told_apart()
     {
-        // 同一个函数被调两次、返回不同，不编号就会两次拿到同一个假返回。
+        // The same function called twice with different returns: without an ordinal both calls would
+        // resolve to the same fake return.
         var draft = Draft();
 
         Assert.Equal(0, draft.Mocks[0].CallIndex);
@@ -269,7 +273,7 @@ public class AgentTestRecorderTests
     {
         var draft = Draft();
 
-        Assert.False(draft.Enabled);                       // 人工编辑确认后才启用
+        Assert.False(draft.Enabled);                       // enabled only after a human reviews it
         Assert.Equal("conv-9", draft.SourceConversationId);
         Assert.Equal(UnmockedToolPolicies.Block, draft.UnmockedToolPolicy);
     }

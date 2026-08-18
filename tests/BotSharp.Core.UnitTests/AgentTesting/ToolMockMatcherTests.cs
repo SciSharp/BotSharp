@@ -5,9 +5,11 @@ using Xunit;
 namespace BotSharp.Core.UnitTests.AgentTesting;
 
 /// <summary>
-/// OneBrain 的工单流程里同一个查询函数在一次会话里被调好几次、每次参数不同，返回也必须不同。
-/// 只按函数名选 mock，第一批真实用例就会撞上"三次调用拿到同一个假返回"。
-/// 匹配优先级：入参子集匹配 > 调用序号 > 仅函数名，越具体越优先。
+/// In a real work order flow the same lookup function is called several times in one conversation
+/// with different arguments, and each call has to return something different. Selecting a mock by
+/// function name alone means the very first batch of real cases hits "three calls, one fake return".
+/// Match priority, most specific first: argument-subset match, then call ordinal, then function name
+/// alone.
 /// </summary>
 public class ToolMockMatcherTests
 {
@@ -32,9 +34,10 @@ public class ToolMockMatcherTests
     };
 
     /// <summary>
-    /// ArgsMatchJson 自身含重复顶层键——语法上合法（JsonNode.Parse 不会报错），
-    /// 但 System.Text.Json.Nodes.JsonObject 的底层字典是惰性物化的，第一次访问
-    /// （foreach/TryGetPropertyValue）才会因为重复键抛 ArgumentException。
+    /// ArgsMatchJson itself contains duplicate top-level keys -- syntactically valid, since
+    /// JsonNode.Parse does not object, but System.Text.Json.Nodes.JsonObject materialises its
+    /// backing dictionary lazily and the duplicate only throws ArgumentException on first access
+    /// (foreach/TryGetPropertyValue).
     /// </summary>
     private static readonly TestToolMock ByArgsWithDuplicateKey = new()
     {
@@ -81,7 +84,8 @@ public class ToolMockMatcherTests
     [Fact]
     public void Malformed_argument_json_falls_back_to_the_name_only_mock_instead_of_throwing()
     {
-        // 入参来自模型输出，可能不是合法 JSON。这里必须降级，不能把整个用例炸成 Error。
+        // The arguments come from model output and may not be valid JSON. This has to degrade
+        // gracefully rather than blowing the whole case up into an Error.
         var hit = ToolMockMatcher.Match([ByName, ByArgs], "get_work_order", "{not json", 0);
         Assert.Equal("generic", hit!.ResultContent);
     }
@@ -89,9 +93,10 @@ public class ToolMockMatcherTests
     [Fact]
     public void Duplicate_key_in_the_actual_arguments_falls_back_to_the_name_only_mock_instead_of_throwing()
     {
-        // 模型输出的实参里出现重复顶层键——JsonNode.Parse 本身不报错，但 IsSubset 里
-        // actual.TryGetPropertyValue 第一次访问 actual 的字典时会抛 ArgumentException。
-        // 必须降级到仅函数名的 mock，不能把整个用例炸成基础设施 Error。
+        // Duplicate top-level keys in the model's own arguments: JsonNode.Parse does not object,
+        // but actual.TryGetPropertyValue inside IsSubset throws ArgumentException the first time it
+        // touches actual's dictionary. This has to fall back to the function-name-only mock rather
+        // than blowing the whole case up into an infrastructure Error.
         var hit = ToolMockMatcher.Match([ByName, ByArgs], "get_work_order",
             """{"woNum":"B9897413","woNum":"DUPLICATE"}""", 0);
         Assert.Equal("generic", hit!.ResultContent);
@@ -100,8 +105,8 @@ public class ToolMockMatcherTests
     [Fact]
     public void Duplicate_key_in_the_mocks_own_args_match_json_falls_back_to_the_name_only_mock_instead_of_throwing()
     {
-        // 反过来：重复键出现在测试作者自己配的 ArgsMatchJson 里，崩溃点是 IsSubset 里
-        // foreach (var (key, value) in expected) 第一次访问 expected 的字典。
+        // The mirror case: the duplicate key is in the ArgsMatchJson the test author wrote, and the
+        // throw happens where IsSubset's foreach first touches expected's dictionary.
         var hit = ToolMockMatcher.Match([ByName, ByArgsWithDuplicateKey], "get_work_order",
             """{"woNum":"B1"}""", 0);
         Assert.Equal("generic", hit!.ResultContent);

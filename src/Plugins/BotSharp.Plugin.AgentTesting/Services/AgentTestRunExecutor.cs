@@ -3,26 +3,28 @@ using BotSharp.Plugin.AgentTesting.Repositories;
 namespace BotSharp.Plugin.AgentTesting.Services;
 
 /// <summary>
-/// Run 层的编排：把一个已创建的 AgentTestRun 变成对其 Suite 下每条启用用例的串行执行。
+/// Run-level orchestration: turns an already-created AgentTestRun into serial execution of every
+/// enabled case in its suite.
 ///
-/// 这个类本身对 DI scope 一无所知——它只调用构造时给定的那一个 ICaseRunner 实例，调几次、
-/// 什么时候调完全由下面的 foreach 决定。"每个用例一个新 DI scope" 这件事不是这里做的，是
-/// AgentTestRunQueue 通过给这里注入一个包了 IServiceScopeFactory/IServiceProvider 的
-/// ICaseRunner 装饰器做到的（见 AgentTestRunQueue.ScopedCaseRunner）：那个装饰器的
-/// RunAsync 每次被调用（也就是每一个 case）都会自己开一个新 scope、从里面解析真正的
-/// AgentTestCaseRunner、跑完就释放这个 scope。这样一来，IConversationService/
-/// IConversationStateService/TestMockExecutorProvider 这些 BotSharp scoped 服务，
-/// 在同一个 Run 里的两个 case 之间永远不是同一个实例——不靠这个类自己创建 scope，
-/// 单元测试才能用一个不知道 DI 是什么的 DelegatingCaseRunner 直接测编排逻辑。
+/// This class knows nothing about DI scopes -- it calls the single ICaseRunner instance handed to
+/// its constructor, and the loop below decides how often and when. "A fresh DI scope per case" is
+/// not done here; AgentTestRunQueue achieves it by injecting an ICaseRunner decorator that wraps
+/// IServiceScopeFactory/IServiceProvider (see AgentTestRunQueue.ScopedCaseRunner). That decorator's
+/// RunAsync opens a new scope on every call -- that is, per case -- resolves the real
+/// AgentTestCaseRunner from it, and disposes the scope when the case finishes. As a result BotSharp
+/// scoped services such as IConversationService, IConversationStateService and
+/// TestMockExecutorProvider are never the same instance across two cases of one run. Keeping scope
+/// creation out of this class is also what lets a DI-unaware DelegatingCaseRunner unit-test the
+/// orchestration directly.
 ///
-/// fix round 1 记录：CancelRequested 这一个字段有 THIS CLASS 自己以外的写者（POST
-/// .../runs/{id}/cancel），是唯一一个"整文档 ReplaceOneAsync 可能把外部刚写进去的值覆盖回旧值"
-/// 的字段——TotalCount/PassedCount/... 只有这个类自己写，不存在这个问题。修法是：每条 case
-/// 跑完之后（不是跑之前）都重新 GetRunAsync 一次，把返回的对象整个接过来当作接下来要
-/// 修改/持久化的 `run`——这样"下一条 case 该不该跑"的判据、以及这次持久化会不会把外部写
-/// 覆盖掉，用的都是"这条 case 刚跑完那一刻"的最新状态，而不是方法最开头读到的那份、从头到尾
-/// 再也没刷新过的旧对象。这一步只需要一次读，不需要在读之前再单独查一次——因为"该不该继续跑
-/// 下一条"和"这次持久化别把外部写盖掉"用的是同一份最新读。
+/// One field, CancelRequested, has a writer outside this class (POST .../runs/{id}/cancel), which
+/// makes it the only field a whole-document ReplaceOneAsync could revert to a stale value --
+/// TotalCount/PassedCount/... are written by this class alone. Hence the re-read AFTER each case
+/// rather than before: the object it returns becomes the `run` this method then mutates and
+/// persists, so both "should the next case run" and "will this write clobber an external one" are
+/// decided from the state as of the moment that case finished, not from the copy read at the very
+/// top and never refreshed. One read covers both questions, so no separate check is needed before
+/// it.
 /// </summary>
 public class AgentTestRunExecutor
 {

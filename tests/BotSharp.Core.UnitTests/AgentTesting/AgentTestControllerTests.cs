@@ -17,7 +17,6 @@ using BotSharp.Plugin.AgentTesting.Controllers;
 using BotSharp.Plugin.AgentTesting.Models;
 using BotSharp.Plugin.AgentTesting.Repositories;
 using BotSharp.Plugin.AgentTesting.Services;
-using BotSharp.Plugin.AgentTesting.Models;
 using Xunit;
 
 namespace BotSharp.Core.UnitTests.AgentTesting;

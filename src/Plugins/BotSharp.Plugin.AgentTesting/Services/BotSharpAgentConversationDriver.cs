@@ -8,18 +8,22 @@ using BotSharp.Plugin.AgentTesting.Runtime;
 namespace BotSharp.Plugin.AgentTesting.Services;
 
 /// <summary>
-/// 与真实 BotSharp 会话交互的那一层。没有单元测试——测它等于测 BotSharp 本身，
-/// 正确性靠 Task 10 的端到端冒烟验证。改动前务必对照 BotSharp 源码里的真实签名，
-/// 它们在版本之间变化过（这份实现是照 D:/mars.yu/projects/onebrain-agent-test/BotSharp
-/// 这份 sibling worktree 的源码核对的，不是照某份旧文档猜的）。
+/// The layer that talks to a real BotSharp conversation. Deliberately untested by unit tests --
+/// testing it would amount to testing BotSharp itself, and its correctness is established by the
+/// end-to-end smoke run instead. Before changing anything here, check the real signatures in the
+/// BotSharp source: they have changed between versions, and this implementation was written against
+/// the sibling worktree's source rather than from documentation.
 ///
-/// ct 的处理方式（fix round 1, Finding 1）：SendMessage / InvokeFunction 都没有自己的
-/// CancellationToken 形参，BotSharp 内部的路由/工具调用循环完全不理会取消。这里只在方法
-/// 入口做一次 ct.ThrowIfCancellationRequested() 快速失败（还没发出真实调用，没有孤儿风险），
-/// 绝不对返回的 Task 包一层 .WaitAsync(ct)——那样只会让"调用者不再等"和"调用真的停了"看起来
-/// 一样，而 AgentTestCaseRunner 需要拿到这里返回的原始 Task 本身，在超时发生时把它继续挂在
-/// 后台、等它真正跑完才摘注册表条目（不然 mock 接缝会在孤儿调用还在跑的时候消失，下一次工具
-/// 调用就落到真实实现上）。谁要在这两个方法里重新包一层 .WaitAsync，请先重读 Finding 1。
+/// How `ct` is handled: neither SendMessage nor InvokeFunction takes a CancellationToken, and
+/// BotSharp's internal routing/tool-invocation loop ignores cancellation entirely. So this only
+/// fails fast with a single ct.ThrowIfCancellationRequested() at method entry, before any real call
+/// has gone out and while there is therefore no orphan risk. It must never wrap the returned Task
+/// in .WaitAsync(ct): that would make "the caller stopped waiting" look identical to "the call
+/// actually stopped", and AgentTestCaseRunner needs the raw Task itself so that on a timeout it can
+/// keep it running in the background and only remove the registry entry once it truly finishes --
+/// otherwise the mock seam vanishes while an orphaned call is still running and its next tool call
+/// lands on the real implementation. Anyone about to add a .WaitAsync to these two methods should
+/// read this paragraph again first.
 /// </summary>
 public class BotSharpAgentConversationDriver : IAgentConversationDriver
 {

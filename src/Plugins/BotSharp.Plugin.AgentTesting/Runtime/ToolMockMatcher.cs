@@ -6,9 +6,10 @@ namespace BotSharp.Plugin.AgentTesting.Runtime;
 public static class ToolMockMatcher
 {
     /// <summary>
-    /// 选最具体的 mock：入参子集匹配 > 调用序号 > 仅函数名。
-    /// 入参 JSON 来自模型输出，可能不合法；这里一律降级到不带入参条件的 mock，绝不抛异常
-    /// （抛出会把用例记成基础设施 Error，掩盖真正的问题）。
+    /// Picks the most specific mock: argument-subset match beats call ordinal, which beats function
+    /// name alone. The argument JSON comes from model output and may be malformed; this always
+    /// degrades to a mock without argument conditions and never throws -- throwing would record the
+    /// case as an infrastructure Error and hide the real problem.
     /// </summary>
     public static TestToolMock? Match(
         IReadOnlyList<TestToolMock> mocks,
@@ -47,8 +48,9 @@ public static class ToolMockMatcher
     }
 
     /// <summary>
-    /// public：AssertionEvaluator 的 toolCalled 分支复用这里对"顶层重复键"的物化修复，
-    /// 而不是自己再写一个 JsonNode.Parse 包装（重复键的坑只该修一处）。
+    /// Public because AssertionEvaluator's toolCalled branch reuses the duplicate-top-level-key
+    /// materialisation fix below rather than writing its own JsonNode.Parse wrapper -- that trap
+    /// should be fixed in exactly one place.
     /// </summary>
     public static JsonObject? ParseOrNull(string? json)
     {
@@ -61,10 +63,11 @@ public static class ToolMockMatcher
         {
             var node = JsonNode.Parse(json) as JsonObject;
 
-            // JsonObject 的底层字典是惰性物化的：Parse 本身对重复顶层键不报错，
-            // 直到第一次访问（foreach/TryGetPropertyValue/索引器）才抛 ArgumentException。
-            // 这里主动强制物化一次，让"重复键"和"语法错误"在同一个 try 里被同样处理，
-            // 而不是把异常留给调用方在 IsSubset 里意外撞到。
+            // JsonObject materialises its backing dictionary lazily: Parse itself does not
+            // complain about duplicate top-level keys, and the ArgumentException only surfaces on
+            // first access (foreach/TryGetPropertyValue/indexer). Forcing materialisation here puts
+            // "duplicate keys" and "syntax error" through the same try block and the same handling,
+            // rather than leaving the exception for a caller to hit unexpectedly inside IsSubset.
             _ = node?.Count;
 
             return node;
@@ -79,7 +82,9 @@ public static class ToolMockMatcher
         }
     }
 
-    /// <summary>expected 的每个键都在 actual 中存在且值的文本表示相等。</summary>
+    /// <summary>
+    /// Every key in expected is present in actual, with an equal textual representation of the value.
+    /// </summary>
     public static bool IsSubset(JsonObject? expected, JsonObject actual)
     {
         if (expected == null)

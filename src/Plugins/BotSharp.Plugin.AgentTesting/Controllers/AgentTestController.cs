@@ -12,8 +12,9 @@ using BotSharp.Plugin.AgentTesting.Services;
 namespace BotSharp.Plugin.AgentTesting.Controllers;
 
 /// <summary>
-/// Suite/Case 的增删改查、触发一次 Run（异步，立即返回 runId）、查 Run 详情/取消、以及给
-/// 用例编辑器用的 mock 候选目标列表。全部字面绝对路由，全部要求登录。
+/// CRUD for suites and cases, triggering a run (asynchronous -- returns the runId immediately),
+/// reading or cancelling a run, and the mock-target candidate list the case editor needs. All
+/// literal absolute routes, all requiring authentication.
 /// </summary>
 [Authorize]
 [ApiController]
@@ -206,13 +207,17 @@ public class AgentTestController : ControllerBase
     }
 
     /// <summary>
-    /// 从一个真实会话录制一条草稿用例：真实的函数返回变成 mock、真实的 state 增量变成
-    /// StateWrites/InitialStates、稳定断言（toolCalled/stateEquals）自动建好——人不用再手写工单
-    /// agent 的 mock JSON。草稿落库为 Enabled = false，必须人工审阅后手动启用才会加入正式跑批。
+    /// Records a draft case from a real conversation: real function returns become mocks, real
+    /// state deltas become StateWrites/InitialStates, and the stable assertions
+    /// (toolCalled/stateEquals) are generated -- so nobody has to hand-write a work order agent's
+    /// mock JSON. The draft is stored with Enabled = false and has to be reviewed and enabled by
+    /// hand before it joins a real run.
     ///
-    /// [BotSharpAuth]：这条端点把一段真实会话的原始内容（可能含电话号码、地址、租户名等 PII）
-    /// 复制进测试用例存储，且 conversationId 来自调用方、不校验归属——是这整个功能面里 PII 越权
-    /// 风险最高的一条，收紧到管理员/root，而不是任何登录用户都能对任意会话调用。
+    /// [BotSharpAuth]: this endpoint copies the raw contents of a real conversation (potentially
+    /// phone numbers, addresses, tenant names) into the test store, and the conversationId comes
+    /// from the caller with no ownership check -- the highest PII-escalation risk on this whole
+    /// surface. Restricted to admin/root rather than any authenticated user being able to call it
+    /// against any conversation.
     /// </summary>
     [BotSharpAuth]
     [HttpPost("record")]
@@ -250,8 +255,9 @@ public class AgentTestController : ControllerBase
     }
 
     /// <summary>
-    /// [BotSharpAuth]：每次触发都会真的调用模型、花真实 token 配额，且没有任何用量限流——与
-    /// RecordCase 一样是成本越权面，收紧到管理员/root。
+    /// [BotSharpAuth]: every trigger really calls the model and really spends token quota, with no
+    /// usage throttling anywhere -- a cost-escalation surface just like RecordCase, so it is
+    /// restricted to admin/root.
     /// </summary>
     [BotSharpAuth]
     [HttpPost("suites/{id}/run")]
@@ -307,8 +313,8 @@ public class AgentTestController : ControllerBase
 
         await _repo.CreateRunAsync(run);
 
-        // 只管把 runId 丢进队列、立即返回——不等它跑完。真正的执行在
-        // AgentTestRunQueue 的后台循环里发生。
+        // Drop the runId on the queue and return immediately -- nothing waits for it here. The
+        // actual execution happens in AgentTestRunQueue's background loop.
         _queue.Enqueue(run.Id);
 
         return run;

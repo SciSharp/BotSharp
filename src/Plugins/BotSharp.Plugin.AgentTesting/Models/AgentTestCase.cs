@@ -8,21 +8,24 @@ public class AgentTestCase : MongoBase
     public string Name { get; set; } = default!;
     public bool Enabled { get; set; } = true;
 
-    /// <summary>长度 1 即单轮用例。</summary>
+    /// <summary>A length of 1 is a single-turn case.</summary>
     public List<TestTurn> Turns { get; set; } = [];
 
-    /// <summary>整案级断言：全部轮跑完后求值。</summary>
+    /// <summary>Case-level assertions, evaluated once every turn has run.</summary>
     public List<TestAssertion> Assertions { get; set; } = [];
 
-    /// <summary>会话开始前注入，映射 BotSharp 的 MessageState。</summary>
+    /// <summary>Injected before the conversation starts; maps to BotSharp's MessageState.</summary>
     public List<TestState> InitialStates { get; set; } = [];
 
     public List<TestToolMock> Mocks { get; set; } = [];
 
-    /// <summary>见 <see cref="UnmockedToolPolicies"/>。默认阻断，宁可用例失败也不真调工具。</summary>
+    /// <summary>
+    /// See <see cref="UnmockedToolPolicies"/>. Blocks by default: better a failing case than a
+    /// real tool call.
+    /// </summary>
     public string UnmockedToolPolicy { get; set; } = UnmockedToolPolicies.Block;
 
-    /// <summary>录制来源会话，便于回溯；手写用例为 null。</summary>
+    /// <summary>The conversation this was recorded from, for traceability; null when hand-written.</summary>
     public string? SourceConversationId { get; set; }
 
     public DateTime CreateDate { get; set; } = DateTime.UtcNow;
@@ -51,22 +54,26 @@ public class TestToolMock
 {
     public string FunctionName { get; set; } = default!;
 
-    /// <summary>可选：入参子集匹配，用于同名工具多次调用给不同返回。</summary>
+    /// <summary>
+    /// Optional argument-subset match, for giving different returns to repeated calls of the same
+    /// tool.
+    /// </summary>
     public string? ArgsMatchJson { get; set; }
 
-    /// <summary>可选：命中第 N 次调用（0 基）。</summary>
+    /// <summary>Optional: match only the Nth call (0-based).</summary>
     public int? CallIndex { get; set; }
 
-    /// <summary>假返回，写入 message.Content。</summary>
+    /// <summary>The faked return, written to message.Content.</summary>
     public string ResultContent { get; set; } = string.Empty;
 
-    /// <summary>模拟"中止本轮 LLM 续写"的真实行为。</summary>
+    /// <summary>Reproduces a real tool's "stop this turn's LLM completion" behaviour.</summary>
     public bool StopCompletion { get; set; }
 
     /// <summary>
-    /// mock 也要能写会话 state。大量 IFunctionCallback 不读 LLM 入参、完全靠
-    /// IConversationStateService 跨轮传数据（见 docs/Architectures/IFunctionCallback-full-detail-report.md），
-    /// 只 mock 返回值会让后续函数读不到 state 而全线崩。
+    /// A mock has to be able to write conversation state too. Plenty of IFunctionCallback
+    /// implementations ignore the LLM's arguments entirely and pass data across turns purely
+    /// through IConversationStateService, so mocking only the return value leaves every later
+    /// function unable to read what it expects and the whole case collapses.
     /// </summary>
     public List<TestState>? StateWrites { get; set; }
 }
@@ -77,19 +84,19 @@ public class TestAssertion
     /// <summary>outputContains|outputNotContains|outputRegex|toolCalled|toolNotCalled|stateEquals|routedToAgent|llmJudge</summary>
     public string Type { get; set; } = default!;
 
-    /// <summary>函数名 / state key / agent 名。</summary>
+    /// <summary>Function name / state key / agent name.</summary>
     public string? Target { get; set; }
 
-    /// <summary>期望值 / 正则 / 判官标准。</summary>
+    /// <summary>Expected value / regex / judging criteria.</summary>
     public string? Expected { get; set; }
 
-    /// <summary>toolCalled 的入参子集匹配。</summary>
+    /// <summary>Argument-subset match for toolCalled.</summary>
     public string? ArgsMatchJson { get; set; }
 
-    /// <summary>llmJudge 通过阈值。</summary>
+    /// <summary>Pass threshold for llmJudge.</summary>
     public double? MinScore { get; set; }
 
-    /// <summary>失败则中止该用例后续轮。</summary>
+    /// <summary>On failure, abort the remaining turns of this case.</summary>
     public bool Fatal { get; set; }
 }
 

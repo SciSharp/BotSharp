@@ -6,9 +6,10 @@ using Xunit;
 namespace BotSharp.Core.UnitTests.AgentTesting;
 
 /// <summary>
-/// 用例文档要能无损往返 BSON。这不是形式主义：mock 的假返回、断言的期望值都是用户输入的
-/// 任意字符串（含 JSON 片段），一旦某个字段被 Mongo 序列化器吞掉或改形，症状是"用例保存后
-/// 再打开变了个样"，而不是抛异常。
+/// A case document has to round-trip through BSON losslessly. Not ceremony: a mock's fake return and
+/// an assertion's expected value are arbitrary user-supplied strings, JSON fragments included, and
+/// if the Mongo serialiser swallows or reshapes one of those fields the symptom is "the case looks
+/// different after saving and reopening it", not an exception.
 /// </summary>
 public class AgentTestDocumentTests
 {
@@ -18,7 +19,9 @@ public class AgentTestDocumentTests
         var original = new AgentTestCase
         {
             SuiteId = "suite-1",
-            Name = "租户报修水槽漏水",
+            // Deliberately non-ASCII: this test exists to prove the Mongo serialiser does not
+            // swallow or reshape user-supplied text, and an all-ASCII fixture would not show that.
+            Name = "Tenant reports a leaking sink — ünïcode ✓",
             // UnmockedToolPolicies only ever has one member (Block) as of the P1 fix wave that
             // rejected Passthrough -- this round trip only cares that whatever string is stored
             // survives BSON serialization unchanged, so any non-default literal proves the point.
@@ -52,7 +55,7 @@ public class AgentTestDocumentTests
         var bson = original.ToBson();
         var restored = BsonSerializer.Deserialize<AgentTestCase>(bson);
 
-        Assert.Equal("租户报修水槽漏水", restored.Name);
+        Assert.Equal("Tenant reports a leaking sink — ünïcode ✓", restored.Name);
         Assert.Equal("SomeFutureNonDefaultPolicy", restored.UnmockedToolPolicy);
         var mock = Assert.Single(restored.Mocks);
         Assert.Equal("""{"woNum":"B9897413"}""", mock.ArgsMatchJson);
@@ -67,7 +70,8 @@ public class AgentTestDocumentTests
     [Fact]
     public void Optional_fields_survive_being_absent()
     {
-        // 手写/AI 生成的用例经常只填一部分字段，缺字段不能反序列化失败。
+        // Hand-written and AI-generated cases routinely fill in only some fields, and a missing one
+        // must not fail deserialisation.
         var minimal = new AgentTestCase { SuiteId = "s", Name = "n" };
 
         var restored = BsonSerializer.Deserialize<AgentTestCase>(minimal.ToBson());
@@ -75,6 +79,6 @@ public class AgentTestDocumentTests
         Assert.Empty(restored.Turns);
         Assert.Empty(restored.Mocks);
         Assert.Null(restored.SourceConversationId);
-        Assert.Equal(UnmockedToolPolicies.Block, restored.UnmockedToolPolicy);   // 默认必须是阻断
+        Assert.Equal(UnmockedToolPolicies.Block, restored.UnmockedToolPolicy);   // must default to Block
     }
 }

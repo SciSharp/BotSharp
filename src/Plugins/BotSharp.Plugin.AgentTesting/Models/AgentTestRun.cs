@@ -21,14 +21,15 @@ public class AgentTestRun : MongoBase
 {
     public string SuiteId { get; set; } = default!;
 
-    /// <summary>见 <see cref="AgentTestStatus"/>。</summary>
+    /// <summary>See <see cref="AgentTestStatus"/>.</summary>
     public string Status { get; set; } = AgentTestStatus.Pending;
 
     public string? TriggeredBy { get; set; }
 
     /// <summary>
-    /// 本次运行只跑这些 case id；null/空表示跑 Suite 下全部启用的 case（既有行为不变）。
-    /// 是"只重跑失败用例"这个核心场景的落地字段——Mongo 无 schema，不需要迁移。
+    /// Run only these case ids; null/empty means every enabled case in the suite (the original
+    /// behaviour). This is what makes "re-run just the failures" -- a core regression-harness
+    /// scenario -- possible. Mongo is schemaless, so no migration was needed to add it.
     /// </summary>
     public List<string>? CaseIds { get; set; }
 

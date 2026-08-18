@@ -120,13 +120,15 @@ public class AgentTestCaseRunner : ICaseRunner
         {
             await _driver.PrepareAsync(conversationId, suite.AgentId, testCase.InitialStates);
 
-            // 先证明接缝活着。接缝失效时 mock 静默无效、真实工具会被执行，
-            // 所以这一步必须在发出任何一句用户消息之前完成。
+            // Prove the seam is live first. A dead seam means mocking silently does nothing and
+            // real tools execute, so this has to happen before a single user message is sent.
             //
-            // 判据只取 driver 的返回值：真实 driver 是靠"canary 函数的返回内容是否被换成 'canary'"
-            // 得出这个 bool 的，而那个内容只有 MockFunctionExecutor 接管时才会出现。再叠一层
-            // active.CanaryIntercepted 检查看似更严，实际是把同一件事查两遍，还让假 driver 无法
-            // 单测编排逻辑（假 driver 拿不到 ActiveTestRun，永远设不上那个标志）。
+            // The verdict comes only from the driver's return value: the real driver derives that
+            // bool from whether the canary call's content was replaced with 'canary', and that
+            // content only ever appears when MockFunctionExecutor took over. Also checking
+            // active.CanaryIntercepted would look stricter but checks the same fact twice, and it
+            // would stop a fake driver from unit-testing the orchestration at all -- a fake driver
+            // has no ActiveTestRun and can never set that flag.
             if (!await AwaitOrHandOffAsync(_driver.RunCanaryAsync(conversationId, suite.AgentId, timeout.Token)))
             {
                 result.Status = AgentTestStatus.Error;
@@ -188,6 +190,8 @@ public class AgentTestCaseRunner : ICaseRunner
 
             result.ObservedToolCalls = active.ObservedCalls.ToList();
 
+            AddBlockedToolFailure(result);
+
             var allAssertions = result.Turns.SelectMany(t => t.Assertions).Concat(result.Assertions);
             result.Status = allAssertions.All(a => a.Passed) ? AgentTestStatus.Passed : AgentTestStatus.Failed;
         }
@@ -200,7 +204,8 @@ public class AgentTestCaseRunner : ICaseRunner
         // happened instead of a misleading "timed out".
         catch (OperationCanceledException) when (timeout.IsCancellationRequested && !ct.IsCancellationRequested)
         {
-            // 用例自己的超时，不是整个 Run 被取消。"跑不动"与"跑出来不对"必须区分。
+            // This case's own timeout, not a cancellation of the whole run. "Could not run" and
+            // "ran and came out wrong" have to stay distinguishable.
             result.Status = AgentTestStatus.Error;
             result.Error = $"the case timed out after {suite.CaseTimeoutSeconds}s";
             result.ObservedToolCalls = active.ObservedCalls.ToList();
@@ -223,8 +228,10 @@ public class AgentTestCaseRunner : ICaseRunner
         }
         finally
         {
-            // 泄漏一条注册记录，该 conversationId 之后所有工具调用都会被当成测试拦掉——除非一次
-            // 超时已经把摘除职责交给了上面的 ContinueWith，那种情况下这里绝不能提前摘除。
+            // Leaking a registry entry would mean every later tool call on that conversationId is
+            // still intercepted as a test -- unless a timeout already handed the removal to the
+            // ContinueWith above, in which case removing it here early is exactly what must not
+            // happen.
             if (!orphanHandedOff)
             {
                 _registry.Unregister(conversationId);
@@ -234,6 +241,53 @@ public class AgentTestCaseRunner : ICaseRunner
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// A blocked tool call fails the case, as a synthetic case-level assertion.
+    ///
+    /// Blocking is the mock seam working correctly -- the agent reached for a tool this case does
+    /// not mock, and executing it for real could have sent an email or created a work order. But
+    /// the block also truncates that turn (StopCompletion), so everything the agent would have done
+    /// afterwards never happened and every later assertion is evaluated against a conversation that
+    /// stopped early. Reporting Passed there is the "executed nothing, reports green" defect this
+    /// harness guards against everywhere else (a case with no turns, a dead canary, a CaseIds filter
+    /// that matched nothing).
+    ///
+    /// Modelled as an assertion rather than as result.Error so it renders in the ordinary assertion
+    /// table with expected/actual, and so the existing all-assertions-passed rule decides the status
+    /// with no special case. Error stays reserved for "the harness itself did not work", which is
+    /// the opposite of what happened here.
+    /// </summary>
+    private static void AddBlockedToolFailure(AgentTestCaseResult result)
+    {
+        var blocked = result.ObservedToolCalls
+            .Where(c => string.Equals(c.Outcome, "Blocked", StringComparison.Ordinal))
+            .ToList();
+
+        if (blocked.Count == 0)
+        {
+            return;
+        }
+
+        var named = string.Join(", ", blocked
+            .Select(c => $"{c.FunctionName} (turn {c.TurnIndex + 1})")
+            .Distinct(StringComparer.Ordinal));
+
+        result.Assertions.Add(new AssertionResult
+        {
+            Type = AssertionTypes.NoBlockedTools,
+            Target = null,
+            Expected = "every tool the agent calls is mocked by this case",
+            Actual = named,
+            Passed = false,
+            Message = blocked.Count == 1
+                ? "The agent called a tool this case does not mock, so it was blocked and the turn "
+                  + "stopped there. Add a mock for it, or change the case so the agent does not need it."
+                : $"The agent called {blocked.Count} tools this case does not mock, so they were "
+                  + "blocked and their turns stopped there. Add mocks for them, or change the case "
+                  + "so the agent does not need them."
+        });
     }
 
     private static HashSet<string> BuildAllowList(AgentTestSuite suite)

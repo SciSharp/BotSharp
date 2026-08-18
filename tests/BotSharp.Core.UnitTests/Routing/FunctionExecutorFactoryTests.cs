@@ -9,12 +9,15 @@ using Xunit;
 namespace BotSharp.Core.UnitTests.Routing;
 
 /// <summary>
-/// 这个工厂是全仓唯一决定"某个函数名由谁执行"的地方，因此也是唯一能把工具替换成假实现的地方。
-/// 它原本是 internal static，外部无法参与解析；测试集功能需要在测试会话里拦下真实工具，
-/// 否则跑一遍回归就会真发邮件、真建工单。
+/// This factory is the one place in the repo that decides who executes a given function name, and
+/// therefore the only place a tool can be swapped for a fake. It used to be internal static, so
+/// nothing outside could take part in resolution -- and the test-set feature has to intercept real
+/// tools inside a test conversation, or running the regression suite once really does send emails
+/// and really does create work orders.
 ///
-/// 这里同时钉住兼容性：没有 provider 注册时，解析结果必须与改动前一致——这是这次改动
-/// 敢动核心路径的前提，也是它唯一可能引入静默回归的地方。
+/// These tests also pin compatibility: with no provider registered, resolution must match the
+/// pre-change behaviour exactly. That is the premise on which touching this core path was
+/// acceptable at all, and the one way it could introduce a silent regression.
 /// </summary>
 public class FunctionExecutorFactoryTests
 {
@@ -85,7 +88,7 @@ public class FunctionExecutorFactoryTests
     [Fact]
     public void Falls_back_to_the_registered_callback_when_no_provider_claims_it()
     {
-        // 兼容性保护：这是改动前唯一的行为，必须原样保留。
+        // Compatibility guard: this was the only behaviour before the change, and must survive it.
         var factory = BuildFactory([new StubCallback("create_work_order")], []);
 
         var executor = factory.Create("create_work_order", new Agent());
@@ -98,7 +101,8 @@ public class FunctionExecutorFactoryTests
     {
         var early = new StubProvider(-100, "create_work_order");
         var late = new StubProvider(100, "create_work_order");
-        // 故意按"晚的先注册"的顺序放，确保排序不是靠注册顺序碰巧对的。
+        // Registered late-first on purpose, so a passing test proves the ordering is real rather
+        // than an accident of registration order.
         var factory = BuildFactory([], [late, early]);
 
         var executor = factory.Create("create_work_order", new Agent());

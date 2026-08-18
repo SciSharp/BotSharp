@@ -13,12 +13,21 @@ public static class AssertionTypes
     public const string StateEquals = "stateEquals";
     public const string RoutedToAgent = "routedToAgent";
     public const string LlmJudge = "llmJudge";
+
+    /// <summary>
+    /// Result-only. Never authored on a case and never evaluated -- AgentTestCaseRunner synthesises
+    /// it when the mock seam blocked a tool, so the block surfaces in the ordinary assertion table
+    /// instead of only in Observed Tool Calls. Deliberately absent from AssertionValidation's
+    /// Requirements map, which covers the eight authorable types.
+    /// </summary>
+    public const string NoBlockedTools = "noBlockedTools";
 }
 
 /// <summary>
-/// 一条断言的求值必须是纯函数：同样的 (assertion, context) 永远给出同样的
-/// AssertionResult，不做 I/O、不依赖任何服务。Runner（Task 7）按轮调一次，
-/// 整案断言跑完全部轮后再调一次——这正是它是"红绿灯"定义的原因：可复现、可解释。
+/// Evaluating an assertion is a pure function: the same (assertion, context) always yields the same
+/// AssertionResult, with no I/O and no service dependencies. The runner calls it once per turn, and
+/// again for case-level assertions after every turn has run. That purity is exactly what makes it
+/// usable as the pass/fail verdict -- reproducible and explainable.
 /// </summary>
 public static class AssertionEvaluator
 {
@@ -76,7 +85,8 @@ public static class AssertionEvaluator
                 }
                 catch (ArgumentException)
                 {
-                    // 正则是用户输入，写错是常态。判失败并说清原因，不要让整个用例记成基础设施错误。
+                    // The regex is user input and being malformed is routine. Fail the assertion
+                    // and say why, rather than recording the whole case as an infrastructure error.
                     result.Passed = false;
                     result.Message = $"invalid regular expression: {assertion.Expected}";
                 }
@@ -105,10 +115,12 @@ public static class AssertionEvaluator
                 }
                 else
                 {
-                    // ArgsMatchJson 来自测试作者，ArgsJson 来自模型输出——两边都可能是空白、
-                    // 语法非法，或语法合法但含顶层重复键（JsonObject 的字典是惰性物化的，
-                    // 直到 IsSubset 里第一次访问才抛 ArgumentException）。ParseOrNull 已经把
-                    // 这整套失败模式统一收敛成"返回 null"，这里不重新写一遍解析。
+                    // ArgsMatchJson comes from the test author and ArgsJson from model output --
+                    // either can be blank, syntactically invalid, or syntactically valid but with
+                    // duplicate top-level keys (JsonObject's dictionary materialises lazily, so the
+                    // ArgumentException only fires on first access inside IsSubset). ParseOrNull
+                    // already collapses that whole family of failures into "returns null", so the
+                    // parsing is not rewritten here.
                     var expected = ToolMockMatcher.ParseOrNull(assertion.ArgsMatchJson);
                     if (expected == null)
                     {
@@ -140,7 +152,8 @@ public static class AssertionEvaluator
                     break;
                 }
 
-                // 被阻断也算"调用过"——agent 确实想调它，这正是要抓的行为。
+                // A blocked call still counts as "called": the agent did try to call it, and that
+                // attempt is exactly the behaviour being asserted on.
                 var called = context.ToolCalls
                     .Any(c => string.Equals(c.FunctionName, assertion.Target, StringComparison.OrdinalIgnoreCase));
                 result.Passed = !called;
@@ -181,8 +194,9 @@ public static class AssertionEvaluator
                 break;
 
             case AssertionTypes.LlmJudge:
-                // P2 接 IInstructService 判官。P1 显式失败，绝不静默通过——
-                // 静默通过会让一条什么都没验证的用例显示为绿色。
+                // P2 will wire this to an IInstructService judge. P1 fails explicitly and never
+                // passes silently -- passing silently would show a case that verified nothing as
+                // green.
                 result.Passed = false;
                 result.Message = "llmJudge is not available in P1";
                 break;

@@ -3,8 +3,9 @@ using System.Collections.Concurrent;
 namespace BotSharp.Plugin.AgentTesting.Runtime;
 
 /// <summary>
-/// 一次正在执行的测试用例。按 conversationId 索引，因为测试上下文必须跨线程可靠——
-/// AsyncLocal 在后台队列/SideCar 边界会静默丢失，而丢失意味着真实工具被执行。
+/// One test case currently executing. Indexed by conversationId because the test context has to be
+/// reliable across threads: AsyncLocal is silently lost across a background-queue or SideCar
+/// boundary, and losing it means real tools get executed.
 /// </summary>
 public class ActiveTestRun
 {
@@ -28,13 +29,13 @@ public class ActiveTestRun
     public ISet<string> AllowedFunctions { get; set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     public ISet<string> ForceBlockedFunctions { get; set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>当前在跑第几轮，用于把工具调用归到轮上。</summary>
+    /// <summary>Which turn is currently running, so tool calls can be attributed to a turn.</summary>
     public int CurrentTurnIndex { get; set; }
 
     /// <summary>
-    /// canary 是否被接管过。运行期的判据不是这个标志，而是 canary 调用返回的内容
-    /// （见 AgentTestCaseRunner 里的说明）；这里留一个标志是为了能直接断言
-    /// MockFunctionExecutor 认得 canary 函数名。
+    /// Whether the canary was intercepted. At run time the verdict does NOT come from this flag but
+    /// from the content the canary call returns (see AgentTestCaseRunner); the flag exists so a test
+    /// can assert directly that MockFunctionExecutor recognises the canary function name.
     /// </summary>
     public bool CanaryIntercepted { get; set; }
 
@@ -51,7 +52,9 @@ public class ActiveTestRun
         lock (_observed) _observed.Add(call);
     }
 
-    /// <summary>同名函数第几次被调用（0 基），供 TestToolMock.CallIndex 匹配。</summary>
+    /// <summary>
+    /// Which call this is for a given function name (0-based), for matching TestToolMock.CallIndex.
+    /// </summary>
     public int NextCallOrdinal(string functionName)
         => _ordinals.AddOrUpdate(functionName, 0, (_, prev) => prev + 1);
 }
@@ -77,9 +80,11 @@ public class AgentTestRunRegistry : IAgentTestRunRegistry
 }
 
 /// <summary>
-/// 默认放行的控制流函数。**不要改成按 `util-` 前缀匹配**：`util-email-handle_email_sender`、
-/// `util-twilio-outbound_phone_call`、`util-twilio-text_message`、`util-http-handle_http_request`、
-/// `util-db-sql_select` 都是 `util-` 开头且有真副作用，按前缀放行等于测试跑一遍真发邮件真打电话。
+/// Control-flow functions allowed through by default. **Do not turn this into a `util-` prefix
+/// match**: `util-email-handle_email_sender`, `util-twilio-outbound_phone_call`,
+/// `util-twilio-text_message`, `util-http-handle_http_request` and `util-db-sql_select` all start
+/// with `util-` and all have real side effects. Allowing by prefix means one test run really sends
+/// the emails and really places the calls.
 /// </summary>
 public static class ControlFlowFunctions
 {
@@ -96,15 +101,18 @@ public static class ControlFlowFunctions
 public static class AgentTestCanary
 {
     /// <summary>
-    /// 运行器开跑前会调一次这个函数名验证接缝真的生效。若 BotSharp.Core 走的是没有
-    /// IFunctionExecutorProvider 支持的旧包，mock 会静默失效——canary 把它变成显式失败。
+    /// The runner calls this function name once before starting, to prove the seam is actually
+    /// live. If BotSharp.Core resolves to an older package without IFunctionExecutorProvider
+    /// support, mocking fails silently -- the canary turns that into an explicit failure.
     /// </summary>
     public const string FunctionName = "__agent_test_canary__";
 
     /// <summary>
-    /// 接管方（MockFunctionExecutor）写入、判定方（BotSharpAgentConversationDriver）比对的
-    /// 同一枚哨兵值——两处各存一份裸字面量 "canary" 是这条安全关键判定曾经存在的一处隐患
-    /// （即便跑偏也只会让每个用例都报 Error，不会静默放过，但仍然只该有一份定义）。
+    /// The one sentinel value written by the interceptor (MockFunctionExecutor) and compared by the
+    /// verifier (BotSharpAgentConversationDriver). Keeping a bare "canary" literal in both places
+    /// used to be a hazard in this safety-critical check -- drifting apart would only ever make
+    /// every case report Error rather than pass silently, but there should still be exactly one
+    /// definition.
     /// </summary>
     public const string ExpectedContent = "canary";
 }

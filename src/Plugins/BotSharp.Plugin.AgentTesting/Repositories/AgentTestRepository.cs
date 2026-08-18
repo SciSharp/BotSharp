@@ -3,9 +3,9 @@ using MongoDB.Driver;
 namespace BotSharp.Plugin.AgentTesting.Repositories;
 
 /// <summary>
-/// AgentTesting 四个文档类型（Suite/Case/Run/CaseResult）的 Mongo 仓储契约。
-/// 接口签名（尤其是哪几个参数是 string? 而不是 string）照 Task 8 brief Step 1 给的
-/// InMemoryRepo 假实现原样对齐——那份假实现就是这份接口的规范来源。
+/// The Mongo repository contract for this plugin's four document types (Suite/Case/Run/CaseResult).
+/// The signatures -- in particular which parameters are string? rather than string -- match the
+/// InMemoryRepo fake used by the tests, which is the specification this interface follows.
 /// </summary>
 public interface IAgentTestRepository
 {

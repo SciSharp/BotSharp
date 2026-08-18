@@ -6,9 +6,12 @@ using Xunit;
 namespace BotSharp.Core.UnitTests.AgentTesting;
 
 /// <summary>
-/// 断言求值是红绿灯的定义，必须纯函数、可穷举。这里逐类型钉住，包括几个容易写错的边界：
-/// 正则非法不能把用例炸成 Error（用户会写错正则）、toolCalled 的入参匹配是子集而非全等
-/// （否则用户得把模型传的每个参数都列全）、stateEquals 区分"值不等"和"key 根本不存在"。
+/// Assertion evaluation IS the pass/fail verdict, so it has to be pure and exhaustively testable.
+/// Pinned type by type, including the edges that are easy to get wrong: an invalid regex must not
+/// blow the case up into an Error (users do write bad regexes), toolCalled's argument matching is a
+/// subset rather than an exact match (otherwise the author would have to list every argument the
+/// model passes), and stateEquals distinguishes "the value differs" from "the key is not set at
+/// all".
 /// </summary>
 public class AssertionEvaluatorTests
 {
@@ -119,7 +122,8 @@ public class AssertionEvaluatorTests
     [Fact]
     public void Tool_not_called_counts_a_blocked_call_as_called()
     {
-        // 被阻断说明 agent 确实想调它，这正是 toolNotCalled 要抓的行为。
+        // Being blocked proves the agent did try to call it, which is precisely the behaviour
+        // toolNotCalled exists to catch.
         var result = AssertionEvaluator.Evaluate(
             new TestAssertion { Type = AssertionTypes.ToolNotCalled, Target = "send_text_message" },
             Context(calls: [new ObservedToolCall { FunctionName = "send_text_message", Outcome = "Blocked" }]));
@@ -169,7 +173,7 @@ public class AssertionEvaluatorTests
     public void Llm_judge_is_reported_as_unavailable_in_p1_rather_than_silently_passing()
     {
         var result = AssertionEvaluator.Evaluate(
-            new TestAssertion { Type = AssertionTypes.LlmJudge, Expected = "应先确认地址再报价", MinScore = 0.8 },
+            new TestAssertion { Type = AssertionTypes.LlmJudge, Expected = "confirms the address before quoting", MinScore = 0.8 },
             Context(output: "whatever"));
 
         Assert.False(result.Passed);
@@ -177,11 +181,13 @@ public class AssertionEvaluatorTests
     }
 
     /// <summary>
-    /// System.Text.Json.Nodes.JsonObject 的键值字典是惰性物化的：JsonNode.Parse 对顶层重复键
-    /// （"woNum" 出现两次）不报错，直到第一次访问（IsSubset 内部的 TryGetPropertyValue/foreach）
-    /// 才抛 ArgumentException。这里的 ArgsJson 是模型产出的实参，必须走
-    /// ToolMockMatcher.ParseOrNull（同 Task 5 里已经修过的那处），不能只捕获 JsonException——
-    /// 否则这条断言会把整个用例炸成基础设施 Error，而不是求值成一次普通的失败。
+    /// System.Text.Json.Nodes.JsonObject materialises its key/value dictionary lazily: JsonNode.Parse
+    /// does not complain about duplicate top-level keys ("woNum" appearing twice), and the
+    /// ArgumentException only fires on first access (TryGetPropertyValue/foreach inside IsSubset).
+    /// The ArgsJson here is the model's own arguments, so it has to go through
+    /// ToolMockMatcher.ParseOrNull -- catching JsonException alone is not enough, or this assertion
+    /// blows the whole case up into an infrastructure Error instead of evaluating to an ordinary
+    /// failure.
     /// </summary>
     [Fact]
     public void Tool_called_fails_instead_of_throwing_when_the_actual_args_have_a_duplicate_top_level_key()
@@ -209,11 +215,11 @@ public class AssertionEvaluatorTests
     }
 
     /// <summary>
-    /// 上一条回归测试只在 ArgsJson（模型产出的实参）那一侧压过重复键；ArgsMatchJson
-    /// （测试作者自己写的期望值）那一侧从未被覆盖。生产代码在两侧都调用
-    /// ToolMockMatcher.ParseOrNull（AssertionEvaluator.cs:93 和 :103），但如果未来有人把
-    /// ArgsMatchJson 那一侧改回不带防护的裸解析，之前的 13 个测试会全绿、毫无警觉——
-    /// 这里补上镜像的另一侧，把两侧都钉住。
+    /// The regression above only pressed duplicate keys on the ArgsJson side (the model's own
+    /// arguments); the ArgsMatchJson side (what the test author wrote) was never covered. Production
+    /// code calls ToolMockMatcher.ParseOrNull on both sides, but if someone later reverted the
+    /// ArgsMatchJson side to an unguarded parse, every earlier test here would stay green and say
+    /// nothing. This is the mirror case, so both sides are pinned.
     /// </summary>
     // ---- Fix wave: a blank/omitted required field must fail, never vacuously pass -----------
     // (outputContains/outputRegex/toolNotCalled/routedToAgent verified nothing without this;

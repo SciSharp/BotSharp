@@ -11,12 +11,14 @@ using Xunit;
 namespace BotSharp.Core.UnitTests.AgentTesting;
 
 /// <summary>
-/// provider 只做一件事：判断"当前这个会话是不是正在跑测试用例"，是则接管，否则完全放过。
+/// The provider does exactly one thing: decide whether the current conversation is running a test
+/// case, take over if it is, and pass through completely if it is not.
 ///
-/// 它按 conversationId 查注册表，而不是用 AsyncLocal。AsyncLocal 依赖 ExecutionContext 流动，
-/// 一旦某条执行路径经过后台队列或 SideCar 就会静默丢失——丢失的后果不是测试失败，而是未 mock
-/// 的工具被真实执行（真发电话、真建工单）。这几个测试钉住的就是"非测试会话一律不接管"和
-/// "测试会话一律接管"这两条边界。
+/// It looks the conversation up in the registry by conversationId rather than using AsyncLocal.
+/// AsyncLocal depends on ExecutionContext flowing, and is silently lost the moment an execution path
+/// crosses a background queue or SideCar -- and losing it does not produce a failing test, it
+/// produces unmocked tools executing for real: a real phone call, a real work order. These tests pin
+/// both edges: never take over a non-test conversation, always take over a test one.
 /// </summary>
 public class TestMockExecutorProviderTests
 {
@@ -69,7 +71,8 @@ public class TestMockExecutorProviderTests
     [Fact]
     public void Takes_over_an_unmocked_function_too_so_that_it_can_be_blocked()
     {
-        // 关键：未 mock 的函数也必须被接管，否则会落到内置链上真实执行。
+        // The crucial one: an unmocked function must be taken over too, or it falls through to the
+        // built-in chain and executes for real.
         var registry = new AgentTestRunRegistry();
         registry.Register(RunFor(TestConversation));
 
@@ -81,7 +84,8 @@ public class TestMockExecutorProviderTests
     [Fact]
     public void Leaves_control_flow_functions_to_the_real_implementation()
     {
-        // 阻断 route_to_agent 等于让 agent 走不动，用例永远跑不到断言。
+        // Blocking route_to_agent means the agent cannot move, and the case never reaches its
+        // assertions at all.
         var registry = new AgentTestRunRegistry();
         registry.Register(RunFor(TestConversation));
 
@@ -94,10 +98,11 @@ public class TestMockExecutorProviderTests
     [Fact]
     public void Takes_over_a_util_prefixed_function_that_is_not_control_flow()
     {
-        // 允许列表必须是精确的五个名字，不能退化成"util- 前缀一律放行"：
-        // util-twilio-outbound_phone_call 是真实打电话的函数，若判定改成前缀匹配，
-        // 这里会被误放行，测试跑一遍就真的拨出电话。这条断言在前缀规则下会失败
-        // （前缀匹配会让它命中 null，而正确实现必须接管/NotNull）。
+        // The allow list must be those exact five names and must never degrade into "anything
+        // prefixed util- passes". util-twilio-outbound_phone_call really places a phone call, so a
+        // prefix rule would wave it through and one test run would really dial out. This assertion
+        // fails under a prefix rule -- prefix matching would return null here, whereas the correct
+        // implementation has to take over.
         var registry = new AgentTestRunRegistry();
         registry.Register(RunFor(TestConversation));
 

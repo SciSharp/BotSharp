@@ -1,6 +1,9 @@
 namespace BotSharp.Plugin.AgentTesting.Services;
 
-/// <summary>断言求值的全部观测输入。轮级与整案级用同一个形状，只是填充范围不同。</summary>
+/// <summary>
+/// Everything an assertion is evaluated against. Turn-level and case-level share this shape and
+/// differ only in how much of it is populated.
+/// </summary>
 public class AssertionContext
 {
     public string? Output { get; set; }

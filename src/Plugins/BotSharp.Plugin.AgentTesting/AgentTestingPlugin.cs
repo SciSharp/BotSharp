@@ -41,10 +41,11 @@ public class AgentTestingPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        // 单例：测试上下文要跨请求/跨线程可见。
+        // Singleton: the test context has to be visible across requests and across threads.
         services.AddSingleton<IAgentTestRunRegistry, AgentTestRunRegistry>();
 
-        // 接管函数执行的接缝。若这一行丢了，mock 会静默失效——运行器的 canary 自检会兜住。
+        // The seam that takes over function execution. Lose this line and mocking silently stops
+        // working -- the runner's canary self-check is what catches that.
         services.AddScoped<IFunctionExecutorProvider, TestMockExecutorProvider>();
 
         // The model-override seam, which lets one run sweep the same agent across several models.
@@ -54,10 +55,10 @@ public class AgentTestingPlugin : IBotSharpPlugin
 
         services.AddScoped<IAgentConversationDriver, BotSharpAgentConversationDriver>();
 
-        // Task 8: AgentTestCaseRunner 现在按 ICaseRunner 接口注册（而不是原来的具体类型），
-        // 好让 AgentTestRunQueue 能在生产环境里把它换成一个"每次调用都开新 DI scope"的包装
-        // （见 AgentTestRunQueue.ScopedCaseRunner）——这条替换是本任务里唯一一处修改 Task 7
-        // 已有代码的地方，行为本身（多轮 + canary + 超时）完全不变。
+        // Registered by its ICaseRunner interface rather than its concrete type, so that
+        // AgentTestRunQueue can substitute a wrapper that opens a fresh DI scope per call in
+        // production (see AgentTestRunQueue.ScopedCaseRunner). The behaviour itself -- multi-turn,
+        // canary, timeout -- is unchanged by that substitution.
         services.AddScoped<ICaseRunner, AgentTestCaseRunner>();
 
         // The harness owns its four collections, so it also owns the Mongo connection to them.
@@ -77,10 +78,10 @@ public class AgentTestingPlugin : IBotSharpPlugin
         services.AddScoped<ICaseSegmenter, LlmCaseSegmenter>();
         services.AddScoped<AgentTestRecorder>();
 
-        // AgentTestRunQueue 既是单例又是 BackgroundService：三行都指向同一个实例（同一份
-        // Channel），仿照本仓库里 BotSharp.Plugin.WeChat 的 WeChatBackgroundService 那套写法
-        // （services.AddSingleton<T>() + AddHostedService(s => s.GetRequiredService<T>()) +
-        // 再按接口类型转发一次）。
+        // AgentTestRunQueue is both a singleton and a BackgroundService: all three lines point at
+        // the same instance, sharing one Channel. Same shape as WeChatBackgroundService elsewhere in
+        // this repo -- AddSingleton<T>(), AddHostedService forwarding to that same instance, then
+        // the interface type forwarding to it as well.
         services.AddSingleton<AgentTestRunQueue>();
         services.AddHostedService(s => s.GetRequiredService<AgentTestRunQueue>());
         services.AddSingleton<IAgentTestRunQueue>(s => s.GetRequiredService<AgentTestRunQueue>());

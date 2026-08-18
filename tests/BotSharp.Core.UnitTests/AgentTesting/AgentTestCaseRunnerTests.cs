@@ -14,10 +14,12 @@ using Xunit;
 namespace BotSharp.Core.UnitTests.AgentTesting;
 
 /// <summary>
-/// 运行器把一个用例变成一次真实会话。这里用假的 driver 单测编排逻辑本身：
-/// 多轮是否按序驱动、Fatal 断言是否真的中止后续轮、超时是否记 Error 而非 Failed、
-/// 以及最重要的 canary——如果接缝没生效（比如构建走了没打补丁的 BotSharp 包），
-/// 用例必须显式失败，而不是在真实工具上跑完并"通过"。
+/// The runner turns one case into one real conversation. A fake driver is used here to unit-test the
+/// orchestration itself: whether multiple turns are driven in order, whether a Fatal assertion really
+/// aborts the remaining turns, whether a timeout records Error rather than Failed, and most
+/// importantly the canary -- if the seam is not live (a build resolving an unpatched BotSharp
+/// package, say) the case has to fail explicitly instead of running against real tools and
+/// "passing".
 /// </summary>
 public class AgentTestCaseRunnerTests
 {
@@ -30,7 +32,8 @@ public class AgentTestCaseRunnerTests
         public string? RoutedAgent { get; set; }
         public TimeSpan SendDelay { get; set; } = TimeSpan.Zero;
 
-        // 供 Turns-为空 的守卫测试断言"接缝真的没被碰过"，不只是"没发出消息"。
+        // Lets the empty-Turns guard test assert that the seam was never touched at all, not merely
+        // that no message was sent.
         public bool PrepareCalled { get; private set; }
         public bool CanaryCalled { get; private set; }
 
@@ -56,9 +59,32 @@ public class AgentTestCaseRunnerTests
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Registry + tool names the seam should report as blocked on the first turn. The real
+        /// blocking happens inside MockFunctionExecutor, which no fake driver goes through, so the
+        /// observed call it would have recorded is reproduced here instead.
+        /// </summary>
+        public IAgentTestRunRegistry? Registry { get; set; }
+        public List<string> BlockedOnFirstSend { get; } = [];
+
         public async Task<string?> SendAsync(string conversationId, string agentId, string userMessage, CancellationToken ct)
         {
             Sent.Add(userMessage);
+
+            if (BlockedOnFirstSend.Count > 0 && Sent.Count == 1)
+            {
+                var active = Registry?.TryGet(conversationId);
+                foreach (var name in BlockedOnFirstSend)
+                {
+                    active?.Record(new ObservedToolCall
+                    {
+                        TurnIndex = active.CurrentTurnIndex,
+                        FunctionName = name,
+                        Outcome = "Blocked",
+                        ResultContent = $"[agent-test] blocked unmocked tool: {name}"
+                    });
+                }
+            }
 
             if (ThrowUnrelatedCancellation)
             {
@@ -116,6 +142,54 @@ public class AgentTestCaseRunnerTests
     };
 
     [Fact]
+    public async Task A_blocked_tool_fails_the_case_even_when_every_authored_assertion_passed()
+    {
+        // Blocking is the seam working: the agent reached for a tool this case does not mock, and
+        // running it for real could have sent an email. But the block also stops that turn, so the
+        // rest of the conversation never happened -- reporting Passed would be the same
+        // "executed nothing, reports green" defect the no-turns and canary guards exist to prevent.
+        var driver = new FakeDriver();
+        driver.Replies.Enqueue("ok");
+        var runner = Build(driver, out var registry);
+        driver.Registry = registry;
+        driver.BlockedOnFirstSend.Add("get_estimate_arrival_time");
+
+        var result = await runner.RunAsync(Suite(), new AgentTestCase
+        {
+            Id = "case-1",
+            Name = "no assertion covers the blocked tool",
+            Turns = [new TestTurn { Index = 0, UserMessage = "when is the tech arriving" }]
+        }, "run-1", model: null, CancellationToken.None);
+
+        Assert.Equal(AgentTestStatus.Failed, result.Status);
+
+        // Reported as an assertion so it lands in the ordinary results table, and as Failed rather
+        // than Error because the harness did exactly its job.
+        var blocked = Assert.Single(result.Assertions, a => a.Type == AssertionTypes.NoBlockedTools);
+        Assert.False(blocked.Passed);
+        Assert.Contains("get_estimate_arrival_time", blocked.Actual!);
+        Assert.Null(result.Error);
+    }
+
+    [Fact]
+    public async Task A_case_with_no_blocked_tools_gains_no_synthetic_assertion()
+    {
+        var driver = new FakeDriver();
+        driver.Replies.Enqueue("ok");
+        var runner = Build(driver, out _);
+
+        var result = await runner.RunAsync(Suite(), new AgentTestCase
+        {
+            Id = "case-1",
+            Name = "clean",
+            Turns = [new TestTurn { Index = 0, UserMessage = "hello" }]
+        }, "run-1", model: null, CancellationToken.None);
+
+        Assert.Equal(AgentTestStatus.Passed, result.Status);
+        Assert.DoesNotContain(result.Assertions, a => a.Type == AssertionTypes.NoBlockedTools);
+    }
+
+    [Fact]
     public async Task Drives_every_turn_in_order()
     {
         // Fix round 1, Finding 5: turns are enqueued OUT of index order (1 before 0) so that
@@ -147,7 +221,8 @@ public class AgentTestCaseRunnerTests
     [Fact]
     public async Task Fails_the_case_without_running_the_agent_when_the_seam_is_not_live()
     {
-        // 这是整个功能最危险的静默失败：接缝没生效 → mock 不起作用 → 真实工具被调用。
+        // The most dangerous silent failure in this whole feature: seam not live -> mocking does
+        // nothing -> real tools get called.
         var driver = new FakeDriver { CanaryResult = false };
         var runner = Build(driver, out _);
 
@@ -160,15 +235,16 @@ public class AgentTestCaseRunnerTests
 
         Assert.Equal(AgentTestStatus.Error, result.Status);
         Assert.Contains("mock seam", result.Error!);
-        Assert.Empty(driver.Sent);          // 一句话都不能发出去
+        Assert.Empty(driver.Sent);          // not a single message may go out
     }
 
     [Fact]
     public async Task A_case_with_no_turns_is_recorded_as_error_without_touching_the_driver()
     {
-        // Turns.SelectMany(...).Concat(...).All(a => a.Passed) 在空序列上恒真——一个一轮都没跑的用例
-        // 绝不能被判定为 Passed。这个检查必须挡在 canary 之前：既然一轮都不会跑，
-        // 就不该先去开一个会话再回头报错。
+        // Turns.SelectMany(...).Concat(...).All(a => a.Passed) is vacuously true on an empty
+        // sequence, and a case that ran no turns must never be reported as Passed. The check has to
+        // come before the canary: if no turn will run, no conversation should be opened only to
+        // report an error afterwards.
         var driver = new FakeDriver();
         var runner = Build(driver, out var registry);
 
@@ -449,7 +525,7 @@ public class AgentTestCaseRunnerTests
 
         Assert.NotNull(captured);
         Assert.Contains("util-db-sql_select", captured!.AllowedFunctions);
-        Assert.Contains("route_to_agent", captured.AllowedFunctions);       // 默认白名单仍在
+        Assert.Contains("route_to_agent", captured.AllowedFunctions);       // default allow list intact
         Assert.Contains("response_to_user", captured.ForceBlockedFunctions);
     }
 

@@ -45,17 +45,19 @@ public class ToolCallAction : IRuleAction
     {
         var funcName = context.Parameters.TryGetValue("function_name", out var fName) ? fName : null;
 
-        // 缺失/空白的 function_name 必须优雅失败——旧的 IsEqualTo 查找对 null 安全，只是匹配不到
-        // 任何 callback；一旦改走工厂，null 就会传到 IFunctionExecutorProvider.TryResolve 这个
-        // 按契约声明为非空 string 的形参上，某些实现（例如按名字做 Dictionary 查找的 mock/阻断
-        // provider）会直接抛 ArgumentNullException，而不是像原来一样返回 Success = false。
-        // 因此在碰工厂之前先挡掉。
+        // A missing/blank function_name has to fail gracefully. The old IsEqualTo lookup was
+        // null-safe -- it simply matched no callback. Going through the factory instead means null
+        // reaches IFunctionExecutorProvider.TryResolve, whose contract declares a non-null string,
+        // and some implementations (a mock/blocking provider doing a Dictionary lookup by name, for
+        // instance) would throw ArgumentNullException rather than returning Success = false the way
+        // this used to. So it is rejected before the factory is touched at all.
         string? canonicalName = null;
         IFunctionExecutor? executor = null;
         if (!string.IsNullOrWhiteSpace(funcName))
         {
-            // 只用注册的 callback 求"规范名"，保留原有的大小写不敏感语义；
-            // 真正的执行必须走工厂，否则 IFunctionExecutorProvider 在规则路径上被旁路。
+            // Registered callbacks are used only to resolve the CANONICAL name, preserving the
+            // original case-insensitive semantics; the execution itself must go through the factory,
+            // or IFunctionExecutorProvider is bypassed on the rule path.
             canonicalName = _services.GetServices<IFunctionCallback>()
                 .FirstOrDefault(x => x.Name.IsEqualTo(funcName))?.Name ?? funcName;
             executor = _services.GetRequiredService<IFunctionExecutorFactory>()

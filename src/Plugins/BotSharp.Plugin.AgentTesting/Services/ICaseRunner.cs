@@ -1,10 +1,11 @@
 namespace BotSharp.Plugin.AgentTesting.Services;
 
 /// <summary>
-/// 单用例运行器的接缝。抽出这一层是为了让 AgentTestRunExecutor 的编排逻辑
-/// （串行、单条崩溃不终止、取消及时生效）可以脱离真 BotSharp 单元测试——
-/// 也是为了让生产环境的实现可以按用例换成一个"每次调用都开新 DI scope"的包装，
-/// 而不必改变 AgentTestRunExecutor 的构造签名。
+/// The seam for running one case. Extracted so AgentTestRunExecutor's orchestration -- serial
+/// execution, one crashing case not aborting the run, cancellation taking effect promptly -- can be
+/// unit-tested without a real BotSharp, and so the production implementation can be swapped for a
+/// wrapper that opens a fresh DI scope per call without changing AgentTestRunExecutor's constructor
+/// signature.
 /// </summary>
 public interface ICaseRunner
 {
