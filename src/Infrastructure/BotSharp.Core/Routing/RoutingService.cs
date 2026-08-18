@@ -30,6 +30,11 @@ public partial class RoutingService : IRoutingService
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var storage = _services.GetRequiredService<IConversationStorage>();
+
+        // Must run before the message is persisted so the stored record matches InstructLoop:
+        // Content in English, the user's original text in SecondaryContent.
+        await TranslateInboundMessage(agent, message);
+
         await storage.Append(conv.ConversationId, message);
 
         dialogs.Add(message);
