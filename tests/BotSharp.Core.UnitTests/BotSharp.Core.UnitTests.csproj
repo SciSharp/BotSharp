@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -28,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
     <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core.Rules\BotSharp.Core.Rules.csproj" />
+    <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.AgentTesting\BotSharp.Plugin.AgentTesting.csproj" />
   </ItemGroup>
 
 </Project>
