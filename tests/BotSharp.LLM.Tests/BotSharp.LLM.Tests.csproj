@@ -26,6 +26,7 @@
       <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.GoogleAI\BotSharp.Plugin.GoogleAI.csproj" />
       <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.MiniMaxAI\BotSharp.Plugin.MiniMaxAI.csproj" />
       <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.OpenAI\BotSharp.Plugin.OpenAI.csproj" />
+      <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.LiteLLM\BotSharp.Plugin.LiteLLM.csproj" />
     </ItemGroup>
 
     <ItemGroup>
