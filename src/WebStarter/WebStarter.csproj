@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="$(SolutionName)==PizzaBot">
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
     <PackageReference Include="BotSharp.Logger" />
     <PackageReference Include="BotSharp.OpenAPI" />
     <PackageReference Include="BotSharp.Plugin.Dashboard" />
@@ -35,6 +36,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
     <ProjectReference Include="..\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ExcelHandler\BotSharp.Plugin.ExcelHandler.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.FuzzySharp\BotSharp.Plugin.FuzzySharp.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ImageHandler\BotSharp.Plugin.ImageHandler.csproj" />
@@ -46,7 +48,6 @@
   </ItemGroup>
   
   <ItemGroup Condition="$(SolutionName)==BotSharp">
-    <ProjectReference Include="..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Core.Realtime\BotSharp.Core.Realtime.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Core.Rules\BotSharp.Core.Rules.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Core.Crontab\BotSharp.Core.Crontab.csproj" />
