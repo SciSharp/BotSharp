@@ -82,6 +82,8 @@ public class AgentTestRunQueue : BackgroundService, IAgentTestRunQueue
             foreach (var run in runs)
             {
                 run.Status = AgentTestStatus.Error;
+                run.Error = "The host restarted while this run was still going, so it was abandoned. "
+                    + "The queue is in-process and does not survive a restart -- trigger the run again.";
                 run.CompletedAt = DateTime.UtcNow;
                 await repo.UpdateRunAsync(run);
                 _logger.LogWarning(
@@ -109,11 +111,16 @@ public class AgentTestRunQueue : BackgroundService, IAgentTestRunQueue
         catch (Exception ex)
         {
             _logger.LogError(ex, "Agent test run {RunId} crashed outside of case-level handling.", runId);
-            await TryMarkRunAsErrorAsync(runId);
+            await TryMarkRunAsErrorAsync(runId, ex.Message);
         }
     }
 
-    private async Task TryMarkRunAsErrorAsync(string runId)
+    /// <param name="reason">
+    /// Surfaced on the run itself. A crash outside case-level handling produces no case results at
+    /// all, so without this the API reports Error with an empty result list and the reason exists
+    /// only in this process's log.
+    /// </param>
+    private async Task TryMarkRunAsErrorAsync(string runId, string? reason = null)
     {
         try
         {
@@ -124,6 +131,9 @@ public class AgentTestRunQueue : BackgroundService, IAgentTestRunQueue
             if (run != null && run.Status != AgentTestStatus.Error)
             {
                 run.Status = AgentTestStatus.Error;
+                run.Error = string.IsNullOrWhiteSpace(reason)
+                    ? "The run crashed before it could record a result."
+                    : $"The run crashed before it could record a result: {reason}";
                 run.CompletedAt = DateTime.UtcNow;
                 await repo.UpdateRunAsync(run);
             }

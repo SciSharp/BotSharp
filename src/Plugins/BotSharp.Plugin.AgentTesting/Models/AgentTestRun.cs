@@ -45,6 +45,17 @@ public class AgentTestRun : MongoBase
     public int FailedCount { get; set; }
     public int ErrorCount { get; set; }
 
+    /// <summary>
+    /// Why a run ended as <see cref="AgentTestStatus.Error"/> -- an infrastructure stop that
+    /// happened before or instead of executing cases (suite gone, suite disabled, the CaseIds
+    /// filter matched nothing, the host died mid-run, an unhandled exception).
+    ///
+    /// Distinct from AgentTestCaseResult.Error, which explains one case. A run can fail with ZERO
+    /// case results, and until this field existed the reason lived only in the server log: the API
+    /// returned status=Error with 0/0/0/0 and an empty result list, so no UI could ever say why.
+    /// </summary>
+    public string? Error { get; set; }
+
     public bool CancelRequested { get; set; }
 
     public DateTime? StartedAt { get; set; }

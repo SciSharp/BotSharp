@@ -56,6 +56,7 @@ public class AgentTestRunExecutor
                 "Agent test run {RunId} references suite {SuiteId}, which no longer exists.",
                 runId, run.SuiteId);
             run.Status = AgentTestStatus.Error;
+            run.Error = $"The suite this run belongs to ({run.SuiteId}) no longer exists.";
             run.StartedAt ??= DateTime.UtcNow;
             run.CompletedAt = DateTime.UtcNow;
             await _repo.UpdateRunAsync(run);
@@ -73,6 +74,7 @@ public class AgentTestRunExecutor
                 "Agent test run {RunId} references suite {SuiteId}, which is disabled.",
                 runId, run.SuiteId);
             run.Status = AgentTestStatus.Error;
+            run.Error = "The suite was disabled after this run was queued, so nothing ran.";
             run.StartedAt ??= DateTime.UtcNow;
             run.CompletedAt = DateTime.UtcNow;
             await _repo.UpdateRunAsync(run);
@@ -102,6 +104,9 @@ public class AgentTestRunExecutor
                     + "of them matched an enabled case in suite {SuiteId}.",
                     runId, run.CaseIds.Count, run.SuiteId);
                 run.Status = AgentTestStatus.Error;
+                run.Error =
+                    $"None of the {run.CaseIds.Count} selected case(s) could run: each one is either "
+                    + "disabled or no longer in this suite. Enable them and run again.";
                 run.StartedAt ??= DateTime.UtcNow;
                 run.CompletedAt = DateTime.UtcNow;
                 await _repo.UpdateRunAsync(run);
