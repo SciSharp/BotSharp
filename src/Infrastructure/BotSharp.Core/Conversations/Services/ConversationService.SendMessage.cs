@@ -43,6 +43,11 @@ public partial class ConversationService
             message.Payload = replyMessage.Payload;
         }
 
+        // Handle multi-language for input. Runs ahead of the hooks so they evaluate English content,
+        // and covers both routing paths from a single place.
+        var isTranslated = await TranslateInboundMessage(agent, message);
+        var inboundContent = message.Content;
+
         var hooks = _services.GetHooksOrderByPriority<IConversationHook>(message.CurrentAgentId);
         foreach (var hook in hooks)
         {
@@ -65,6 +70,15 @@ public partial class ConversationService
                 await routing.Context.Pop();
                 break;
             }
+        }
+
+        // A hook may swap in its own reply (rate limit, intent template). The SecondaryContent set above
+        // still holds the user's original text, and consumers render SecondaryContent in preference to
+        // Content, so drop it - otherwise the user is shown their own message instead of the hook's
+        // reply. Gated on isTranslated so we only ever clear a SecondaryContent we set ourselves.
+        if (isTranslated && message.Content != inboundContent)
+        {
+            message.SecondaryContent = null;
         }
 
         if (!stopCompletion)
