@@ -23,9 +23,6 @@ public partial class RoutingService
 
         await _context.Push(_router.Id);
 
-        // Handle multi-language for input
-        await TranslateInboundMessage(_router, message);
-
         dialogs.Add(message);
         Context.SetDialogs(dialogs);
         await storage.Append(convService.ConversationId, message);

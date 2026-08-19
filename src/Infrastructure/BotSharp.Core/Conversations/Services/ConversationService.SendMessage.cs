@@ -43,6 +43,10 @@ public partial class ConversationService
             message.Payload = replyMessage.Payload;
         }
 
+        // Handle multi-language for input. Runs ahead of the hooks so they evaluate English content,
+        // and covers both routing paths from a single place.
+        await TranslateInboundMessage(agent, message);
+
         var hooks = _services.GetHooksOrderByPriority<IConversationHook>(message.CurrentAgentId);
         foreach (var hook in hooks)
         {
