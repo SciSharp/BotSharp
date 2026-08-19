@@ -54,6 +54,15 @@ public interface IConversationService
 
     Task<string> GetConversationSummary(ConversationSummaryModel model);
 
+    /// <summary>
+    /// Auto-compress a long conversation: summarize old turns, set a breakpoint so the LLM sees
+    /// [summary] + recent turns, and optionally archive the old raw dialogs out of the hot record.
+    /// No-op when auto-compression is disabled or the trigger threshold is not reached.
+    /// </summary>
+    /// <param name="conversationId"></param>
+    /// <returns>True when the conversation was compressed.</returns>
+    Task<bool> AutoCompressIfNeeded(string conversationId) => Task.FromResult(false);
+
     Task<Conversation> GetConversationRecordOrCreateNew(string agentId);
 
     bool IsConversationMode();

@@ -33,6 +33,7 @@ public partial class FileRepository : IBotSharpRepository
 
     private const string CONVERSATION_FILE = "conversation.json";
     private const string DIALOG_FILE = "dialogs.json";
+    private const string DIALOG_ARCHIVE_FOLDER = "archive";
     private const string STATE_FILE = "state.json";
     private const string BREAKPOINT_FILE = "breakpoint.json";
     private const string CONV_LATEST_STATE_FILE = "latest-state.json";
@@ -526,6 +527,14 @@ public partial class FileRepository : IBotSharpRepository
         {
             _logger.LogError(ex, "Error when loading template configs in {configFile}", configFile);
             return (configs, configFile);
+        }
+    }
+
+    private static void EnsureDirectory(string dir)
+    {
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
         }
     }
     #endregion
