@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Infrastructures.Attributes;
@@ -127,6 +129,11 @@ public class AgentTestController : ControllerBase
             return BadRequest("suiteId is required");
         }
 
+        if (await ValidateEntryAgentAsync(request) is { } entryAgentError)
+        {
+            return BadRequest(entryAgentError);
+        }
+
         if (ValidateCasePayload(request) is { } validationError)
         {
             return BadRequest(validationError);
@@ -166,6 +173,11 @@ public class AgentTestController : ControllerBase
             return NotFound($"agent test case {id} not found");
         }
 
+        if (await ValidateEntryAgentAsync(request) is { } entryAgentError)
+        {
+            return BadRequest(entryAgentError);
+        }
+
         if (ValidateCasePayload(request) is { } validationError)
         {
             return BadRequest(validationError);
@@ -191,6 +203,157 @@ public class AgentTestController : ControllerBase
 
         await _repo.UpsertCaseAsync(testCase);
         return testCase;
+    }
+
+    /// <summary>
+    /// Duplicates a case inside its own suite and returns the copy.
+    ///
+    /// Server-side rather than a client GET-then-POST because the copy has to carry EVERY field the
+    /// case has. A client that rebuilds the payload from its own form drops whatever it does not know
+    /// about, and a copy missing its mocks is indistinguishable in the list from a correct one --
+    /// right up to the run where it blocks every tool the agent reaches for.
+    ///
+    /// Not cross-suite on purpose: moving a case between suites also changes which agent it runs
+    /// against, so the copy would need a different entry agent and different mock targets to mean
+    /// anything. That is an edit, not a copy.
+    /// </summary>
+    /// <summary>
+    /// Which cases a change needs to run, and -- just as importantly -- which it does not, with the
+    /// reason for each.
+    ///
+    /// Read-only and side-effect free: it plans a run, it does not start one. Triggering stays
+    /// per-suite (POST suites/{id}/run), so a caller takes the included case ids from here and
+    /// triggers each suite that appears among them.
+    /// </summary>
+    [HttpPost("scope")]
+    public async Task<ActionResult<ScopeSelectionResponse>> SelectScope([FromBody] ScopeSelectionRequest request)
+    {
+        request ??= new ScopeSelectionRequest();
+
+        if (request.Batch is { } batch && !CaseBatches.All.Contains(batch))
+        {
+            return BadRequest($"batch must be one of {string.Join(", ", CaseBatches.All)}, not {batch}");
+        }
+
+        var targets = (request.TargetAgentIds ?? [])
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        // Naming no agents and not declaring a platform-wide change would narrow to nothing at all,
+        // and an empty scope reported as a successful plan is the single most dangerous answer this
+        // endpoint could give.
+        if (targets.Count == 0 && !request.FullPlatform)
+        {
+            return BadRequest(
+                "name at least one target agent, or set fullPlatform for a change with no single target");
+        }
+
+        var query = new ScopeQuery
+        {
+            TargetAgentIds = targets,
+            FullPlatform = request.FullPlatform,
+            Batch = request.Batch
+        };
+
+        var response = new ScopeSelectionResponse
+        {
+            TargetAgentIds = targets,
+            FullPlatform = request.FullPlatform,
+            Batch = request.Batch
+        };
+
+        foreach (var suite in await _repo.ListSuitesAsync(null))
+        {
+            foreach (var testCase in await _repo.ListCasesAsync(suite.Id))
+            {
+                var decision = CaseScope.Decide(testCase, suite.AgentId, query);
+                var dto = new ScopedCaseDto
+                {
+                    CaseId = testCase.Id,
+                    CaseName = testCase.Name,
+                    SuiteId = suite.Id,
+                    SuiteName = suite.Name,
+                    CaseType = testCase.CaseType,
+                    Priority = testCase.Priority,
+                    Severity = testCase.Severity,
+                    CrossCutting = testCase.CrossCutting,
+                    Enabled = testCase.Enabled,
+                    Batch = decision.Batch,
+                    InvolvedAgentIds = decision.InvolvedAgentIds.ToList(),
+                    Reason = decision.Reason
+                };
+
+                response.TotalCases++;
+                (decision.Included ? response.Included : response.Excluded).Add(dto);
+            }
+        }
+
+        return response;
+    }
+
+    [HttpPost("cases/{id}/copy")]
+    public async Task<ActionResult<AgentTestCase>> CopyCase(string id)
+    {
+        var source = await _repo.GetCaseAsync(id);
+        if (source == null)
+        {
+            return NotFound($"agent test case {id} not found");
+        }
+
+        // Cloned by a BSON round trip rather than field by field. A hand-written clone has exactly
+        // the drift problem this endpoint exists to prevent: the next field added to AgentTestCase
+        // would be silently absent from every copy, and nothing would fail until a run.
+        var copy = BsonSerializer.Deserialize<AgentTestCase>(source.ToBsonDocument());
+
+        // Blank so UpsertCaseAsync mints a new one -- the round trip copied the source's _id, and
+        // keeping it would make the "copy" a full overwrite of the original.
+        copy.Id = string.Empty;
+
+        var siblings = await _repo.ListCasesAsync(source.SuiteId);
+        copy.Name = NextCopyName(source.Name, siblings.Select(c => c.Name));
+
+        // Disabled regardless of the source. An exact duplicate that joins the next run measures the
+        // same thing twice: it pads the pass-rate denominator, and for a routing case it
+        // double-weights one routing decision. A copy is made in order to be edited into a variant,
+        // so it waits for that edit -- the same reason a recorded draft lands disabled.
+        copy.Enabled = false;
+
+        // The round trip also copied CreateDate, which would have the copy claim to be as old as the
+        // case it came from. UpdateDate is set by the repository on write.
+        copy.CreateDate = DateTime.UtcNow;
+
+        await _repo.UpsertCaseAsync(copy);
+        return copy;
+    }
+
+    /// <summary>
+    /// "x" becomes "x (copy)", then "x (copy 2)", "x (copy 3)". Names are not unique in this store,
+    /// so this is presentation rather than a constraint -- but two rows both called "x (copy)" are
+    /// impossible to tell apart in the list, which is the one place copies are managed.
+    ///
+    /// Capped at the length the case editor's own input accepts, so the copy stays editable: a name
+    /// the form cannot hold would have to be trimmed by hand before any other change could be saved.
+    /// </summary>
+    private static string NextCopyName(string name, IEnumerable<string> existing)
+    {
+        const int maxNameLength = 200;
+
+        var taken = new HashSet<string>(existing, StringComparer.OrdinalIgnoreCase);
+
+        for (var attempt = 1; ; attempt++)
+        {
+            var suffix = attempt == 1 ? " (copy)" : $" (copy {attempt})";
+            var room = maxNameLength - suffix.Length;
+            var stem = name.Length > room ? name[..room] : name;
+            var candidate = stem + suffix;
+
+            if (!taken.Contains(candidate))
+            {
+                return candidate;
+            }
+        }
     }
 
     [HttpDelete("cases/{id}")]
@@ -443,12 +606,47 @@ public class AgentTestController : ControllerBase
         testCase.SuiteId = request.SuiteId;
         testCase.Name = request.Name;
         testCase.Enabled = request.Enabled;
+        // Normalised, not taken verbatim: ValidateCasePayload has already rejected anything that is
+        // neither blank nor a known type, so this only fixes casing ("routing" -> "Routing") and
+        // maps blank onto the default. Storing the caller's casing would break every later
+        // Ordinal comparison against CaseTypes.Routing.
+        testCase.CaseType = CaseTypes.Normalize(request.CaseType) ?? CaseTypes.Agent;
+        testCase.EntryAgentId = string.IsNullOrWhiteSpace(request.EntryAgentId) ? null : request.EntryAgentId.Trim();
         testCase.Turns = request.Turns ?? [];
         testCase.Assertions = request.Assertions ?? [];
         testCase.InitialStates = request.InitialStates ?? [];
+        testCase.History = (request.History ?? [])
+            .Select(m => new TestHistoryMessage
+            {
+                // Normalised for the same reason CaseType is: the driver and every later comparison
+                // use the canonical lowercase constants.
+                Role = HistoryRoles.Normalize(m.Role) ?? HistoryRoles.User,
+                Content = m.Content ?? string.Empty
+            })
+            .ToList();
         testCase.Mocks = request.Mocks ?? [];
         testCase.UnmockedToolPolicy = request.UnmockedToolPolicy;
         testCase.SourceConversationId = request.SourceConversationId;
+
+        // Normalised, not verbatim: validation has already rejected anything unrecognised, so this
+        // only fixes casing. Storing "p0" would leave a case that never matches an Ordinal comparison
+        // against CasePriorities.P0 -- it would run, and then be filed in the wrong batch.
+        testCase.Priority = CasePriorities.Normalize(request.Priority) ?? CasePriorities.P1;
+        testCase.Severity = CaseSeverities.Normalize(request.Severity) ?? CaseSeverities.S1;
+        testCase.Batch = request.Batch;
+        testCase.CrossCutting = request.CrossCutting;
+        testCase.InvolvedAgents = (request.InvolvedAgents ?? [])
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        testCase.BusinessDomain = string.IsNullOrWhiteSpace(request.BusinessDomain)
+            ? null
+            : request.BusinessDomain.Trim();
+        testCase.ExpectedOutcome = string.IsNullOrWhiteSpace(request.ExpectedOutcome)
+            ? null
+            : request.ExpectedOutcome.Trim();
+        testCase.LastReviewedDate = request.LastReviewedDate;
     }
 
     /// <summary>
@@ -462,9 +660,51 @@ public class AgentTestController : ControllerBase
             return "Passthrough is not supported in P1";
         }
 
+        var caseType = CaseTypes.Normalize(request.CaseType);
+        if (caseType == null && !string.IsNullOrWhiteSpace(request.CaseType))
+        {
+            return $"caseType must be one of {string.Join(", ", CaseTypes.All)}, not '{request.CaseType}'";
+        }
+
+        if (CasePriorities.Normalize(request.Priority) == null && !string.IsNullOrWhiteSpace(request.Priority))
+        {
+            return $"priority must be one of {string.Join(", ", CasePriorities.All)}, not '{request.Priority}'";
+        }
+
+        if (CaseSeverities.Normalize(request.Severity) == null && !string.IsNullOrWhiteSpace(request.Severity))
+        {
+            return $"severity must be one of {string.Join(", ", CaseSeverities.All)}, not '{request.Severity}'";
+        }
+
+        // Rejected rather than clamped: a batch of 4 is a mistake, and silently filing the case in
+        // batch 3 would leave the author believing it runs somewhere it does not.
+        if (request.Batch is { } batch && !CaseBatches.All.Contains(batch))
+        {
+            return $"batch must be one of {string.Join(", ", CaseBatches.All)}, not {batch}";
+        }
+
+        foreach (var (message, index) in (request.History ?? []).Select((m, i) => (m, i)))
+        {
+            if (HistoryRoles.Normalize(message?.Role) == null)
+            {
+                return $"history message {index + 1} has role '{message?.Role}'; only "
+                     + $"{string.Join(" and ", HistoryRoles.All)} are supported";
+            }
+
+            // An empty message is dropped by BotSharp's own dialog storage (ConversationStorage
+            // skips elements with blank content), so it would silently not be there at run time --
+            // and the runner's count check would then fail the whole case with a confusing message
+            // about the write having vanished.
+            if (string.IsNullOrWhiteSpace(message!.Content))
+            {
+                return $"history message {index + 1} has no content";
+            }
+        }
+
         var allAssertions = (request.Turns ?? [])
             .SelectMany(t => t.Assertions ?? [])
-            .Concat(request.Assertions ?? []);
+            .Concat(request.Assertions ?? [])
+            .ToList();
 
         foreach (var assertion in allAssertions)
         {
@@ -475,7 +715,75 @@ public class AgentTestController : ControllerBase
             }
         }
 
+        return ValidateRoutingCase(caseType ?? CaseTypes.Agent, request, allAssertions);
+    }
+
+    /// <summary>
+    /// The extra rules a Routing case has to satisfy. A Routing case is not a label -- it is the only
+    /// type counted towards a run's routing accuracy, so one that cannot actually establish a routing
+    /// outcome would quietly move that figure without measuring anything.
+    ///
+    /// Enforced at save time for the same reason AssertionValidation is: the alternative is a case
+    /// that saves cleanly and then reports a meaningless green every run.
+    /// </summary>
+    private static string? ValidateRoutingCase(
+        string caseType, AgentTestCaseUpsertRequest request, List<TestAssertion> allAssertions)
+    {
+        if (!string.Equals(caseType, CaseTypes.Routing, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        // Routing is a single-turn question: which agent picks this message up. A second turn is
+        // either a different question (making it an Agent case) or an accident, and either way its
+        // result would be counted as routing accuracy.
+        //
+        // Authored History is not a turn and is deliberately not counted here: replaying a prior
+        // exchange and then asking one question is still a single routing decision, and it is the
+        // most realistic way to test routing that depends on context.
+        if ((request.Turns ?? []).Count != 1)
+        {
+            return "a Routing case must have exactly one turn; use an Agent case for a multi-turn case";
+        }
+
+        // Without one of these the case asserts nothing about routing, yet still counts towards
+        // routing accuracy -- it would report Passed for having successfully said anything at all.
+        var assertsRouting = allAssertions.Any(a =>
+            string.Equals(a.Type, AssertionTypes.RoutedToAgent, StringComparison.Ordinal)
+            || string.Equals(a.Type, AssertionTypes.AgentChain, StringComparison.Ordinal));
+        if (!assertsRouting)
+        {
+            return $"a Routing case needs at least one '{AssertionTypes.RoutedToAgent}' or "
+                 + $"'{AssertionTypes.AgentChain}' assertion, otherwise it verifies no routing outcome";
+        }
+
+        // The framework this implements scores routing purely as expected-agent == actual-agent and
+        // deliberately applies no quality judgement to it. An llmJudge here would also make the
+        // routing figure depend on a vendor call, so a vendor outage would read as a routing
+        // regression.
+        if (allAssertions.Any(a => string.Equals(a.Type, AssertionTypes.LlmJudge, StringComparison.Ordinal)))
+        {
+            return $"a Routing case cannot use '{AssertionTypes.LlmJudge}': routing is judged only by "
+                 + "which agent handled the conversation";
+        }
+
         return null;
+    }
+
+    /// <summary>
+    /// Null when the request's entry agent is usable. Separate from
+    /// <see cref="ValidateCasePayload"/> because it needs IAgentService, so it cannot be static, and
+    /// a lookup is worth doing only once the cheap checks have passed.
+    /// </summary>
+    private async Task<string?> ValidateEntryAgentAsync(AgentTestCaseUpsertRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.EntryAgentId))
+        {
+            return null;
+        }
+
+        var agent = await _agents.GetAgent(request.EntryAgentId.Trim());
+        return agent == null ? $"entry agent {request.EntryAgentId} not found" : null;
     }
 
     /// <summary>

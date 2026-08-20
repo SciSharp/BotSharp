@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
@@ -36,6 +37,9 @@ public class BotSharpAgentConversationDriver : IAgentConversationDriver
     // Set at most once per instance: this driver is scoped per-case (a fresh DI scope per case,
     // see AgentTestRunQueue.ScopedCaseRunner), so exactly one conversation ever passes through it.
     private bool _conversationTagged;
+
+    /// <summary>See <see cref="ResolveAgentNameAsync"/>. Scoped to one case, like the driver itself.</summary>
+    private readonly Dictionary<string, string> _agentNameCache = new(StringComparer.Ordinal);
 
     public BotSharpAgentConversationDriver(
         IConversationService conversations,
@@ -76,6 +80,50 @@ public class BotSharpAgentConversationDriver : IAgentConversationDriver
             .ToList();
 
         await _conversations.SetConversationId(conversationId, states);
+    }
+
+    public async Task<int> InjectHistoryAsync(
+        string conversationId, string agentId, IReadOnlyList<TestHistoryMessage> history)
+    {
+        if (history.Count == 0)
+        {
+            return 0;
+        }
+
+        // The conversation's dialog document has to exist before AppendConversationDialogs can push
+        // into it -- see the interface note. Created through the same call SendMessage itself uses,
+        // so the row a history-bearing case runs against is identical to the row it would have got
+        // anyway, rather than one this method invented.
+        await _conversations.GetConversationRecordOrCreateNew(agentId);
+
+        var elements = history
+            .Select(message => new DialogElement
+            {
+                MetaData = new DialogMetaData
+                {
+                    // Already normalised and rejected at save time; falling back to user here just
+                    // avoids writing a role BotSharp would not recognise if that ever slipped through.
+                    Role = HistoryRoles.Normalize(message.Role) ?? AgentRole.User,
+                    AgentId = agentId,
+                    MessageId = Guid.NewGuid().ToString(),
+                    MessageType = MessageTypeName.Plain,
+                    CreatedTime = DateTime.UtcNow
+                },
+                Content = message.Content
+            })
+            .ToList();
+
+        await _repository.AppendConversationDialogs(conversationId, elements);
+
+        // Read back and count only the messages this call generated, matched by their own message
+        // ids. Counting every dialog in the conversation would also count anything else that got
+        // there, which is exactly the confusion this verification exists to avoid.
+        var written = elements
+            .Select(e => e.MetaData!.MessageId)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var stored = await _repository.GetConversationDialogs(conversationId);
+        return stored.Count(d => d.MetaData?.MessageId != null && written.Contains(d.MetaData.MessageId));
     }
 
     public async Task<string?> SendAsync(string conversationId, string agentId, string userMessage, CancellationToken ct)
@@ -181,18 +229,70 @@ public class BotSharpAgentConversationDriver : IAgentConversationDriver
         return Task.FromResult<IReadOnlyDictionary<string, string?>>(result);
     }
 
-    public async Task<string?> ReadRoutedAgentNameAsync(string conversationId)
+    public async Task<IReadOnlyList<AgentChainHop>> ReadAssistantAgentSequenceAsync(string conversationId)
     {
         var dialogs = await _repository.GetConversationDialogs(conversationId);
-        var lastAssistantDialog = dialogs.LastOrDefault(d => d.MetaData?.Role == AgentRole.Assistant);
 
-        var agentId = lastAssistantDialog?.MetaData?.AgentId;
-        if (string.IsNullOrEmpty(agentId))
+        var sequence = new List<AgentChainHop>();
+        foreach (var dialog in dialogs)
         {
-            return null;
+            if (dialog.MetaData?.Role != AgentRole.Assistant)
+            {
+                continue;
+            }
+
+            var agentId = dialog.MetaData?.AgentId;
+            if (string.IsNullOrEmpty(agentId))
+            {
+                // An assistant message with no agent attribution cannot be placed in the chain.
+                // Skipped rather than recorded as a blank hop, which would make an agentChain
+                // assertion fail for a reason the author has no way to act on.
+                continue;
+            }
+
+            sequence.Add(new AgentChainHop
+            {
+                Id = agentId,
+                Name = await ResolveAgentNameAsync(agentId)
+            });
         }
 
-        var agent = await _agents.GetAgent(agentId);
-        return agent?.Name;
+        return sequence;
+    }
+
+    /// <summary>
+    /// Agent id to display name, cached for the lifetime of this driver -- which is one case, since
+    /// the driver is resolved from the per-case DI scope AgentTestRunQueue.ScopedCaseRunner opens.
+    /// The chain is re-read after every turn and a long conversation revisits the same few agents
+    /// many times, so without the cache one case would issue GetAgent once per assistant message per
+    /// turn.
+    ///
+    /// Falls back to the id when the agent cannot be loaded (deleted since the conversation ran, or
+    /// a permission-scoped lookup): a chain entry that names something is far more actionable than a
+    /// silently dropped hop, and an assertion against it fails with a message the author can read.
+    /// </summary>
+    private async Task<string> ResolveAgentNameAsync(string agentId)
+    {
+        if (_agentNameCache.TryGetValue(agentId, out var cached))
+        {
+            return cached;
+        }
+
+        string name;
+        try
+        {
+            var agent = await _agents.GetAgent(agentId);
+            name = string.IsNullOrWhiteSpace(agent?.Name) ? agentId : agent!.Name;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Could not resolve agent {AgentId} while building an agent test chain; using the id.",
+                agentId);
+            name = agentId;
+        }
+
+        _agentNameCache[agentId] = name;
+        return name;
     }
 }

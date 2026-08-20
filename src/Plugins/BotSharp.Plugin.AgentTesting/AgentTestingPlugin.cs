@@ -44,6 +44,13 @@ public class AgentTestingPlugin : IBotSharpPlugin
         // Singleton: the test context has to be visible across requests and across threads.
         services.AddSingleton<IAgentTestRunRegistry, AgentTestRunRegistry>();
 
+        // Lets BotSharp's own rate limiting recognise a harness conversation and stand aside. Backed
+        // by the registry rather than by the conversation's "test-set" tag on purpose: the tag is
+        // only written once the conversation row exists, which is after the first message has already
+        // been through the rate limit hook, so a tag-based check would still block the first turn of
+        // every case. The registry entry exists before the conversation is opened at all.
+        services.AddSingleton<ISyntheticConversationProbe, AgentTestSyntheticConversationProbe>();
+
         // The seam that takes over function execution. Lose this line and mocking silently stops
         // working -- the runner's canary self-check is what catches that.
         services.AddScoped<IFunctionExecutorProvider, TestMockExecutorProvider>();
@@ -76,6 +83,10 @@ public class AgentTestingPlugin : IBotSharpPlugin
         // AgentTestController, so it needs an explicit registration the same way every other
         // service in this method does (there is no auto-discovery mechanism in this plugin).
         services.AddScoped<ICaseSegmenter, LlmCaseSegmenter>();
+
+        // Scoped, like the segmenter: it resolves IChatCompletion implementations out of the same
+        // scope and holds no state between calls.
+        services.AddScoped<IAgentTestJudge, LlmAgentTestJudge>();
         services.AddScoped<AgentTestRecorder>();
 
         // AgentTestRunQueue is both a singleton and a BackgroundService: all three lines point at

@@ -41,6 +41,19 @@ public class RateLimitConversationHook : ConversationHookBase
             return;
         }
 
+        // Everything below this point is a volume guard against human overuse, and neither guard
+        // measures anything meaningful for an automated harness: a regression suite legitimately
+        // opens one conversation per case per model and drives its turns as fast as the model
+        // answers. Left in force they fail every test with a message about quotas, which says nothing
+        // about the agent under test and reads, in a report, exactly like the agent having regressed.
+        //
+        // The input length check above still applies. That one is about a single message being too
+        // large, which is a real condition a test should surface rather than be excused from.
+        if (IsSyntheticConversation())
+        {
+            return;
+        }
+
         // Check message sending frequency
         var userSents = Dialogs.Where(x => x.Role == AgentRole.User)
             .TakeLast(2).ToList();
@@ -74,5 +87,46 @@ public class RateLimitConversationHook : ConversationHookBase
                 return;
             }
         }
+    }
+
+    /// <summary>
+    /// Whether this conversation is driven by a harness rather than a person. False when nothing is
+    /// registered to answer, which is the normal case -- an absent probe must never exempt anyone.
+    /// </summary>
+    private bool IsSyntheticConversation()
+    {
+        var probes = _services.GetServices<ISyntheticConversationProbe>().ToList();
+        if (probes.Count == 0)
+        {
+            return false;
+        }
+
+        var conversationId = _services.GetRequiredService<IConversationService>().ConversationId;
+        if (string.IsNullOrEmpty(conversationId))
+        {
+            return false;
+        }
+
+        foreach (var probe in probes)
+        {
+            try
+            {
+                if (probe.IsSynthetic(conversationId))
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // A probe that throws must not take the message down with it, and must not be read as
+                // a yes: failing closed here means the worst case is a harness message being rate
+                // limited, rather than real traffic escaping the limit.
+                _logger.LogWarning(ex,
+                    "A synthetic conversation probe failed for conversation {ConversationId}; "
+                    + "treating it as real traffic.", conversationId);
+            }
+        }
+
+        return false;
     }
 }

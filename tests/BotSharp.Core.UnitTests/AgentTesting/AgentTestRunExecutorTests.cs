@@ -8,6 +8,9 @@ using BotSharp.Plugin.AgentTesting.Repositories;
 using BotSharp.Plugin.AgentTesting.Services;
 using BotSharp.Plugin.AgentTesting.Models;
 using Xunit;
+using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.MLTasks.Settings;
+using Moq;
 
 namespace BotSharp.Core.UnitTests.AgentTesting;
 
@@ -113,10 +116,30 @@ public class AgentTestRunExecutorTests
         => BuildWithRunner(repo, run).Executor;
 
     private static (AgentTestRunExecutor Executor, DelegatingCaseRunner Runner) BuildWithRunner(
-        InMemoryRepo repo, Func<AgentTestCase, AgentTestCaseResult> run)
+        InMemoryRepo repo,
+        Func<AgentTestCase, AgentTestCaseResult> run,
+        ILlmProviderService? llmProviders = null)
     {
         var runner = new DelegatingCaseRunner(run);
-        return (new AgentTestRunExecutor(repo, runner, NullLogger<AgentTestRunExecutor>.Instance), runner);
+        return (
+            new AgentTestRunExecutor(repo, runner, NullLogger<AgentTestRunExecutor>.Instance, llmProviders),
+            runner);
+    }
+
+    /// <summary>An ILlmProviderService that knows one model's text token unit costs.</summary>
+    private static ILlmProviderService PricingFor(string provider, string model, float input, float output)
+    {
+        var mock = new Mock<ILlmProviderService>();
+        mock.Setup(x => x.GetSetting(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string p, string m) =>
+                string.Equals(p, provider) && string.Equals(m, model)
+                    ? new LlmModelSetting
+                    {
+                        Name = m,
+                        Cost = new LlmCostSetting { TextInputCost = input, TextOutputCost = output }
+                    }
+                    : null);
+        return mock.Object;
     }
 
     private sealed class DelegatingCaseRunner(Func<AgentTestCase, AgentTestCaseResult> run) : ICaseRunner
@@ -124,15 +147,25 @@ public class AgentTestRunExecutorTests
         /// <summary>Every (case, model) pair the executor asked for, in the order it asked.</summary>
         public List<(string CaseId, string? Model)> Invocations { get; } = [];
 
+        /// <summary>
+        /// Set instead of relying on the constructor delegate when a test's outcome has to depend on
+        /// WHICH model ran the case -- the only way to exercise a per-model figure such as routing
+        /// accuracy without coupling the test to the executor's (case, model) iteration order.
+        /// </summary>
+        public Func<AgentTestCase, TestModel?, AgentTestCaseResult>? RunWithModel { get; set; }
+
         public Task<AgentTestCaseResult> RunAsync(
             AgentTestSuite suite, AgentTestCase testCase, string runId, TestModel? model, CancellationToken ct)
         {
             Invocations.Add((testCase.Id, model?.Model));
-            var result = run(testCase);
+            var result = RunWithModel != null ? RunWithModel(testCase, model) : run(testCase);
             // The real runner stamps these onto the result; mirror it so tests can assert that a
             // result can be attributed back to the model that produced it.
             result.Provider ??= model?.Provider;
             result.Model ??= model?.Model;
+            // Same reason: the real runner copies the case type onto the result, and the executor's
+            // routing tally reads it back off the result rather than off the case.
+            result.CaseType = testCase.CaseType;
             return Task.FromResult(result);
         }
     }
@@ -410,5 +443,245 @@ public class AgentTestRunExecutorTests
         // replace, not get silently overwritten back to false by a copy read before that write
         // happened.
         Assert.True(repo.Stored.CancelRequested);
+    }
+
+    private static AgentTestCase RoutingCase(string id) => new()
+    {
+        Id = id, SuiteId = "suite-1", Name = id,
+        CaseType = CaseTypes.Routing,
+        Turns = [new TestTurn { Index = 0, UserMessage = "hi" }]
+    };
+
+    [Fact]
+    public async Task Routing_accuracy_counts_only_routing_cases()
+    {
+        // The evaluation framework gates routing accuracy separately from the agent pass rate, so
+        // folding an agent case into this figure makes the gate unreadable -- and it is the easiest
+        // mistake to make, since every case result flows through the same tally.
+        var repo = new InMemoryRepo { Cases = [RoutingCase("r1"), RoutingCase("r2"), CaseNamed("a1")] };
+        var executor = Build(repo, c => new AgentTestCaseResult
+        {
+            CaseId = c.Id,
+            Status = c.Id == "r2" ? AgentTestStatus.Failed : AgentTestStatus.Passed
+        });
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        var accuracy = Assert.Single(repo.Run.RoutingAccuracies);
+        Assert.Equal(2, accuracy.CaseCount);
+        Assert.Equal(1, accuracy.PassedCount);
+
+        // The agent case still counts in the run's own totals; it is only absent from the routing
+        // figure.
+        Assert.Equal(3, repo.Run.TotalCount);
+        Assert.Equal(2, repo.Run.PassedCount);
+    }
+
+    [Fact]
+    public async Task An_errored_routing_case_counts_against_accuracy_rather_than_being_skipped()
+    {
+        // "Could not tell" is not "routed correctly". Leaving Error rows out of CaseCount would let a
+        // harness that times out on nine cases in ten report perfect routing accuracy off the one
+        // that ran.
+        var repo = new InMemoryRepo { Cases = [RoutingCase("r1"), RoutingCase("r2")] };
+        var executor = Build(repo, c => new AgentTestCaseResult
+        {
+            CaseId = c.Id,
+            Status = c.Id == "r1" ? AgentTestStatus.Passed : AgentTestStatus.Error,
+            Error = c.Id == "r1" ? null : "the case timed out after 120s"
+        });
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        var accuracy = Assert.Single(repo.Run.RoutingAccuracies);
+        Assert.Equal(2, accuracy.CaseCount);
+        Assert.Equal(1, accuracy.PassedCount);
+    }
+
+    [Fact]
+    public async Task Routing_accuracy_is_kept_per_model_so_a_comparison_run_stays_readable()
+    {
+        // The whole point of sweeping several models is the difference between them. One run-wide
+        // figure would average the candidate together with the baseline and hide exactly what the run
+        // exists to measure.
+        var repo = new InMemoryRepo { Cases = [RoutingCase("r1"), RoutingCase("r2")] };
+        repo.Run.Models =
+        [
+            new TestModel { Provider = "openai", Model = "gpt-4o" },
+            new TestModel { Provider = "openai", Model = "gpt-4o-mini" }
+        ];
+
+        var (executor, runner) = BuildWithRunner(repo, _ => new AgentTestCaseResult());
+        runner.RunWithModel = (c, model) => new AgentTestCaseResult
+        {
+            CaseId = c.Id,
+            Status = model?.Model == "gpt-4o-mini" && c.Id == "r2"
+                ? AgentTestStatus.Failed
+                : AgentTestStatus.Passed
+        };
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Equal(2, repo.Run.RoutingAccuracies.Count);
+
+        var full = repo.Run.RoutingAccuracies.Single(a => a.Model == "gpt-4o");
+        Assert.Equal(2, full.CaseCount);
+        Assert.Equal(2, full.PassedCount);
+
+        var mini = repo.Run.RoutingAccuracies.Single(a => a.Model == "gpt-4o-mini");
+        Assert.Equal(2, mini.CaseCount);
+        Assert.Equal(1, mini.PassedCount);
+        Assert.Equal("openai", mini.Provider);
+    }
+
+    [Fact]
+    public async Task A_run_with_no_routing_cases_records_no_accuracy_rows()
+    {
+        // An empty list is what lets a caller tell "this run measured no routing" apart from "this
+        // run measured routing and got nothing right" -- a 0/0 row would read as the latter.
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a1")] };
+        var executor = Build(repo, c => new AgentTestCaseResult { CaseId = c.Id, Status = AgentTestStatus.Passed });
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Empty(repo.Run.RoutingAccuracies);
+    }
+
+    private static AgentTestCaseResult Timed(string caseId, long modelMs, long tokens, double cost) => new()
+    {
+        CaseId = caseId,
+        Status = AgentTestStatus.Passed,
+        ModelDurationMs = modelMs,
+        TotalTokens = tokens,
+        Cost = cost
+    };
+
+    [Fact]
+    public async Task Latency_percentiles_are_nearest_rank_and_never_invent_a_duration()
+    {
+        // An interpolated percentile returns a number no case actually took, which is indefensible
+        // the moment someone asks which case was the slow one -- and with the handful of cases a real
+        // suite starts with, interpolation would be inventing most of the answer.
+        var durations = new long[] { 100, 200, 300, 400, 500 };
+        var repo = new InMemoryRepo
+        {
+            Cases = durations.Select((_, i) => CaseNamed($"c{i}")).ToList()
+        };
+
+        var byId = durations
+            .Select((ms, i) => (Id: $"c{i}", Ms: ms))
+            .ToDictionary(x => x.Id, x => x.Ms);
+
+        var executor = Build(repo, c => Timed(c.Id, byId[c.Id], tokens: 10, cost: 0.001));
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        var summary = Assert.Single(repo.Run.PerformanceSummaries);
+        Assert.Equal(5, summary.CaseCount);
+        // ceil(0.5 * 5) - 1 = 2 -> the third value.
+        Assert.Equal(300, summary.LatencyP50Ms);
+        // ceil(0.95 * 5) - 1 = 4 -> the slowest.
+        Assert.Equal(500, summary.LatencyP95Ms);
+        Assert.Contains(summary.LatencyP50Ms, durations);
+        Assert.Contains(summary.LatencyP95Ms, durations);
+    }
+
+    [Fact]
+    public async Task A_case_that_never_reached_the_model_is_left_out_of_the_percentile()
+    {
+        // Otherwise a run that mostly crashed reports the best latency anyone has ever seen: the
+        // failures contribute zero, and zero drags a percentile down hard.
+        var repo = new InMemoryRepo { Cases = [CaseNamed("ok"), CaseNamed("dead")] };
+        var executor = Build(repo, c => c.Id == "ok"
+            ? Timed("ok", modelMs: 400, tokens: 10, cost: 0.001)
+            : new AgentTestCaseResult
+            {
+                CaseId = "dead",
+                Status = AgentTestStatus.Error,
+                Error = "the mock seam is not live",
+                ModelDurationMs = 0,
+                TotalTokens = 7,
+                Cost = 0.0005
+            });
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        var summary = Assert.Single(repo.Run.PerformanceSummaries);
+        Assert.Equal(1, summary.CaseCount);
+        Assert.Equal(400, summary.LatencyP50Ms);
+
+        // Tokens and cost still count every result: the failed case spent what it spent, and hiding
+        // that would understate the run's real cost.
+        Assert.Equal(17, summary.TotalTokens);
+        Assert.Equal(0.0015, summary.TotalCost, precision: 6);
+    }
+
+    [Fact]
+    public async Task Performance_is_summarised_per_model()
+    {
+        // Same reason routing accuracy is: one figure covering every model averages the candidate
+        // together with the baseline and hides the difference the run exists to measure.
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a")] };
+        repo.Run.Models =
+        [
+            new TestModel { Provider = "openai", Model = "gpt-4o" },
+            new TestModel { Provider = "openai", Model = "gpt-4o-mini" }
+        ];
+
+        var (executor, runner) = BuildWithRunner(repo, _ => new AgentTestCaseResult());
+        runner.RunWithModel = (c, model) => new AgentTestCaseResult
+        {
+            CaseId = c.Id,
+            Status = AgentTestStatus.Passed,
+            ModelDurationMs = model?.Model == "gpt-4o" ? 900 : 300,
+            TotalTokens = 100,
+            Cost = 0.01
+        };
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Equal(2, repo.Run.PerformanceSummaries.Count);
+        Assert.Equal(900, repo.Run.PerformanceSummaries.Single(s => s.Model == "gpt-4o").LatencyP95Ms);
+        Assert.Equal(300, repo.Run.PerformanceSummaries.Single(s => s.Model == "gpt-4o-mini").LatencyP95Ms);
+    }
+
+    [Fact]
+    public async Task The_pricing_behind_a_cost_figure_is_snapshotted()
+    {
+        // A cost figure cannot be compared with any other run's without it: a provider price change
+        // would otherwise surface as a cost regression with nothing to point at. Recording the numbers
+        // rather than a version string is what makes two runs' pricing checkably the same.
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a")] };
+        repo.Run.Models = [new TestModel { Provider = "openai", Model = "gpt-4o" }];
+
+        var (executor, _) = BuildWithRunner(
+            repo,
+            c => Timed(c.Id, 100, 50, 0.005),
+            PricingFor("openai", "gpt-4o", input: 2.5f, output: 10f));
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        var pricing = Assert.Single(repo.Run.ModelPricing);
+        Assert.Equal("gpt-4o", pricing.Model);
+        Assert.Equal(2.5f, pricing.TextInputCost);
+        Assert.Equal(10f, pricing.TextOutputCost);
+    }
+
+    [Fact]
+    public async Task Unknown_pricing_is_recorded_as_unknown_rather_than_as_free()
+    {
+        // Zero would read as "this model costs nothing", which is a claim. Null reads as "nobody
+        // knows", which is the truth and stops the figure being compared.
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a")] };
+        repo.Run.Models = [new TestModel { Provider = "openai", Model = "gpt-9-imaginary" }];
+
+        var (executor, _) = BuildWithRunner(
+            repo, c => Timed(c.Id, 100, 50, 0.005), PricingFor("openai", "gpt-4o", 2.5f, 10f));
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        var pricing = Assert.Single(repo.Run.ModelPricing);
+        Assert.Null(pricing.TextInputCost);
+        Assert.Null(pricing.TextOutputCost);
     }
 }

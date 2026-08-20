@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.MLTasks.Settings;
 using BotSharp.Plugin.AgentTesting.Repositories;
 
 namespace BotSharp.Plugin.AgentTesting.Services;
@@ -30,14 +32,20 @@ public class AgentTestRunExecutor
 {
     private readonly IAgentTestRepository _repo;
     private readonly ICaseRunner _caseRunner;
+    private readonly ILlmProviderService? _llmProviders;
     private readonly ILogger<AgentTestRunExecutor> _logger;
 
     public AgentTestRunExecutor(
         IAgentTestRepository repo,
         ICaseRunner caseRunner,
-        ILogger<AgentTestRunExecutor> logger)
+        ILogger<AgentTestRunExecutor> logger,
+        ILlmProviderService? llmProviders = null)
     {
         _repo = repo;
+        // Optional so the run-orchestration tests can construct an executor without a provider
+        // registry. Without it the pricing snapshot is simply absent, which reads as "unknown" rather
+        // than as "free".
+        _llmProviders = llmProviders;
         _caseRunner = caseRunner;
         _logger = logger;
     }
@@ -186,6 +194,7 @@ public class AgentTestRunExecutor
                     // weight in a grid keyed by model.
                     Provider = model?.Provider,
                     Model = model?.Model,
+                    CaseType = testCase.CaseType,
                     Status = AgentTestStatus.Error,
                     Error = ex.Message
                 };
@@ -204,6 +213,7 @@ public class AgentTestRunExecutor
             run = await _repo.GetRunAsync(runId) ?? run;
 
             run.TotalCount++;
+            TallyRoutingAccuracy(run, result);
             switch (result.Status)
             {
                 case AgentTestStatus.Passed:
@@ -234,6 +244,159 @@ public class AgentTestRunExecutor
                 ? AgentTestStatus.Passed
                 : AgentTestStatus.Failed;
         run.CompletedAt = DateTime.UtcNow;
+
+        await SummarisePerformanceAsync(run);
+
         await _repo.UpdateRunAsync(run);
     }
+
+    /// <summary>
+    /// Fills in the run's per-model latency, token and cost figures, plus the pricing that produced
+    /// the cost.
+    ///
+    /// Once, at the end, reading the results back -- not accumulated per case like the counts are.
+    /// A percentile is not incrementally computable: it needs every value at once, and keeping the
+    /// whole list on the run document to update it in place would store the same numbers twice.
+    /// </summary>
+    private async Task SummarisePerformanceAsync(AgentTestRun run)
+    {
+        List<AgentTestCaseResult> results;
+        try
+        {
+            results = await _repo.ListCaseResultsAsync(run.Id);
+        }
+        catch (Exception ex)
+        {
+            // Reporting figures must never cost the run its terminal status: the case results are
+            // already stored and are the source of truth, so a failure here loses a summary, not
+            // data.
+            _logger.LogWarning(ex, "Could not summarise performance for agent test run {RunId}.", run.Id);
+            return;
+        }
+
+        run.PerformanceSummaries = results
+            .GroupBy(r => (r.Provider, r.Model))
+            .Select(group => BuildSummary(group.Key.Provider, group.Key.Model, group.ToList()))
+            .ToList();
+
+        run.ModelPricing = SnapshotPricing(run);
+    }
+
+    private static PerformanceSummary BuildSummary(
+        string? provider, string? model, List<AgentTestCaseResult> results)
+    {
+        // Only cases that reached the model. An Error case that died before its first turn has a
+        // ModelDurationMs of zero, and letting those into the percentile makes a run that mostly
+        // crashed look like the fastest one on record.
+        var latencies = results
+            .Where(r => r.ModelDurationMs > 0)
+            .Select(r => r.ModelDurationMs)
+            .OrderBy(ms => ms)
+            .ToList();
+
+        return new PerformanceSummary
+        {
+            Provider = provider,
+            Model = model,
+            CaseCount = latencies.Count,
+            LatencyP50Ms = Percentile(latencies, 0.50),
+            LatencyP95Ms = Percentile(latencies, 0.95),
+            // Tokens and cost come from EVERY result, unlike latency: a case that errored still spent
+            // whatever it spent, and hiding that would understate the run's real cost.
+            TotalTokens = results.Sum(r => r.TotalTokens),
+            TotalCost = results.Sum(r => r.Cost)
+        };
+    }
+
+    /// <summary>
+    /// Nearest-rank percentile over an already-sorted list: the value at ceil(p * n) - 1, so P95 of
+    /// twenty samples is the 19th and P50 of an even count is the lower of the two middle values.
+    ///
+    /// Deliberately not interpolated. An interpolated P95 returns a duration no case actually took,
+    /// which is indefensible when someone asks which case was the slow one -- and with the handful of
+    /// cases a real suite starts with, interpolation invents most of the answer.
+    /// </summary>
+    private static long Percentile(List<long> sorted, double percentile)
+    {
+        if (sorted.Count == 0)
+        {
+            return 0;
+        }
+
+        var rank = (int)Math.Ceiling(percentile * sorted.Count) - 1;
+        return sorted[Math.Clamp(rank, 0, sorted.Count - 1)];
+    }
+
+    /// <summary>
+    /// The unit costs in force for each model this run swept. Without them a cost figure cannot be
+    /// compared with any other run's: a provider price change would show up as a cost regression with
+    /// nothing to point at.
+    /// </summary>
+    private List<ModelPricingSnapshot> SnapshotPricing(AgentTestRun run)
+    {
+        if (_llmProviders == null || run.Models is not { Count: > 0 })
+        {
+            // No models named means each agent ran on its own LlmConfig, which this method cannot
+            // resolve without reading every agent involved. Left empty rather than guessed.
+            return [];
+        }
+
+        return run.Models
+            .Select(m =>
+            {
+                LlmModelSetting? setting = null;
+                try
+                {
+                    setting = _llmProviders.GetSetting(m.Provider, m.Model);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex,
+                        "Could not read pricing for {Provider}/{Model} while summarising run {RunId}.",
+                        m.Provider, m.Model, run.Id);
+                }
+
+                return new ModelPricingSnapshot
+                {
+                    Provider = m.Provider,
+                    Model = m.Model,
+                    TextInputCost = setting?.Cost?.TextInputCost,
+                    TextOutputCost = setting?.Cost?.TextOutputCost
+                };
+            })
+            .ToList();
+    }
+
+    /// <summary>
+    /// Folds one case result into the run's per-model routing accuracy. Only Routing cases count:
+    /// the evaluation framework gates routing accuracy separately from the agent pass rate, so
+    /// mixing an agent case into this figure would make the gate unreadable.
+    ///
+    /// Rows are keyed by (provider, model) and created on first sight, which keeps this correct for
+    /// a run that sweeps no models at all -- that produces the single (null, null) row.
+    /// </summary>
+    private static void TallyRoutingAccuracy(AgentTestRun run, AgentTestCaseResult result)
+    {
+        if (!string.Equals(result.CaseType, CaseTypes.Routing, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var row = run.RoutingAccuracies.FirstOrDefault(a =>
+            string.Equals(a.Provider, result.Provider, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(a.Model, result.Model, StringComparison.OrdinalIgnoreCase));
+
+        if (row == null)
+        {
+            row = new RoutingAccuracy { Provider = result.Provider, Model = result.Model };
+            run.RoutingAccuracies.Add(row);
+        }
+
+        row.CaseCount++;
+        if (string.Equals(result.Status, AgentTestStatus.Passed, StringComparison.Ordinal))
+        {
+            row.PassedCount++;
+        }
+    }
+
 }
