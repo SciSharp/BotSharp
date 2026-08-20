@@ -216,4 +216,13 @@ public class RoleDialogModel : ITrackableMessage
             MetaData = source.MetaData != null ? new(source.MetaData) : null
         };
     }
+
+    public void ClearMessage()
+    {
+        this.Payload = null;
+        this.Content = string.Empty;
+        this.RichContent = null;
+        this.SecondaryContent = null;
+        this.SecondaryRichContent = null;
+    }
 }
