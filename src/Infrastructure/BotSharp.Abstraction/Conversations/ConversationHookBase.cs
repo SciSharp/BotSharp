@@ -5,6 +5,10 @@ namespace BotSharp.Abstraction.Conversations;
 public abstract class ConversationHookBase : IConversationHook
 {
     public abstract string SelfId { get; }
+
+    public virtual bool IsMatch(string agentId)
+        => string.IsNullOrEmpty(SelfId) || SelfId == agentId;
+
     public Agent Agent { get; private set; }
 
     public Conversation Conversation { get; private set; }
