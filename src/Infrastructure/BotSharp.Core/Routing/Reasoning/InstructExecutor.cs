@@ -31,19 +31,10 @@ public class InstructExecutor : IExecutor
         }
 
         message.FunctionArgs = JsonSerializer.Serialize(inst);
-        if (!string.IsNullOrEmpty(inst.FunctionArgs))
-        {
-            message.FunctionArgs = inst.FunctionArgs;
-        }
-
         if (!string.IsNullOrEmpty(message.FunctionName))
         {
             var msg = RoleDialogModel.From(message, role: AgentRole.Function);
             await routing.InvokeFunction(message.FunctionName, msg, options: new() { From = InvokeSource.Routing });
-            if (msg.StopCompletion)
-            {
-                message = RoleDialogModel.From(msg, role: AgentRole.Assistant);
-            }
         }
 
         var agentId = routing.Context.GetCurrentAgentId();
@@ -85,8 +76,8 @@ public class InstructExecutor : IExecutor
         }
 
         var response = dialogs.Last();
+        
         response.Instruction = inst;
-        response.StopCompletion = message.StopCompletion;
 
         return response;
     }
