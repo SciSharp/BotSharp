@@ -21,6 +21,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     private readonly IAgentService _agentService;
     private readonly IRoutingContext _routingCtx;
 
+    public override string SelfId => string.Empty;
+
     public StreamingLogHook(
         ConversationSetting convSettings,
         BotSharpOptions options,

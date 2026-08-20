@@ -13,6 +13,9 @@ public class RateLimitConversationHook : ConversationHookBase
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
+
+    public override string SelfId => string.Empty;
+
     public RateLimitConversationHook(IServiceProvider services, ILogger<RateLimitConversationHook> logger)
     {
         _services = services;

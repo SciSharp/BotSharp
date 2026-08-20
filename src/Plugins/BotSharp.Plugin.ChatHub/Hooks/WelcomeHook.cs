@@ -15,6 +15,8 @@ public class WelcomeHook : ConversationHookBase
     private readonly BotSharpOptions _options;
     private readonly ChatHubSettings _settings;
 
+    public override string SelfId => string.Empty;
+
     public WelcomeHook(
         IServiceProvider services,
         IHubContext<SignalRHub> chatHub,

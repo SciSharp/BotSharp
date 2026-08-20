@@ -8,6 +8,8 @@ public class EvaluationConversationHook : ConversationHookBase
     private readonly IExecutionLogger _logger;
     private readonly ConversationSetting _convSettings;
 
+    public override string SelfId => string.Empty;
+
     public EvaluationConversationHook(IExecutionLogger logger, ConversationSetting convSettings)
     {
         _logger = logger;
