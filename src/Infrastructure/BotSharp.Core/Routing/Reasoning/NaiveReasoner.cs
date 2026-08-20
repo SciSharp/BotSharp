@@ -57,18 +57,6 @@ public class NaiveReasoner : IRoutingReasoner
         var response = await completion.GetChatCompletions(router, dialogs);
 
         var inst = (response.FunctionArgs ?? response.Content).JsonContent<FunctionCallFromLlm>();
-        if (inst != null)
-        {
-            if (!string.IsNullOrEmpty(response.FunctionName))
-            {
-                inst.Function = response.FunctionName;
-            }
-
-            if (!string.IsNullOrEmpty(response.FunctionArgs))
-            {
-                inst.FunctionArgs = response.FunctionArgs;
-            }
-        }
 
         // Fix LLM malformed response
         await ReasonerHelper.FixMalformedResponse(_services, inst);
@@ -80,14 +68,7 @@ public class NaiveReasoner : IRoutingReasoner
     {
         // Set user content as Planner's question
         message.FunctionName = inst.Function;
-        if (!string.IsNullOrEmpty(inst.FunctionArgs))
-        {
-            message.FunctionArgs = inst.FunctionArgs;
-        }
-        else
-        {
-            message.FunctionArgs = inst.Arguments == null ? "{}" : JsonSerializer.Serialize(inst.Arguments);
-        }
+        message.FunctionArgs = inst.Arguments == null ? "{}" : JsonSerializer.Serialize(inst.Arguments);
 
         return Task.FromResult(true);
     }
