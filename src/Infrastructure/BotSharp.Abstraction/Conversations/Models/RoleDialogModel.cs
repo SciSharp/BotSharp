@@ -220,7 +220,6 @@ public class RoleDialogModel : ITrackableMessage
     public void ClearMessage()
     {
         this.Payload = null;
-        this.Content = string.Empty;
         this.RichContent = null;
         this.SecondaryContent = null;
         this.SecondaryRichContent = null;
