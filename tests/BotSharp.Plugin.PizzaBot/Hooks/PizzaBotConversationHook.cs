@@ -18,6 +18,8 @@ public class PizzaBotConversationHook : ConversationHookBase
         _states = states;
     }
 
+    public override string SelfId => string.Empty;
+
     public override async Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg)
     {
         if (replyMsg.FunctionName == "get_pizza_types")
