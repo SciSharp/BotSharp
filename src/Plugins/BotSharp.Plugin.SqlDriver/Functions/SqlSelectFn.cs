@@ -15,6 +15,11 @@ public class SqlSelectFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
+        var dbHook = _services.GetRequiredService<IText2SqlHook>();
+        // The hook may rewrite message.FunctionArgs (e.g. tag the statement for
+        // traceability), so it must run before the args are deserialized.
+        await dbHook.SqlExecuting(message);
+
         var args = JsonSerializer.Deserialize<SqlStatement>(message.FunctionArgs);
 
         if (args.GeneratedWithoutTableDefinition)
@@ -24,7 +29,6 @@ public class SqlSelectFn : IFunctionCallback
         }
 
         // check if need to instantely
-        var dbHook = _services.GetRequiredService<IText2SqlHook>();
         var dbType = dbHook.GetDatabaseType(message);
         var dbConnectionString = dbHook.GetConnectionString(message) ?? 
             throw new Exception("database connectdion is not found");

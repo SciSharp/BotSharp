@@ -55,6 +55,13 @@ namespace BotSharp.Plugin.Google.Core
                 (services, configuration, modelName) = LLMProvider.CreateAnthropic();
                 yield return new object[] { services.BuildServiceProvider().GetService<IChatCompletion>() ?? throw new Exception("Error while initializing"), agent, modelName };
             }
+
+            if (LLMProvider.CanRunLiteLLM)
+            {
+                //LiteLLM
+                (services, configuration, modelName) = LLMProvider.CreateLiteLLM();
+                yield return new object[] { services.BuildServiceProvider().GetService<IChatCompletion>() ?? throw new Exception("Error while initializing"), agent, modelName };
+            }
         }
         public ChatCompletionTests()
         {
@@ -97,7 +104,6 @@ namespace BotSharp.Plugin.Google.Core
         {
             chatCompletion.SetModelName(modelName);
 
-            RoleDialogModel reply = null;
             var messages = new List<RoleDialogModel>
             {
                 new RoleDialogModel(AgentRole.User, "write a poem about stars")
@@ -105,8 +111,7 @@ namespace BotSharp.Plugin.Google.Core
             var result = await chatCompletion.GetChatCompletionsStreamingAsync(agent, messages);
 
             result.ShouldNotBeNull();
-            reply.ShouldNotBeNull();
-            reply.Content.ShouldNotBeNullOrEmpty();
+            result.Content.ShouldNotBeNullOrEmpty();
         }
     }
 }

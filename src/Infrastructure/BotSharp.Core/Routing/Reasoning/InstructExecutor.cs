@@ -44,6 +44,13 @@ public class InstructExecutor : IExecutor
         var agent = await agentService.GetAgent(agentId);
         inst.AgentName = agent.Name;
 
+        await HookEmitter.Emit<IRoutingHook>(_services, async hook => await hook.OnRoutingInstructionCompleted(inst, message),
+                agent.Id);
+        if (message.StopCompletion)
+        {
+            return message;
+        }
+
         if (inst.ExecutingDirectly)
         {
             message.Content = inst.Question;

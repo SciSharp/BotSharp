@@ -41,9 +41,15 @@ public class TokenStatistics : ITokenStatistics
         var settings = settingsService.GetSetting(stats.Provider, _model);
 
         #region Text tokens
-        var deltaTextInputCost = GetDeltaCost(stats.TextInputTokens, settings?.Cost?.TextInputCost);
-        var deltaCachedTextInputCost = GetDeltaCost(stats.CachedTextInputTokens, settings?.Cost?.CachedTextInputCost);
-        var deltaTextOutputCost = GetDeltaCost(stats.TextOutputTokens, settings?.Cost?.TextOutputCost);
+        var textCostTier = settings?.Cost?.GetTextTokenCostTier(stats.TotalTextInputTokens, stats.ServiceTier);
+        var deltaTextInputCost = GetDeltaCost(stats.TextInputTokens,
+            textCostTier?.TextInputCost ?? settings?.Cost?.TextInputCost);
+        var deltaCachedTextInputCost = GetDeltaCost(stats.CachedTextInputTokens,
+            textCostTier?.CachedTextInputCost ?? settings?.Cost?.CachedTextInputCost);
+        var deltaCachedTextInputWriteCost = GetDeltaCost(stats.CachedTextInputWriteTokens,
+            textCostTier?.CachedTextInputWriteCost ?? settings?.Cost?.CachedTextInputWriteCost);
+        var deltaTextOutputCost = GetDeltaCost(stats.TextOutputTokens,
+            textCostTier?.TextOutputCost ?? settings?.Cost?.TextOutputCost);
         #endregion
 
         #region Audio tokens
@@ -63,7 +69,7 @@ public class TokenStatistics : ITokenStatistics
         #endregion
 
 
-        var deltaPromptCost = deltaTextInputCost + deltaCachedTextInputCost 
+        var deltaPromptCost = deltaTextInputCost + deltaCachedTextInputCost + deltaCachedTextInputWriteCost
                             + deltaAudioInputCost + deltaCachedAudioInputCost
                             + deltaImageInputCost + deltaCachedImageInputCost;
         var deltaCompletionCost = deltaTextOutputCost + deltaAudioOutputCost + deltaImageOutputCost;

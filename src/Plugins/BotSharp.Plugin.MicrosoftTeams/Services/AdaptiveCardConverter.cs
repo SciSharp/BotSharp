@@ -1,13 +1,13 @@
 using AdaptiveCards;
-using Microsoft.Bot.Builder;
-using Microsoft.Bot.Schema;
+using Microsoft.Agents.Builder;
+using Microsoft.Agents.Core.Models;
 
 namespace BotSharp.Plugin.MicrosoftTeams.Services;
 
 /// <summary>
 /// Maps a BotSharp <see cref="RoleDialogModel"/> reply to a Teams-renderable activity.
 /// Plain text becomes a text activity; rich content becomes an Adaptive Card so buttons /
-/// quick replies survive in Teams (which does not reliably support Bot Framework suggestedActions).
+/// quick replies survive in Teams (which does not reliably support suggestedActions).
 /// </summary>
 public class AdaptiveCardConverter
 {
@@ -65,7 +65,7 @@ public class AdaptiveCardConverter
         }
         card.Actions.AddRange(actions);
 
-        return MessageFactory.Attachment(new Microsoft.Bot.Schema.Attachment
+        return MessageFactory.Attachment(new Microsoft.Agents.Core.Models.Attachment
         {
             ContentType = AdaptiveCard.ContentType,
             Content = card

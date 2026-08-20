@@ -30,6 +30,7 @@ public partial class RoutingService : IRoutingService
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var storage = _services.GetRequiredService<IConversationStorage>();
+
         await storage.Append(conv.ConversationId, message);
 
         dialogs.Add(message);

@@ -12,8 +12,4 @@ public class PizzaBotAgentHook : AgentHookBase
     {
     }
 
-    public override async Task<bool> OnInstructionLoaded(string template, IDictionary<string, object> dict)
-    {
-        return await base.OnInstructionLoaded(template, dict);
-    }
 }

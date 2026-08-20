@@ -26,7 +26,9 @@ public class RateLimitConversationHook : ConversationHookBase
     {
         var settings = _services.GetRequiredService<ConversationSetting>();
         var states = _services.GetRequiredService<IConversationStateService>();
-        
+        var storage = _services.GetRequiredService<IConversationStorage>();
+
+        var convId = states.GetConversationId();
         var rateLimit = settings.RateLimit;
         var channel = states.GetState("channel");
 
@@ -34,6 +36,8 @@ public class RateLimitConversationHook : ConversationHookBase
         var charCount = message.Content.Length;
         if (charCount > rateLimit.MaxInputLengthPerRequest)
         {
+            await storage.Append(convId, message);
+            message.ClearMessage();
             message.Content = $"The number of characters in your message exceeds the system maximum of {rateLimit.MaxInputLengthPerRequest}";
             message.StopCompletion = true;
             return;
@@ -53,6 +57,8 @@ public class RateLimitConversationHook : ConversationHookBase
             var seconds = (DateTime.UtcNow - userSents.First().CreatedAt).TotalSeconds;
             if (seconds < rateLimit.MinTimeSecondsBetweenMessages)
             {
+                await storage.Append(convId, message);
+                message.ClearMessage();
                 message.Content = "Your message sending frequency exceeds the frequency specified by the system. Please try again later.";
                 message.StopCompletion = true;
                 return;
@@ -72,6 +78,8 @@ public class RateLimitConversationHook : ConversationHookBase
 
             if (results.Count > rateLimit.MaxConversationPerDay)
             {
+                await storage.Append(convId, message);
+                message.ClearMessage();
                 message.Content = $"The number of conversations you have exceeds the system maximum of {rateLimit.MaxConversationPerDay}";
                 message.StopCompletion = true;
                 return;

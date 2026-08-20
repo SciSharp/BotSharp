@@ -1,5 +1,8 @@
-using Microsoft.Bot.Builder.Integration.AspNet.Core;
-using Microsoft.Bot.Connector.Authentication;
+using Microsoft.Agents.Builder;
+using Microsoft.Agents.Hosting.AspNetCore;
+using Microsoft.Agents.Hosting.AspNetCore.BackgroundQueue;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.MicrosoftTeams.Services;
 
@@ -10,9 +13,11 @@ namespace BotSharp.Plugin.MicrosoftTeams.Services;
 public class TeamsAdapter : CloudAdapter
 {
     public TeamsAdapter(
-        BotFrameworkAuthentication auth,
-        ILogger<TeamsAdapter> logger)
-        : base(auth, logger)
+        IChannelServiceClientFactory channelServiceClientFactory,
+        IActivityTaskQueue activityTaskQueue,
+        ILogger<TeamsAdapter> logger,
+        IConfiguration configuration)
+        : base(channelServiceClientFactory, activityTaskQueue, logger, null, null, configuration)
     {
         OnTurnError = async (turnContext, exception) =>
         {

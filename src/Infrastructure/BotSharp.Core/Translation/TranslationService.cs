@@ -380,6 +380,7 @@ public class TranslationService : ITranslationService
             Id = Guid.Empty.ToString(),
             Name = "Translator",
             Instruction = "You are a translation expert.",
+            LlmConfig = _router?.LlmConfig,
             TemplateDict = new()
             {
                 ["text_list"] = jsonString,
