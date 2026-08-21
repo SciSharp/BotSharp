@@ -86,8 +86,26 @@ public class AgentTestControllerTests
             => Task.FromResult(Runs.Values.Where(r => r.Status == status).ToList());
         public Task UpdateRunAsync(AgentTestRun run) { Runs[run.Id] = run; return Task.CompletedTask; }
 
+        /// <summary>
+        /// Cascades exactly as the real repository does. A fake that dropped only the run would let
+        /// a test pass while production left unreachable result rows behind.
+        /// </summary>
+        public Task<long> DeleteRunAsync(string id)
+        {
+            var removed = Results.RemoveAll(r => r.RunId == id);
+            Runs.Remove(id);
+            return Task.FromResult((long)removed);
+        }
+
         public Task AddCaseResultAsync(AgentTestCaseResult result) => Task.CompletedTask;
-        public Task<List<AgentTestCaseResult>> ListCaseResultsAsync(string runId) => Task.FromResult(new List<AgentTestCaseResult>());
+        /// <summary>
+        /// Real storage rather than an always-empty list, so the delete cascade is actually
+        /// observable: a fake that never held results could not tell a cascade from a no-op.
+        /// </summary>
+        public List<AgentTestCaseResult> Results { get; } = [];
+
+        public Task<List<AgentTestCaseResult>> ListCaseResultsAsync(string runId)
+            => Task.FromResult(Results.Where(r => r.RunId == runId).ToList());
     }
 
     private sealed class RecordingQueue : IAgentTestRunQueue
@@ -1464,5 +1482,157 @@ public class AgentTestControllerTests
         });
 
         Assert.IsType<BadRequestObjectResult>(response.Result);
+    }
+
+    // ------------------------------------------------------------- clearing run history
+
+    private static InMemoryRepo RepoWithRuns()
+    {
+        var repo = RepoWithSuite();
+        repo.Runs["done"] = new AgentTestRun
+        {
+            Id = "done", SuiteId = "suite-1", Status = AgentTestStatus.Passed
+        };
+        repo.Runs["failed"] = new AgentTestRun
+        {
+            Id = "failed", SuiteId = "suite-1", Status = AgentTestStatus.Failed
+        };
+        repo.Runs["live"] = new AgentTestRun
+        {
+            Id = "live", SuiteId = "suite-1", Status = AgentTestStatus.Running
+        };
+        repo.Results.Add(new AgentTestCaseResult { Id = "r1", RunId = "done", CaseId = "c1" });
+        repo.Results.Add(new AgentTestCaseResult { Id = "r2", RunId = "done", CaseId = "c2" });
+        repo.Results.Add(new AgentTestCaseResult { Id = "r3", RunId = "live", CaseId = "c1" });
+        return repo;
+    }
+
+    [Fact]
+    public async Task Deleting_a_run_takes_its_case_results_with_it()
+    {
+        // Results are keyed by run id and reachable no other way, so dropping the run alone would
+        // leave rows nothing can ever list, read or clean up again.
+        var repo = RepoWithRuns();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest { RunIds = ["done"] });
+
+        var result = Assert.IsType<AgentTestRunDeleteResponse>(response.Value);
+        Assert.Equal(["done"], result.DeletedRunIds);
+        Assert.Equal(2, result.DeletedResultCount);
+        Assert.DoesNotContain("done", repo.Runs.Keys);
+        Assert.DoesNotContain(repo.Results, r => r.RunId == "done");
+
+        // And it touched nothing else.
+        Assert.Contains(repo.Results, r => r.RunId == "live");
+    }
+
+    [Fact]
+    public async Task A_running_run_is_refused_rather_than_deleted()
+    {
+        // Deleting it would not stop it: the queue keeps driving cases, keeps spending tokens, and
+        // keeps writing results for a run id that no longer exists.
+        var repo = RepoWithRuns();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest { RunIds = ["live"] });
+
+        var result = Assert.IsType<AgentTestRunDeleteResponse>(response.Value);
+        Assert.Empty(result.DeletedRunIds);
+        Assert.Contains("cancel it before deleting", Assert.Single(result.Skipped).Reason);
+        Assert.Contains("live", repo.Runs.Keys);
+        Assert.Contains(repo.Results, r => r.RunId == "live");
+    }
+
+    [Fact]
+    public async Task One_running_run_does_not_block_the_rest_of_the_batch()
+    {
+        // Selecting everything and clearing is the normal way this is used, and a live run in the
+        // list is common. Refusing the whole call would make the feature unusable exactly when it is
+        // most wanted.
+        var repo = RepoWithRuns();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest
+        {
+            RunIds = ["done", "live", "failed"]
+        });
+
+        var result = Assert.IsType<AgentTestRunDeleteResponse>(response.Value);
+        Assert.Equal(["done", "failed"], result.DeletedRunIds);
+        Assert.Equal("live", Assert.Single(result.Skipped).RunId);
+        Assert.Equal(["live"], repo.Runs.Keys.ToList());
+    }
+
+    [Fact]
+    public async Task A_run_that_is_already_gone_is_reported_not_an_error()
+    {
+        // Two people clearing the same history is a race, not a failure worth refusing a batch over.
+        var repo = RepoWithRuns();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest
+        {
+            RunIds = ["done", "never-existed"]
+        });
+
+        var result = Assert.IsType<AgentTestRunDeleteResponse>(response.Value);
+        Assert.Equal(["done"], result.DeletedRunIds);
+        Assert.Equal("already deleted", Assert.Single(result.Skipped).Reason);
+    }
+
+    [Fact]
+    public async Task Duplicate_ids_are_deleted_once()
+    {
+        // A select-all plus a row click can send the same id twice; the second pass would otherwise
+        // report it as "already deleted" and make the summary read as a partial failure.
+        var repo = RepoWithRuns();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest
+        {
+            RunIds = ["done", "done"]
+        });
+
+        var result = Assert.IsType<AgentTestRunDeleteResponse>(response.Value);
+        Assert.Equal(["done"], result.DeletedRunIds);
+        Assert.Empty(result.Skipped);
+    }
+
+    [Fact]
+    public async Task An_empty_delete_is_rejected()
+    {
+        // An empty list is far more likely to be a UI bug -- a select-all that selected nothing --
+        // than a deliberate no-op, and answering 200 with "deleted nothing" hides it.
+        var controller = BuildController(RepoWithRuns(), out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest());
+
+        Assert.IsType<BadRequestObjectResult>(response.Result);
+    }
+
+    [Fact]
+    public async Task A_delete_of_nothing_but_blanks_is_rejected_too()
+    {
+        // Same bug wearing a different shape: a client that posts one empty row per unchecked box.
+        var controller = BuildController(RepoWithRuns(), out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest
+        {
+            RunIds = ["", "   "]
+        });
+
+        Assert.IsType<BadRequestObjectResult>(response.Result);
+    }
+
+    [Fact]
+    public void Clearing_run_history_requires_an_admin()
+    {
+        // Runs are the record of whether an agent change was evaluated at all, so removing them is at
+        // least as consequential as creating them -- the same gate triggering sits behind.
+        var method = typeof(AgentTestController).GetMethod(nameof(AgentTestController.DeleteRuns));
+
+        Assert.NotNull(method);
+        Assert.NotEmpty(method!.GetCustomAttributes(typeof(BotSharpAuthAttribute), inherit: true));
     }
 }

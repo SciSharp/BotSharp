@@ -356,6 +356,69 @@ public class AgentTestController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Clears run history: removes the named runs and the case results underneath them.
+    ///
+    /// Bulk-only, and the single-row button in the UI calls it with one id. A separate
+    /// DELETE runs/{id} would be a second path to the same destructive operation, and the guard
+    /// below is one of the things worth having in exactly one place.
+    ///
+    /// Behind the same admin gate as triggering a run. Runs are the audit trail for whether an agent
+    /// change was evaluated at all, so removing them is at least as consequential as creating them.
+    /// </summary>
+    [BotSharpAuth]
+    [HttpPost("runs/delete")]
+    public async Task<ActionResult<AgentTestRunDeleteResponse>> DeleteRuns(
+        [FromBody] AgentTestRunDeleteRequest request)
+    {
+        var runIds = (request?.RunIds ?? [])
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id.Trim())
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        if (runIds.Count == 0)
+        {
+            return BadRequest("name at least one run to delete");
+        }
+
+        var response = new AgentTestRunDeleteResponse();
+
+        foreach (var runId in runIds)
+        {
+            var run = await _repo.GetRunAsync(runId);
+            if (run == null)
+            {
+                // Already gone. Reported rather than treated as an error: two people clearing the
+                // same history is a normal race, not a failure worth refusing the whole batch over.
+                response.Skipped.Add(new SkippedRunDto
+                {
+                    RunId = runId,
+                    Reason = "already deleted"
+                });
+                continue;
+            }
+
+            if (!IsTerminalStatus(run.Status))
+            {
+                // Deleting a run that is still executing does not stop it: the queue keeps driving
+                // cases, keeps spending tokens, and keeps writing results for a run id that no longer
+                // exists -- results nothing can ever list again. Cancel first.
+                response.Skipped.Add(new SkippedRunDto
+                {
+                    RunId = runId,
+                    Reason = $"the run is {run.Status.ToLowerInvariant()}; cancel it before deleting"
+                });
+                continue;
+            }
+
+            response.DeletedResultCount += await _repo.DeleteRunAsync(runId);
+            response.DeletedRunIds.Add(runId);
+        }
+
+        return response;
+    }
+
     [HttpDelete("cases/{id}")]
     public async Task<IActionResult> DeleteCase(string id)
     {

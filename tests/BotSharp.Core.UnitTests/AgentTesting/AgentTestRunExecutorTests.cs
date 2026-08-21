@@ -43,6 +43,11 @@ public class AgentTestRunExecutorTests
         public Task<List<AgentTestRun>> ListRunsByStatusAsync(string status)
             => Task.FromResult(Run.Status == status ? new List<AgentTestRun> { Run } : []);
         public Task UpdateRunAsync(AgentTestRun run) { Run = run; return Task.CompletedTask; }
+        public Task<long> DeleteRunAsync(string id)
+        {
+            var removed = Results.RemoveAll(r => r.RunId == id);
+            return Task.FromResult((long)removed);
+        }
         public Task AddCaseResultAsync(AgentTestCaseResult result) { Results.Add(result); return Task.CompletedTask; }
         public Task<List<AgentTestCaseResult>> ListCaseResultsAsync(string runId) => Task.FromResult(Results);
     }
@@ -85,6 +90,11 @@ public class AgentTestRunExecutorTests
         public Task<List<AgentTestRun>> ListRunsByStatusAsync(string status)
             => Task.FromResult(_stored.Status == status ? new List<AgentTestRun> { Clone(_stored) } : []);
         public Task UpdateRunAsync(AgentTestRun run) { _stored = Clone(run); return Task.CompletedTask; }
+        public Task<long> DeleteRunAsync(string id)
+        {
+            var removed = Results.RemoveAll(r => r.RunId == id);
+            return Task.FromResult((long)removed);
+        }
         public Task AddCaseResultAsync(AgentTestCaseResult result) { Results.Add(result); return Task.CompletedTask; }
         public Task<List<AgentTestCaseResult>> ListCaseResultsAsync(string runId) => Task.FromResult(Results);
 

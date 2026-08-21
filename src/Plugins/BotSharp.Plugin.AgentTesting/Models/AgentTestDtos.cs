@@ -214,6 +214,39 @@ public class AgentTestRunTriggerRequest
 }
 
 /// <summary>
+/// Body of POST /agent-test/runs/delete -- clear run history.
+/// </summary>
+public class AgentTestRunDeleteRequest
+{
+    public List<string> RunIds { get; set; } = [];
+}
+
+/// <summary>
+/// What a delete actually did.
+///
+/// Reports the skipped runs rather than failing the whole call: a bulk delete over a list that
+/// happens to include a still-running row should remove the rest, and the caller needs to be able to
+/// say WHY one survived instead of leaving the user to notice a row that quietly stayed.
+/// </summary>
+public class AgentTestRunDeleteResponse
+{
+    public List<string> DeletedRunIds { get; set; } = [];
+
+    /// <summary>Case results removed along with those runs.</summary>
+    public long DeletedResultCount { get; set; }
+
+    public List<SkippedRunDto> Skipped { get; set; } = [];
+}
+
+public class SkippedRunDto
+{
+    public string RunId { get; set; } = string.Empty;
+
+    /// <summary>Caller-facing text, already explaining what to do about it.</summary>
+    public string Reason { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// Body of GET /agent-test/runs/{id}: one run plus every AgentTestCaseResult belonging to it.
 /// </summary>
 public class AgentTestRunDetailDto
