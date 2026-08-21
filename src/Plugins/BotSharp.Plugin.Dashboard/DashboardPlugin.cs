@@ -1,9 +1,6 @@
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Plugins.Models;
-using BotSharp.Abstraction.Settings;
-using BotSharp.Abstraction.Statistics.Settings;
-using BotSharp.Plugin.Dashboard.Hooks;
 
 namespace BotSharp.Plugin.Dashboard;
 
@@ -15,7 +12,7 @@ public class DashboardPlugin : IBotSharpPlugin
     public string IconUrl => "https://cdn0.iconfinder.com/data/icons/octicons/1024/dashboard-512.png";
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped<IConversationHook, StatsConversationHook>();
+
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)

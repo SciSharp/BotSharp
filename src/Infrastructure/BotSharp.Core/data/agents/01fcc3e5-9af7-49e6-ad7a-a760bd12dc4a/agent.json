@@ -9,6 +9,11 @@
   "disabled": false,
   "isPublic": true,
   "profiles": [ "planning", "fallback", "human" ],
+  "llmConfig": {
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "max_output_tokens": 4096
+  },
   "routingRules": [
     {
       "type": "reasoner",

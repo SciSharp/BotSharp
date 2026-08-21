@@ -5,6 +5,9 @@ namespace BotSharp.Plugin.WebDriver.Hooks;
 public class WebDriverConversationHook : ConversationHookBase
 {
     private readonly IServiceProvider _services;
+
+    public override string SelfId => string.Empty;
+
     public WebDriverConversationHook(IServiceProvider services)
     {
         _services = services;

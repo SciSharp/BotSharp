@@ -72,7 +72,14 @@ public class SyntheticConversationExemptionTests
         // and Database channels, and the harness deliberately seeds no channel because production
         // routing branches on that key.
         states.Setup(x => x.GetState(It.IsAny<string>(), It.IsAny<string>())).Returns(string.Empty);
+        // The hook takes the conversation id from state rather than from IConversationService.
+        states.Setup(x => x.GetConversationId()).Returns(conversationId);
         services.AddSingleton(states.Object);
+
+        // Only reached on the over-long-message path, where the hook stores the message before
+        // replacing it. Registered for every case so a test that trips that guard does not fail on a
+        // missing service instead of on what it is checking.
+        services.AddSingleton(Mock.Of<IConversationStorage>());
 
         var identity = new Mock<IUserIdentity>();
         // Empty, as it is in a BackgroundService with no HTTP context. Note the Mongo filter drops an
@@ -81,7 +88,6 @@ public class SyntheticConversationExemptionTests
         services.AddSingleton(identity.Object);
 
         var conversations = new Mock<IConversationService>();
-        conversations.Setup(x => x.ConversationId).Returns(conversationId);
         conversations
             .Setup(x => x.GetConversations(It.IsAny<ConversationFilter>()))
             .ReturnsAsync(new PagedItems<Conversation>

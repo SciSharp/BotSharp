@@ -13,6 +13,9 @@ public class RateLimitConversationHook : ConversationHookBase
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
+
+    public override string SelfId => string.Empty;
+
     public RateLimitConversationHook(IServiceProvider services, ILogger<RateLimitConversationHook> logger)
     {
         _services = services;
@@ -23,7 +26,9 @@ public class RateLimitConversationHook : ConversationHookBase
     {
         var settings = _services.GetRequiredService<ConversationSetting>();
         var states = _services.GetRequiredService<IConversationStateService>();
-        
+        var storage = _services.GetRequiredService<IConversationStorage>();
+
+        var convId = states.GetConversationId();
         var rateLimit = settings.RateLimit;
         var channel = states.GetState("channel");
 
@@ -31,6 +36,8 @@ public class RateLimitConversationHook : ConversationHookBase
         var charCount = message.Content.Length;
         if (charCount > rateLimit.MaxInputLengthPerRequest)
         {
+            await storage.Append(convId, message);
+            message.ClearMessage();
             message.Content = $"The number of characters in your message exceeds the system maximum of {rateLimit.MaxInputLengthPerRequest}";
             message.StopCompletion = true;
             return;
@@ -49,7 +56,7 @@ public class RateLimitConversationHook : ConversationHookBase
         //
         // The input length check above still applies. That one is about a single message being too
         // large, which is a real condition a test should surface rather than be excused from.
-        if (IsSyntheticConversation())
+        if (IsSyntheticConversation(convId))
         {
             return;
         }
@@ -63,6 +70,8 @@ public class RateLimitConversationHook : ConversationHookBase
             var seconds = (DateTime.UtcNow - userSents.First().CreatedAt).TotalSeconds;
             if (seconds < rateLimit.MinTimeSecondsBetweenMessages)
             {
+                await storage.Append(convId, message);
+                message.ClearMessage();
                 message.Content = "Your message sending frequency exceeds the frequency specified by the system. Please try again later.";
                 message.StopCompletion = true;
                 return;
@@ -82,6 +91,8 @@ public class RateLimitConversationHook : ConversationHookBase
 
             if (results.Count > rateLimit.MaxConversationPerDay)
             {
+                await storage.Append(convId, message);
+                message.ClearMessage();
                 message.Content = $"The number of conversations you have exceeds the system maximum of {rateLimit.MaxConversationPerDay}";
                 message.StopCompletion = true;
                 return;
@@ -93,16 +104,15 @@ public class RateLimitConversationHook : ConversationHookBase
     /// Whether this conversation is driven by a harness rather than a person. False when nothing is
     /// registered to answer, which is the normal case -- an absent probe must never exempt anyone.
     /// </summary>
-    private bool IsSyntheticConversation()
+    private bool IsSyntheticConversation(string conversationId)
     {
-        var probes = _services.GetServices<ISyntheticConversationProbe>().ToList();
-        if (probes.Count == 0)
+        if (string.IsNullOrEmpty(conversationId))
         {
             return false;
         }
 
-        var conversationId = _services.GetRequiredService<IConversationService>().ConversationId;
-        if (string.IsNullOrEmpty(conversationId))
+        var probes = _services.GetServices<ISyntheticConversationProbe>().ToList();
+        if (probes.Count == 0)
         {
             return false;
         }
