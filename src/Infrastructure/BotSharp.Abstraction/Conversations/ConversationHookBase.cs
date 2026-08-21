@@ -29,6 +29,9 @@ public abstract class ConversationHookBase : IConversationHook
         return this;
     }
 
+    public virtual Task<string> GetConversationIntent()
+        => Task.FromResult(string.Empty);
+
     public virtual Task OnStateLoaded(ConversationState state)
         => Task.CompletedTask;
 

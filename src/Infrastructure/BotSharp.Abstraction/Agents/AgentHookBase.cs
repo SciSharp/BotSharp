@@ -7,6 +7,9 @@ public abstract class AgentHookBase : IAgentHook
 {
     public abstract string SelfId { get; }
 
+    public virtual bool IsMatch(string agentId)
+        => string.IsNullOrEmpty(SelfId) || SelfId == agentId;
+
     protected Agent _agent;
     public Agent Agent => _agent;
     

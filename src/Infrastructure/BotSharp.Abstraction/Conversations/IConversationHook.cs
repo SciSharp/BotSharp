@@ -18,7 +18,7 @@ public interface IConversationHook : IHookBase
     /// It will send to the conversation context to help LLM to understand the user's intent.
     /// </summary>
     /// <returns></returns>
-    Task<string> GetConversationIntent() => Task.FromResult(string.Empty);
+    Task<string> GetConversationIntent();
 
     /// <summary>
     /// Triggered when listing conversations.

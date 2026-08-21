@@ -8,6 +8,9 @@ public abstract class InstructHookBase : IInstructHook
 {
     public abstract string SelfId { get; }
 
+    public virtual bool IsMatch(string agentId)
+        => string.IsNullOrEmpty(SelfId) || SelfId == agentId;
+
     public virtual async Task BeforeCompletion(Agent agent, RoleDialogModel message)
     {
         await Task.CompletedTask;
