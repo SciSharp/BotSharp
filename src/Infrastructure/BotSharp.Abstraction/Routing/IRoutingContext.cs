@@ -10,6 +10,7 @@ public interface IRoutingContext
     string ConversationId { get; }
     string MessageId { get; }
     void SetMessageId(string conversationId, string messageId);
+    void SetMessageAgentId(string agentId);
     bool IsEmpty { get; }
     string IntentName { get; set; }
     int AgentCount { get; }

@@ -11,6 +11,7 @@ public class RoutingContext : IRoutingContext
     private string[] _routerAgentIds;
     private string _conversationId;
     private string _messageId;
+    private string _messageAgentId;
     private int _currentRecursionDepth = 0;
     private List<RoleDialogModel> _dialogs = [];
 
@@ -60,7 +61,7 @@ public class RoutingContext : IRoutingContext
     {
         get
         {
-            return _stack.LastOrDefault() ?? string.Empty;
+            return _stack.LastOrDefault() ?? _messageAgentId;
         }
     }
 
@@ -70,7 +71,7 @@ public class RoutingContext : IRoutingContext
     {
         if (_stack.Count == 0)
         {
-            return string.Empty;
+            return _messageAgentId;
         }
 
         return _stack.Peek();
@@ -226,6 +227,11 @@ public class RoutingContext : IRoutingContext
     {
         _conversationId = conversationId;
         _messageId = messageId;
+    }
+
+    public void SetMessageAgentId(string agentId)
+    {
+        _messageAgentId = agentId;
     }
 
     public int GetRecursiveCounter()
