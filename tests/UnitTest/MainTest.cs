@@ -37,6 +37,12 @@ namespace UnitTest
 
         class TestHookA : ConversationHookBase
         {
+            // Empty rather than an id: ConversationHookBase.IsMatch is
+            // IsNullOrEmpty(SelfId) || SelfId == agentId, and this test resolves hooks with
+            // GetHooksOrderByPriority(string.Empty) and asserts all three come back. Any non-empty
+            // value here would match nothing and the count assertion would fail.
+            public override string SelfId => string.Empty;
+
             public TestHookA()
             {
                 Priority = 1;
@@ -45,6 +51,8 @@ namespace UnitTest
 
         class TestHookB : ConversationHookBase
         {
+            public override string SelfId => string.Empty;
+
             public TestHookB()
             {
                 Priority = 2;
@@ -53,6 +61,8 @@ namespace UnitTest
 
         class TestHookC : ConversationHookBase
         {
+            public override string SelfId => string.Empty;
+
             public TestHookC()
             {
                 Priority = 3;

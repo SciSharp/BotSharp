@@ -12,13 +12,14 @@ public static class AssertionTypes
     public const string ToolNotCalled = "toolNotCalled";
     public const string StateEquals = "stateEquals";
     public const string RoutedToAgent = "routedToAgent";
+    public const string AgentChain = "agentChain";
     public const string LlmJudge = "llmJudge";
 
     /// <summary>
     /// Result-only. Never authored on a case and never evaluated -- AgentTestCaseRunner synthesises
     /// it when the mock seam blocked a tool, so the block surfaces in the ordinary assertion table
     /// instead of only in Observed Tool Calls. Deliberately absent from AssertionValidation's
-    /// Requirements map, which covers the eight authorable types.
+    /// Requirements map, which covers the nine authorable types.
     /// </summary>
     public const string NoBlockedTools = "noBlockedTools";
 }
@@ -177,28 +178,35 @@ public static class AssertionEvaluator
                 break;
 
             case AssertionTypes.RoutedToAgent:
-                result.Actual = context.RoutedToAgent;
+                var lastHop = context.AgentChain.Count > 0 ? context.AgentChain[^1] : null;
+                result.Actual = lastHop?.Name;
                 if (string.IsNullOrWhiteSpace(assertion.Expected))
                 {
-                    // A null Expected compares equal to a null RoutedToAgent (e.g. the canary/no
-                    // routing information case) -- a blank/omitted Expected must not read as
-                    // "expect no routing," which verifies nothing and would always pass.
+                    // A blank Expected would compare equal to "no agent answered", which verifies
+                    // nothing and would always pass.
                     result.Passed = false;
-                    result.Message = "routedToAgent requires a non-empty 'expected' agent name";
+                    result.Message = "routedToAgent requires a non-empty 'expected' agent name or id";
                     break;
                 }
 
-                result.Passed = string.Equals(context.RoutedToAgent, assertion.Expected,
-                    StringComparison.OrdinalIgnoreCase);
+                // Either identifier is accepted -- see AgentChainHop.Matches.
+                result.Passed = lastHop?.Matches(assertion.Expected.Trim()) == true;
                 if (!result.Passed) result.Message = "the conversation was handled by a different agent";
                 break;
 
+            case AssertionTypes.AgentChain:
+                EvaluateAgentChain(assertion, context, result);
+                break;
+
             case AssertionTypes.LlmJudge:
-                // P2 will wire this to an IInstructService judge. P1 fails explicitly and never
-                // passes silently -- passing silently would show a case that verified nothing as
-                // green.
+                // Unreachable on the normal path: the runner routes llmJudge to IAgentTestJudge
+                // instead of here, because scoring it needs a model call and this method is a pure,
+                // synchronous, I/O-free function. Kept as a loud failure rather than removed, so
+                // that a caller who evaluates assertions without going through the runner gets a
+                // verdict it cannot mistake for a pass. Silently passing would show a case that
+                // verified nothing as green.
                 result.Passed = false;
-                result.Message = "llmJudge is not available in P1";
+                result.Message = "llmJudge must be evaluated through IAgentTestJudge, not AssertionEvaluator";
                 break;
 
             default:
@@ -209,6 +217,125 @@ public static class AssertionEvaluator
 
         return result;
     }
+
+    /// <summary>
+    /// Compares the agents that answered against an expected list. Complements routedToAgent rather
+    /// than replacing it: routedToAgent asks "who answered last", which cannot express a hand-off at
+    /// all -- in Entry -> A -> B only B is visible, and if control returns to the entry agent and it
+    /// emits the closing message, a correctly routed case reads as routed to the entry agent.
+    ///
+    /// <see cref="TestAssertion.Expected"/> is a comma-separated list of agent names.
+    /// <see cref="TestAssertion.Target"/> selects the mode -- see <see cref="AgentChainModes"/> --
+    /// and defaults to Contains when omitted.
+    /// </summary>
+    private static void EvaluateAgentChain(
+        TestAssertion assertion, AssertionContext context, AssertionResult result)
+    {
+        result.Actual = string.Join(" -> ", context.AgentChain.Select(hop => hop.Name));
+
+        var expected = SplitAgentNames(assertion.Expected);
+        if (expected.Count == 0)
+        {
+            // An empty expected list is a subset of, and an ordered subsequence of, any chain, so
+            // both Contains and Ordered would pass vacuously; Exact would silently assert "no agent
+            // ever answered", which no author means to write.
+            result.Passed = false;
+            result.Message = "agentChain requires a non-empty comma-separated 'expected' agent list";
+            return;
+        }
+
+        // Deliberately not defaulted on a typo: falling back to Contains for an unrecognised mode
+        // would turn "orderd" into the loosest available check and quietly verify much less than the
+        // author asked for.
+        var mode = AgentChainModes.Normalize(assertion.Target);
+        if (mode == null)
+        {
+            result.Passed = false;
+            result.Message = "agentChain 'target' must be one of "
+                           + string.Join(", ", AgentChainModes.All)
+                           + " (or empty for " + AgentChainModes.Contains + "), not '"
+                           + assertion.Target + "'";
+            return;
+        }
+
+        switch (mode)
+        {
+            case AgentChainModes.Exact:
+                result.Passed = context.AgentChain.Count == expected.Count
+                    && context.AgentChain.Zip(expected).All(pair => pair.First.Matches(pair.Second));
+                if (!result.Passed) result.Message = "the agent chain differs from the expected chain";
+                break;
+
+            case AgentChainModes.Ordered:
+                result.Passed = IsOrderedSubsequence(expected, context.AgentChain);
+                if (!result.Passed) result.Message = "the expected agents did not all appear, in that order";
+                break;
+
+            default:
+                var missing = expected
+                    .Where(e => !context.AgentChain.Any(hop => hop.Matches(e)))
+                    .ToList();
+                result.Passed = missing.Count == 0;
+                if (!result.Passed)
+                {
+                    result.Message = "the agent chain does not include " + string.Join(", ", missing);
+                }
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Whether every expected name appears in the chain in the given relative order, with other
+    /// agents allowed in between -- so ["Copilot", "WorkOrder"] matches
+    /// Copilot -> Diagnosis -> WorkOrder. Asserting the hand-offs an author cares about must not
+    /// require enumerating every agent the conversation happened to pass through; Exact is for that.
+    /// </summary>
+    private static bool IsOrderedSubsequence(List<string> expected, IReadOnlyList<AgentChainHop> chain)
+    {
+        var next = 0;
+        foreach (var hop in chain)
+        {
+            if (next < expected.Count && hop.Matches(expected[next]))
+            {
+                next++;
+            }
+        }
+
+        return next == expected.Count;
+    }
+
+    private static List<string> SplitAgentNames(string? value)
+        => (value ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+}
+
+/// <summary>
+/// How an agentChain assertion compares its expected list against the actual chain.
+///
+/// Contains -- every expected agent appears somewhere, order ignored. The default, and the right
+///             choice for "this agent must have been involved at all".
+/// Ordered  -- every expected agent appears, in that relative order, other agents allowed in
+///             between. This is the hand-off assertion.
+/// Exact    -- the chain is precisely the expected list and nothing else. Strictest, and also how to
+///             assert isolation: an Exact chain of one agent means nothing routed away.
+/// </summary>
+public static class AgentChainModes
+{
+    public const string Contains = "contains";
+    public const string Ordered = "ordered";
+    public const string Exact = "exact";
+
+    public static readonly string[] All = [Contains, Ordered, Exact];
+
+    /// <summary>
+    /// Canonical mode for any casing, with blank meaning <see cref="Contains"/>; null for an
+    /// unrecognised value, so the caller rejects it instead of guessing.
+    /// </summary>
+    public static string? Normalize(string? value)
+        => string.IsNullOrWhiteSpace(value)
+            ? Contains
+            : All.FirstOrDefault(m => string.Equals(m, value.Trim(), StringComparison.OrdinalIgnoreCase));
 }
 
 /// <summary>
@@ -224,7 +351,7 @@ public static class AssertionValidation
 {
     private enum RequiredField { Expected, Target }
 
-    // One row per AssertionTypes constant -- eight total.
+    // One row per authorable AssertionTypes constant -- nine total.
     private static readonly Dictionary<string, RequiredField> Requirements = new(StringComparer.Ordinal)
     {
         [AssertionTypes.OutputContains] = RequiredField.Expected,
@@ -234,6 +361,7 @@ public static class AssertionValidation
         [AssertionTypes.ToolNotCalled] = RequiredField.Target,
         [AssertionTypes.StateEquals] = RequiredField.Target,
         [AssertionTypes.RoutedToAgent] = RequiredField.Expected,
+        [AssertionTypes.AgentChain] = RequiredField.Expected,
         [AssertionTypes.LlmJudge] = RequiredField.Expected,
     };
 

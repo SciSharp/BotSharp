@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Infrastructures.Attributes;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.MLTasks.Settings;
@@ -85,8 +86,26 @@ public class AgentTestControllerTests
             => Task.FromResult(Runs.Values.Where(r => r.Status == status).ToList());
         public Task UpdateRunAsync(AgentTestRun run) { Runs[run.Id] = run; return Task.CompletedTask; }
 
+        /// <summary>
+        /// Cascades exactly as the real repository does. A fake that dropped only the run would let
+        /// a test pass while production left unreachable result rows behind.
+        /// </summary>
+        public Task<long> DeleteRunAsync(string id)
+        {
+            var removed = Results.RemoveAll(r => r.RunId == id);
+            Runs.Remove(id);
+            return Task.FromResult((long)removed);
+        }
+
         public Task AddCaseResultAsync(AgentTestCaseResult result) => Task.CompletedTask;
-        public Task<List<AgentTestCaseResult>> ListCaseResultsAsync(string runId) => Task.FromResult(new List<AgentTestCaseResult>());
+        /// <summary>
+        /// Real storage rather than an always-empty list, so the delete cascade is actually
+        /// observable: a fake that never held results could not tell a cascade from a no-op.
+        /// </summary>
+        public List<AgentTestCaseResult> Results { get; } = [];
+
+        public Task<List<AgentTestCaseResult>> ListCaseResultsAsync(string runId)
+            => Task.FromResult(Results.Where(r => r.RunId == runId).ToList());
     }
 
     private sealed class RecordingQueue : IAgentTestRunQueue
@@ -110,8 +129,25 @@ public class AgentTestControllerTests
         return mock.Object;
     }
 
+    /// <summary>
+    /// An IAgentService that resolves exactly the given ids. The default Mock.Of&lt;IAgentService&gt;
+    /// resolves nothing, which is correct for every test that leaves EntryAgentId blank (the check
+    /// short-circuits there) but would reject any test that sets one.
+    /// </summary>
+    private static IAgentService AgentServiceKnowing(params string[] agentIds)
+    {
+        var known = new HashSet<string>(agentIds, StringComparer.OrdinalIgnoreCase);
+        var mock = new Mock<IAgentService>();
+        mock.Setup(x => x.GetAgent(It.IsAny<string>()))
+            .ReturnsAsync((string id) => known.Contains(id) ? new Agent { Id = id, Name = id } : null!);
+        return mock.Object;
+    }
+
     private static AgentTestController BuildController(
-        InMemoryRepo repo, out RecordingQueue queue, ILlmProviderService? llmProviders = null)
+        InMemoryRepo repo,
+        out RecordingQueue queue,
+        ILlmProviderService? llmProviders = null,
+        IAgentService? agents = null)
     {
         var recorder = new AgentTestRecorder(
             Mock.Of<IBotSharpRepository>(),
@@ -120,7 +156,7 @@ public class AgentTestControllerTests
         queue = new RecordingQueue();
 
         var controller = new AgentTestController(
-            repo, queue, Mock.Of<IAgentService>(), recorder, llmProviders ?? ProviderServiceKnowing());
+            repo, queue, agents ?? Mock.Of<IAgentService>(), recorder, llmProviders ?? ProviderServiceKnowing());
 
         // TriggerRun reads User.FindFirstValue(ClaimTypes.NameIdentifier) -- a directly-constructed
         // controller (no MVC pipeline/TestServer) has no HttpContext at all by default, and
@@ -609,5 +645,994 @@ public class AgentTestControllerTests
 
         Assert.IsType<OkResult>(result);
         Assert.True(repo.Runs["run-1"].CancelRequested);
+    }
+
+    private static AgentTestCaseUpsertRequest RoutingCaseRequest(
+        int turns = 1, params TestAssertion[] assertions) => new()
+    {
+        SuiteId = "suite-1",
+        Name = "routing case",
+        CaseType = CaseTypes.Routing,
+        Turns = Enumerable.Range(0, turns)
+            .Select(i => new TestTurn { Index = i, UserMessage = "hi" })
+            .ToList(),
+        Assertions = assertions.ToList()
+    };
+
+    private static InMemoryRepo RepoWithSuite()
+    {
+        var repo = new InMemoryRepo();
+        repo.Suites["suite-1"] = new AgentTestSuite { Id = "suite-1", AgentId = "agent-1", Name = "s" };
+        return repo;
+    }
+
+    [Fact]
+    public async Task An_unknown_case_type_is_rejected_rather_than_stored_as_the_default()
+    {
+        // Silently storing "Rounting" as Agent would leave the author with a case that reads
+        // routing-shaped in the UI and is never counted towards routing accuracy -- the failure mode
+        // is a gate figure quietly measuring fewer cases than anyone thinks.
+        var controller = BuildController(RepoWithSuite(), out _);
+
+        var request = RoutingCaseRequest(
+            assertions: new TestAssertion { Type = AssertionTypes.RoutedToAgent, Expected = "WO" });
+        request.CaseType = "Rounting";
+
+        var response = await controller.CreateCase(request);
+
+        var bad = Assert.IsType<BadRequestObjectResult>(response.Result);
+        Assert.Contains("caseType", bad.Value?.ToString());
+    }
+
+    [Theory]
+    [InlineData("routing")]
+    [InlineData("ROUTING")]
+    public async Task A_case_type_is_stored_in_its_canonical_casing(string sent)
+    {
+        // Every comparison against CaseTypes.Routing is Ordinal, so storing the caller's casing would
+        // leave a case that never matches -- it would run, and then not be counted.
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        var request = RoutingCaseRequest(
+            assertions: new TestAssertion { Type = AssertionTypes.RoutedToAgent, Expected = "WO" });
+        request.CaseType = sent;
+
+        await controller.CreateCase(request);
+
+        Assert.Equal(CaseTypes.Routing, Assert.Single(repo.Cases.Values).CaseType);
+    }
+
+    [Fact]
+    public async Task A_case_that_omits_the_type_is_an_agent_case()
+    {
+        // Backward compatibility for every client written before the field existed, and for the
+        // documents already in the store: both have to keep meaning Agent.
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            Turns = [new TestTurn { Index = 0, UserMessage = "hi" }]
+        });
+
+        Assert.Equal(CaseTypes.Agent, Assert.Single(repo.Cases.Values).CaseType);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(2)]
+    public async Task A_routing_case_must_have_exactly_one_turn(int turns)
+    {
+        // Routing is a single-turn question: which agent picks this message up. A second turn asks
+        // something else, and its verdict would still land in the routing accuracy figure.
+        var controller = BuildController(RepoWithSuite(), out _);
+
+        var response = await controller.CreateCase(RoutingCaseRequest(
+            turns, new TestAssertion { Type = AssertionTypes.RoutedToAgent, Expected = "WO" }));
+
+        var bad = Assert.IsType<BadRequestObjectResult>(response.Result);
+        Assert.Contains("exactly one turn", bad.Value?.ToString());
+    }
+
+    [Fact]
+    public async Task A_routing_case_without_a_routing_assertion_is_rejected()
+    {
+        // Otherwise the case counts towards routing accuracy while asserting nothing about routing:
+        // it reports Passed for having successfully said anything at all.
+        var controller = BuildController(RepoWithSuite(), out _);
+
+        var response = await controller.CreateCase(RoutingCaseRequest(
+            assertions: new TestAssertion { Type = AssertionTypes.OutputContains, Expected = "hello" }));
+
+        var bad = Assert.IsType<BadRequestObjectResult>(response.Result);
+        Assert.Contains(AssertionTypes.RoutedToAgent, bad.Value?.ToString());
+    }
+
+    [Fact]
+    public async Task Either_routing_assertion_type_satisfies_that_requirement()
+    {
+        // agentChain is the assertion that can actually describe a hand-off, so it has to count --
+        // requiring routedToAgent specifically would force every routing case onto the weaker one.
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.CreateCase(RoutingCaseRequest(
+            assertions: new TestAssertion
+            {
+                Type = AssertionTypes.AgentChain,
+                Target = AgentChainModes.Exact,
+                Expected = "Work Order Creator"
+            }));
+
+        Assert.Null(response.Result);
+        Assert.Equal(CaseTypes.Routing, Assert.Single(repo.Cases.Values).CaseType);
+    }
+
+    [Fact]
+    public async Task A_turn_level_routing_assertion_counts_too()
+    {
+        // A single-turn routing case can just as reasonably put its assertion on the turn as at case
+        // level; looking only at case-level assertions would reject a perfectly good case.
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            CaseType = CaseTypes.Routing,
+            Turns =
+            [
+                new TestTurn
+                {
+                    Index = 0,
+                    UserMessage = "hi",
+                    Assertions = [new TestAssertion { Type = AssertionTypes.RoutedToAgent, Expected = "WO" }]
+                }
+            ]
+        });
+
+        Assert.Null(response.Result);
+        Assert.Single(repo.Cases.Values);
+    }
+
+    [Fact]
+    public async Task A_routing_case_cannot_use_the_llm_judge()
+    {
+        // Routing is scored purely as expected-agent == actual-agent. An llmJudge would also make the
+        // routing figure depend on a vendor call, so a vendor outage would read as a routing
+        // regression.
+        var controller = BuildController(RepoWithSuite(), out _);
+
+        var response = await controller.CreateCase(RoutingCaseRequest(
+            1,
+            new TestAssertion { Type = AssertionTypes.RoutedToAgent, Expected = "WO" },
+            new TestAssertion { Type = AssertionTypes.LlmJudge, Expected = "is polite", MinScore = 4 }));
+
+        var bad = Assert.IsType<BadRequestObjectResult>(response.Result);
+        Assert.Contains(AssertionTypes.LlmJudge, bad.Value?.ToString());
+    }
+
+    [Fact]
+    public async Task An_agent_case_is_not_held_to_the_routing_rules()
+    {
+        // Those rules are Routing-only. An Agent case is normally multi-turn and may well use
+        // llmJudge; applying routing's constraints to it would break every case already stored.
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            CaseType = CaseTypes.Agent,
+            Turns =
+            [
+                new TestTurn { Index = 0, UserMessage = "a" },
+                new TestTurn { Index = 1, UserMessage = "b" }
+            ],
+            Assertions = [new TestAssertion { Type = AssertionTypes.LlmJudge, Expected = "is polite", MinScore = 4 }]
+        });
+
+        Assert.Null(response.Result);
+        Assert.Single(repo.Cases.Values);
+    }
+
+    [Fact]
+    public async Task An_entry_agent_that_does_not_exist_is_rejected_at_save_time()
+    {
+        // A typo here would otherwise turn every run of the case into an opaque infrastructure Error:
+        // the canary fails against an agent BotSharp cannot load, and its message says nothing about
+        // the real cause.
+        var controller = BuildController(RepoWithSuite(), out _, agents: AgentServiceKnowing("copilot-entry"));
+
+        var request = RoutingCaseRequest(
+            assertions: new TestAssertion { Type = AssertionTypes.RoutedToAgent, Expected = "WO" });
+        request.EntryAgentId = "coplot-entry";
+
+        var response = await controller.CreateCase(request);
+
+        var bad = Assert.IsType<BadRequestObjectResult>(response.Result);
+        Assert.Contains("coplot-entry", bad.Value?.ToString());
+    }
+
+    [Fact]
+    public async Task A_known_entry_agent_is_stored_trimmed()
+    {
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _, agents: AgentServiceKnowing("copilot-entry"));
+
+        var request = RoutingCaseRequest(
+            assertions: new TestAssertion { Type = AssertionTypes.RoutedToAgent, Expected = "WO" });
+        request.EntryAgentId = "  copilot-entry  ";
+
+        await controller.CreateCase(request);
+
+        Assert.Equal("copilot-entry", Assert.Single(repo.Cases.Values).EntryAgentId);
+    }
+
+    [Fact]
+    public async Task A_blank_entry_agent_is_stored_as_null_and_needs_no_lookup()
+    {
+        // Null is what the runner's "fall back to the suite's agent" check reads. A UI posting "" for
+        // an untouched field must not retarget the case at an agent id of "", and saving a case must
+        // not require knowing any agent id at all -- note this controller resolves no agents.
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        var request = RoutingCaseRequest(
+            assertions: new TestAssertion { Type = AssertionTypes.RoutedToAgent, Expected = "WO" });
+        request.EntryAgentId = "   ";
+
+        await controller.CreateCase(request);
+
+        Assert.Null(Assert.Single(repo.Cases.Values).EntryAgentId);
+    }
+
+    [Fact]
+    public async Task E2E_is_no_longer_an_accepted_case_type()
+    {
+        // Dropped by project owner decision: a multi-agent journey is an Agent case whose agentChain
+        // assertion describes the hand-offs, so a third type bought nothing but a third branch in
+        // every validation and aggregation path.
+        var controller = BuildController(RepoWithSuite(), out _);
+
+        var request = RoutingCaseRequest(
+            assertions: new TestAssertion { Type = AssertionTypes.RoutedToAgent, Expected = "WO" });
+        request.CaseType = "E2E";
+
+        var response = await controller.CreateCase(request);
+
+        var bad = Assert.IsType<BadRequestObjectResult>(response.Result);
+        Assert.Contains("caseType", bad.Value?.ToString());
+    }
+
+    [Theory]
+    [InlineData("system")]
+    [InlineData("function")]
+    [InlineData("tool")]
+    [InlineData("")]
+    public async Task An_unsupported_history_role_is_rejected(string role)
+    {
+        // system would compete with the agent's own instruction, and function would fake a tool call
+        // -- letting a case claim a tool ran when nothing did. Both are worse than a save error.
+        var controller = BuildController(RepoWithSuite(), out _);
+
+        var response = await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            History = [new TestHistoryMessage { Role = role, Content = "hello" }],
+            Turns = [new TestTurn { Index = 0, UserMessage = "hi" }]
+        });
+
+        var bad = Assert.IsType<BadRequestObjectResult>(response.Result);
+        Assert.Contains("history message 1", bad.Value?.ToString());
+    }
+
+    [Fact]
+    public async Task A_history_message_with_no_content_is_rejected()
+    {
+        // BotSharp's own dialog storage drops elements with blank content, so it would not be there
+        // at run time, and the runner's write-count check would then fail the case with a confusing
+        // message about the write having vanished.
+        var controller = BuildController(RepoWithSuite(), out _);
+
+        var response = await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            History = [new TestHistoryMessage { Role = HistoryRoles.User, Content = "   " }],
+            Turns = [new TestTurn { Index = 0, UserMessage = "hi" }]
+        });
+
+        var bad = Assert.IsType<BadRequestObjectResult>(response.Result);
+        Assert.Contains("no content", bad.Value?.ToString());
+    }
+
+    [Fact]
+    public async Task A_history_role_is_stored_in_its_canonical_casing()
+    {
+        // The driver and every later comparison use the lowercase constants.
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            History = [new TestHistoryMessage { Role = "ASSISTANT", Content = "hello" }],
+            Turns = [new TestTurn { Index = 0, UserMessage = "hi" }]
+        });
+
+        var stored = Assert.Single(repo.Cases.Values);
+        Assert.Equal(HistoryRoles.Assistant, Assert.Single(stored.History).Role);
+    }
+
+    [Fact]
+    public async Task History_does_not_count_towards_a_routing_cases_one_turn_limit()
+    {
+        // Replaying a prior exchange and then asking one question is still a single routing decision,
+        // and it is the most realistic way to test routing that depends on context. Counting history
+        // as turns would make that impossible to express.
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        var request = RoutingCaseRequest(
+            assertions: new TestAssertion { Type = AssertionTypes.RoutedToAgent, Expected = "WO" });
+        request.History =
+        [
+            new TestHistoryMessage { Role = HistoryRoles.User, Content = "my fridge is leaking" },
+            new TestHistoryMessage { Role = HistoryRoles.Assistant, Content = "I raised work order B123." }
+        ];
+
+        var response = await controller.CreateCase(request);
+
+        Assert.Null(response.Result);
+        Assert.Equal(2, Assert.Single(repo.Cases.Values).History.Count);
+    }
+
+    /// <summary>
+    /// A case with every field populated, so a copy test fails when a field is dropped rather than
+    /// only when the obvious ones are.
+    /// </summary>
+    private static AgentTestCase FullyPopulatedCase() => new()
+    {
+        Id = "case-1",
+        SuiteId = "suite-1",
+        Name = "asking for an ETA",
+        Enabled = true,
+        CaseType = CaseTypes.Routing,
+        EntryAgentId = "copilot-entry",
+        History = [new TestHistoryMessage { Role = HistoryRoles.User, Content = "my fridge is leaking" }],
+        Turns =
+        [
+            new TestTurn
+            {
+                Index = 0,
+                UserMessage = "when is someone coming?",
+                Assertions = [new TestAssertion { Type = AssertionTypes.RoutedToAgent, Expected = "WO", Fatal = true }]
+            }
+        ],
+        Assertions =
+        [
+            new TestAssertion
+            {
+                Type = AssertionTypes.AgentChain,
+                Target = AgentChainModes.Ordered,
+                Expected = "Copilot, WO"
+            }
+        ],
+        InitialStates = [new TestState { Key = "wo_num", Value = "B123", ActiveRounds = 3, Global = true }],
+        Mocks =
+        [
+            new TestToolMock
+            {
+                FunctionName = "get_estimate_arrival_time",
+                ArgsMatchJson = "{\"wo_num\":\"B123\"}",
+                CallIndex = 1,
+                ResultContent = "tomorrow 9am",
+                StopCompletion = true,
+                StateWrites = [new TestState { Key = "eta", Value = "tomorrow" }]
+            }
+        ],
+        UnmockedToolPolicy = UnmockedToolPolicies.Block,
+        SourceConversationId = "conv-9"
+    };
+
+    [Fact]
+    public async Task Copying_a_case_carries_every_field()
+    {
+        // The reason this endpoint exists server-side at all. A client that rebuilds the payload from
+        // its own form drops whatever it does not know about, and a copy missing its mocks looks
+        // identical in the list right up to the run where it blocks every tool.
+        var repo = RepoWithSuite();
+        var source = FullyPopulatedCase();
+        repo.Cases[source.Id] = source;
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.CopyCase("case-1");
+
+        var copy = Assert.IsType<AgentTestCase>(response.Value);
+        Assert.Equal(source.SuiteId, copy.SuiteId);
+        Assert.Equal(source.CaseType, copy.CaseType);
+        Assert.Equal(source.EntryAgentId, copy.EntryAgentId);
+        Assert.Equal(source.UnmockedToolPolicy, copy.UnmockedToolPolicy);
+        Assert.Equal(source.SourceConversationId, copy.SourceConversationId);
+
+        Assert.Equal("my fridge is leaking", Assert.Single(copy.History).Content);
+        Assert.Equal("when is someone coming?", Assert.Single(copy.Turns).UserMessage);
+        Assert.True(Assert.Single(Assert.Single(copy.Turns).Assertions).Fatal);
+        Assert.Equal(AgentChainModes.Ordered, Assert.Single(copy.Assertions).Target);
+
+        var state = Assert.Single(copy.InitialStates);
+        Assert.Equal("wo_num", state.Key);
+        Assert.Equal(3, state.ActiveRounds);
+        Assert.True(state.Global);
+
+        var mock = Assert.Single(copy.Mocks);
+        Assert.Equal("get_estimate_arrival_time", mock.FunctionName);
+        Assert.Equal("{\"wo_num\":\"B123\"}", mock.ArgsMatchJson);
+        Assert.Equal(1, mock.CallIndex);
+        Assert.True(mock.StopCompletion);
+        Assert.Equal("eta", Assert.Single(mock.StateWrites!).Key);
+    }
+
+    [Fact]
+    public async Task A_copy_lands_disabled_even_when_the_source_was_enabled()
+    {
+        // An exact duplicate joining the next run measures the same thing twice: it pads the
+        // pass-rate denominator, and for a routing case it double-weights one routing decision. The
+        // copy waits for the edit it was made for.
+        var repo = RepoWithSuite();
+        repo.Cases["case-1"] = FullyPopulatedCase();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.CopyCase("case-1");
+
+        Assert.False(Assert.IsType<AgentTestCase>(response.Value).Enabled);
+        // And the source is untouched.
+        Assert.True(repo.Cases["case-1"].Enabled);
+    }
+
+    [Fact]
+    public async Task A_copy_gets_its_own_id_and_does_not_overwrite_the_source()
+    {
+        // The BSON round trip copies the source's _id, so failing to blank it would turn the copy
+        // into a full overwrite of the original -- the worst possible outcome for a copy button.
+        var repo = RepoWithSuite();
+        repo.Cases["case-1"] = FullyPopulatedCase();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.CopyCase("case-1");
+
+        var copy = Assert.IsType<AgentTestCase>(response.Value);
+        Assert.NotEqual("case-1", copy.Id);
+        Assert.NotEmpty(copy.Id);
+        Assert.Equal(2, repo.Cases.Count);
+        Assert.Equal("asking for an ETA", repo.Cases["case-1"].Name);
+    }
+
+    [Fact]
+    public async Task Editing_a_copy_does_not_reach_back_into_the_source()
+    {
+        // A shallow clone would have both documents sharing the same Turns/Mocks list instances, so
+        // the first edit to the copy would silently rewrite the case it came from.
+        var repo = RepoWithSuite();
+        repo.Cases["case-1"] = FullyPopulatedCase();
+        var controller = BuildController(repo, out _);
+
+        var copy = Assert.IsType<AgentTestCase>((await controller.CopyCase("case-1")).Value);
+
+        copy.Turns[0].UserMessage = "changed";
+        copy.Mocks[0].ResultContent = "changed";
+        copy.History[0].Content = "changed";
+
+        var source = repo.Cases["case-1"];
+        Assert.Equal("when is someone coming?", source.Turns[0].UserMessage);
+        Assert.Equal("tomorrow 9am", source.Mocks[0].ResultContent);
+        Assert.Equal("my fridge is leaking", source.History[0].Content);
+    }
+
+    [Fact]
+    public async Task Repeated_copies_get_distinguishable_names()
+    {
+        // Two rows both called "x (copy)" cannot be told apart in the list, which is the one place
+        // copies are managed.
+        var repo = RepoWithSuite();
+        repo.Cases["case-1"] = FullyPopulatedCase();
+        var controller = BuildController(repo, out _);
+
+        var first = Assert.IsType<AgentTestCase>((await controller.CopyCase("case-1")).Value);
+        var second = Assert.IsType<AgentTestCase>((await controller.CopyCase("case-1")).Value);
+        var third = Assert.IsType<AgentTestCase>((await controller.CopyCase("case-1")).Value);
+
+        Assert.Equal("asking for an ETA (copy)", first.Name);
+        Assert.Equal("asking for an ETA (copy 2)", second.Name);
+        Assert.Equal("asking for an ETA (copy 3)", third.Name);
+    }
+
+    [Fact]
+    public async Task A_copy_of_a_copy_is_named_from_the_case_it_was_copied_from()
+    {
+        // Not "x (copy) (copy)": the suffix is appended to whatever the source is called, and the
+        // collision check is what keeps the result unique.
+        var repo = RepoWithSuite();
+        repo.Cases["case-1"] = FullyPopulatedCase();
+        var controller = BuildController(repo, out _);
+
+        var first = Assert.IsType<AgentTestCase>((await controller.CopyCase("case-1")).Value);
+        var nested = Assert.IsType<AgentTestCase>((await controller.CopyCase(first.Id)).Value);
+
+        Assert.Equal("asking for an ETA (copy) (copy)", nested.Name);
+    }
+
+    [Fact]
+    public async Task A_copied_name_stays_short_enough_to_edit()
+    {
+        // A name the case editor's own input cannot hold would have to be trimmed by hand before any
+        // other change to the copy could be saved.
+        var repo = RepoWithSuite();
+        var source = FullyPopulatedCase();
+        source.Name = new string('x', 200);
+        repo.Cases["case-1"] = source;
+        var controller = BuildController(repo, out _);
+
+        var copy = Assert.IsType<AgentTestCase>((await controller.CopyCase("case-1")).Value);
+
+        Assert.True(copy.Name.Length <= 200, $"name was {copy.Name.Length} characters");
+        Assert.EndsWith(" (copy)", copy.Name);
+    }
+
+    [Fact]
+    public async Task A_copy_does_not_inherit_the_sources_create_date()
+    {
+        // The round trip copies it, which would have the copy claim to be as old as the case it came
+        // from -- and the case list is sorted newest first, so a fresh copy would appear buried.
+        var repo = RepoWithSuite();
+        var source = FullyPopulatedCase();
+        source.CreateDate = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        repo.Cases["case-1"] = source;
+        var controller = BuildController(repo, out _);
+
+        var copy = Assert.IsType<AgentTestCase>((await controller.CopyCase("case-1")).Value);
+
+        Assert.True(copy.CreateDate > new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+    }
+
+    [Fact]
+    public async Task Copying_a_case_that_does_not_exist_is_a_404()
+    {
+        var controller = BuildController(RepoWithSuite(), out _);
+
+        var response = await controller.CopyCase("nope");
+
+        Assert.IsType<NotFoundObjectResult>(response.Result);
+    }
+
+    // ------------------------------------------------------------- governance metadata
+
+    [Theory]
+    [InlineData("P3")]
+    [InlineData("high")]
+    public async Task An_unknown_priority_is_rejected(string priority)
+    {
+        // Priority decides the batch, and a batch decides whether a failure stops the evaluation.
+        // Storing "high" would leave a case that matches no priority and lands in the default batch
+        // while its author believes it is stop-loss.
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            Priority = priority,
+            Turns = [new TestTurn { Index = 0, UserMessage = "hi" }]
+        });
+
+        var bad = Assert.IsType<BadRequestObjectResult>(response.Result);
+        Assert.Contains("priority", bad.Value?.ToString());
+    }
+
+    [Fact]
+    public async Task An_unknown_severity_is_rejected()
+    {
+        var controller = BuildController(RepoWithSuite(), out _);
+
+        var response = await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            Severity = "critical",
+            Turns = [new TestTurn { Index = 0, UserMessage = "hi" }]
+        });
+
+        var bad = Assert.IsType<BadRequestObjectResult>(response.Result);
+        Assert.Contains("severity", bad.Value?.ToString());
+    }
+
+    [Fact]
+    public async Task An_out_of_range_batch_is_rejected_rather_than_clamped()
+    {
+        // Clamping 4 to 3 would file the case somewhere its author never asked for, silently, in the
+        // batch that does not block a release.
+        var controller = BuildController(RepoWithSuite(), out _);
+
+        var response = await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            Batch = 4,
+            Turns = [new TestTurn { Index = 0, UserMessage = "hi" }]
+        });
+
+        var bad = Assert.IsType<BadRequestObjectResult>(response.Result);
+        Assert.Contains("batch", bad.Value?.ToString());
+    }
+
+    [Fact]
+    public async Task Priority_and_severity_are_stored_in_canonical_casing()
+    {
+        // Every comparison against CasePriorities.P0 is Ordinal, so storing "p0" would leave a case
+        // that runs and is then filed in the wrong batch.
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            Priority = "p0",
+            Severity = "s0",
+            Turns = [new TestTurn { Index = 0, UserMessage = "hi" }]
+        });
+
+        var stored = Assert.Single(repo.Cases.Values);
+        Assert.Equal(CasePriorities.P0, stored.Priority);
+        Assert.Equal(CaseSeverities.S0, stored.Severity);
+    }
+
+    [Fact]
+    public async Task A_case_that_omits_the_governance_fields_gets_the_untriaged_defaults()
+    {
+        // P1 and S1 for every case stored before these fields existed: P0/S0 would make each of them
+        // an immediate no-go, and P2/S2 would drop them out of the mandatory batches and let a real
+        // failure read as an experience nit.
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            Turns = [new TestTurn { Index = 0, UserMessage = "hi" }]
+        });
+
+        var stored = Assert.Single(repo.Cases.Values);
+        Assert.Equal(CasePriorities.P1, stored.Priority);
+        Assert.Equal(CaseSeverities.S1, stored.Severity);
+        Assert.Null(stored.Batch);
+        Assert.False(stored.CrossCutting);
+        Assert.Empty(stored.InvolvedAgents);
+        Assert.Null(stored.LastReviewedDate);
+    }
+
+    [Fact]
+    public async Task Involved_agents_are_trimmed_and_deduplicated()
+    {
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            InvolvedAgents = ["  agent-a  ", "AGENT-A", "", "agent-b"],
+            Turns = [new TestTurn { Index = 0, UserMessage = "hi" }]
+        });
+
+        Assert.Equal(["agent-a", "agent-b"], Assert.Single(repo.Cases.Values).InvolvedAgents);
+    }
+
+    [Fact]
+    public async Task Saving_a_case_never_stamps_the_reviewed_date()
+    {
+        // A case can be edited many times and still rest on an assumption nobody has questioned in a
+        // year. Stamping this on every write would hide exactly that.
+        var repo = RepoWithSuite();
+        var controller = BuildController(repo, out _);
+
+        await controller.CreateCase(new AgentTestCaseUpsertRequest
+        {
+            SuiteId = "suite-1",
+            Name = "c",
+            Turns = [new TestTurn { Index = 0, UserMessage = "hi" }]
+        });
+
+        Assert.Null(Assert.Single(repo.Cases.Values).LastReviewedDate);
+    }
+
+    // ------------------------------------------------------------- scope selection
+
+    private static InMemoryRepo RepoWithScopedCases()
+    {
+        var repo = new InMemoryRepo();
+        repo.Suites["suite-1"] = new AgentTestSuite { Id = "suite-1", AgentId = "agent-a", Name = "A suite" };
+        repo.Cases["on-target"] = new AgentTestCase
+        {
+            Id = "on-target", SuiteId = "suite-1", Name = "on target", EntryAgentId = "agent-a"
+        };
+        repo.Cases["off-target"] = new AgentTestCase
+        {
+            Id = "off-target", SuiteId = "suite-1", Name = "off target", EntryAgentId = "agent-b"
+        };
+        repo.Cases["safety"] = new AgentTestCase
+        {
+            Id = "safety", SuiteId = "suite-1", Name = "safety", EntryAgentId = "agent-b", CrossCutting = true
+        };
+        repo.Cases["draft"] = new AgentTestCase
+        {
+            Id = "draft", SuiteId = "suite-1", Name = "draft", EntryAgentId = "agent-a", Enabled = false
+        };
+        return repo;
+    }
+
+    [Fact]
+    public async Task A_scope_with_no_targets_and_no_platform_flag_is_rejected()
+    {
+        // It would narrow to nothing, and an empty scope reported as a successful plan is the single
+        // most dangerous answer this endpoint could give: it reads as "nothing needs testing".
+        var controller = BuildController(RepoWithScopedCases(), out _);
+
+        var response = await controller.SelectScope(new ScopeSelectionRequest());
+
+        Assert.IsType<BadRequestObjectResult>(response.Result);
+    }
+
+    [Fact]
+    public async Task A_scope_reports_both_halves_with_a_reason_for_each()
+    {
+        // The excluded half is the one worth reading: an excluded case produces no result to notice,
+        // so the only defence is being able to see what was left out and why.
+        var controller = BuildController(RepoWithScopedCases(), out _);
+
+        var response = await controller.SelectScope(new ScopeSelectionRequest
+        {
+            TargetAgentIds = ["agent-a"]
+        });
+
+        var scope = Assert.IsType<ScopeSelectionResponse>(response.Value);
+        Assert.Equal(4, scope.TotalCases);
+
+        Assert.Equal(
+            ["on-target", "safety"],
+            scope.Included.Select(c => c.CaseId).OrderBy(id => id).ToList());
+        Assert.Equal(ScopeReasons.TargetAgent, scope.Included.Single(c => c.CaseId == "on-target").Reason);
+        Assert.Equal(ScopeReasons.CrossCutting, scope.Included.Single(c => c.CaseId == "safety").Reason);
+
+        Assert.Equal(ScopeReasons.NotInvolved, scope.Excluded.Single(c => c.CaseId == "off-target").Reason);
+        Assert.Equal(ScopeReasons.Disabled, scope.Excluded.Single(c => c.CaseId == "draft").Reason);
+    }
+
+    [Fact]
+    public async Task A_platform_wide_scope_includes_every_enabled_case()
+    {
+        // Narrowing switches off: there is no agent a foundation model swap demonstrably does not
+        // touch. Disabled cases stay out, because no run would execute them.
+        var controller = BuildController(RepoWithScopedCases(), out _);
+
+        var response = await controller.SelectScope(new ScopeSelectionRequest { FullPlatform = true });
+
+        var scope = Assert.IsType<ScopeSelectionResponse>(response.Value);
+        Assert.Equal(3, scope.Included.Count);
+        Assert.Equal("draft", Assert.Single(scope.Excluded).CaseId);
+    }
+
+    [Fact]
+    public async Task A_scope_carries_the_metadata_the_decision_was_made_from()
+    {
+        // A verdict on its own cannot be reviewed. The involved set and the effective batch are what
+        // let someone check the plan rather than trust it.
+        var controller = BuildController(RepoWithScopedCases(), out _);
+
+        var response = await controller.SelectScope(new ScopeSelectionRequest
+        {
+            TargetAgentIds = ["agent-a"]
+        });
+
+        var scope = Assert.IsType<ScopeSelectionResponse>(response.Value);
+        var onTarget = scope.Included.Single(c => c.CaseId == "on-target");
+
+        Assert.Equal(["agent-a"], onTarget.InvolvedAgentIds);
+        Assert.Equal(CaseBatches.Mandatory, onTarget.Batch);
+        Assert.Equal("A suite", onTarget.SuiteName);
+        // Cross-cutting forces batch 1, and the response has to agree with that.
+        Assert.Equal(CaseBatches.StopLoss, scope.Included.Single(c => c.CaseId == "safety").Batch);
+    }
+
+    [Fact]
+    public async Task A_scope_can_be_narrowed_to_one_batch()
+    {
+        var controller = BuildController(RepoWithScopedCases(), out _);
+
+        var response = await controller.SelectScope(new ScopeSelectionRequest
+        {
+            TargetAgentIds = ["agent-a"],
+            Batch = CaseBatches.StopLoss
+        });
+
+        var scope = Assert.IsType<ScopeSelectionResponse>(response.Value);
+        Assert.Equal("safety", Assert.Single(scope.Included).CaseId);
+        Assert.Equal(ScopeReasons.OtherBatch, scope.Excluded.Single(c => c.CaseId == "on-target").Reason);
+    }
+
+    [Fact]
+    public async Task An_out_of_range_batch_on_a_scope_is_rejected()
+    {
+        var controller = BuildController(RepoWithScopedCases(), out _);
+
+        var response = await controller.SelectScope(new ScopeSelectionRequest
+        {
+            TargetAgentIds = ["agent-a"],
+            Batch = 7
+        });
+
+        Assert.IsType<BadRequestObjectResult>(response.Result);
+    }
+
+    // ------------------------------------------------------------- clearing run history
+
+    private static InMemoryRepo RepoWithRuns()
+    {
+        var repo = RepoWithSuite();
+        repo.Runs["done"] = new AgentTestRun
+        {
+            Id = "done", SuiteId = "suite-1", Status = AgentTestStatus.Passed
+        };
+        repo.Runs["failed"] = new AgentTestRun
+        {
+            Id = "failed", SuiteId = "suite-1", Status = AgentTestStatus.Failed
+        };
+        repo.Runs["live"] = new AgentTestRun
+        {
+            Id = "live", SuiteId = "suite-1", Status = AgentTestStatus.Running
+        };
+        repo.Results.Add(new AgentTestCaseResult { Id = "r1", RunId = "done", CaseId = "c1" });
+        repo.Results.Add(new AgentTestCaseResult { Id = "r2", RunId = "done", CaseId = "c2" });
+        repo.Results.Add(new AgentTestCaseResult { Id = "r3", RunId = "live", CaseId = "c1" });
+        return repo;
+    }
+
+    [Fact]
+    public async Task Deleting_a_run_takes_its_case_results_with_it()
+    {
+        // Results are keyed by run id and reachable no other way, so dropping the run alone would
+        // leave rows nothing can ever list, read or clean up again.
+        var repo = RepoWithRuns();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest { RunIds = ["done"] });
+
+        var result = Assert.IsType<AgentTestRunDeleteResponse>(response.Value);
+        Assert.Equal(["done"], result.DeletedRunIds);
+        Assert.Equal(2, result.DeletedResultCount);
+        Assert.DoesNotContain("done", repo.Runs.Keys);
+        Assert.DoesNotContain(repo.Results, r => r.RunId == "done");
+
+        // And it touched nothing else.
+        Assert.Contains(repo.Results, r => r.RunId == "live");
+    }
+
+    [Fact]
+    public async Task A_running_run_is_refused_rather_than_deleted()
+    {
+        // Deleting it would not stop it: the queue keeps driving cases, keeps spending tokens, and
+        // keeps writing results for a run id that no longer exists.
+        var repo = RepoWithRuns();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest { RunIds = ["live"] });
+
+        var result = Assert.IsType<AgentTestRunDeleteResponse>(response.Value);
+        Assert.Empty(result.DeletedRunIds);
+        Assert.Contains("cancel it before deleting", Assert.Single(result.Skipped).Reason);
+        Assert.Contains("live", repo.Runs.Keys);
+        Assert.Contains(repo.Results, r => r.RunId == "live");
+    }
+
+    [Fact]
+    public async Task One_running_run_does_not_block_the_rest_of_the_batch()
+    {
+        // Selecting everything and clearing is the normal way this is used, and a live run in the
+        // list is common. Refusing the whole call would make the feature unusable exactly when it is
+        // most wanted.
+        var repo = RepoWithRuns();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest
+        {
+            RunIds = ["done", "live", "failed"]
+        });
+
+        var result = Assert.IsType<AgentTestRunDeleteResponse>(response.Value);
+        Assert.Equal(["done", "failed"], result.DeletedRunIds);
+        Assert.Equal("live", Assert.Single(result.Skipped).RunId);
+        Assert.Equal(["live"], repo.Runs.Keys.ToList());
+    }
+
+    [Fact]
+    public async Task A_run_that_is_already_gone_is_reported_not_an_error()
+    {
+        // Two people clearing the same history is a race, not a failure worth refusing a batch over.
+        var repo = RepoWithRuns();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest
+        {
+            RunIds = ["done", "never-existed"]
+        });
+
+        var result = Assert.IsType<AgentTestRunDeleteResponse>(response.Value);
+        Assert.Equal(["done"], result.DeletedRunIds);
+        Assert.Equal("already deleted", Assert.Single(result.Skipped).Reason);
+    }
+
+    [Fact]
+    public async Task Duplicate_ids_are_deleted_once()
+    {
+        // A select-all plus a row click can send the same id twice; the second pass would otherwise
+        // report it as "already deleted" and make the summary read as a partial failure.
+        var repo = RepoWithRuns();
+        var controller = BuildController(repo, out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest
+        {
+            RunIds = ["done", "done"]
+        });
+
+        var result = Assert.IsType<AgentTestRunDeleteResponse>(response.Value);
+        Assert.Equal(["done"], result.DeletedRunIds);
+        Assert.Empty(result.Skipped);
+    }
+
+    [Fact]
+    public async Task An_empty_delete_is_rejected()
+    {
+        // An empty list is far more likely to be a UI bug -- a select-all that selected nothing --
+        // than a deliberate no-op, and answering 200 with "deleted nothing" hides it.
+        var controller = BuildController(RepoWithRuns(), out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest());
+
+        Assert.IsType<BadRequestObjectResult>(response.Result);
+    }
+
+    [Fact]
+    public async Task A_delete_of_nothing_but_blanks_is_rejected_too()
+    {
+        // Same bug wearing a different shape: a client that posts one empty row per unchecked box.
+        var controller = BuildController(RepoWithRuns(), out _);
+
+        var response = await controller.DeleteRuns(new AgentTestRunDeleteRequest
+        {
+            RunIds = ["", "   "]
+        });
+
+        Assert.IsType<BadRequestObjectResult>(response.Result);
+    }
+
+    [Fact]
+    public void Clearing_run_history_requires_an_admin()
+    {
+        // Runs are the record of whether an agent change was evaluated at all, so removing them is at
+        // least as consequential as creating them -- the same gate triggering sits behind.
+        var method = typeof(AgentTestController).GetMethod(nameof(AgentTestController.DeleteRuns));
+
+        Assert.NotNull(method);
+        Assert.NotEmpty(method!.GetCustomAttributes(typeof(BotSharpAuthAttribute), inherit: true));
     }
 }
