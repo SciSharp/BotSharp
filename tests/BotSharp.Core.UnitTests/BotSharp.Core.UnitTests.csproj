@@ -29,6 +29,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
     <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core.Rules\BotSharp.Core.Rules.csproj" />
+    <!-- For the rate-limit exemption tests: the harness has to be recognised by BotSharp own volume guards. -->
+    <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Logger\BotSharp.Logger.csproj" />
     <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.AgentTesting\BotSharp.Plugin.AgentTesting.csproj" />
   </ItemGroup>
 

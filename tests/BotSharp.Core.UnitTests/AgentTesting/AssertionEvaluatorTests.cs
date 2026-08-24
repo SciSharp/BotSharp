@@ -24,7 +24,10 @@ public class AssertionEvaluatorTests
             Output = output,
             ToolCalls = calls ?? [],
             States = states ?? new Dictionary<string, string?>(),
-            RoutedToAgent = routedTo
+            // routedToAgent reads the chain's last entry, so a one-hop chain IS "routed to this
+            // agent". Given a name only, the id is left blank -- which is also what an agent whose
+            // record cannot be loaded looks like.
+            AgentChain = routedTo == null ? [] : [new AgentChainHop { Id = string.Empty, Name = routedTo }]
         };
 
     [Fact]
@@ -170,14 +173,18 @@ public class AssertionEvaluatorTests
     }
 
     [Fact]
-    public void Llm_judge_is_reported_as_unavailable_in_p1_rather_than_silently_passing()
+    public void Llm_judge_fails_loudly_here_rather_than_silently_passing()
     {
+        // llmJudge is scored by IAgentTestJudge, because it needs a model call and this evaluator is
+        // pure and synchronous. Reaching this branch means somebody evaluated assertions without
+        // going through the runner, and the verdict they get back must be one they cannot mistake
+        // for a pass -- a silent pass would show a case that verified nothing as green.
         var result = AssertionEvaluator.Evaluate(
-            new TestAssertion { Type = AssertionTypes.LlmJudge, Expected = "confirms the address before quoting", MinScore = 0.8 },
+            new TestAssertion { Type = AssertionTypes.LlmJudge, Expected = "confirms the address before quoting", MinScore = 4 },
             Context(output: "whatever"));
 
         Assert.False(result.Passed);
-        Assert.Contains("not available in P1", result.Message!);
+        Assert.Contains("IAgentTestJudge", result.Message!);
     }
 
     /// <summary>
