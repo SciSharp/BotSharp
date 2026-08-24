@@ -147,7 +147,8 @@ public class AgentTestControllerTests
         InMemoryRepo repo,
         out RecordingQueue queue,
         ILlmProviderService? llmProviders = null,
-        IAgentService? agents = null)
+        IAgentService? agents = null,
+        ICaseAuthor? author = null)
     {
         var recorder = new AgentTestRecorder(
             Mock.Of<IBotSharpRepository>(),
@@ -156,7 +157,8 @@ public class AgentTestControllerTests
         queue = new RecordingQueue();
 
         var controller = new AgentTestController(
-            repo, queue, agents ?? Mock.Of<IAgentService>(), recorder, llmProviders ?? ProviderServiceKnowing());
+            repo, queue, agents ?? Mock.Of<IAgentService>(), recorder, author ?? Mock.Of<ICaseAuthor>(),
+            llmProviders ?? ProviderServiceKnowing());
 
         // TriggerRun reads User.FindFirstValue(ClaimTypes.NameIdentifier) -- a directly-constructed
         // controller (no MVC pipeline/TestServer) has no HttpContext at all by default, and

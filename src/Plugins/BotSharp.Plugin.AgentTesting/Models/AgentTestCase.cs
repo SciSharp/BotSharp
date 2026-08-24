@@ -14,7 +14,7 @@ public class AgentTestCase : MongoBase
     /// initialiser, so old documents read back as Agent cases rather than as an invalid blank.
     ///
     /// Not cosmetic: a Routing case is validated differently (single turn, must actually assert a
-    /// routing outcome, no llmJudge -- see AgentTestController.ValidateCasePayload) and is the only
+    /// routing outcome, no llmJudge -- see CaseValidation.Validate) and is the only
     /// type counted towards a run's routing accuracy.
     /// </summary>
     public string CaseType { get; set; } = CaseTypes.Agent;

@@ -365,6 +365,25 @@ public static class AssertionValidation
         [AssertionTypes.LlmJudge] = RequiredField.Expected,
     };
 
+    /// <summary>
+    /// The nine authorable types, in the order the Requirements map above declares them.
+    ///
+    /// Exposed so that ICaseAuthor can generate the assertion vocabulary it puts in front of a model
+    /// from this map rather than from a hand-written copy in a prompt string. A prompt that lists a
+    /// type this map does not know, or omits one it does, produces drafts that fail validation for
+    /// reasons the author cannot see.
+    /// </summary>
+    public static IReadOnlyList<string> Authorable { get; } = Requirements.Keys.ToArray();
+
+    /// <summary>
+    /// Which field this assertion type must carry: "expected", "target", or null for a type with no
+    /// such requirement.
+    /// </summary>
+    public static string? RequiredFieldName(string type)
+        => Requirements.TryGetValue(type, out var required)
+            ? required == RequiredField.Expected ? "expected" : "target"
+            : null;
+
     /// <summary>Null when the assertion is well-formed; otherwise a caller-facing error message.</summary>
     public static string? Validate(TestAssertion assertion)
     {

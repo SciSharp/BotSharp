@@ -27,6 +27,7 @@ public class AgentTestController : ControllerBase
     private readonly IAgentTestRunQueue _queue;
     private readonly IAgentService _agents;
     private readonly AgentTestRecorder _recorder;
+    private readonly ICaseAuthor _author;
     private readonly ILlmProviderService _llmProviders;
 
     public AgentTestController(
@@ -34,12 +35,14 @@ public class AgentTestController : ControllerBase
         IAgentTestRunQueue queue,
         IAgentService agents,
         AgentTestRecorder recorder,
+        ICaseAuthor author,
         ILlmProviderService llmProviders)
     {
         _repo = repo;
         _queue = queue;
         _agents = agents;
         _recorder = recorder;
+        _author = author;
         _llmProviders = llmProviders;
     }
 
@@ -134,7 +137,7 @@ public class AgentTestController : ControllerBase
             return BadRequest(entryAgentError);
         }
 
-        if (ValidateCasePayload(request) is { } validationError)
+        if (CaseValidation.Validate(request) is { } validationError)
         {
             return BadRequest(validationError);
         }
@@ -178,7 +181,7 @@ public class AgentTestController : ControllerBase
             return BadRequest(entryAgentError);
         }
 
-        if (ValidateCasePayload(request) is { } validationError)
+        if (CaseValidation.Validate(request) is { } validationError)
         {
             return BadRequest(validationError);
         }
@@ -481,6 +484,73 @@ public class AgentTestController : ControllerBase
     }
 
     /// <summary>
+    /// One turn of authoring a case by conversation: the caller sends what they want in their own
+    /// words plus the draft as it stands, and gets back the new draft, a field-level diff, and
+    /// anything wrong with it.
+    ///
+    /// Saves nothing. The draft returned here still has to go through POST/PUT /agent-test/cases,
+    /// which is the only path that runs the entry-agent lookup and the only one a human presses --
+    /// see <see cref="ICaseAuthor"/> for why an authoring model is not given write access to the
+    /// case store.
+    ///
+    /// [BotSharpAuth]: the same two escalations RecordCase and TriggerRun carry. It spends token
+    /// quota on every call with no throttling, and it sends the agent's instruction, the draft, and
+    /// (when the case has run before) the agent's real replies and real tool arguments to the model
+    /// vendor -- a wider egress than the recorder's, which withholds tool arguments.
+    /// </summary>
+    [BotSharpAuth]
+    [HttpPost("author")]
+    public async Task<ActionResult<AgentTestAuthorResponse>> AuthorCase([FromBody] AgentTestAuthorRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.SuiteId))
+        {
+            return BadRequest("suiteId is required");
+        }
+
+        // Same guard as RecordCase: a model this host cannot run fails here with a readable message,
+        // not deep inside the completion call.
+        if (ValidateRequestedModels(request.Model == null ? null : [request.Model]) is { } modelError)
+        {
+            return BadRequest(modelError);
+        }
+
+        var suite = await _repo.GetSuiteAsync(request.SuiteId);
+        if (suite == null)
+        {
+            return NotFound($"agent test suite {request.SuiteId} not found");
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.CaseId))
+        {
+            // Checked rather than ignored: a caseId belonging to another suite would silently produce
+            // an ungrounded draft (the run-result lookup is scoped to this suite), and the author
+            // would never learn that the "based on the last run" part did nothing.
+            var existing = await _repo.GetCaseAsync(request.CaseId);
+            if (existing == null)
+            {
+                return NotFound($"agent test case {request.CaseId} not found");
+            }
+
+            if (!string.Equals(existing.SuiteId, suite.Id, StringComparison.Ordinal))
+            {
+                return BadRequest($"case {request.CaseId} does not belong to suite {suite.Id}");
+            }
+        }
+
+        try
+        {
+            return await _author.AuthorAsync(suite, request, HttpContext.RequestAborted);
+        }
+        catch (CaseAuthorUnavailableException ex)
+        {
+            // No draft was produced. Surfaced verbatim, the same way RecordCase surfaces a rejected
+            // segmentation: "the model did not return JSON" tells the caller to retry, and "set this
+            // suite's judgeProvider" tells them what to fix. A 500 would tell them neither.
+            return BadRequest($"AI authoring failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// [BotSharpAuth]: every trigger really calls the model and really spends token quota, with no
     /// usage throttling anywhere -- a cost-escalation surface just like RecordCase, so it is
     /// restricted to admin/root.
@@ -599,16 +669,10 @@ public class AgentTestController : ControllerBase
             return NotFound($"agent {agentId} not found");
         }
 
-        var names = new List<string>();
-        names.AddRange((agent.Functions ?? []).Select(f => f.Name));
-        names.AddRange((agent.SecondaryFunctions ?? []).Select(f => f.Name));
-        names.AddRange((agent.McpTools ?? []).SelectMany(t => t.Functions ?? []).Select(f => f.Name));
-
-        return names
-            .Where(n => !string.IsNullOrWhiteSpace(n))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        // Same derivation the authoring prompt uses, so the names the editor offers and the names
+        // a model is allowed to mock can never diverge. Still names only on the wire: the case
+        // editor's pickers consume a plain string list.
+        return MockTargetCatalogue.Names(agent);
     }
 
     /// <summary>
@@ -669,7 +733,7 @@ public class AgentTestController : ControllerBase
         testCase.SuiteId = request.SuiteId;
         testCase.Name = request.Name;
         testCase.Enabled = request.Enabled;
-        // Normalised, not taken verbatim: ValidateCasePayload has already rejected anything that is
+        // Normalised, not taken verbatim: CaseValidation.Validate has already rejected anything that is
         // neither blank nor a known type, so this only fixes casing ("routing" -> "Routing") and
         // maps blank onto the default. Storing the caller's casing would break every later
         // Ordinal comparison against CaseTypes.Routing.
@@ -713,129 +777,8 @@ public class AgentTestController : ControllerBase
     }
 
     /// <summary>
-    /// Shared create/update validation for a case payload. Null means the payload is acceptable;
-    /// otherwise the string is a caller-facing 400 message.
-    /// </summary>
-    private static string? ValidateCasePayload(AgentTestCaseUpsertRequest request)
-    {
-        if (IsUnsupportedUnmockedToolPolicy(request.UnmockedToolPolicy))
-        {
-            return "Passthrough is not supported in P1";
-        }
-
-        var caseType = CaseTypes.Normalize(request.CaseType);
-        if (caseType == null && !string.IsNullOrWhiteSpace(request.CaseType))
-        {
-            return $"caseType must be one of {string.Join(", ", CaseTypes.All)}, not '{request.CaseType}'";
-        }
-
-        if (CasePriorities.Normalize(request.Priority) == null && !string.IsNullOrWhiteSpace(request.Priority))
-        {
-            return $"priority must be one of {string.Join(", ", CasePriorities.All)}, not '{request.Priority}'";
-        }
-
-        if (CaseSeverities.Normalize(request.Severity) == null && !string.IsNullOrWhiteSpace(request.Severity))
-        {
-            return $"severity must be one of {string.Join(", ", CaseSeverities.All)}, not '{request.Severity}'";
-        }
-
-        // Rejected rather than clamped: a batch of 4 is a mistake, and silently filing the case in
-        // batch 3 would leave the author believing it runs somewhere it does not.
-        if (request.Batch is { } batch && !CaseBatches.All.Contains(batch))
-        {
-            return $"batch must be one of {string.Join(", ", CaseBatches.All)}, not {batch}";
-        }
-
-        foreach (var (message, index) in (request.History ?? []).Select((m, i) => (m, i)))
-        {
-            if (HistoryRoles.Normalize(message?.Role) == null)
-            {
-                return $"history message {index + 1} has role '{message?.Role}'; only "
-                     + $"{string.Join(" and ", HistoryRoles.All)} are supported";
-            }
-
-            // An empty message is dropped by BotSharp's own dialog storage (ConversationStorage
-            // skips elements with blank content), so it would silently not be there at run time --
-            // and the runner's count check would then fail the whole case with a confusing message
-            // about the write having vanished.
-            if (string.IsNullOrWhiteSpace(message!.Content))
-            {
-                return $"history message {index + 1} has no content";
-            }
-        }
-
-        var allAssertions = (request.Turns ?? [])
-            .SelectMany(t => t.Assertions ?? [])
-            .Concat(request.Assertions ?? [])
-            .ToList();
-
-        foreach (var assertion in allAssertions)
-        {
-            var error = AssertionValidation.Validate(assertion);
-            if (error != null)
-            {
-                return error;
-            }
-        }
-
-        return ValidateRoutingCase(caseType ?? CaseTypes.Agent, request, allAssertions);
-    }
-
-    /// <summary>
-    /// The extra rules a Routing case has to satisfy. A Routing case is not a label -- it is the only
-    /// type counted towards a run's routing accuracy, so one that cannot actually establish a routing
-    /// outcome would quietly move that figure without measuring anything.
-    ///
-    /// Enforced at save time for the same reason AssertionValidation is: the alternative is a case
-    /// that saves cleanly and then reports a meaningless green every run.
-    /// </summary>
-    private static string? ValidateRoutingCase(
-        string caseType, AgentTestCaseUpsertRequest request, List<TestAssertion> allAssertions)
-    {
-        if (!string.Equals(caseType, CaseTypes.Routing, StringComparison.Ordinal))
-        {
-            return null;
-        }
-
-        // Routing is a single-turn question: which agent picks this message up. A second turn is
-        // either a different question (making it an Agent case) or an accident, and either way its
-        // result would be counted as routing accuracy.
-        //
-        // Authored History is not a turn and is deliberately not counted here: replaying a prior
-        // exchange and then asking one question is still a single routing decision, and it is the
-        // most realistic way to test routing that depends on context.
-        if ((request.Turns ?? []).Count != 1)
-        {
-            return "a Routing case must have exactly one turn; use an Agent case for a multi-turn case";
-        }
-
-        // Without one of these the case asserts nothing about routing, yet still counts towards
-        // routing accuracy -- it would report Passed for having successfully said anything at all.
-        var assertsRouting = allAssertions.Any(a =>
-            string.Equals(a.Type, AssertionTypes.RoutedToAgent, StringComparison.Ordinal)
-            || string.Equals(a.Type, AssertionTypes.AgentChain, StringComparison.Ordinal));
-        if (!assertsRouting)
-        {
-            return $"a Routing case needs at least one '{AssertionTypes.RoutedToAgent}' or "
-                 + $"'{AssertionTypes.AgentChain}' assertion, otherwise it verifies no routing outcome";
-        }
-
-        // The framework this implements scores routing purely as expected-agent == actual-agent and
-        // deliberately applies no quality judgement to it. An llmJudge here would also make the
-        // routing figure depend on a vendor call, so a vendor outage would read as a routing
-        // regression.
-        if (allAssertions.Any(a => string.Equals(a.Type, AssertionTypes.LlmJudge, StringComparison.Ordinal)))
-        {
-            return $"a Routing case cannot use '{AssertionTypes.LlmJudge}': routing is judged only by "
-                 + "which agent handled the conversation";
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// Null when the request's entry agent is usable. Separate from
-    /// <see cref="ValidateCasePayload"/> because it needs IAgentService, so it cannot be static, and
+    /// <see cref="CaseValidation.Validate"/> because it needs IAgentService, so it cannot be static, and
     /// a lookup is worth doing only once the cheap checks have passed.
     /// </summary>
     private async Task<string?> ValidateEntryAgentAsync(AgentTestCaseUpsertRequest request)
@@ -848,15 +791,6 @@ public class AgentTestController : ControllerBase
         var agent = await _agents.GetAgent(request.EntryAgentId.Trim());
         return agent == null ? $"entry agent {request.EntryAgentId} not found" : null;
     }
-
-    /// <summary>
-    /// Passthrough was specified in the design/plan and even had a (dead) code path, but nothing
-    /// ever back-fills an ObservedToolCall for a tool the provider let run for real -- under it,
-    /// toolNotCalled always vacuously passed against a tool that genuinely executed with real side
-    /// effects. Rejected here rather than implementing the back-fill (project owner decision).
-    /// </summary>
-    private static bool IsUnsupportedUnmockedToolPolicy(string? policy)
-        => string.Equals(policy, "Passthrough", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsTerminalStatus(string status) =>
         status is AgentTestStatus.Passed or AgentTestStatus.Failed

@@ -87,6 +87,10 @@ public class AgentTestingPlugin : IBotSharpPlugin
         // Scoped, like the segmenter: it resolves IChatCompletion implementations out of the same
         // scope and holds no state between calls.
         services.AddScoped<IAgentTestJudge, LlmAgentTestJudge>();
+
+        // Scoped for the same reason, and reads the case store to ground its prompt in the suite's
+        // existing cases and the edited case's last run.
+        services.AddScoped<ICaseAuthor, LlmCaseAuthor>();
         services.AddScoped<AgentTestRecorder>();
 
         // AgentTestRunQueue is both a singleton and a BackgroundService: all three lines point at
