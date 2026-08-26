@@ -17,9 +17,13 @@ namespace BotSharp.Plugin.AgentTesting.Services;
 /// </summary>
 public static class MockTargetCatalogue
 {
+    /// <summary>The prefix a utility item's function name must carry to be loaded as a function.</summary>
+    /// <remarks>Same constant, same ordinal comparison, as BasicAgentHook.UTIL_PREFIX.</remarks>
+    private const string UtilityPrefix = "util-";
+
     /// <summary>Function names only, sorted and de-duplicated. The wire shape the UI consumes.</summary>
-    public static List<string> Names(Agent agent)
-        => Describe(agent).Select(t => t.Name).ToList();
+    public static List<string> Names(Agent agent, Agent? utilityAssistant = null)
+        => Describe(agent, utilityAssistant).Select(t => t.Name).ToList();
 
     /// <summary>
     /// Every callable function with whatever description and parameter shape the agent definition
@@ -30,7 +34,12 @@ public static class MockTargetCatalogue
     /// here -- it is why an MCP mock's argsMatchJson is more likely to need a human fix than a
     /// plugin function's.
     /// </summary>
-    public static List<MockTargetInfo> Describe(Agent agent)
+    /// <param name="agent">The agent whose callable surface is wanted.</param>
+    /// <param name="utilityAssistant">
+    /// The UtilityAssistant agent, which is where a utility item's real FunctionDef lives -- an agent
+    /// only names the utilities it turns on. Pass null and utilities still appear, name-only.
+    /// </param>
+    public static List<MockTargetInfo> Describe(Agent agent, Agent? utilityAssistant = null)
     {
         var targets = new List<MockTargetInfo>();
 
@@ -44,6 +53,39 @@ public static class MockTargetCatalogue
         {
             if (string.IsNullOrWhiteSpace(fn?.Name)) continue;
             targets.Add(new MockTargetInfo(fn!.Name, null, null));
+        }
+
+        // Utilities are the third way an agent gets a function, and the one that does not show up
+        // anywhere in Functions/SecondaryFunctions on a stored agent: BasicAgentHook.OnAgentUtilityLoaded
+        // expands them into SecondaryFunctions at conversation time, and IAgentService.GetAgent -- what
+        // every caller here holds -- is a plain repository read that never runs that hook. Left out, an
+        // agent whose whole toolset is utilities (Lessen Work Order Summary, Property Summary) reports
+        // no callable functions at all, and a case authored against it blocks its own tools on the
+        // first run.
+        //
+        // The filter mirrors that hook: a disabled utility is off, and only a `util-` prefixed name is
+        // ever loaded as a function. What is deliberately NOT mirrored is VisibilityExpression, which
+        // needs the conversation's render data and cannot be evaluated against a stored agent -- a
+        // conditionally-visible utility is offered here and may turn out not to load at run time.
+        foreach (var utility in agent.Utilities ?? [])
+        {
+            if (utility == null || utility.Disabled) continue;
+
+            foreach (var item in utility.Items ?? [])
+            {
+                var name = item?.FunctionName;
+                if (string.IsNullOrWhiteSpace(name) || !name.StartsWith(UtilityPrefix, StringComparison.Ordinal)) continue;
+
+                // The definition the agent will actually be given, not the agent's own declaration --
+                // the description and parameter list live on UtilityAssistant.
+                var definition = utilityAssistant?.Functions?
+                    .FirstOrDefault(f => string.Equals(f?.Name, name, StringComparison.OrdinalIgnoreCase));
+
+                targets.Add(new MockTargetInfo(
+                    name!,
+                    definition?.Description ?? item!.Description,
+                    ParameterSummary(definition?.Parameters)));
+            }
         }
 
         // First entry wins on a duplicate name: a function declared both primary and secondary is

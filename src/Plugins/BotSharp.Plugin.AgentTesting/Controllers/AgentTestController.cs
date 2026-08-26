@@ -2,6 +2,7 @@ using System.Security.Claims;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Infrastructures.Attributes;
 using Microsoft.AspNetCore.Authorization;
@@ -672,7 +673,8 @@ public class AgentTestController : ControllerBase
         // Same derivation the authoring prompt uses, so the names the editor offers and the names
         // a model is allowed to mock can never diverge. Still names only on the wire: the case
         // editor's pickers consume a plain string list.
-        return MockTargetCatalogue.Names(agent);
+        var utilityAssistant = await _agents.GetAgent(BuiltInAgentId.UtilityAssistant);
+        return MockTargetCatalogue.Names(agent, utilityAssistant);
     }
 
     /// <summary>
