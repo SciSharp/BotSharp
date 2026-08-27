@@ -34,7 +34,7 @@ public class McpClientManager : IDisposable
                 {
                     Name = config.Name,
                     Endpoint = new Uri(config.HttpConfig.EndPoint),
-                    AdditionalHeaders = config.HttpConfig.AdditionalHeaders,
+                    AdditionalHeaders = ResolveHeaders(config.Id, config.HttpConfig.AdditionalHeaders),
                     ConnectionTimeout = config.HttpConfig.ConnectionTimeout
                 });
             }
@@ -44,7 +44,7 @@ public class McpClientManager : IDisposable
                 {
                     Name = config.Name,
                     Endpoint = new Uri(config.SseConfig.EndPoint),
-                    AdditionalHeaders = config.SseConfig.AdditionalHeaders,
+                    AdditionalHeaders = ResolveHeaders(config.Id, config.SseConfig.AdditionalHeaders),
                     ConnectionTimeout = config.SseConfig.ConnectionTimeout
                 });
             }
@@ -72,6 +72,21 @@ public class McpClientManager : IDisposable
             _logger.LogWarning(ex, $"Error when loading mcp client {serverId}");
             return null;
         }
+    }
+
+    /// <summary>
+    /// The headers to open a connection with: the ones from configuration, unless the host has
+    /// registered an <see cref="IMcpClientHeaderProvider"/> that wants to adjust them.
+    /// </summary>
+    /// <remarks>
+    /// No provider is registered by default, and a provider is free to answer with what it was
+    /// given, so a host without one — or with one that does not recognise this server — gets the
+    /// configured headers back untouched.
+    /// </remarks>
+    private Dictionary<string, string>? ResolveHeaders(string serverId, Dictionary<string, string>? configured)
+    {
+        var provider = _services.GetService<IMcpClientHeaderProvider>();
+        return provider == null ? configured : provider.GetHeaders(serverId, configured);
     }
 
     public void Dispose()
