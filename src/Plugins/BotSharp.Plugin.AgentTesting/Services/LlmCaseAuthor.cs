@@ -104,7 +104,8 @@ public class LlmCaseAuthor : ICaseAuthor
             ?? throw new CaseAuthorUnavailableException(
                 $"agent {agentId} not found, so there is nothing to author a case against");
 
-        var targets = MockTargetCatalogue.Describe(agent);
+        var utilityAssistant = await _agents.GetAgent(BuiltInAgentId.UtilityAssistant);
+        var targets = MockTargetCatalogue.Describe(agent, utilityAssistant);
         var existingCases = await _repo.ListCasesAsync(suite.Id);
         var grounding = await LoadGroundingAsync(suite.Id, request.CaseId, ct);
         var agentNames = await AgentNamesAsync();
