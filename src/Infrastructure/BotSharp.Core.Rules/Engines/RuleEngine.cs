@@ -52,6 +52,11 @@ public class RuleEngine : IRuleEngine
 
             foreach (var rule in rules)
             {
+                if (rule == null)
+                {
+                    continue;
+                }
+
                 // The rule's own mode wins over the mode carried on the trigger options, so an agent can
                 // pick how its criteria is judged without the caller knowing.
                 var evaluator = ResolveCriteriaEvaluator(rule.CriteriaConfig?.Mode) ?? criteriaEvaluator;
