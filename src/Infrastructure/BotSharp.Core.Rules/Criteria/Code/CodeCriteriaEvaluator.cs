@@ -25,7 +25,7 @@ public class CodeCriteriaEvaluator : IRuleCriteriaEvaluator
 
     public string Type => BuiltInRuleCriteria.PythonScript;
 
-    public async Task<bool?> EvaluateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context)
+    public async Task<bool?> EvaluateAsync(Agent agent, AgentRule agentRule, IRuleTrigger trigger, RuleCriteriaContext context)
     {
         var settings = context.Options.GetData<CodeCriteriaSettings>() ?? new();
         var provider = settings.CodeProcessor ?? BuiltInCodeProcessor.PyInterpreter;

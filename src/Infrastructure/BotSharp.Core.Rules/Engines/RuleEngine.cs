@@ -44,33 +44,36 @@ public class RuleEngine : IRuleEngine
         var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled)).ToList();
         foreach (var agent in filteredAgents)
         {
-            var rule = agent.Rules.FirstOrDefault(x => x.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled);
-            if (rule == null)
+            var rules = agent.Rules.Where(x => x.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled).ToList();
+            if (rules.IsNullOrEmpty())
             {
                 continue;
             }
 
-            // The rule's own mode wins over the mode carried on the trigger options, so an agent can
-            // pick how its criteria is judged without the caller knowing.
-            var evaluator = ResolveCriteriaEvaluator(rule.CriteriaConfig?.Mode) ?? criteriaEvaluator;
-            if (evaluator != null && options?.Criteria != null)
+            foreach (var rule in rules)
             {
-                var criteriaContext = new RuleCriteriaContext
+                // The rule's own mode wins over the mode carried on the trigger options, so an agent can
+                // pick how its criteria is judged without the caller knowing.
+                var evaluator = ResolveCriteriaEvaluator(rule.CriteriaConfig?.Mode) ?? criteriaEvaluator;
+                if (evaluator != null && options?.Criteria != null)
                 {
-                    Options = options.Criteria,
-                    States = states
-                };
+                    var criteriaContext = new RuleCriteriaContext
+                    {
+                        Options = options.Criteria,
+                        States = states
+                    };
 
-                var isTriggered = await EvaluateCriteria(evaluator, agent, trigger, criteriaContext);
-                if (!isTriggered)
-                {
-                    continue;
+                    var isTriggered = await EvaluateCriteria(evaluator, agent, rule, trigger, criteriaContext);
+                    if (!isTriggered)
+                    {
+                        continue;
+                    }
                 }
-            }
 
-            var msg = !string.IsNullOrWhiteSpace(rule.Message) ? rule.Message : text;
-            var convId = await SendMessageToAgent(agent, trigger, text, msg, states);
-            newConversationIds.Add(convId);
+                var msg = !string.IsNullOrWhiteSpace(rule.Message) ? rule.Message : text;
+                var convId = await SendMessageToAgent(agent, trigger, text, msg, states);
+                newConversationIds.Add(convId);
+            }
         }
 
         return newConversationIds;
@@ -96,10 +99,11 @@ public class RuleEngine : IRuleEngine
     private async Task<bool> EvaluateCriteria(
         IRuleCriteriaEvaluator evaluator,
         Agent agent,
+        AgentRule agentRule,
         IRuleTrigger trigger,
         RuleCriteriaContext context)
     {
-        var isTriggered = await evaluator.EvaluateAsync(agent, trigger, context);
+        var isTriggered = await evaluator.EvaluateAsync(agent, agentRule, trigger, context);
         if (isTriggered != null)
         {
             return isTriggered.Value;
@@ -118,7 +122,7 @@ public class RuleEngine : IRuleEngine
         }
 
         _logger.LogInformation($"Rule criteria evaluator ({evaluator.Type}) returned no result, falling back to llm for agent ({agent.Name}) and trigger ({trigger.Name}).");
-        return await llmEvaluator.EvaluateAsync(agent, trigger, context) ?? false;
+        return await llmEvaluator.EvaluateAsync(agent, agentRule, trigger, context) ?? false;
     }
     #endregion
 
