@@ -51,6 +51,15 @@ public class McpToolExecutor : IFunctionExecutor
         }
         catch (Exception ex)
         {
+            // The connection is pooled for the rest of this scope, so a transport-level failure
+            // here would poison every later call in the turn. Drop it and let the next call
+            // reconnect; discarding a connection that was actually fine costs one reconnect.
+            var clientManager = _services.GetService<McpClientManager>();
+            if (clientManager != null)
+            {
+                await clientManager.InvalidateAsync(_mcpServerId);
+            }
+
             message.Content = $"Error when calling tool {_functionName} of MCP server {_mcpServerId}. {ex.Message}";
             return false;
         }

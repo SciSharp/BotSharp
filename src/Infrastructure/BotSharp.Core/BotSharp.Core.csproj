@@ -301,4 +301,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="BotSharp.Core.UnitTests" />
+  </ItemGroup>
+
 </Project>
