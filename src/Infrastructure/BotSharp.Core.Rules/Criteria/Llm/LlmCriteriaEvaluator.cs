@@ -30,17 +30,16 @@ public class LlmCriteriaEvaluator : IRuleCriteriaEvaluator
 
     public string Type => BuiltInRuleCriteria.Llm;
 
-    public async Task<bool?> EvaluateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context)
+    public async Task<bool?> EvaluateAsync(Agent agent, AgentRule agentRule, IRuleTrigger trigger, RuleCriteriaContext context)
     {
         var settings = context.Options.GetData<LlmCriteriaSettings>() ?? new();
-        var rule = agent.Rules.FirstOrDefault(x => x.TriggerName.IsEqualTo(trigger.Name));
 
         // The Rules agent hosts the criteria-check template by default.
         var agentId = !string.IsNullOrWhiteSpace(settings.AgentId) ? settings.AgentId! : BuiltInAgentId.RulesInterpreter;
         var templateName = !string.IsNullOrWhiteSpace(settings.TemplateName)
                         ? settings.TemplateName! : (agentId == BuiltInAgentId.RulesInterpreter ? DefaultTemplateName : $"{trigger.Name}_criteria");
 
-        var input = BuildInput(rule?.CriteriaConfig, settings);
+        var input = BuildInput(agentRule.CriteriaConfig, settings);
         var msg = $"rule trigger ({trigger.Name}) llm criteria (agent {agentId}, template {templateName}).";
 
         try
