@@ -23,7 +23,7 @@ public class CriteriaOptions
     /// How the criteria is evaluated (see <see cref="BuiltInRuleCriteria"/>).
     /// Selects which <c>IRuleCriteriaEvaluator</c> handles this criteria.
     /// </summary>
-    public string Type { get; set; } = BuiltInRuleCriteria.Code;
+    public string? Mode { get; set; }
 
     /// <summary>
     /// Evaluator-specific settings, kept as raw JSON so each evaluator can

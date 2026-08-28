@@ -1,18 +1,17 @@
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using BotSharp.Plugin.RoutingSpeeder.Settings;
+using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Plugin.RoutingSpeeder.Providers;
-using BotSharp.Abstraction.Agents;
+using BotSharp.Plugin.RoutingSpeeder.Settings;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.IO;
-using BotSharp.Abstraction.Routing.Settings;
-using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Routing;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.RoutingSpeeder;
 
@@ -20,6 +19,9 @@ public class RoutingConversationHook: ConversationHookBase
 {
     private readonly IServiceProvider _services;
     private RouterSpeederSettings _settings;
+
+    public override string SelfId => string.Empty;
+
     public RoutingConversationHook(IServiceProvider service, RouterSpeederSettings settings)
     {
         _services = service;

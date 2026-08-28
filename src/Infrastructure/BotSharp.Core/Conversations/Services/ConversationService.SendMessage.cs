@@ -36,12 +36,17 @@ public partial class ConversationService
         // Enqueue receiving agent first in case it stop completion by OnMessageReceived
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(_conversationId, message.MessageId);
+        routing.Context.SetMessageAgentId(message.CurrentAgentId);
 
         // Save payload in order to assign the payload before hook is invoked
         if (replyMessage != null && !string.IsNullOrEmpty(replyMessage.Payload))
         {
             message.Payload = replyMessage.Payload;
         }
+
+        // Handle multi-language for input. Runs ahead of the hooks so they evaluate English content,
+        // and covers both routing paths from a single place.
+        await TranslateInboundMessage(agent, message);
 
         var hooks = _services.GetHooksOrderByPriority<IConversationHook>(message.CurrentAgentId);
         foreach (var hook in hooks)

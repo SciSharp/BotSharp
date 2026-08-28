@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Routing.Executor;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Core.MessageHub;
 using BotSharp.Core.Routing.Executor;
@@ -13,7 +14,7 @@ public partial class RoutingService
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(currentAgentId);
 
-        var funcExecutor = FunctionExecutorFactory.Create(_services, name, agent);
+        var funcExecutor = _services.GetRequiredService<IFunctionExecutorFactory>().Create(name, agent);
         if (funcExecutor == null)
         {
             message.StopCompletion = true;

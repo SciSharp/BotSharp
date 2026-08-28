@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Routing;
-using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
@@ -14,6 +13,8 @@ public class TwilioConversationHook : ConversationHookBase, IConversationHook
     private readonly IServiceProvider _services;
     private readonly TwilioSetting _setting;
     private readonly ILogger _logger;
+
+    public override string SelfId => string.Empty;
 
     public TwilioConversationHook(IServiceProvider services,
         TwilioSetting setting,

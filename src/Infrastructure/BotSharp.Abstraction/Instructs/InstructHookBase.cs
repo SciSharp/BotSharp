@@ -4,9 +4,12 @@ using BotSharp.Abstraction.Instructs.Models;
 
 namespace BotSharp.Abstraction.Instructs;
 
-public class InstructHookBase : IInstructHook
+public abstract class InstructHookBase : IInstructHook
 {
-    public virtual string SelfId => throw new NotImplementedException("Please set SelfId as agent id!");
+    public abstract string SelfId { get; }
+
+    public virtual bool IsMatch(string agentId)
+        => string.IsNullOrEmpty(SelfId) || SelfId == agentId;
 
     public virtual async Task BeforeCompletion(Agent agent, RoleDialogModel message)
     {

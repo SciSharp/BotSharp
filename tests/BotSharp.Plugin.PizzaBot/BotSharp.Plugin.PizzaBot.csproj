@@ -9,11 +9,7 @@
     <OutputPath>$(SolutionDir)packages</OutputPath>
   </PropertyGroup>
 
-  <ItemGroup Condition="$(SolutionName)==PizzaBot">
-    <PackageReference Include="BotSharp.Core" />
-  </ItemGroup>
-
-  <ItemGroup Condition="$(SolutionName)==BotSharp">
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 

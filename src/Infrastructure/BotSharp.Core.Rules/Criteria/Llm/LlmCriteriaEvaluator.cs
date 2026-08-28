@@ -40,7 +40,7 @@ public class LlmCriteriaEvaluator : IRuleCriteriaEvaluator
         var templateName = !string.IsNullOrWhiteSpace(settings.TemplateName)
                         ? settings.TemplateName! : (agentId == BuiltInAgentId.RulesInterpreter ? DefaultTemplateName : $"{trigger.Name}_criteria");
 
-        var input = BuildInput(rule?.Config, settings);
+        var input = BuildInput(rule?.CriteriaConfig, settings);
         var msg = $"rule trigger ({trigger.Name}) llm criteria (agent {agentId}, template {templateName}).";
 
         try
@@ -129,14 +129,14 @@ public class LlmCriteriaEvaluator : IRuleCriteriaEvaluator
         return data;
     }
 
-    private static string BuildInput(RuleConfig? ruleConfig, LlmCriteriaSettings settings)
+    private static string BuildInput(RuleCriteriaConfig? criteriaConfig, LlmCriteriaSettings settings)
     {
         var sb = new StringBuilder();
 
-        if (!string.IsNullOrWhiteSpace(ruleConfig?.Criteria))
+        if (!string.IsNullOrWhiteSpace(criteriaConfig?.Criteria))
         {
             sb.AppendLine("## Rule");
-            sb.AppendLine(ruleConfig.Criteria);
+            sb.AppendLine(criteriaConfig.Criteria);
             sb.AppendLine();
         }
 

@@ -4,6 +4,11 @@ namespace BotSharp.Abstraction.Conversations;
 
 public abstract class ConversationHookBase : IConversationHook
 {
+    public abstract string SelfId { get; }
+
+    public virtual bool IsMatch(string agentId)
+        => string.IsNullOrEmpty(SelfId) || SelfId == agentId;
+
     public Agent Agent { get; private set; }
 
     public Conversation Conversation { get; private set; }
@@ -23,6 +28,9 @@ public abstract class ConversationHookBase : IConversationHook
         Conversation = conversation;
         return this;
     }
+
+    public virtual Task<string> GetConversationIntent()
+        => Task.FromResult(string.Empty);
 
     public virtual Task OnStateLoaded(ConversationState state)
         => Task.CompletedTask;

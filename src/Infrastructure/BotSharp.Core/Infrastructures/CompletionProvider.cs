@@ -64,9 +64,13 @@ public class CompletionProvider
         {
             var logger = services.GetRequiredService<ILogger<CompletionProvider>>();
             logger.LogError($"Can't resolve completion provider by {provider}");
+            // Callers dereference the result immediately, so returning null only turns a wiring
+            // problem into a NullReferenceException far from its cause.
+            throw new InvalidOperationException($"Can't resolve chat completion provider by '{provider}'. " +
+                "Register the plugin that provides it in PluginLoader:Assemblies.");
         }
 
-        completer?.SetModelName(model);
+        completer.SetModelName(model);
         return completer;
     }
 
