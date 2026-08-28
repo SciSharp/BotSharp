@@ -27,7 +27,10 @@ public class McpToolExecutor : IFunctionExecutor
             Dictionary<string, object?> argDict = JsonToDictionary(message.FunctionArgs);
 
             var clientManager = _services.GetRequiredService<McpClientManager>();
-            var client = await clientManager.GetMcpClientAsync(_mcpServerId);
+
+            // The client is a session of its own, so this call owns it. Disposing closes the
+            // session on the server; the connection underneath it stays in the factory's pool.
+            await using var client = await clientManager.GetMcpClientAsync(_mcpServerId);
 
             if (client == null)
             {
@@ -51,15 +54,6 @@ public class McpToolExecutor : IFunctionExecutor
         }
         catch (Exception ex)
         {
-            // The connection is pooled for the rest of this scope, so a transport-level failure
-            // here would poison every later call in the turn. Drop it and let the next call
-            // reconnect; discarding a connection that was actually fine costs one reconnect.
-            var clientManager = _services.GetService<McpClientManager>();
-            if (clientManager != null)
-            {
-                await clientManager.InvalidateAsync(_mcpServerId);
-            }
-
             message.Content = $"Error when calling tool {_functionName} of MCP server {_mcpServerId}. {ex.Message}";
             return false;
         }

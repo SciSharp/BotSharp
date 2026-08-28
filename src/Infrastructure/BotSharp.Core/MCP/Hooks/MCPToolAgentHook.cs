@@ -50,7 +50,7 @@ public class McpToolAgentHook : AgentHookBase
         var mcps = agent.McpTools?.Where(x => !x.Disabled) ?? [];
         foreach (var item in mcps)
         {
-            var mcpClient =  await mcpClientManager.GetMcpClientAsync(item.ServerId);
+            await using var mcpClient = await mcpClientManager.GetMcpClientAsync(item.ServerId);
             if (mcpClient == null) continue;
 
             var tools = await mcpClient.ListToolsAsync();
