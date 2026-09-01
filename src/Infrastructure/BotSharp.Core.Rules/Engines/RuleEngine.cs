@@ -63,24 +63,36 @@ public class RuleEngine : IRuleEngine
 
         var indexedRules = pendingRules.Select((item, index) => (item.Agent, item.Rule, Index: index));
 
-        // Cancellation is not handled here on purpose: it propagates to the caller so they can
-        // tell a cancelled run apart from one that simply triggered no rules.
-        await Parallel.ForEachAsync(indexedRules, parallelOptions, async (item, token) =>
+        try
         {
-            try
+            await Parallel.ForEachAsync(indexedRules, parallelOptions, async (item, token) =>
             {
-                convIds[item.Index] = await RunRule(item.Agent, item.Rule, trigger, text, states, options, token);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                // One misbehaving rule should not take down the rules that run alongside it.
-                _logger.LogError(ex, $"Error when running rule ({item.Rule.TriggerName}) for agent ({item.Agent.Name}).");
-            }
-        });
+                try
+                {
+                    convIds[item.Index] = await RunRule(item.Agent, item.Rule, trigger, text, states, options, token);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    // One misbehaving rule should not take down the rules that run alongside it.
+                    _logger.LogError(ex, $"Error when running rule ({item.Rule.TriggerName}) for agent ({item.Agent.Name}).");
+                }
+            });
+        }
+        catch (OperationCanceledException ex)
+        {
+            // Cancellation still surfaces to the caller, but the conversations that were already
+            // started ride along on the exception so they are not silently lost.
+            var startedIds = CollectConversationIds(convIds);
+            _logger.LogWarning($"Rule trigger ({trigger.Name}) was cancelled after starting {startedIds.Count} conversation(s).");
+            throw new RuleTriggerCanceledException(startedIds, cancellationToken, ex);
+        }
 
-        newConversationIds.AddRange(convIds.Where(x => !string.IsNullOrEmpty(x)).Select(x => x!));
+        newConversationIds.AddRange(CollectConversationIds(convIds));
         return newConversationIds;
     }
+
+    private static List<string> CollectConversationIds(string?[] convIds)
+        => convIds.Where(x => !string.IsNullOrEmpty(x)).Select(x => x!).ToList();
 
     /// <summary>
     /// Evaluates one rule and, when it is triggered, sends its message to the agent.

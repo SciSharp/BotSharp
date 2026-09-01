@@ -23,7 +23,7 @@ public class RuleController : ControllerBase
     }
 
     [HttpPost("/rule/trigger/action")]
-    public async Task<IActionResult> RunAction([FromBody] RuleTriggerActionRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> RunAction([FromBody] RuleTriggerActionRequest request)
     {
         if (request == null)
         {
@@ -36,7 +36,7 @@ public class RuleController : ControllerBase
             return BadRequest(new { Success = false, Error = "Unable to find rule trigger." });
         }
 
-        var result = await _ruleEngine.Triggered(trigger, request.Text, request.States, request.Options, cancellationToken);
+        var result = await _ruleEngine.Triggered(trigger, request.Text, request.States, request.Options);
         return Ok(new { Success = true });
     }
 }
