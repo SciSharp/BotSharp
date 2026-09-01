@@ -31,8 +31,7 @@ public class RuleEngine : IRuleEngine
             }
         });
 
-        // Flatten the agent/rule pairs so they can be throttled as one unit, rather than
-        // running one agent's rules concurrently but the agents themselves one at a time.
+        // Flatten the agent/rule pairs so the two loops read as one sequence of rules.
         var pendingRules = agents.Items
             .Where(x => !x.Disabled)
             .SelectMany(x => x.Rules
@@ -40,59 +39,32 @@ public class RuleEngine : IRuleEngine
                 .Select(r => (Agent: x, Rule: r)))
             .ToList();
 
-        if (pendingRules.IsNullOrEmpty())
+        foreach (var item in pendingRules)
         {
-            return newConversationIds;
-        }
-
-        // Indexed so the returned conversation ids keep the rule order regardless of
-        // which run finishes first.
-        var convIds = new string?[pendingRules.Count];
-
-        // Per-call options win over the configured setting, which in turn wins over the built-in default.
-        var settings = _services.GetService<RuleSettings>();
-        var maxConcurrency = options?.MaxConcurrency
-            ?? settings?.MaxConcurrency
-            ?? RuleTriggerOptions.DefaultMaxConcurrency;
-
-        var parallelOptions = new ParallelOptions
-        {
-            MaxDegreeOfParallelism = Math.Max(1, maxConcurrency),
-            CancellationToken = cancellationToken
-        };
-
-        var indexedRules = pendingRules.Select((item, index) => (item.Agent, item.Rule, Index: index));
-
-        try
-        {
-            await Parallel.ForEachAsync(indexedRules, parallelOptions, async (item, token) =>
+            try
             {
-                try
+                var convId = await RunRule(item.Agent, item.Rule, trigger, text, states, options, cancellationToken);
+                if (!string.IsNullOrEmpty(convId))
                 {
-                    convIds[item.Index] = await RunRule(item.Agent, item.Rule, trigger, text, states, options, token);
+                    newConversationIds.Add(convId);
                 }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    // One misbehaving rule should not take down the rules that run alongside it.
-                    _logger.LogError(ex, $"Error when running rule ({item.Rule.TriggerName}) for agent ({item.Agent.Name}).");
-                }
-            });
-        }
-        catch (OperationCanceledException ex)
-        {
-            // Cancellation still surfaces to the caller, but the conversations that were already
-            // started ride along on the exception so they are not silently lost.
-            var startedIds = CollectConversationIds(convIds);
-            _logger.LogWarning($"Rule trigger ({trigger.Name}) was cancelled after starting {startedIds.Count} conversation(s).");
-            throw new RuleTriggerCanceledException(startedIds, cancellationToken, ex);
+            }
+            catch (OperationCanceledException ex)
+            {
+                // Cancellation still surfaces to the caller, but the conversations that were already
+                // started ride along on the exception so they are not silently lost.
+                _logger.LogWarning($"Rule trigger ({trigger.Name}) was cancelled after starting {newConversationIds.Count} conversation(s).");
+                throw new RuleTriggerCanceledException(newConversationIds.ToList(), cancellationToken, ex);
+            }
+            catch (Exception ex)
+            {
+                // One misbehaving rule should not take down the rules that follow it.
+                _logger.LogError(ex, $"Error when running rule ({item.Rule.TriggerName}) for agent ({item.Agent.Name}).");
+            }
         }
 
-        newConversationIds.AddRange(CollectConversationIds(convIds));
         return newConversationIds;
     }
-
-    private static List<string> CollectConversationIds(string?[] convIds)
-        => convIds.Where(x => !string.IsNullOrEmpty(x)).Select(x => x!).ToList();
 
     /// <summary>
     /// Evaluates one rule and, when it is triggered, sends its message to the agent.
@@ -145,8 +117,7 @@ public class RuleEngine : IRuleEngine
         var msg = !string.IsNullOrWhiteSpace(rule.Message) ? rule.Message : text;
         var convId = await SendMessageToAgent(sp, agent, trigger, text, msg, states);
 
-        // Hold the concurrency slot a little longer after sending, so a large batch of rules
-        // does not hammer the downstream provider the moment each slot frees up.
+        // Pause before the next rule, so a large batch does not hammer the downstream provider.
         var delay = options?.SendMessageDelayMs ?? RuleTriggerOptions.DefaultSendMessageDelayMs;
         if (delay > 0)
         {

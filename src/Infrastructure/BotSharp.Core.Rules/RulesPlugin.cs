@@ -21,10 +21,6 @@ public class RulesPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        var settings = new RuleSettings();
-        config.Bind("Rule", settings);
-        services.AddSingleton(settings);
-
         // Register rule engine
         services.AddScoped<IRuleEngine, RuleEngine>();
 

@@ -24,16 +24,6 @@ public class RuleTriggerOptions
     public int SendMessageDelayMs { get; set; } = DefaultSendMessageDelayMs;
 
     public const int DefaultSendMessageDelayMs = 200;
-
-    /// <summary>
-    /// How many triggered rules may run at the same time. Each one still gets its own
-    /// service scope, so concurrent runs do not share conversation, state or routing
-    /// services. Set to one to run them sequentially. Null falls back to
-    /// <c>RuleSettings.MaxConcurrency</c>, then to <see cref="DefaultMaxConcurrency"/>.
-    /// </summary>
-    public int? MaxConcurrency { get; set; }
-
-    public const int DefaultMaxConcurrency = 5;
 }
 
 public class CriteriaOptions
