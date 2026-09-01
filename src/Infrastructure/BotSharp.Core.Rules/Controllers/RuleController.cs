@@ -1,4 +1,4 @@
-using BotSharp.Core.Rules.Models;
+﻿using BotSharp.Core.Rules.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,7 +23,7 @@ public class RuleController : ControllerBase
     }
 
     [HttpPost("/rule/trigger/action")]
-    public async Task<IActionResult> RunAction([FromBody] RuleTriggerActionRequest request)
+    public async Task<IActionResult> RunAction([FromBody] RuleTriggerActionRequest request, CancellationToken cancellationToken)
     {
         if (request == null)
         {
@@ -36,7 +36,7 @@ public class RuleController : ControllerBase
             return BadRequest(new { Success = false, Error = "Unable to find rule trigger." });
         }
 
-        var result = await _ruleEngine.Triggered(trigger, request.Text, request.States, request.Options);
+        var result = await _ruleEngine.Triggered(trigger, request.Text, request.States, request.Options, cancellationToken);
         return Ok(new { Success = true });
     }
 }
