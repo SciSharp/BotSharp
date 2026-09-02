@@ -52,14 +52,20 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (response.StopReason == StopReason.ToolUse)
         {
-            var toolCall = response.ToolCalls.FirstOrDefault();
+            // Every call the model asked for, not only the first. It routinely asks for several
+            // independent ones at once, and keeping one made it re-ask for the rest next turn.
+            var calls = response.ToolCalls
+                .Select(x => new LlmToolCall(x.Id, x.Name, x.Arguments?.ToJsonString()))
+                .ToList();
+            var toolCall = calls.FirstOrDefault();
             responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 ToolCallId = toolCall?.Id,
-                FunctionName = toolCall?.Name,
-                FunctionArgs = toolCall?.Arguments?.ToJsonString(),
+                FunctionName = toolCall?.FunctionName,
+                FunctionArgs = toolCall?.FunctionArgs,
+                ToolCalls = calls,
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
@@ -126,14 +132,20 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (response.StopReason == StopReason.ToolUse)
         {
-            var toolCall = response.ToolCalls.FirstOrDefault();
+            // Every call the model asked for, not only the first. It routinely asks for several
+            // independent ones at once, and keeping one made it re-ask for the rest next turn.
+            var calls = response.ToolCalls
+                .Select(x => new LlmToolCall(x.Id, x.Name, x.Arguments?.ToJsonString()))
+                .ToList();
+            var toolCall = calls.FirstOrDefault();
             responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 ToolCallId = toolCall?.Id,
-                FunctionName = toolCall?.Name,
-                FunctionArgs = toolCall?.Arguments?.ToJsonString(),
+                FunctionName = toolCall?.FunctionName,
+                FunctionArgs = toolCall?.FunctionArgs,
+                ToolCalls = calls,
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
 
@@ -239,18 +251,26 @@ public class ChatCompletionProvider : IChatCompletion
                 {
                     if (delta.StopReason == StopReason.ToolUse)
                     {
-                        var toolCall = choice.ToolCalls.FirstOrDefault();
+                        var calls = choice.ToolCalls
+                            .Select(x => new LlmToolCall(x.Id, x.Name,
+                                x.Arguments?.ToString()?.IfNullOrEmptyAs("{}") ?? "{}"))
+                            .ToList();
+                        var toolCall = calls.FirstOrDefault();
                         responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
                         {
                             CurrentAgentId = agent.Id,
                             MessageId = messageId,
                             ToolCallId = toolCall?.Id,
-                            FunctionName = toolCall?.Name,
-                            FunctionArgs = toolCall?.Arguments?.ToString()?.IfNullOrEmptyAs("{}") ?? "{}"
+                            FunctionName = toolCall?.FunctionName,
+                            FunctionArgs = toolCall?.FunctionArgs ?? "{}",
+                            ToolCalls = calls
                         };
 
 #if DEBUG
-                        _logger.LogDebug($"Tool Call (id: {toolCall?.Id}) => {toolCall?.Name}({toolCall?.Arguments})");
+                        foreach (var call in calls)
+                        {
+                            _logger.LogDebug($"Tool Call (id: {call.Id}) => {call.FunctionName}({call.FunctionArgs})");
+                        }
 #endif
                     }
                     else if (delta.StopReason == StopReason.EndTurn)
