@@ -1,3 +1,5 @@
+﻿using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Rules.Engines;
@@ -15,7 +17,7 @@ public class RuleEngine : IRuleEngine
         _logger = logger;
     }
 
-    public async Task<IEnumerable<string>> Triggered(IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null, RuleTriggerOptions? options = null)
+    public async Task<IEnumerable<string>> Triggered(IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null, RuleTriggerOptions? options = null, CancellationToken cancellationToken = default)
     {
         var newConversationIds = new List<string>();
 
@@ -29,70 +31,111 @@ public class RuleEngine : IRuleEngine
             }
         });
 
-        // Resolve the criteria evaluator
-        IRuleCriteriaEvaluator? criteriaEvaluator = null;
-        if (options?.Criteria != null)
+        // Flatten the agent/rule pairs so the two loops read as one sequence of rules.
+        var pendingRules = agents.Items
+            .Where(x => !x.Disabled)
+            .SelectMany(x => x.Rules
+                .Where(r => r != null && r.TriggerName.IsEqualTo(trigger.Name) && !r.Disabled)
+                .Select(r => (Agent: x, Rule: r)))
+            .ToList();
+
+        foreach (var item in pendingRules)
         {
-            criteriaEvaluator = ResolveCriteriaEvaluator(options.Criteria.Mode);
-            if (criteriaEvaluator == null)
+            try
             {
-                _logger.LogWarning($"Unable to find rule criteria evaluator for type ({options.Criteria.Mode}).");
-            }
-        }
-
-        // Trigger agents
-        var filteredAgents = agents.Items.Where(x => x.Rules.Exists(r => r.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled)).ToList();
-        foreach (var agent in filteredAgents)
-        {
-            var rules = agent.Rules.Where(x => x.TriggerName.IsEqualTo(trigger.Name) && !x.Disabled).ToList();
-            if (rules.IsNullOrEmpty())
-            {
-                continue;
-            }
-
-            foreach (var rule in rules)
-            {
-                if (rule == null)
+                var convId = await RunRule(item.Agent, item.Rule, trigger, text, states, options, cancellationToken);
+                if (!string.IsNullOrEmpty(convId))
                 {
-                    continue;
+                    newConversationIds.Add(convId);
                 }
-
-                // The rule's own mode wins over the mode carried on the trigger options, so an agent can
-                // pick how its criteria is judged without the caller knowing.
-                var evaluator = ResolveCriteriaEvaluator(rule.CriteriaConfig?.Mode) ?? criteriaEvaluator;
-                if (evaluator != null && options?.Criteria != null)
-                {
-                    var criteriaContext = new RuleCriteriaContext
-                    {
-                        Options = options.Criteria,
-                        States = states
-                    };
-
-                    var isTriggered = await EvaluateCriteria(evaluator, agent, rule, trigger, criteriaContext);
-                    if (!isTriggered)
-                    {
-                        continue;
-                    }
-                }
-
-                var msg = !string.IsNullOrWhiteSpace(rule.Message) ? rule.Message : text;
-                var convId = await SendMessageToAgent(agent, trigger, text, msg, states);
-                newConversationIds.Add(convId);
+            }
+            catch (OperationCanceledException ex)
+            {
+                // Cancellation still surfaces to the caller, but the conversations that were already
+                // started ride along on the exception so they are not silently lost.
+                _logger.LogWarning($"Rule trigger ({trigger.Name}) was cancelled after starting {newConversationIds.Count} conversation(s).");
+                throw new RuleTriggerCanceledException(newConversationIds.ToList(), cancellationToken, ex);
+            }
+            catch (Exception ex)
+            {
+                // One misbehaving rule should not take down the rules that follow it.
+                _logger.LogError(ex, $"Error when running rule ({item.Rule.TriggerName}) for agent ({item.Agent.Name}).");
             }
         }
 
         return newConversationIds;
     }
 
+    /// <summary>
+    /// Evaluates one rule and, when it is triggered, sends its message to the agent.
+    /// Returns the new conversation id, or null when the rule did not trigger.
+    /// </summary>
+    private async Task<string?> RunRule(
+        Agent agent,
+        AgentRule rule,
+        IRuleTrigger trigger,
+        string text,
+        IEnumerable<MessageState>? states,
+        RuleTriggerOptions? options,
+        CancellationToken cancellationToken)
+    {
+        // Every rule runs in its own scope so the scoped conversation, state and routing
+        // services start clean per run, concurrent rules cannot bleed into each other, and
+        // the caller's own scope is left untouched.
+        using var scope = _services.CreateScope();
+        var sp = scope.ServiceProvider;
+
+        // The rule's own mode wins over the mode carried on the trigger options, so an agent can
+        // pick how its criteria is judged without the caller knowing.
+        var evaluator = ResolveCriteriaEvaluator(sp, rule.CriteriaConfig?.Mode)
+            ?? ResolveCriteriaEvaluator(sp, options?.Criteria?.Mode);
+
+        if (evaluator == null && !string.IsNullOrWhiteSpace(options?.Criteria?.Mode))
+        {
+            _logger.LogWarning($"Unable to find rule criteria evaluator for type ({options.Criteria.Mode}).");
+        }
+
+        if (evaluator != null && options?.Criteria != null)
+        {
+            var criteriaContext = new RuleCriteriaContext
+            {
+                Options = options.Criteria,
+                States = states
+            };
+
+            var isTriggered = await EvaluateCriteria(sp, evaluator, agent, rule, trigger, criteriaContext);
+            if (!isTriggered)
+            {
+                return null;
+            }
+        }
+
+        // Criteria evaluation can be slow (the llm evaluator calls out), so re-check before
+        // starting a conversation that nobody is waiting on any more.
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var msg = !string.IsNullOrWhiteSpace(rule.Message) ? rule.Message : text;
+        var convId = await SendMessageToAgent(sp, agent, trigger, text, msg, states);
+
+        // Pause before the next rule, so a large batch does not hammer the downstream provider.
+        var delay = options?.SendMessageDelayMs ?? RuleTriggerOptions.DefaultSendMessageDelayMs;
+        if (delay > 0)
+        {
+            await Task.Delay(delay, cancellationToken);
+        }
+
+        return convId;
+    }
+
     #region Criteria
-    private IRuleCriteriaEvaluator? ResolveCriteriaEvaluator(string? mode)
+    private IRuleCriteriaEvaluator? ResolveCriteriaEvaluator(IServiceProvider sp, string? mode)
     {
         if (string.IsNullOrWhiteSpace(mode))
         {
             return null;
         }
 
-        return _services.GetServices<IRuleCriteriaEvaluator>().FirstOrDefault(x => x.Type.IsEqualTo(mode));
+        return sp.GetServices<IRuleCriteriaEvaluator>().FirstOrDefault(x => x.Type.IsEqualTo(mode));
     }
 
     /// <summary>
@@ -102,6 +145,7 @@ public class RuleEngine : IRuleEngine
     /// so a null from it means "not triggered".
     /// </summary>
     private async Task<bool> EvaluateCriteria(
+        IServiceProvider sp,
         IRuleCriteriaEvaluator evaluator,
         Agent agent,
         AgentRule agentRule,
@@ -119,7 +163,7 @@ public class RuleEngine : IRuleEngine
             return false;
         }
 
-        var llmEvaluator = ResolveCriteriaEvaluator(BuiltInRuleCriteria.Llm);
+        var llmEvaluator = ResolveCriteriaEvaluator(sp, BuiltInRuleCriteria.Llm);
         if (llmEvaluator == null)
         {
             _logger.LogWarning($"Unable to find llm rule criteria evaluator to fall back to from ({evaluator.Type}).");
@@ -132,9 +176,9 @@ public class RuleEngine : IRuleEngine
     #endregion
 
     #region Send message to agent
-    private async Task<string> SendMessageToAgent(Agent agent, IRuleTrigger trigger, string title, string msg, IEnumerable<MessageState>? states = null)
+    private async Task<string> SendMessageToAgent(IServiceProvider sp, Agent agent, IRuleTrigger trigger, string title, string msg, IEnumerable<MessageState>? states = null)
     {
-        var convService = _services.GetRequiredService<IConversationService>();
+        var convService = sp.GetRequiredService<IConversationService>();
         var conv = await convService.NewConversation(new Conversation
         {
             Channel = trigger.Channel,
@@ -152,7 +196,12 @@ public class RuleEngine : IRuleEngine
             allStates.AddRange(states!);
         }
 
-        var message = new RoleDialogModel(AgentRole.User, RenderMessage(msg, allStates));
+        var message = new RoleDialogModel(AgentRole.User, RenderMessage(sp, msg, allStates));
+
+        // Subscribe the message hub observers so the rule-triggered conversation emits the same
+        // events (streaming, indications, etc.) as a user-initiated one.
+        var observer = sp.GetRequiredService<IObserverService>();
+        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(conv.Id);
 
         await convService.SetConversationId(conv.Id, allStates);
         await convService.SendMessage(agent.Id,
@@ -161,11 +210,10 @@ public class RuleEngine : IRuleEngine
             msg => Task.CompletedTask);
 
         await convService.SaveStates();
-
         return conv.Id;
     }
 
-    private string RenderMessage(string msg, IEnumerable<MessageState> states)
+    private string RenderMessage(IServiceProvider sp, string msg, IEnumerable<MessageState> states)
     {
         if (string.IsNullOrWhiteSpace(msg))
         {
@@ -185,7 +233,7 @@ public class RuleEngine : IRuleEngine
                 data[state.Key] = state.Value;
             }
 
-            var render = _services.GetRequiredService<ITemplateRender>();
+            var render = sp.GetRequiredService<ITemplateRender>();
             return render.Render(msg, data);
         }
         catch (Exception ex)
