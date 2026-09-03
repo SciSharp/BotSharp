@@ -19,8 +19,9 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions;
 
 public class OutboundPhoneCallFn : IFunctionCallback
 {
-    // https://www.twilio.com/docs/api/errors/21215
-    private const int TwilioGeoPermissionNotAllowedErrorCode = 21215;
+    // https://www.twilio.com/docs/api/errors/21215 - Geo Permission configuration is not permitting call
+    // https://www.twilio.com/docs/api/errors/21216 - API: Call blocked by Twilio
+    private static readonly HashSet<int> NotAllowedToCallErrorCodes = [21215, 21216];
 
     private readonly IServiceProvider _services;
     private readonly ILogger<OutboundPhoneCallFn> _logger;
@@ -125,10 +126,11 @@ public class OutboundPhoneCallFn : IFunctionCallback
                 record: _twilioSetting.RecordingEnabled,
                 recordingStatusCallback: $"{_twilioSetting.CallbackHost}/twilio/record/status?agent-id={message.CurrentAgentId}&conversation-id={newConversationId}");
         }
-        catch (ApiException ex) when (ex.Code == TwilioGeoPermissionNotAllowedErrorCode)
+        catch (ApiException ex) when (NotAllowedToCallErrorCodes.Contains(ex.Code))
         {
             _logger.LogWarning(ex, "Not allowed to call {PhoneNumber}", args.PhoneNumber);
             message.Content = $"Not allowed to call {args.PhoneNumber}.";
+            message.StopCompletion = true;
             return false;
         }
 
