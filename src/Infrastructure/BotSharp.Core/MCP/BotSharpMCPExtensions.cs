@@ -22,6 +22,11 @@ public static class BotSharpMcpExtensions
 
         if (settings != null && settings.Enabled && !settings.McpServerConfigs.IsNullOrEmpty())
         {
+            // McpClientManager opens every connection over a client from this factory, so that
+            // connections to one server share a pooled handler instead of each building its own.
+            // Idempotent, and a host that already called it is unaffected.
+            services.AddHttpClient();
+
             services.AddScoped<McpClientManager>();
             services.AddScoped<IAgentHook, McpToolAgentHook>();
         }

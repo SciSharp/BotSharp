@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace BotSharp.Abstraction.Rules;
 
 public interface IRuleEngine
@@ -9,19 +11,9 @@ public interface IRuleEngine
     /// <param name="text"></param>
     /// <param name="states"></param>
     /// <param name="options"></param>
+    /// <param name="cancellationToken">Stops dispatching further rules and cancels the pause between them.</param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    Task<IEnumerable<string>> Triggered(IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null, RuleTriggerOptions? options = null)
+    Task<IEnumerable<string>> Triggered(IRuleTrigger trigger, string text, IEnumerable<MessageState>? states = null, RuleTriggerOptions? options = null, CancellationToken cancellationToken = default)
         => throw new NotImplementedException();
-
-    ///// <summary>
-    ///// Execute rule graph node
-    ///// </summary>
-    ///// <param name="node"></param>
-    ///// <param name="graph"></param>
-    ///// <param name="agentId"></param>
-    ///// <param name="trigger"></param>
-    ///// <param name="options"></param>
-    ///// <returns></returns>
-    //Task ExecuteGraphNode(FlowNode node, FlowGraph graph, string agentId, IRuleTrigger trigger, RuleNodeExecutionOptions options);
 }
