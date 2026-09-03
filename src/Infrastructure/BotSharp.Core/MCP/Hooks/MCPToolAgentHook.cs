@@ -50,20 +50,13 @@ public class McpToolAgentHook : AgentHookBase
         var mcps = agent.McpTools?.Where(x => !x.Disabled) ?? [];
         foreach (var item in mcps)
         {
-            await using var mcpClient = await mcpClientManager.GetMcpClientAsync(item.ServerId);
-            if (mcpClient == null) continue;
+            // Cached per server for a short window: this runs on every agent load, and listing
+            // tools costs a session of its own against the server.
+            var tools = await mcpClientManager.GetToolDefinitionsAsync(item.ServerId);
+            if (tools.Count == 0) continue;
 
-            var tools = await mcpClient.ListToolsAsync();
             var toolNames = item.Functions.Select(x => x.Name).ToList();
-            var targetTools = tools.Where(x => toolNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase));
-            foreach (var tool in targetTools)
-            {
-                var funDef = AiFunctionHelper.MapToFunctionDef(tool);
-                if (funDef != null)
-                {
-                    functionDefs.Add(funDef);
-                }
-            }
+            functionDefs.AddRange(tools.Where(x => toolNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase)));
         }
 
         return functionDefs;

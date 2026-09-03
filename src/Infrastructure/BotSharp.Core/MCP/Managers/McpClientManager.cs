@@ -1,6 +1,9 @@
+using BotSharp.Abstraction.Infrastructures;
+using BotSharp.Core.MCP.Helpers;
 using BotSharp.Core.MCP.Settings;
 using ModelContextProtocol.Client;
 using System.Net.Http;
+using System.Security.Cryptography;
 
 namespace BotSharp.Core.MCP.Managers;
 
@@ -107,6 +110,113 @@ public class McpClientManager
             return null;
         }
     }
+
+    /// <summary>
+    /// The tools a server offers, as function definitions, reused for
+    /// <see cref="McpSettings.ToolListCacheSeconds"/> rather than listed again on every agent load.
+    /// </summary>
+    /// <remarks>
+    /// The entry is keyed by the headers the connection would carry and not by the server alone,
+    /// because <see cref="IMcpClientHeaderProvider"/> lets a host open the connection as the
+    /// signed-in user: a server that shows one caller a different set of tools than another must
+    /// never be able to serve one caller from the other one is cache entry. The headers are
+    /// fingerprinted rather than used directly, so no credential ends up in a cache key.
+    /// <para>
+    /// A failed or empty listing is never cached. A server that is briefly unreachable would
+    /// otherwise leave every agent that depends on it disarmed -- answering from the prompt alone
+    /// as if it had never had tools -- for the length of the window.
+    /// </para>
+    /// <para>
+    /// Callers get their own FunctionDef instances over shared parameter schemas, so an agent
+    /// that rewrites a description on the way to the model cannot rewrite it for every other
+    /// agent on the same server.
+    /// </para>
+    /// </remarks>
+    public async Task<List<FunctionDef>> GetToolDefinitionsAsync(string serverId)
+    {
+        var settings = _services.GetRequiredService<McpSettings>();
+        var config = settings.McpServerConfigs?.FirstOrDefault(x => x.Id == serverId);
+        if (config == null || !config.Enabled)
+        {
+            return [];
+        }
+
+        var window = TimeSpan.FromSeconds(Math.Max(0, settings.ToolListCacheSeconds));
+        var cache = _services.GetRequiredService<ICacheService>();
+        var key = ToolListCacheKey(config);
+
+        if (window > TimeSpan.Zero)
+        {
+            var cached = await cache.GetAsync<List<FunctionDef>>(key);
+            if (!cached.IsNullOrEmpty())
+            {
+                return Copy(cached!);
+            }
+        }
+
+        var tools = new List<FunctionDef>();
+
+        try
+        {
+            await using var client = await GetMcpClientAsync(serverId);
+            if (client == null)
+            {
+                return tools;
+            }
+
+            foreach (var tool in await client.ListToolsAsync())
+            {
+                var def = AiFunctionHelper.MapToFunctionDef(tool);
+                if (def != null)
+                {
+                    tools.Add(def);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Error when listing tools of mcp server {serverId}");
+            return [];
+        }
+
+        if (window > TimeSpan.Zero && tools.Count > 0)
+        {
+            await cache.SetAsync(key, tools, window);
+        }
+
+        return Copy(tools);
+    }
+
+    private static List<FunctionDef> Copy(List<FunctionDef> tools)
+        => tools.Select(x => new FunctionDef
+        {
+            Type = x.Type,
+            Name = x.Name,
+            Description = x.Description,
+            Channels = x.Channels,
+            VisibilityExpression = x.VisibilityExpression,
+            Impact = x.Impact,
+            Parameters = x.Parameters,
+            Output = x.Output
+        }).ToList();
+
+    private string ToolListCacheKey(McpServerConfigModel config)
+    {
+        var configured = config.HttpConfig?.AdditionalHeaders
+            ?? config.SseConfig?.AdditionalHeaders;
+        var headers = ResolveHeaders(config.Id, configured);
+
+        var identity = headers.IsNullOrEmpty()
+            ? "no-headers"
+            : Fingerprint(string.Join("|", headers!
+                .OrderBy(x => x.Key, StringComparer.Ordinal)
+                .Select(x => $"{x.Key}={x.Value}")));
+
+        return $"mcp-tools:{config.Id}:{identity}";
+    }
+
+    private static string Fingerprint(string value)
+        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)), 0, 8);
 
     /// <summary>
     /// A transport over an HttpClient from the factory, named for this server so its handler --
