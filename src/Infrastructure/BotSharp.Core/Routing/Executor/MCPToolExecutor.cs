@@ -27,7 +27,10 @@ public class McpToolExecutor : IFunctionExecutor
             Dictionary<string, object?> argDict = JsonToDictionary(message.FunctionArgs);
 
             var clientManager = _services.GetRequiredService<McpClientManager>();
-            var client = await clientManager.GetMcpClientAsync(_mcpServerId);
+
+            // The client is a session of its own, so this call owns it. Disposing closes the
+            // session on the server; the connection underneath it stays in the factory's pool.
+            await using var client = await clientManager.GetMcpClientAsync(_mcpServerId);
 
             if (client == null)
             {

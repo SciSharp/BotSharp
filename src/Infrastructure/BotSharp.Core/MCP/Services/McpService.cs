@@ -28,7 +28,7 @@ public class McpService : IMcpService
 
         foreach (var config in configs)
         {
-            var client = await clientManager.GetMcpClientAsync(config.Id);
+            await using var client = await clientManager.GetMcpClientAsync(config.Id);
             if (client == null) continue;
 
             var tools = await client.ListToolsAsync();
