@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Repositories.Filters;
+﻿using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Rules.Constants;
 using System.Text.Json;
 
@@ -15,6 +15,15 @@ public class RuleTriggerOptions
     /// Criteria
     /// </summary>
     public CriteriaOptions? Criteria { get; set; }
+
+    /// <summary>
+    /// How long to pause after sending a message to a triggered agent, before moving on
+    /// to the next rule. Keeps a burst of triggered rules from hammering the LLM provider
+    /// all at once. Set to zero to disable the pause.
+    /// </summary>
+    public int SendMessageDelayMs { get; set; } = DefaultSendMessageDelayMs;
+
+    public const int DefaultSendMessageDelayMs = 200;
 }
 
 public class CriteriaOptions

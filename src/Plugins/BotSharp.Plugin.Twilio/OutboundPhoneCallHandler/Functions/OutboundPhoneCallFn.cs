@@ -8,6 +8,7 @@ using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
+using Twilio.Exceptions;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.TwiML.Messaging;
 using Twilio.Types;
@@ -18,6 +19,9 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions;
 
 public class OutboundPhoneCallFn : IFunctionCallback
 {
+    // https://www.twilio.com/docs/api/errors/21215
+    private const int TwilioGeoPermissionNotAllowedErrorCode = 21215;
+
     private readonly IServiceProvider _services;
     private readonly ILogger<OutboundPhoneCallFn> _logger;
     private readonly BotSharpOptions _options;
@@ -107,16 +111,26 @@ public class OutboundPhoneCallFn : IFunctionCallback
         }
 
         // Make outbound call
-        var call = await CallResource.CreateAsync(
-            url: new Uri(processUrl),
-            to: new PhoneNumber(args.PhoneNumber),
-            from: new PhoneNumber(_twilioSetting.PhoneNumber),
-            statusCallback: new Uri(statusUrl),
-            // https://www.twilio.com/docs/voice/answering-machine-detection
-            machineDetection: _twilioSetting.MachineDetection,
-            machineDetectionSilenceTimeout: _twilioSetting.MachineDetectionSilenceTimeout,
-            record: _twilioSetting.RecordingEnabled,
-            recordingStatusCallback: $"{_twilioSetting.CallbackHost}/twilio/record/status?agent-id={message.CurrentAgentId}&conversation-id={newConversationId}");
+        CallResource call;
+        try
+        {
+            call = await CallResource.CreateAsync(
+                url: new Uri(processUrl),
+                to: new PhoneNumber(args.PhoneNumber),
+                from: new PhoneNumber(_twilioSetting.PhoneNumber),
+                statusCallback: new Uri(statusUrl),
+                // https://www.twilio.com/docs/voice/answering-machine-detection
+                machineDetection: _twilioSetting.MachineDetection,
+                machineDetectionSilenceTimeout: _twilioSetting.MachineDetectionSilenceTimeout,
+                record: _twilioSetting.RecordingEnabled,
+                recordingStatusCallback: $"{_twilioSetting.CallbackHost}/twilio/record/status?agent-id={message.CurrentAgentId}&conversation-id={newConversationId}");
+        }
+        catch (ApiException ex) when (ex.Code == TwilioGeoPermissionNotAllowedErrorCode)
+        {
+            _logger.LogWarning(ex, "Not allowed to call {PhoneNumber}", args.PhoneNumber);
+            message.Content = $"Not allowed to call {args.PhoneNumber}.";
+            return false;
+        }
 
         if (call.Status == CallResource.StatusEnum.Queued)
         {

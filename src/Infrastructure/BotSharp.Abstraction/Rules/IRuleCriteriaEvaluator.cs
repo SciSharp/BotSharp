@@ -18,6 +18,10 @@ public interface IRuleCriteriaEvaluator
     /// Evaluate the criteria for a single agent's rule.
     /// </summary>
     /// <param name="agent">The agent whose rule is being considered</param>
+    /// <param name="agentRule">
+    /// The rule being considered. An agent can carry more than one rule on the same trigger, so the
+    /// evaluator is handed the one under evaluation rather than resolving it from the agent itself.
+    /// </param>
     /// <param name="trigger">The rule trigger</param>
     /// <param name="context">The per-request criteria context</param>
     /// <returns>
@@ -25,5 +29,5 @@ public interface IRuleCriteriaEvaluator
     /// or null when the evaluator could not produce an answer (missing script/template,
     /// failed execution, error).
     /// </returns>
-    Task<bool?> EvaluateAsync(Agent agent, IRuleTrigger trigger, RuleCriteriaContext context);
+    Task<bool?> EvaluateAsync(Agent agent, AgentRule agentRule, IRuleTrigger trigger, RuleCriteriaContext context);
 }
