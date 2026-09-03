@@ -25,7 +25,11 @@ public partial class ChatCompletionProvider
         var response = await responsesClient.CreateResponseAsync(options);
         var value = response.Value;
 
-        var functionCall = value.OutputItems.OfType<FunctionCallResponseItem>().FirstOrDefault();
+        // Every call the model asked for, not only the first. It routinely asks for several
+        // independent ones at once, and keeping one made it re-ask for the rest next turn.
+        var functionCalls = value.OutputItems.OfType<FunctionCallResponseItem>().ToList();
+        var toolCalls = ToLlmToolCalls(functionCalls);
+        var functionCall = functionCalls.FirstOrDefault();
         var reasoningItem = value.OutputItems.OfType<ReasoningResponseItem>().FirstOrDefault();
         var text = value.GetOutputText() ?? string.Empty;
         var thinkingText = reasoningItem?.GetSummaryText();
@@ -33,7 +37,7 @@ public partial class ChatCompletionProvider
         RoleDialogModel responseMessage;
         if (functionCall != null)
         {
-            _logger.LogInformation($"Action: {nameof(InnerCreateResponse)}, Agent: {agent.Name}, ToolCall: {functionCall.FunctionName}");
+            _logger.LogInformation($"Action: {nameof(InnerCreateResponse)}, Agent: {agent.Name}, ToolCalls: {string.Join(",", toolCalls.Select(x => x.FunctionName))}");
 
             responseMessage = new RoleDialogModel(AgentRole.Function, text)
             {
@@ -42,6 +46,7 @@ public partial class ChatCompletionProvider
                 ToolCallId = functionCall.CallId,
                 FunctionName = functionCall.FunctionName.NormalizeFunctionName(),
                 FunctionArgs = functionCall.FunctionArguments?.ToString(),
+                ToolCalls = toolCalls,
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
@@ -113,7 +118,11 @@ public partial class ChatCompletionProvider
         var response = await responsesClient.CreateResponseAsync(options);
         var value = response.Value;
 
-        var functionCall = value.OutputItems.OfType<FunctionCallResponseItem>().FirstOrDefault();
+        // Every call the model asked for, not only the first. It routinely asks for several
+        // independent ones at once, and keeping one made it re-ask for the rest next turn.
+        var functionCalls = value.OutputItems.OfType<FunctionCallResponseItem>().ToList();
+        var toolCalls = ToLlmToolCalls(functionCalls);
+        var functionCall = functionCalls.FirstOrDefault();
         var reasoningItem = value.OutputItems.OfType<ReasoningResponseItem>().FirstOrDefault();
         var text = value.GetOutputText() ?? string.Empty;
         var thinkingText = reasoningItem?.GetSummaryText();
@@ -121,7 +130,7 @@ public partial class ChatCompletionProvider
         RoleDialogModel responseMessage;
         if (functionCall != null)
         {
-            _logger.LogInformation($"Action: {nameof(InnerCreateResponseAsync)}, Agent: {agent.Name}, ToolCall: {functionCall.FunctionName}");
+            _logger.LogInformation($"Action: {nameof(InnerCreateResponseAsync)}, Agent: {agent.Name}, ToolCalls: {string.Join(",", toolCalls.Select(x => x.FunctionName))}");
 
             responseMessage = new RoleDialogModel(AgentRole.Function, text)
             {
@@ -130,6 +139,7 @@ public partial class ChatCompletionProvider
                 ToolCallId = functionCall.CallId,
                 FunctionName = functionCall.FunctionName.NormalizeFunctionName(),
                 FunctionArgs = functionCall.FunctionArguments?.ToString(),
+                ToolCalls = toolCalls,
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
@@ -221,7 +231,7 @@ public partial class ChatCompletionProvider
 
         using var textStream = new RealtimeTextStream();
         using var thinkingStream = new RealtimeTextStream();
-        FunctionCallResponseItem? functionCall = null;
+        var functionCalls = new List<FunctionCallResponseItem>();
         ResponseResult? finalResult = null;
         ResponseTokenUsage? tokenUsage = null;
 
@@ -312,7 +322,7 @@ public partial class ChatCompletionProvider
                         {
                             if (itemDone.Item is FunctionCallResponseItem fc)
                             {
-                                functionCall = fc;
+                                functionCalls.Add(fc);
 #if DEBUG
                                 _logger.LogDebug($"Tool Call (id: {fc.CallId}) => {fc.FunctionName}({fc.FunctionArguments})");
 #endif
@@ -342,9 +352,12 @@ public partial class ChatCompletionProvider
         var allText = textStream.GetText();
         var thinkingText = thinkingStream.GetText();
 
+        var toolCalls = ToLlmToolCalls(functionCalls);
+        var functionCall = functionCalls.FirstOrDefault();
+
         if (functionCall != null)
         {
-            _logger.LogInformation($"Action: {nameof(InnerCreateResponseStreamingAsync)}, Agent: {agent.Name}, ToolCall: {functionCall.FunctionName}");
+            _logger.LogInformation($"Action: {nameof(InnerCreateResponseStreamingAsync)}, Agent: {agent.Name}, ToolCalls: {string.Join(",", toolCalls.Select(x => x.FunctionName))}");
 
             responseMessage = new RoleDialogModel(AgentRole.Function, allText)
             {
@@ -353,6 +366,7 @@ public partial class ChatCompletionProvider
                 ToolCallId = functionCall.CallId,
                 FunctionName = functionCall.FunctionName.NormalizeFunctionName(),
                 FunctionArgs = functionCall.FunctionArguments?.ToString(),
+                ToolCalls = toolCalls,
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
@@ -822,4 +836,9 @@ public partial class ChatCompletionProvider
         } : null;
     }
     #endregion
+
+    private static List<LlmToolCall> ToLlmToolCalls(IEnumerable<FunctionCallResponseItem>? functionCalls)
+        => (functionCalls ?? [])
+            .Select(x => new LlmToolCall(x.CallId, x.FunctionName, x.FunctionArguments?.ToString()))
+            .ToList();
 }
