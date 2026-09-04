@@ -35,14 +35,18 @@ public partial class ChatCompletionProvider
         {
             _logger.LogInformation($"Action: {nameof(InnerGetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, ToolCalls: {string.Join(",", value.ToolCalls.Select(x => x.FunctionName))}");
 
-            var toolCall = value.ToolCalls.FirstOrDefault();
+            // Every call the model asked for, not only the first. It routinely asks for several
+            // independent ones at once, and keeping one made it re-ask for the rest next turn.
+            var calls = ToLlmToolCalls(value.ToolCalls);
+            var toolCall = calls.FirstOrDefault();
             responseMessage = new RoleDialogModel(AgentRole.Function, text)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.FunctionName,
-                FunctionArgs = toolCall?.FunctionArguments?.ToString(),
+                FunctionArgs = toolCall?.FunctionArgs,
+                ToolCalls = calls,
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
 
@@ -148,8 +152,9 @@ public partial class ChatCompletionProvider
 
         if (reason == ChatFinishReason.FunctionCall || reason == ChatFinishReason.ToolCalls)
         {
-            var toolCall = value.ToolCalls?.FirstOrDefault();
-            _logger.LogInformation($"[{agent.Name}]: {toolCall?.FunctionName}({toolCall?.FunctionArguments})");
+            var calls = ToLlmToolCalls(value.ToolCalls);
+            var toolCall = calls.FirstOrDefault();
+            _logger.LogInformation($"[{agent.Name}]: {toolCall?.FunctionName}({toolCall?.FunctionArgs})");
 
             var funcContextIn = new RoleDialogModel(AgentRole.Function, text)
             {
@@ -157,7 +162,8 @@ public partial class ChatCompletionProvider
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.FunctionName,
-                FunctionArgs = toolCall?.FunctionArguments?.ToString(),
+                FunctionArgs = toolCall?.FunctionArgs,
+                ToolCalls = calls,
                 RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
 
@@ -278,23 +284,24 @@ public partial class ChatCompletionProvider
 
                 if (choice.FinishReason == ChatFinishReason.ToolCalls || choice.FinishReason == ChatFinishReason.FunctionCall)
                 {
-                    var meta = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName));
-                    var functionName = meta?.FunctionName;
-                    var toolCallId = meta?.ToolCallId;
-                    var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
-                    var functionArguments = string.Join(string.Empty, args);
+                    var calls = ReconstructToolCalls(toolCalls);
+                    var first = calls.FirstOrDefault();
 
 #if DEBUG
-                    _logger.LogDebug($"Tool Call (id: {toolCallId}) => {functionName}({functionArguments})");
+                    foreach (var call in calls)
+                    {
+                        _logger.LogDebug($"Tool Call (id: {call.Id}) => {call.FunctionName}({call.FunctionArgs})");
+                    }
 #endif
 
                     responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
                     {
                         CurrentAgentId = agent.Id,
                         MessageId = messageId,
-                        ToolCallId = toolCallId,
-                        FunctionName = functionName,
-                        FunctionArgs = functionArguments
+                        ToolCallId = first?.Id,
+                        FunctionName = first?.FunctionName,
+                        FunctionArgs = first?.FunctionArgs ?? string.Empty,
+                        ToolCalls = calls
                     };
                 }
                 else if (choice.FinishReason == ChatFinishReason.Stop)
@@ -743,4 +750,56 @@ public partial class ChatCompletionProvider
         }
     }
     #endregion
+
+    /// <summary>
+    /// Every tool call in a non-streaming reply, in the order the model produced them.
+    /// </summary>
+    private static List<LlmToolCall> ToLlmToolCalls(IEnumerable<ChatToolCall>? toolCalls)
+        => (toolCalls ?? [])
+            .Select(x => new LlmToolCall(x.Id, x.FunctionName, x.FunctionArguments?.ToString()))
+            .ToList();
+
+    /// <summary>
+    /// Rebuilds the tool calls a streaming reply asked for.
+    /// </summary>
+    /// <remarks>
+    /// Arguments arrive chunked across updates and have to be accumulated, and the SDK's update
+    /// carries no index -- only a tool call id, which is present when a call opens. So an update
+    /// bearing a new id starts a call, and the fragments following it belong to that one.
+    /// Concatenating every fragment into a single string, as this did before, produced one
+    /// malformed argument blob as soon as the model asked for more than one tool at a time.
+    /// </remarks>
+    private static List<LlmToolCall> ReconstructToolCalls(List<StreamingChatToolCallUpdate> updates)
+    {
+        var calls = new List<LlmToolCall>();
+        var args = new List<StringBuilder>();
+
+        foreach (var update in updates)
+        {
+            var opensCall = calls.Count == 0
+                || (!string.IsNullOrEmpty(update.ToolCallId) && calls[^1].Id != update.ToolCallId);
+
+            if (opensCall)
+            {
+                calls.Add(new LlmToolCall(update.ToolCallId, update.FunctionName, null));
+                args.Add(new StringBuilder());
+            }
+            else if (string.IsNullOrEmpty(calls[^1].FunctionName))
+            {
+                calls[^1].FunctionName = update.FunctionName;
+            }
+
+            if (update.FunctionArgumentsUpdate != null)
+            {
+                args[^1].Append(update.FunctionArgumentsUpdate.ToString());
+            }
+        }
+
+        for (var i = 0; i < calls.Count; i++)
+        {
+            calls[i].FunctionArgs = args[i].ToString();
+        }
+
+        return calls;
+    }
 }

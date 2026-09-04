@@ -1,4 +1,4 @@
-using BotSharp.Core.Rules.Actions;
+﻿using BotSharp.Core.Rules.Actions;
 using BotSharp.Core.Rules.Conditions;
 using BotSharp.Core.Rules.Criteria.Code;
 using BotSharp.Core.Rules.Criteria.Llm;

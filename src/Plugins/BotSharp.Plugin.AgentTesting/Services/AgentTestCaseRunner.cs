@@ -7,16 +7,30 @@ public class AgentTestCaseRunner : ICaseRunner
 {
     private readonly IAgentTestRunRegistry _registry;
     private readonly IAgentConversationDriver _driver;
+    private readonly IAgentTestJudge? _judge;
+    private readonly ITokenStatistics? _tokens;
     private readonly ILogger<AgentTestCaseRunner> _logger;
 
     public AgentTestCaseRunner(
         IAgentTestRunRegistry registry,
         IAgentConversationDriver driver,
-        ILogger<AgentTestCaseRunner> logger)
+        ILogger<AgentTestCaseRunner> logger,
+        IAgentTestJudge? judge = null,
+        ITokenStatistics? tokens = null)
     {
         _registry = registry;
         _driver = driver;
         _logger = logger;
+        // Optional so the orchestration tests can build a runner without one. ITokenStatistics is
+        // registered scoped, and AgentTestRunQueue.ScopedCaseRunner opens a fresh scope per case, so
+        // in production this is the same instance the conversation's completion provider reports
+        // into -- which is what makes the delta below attributable to this case alone.
+        _tokens = tokens;
+        // Optional so the orchestration tests can construct a runner without a vendor. A null judge
+        // is not a silent skip: EvaluateAsync turns an llmJudge assertion into the same Error as an
+        // unreachable vendor, because a case whose quality assertion was never scored has an unknown
+        // verdict, not a passing one.
+        _judge = judge;
     }
 
     public async Task<AgentTestCaseResult> RunAsync(
@@ -37,7 +51,11 @@ public class AgentTestCaseRunner : ICaseRunner
             // timeout) still say which model they were meant to run under -- a result that cannot
             // be attributed to a model is useless in a comparison run.
             Provider = model?.Provider,
-            Model = model?.Model
+            Model = model?.Model,
+            // Stamped up front like Provider/Model: aggregating routing accuracy separately from
+            // agent pass rate has to work off the result rows alone, including the rows produced by
+            // the early returns below.
+            CaseType = testCase.CaseType
         };
 
         // Turns.SelectMany(...).Concat(caseAssertions).All(a => a.Passed) is vacuously true on an
@@ -51,6 +69,15 @@ public class AgentTestCaseRunner : ICaseRunner
             return result;
         }
 
+        // Which agent the conversation opens on. BotSharp dispatches on that agent's own type
+        // (ConversationService.SendMessage: a Routing agent goes through RoutingService.InstructLoop
+        // and can hand off, everything else through InstructDirect and cannot), so this one value is
+        // what decides whether the router is part of what the case measures. The suite's agent stays
+        // the default, so every case authored before EntryAgentId existed behaves exactly as before.
+        var entryAgentId = string.IsNullOrWhiteSpace(testCase.EntryAgentId)
+            ? suite.AgentId
+            : testCase.EntryAgentId!;
+
         var active = new ActiveTestRun
         {
             ConversationId = conversationId,
@@ -63,6 +90,14 @@ public class AgentTestCaseRunner : ICaseRunner
         };
 
         var stopwatch = Stopwatch.StartNew();
+
+        // Read as a delta, not an absolute: a scope that outlived an earlier case would otherwise
+        // have this case billed for that one's tokens too. On a fresh scope the baseline is zero and
+        // the delta is simply the final reading.
+        var tokensBefore = _tokens?.Total ?? 0;
+        var costBefore = _tokens?.AccumulatedCost ?? 0f;
+        long modelDurationMs = 0;
+
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeout.CancelAfter(TimeSpan.FromSeconds(Math.Max(1, suite.CaseTimeoutSeconds)));
 
@@ -118,7 +153,31 @@ public class AgentTestCaseRunner : ICaseRunner
         _registry.Register(active);
         try
         {
-            await _driver.PrepareAsync(conversationId, suite.AgentId, testCase.InitialStates);
+            await _driver.PrepareAsync(conversationId, entryAgentId, testCase.InitialStates);
+
+            // Authored history goes in before the canary and before any turn, so the model sees it
+            // as the conversation's opening context. A short count means the write silently did
+            // nothing (see IAgentConversationDriver.InjectHistoryAsync) -- that has to be an Error,
+            // because a case running without the context it was written around would otherwise
+            // report an ordinary pass or fail about a scenario that never existed.
+            var injectedHistory = await AwaitOrHandOffAsync(
+                _driver.InjectHistoryAsync(conversationId, entryAgentId, testCase.History));
+
+            if (injectedHistory != testCase.History.Count)
+            {
+                result.Status = AgentTestStatus.Error;
+                result.Error = $"only {injectedHistory} of {testCase.History.Count} history messages "
+                             + "could be written to the conversation, so this case would have run "
+                             + "without the context it was written around";
+                return result;
+            }
+
+            // Authored history is not something the agent under test did, so it must not appear in
+            // the chain. Read once here and used as the offset for both the per-turn slices and the
+            // case-level chain, so the exclusion cannot drift between them.
+            var historyAssistantMessages = testCase.History.Count == 0
+                ? 0
+                : (await _driver.ReadAssistantAgentSequenceAsync(conversationId)).Count;
 
             // Prove the seam is live first. A dead seam means mocking silently does nothing and
             // real tools execute, so this has to happen before a single user message is sent.
@@ -129,7 +188,7 @@ public class AgentTestCaseRunner : ICaseRunner
             // active.CanaryIntercepted would look stricter but checks the same fact twice, and it
             // would stop a fake driver from unit-testing the orchestration at all -- a fake driver
             // has no ActiveTestRun and can never set that flag.
-            if (!await AwaitOrHandOffAsync(_driver.RunCanaryAsync(conversationId, suite.AgentId, timeout.Token)))
+            if (!await AwaitOrHandOffAsync(_driver.RunCanaryAsync(conversationId, entryAgentId, timeout.Token)))
             {
                 result.Status = AgentTestStatus.Error;
                 result.Error = "the mock seam is not live: IFunctionExecutorProvider was not consulted. "
@@ -138,33 +197,57 @@ public class AgentTestCaseRunner : ICaseRunner
                 return result;
             }
 
+            // How many assistant messages the chain has already accounted for. The driver hands
+            // back the whole conversation on every read -- that is what the dialog store holds --
+            // and only the runner knows where each turn started, so the per-turn slice is taken
+            // here.
+            var consumedAssistantMessages = historyAssistantMessages;
+
             var fatalStop = false;
             foreach (var turn in testCase.Turns.OrderBy(t => t.Index))
             {
                 if (fatalStop) break;
 
                 active.CurrentTurnIndex = turn.Index;
+                // Timed around the agent call ONLY. The case's own DurationMs also covers the
+                // canary, the mock lookups and the conversation reads, and on a fast case that
+                // overhead is a big enough share to move a latency percentile.
+                var turnTimer = Stopwatch.StartNew();
                 var output = await AwaitOrHandOffAsync(
-                    _driver.SendAsync(conversationId, suite.AgentId, turn.UserMessage, timeout.Token));
+                    _driver.SendAsync(conversationId, entryAgentId, turn.UserMessage, timeout.Token));
+                turnTimer.Stop();
+                modelDurationMs += turnTimer.ElapsedMilliseconds;
+
+                var agentSequence = await _driver.ReadAssistantAgentSequenceAsync(conversationId);
+                var turnChain = CollapseConsecutiveRepeats(agentSequence.Skip(consumedAssistantMessages));
+                consumedAssistantMessages = agentSequence.Count;
 
                 var turnResult = new TurnResult
                 {
                     Index = turn.Index,
                     UserMessage = turn.UserMessage,
-                    Output = output
+                    Output = output,
+                    ModelDurationMs = turnTimer.ElapsedMilliseconds,
+                    // Names, not hops: a result is read by a person, and the ids are only needed
+                    // while an assertion is being evaluated.
+                    AgentChain = turnChain.Select(hop => hop.Name).ToList()
                 };
 
+                // This turn's slice, not the whole conversation: routedToAgent reads the chain's
+                // last entry, and a turn-level context carrying the conversation's chain would let a
+                // turn that produced no answer at all inherit the previous turn's agent and pass an
+                // assertion about routing that never happened.
                 var turnContext = new AssertionContext
                 {
                     Output = output,
                     ToolCalls = active.ObservedCalls.Where(c => c.TurnIndex == turn.Index).ToList(),
                     States = await _driver.ReadStatesAsync(conversationId),
-                    RoutedToAgent = await _driver.ReadRoutedAgentNameAsync(conversationId)
+                    AgentChain = turnChain
                 };
 
                 foreach (var assertion in turn.Assertions)
                 {
-                    var evaluated = AssertionEvaluator.Evaluate(assertion, turnContext);
+                    var evaluated = await EvaluateAsync(assertion, turnContext, suite, timeout.Token);
                     turnResult.Assertions.Add(evaluated);
                     if (!evaluated.Passed && assertion.Fatal)
                     {
@@ -175,17 +258,21 @@ public class AgentTestCaseRunner : ICaseRunner
                 result.Turns.Add(turnResult);
             }
 
+            var caseChain = CollapseConsecutiveRepeats(
+                (await _driver.ReadAssistantAgentSequenceAsync(conversationId)).Skip(historyAssistantMessages));
+            result.AgentChain = caseChain.Select(hop => hop.Name).ToList();
+
             var finalContext = new AssertionContext
             {
                 Output = result.Turns.LastOrDefault()?.Output,
                 ToolCalls = active.ObservedCalls,
                 States = await _driver.ReadStatesAsync(conversationId),
-                RoutedToAgent = await _driver.ReadRoutedAgentNameAsync(conversationId)
+                AgentChain = caseChain
             };
 
             foreach (var assertion in testCase.Assertions)
             {
-                result.Assertions.Add(AssertionEvaluator.Evaluate(assertion, finalContext));
+                result.Assertions.Add(await EvaluateAsync(assertion, finalContext, suite, timeout.Token));
             }
 
             result.ObservedToolCalls = active.ObservedCalls.ToList();
@@ -215,6 +302,18 @@ public class AgentTestCaseRunner : ICaseRunner
             result.Status = AgentTestStatus.Cancelled;
             result.ObservedToolCalls = active.ObservedCalls.ToList();
         }
+        catch (AgentTestJudgeUnavailableException ex)
+        {
+            // The judge never reached a verdict. That is Error, not Failed: a vendor timeout or an
+            // unconfigured judge model says nothing about the agent under test, and reporting it as
+            // a failing assertion would make provider noise indistinguishable from an agent
+            // regression. Logged at warning, not error -- this is a configuration or vendor
+            // condition, not a crash in the harness.
+            _logger.LogWarning(ex, "Agent test case {CaseId} could not be judged.", testCase.Id);
+            result.Status = AgentTestStatus.Error;
+            result.Error = ex.Message;
+            result.ObservedToolCalls = active.ObservedCalls.ToList();
+        }
         catch (Exception ex)
         {
             // Reaches here for any OperationCanceledException that was neither our own timeout nor
@@ -238,9 +337,80 @@ public class AgentTestCaseRunner : ICaseRunner
             }
             stopwatch.Stop();
             result.DurationMs = stopwatch.ElapsedMilliseconds;
+            result.ModelDurationMs = modelDurationMs;
+
+            // In the finally block so a timed-out or crashed case still reports what it spent. A run
+            // that fell over having burned the budget is exactly the run whose cost matters.
+            result.TotalTokens = Math.Max(0, (_tokens?.Total ?? 0) - tokensBefore);
+            result.Cost = Math.Max(0, (_tokens?.AccumulatedCost ?? 0f) - costBefore);
+
+            if (result.TotalTokens == 0 && result.Turns.Count > 0 && _tokens != null)
+            {
+                // Every turn calls the model, so zero tokens across completed turns means this
+                // runner's ITokenStatistics is not the instance the completion provider reported
+                // into. Logged rather than failed: usage accounting being wrong says nothing about
+                // whether the agent behaved, and failing the case would report a metering problem as
+                // an agent regression.
+                _logger.LogWarning(
+                    "Agent test case {CaseId} completed {TurnCount} turn(s) but measured zero tokens; "
+                    + "token and cost figures for this run are not trustworthy.",
+                    testCase.Id, result.Turns.Count);
+            }
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Consecutive duplicates removed, so ["A", "A", "B", "A"] becomes ["A", "B", "A"]. Only
+    /// consecutive ones: a conversation that really went A -> B -> A did visit A twice, and
+    /// flattening that to ["A", "B"] would hide the return hop from an ordered agentChain assertion.
+    /// One agent emitting several messages in a row is not a hand-off and does collapse.
+    /// </summary>
+    private static List<AgentChainHop> CollapseConsecutiveRepeats(IEnumerable<AgentChainHop> hops)
+    {
+        var chain = new List<AgentChainHop>();
+        foreach (var hop in hops)
+        {
+            // Compared by id, not name: two agents can share a display name, and collapsing those
+            // together would hide a real hand-off.
+            if (chain.Count == 0 || !string.Equals(chain[^1].Id, hop.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                chain.Add(hop);
+            }
+        }
+
+        return chain;
+    }
+
+    /// <summary>
+    /// Evaluates one assertion. Everything except llmJudge goes to the pure, synchronous
+    /// <see cref="AssertionEvaluator"/>; llmJudge needs a model call, so it goes to
+    /// <see cref="IAgentTestJudge"/> instead. Keeping the split here rather than inside the evaluator
+    /// is what lets every other assertion type stay reproducible and I/O-free.
+    ///
+    /// Any <see cref="AgentTestJudgeUnavailableException"/> propagates deliberately: the caller turns
+    /// it into a case-level Error. Swallowing it into a failing assertion would report a vendor
+    /// problem as an agent regression.
+    /// </summary>
+    private async Task<AssertionResult> EvaluateAsync(
+        TestAssertion assertion,
+        AssertionContext context,
+        AgentTestSuite suite,
+        CancellationToken ct)
+    {
+        if (!string.Equals(assertion.Type, AssertionTypes.LlmJudge, StringComparison.Ordinal))
+        {
+            return AssertionEvaluator.Evaluate(assertion, context);
+        }
+
+        if (_judge == null)
+        {
+            throw new AgentTestJudgeUnavailableException(
+                "no IAgentTestJudge is registered, so llmJudge assertions cannot be scored");
+        }
+
+        return await _judge.JudgeAsync(assertion, context, suite, ct);
     }
 
     /// <summary>

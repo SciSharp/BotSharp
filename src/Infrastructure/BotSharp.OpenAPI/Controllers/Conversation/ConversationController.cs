@@ -117,6 +117,13 @@ public partial class ConversationController : ControllerBase
         var dialogs = new List<ChatResponseModel>();
         foreach (var message in history)
         {
+            // Part of the record, not of the conversation: what an agent said to itself between
+            // tool calls. It stays in storage and in the model's context, and is not rendered.
+            if (message.MessageType == MessageTypeName.Internal)
+            {
+                continue;
+            }
+
             if (message.Role == AgentRole.User)
             {
                 var user = await userService.GetUser(message.SenderId);

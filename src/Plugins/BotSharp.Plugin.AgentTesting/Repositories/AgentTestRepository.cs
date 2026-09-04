@@ -34,6 +34,16 @@ public interface IAgentTestRepository
 
     Task UpdateRunAsync(AgentTestRun run);
 
+    /// <summary>
+    /// Removes a run and every case result belonging to it, and reports how many results went with
+    /// it.
+    ///
+    /// The cascade is the point. Case results are keyed by run id and are reachable no other way, so
+    /// deleting the run alone would leave rows nothing can ever list, read or clean up again -- and
+    /// every later aggregate that scans results would keep counting them.
+    /// </summary>
+    Task<long> DeleteRunAsync(string id);
+
     Task AddCaseResultAsync(AgentTestCaseResult result);
     Task<List<AgentTestCaseResult>> ListCaseResultsAsync(string runId);
 }
@@ -148,6 +158,16 @@ public class AgentTestRepository : IAgentTestRepository
 
     public async Task UpdateRunAsync(AgentTestRun run)
         => await _mongoDbContext.AgentTestRuns.ReplaceOneAsync(x => x.Id == run.Id, run);
+
+    public async Task<long> DeleteRunAsync(string id)
+    {
+        // Results first. If the process dies between the two deletes, an orphaned RUN is visible and
+        // deletable again; orphaned RESULTS are not reachable at all once their run is gone. Losing
+        // the recoverable half is the better failure.
+        var results = await _mongoDbContext.AgentTestCaseResults.DeleteManyAsync(x => x.RunId == id);
+        await _mongoDbContext.AgentTestRuns.DeleteOneAsync(x => x.Id == id);
+        return results.DeletedCount;
+    }
 
     public async Task AddCaseResultAsync(AgentTestCaseResult result)
     {

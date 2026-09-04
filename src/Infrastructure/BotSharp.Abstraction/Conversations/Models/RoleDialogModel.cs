@@ -76,6 +76,23 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ToolCallId { get; set; }
 
+    /// <summary>
+    /// Every tool call this reply asked for, in the order the model produced them, or null when
+    /// it asked for none.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="FunctionName"/>, <see cref="FunctionArgs"/> and <see cref="ToolCallId"/> beside
+    /// this are the first entry, so a caller that can only run one call keeps working unchanged;
+    /// a caller that can run several reads this instead. The one difference is name repair: the
+    /// single field carries the normalized name it always has, while entries here keep the name
+    /// the model actually sent.
+    /// <para>
+    /// Deliberately not copied by <see cref="From"/>: this describes one model reply, and a
+    /// message derived from that reply -- a tool result, an assistant answer -- is not it.
+    /// </para>
+    /// </remarks>
+    public List<LlmToolCall>? ToolCalls { get; set; }
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string?>? Thought { get; set; }
 

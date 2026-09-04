@@ -90,6 +90,7 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MetaGLM\BotSharp.Plugin.MetaGLM.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Planner\BotSharp.Plugin.Planner.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.TencentCos\BotSharp.Plugin.TencentCos.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.FloxiAI\BotSharp.Plugin.FloxiAI.csproj" />
   </ItemGroup>
   
   <ItemGroup>
