@@ -430,30 +430,48 @@ public partial class FileRepository
         }
 
         var convFile = Path.Combine(convDir, CONVERSATION_FILE);
-        var content = await File.ReadAllTextAsync(convFile);
-        var record = JsonSerializer.Deserialize<Conversation>(content, _options);
-
-        var dialogFile = Path.Combine(convDir, DIALOG_FILE);
-        if (record != null)
+        if (!File.Exists(convFile))
         {
-            record.Dialogs = await CollectDialogElements(dialogFile);
+            return null;
         }
 
-        if (isLoadStates)
+        Conversation? record;
+        try
         {
-            var latestStateFile = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
-            if (record != null && File.Exists(latestStateFile))
+            var content = await File.ReadAllTextAsync(convFile);
+            record = JsonSerializer.Deserialize<Conversation>(content, _options);
+            if (record == null)
             {
-                var stateJson = await File.ReadAllTextAsync(latestStateFile);
-                var states = JsonSerializer.Deserialize<Dictionary<string, JsonDocument>>(stateJson, _options) ?? [];
-                record.States = states.ToDictionary(x => x.Key, x =>
-                {
-                    var elem = x.Value.RootElement.GetProperty("data");
-                    return elem.ValueKind != JsonValueKind.Null ? elem.ToString() : null;
-                });
+                return null;
             }
+
+            var dialogFile = Path.Combine(convDir, DIALOG_FILE);
+            if (record != null)
+            {
+                record.Dialogs = await CollectDialogElements(dialogFile);
+            }
+
+            if (isLoadStates)
+            {
+                var latestStateFile = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
+                if (record != null && File.Exists(latestStateFile))
+                {
+                    var stateJson = await File.ReadAllTextAsync(latestStateFile);
+                    var states = JsonSerializer.Deserialize<Dictionary<string, JsonDocument>>(stateJson, _options) ?? [];
+                    record.States = states.ToDictionary(x => x.Key, x =>
+                    {
+                        var elem = x.Value.RootElement.GetProperty("data");
+                        return elem.ValueKind != JsonValueKind.Null ? elem.ToString() : null;
+                    });
+                }
+            }
+            return record;
         }
-        return record;
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Failed to read conversation record for conversation {conversationId}.");
+            return null;
+        }
     }
 
     public async Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
@@ -776,6 +794,261 @@ public partial class FileRepository
         }
 
         return deletedMessageIds;
+    }
+
+    public async Task<bool> UpdateConversationCompressing(string conversationId, bool isCompressing, TimeSpan? staleAfter = null)
+    {
+        var convDir = FindConversationDirectory(conversationId);
+        if (string.IsNullOrEmpty(convDir))
+        {
+            return false;
+        }
+
+        var convFile = Path.Combine(convDir, CONVERSATION_FILE);
+        if (!File.Exists(convFile))
+        {
+            return false;
+        }
+
+        // Serialize the flag read-modify-write on the same lock the append path uses for conversation.json.
+        await _dialogLock.WaitAsync();
+        try
+        {
+            var json = await File.ReadAllTextAsync(convFile);
+            var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
+            if (conv == null)
+            {
+                return false;
+            }
+
+            var utcNow = DateTime.UtcNow;
+            if (isCompressing)
+            {
+                // Atomic acquire: fail if a compaction is already in progress and still fresh. A flag
+                // older than staleAfter is treated as abandoned (crashed run) and taken over.
+                if (conv.IsCompressing)
+                {
+                    var stale = staleAfter.HasValue
+                        && conv.CompressingStartedTime.HasValue
+                        && utcNow - conv.CompressingStartedTime.Value >= staleAfter.Value;
+                    if (!stale)
+                    {
+                        return false;
+                    }
+                }
+                conv.IsCompressing = true;
+                conv.CompressingStartedTime = utcNow;
+            }
+            else
+            {
+                conv.IsCompressing = false;
+                conv.CompressingStartedTime = null;
+            }
+
+            conv.UpdatedTime = utcNow;
+            await File.WriteAllTextAsync(convFile, JsonSerializer.Serialize(conv, _options));
+            return true;
+        }
+        finally
+        {
+            _dialogLock.Release();
+        }
+    }
+
+    public async Task<int> CompactConversationDialogs(string conversationId, string cutMessageId, DialogElement summaryDialog, bool archiveRawDialogs = true)
+    {
+        if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(cutMessageId) || summaryDialog == null)
+        {
+            return 0;
+        }
+
+        var convDir = FindConversationDirectory(conversationId);
+        if (string.IsNullOrEmpty(convDir))
+        {
+            return 0;
+        }
+
+        var dialogDir = Path.Combine(convDir, DIALOG_FILE);
+
+        var archivedCount = 0;
+        var cutTime = DateTime.MinValue;
+        var archiveDir = Path.Combine(convDir, DIALOG_ARCHIVE_FOLDER, DateTime.UtcNow.ToString("yyyyMMddHHmmssfffffff"));
+
+        await _dialogLock.WaitAsync();
+        try
+        {
+            if (!File.Exists(dialogDir))
+            {
+                return 0;
+            }
+
+            var dialogs = new List<DialogElement>();
+            try
+            {
+                var text = await File.ReadAllTextAsync(dialogDir);
+                dialogs = JsonSerializer.Deserialize<List<DialogElement>>(text, _options) ?? [];
+            }
+            catch
+            {
+                dialogs = [];
+            }
+
+            if (dialogs.IsNullOrEmpty())
+            {
+                return 0;
+            }
+
+            var foundIdx = dialogs.FindIndex(x => x.MetaData?.MessageId == cutMessageId);
+            if (foundIdx <= 0)
+            {
+                return 0;
+            }
+
+            var archived = dialogs.Take(foundIdx).ToList();
+            var kept = dialogs.Skip(foundIdx).ToList();
+            cutTime = kept.FirstOrDefault()?.MetaData?.CreatedTime ?? DateTime.MinValue;
+
+            if (cutTime == DateTime.MinValue)
+            {
+                return 0;
+            }
+
+            // Archive raw dialogs into this run's timestamped archive subfolder.
+            if (archiveRawDialogs)
+            {
+                EnsureDirectory(archiveDir);
+                await File.WriteAllTextAsync(Path.Combine(archiveDir, DIALOG_FILE), ParseDialogElements(archived));
+            }
+
+            // Rewrite the hot dialog record as [summary] + kept.
+            var compacted = new List<DialogElement> { summaryDialog };
+            compacted.AddRange(kept);
+            await File.WriteAllTextAsync(dialogDir, ParseDialogElements(compacted));
+
+            // Update conversation bookkeeping. DialogCount stays the true lifetime total;
+            // compaction progress is tracked separately.
+            var convFile = Path.Combine(convDir, CONVERSATION_FILE);
+            if (File.Exists(convFile))
+            {
+                var convJson = await File.ReadAllTextAsync(convFile);
+                var conv = JsonSerializer.Deserialize<Conversation>(convJson, _options);
+                if (conv != null)
+                {
+                    conv.LastCompactedMessageId = cutMessageId;
+                    conv.CompactedDialogCount += archived.Count;
+                    conv.UpdatedTime = DateTime.UtcNow;
+                    await File.WriteAllTextAsync(convFile, JsonSerializer.Serialize(conv, _options));
+                }
+            }
+
+            archivedCount = archived.Count;
+        }
+        finally
+        {
+            _dialogLock.Release();
+        }
+
+        // Trim stale state version history in a separate lock section so we never nest _stateLock
+        // inside _dialogLock. Safe to run independently: at worst the dialog file is compacted while
+        // states keep extra history (current state is always preserved).
+        if (archivedCount > 0)
+        {
+            await CompactConversationStates(convDir, cutTime, archiveRawDialogs, archiveDir);
+        }
+
+        return archivedCount;
+    }
+
+    /// <summary>
+    /// Trim versioned state history older than <paramref name="cutTime"/>, always preserving the
+    /// latest value of each key so the conversation's current state is intact. Removed versions are
+    /// written to this run's archive subfolder (<paramref name="archiveDir"/>) when <paramref name="archive"/> is true.
+    /// </summary>
+    private async Task CompactConversationStates(string convDir, DateTime cutTime, bool archive, string archiveDir)
+    {
+        var stateFile = Path.Combine(convDir, STATE_FILE);
+        var latestStateFile = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
+
+        await _stateLock.WaitAsync();
+        try
+        {
+            if (!File.Exists(stateFile))
+            {
+                return;
+            }
+
+            List<StateKeyValue> states;
+            try
+            {
+                var text = await File.ReadAllTextAsync(stateFile);
+                states = JsonSerializer.Deserialize<List<StateKeyValue>>(text, _options) ?? [];
+            }
+            catch
+            {
+                return;
+            }
+
+            if (states.IsNullOrEmpty())
+            {
+                return;
+            }
+
+            var removed = new List<StateKeyValue>();
+            foreach (var state in states)
+            {
+                if (!state.Versioning || state.Values == null || state.Values.Count <= 1)
+                {
+                    continue;
+                }
+
+                var lastIndex = state.Values.Count - 1;
+                var kept = new List<StateValue>();
+                var trimmed = new List<StateValue>();
+                for (var i = 0; i < state.Values.Count; i++)
+                {
+                    var value = state.Values[i];
+                    // Always keep the newest value (current state); keep anything at/after the cut.
+                    if (i == lastIndex || value.UpdateTime >= cutTime)
+                    {
+                        kept.Add(value);
+                    }
+                    else
+                    {
+                        trimmed.Add(value);
+                    }
+                }
+
+                if (trimmed.Count > 0)
+                {
+                    removed.Add(new StateKeyValue(state.Key, trimmed)
+                    {
+                        Versioning = state.Versioning,
+                        Readonly = state.Readonly
+                    });
+                    state.Values = kept;
+                }
+            }
+
+            if (removed.IsNullOrEmpty())
+            {
+                return;
+            }
+
+            // Archive the removed state versions into the same run subfolder as the dialogs.
+            if (archive)
+            {
+                EnsureDirectory(archiveDir);
+                await File.WriteAllTextAsync(Path.Combine(archiveDir, STATE_FILE), JsonSerializer.Serialize(removed, _options));
+            }
+
+            // Rewrite the trimmed state file.
+            SaveTruncatedStates(stateFile, states);
+            //SaveTruncatedLatestStates(latestStateFile, states);
+        }
+        finally
+        {
+            _stateLock.Release();
+        }
     }
 
 #if !DEBUG

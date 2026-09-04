@@ -123,4 +123,14 @@ public interface IConversationHook : IHookBase
     /// <param name="message"></param>
     /// <returns></returns>
     Task OnNotificationGenerated(RoleDialogModel message);
+
+    /// <summary>
+    /// Triggered after a conversation was auto-compressed (old turns summarized/archived).
+    /// </summary>
+    /// <param name="conversationId"></param>
+    /// <param name="breakpoint">The breakpoint written at the compression cut point.</param>
+    /// <param name="archivedCount">Number of raw dialogs archived (0 when storage was not compacted).</param>
+    /// <returns></returns>
+    Task OnConversationCompressed(string conversationId, ConversationBreakpoint breakpoint, int archivedCount)
+        => Task.CompletedTask;
 }

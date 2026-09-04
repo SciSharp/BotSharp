@@ -89,6 +89,7 @@ public class MongoDbContext
         // Perform index creation (only executed on the first call).
         CreateConversationIndex();
         CreateConversationStateIndex();
+        CreateConversationArchiveIndex();
         CreateContentLogIndex();
         CreateStateLogIndex();
         CreateInstructionLogIndex();
@@ -139,6 +140,17 @@ public class MongoDbContext
         if (stateIndex == null)
         {
             CreateIndex(collection, Builders<ConversationStateDocument>.IndexKeys.Ascending("States.Key"));
+        }
+        return collection;
+    }
+
+    private IMongoCollection<ConversationArchiveDocument> CreateConversationArchiveIndex()
+    {
+        var collection = GetCollectionOrCreate<ConversationArchiveDocument>("ConversationArchives");
+        var curIndexes = collection.Indexes.List().ToList().Where(x => x.Contains("name")).Select(x => x["name"].AsString);
+        if (!curIndexes.Any(x => x.StartsWith("ConversationId")))
+        {
+            CreateIndex(collection, Builders<ConversationArchiveDocument>.IndexKeys.Ascending(x => x.ConversationId));
         }
         return collection;
     }
@@ -215,6 +227,9 @@ public class MongoDbContext
 
     public IMongoCollection<ConversationStateDocument> ConversationStates
         => GetCollection<ConversationStateDocument>("ConversationStates");
+
+    public IMongoCollection<ConversationArchiveDocument> ConversationArchives
+        => GetCollection<ConversationArchiveDocument>("ConversationArchives");
 
     public IMongoCollection<ConversationFileDocument> ConversationFiles
         => GetCollection<ConversationFileDocument>("ConversationFiles");
