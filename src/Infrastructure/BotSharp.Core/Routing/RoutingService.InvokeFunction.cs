@@ -48,12 +48,23 @@ public partial class RoutingService
 
         try
         {
-            result = await funcExecutor.ExecuteAsync(clonedMessage);
-
-            // After functions have been executed
-            foreach (var hook in hooks)
+            // A before-hook may REFUSE the call outright by setting Handled, which is what that
+            // flag has always been documented to mean on RoleDialogModel — it was simply never
+            // read here, so a hook that decided a tool must not run watched it run anyway.
+            //
+            // The refusal's own words are already on the cloned message and are copied back below
+            // as the tool's result, so the model reads why it was refused rather than a silent
+            // no-op. The executed-hooks are skipped with the execution: they exist to react to
+            // what a tool DID, and a call that never happened did nothing for them to record.
+            if (!clonedMessage.Handled)
             {
-                await hook.OnFunctionExecuted(clonedMessage, options);
+                result = await funcExecutor.ExecuteAsync(clonedMessage);
+
+                // After functions have been executed
+                foreach (var hook in hooks)
+                {
+                    await hook.OnFunctionExecuted(clonedMessage, options);
+                }
             }
 
             // Set result to original message
