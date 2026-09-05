@@ -78,6 +78,7 @@ public partial class RoutingService
             message.RichContent = clonedMessage.RichContent;
             message.Data = clonedMessage.Data;
             message.MessageLabel = clonedMessage.MessageLabel;
+            message.Handled = clonedMessage.Handled;
         }
         catch (JsonException ex)
         {
