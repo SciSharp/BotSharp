@@ -560,7 +560,7 @@ public partial class ConversationController : ControllerBase
         return File(bytes, "application/octet-stream", Path.GetFileName(file), enableRangeProcessing: enableRangeProcessing);
     }
 
-    private async Task OnChunkReceived(HttpResponse response, ChatResponseModel message)
+    private async Task OnChunkReceived(HttpResponse response, object message)
     {
         var json = JsonSerializer.Serialize(message, _jsonOptions);
 
@@ -613,16 +613,36 @@ public partial class ConversationController : ControllerBase
 
     private async Task OnReceiveStreamingDelta(string conversationId, RoleDialogModel msg)
     {
-        var delta = new ChatResponseModel
+        var delta = new StreamingDelta
         {
             ConversationId = conversationId,
             MessageId = msg.MessageId,
-            Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content,
             Function = StreamingFlag,
-            Thought = msg.Thought,
-            States = []
+            Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content,
+            Thought = msg.Thought
         };
         await OnChunkReceived(Response, delta);
+    }
+
+    /// <summary>
+    /// Serializing a full ChatResponseModel per token sent 602 bytes for 5 characters of text, 323 of them
+    /// an empty Sender repeated every token. message_id has to stay: consumers reject a non-indicating
+    /// frame without one.
+    /// </summary>
+    private sealed class StreamingDelta
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("conversation_id")]
+        public string ConversationId { get; set; } = string.Empty;
+
+        [System.Text.Json.Serialization.JsonPropertyName("message_id")]
+        public string MessageId { get; set; } = string.Empty;
+
+        public string? Function { get; set; }
+
+        public string Text { get; set; } = string.Empty;
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public Dictionary<string, string?>? Thought { get; set; }
     }
     #endregion
 }
