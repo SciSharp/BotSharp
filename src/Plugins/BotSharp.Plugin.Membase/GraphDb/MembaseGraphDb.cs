@@ -13,6 +13,9 @@ public partial class MembaseGraphDb : IGraphDb
     private readonly IMembaseApi _membaseApi;
 
     private const int RETRY_COUNT = 3;
+    // Membase reports Cypher compile/runtime failures as HTTP 500 problem details with this title.
+    // Those failures are deterministic, so retrying them only delays the error.
+    private const string QUERY_EXECUTION_ERROR_TITLE = "Query Execution Error";
 
     public MembaseGraphDb(
         IServiceProvider services,
@@ -155,7 +158,7 @@ public partial class MembaseGraphDb : IGraphDb
             .Handle<HttpRequestException>()
             .Or<TaskCanceledException>()
             .Or<TimeoutRejectedException>()
-            .Or<ApiException>(ex => ex.StatusCode == HttpStatusCode.ServiceUnavailable || ex.StatusCode == HttpStatusCode.InternalServerError)
+            .Or<ApiException>(IsTransientApiException)
             .WaitAndRetryAsync(
                 retryCount: RETRY_COUNT,
                 sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
@@ -167,6 +170,42 @@ public partial class MembaseGraphDb : IGraphDb
                 });
 
         return Policy.WrapAsync(retryPolicy, timeoutPolicy);
+    }
+
+    private static bool IsTransientApiException(ApiException ex)
+    {
+        switch (ex.StatusCode)
+        {
+            case HttpStatusCode.BadGateway:
+            case HttpStatusCode.ServiceUnavailable:
+            case HttpStatusCode.GatewayTimeout:
+                return true;
+            case HttpStatusCode.InternalServerError:
+                return !IsQueryExecutionError(ex.Content);
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsQueryExecutionError(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(content);
+            return doc.RootElement.ValueKind == JsonValueKind.Object
+                && doc.RootElement.TryGetProperty("title", out var title)
+                && title.ValueKind == JsonValueKind.String
+                && string.Equals(title.GetString(), QUERY_EXECUTION_ERROR_TITLE, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
     #endregion
 }

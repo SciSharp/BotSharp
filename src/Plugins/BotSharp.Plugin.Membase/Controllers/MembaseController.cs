@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using ApiException = Refit.ApiException;
 
 namespace BotSharp.Plugin.Membase.Controllers;
 
@@ -91,9 +92,7 @@ public class MembaseController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(
-                StatusCodes.Status500InternalServerError,
-                new { message = "An error occurred while executing the query.", error = ex.Message });
+            return ErrorResult(ex, "An error occurred while executing the query.");
         }
     }
 
@@ -592,6 +591,50 @@ public class MembaseController : ControllerBase
             return StatusCode(
                 StatusCodes.Status500InternalServerError,
                 new { message = "An error occurred while validating the PGT definition.", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Build a 500 response. "message" always carries the generic per-endpoint description;
+    /// "error" carries the concrete cause — for a Refit ApiException that is the "detail"
+    /// field of the upstream Membase problem-details body (falling back to the exception
+    /// message when the upstream body has no usable detail).
+    /// </summary>
+    private ObjectResult ErrorResult(Exception ex, string message)
+    {
+        var error = ex.Message;
+
+        if (ex is ApiException apiEx)
+        {
+            var detail = GetUpstreamDetail(apiEx.Content);
+            if (!string.IsNullOrWhiteSpace(detail))
+            {
+                error = detail;
+            }
+        }
+
+        return StatusCode(StatusCodes.Status500InternalServerError, new { message, error });
+    }
+
+    private static string? GetUpstreamDetail(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(content);
+            return doc.RootElement.ValueKind == JsonValueKind.Object
+                && doc.RootElement.TryGetProperty("detail", out var detail)
+                && detail.ValueKind == JsonValueKind.String
+                ? detail.GetString()
+                : null;
+        }
+        catch (JsonException)
+        {
+            return null;
         }
     }
 }
