@@ -18,6 +18,11 @@ public partial class ConversationController : ControllerBase
     private readonly IUserIdentity _user;
     private readonly JsonSerializerOptions _jsonOptions;
 
+    private const string StreamingFlag = "streaming";
+
+    // Deltas arrive on the provider's context and would interleave with the message callback's frame write.
+    private readonly SemaphoreSlim _sseWriteLock = new(1, 1);
+
     public ConversationController(
         IServiceProvider services,
         IUserIdentity user,
@@ -456,7 +461,8 @@ public partial class ConversationController : ControllerBase
         var observer = _services.GetRequiredService<IObserverService>();
         using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(conversationId, listeners: new()
         {
-            { ChatEvent.OnIndicationReceived, async data => await OnReceiveToolCallIndication(conversationId, data.Data) }
+            { ChatEvent.OnIndicationReceived, async data => await OnReceiveToolCallIndication(conversationId, data.Data) },
+            { ChatEvent.OnReceiveLlmStreamMessage, async data => await OnReceiveStreamingDelta(conversationId, data.Data) }
         });
 
         var conv = _services.GetRequiredService<IConversationService>();
@@ -561,12 +567,18 @@ public partial class ConversationController : ControllerBase
     {
         var json = JsonSerializer.Serialize(message, _jsonOptions);
 
-        var buffer = Encoding.UTF8.GetBytes($"data:{json}\n");
-        await response.Body.WriteAsync(buffer, 0, buffer.Length);
-        await Task.Delay(10);
+        var buffer = Encoding.UTF8.GetBytes($"data:{json}\n\n");
 
-        buffer = Encoding.UTF8.GetBytes("\n");
-        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+        await _sseWriteLock.WaitAsync();
+        try
+        {
+            await response.Body.WriteAsync(buffer, 0, buffer.Length);
+            await response.Body.FlushAsync();
+        }
+        finally
+        {
+            _sseWriteLock.Release();
+        }
     }
 
     private async Task OnEventCompleted(HttpResponse response)
@@ -610,6 +622,20 @@ public partial class ConversationController : ControllerBase
             States = []
         };
         await OnChunkReceived(Response, indicator);
+    }
+
+    private async Task OnReceiveStreamingDelta(string conversationId, RoleDialogModel msg)
+    {
+        var delta = new ChatResponseModel
+        {
+            ConversationId = conversationId,
+            MessageId = msg.MessageId,
+            Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content,
+            Function = StreamingFlag,
+            Thought = msg.Thought,
+            States = []
+        };
+        await OnChunkReceived(Response, delta);
     }
     #endregion
 }
