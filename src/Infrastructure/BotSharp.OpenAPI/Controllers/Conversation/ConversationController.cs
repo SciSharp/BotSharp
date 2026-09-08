@@ -20,9 +20,6 @@ public partial class ConversationController : ControllerBase
 
     private const string StreamingFlag = "streaming";
 
-    // Deltas arrive on the provider's context and would interleave with the message callback's frame write.
-    private readonly SemaphoreSlim _sseWriteLock = new(1, 1);
-
     public ConversationController(
         IServiceProvider services,
         IUserIdentity user,
@@ -568,17 +565,8 @@ public partial class ConversationController : ControllerBase
         var json = JsonSerializer.Serialize(message, _jsonOptions);
 
         var buffer = Encoding.UTF8.GetBytes($"data:{json}\n\n");
-
-        await _sseWriteLock.WaitAsync();
-        try
-        {
-            await response.Body.WriteAsync(buffer, 0, buffer.Length);
-            await response.Body.FlushAsync();
-        }
-        finally
-        {
-            _sseWriteLock.Release();
-        }
+        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+        await response.Body.FlushAsync();
     }
 
     private async Task OnEventCompleted(HttpResponse response)
