@@ -566,7 +566,6 @@ public partial class ConversationController : ControllerBase
 
         var buffer = Encoding.UTF8.GetBytes($"data:{json}\n\n");
         await response.Body.WriteAsync(buffer, 0, buffer.Length);
-        await response.Body.FlushAsync();
     }
 
     private async Task OnEventCompleted(HttpResponse response)
