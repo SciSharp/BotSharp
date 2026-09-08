@@ -456,7 +456,14 @@ public partial class ConversationController : ControllerBase
     public async Task SendMessageSse([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] NewMessageModel input)
     {
         var observer = _services.GetRequiredService<IObserverService>();
-        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(conversationId, listeners: new()
+        // ChatHubObserver is left out on purpose. It answers every event by serializing a DTO and pushing it
+        // to the SignalR group, which for a caller reading this response is work for nobody -- and with a
+        // Redis backplane configured that push leaves the process once per token. Callers who want events
+        // over SignalR post to SendMessage instead, where every observer still runs.
+        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(
+            conversationId,
+            names: [nameof(BotSharp.Core.MessageHub.Observers.ConversationObserver)],
+            listeners: new()
         {
             { ChatEvent.OnIndicationReceived, async data => await OnReceiveToolCallIndication(conversationId, data.Data) },
             { ChatEvent.OnReceiveLlmStreamMessage, async data => await OnReceiveStreamingDelta(conversationId, data.Data) }
