@@ -20,6 +20,12 @@ public partial class ConversationController : ControllerBase
 
     private const string StreamingFlag = "streaming";
 
+    private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(20);
+
+    // The heartbeat ticks on its own schedule, so unlike the reply's own frames it can reach the body
+    // while another frame is half written.
+    private readonly SemaphoreSlim _sseWriteLock = new(1, 1);
+
     public ConversationController(
         IServiceProvider services,
         IUserIdentity user,
@@ -495,7 +501,12 @@ public partial class ConversationController : ControllerBase
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.CacheControl, "no-cache");
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.Connection, "keep-alive");
 
-        await conv.SendMessage(agentId, inputMsg,
+        using var idle = CancellationTokenSource.CreateLinkedTokenSource(HttpContext.RequestAborted);
+        var heartbeat = SendHeartbeats(Response, idle.Token);
+
+        try
+        {
+            await conv.SendMessage(agentId, inputMsg,
                 replyMessage: input.Postback,
                 // responsed generated
                 async msg =>
@@ -512,12 +523,33 @@ public partial class ConversationController : ControllerBase
 
                     await OnChunkReceived(Response, response);
                 });
+        }
+        finally
+        {
+            idle.Cancel();
+            await heartbeat;
+        }
 
-        response.States = state.GetStates();
-        response.MessageId = inputMsg.MessageId;
-        response.ConversationId = conversationId;
+        await OnEventCompleted(Response);
+    }
 
-        // await OnEventCompleted(Response);
+    /// <summary>
+    /// An agent can think for seconds before its first token, and a proxy that sees no bytes in that window
+    /// is free to drop the connection. A comment line keeps it busy without reaching the event parser.
+    /// </summary>
+    private async Task SendHeartbeats(HttpResponse response, CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(HeartbeatInterval, cancellationToken);
+                await WriteFrame(response, ":\n\n");
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
     }
 
     [HttpPost("/conversation/{conversationId}/stop-streaming")]
@@ -569,19 +601,30 @@ public partial class ConversationController : ControllerBase
 
     private async Task OnChunkReceived(HttpResponse response, object message)
     {
-        var json = JsonSerializer.Serialize(message, _jsonOptions);
-
-        var buffer = Encoding.UTF8.GetBytes($"data:{json}\n\n");
-        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+        await WriteFrame(response, $"data:{JsonSerializer.Serialize(message, _jsonOptions)}\n\n");
     }
 
+    /// <summary>
+    /// Closing the connection is how a reply used to end, which a conforming client reads as a dropped
+    /// stream and answers by reconnecting -- resending the message and paying for a second reply.
+    /// </summary>
     private async Task OnEventCompleted(HttpResponse response)
     {
-        var buffer = Encoding.UTF8.GetBytes("data:[DONE]\n");
-        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+        await WriteFrame(response, "data:[DONE]\n\n");
+    }
 
-        buffer = Encoding.UTF8.GetBytes("\n");
-        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+    private async Task WriteFrame(HttpResponse response, string frame)
+    {
+        var buffer = Encoding.UTF8.GetBytes(frame);
+        await _sseWriteLock.WaitAsync();
+        try
+        {
+            await response.Body.WriteAsync(buffer, 0, buffer.Length);
+        }
+        finally
+        {
+            _sseWriteLock.Release();
+        }
     }
 
     private JsonSerializerOptions InitJsonOptions(BotSharpOptions options)
