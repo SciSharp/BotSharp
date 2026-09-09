@@ -22,14 +22,6 @@ public partial class ConversationController : ControllerBase
 
     private const string StreamingFlag = "streaming";
 
-    private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(20);
-
-    // The heartbeat ticks on its own schedule, so unlike the reply's own frames it can reach the body
-    // while another frame is half written.
-    private readonly SemaphoreSlim _sseWriteLock = new(1, 1);
-
-    private readonly HashSet<string> _streamedMessages = [];
-
     public ConversationController(
         IServiceProvider services,
         IUserIdentity user,
@@ -505,12 +497,7 @@ public partial class ConversationController : ControllerBase
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.CacheControl, "no-cache");
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.Connection, "keep-alive");
 
-        using var idle = CancellationTokenSource.CreateLinkedTokenSource(HttpContext.RequestAborted);
-        var heartbeat = SendHeartbeats(Response, idle.Token);
-
-        try
-        {
-            await conv.SendMessage(agentId, inputMsg,
+        await conv.SendMessage(agentId, inputMsg,
                 replyMessage: input.Postback,
                 // responsed generated
                 async msg =>
@@ -519,12 +506,12 @@ public partial class ConversationController : ControllerBase
                     // closing frame is for the fields a delta cannot carry, and a caller appending deltas
                     // would otherwise show the reply twice. One that never streamed -- answered from a
                     // function or a template -- still carries its text, this being its only frame.
-                    response.Text = _streamedMessages.Contains(msg.MessageId)
+                    response.Text = msg.IsStreaming
                         ? string.Empty
                         : (!string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content);
                     response.MessageLabel = msg.MessageLabel;
                     response.Function = msg.FunctionName;
-                    response.RichContent = _streamedMessages.Contains(msg.MessageId)
+                    response.RichContent = msg.IsStreaming
                         ? WithoutStreamedText(msg.SecondaryRichContent ?? msg.RichContent)
                         : msg.SecondaryRichContent ?? msg.RichContent;
                     response.Instruction = msg.Instruction;
@@ -535,12 +522,6 @@ public partial class ConversationController : ControllerBase
 
                     await OnChunkReceived(Response, response);
                 });
-        }
-        finally
-        {
-            idle.Cancel();
-            await heartbeat;
-        }
 
         await OnEventCompleted(Response);
     }
@@ -566,25 +547,6 @@ public partial class ConversationController : ControllerBase
             Editor = content.Editor,
             EditorAttributes = content.EditorAttributes
         };
-    }
-
-    /// <summary>
-    /// An agent can think for seconds before its first token, and a proxy that sees no bytes in that window
-    /// is free to drop the connection. A comment line keeps it busy without reaching the event parser.
-    /// </summary>
-    private async Task SendHeartbeats(HttpResponse response, CancellationToken cancellationToken)
-    {
-        try
-        {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                await Task.Delay(HeartbeatInterval, cancellationToken);
-                await WriteFrame(response, ":\n\n");
-            }
-        }
-        catch (OperationCanceledException)
-        {
-        }
     }
 
     [HttpPost("/conversation/{conversationId}/stop-streaming")]
@@ -651,15 +613,7 @@ public partial class ConversationController : ControllerBase
     private async Task WriteFrame(HttpResponse response, string frame)
     {
         var buffer = Encoding.UTF8.GetBytes(frame);
-        await _sseWriteLock.WaitAsync();
-        try
-        {
-            await response.Body.WriteAsync(buffer, 0, buffer.Length);
-        }
-        finally
-        {
-            _sseWriteLock.Release();
-        }
+        await response.Body.WriteAsync(buffer, 0, buffer.Length);
     }
 
     private JsonSerializerOptions InitJsonOptions(BotSharpOptions options)
@@ -698,8 +652,6 @@ public partial class ConversationController : ControllerBase
 
     private async Task OnReceiveStreamingDelta(string conversationId, RoleDialogModel msg)
     {
-        _streamedMessages.Add(msg.MessageId);
-
         var delta = new StreamingDelta
         {
             ConversationId = conversationId,
