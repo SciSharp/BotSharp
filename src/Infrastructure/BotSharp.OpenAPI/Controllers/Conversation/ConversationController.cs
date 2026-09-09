@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Abstraction.Messaging;
+using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Repositories;
@@ -522,7 +524,9 @@ public partial class ConversationController : ControllerBase
                         : (!string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content);
                     response.MessageLabel = msg.MessageLabel;
                     response.Function = msg.FunctionName;
-                    response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
+                    response.RichContent = _streamedMessages.Contains(msg.MessageId)
+                        ? WithoutStreamedText(msg.SecondaryRichContent ?? msg.RichContent)
+                        : msg.SecondaryRichContent ?? msg.RichContent;
                     response.Instruction = msg.Instruction;
                     response.Data = msg.Data;
                     response.Thought = msg.Thought;
@@ -539,6 +543,29 @@ public partial class ConversationController : ControllerBase
         }
 
         await OnEventCompleted(Response);
+    }
+
+    /// <summary>
+    /// The reply also sits inside the rich content, so a caller reading it from there sees the duplicate the
+    /// blank text was meant to remove. Only a plain text payload is emptied, and into a copy: the message
+    /// this came from is appended to the dialog history after this callback returns, and blanking it in
+    /// place would drop the reply from the record. Other rich types keep their payload, which carries
+    /// structure a caller cannot rebuild from the deltas.
+    /// </summary>
+    private static RichContent<IRichMessage>? WithoutStreamedText(RichContent<IRichMessage>? content)
+    {
+        if (content?.Message is not TextMessage)
+        {
+            return content;
+        }
+
+        return new RichContent<IRichMessage>(new TextMessage(string.Empty))
+        {
+            Recipient = content.Recipient,
+            FillPostback = content.FillPostback,
+            Editor = content.Editor,
+            EditorAttributes = content.EditorAttributes
+        };
     }
 
     /// <summary>
