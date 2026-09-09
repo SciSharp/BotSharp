@@ -26,6 +26,8 @@ public partial class ConversationController : ControllerBase
     // while another frame is half written.
     private readonly SemaphoreSlim _sseWriteLock = new(1, 1);
 
+    private readonly HashSet<string> _streamedMessages = [];
+
     public ConversationController(
         IServiceProvider services,
         IUserIdentity user,
@@ -511,7 +513,13 @@ public partial class ConversationController : ControllerBase
                 // responsed generated
                 async msg =>
                 {
-                    response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
+                    // A message whose text already went out token by token repeats none of it here: the
+                    // closing frame is for the fields a delta cannot carry, and a caller appending deltas
+                    // would otherwise show the reply twice. One that never streamed -- answered from a
+                    // function or a template -- still carries its text, this being its only frame.
+                    response.Text = _streamedMessages.Contains(msg.MessageId)
+                        ? string.Empty
+                        : (!string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content);
                     response.MessageLabel = msg.MessageLabel;
                     response.Function = msg.FunctionName;
                     response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
@@ -663,6 +671,8 @@ public partial class ConversationController : ControllerBase
 
     private async Task OnReceiveStreamingDelta(string conversationId, RoleDialogModel msg)
     {
+        _streamedMessages.Add(msg.MessageId);
+
         var delta = new StreamingDelta
         {
             ConversationId = conversationId,
