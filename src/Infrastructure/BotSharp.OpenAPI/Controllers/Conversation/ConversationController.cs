@@ -18,6 +18,8 @@ public partial class ConversationController : ControllerBase
     private readonly IUserIdentity _user;
     private readonly JsonSerializerOptions _jsonOptions;
 
+    private const string StreamingFlag = "streaming";
+
     public ConversationController(
         IServiceProvider services,
         IUserIdentity user,
@@ -454,9 +456,17 @@ public partial class ConversationController : ControllerBase
     public async Task SendMessageSse([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] NewMessageModel input)
     {
         var observer = _services.GetRequiredService<IObserverService>();
-        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(conversationId, listeners: new()
+        // ChatHubObserver is left out on purpose. It answers every event by serializing a DTO and pushing it
+        // to the SignalR group, which for a caller reading this response is work for nobody -- and with a
+        // Redis backplane configured that push leaves the process once per token. Callers who want events
+        // over SignalR post to SendMessage instead, where every observer still runs.
+        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(
+            conversationId,
+            names: [nameof(BotSharp.Core.MessageHub.Observers.ConversationObserver)],
+            listeners: new()
         {
-            { ChatEvent.OnIndicationReceived, async data => await OnReceiveToolCallIndication(conversationId, data.Data) }
+            { ChatEvent.OnIndicationReceived, async data => await OnReceiveToolCallIndication(conversationId, data.Data) },
+            { ChatEvent.OnReceiveLlmStreamMessage, async data => await OnReceiveStreamingDelta(conversationId, data.Data) }
         });
 
         var conv = _services.GetRequiredService<IConversationService>();
@@ -557,15 +567,11 @@ public partial class ConversationController : ControllerBase
         return File(bytes, "application/octet-stream", Path.GetFileName(file), enableRangeProcessing: enableRangeProcessing);
     }
 
-    private async Task OnChunkReceived(HttpResponse response, ChatResponseModel message)
+    private async Task OnChunkReceived(HttpResponse response, object message)
     {
         var json = JsonSerializer.Serialize(message, _jsonOptions);
 
-        var buffer = Encoding.UTF8.GetBytes($"data:{json}\n");
-        await response.Body.WriteAsync(buffer, 0, buffer.Length);
-        await Task.Delay(10);
-
-        buffer = Encoding.UTF8.GetBytes("\n");
+        var buffer = Encoding.UTF8.GetBytes($"data:{json}\n\n");
         await response.Body.WriteAsync(buffer, 0, buffer.Length);
     }
 
@@ -610,6 +616,40 @@ public partial class ConversationController : ControllerBase
             States = []
         };
         await OnChunkReceived(Response, indicator);
+    }
+
+    private async Task OnReceiveStreamingDelta(string conversationId, RoleDialogModel msg)
+    {
+        var delta = new StreamingDelta
+        {
+            ConversationId = conversationId,
+            MessageId = msg.MessageId,
+            Function = StreamingFlag,
+            Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content,
+            Thought = msg.Thought
+        };
+        await OnChunkReceived(Response, delta);
+    }
+
+    /// <summary>
+    /// Serializing a full ChatResponseModel per token sent 602 bytes for 5 characters of text, 323 of them
+    /// an empty Sender repeated every token. message_id has to stay: consumers reject a non-indicating
+    /// frame without one.
+    /// </summary>
+    private sealed class StreamingDelta
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("conversation_id")]
+        public string ConversationId { get; set; } = string.Empty;
+
+        [System.Text.Json.Serialization.JsonPropertyName("message_id")]
+        public string MessageId { get; set; } = string.Empty;
+
+        public string? Function { get; set; }
+
+        public string Text { get; set; } = string.Empty;
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public Dictionary<string, string?>? Thought { get; set; }
     }
     #endregion
 }

@@ -38,10 +38,6 @@ public class ConversationObserver : BotSharpObserverBase<HubObserveData<RoleDial
 
             _logger.LogDebug($"[{nameof(ConversationObserver)}]: Receive {value.EventName} => {value.Data.Indication} ({conv.ConversationId})");
 
-            if (_listeners.TryGetValue(value.EventName, out var func) && func != null)
-            {
-                func(value).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
         }
         else if (value.EventName == ChatEvent.OnIntermediateMessageReceivedFromAssistant)
         {
@@ -52,6 +48,12 @@ public class ConversationObserver : BotSharpObserverBase<HubObserveData<RoleDial
             {
                 storage.Append(conv.ConversationId, value.Data).ConfigureAwait(false).GetAwaiter().GetResult();
             }
+        }
+
+        // Hoisted out of the branches above, which only ever reached a listener for OnIndicationReceived.
+        if (_listeners.TryGetValue(value.EventName, out var func) && func != null)
+        {
+            func(value).ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }
