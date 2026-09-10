@@ -62,6 +62,13 @@ namespace BotSharp.Plugin.Google.Core
                 (services, configuration, modelName) = LLMProvider.CreateLiteLLM();
                 yield return new object[] { services.BuildServiceProvider().GetService<IChatCompletion>() ?? throw new Exception("Error while initializing"), agent, modelName };
             }
+
+            if (LLMProvider.CanRunDaoxe)
+            {
+                //Daoxe
+                (services, configuration, modelName) = LLMProvider.CreateDaoxe();
+                yield return new object[] { services.BuildServiceProvider().GetService<IChatCompletion>() ?? throw new Exception("Error while initializing"), agent, modelName };
+            }
         }
         public ChatCompletionTests()
         {
