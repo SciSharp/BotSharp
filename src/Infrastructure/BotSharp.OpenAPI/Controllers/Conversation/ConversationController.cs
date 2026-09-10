@@ -1,5 +1,6 @@
-using BotSharp.Abstraction.Files.Constants;
+﻿using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Enums;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Options;
@@ -19,6 +20,7 @@ public partial class ConversationController : ControllerBase
     private readonly JsonSerializerOptions _jsonOptions;
 
     private const string StreamingFlag = "streaming";
+    private const string DoneFlag = "done";
 
     public ConversationController(
         IServiceProvider services,
@@ -490,34 +492,53 @@ public partial class ConversationController : ControllerBase
             MessageId = inputMsg.MessageId,
         };
 
+        IConversationCancellationService? convCancellation = null;
+        if (input.IsStreamingMessage)
+        {
+            convCancellation = _services.GetRequiredService<IConversationCancellationService>();
+            convCancellation.RegisterConversation(conversationId);
+        }
+
         Response.StatusCode = 200;
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.ContentType, "text/event-stream");
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.CacheControl, "no-cache");
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.Connection, "keep-alive");
 
-        await conv.SendMessage(agentId, inputMsg,
-                replyMessage: input.Postback,
-                // responsed generated
-                async msg =>
-                {
-                    response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
-                    response.MessageLabel = msg.MessageLabel;
-                    response.Function = msg.FunctionName;
-                    response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
-                    response.Instruction = msg.Instruction;
-                    response.Data = msg.Data;
-                    response.Thought = msg.Thought;
-                    response.MetaData = msg.MetaData;
-                    response.States = state.GetStates();
+        var cancelled = false;
+        try
+        {
+            await conv.SendMessage(agentId, inputMsg,
+                    replyMessage: input.Postback,
+                    // responsed generated
+                    async msg =>
+                    {
+                        response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
+                        response.MessageLabel = msg.MessageLabel;
+                        response.Function = msg.FunctionName;
+                        response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
+                        response.Instruction = msg.Instruction;
+                        response.Data = msg.Data;
+                        response.Thought = msg.Thought;
+                        response.MetaData = msg.MetaData;
+                        response.States = state.GetStates();
 
-                    await OnChunkReceived(Response, response);
-                });
+                        await OnChunkReceived(Response, response);
+                    });
+        }
+        catch (OperationCanceledException) when (input.IsStreamingMessage)
+        {
+            // The 200 and part of the stream are already on the wire, so this cannot surface as an error
+            // response. The done frame below reports the cancellation instead.
+            cancelled = true;
+        }
+        finally
+        {
+            convCancellation?.UnregisterConversation(conversationId);
+        }
 
-        response.States = state.GetStates();
-        response.MessageId = inputMsg.MessageId;
-        response.ConversationId = conversationId;
-
-        // await OnEventCompleted(Response);
+        // Nothing else in the stream marks the end of a response: without this frame a client cannot tell
+        // a finished reply from a dropped connection or a proxy timeout.
+        await OnEventCompleted(Response, conversationId, cancelled);
     }
 
     [HttpPost("/conversation/{conversationId}/stop-streaming")]
@@ -554,7 +575,7 @@ public partial class ConversationController : ControllerBase
             conv.States.SetState("sampling_factor", input.SamplingFactor, source: StateSource.External);
         }
 
-        conv.States.SetState("use_stream_message", input.IsStreamingMessage, source: StateSource.Application);
+        conv.States.SetState(StateConst.USE_STREAM_MESSAGE, input.IsStreamingMessage, source: StateSource.Application);
     }
 
     private FileContentResult BuildFileResult(string file)
@@ -575,12 +596,17 @@ public partial class ConversationController : ControllerBase
         await response.Body.WriteAsync(buffer, 0, buffer.Length);
     }
 
-    private async Task OnEventCompleted(HttpResponse response)
+    private async Task OnEventCompleted(HttpResponse response, string conversationId, bool cancelled)
     {
-        var buffer = Encoding.UTF8.GetBytes("data:[DONE]\n");
-        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+        var completion = new StreamingCompletion
+        {
+            Function = DoneFlag,
+            ConversationId = conversationId,
+            Cancelled = cancelled
+        };
 
-        buffer = Encoding.UTF8.GetBytes("\n");
+        var json = JsonSerializer.Serialize(completion, _jsonOptions);
+        var buffer = Encoding.UTF8.GetBytes($"data:{json}\n\n");
         await response.Body.WriteAsync(buffer, 0, buffer.Length);
     }
 
@@ -650,6 +676,23 @@ public partial class ConversationController : ControllerBase
 
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Dictionary<string, string?>? Thought { get; set; }
+    }
+
+    /// <summary>
+    /// Payload of the terminating frame. Flagged in the body rather than with an SSE event name because
+    /// consumers read this stream line by line and drop anything that is not a data: line.
+    ///
+    /// Deliberately carries no message_id: consumers take any non-indicating frame that has one for a real
+    /// agent reply, and would render this one as an empty message.
+    /// </summary>
+    private sealed class StreamingCompletion
+    {
+        public string Function { get; set; } = string.Empty;
+
+        [System.Text.Json.Serialization.JsonPropertyName("conversation_id")]
+        public string ConversationId { get; set; } = string.Empty;
+
+        public bool Cancelled { get; set; }
     }
     #endregion
 }

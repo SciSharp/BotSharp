@@ -66,7 +66,7 @@ public class InstructExecutor : IExecutor
         else
         {
             var state = _services.GetRequiredService<IConversationStateService>();
-            var useStreamMsg = state.GetState("use_stream_message");
+            var useStreamMsg = state.GetState(StateConst.USE_STREAM_MESSAGE);
             var options = new InvokeAgentOptions()
             {
                 From = InvokeSource.Routing,
