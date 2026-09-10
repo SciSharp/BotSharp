@@ -549,8 +549,12 @@ public partial class ConversationController : ControllerBase
         }
 
         // Every response ends with this frame: without it a client cannot tell a finished reply from a
-        // dropped connection or a proxy timeout.
-        await OnEventCompleted(Response, conversationId, cancelled, failed);
+        // dropped connection or a proxy timeout. Skipped when the client is already gone -- the write it
+        // would attempt sits outside the catch above, so a failure there has nothing to handle it.
+        if (!HttpContext.RequestAborted.IsCancellationRequested)
+        {
+            await OnEventCompleted(Response, conversationId, cancelled, failed);
+        }
     }
 
     [HttpPost("/conversation/{conversationId}/stop-streaming")]
