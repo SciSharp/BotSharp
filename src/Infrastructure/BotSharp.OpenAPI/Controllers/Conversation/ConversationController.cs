@@ -18,19 +18,23 @@ public partial class ConversationController : ControllerBase
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;
     private readonly JsonSerializerOptions _jsonOptions;
+    private readonly ILogger<ConversationController> _logger;
 
     private const string StreamingFlag = "streaming";
     private const string DoneFlag = "done";
     private const string IndicatingFlag = "indicating";
+    private const string ErrorFlag = "error";
 
     public ConversationController(
         IServiceProvider services,
         IUserIdentity user,
-        BotSharpOptions options)
+        BotSharpOptions options,
+        ILogger<ConversationController> logger)
     {
         _services = services;
         _user = user;
         _jsonOptions = InitJsonOptions(options);
+        _logger = logger;
     }
 
     [HttpPost("/conversation/{agentId}")]
@@ -506,6 +510,7 @@ public partial class ConversationController : ControllerBase
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.Connection, "keep-alive");
 
         var cancelled = false;
+        var failed = false;
         try
         {
             await conv.SendMessage(agentId, inputMsg,
@@ -528,18 +533,24 @@ public partial class ConversationController : ControllerBase
         }
         catch (OperationCanceledException) when (input.IsStreamingMessage)
         {
-            // The 200 and part of the stream are already on the wire, so this cannot surface as an error
-            // response. The done frame below reports the cancellation instead.
+            // Already committed to a 200, so the closing frame reports the cancellation instead.
             cancelled = true;
+        }
+        catch (Exception ex)
+        {
+            // Not rethrown: that would reset the connection and lose the frames already written. The
+            // closing frame reports the failure; the reason stays here, where the exception is logged in full.
+            _logger.LogError(ex, $"Streaming conversation {conversationId} failed. {ex.Message}");
+            failed = true;
         }
         finally
         {
             convCancellation?.UnregisterConversation(conversationId);
         }
 
-        // Nothing else in the stream marks the end of a response: without this frame a client cannot tell
-        // a finished reply from a dropped connection or a proxy timeout.
-        await OnEventCompleted(Response, conversationId, cancelled);
+        // Every response ends with this frame: without it a client cannot tell a finished reply from a
+        // dropped connection or a proxy timeout.
+        await OnEventCompleted(Response, conversationId, cancelled, failed);
     }
 
     [HttpPost("/conversation/{conversationId}/stop-streaming")]
@@ -597,11 +608,11 @@ public partial class ConversationController : ControllerBase
         await response.Body.WriteAsync(buffer, 0, buffer.Length);
     }
 
-    private async Task OnEventCompleted(HttpResponse response, string conversationId, bool cancelled)
+    private async Task OnEventCompleted(HttpResponse response, string conversationId, bool cancelled, bool failed)
     {
         var completion = new StreamingCompletion
         {
-            Function = DoneFlag,
+            Function = failed ? ErrorFlag : DoneFlag,
             ConversationId = conversationId,
             Cancelled = cancelled
         };
