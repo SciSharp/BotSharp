@@ -1,4 +1,4 @@
-﻿using BotSharp.Abstraction.Files.Constants;
+using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.MessageHub.Models;
@@ -528,7 +528,7 @@ public partial class ConversationController : ControllerBase
                         response.MetaData = msg.MetaData;
                         response.States = state.GetStates();
 
-                        await OnChunkReceived(Response, response);
+                        await WriteFrame(Response, response);
                     });
         }
         catch (OperationCanceledException) when (input.IsStreamingMessage)
@@ -604,7 +604,7 @@ public partial class ConversationController : ControllerBase
         return File(bytes, "application/octet-stream", Path.GetFileName(file), enableRangeProcessing: enableRangeProcessing);
     }
 
-    private async Task OnChunkReceived(HttpResponse response, object message)
+    private async Task WriteFrame(HttpResponse response, object message)
     {
         var json = JsonSerializer.Serialize(message, _jsonOptions);
 
@@ -621,9 +621,7 @@ public partial class ConversationController : ControllerBase
             Cancelled = cancelled
         };
 
-        var json = JsonSerializer.Serialize(completion, _jsonOptions);
-        var buffer = Encoding.UTF8.GetBytes($"data:{json}\n\n");
-        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+        await WriteFrame(response, completion);
     }
 
     private JsonSerializerOptions InitJsonOptions(BotSharpOptions options)
@@ -657,7 +655,7 @@ public partial class ConversationController : ControllerBase
             Instruction = msg.Instruction,
             States = []
         };
-        await OnChunkReceived(Response, indicator);
+        await WriteFrame(Response, indicator);
     }
 
     private async Task OnReceiveStreamingDelta(string conversationId, RoleDialogModel msg)
@@ -670,7 +668,7 @@ public partial class ConversationController : ControllerBase
             Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content,
             Thought = msg.Thought
         };
-        await OnChunkReceived(Response, delta);
+        await WriteFrame(Response, delta);
     }
     #endregion
 }
