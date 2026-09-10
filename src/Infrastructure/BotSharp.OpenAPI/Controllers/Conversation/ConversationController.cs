@@ -504,10 +504,7 @@ public partial class ConversationController : ControllerBase
             convCancellation.RegisterConversation(conversationId);
         }
 
-        Response.StatusCode = 200;
-        Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.ContentType, "text/event-stream");
-        Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.CacheControl, "no-cache");
-        Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.Connection, "keep-alive");
+        PrepareSseResponse();
 
         var cancelled = false;
         var failed = false;
@@ -555,6 +552,15 @@ public partial class ConversationController : ControllerBase
         {
             await OnEventCompleted(Response, conversationId, cancelled, failed);
         }
+    }
+
+    private void PrepareSseResponse()
+    {
+        Response.ContentType = "text/event-stream";
+        Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.CacheControl] = "no-cache";
+        // nginx buffers proxied responses by default, holding every frame back until the agent has
+        // finished. Connection is left unset: illegal on HTTP/2, and Kestrel manages it on HTTP/1.1.
+        Response.Headers["X-Accel-Buffering"] = "no";
     }
 
     [HttpPost("/conversation/{conversationId}/stop-streaming")]
