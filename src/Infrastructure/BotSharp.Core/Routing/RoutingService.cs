@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
 
@@ -53,7 +54,7 @@ public partial class RoutingService : IRoutingService
         else
         {
             var state = _services.GetRequiredService<IConversationStateService>();
-            var useStreamMsg = state.GetState("use_stream_message");
+            var useStreamMsg = state.GetState(StateConst.USE_STREAM_MESSAGE);
             var options = new InvokeAgentOptions()
             {
                 From = InvokeSource.Routing,

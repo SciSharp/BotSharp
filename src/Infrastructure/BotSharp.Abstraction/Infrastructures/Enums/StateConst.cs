@@ -14,6 +14,11 @@ public static class StateConst
 
     public const string LANGUAGE = "language";
 
+    /// <summary>
+    /// Set from the incoming request: whether the caller wants the reply streamed back as it is generated.
+    /// </summary>
+    public const string USE_STREAM_MESSAGE = "use_stream_message";
+
     public const string SUB_CONVERSATION_ID = "sub_conversation_id";
     public const string ORIGIN_CONVERSATION_ID = "origin_conversation_id";
     public const string WEB_DRIVER_TASK_ID = "web_driver_task_id";
