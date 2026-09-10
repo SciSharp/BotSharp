@@ -21,6 +21,7 @@ public partial class ConversationController : ControllerBase
 
     private const string StreamingFlag = "streaming";
     private const string DoneFlag = "done";
+    private const string IndicatingFlag = "indicating";
 
     public ConversationController(
         IServiceProvider services,
@@ -637,7 +638,7 @@ public partial class ConversationController : ControllerBase
             ConversationId = conversationId,
             MessageId = msg.MessageId,
             Text = msg.Indication,
-            Function = "indicating",
+            Function = IndicatingFlag,
             Instruction = msg.Instruction,
             States = []
         };
@@ -655,44 +656,6 @@ public partial class ConversationController : ControllerBase
             Thought = msg.Thought
         };
         await OnChunkReceived(Response, delta);
-    }
-
-    /// <summary>
-    /// Serializing a full ChatResponseModel per token sent 602 bytes for 5 characters of text, 323 of them
-    /// an empty Sender repeated every token. message_id has to stay: consumers reject a non-indicating
-    /// frame without one.
-    /// </summary>
-    private sealed class StreamingDelta
-    {
-        [System.Text.Json.Serialization.JsonPropertyName("conversation_id")]
-        public string ConversationId { get; set; } = string.Empty;
-
-        [System.Text.Json.Serialization.JsonPropertyName("message_id")]
-        public string MessageId { get; set; } = string.Empty;
-
-        public string? Function { get; set; }
-
-        public string Text { get; set; } = string.Empty;
-
-        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-        public Dictionary<string, string?>? Thought { get; set; }
-    }
-
-    /// <summary>
-    /// Payload of the terminating frame. Flagged in the body rather than with an SSE event name because
-    /// consumers read this stream line by line and drop anything that is not a data: line.
-    ///
-    /// Deliberately carries no message_id: consumers take any non-indicating frame that has one for a real
-    /// agent reply, and would render this one as an empty message.
-    /// </summary>
-    private sealed class StreamingCompletion
-    {
-        public string Function { get; set; } = string.Empty;
-
-        [System.Text.Json.Serialization.JsonPropertyName("conversation_id")]
-        public string ConversationId { get; set; } = string.Empty;
-
-        public bool Cancelled { get; set; }
     }
     #endregion
 }
