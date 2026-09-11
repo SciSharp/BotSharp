@@ -1,13 +1,13 @@
-using BotSharp.Abstraction.Templating;
-using BotSharp.Core.Infrastructures;
+using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.Instructs.Options;
 
 namespace BotSharp.Core.Rules.Criteria.Llm;
 
 /// <summary>
 /// Evaluates rule trigger criteria by asking an LLM whether the request meets a
-/// natural-language condition. Renders the "criteria_check" template (which instructs
-/// the model to answer "1" for met / "0" for not met) as the system prompt and calls
-/// the chat completion provider directly.
+/// natural-language condition. Runs the "criteria_check" template (which instructs
+/// the model to answer "1" for met / "0" for not met) as the system prompt through the
+/// instruct service, so the call is captured in the instruction log.
 ///
 /// Note: LLM evaluation is non-deterministic and network-dependent. This evaluator is the
 /// last resort the rule engine falls back to, so it never returns null: it fails closed
@@ -52,8 +52,8 @@ public class LlmCriteriaEvaluator : IRuleCriteriaEvaluator
                 return true;
             }
 
-            // Render the template as the system instruction, exposing the request states.
-            var render = _services.GetRequiredService<ITemplateRender>();
+            // The criteria template is rendered off the request states, which are not yet
+            // in the conversation state at evaluation time, so pass them as the render data.
             var template = innerAgent.Templates.FirstOrDefault(x => x.Name.IsEqualTo(templateName));
             if (template == null || string.IsNullOrWhiteSpace(template.Content))
             {
@@ -61,34 +61,19 @@ public class LlmCriteriaEvaluator : IRuleCriteriaEvaluator
                 return true;
             }
 
-            var instruction = render.Render(template.Content, BuildRenderData(context));
+            // "#TEMPLATE#" makes the instruct service use the rendered template as the system
+            // instruction and the input as the user message.
+            var instructService = _services.GetRequiredService<IInstructService>();
+            var response = await instructService.Execute(
+                agentId,
+                new RoleDialogModel(AgentRole.User, input),
+                instruction: "#TEMPLATE#",
+                templateName: templateName,
+                // The rule engine already gave the code evaluator its turn; keep this one llm-only.
+                codeOptions: new CodeInstructOptions { Disabled = true },
+                renderData: BuildRenderData(context));
 
-            // Prefer the template's own LLM config when it is fully specified.
-            var llmConfig = innerAgent.LlmConfig;
-            if (template.LlmConfig?.IsValid == true)
-            {
-                llmConfig = new AgentLlmConfig(template.LlmConfig);
-            }
-
-            var completer = CompletionProvider.GetChatCompletion(_services, agentConfig: llmConfig);
-            if (completer == null)
-            {
-                _logger.LogWarning($"Unable to resolve chat completion provider for {msg}");
-                return false;
-            }
-
-            var response = await completer.GetChatCompletions(new Agent
-            {
-                Id = innerAgent.Id,
-                Name = innerAgent.Name,
-                Instruction = instruction,
-                LlmConfig = llmConfig
-            }, new List<RoleDialogModel>
-            {
-                new RoleDialogModel(AgentRole.User, input)
-            });
-
-            var answer = response?.Content?.Trim() ?? string.Empty;
+            var answer = response?.Text?.Trim() ?? string.Empty;
             if (string.IsNullOrEmpty(answer))
             {
                 _logger.LogWarning($"Empty llm response for {msg}");
