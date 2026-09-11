@@ -54,7 +54,7 @@ public class ChatCompletionProvider : IChatCompletion
 
         var (prompt, payload) = PreparePayload(agent, conversations);
         var transport = ResolveTransport();
-        var result = await transport.SendChatAsync(_model, payload);
+        var result = await SendChatWithRetry(transport, payload);
 
         if (!result.IsSuccessStatusCode)
         {
@@ -589,6 +589,46 @@ public class ChatCompletionProvider : IChatCompletion
 
         return transport ?? throw new InvalidOperationException(
             $"No {nameof(IFloxiChatTransport)} is registered, so {Provider} has no way to reach the inference network.");
+    }
+
+    /// <summary>
+    /// Sends the request, and sends it once more if the first attempt failed in any way — whatever the
+    /// status, and whether the transport answered or threw. A dispatch usually lands on a different
+    /// node the second time, so a failure the request itself did not cause tends not to repeat. The
+    /// second result is returned as it comes, so a genuine refusal still reaches the caller.
+    ///
+    /// A cancelled request is never retried: the caller has stopped waiting, so a second dispatch would
+    /// only spend a node on a reply nobody will read.
+    /// </summary>
+    private async Task<FloxiChatTransportResult> SendChatWithRetry(
+        IFloxiChatTransport transport,
+        string payload,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await transport.SendChatAsync(_model, payload, cancellationToken);
+
+            // Cancelled: the failure is handed back as it came, rather than costing a node a second
+            // reply nobody is waiting for.
+            if (result.IsSuccessStatusCode || cancellationToken.IsCancellationRequested)
+            {
+                return result;
+            }
+
+            _logger.LogWarning(
+                "Model {Model} on {Provider} returned {Status} (served by {ServedBy}); retrying once.",
+                _model, Provider, result.StatusCode, result.ServedBy ?? "unknown");
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException && !cancellationToken.IsCancellationRequested)
+        {
+            // A throw means the request never reached a backend at all, so nothing was consumed by it.
+            // A cancellation — however the transport spelled it — is left to propagate unretried.
+            _logger.LogWarning(ex,
+                "Model {Model} on {Provider} could not be reached; retrying once.", _model, Provider);
+        }
+
+        return await transport.SendChatAsync(_model, payload, cancellationToken);
     }
 
     private static FloxiCompletion ParseCompletion(string body)
