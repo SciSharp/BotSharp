@@ -5,6 +5,9 @@ public class RoutingArgs
     [JsonPropertyName("function")]
     public string Function { get; set; } = "route_to_agent";
 
+    [JsonPropertyName("function_args")]
+    public string? FunctionArgs { get; set; }
+
     /// <summary>
     /// The reason why you select this function or agent
     /// </summary>
