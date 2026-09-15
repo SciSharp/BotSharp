@@ -28,14 +28,18 @@ public partial class RoutingService
         clonedMessage.FunctionName = name;
         clonedMessage.Indication = await funcExecutor.GetIndicatorAsync(message);
 
-        var conv = _services.GetRequiredService<IConversationService>();
-        var messageHub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
-        messageHub.Push(new()
+        // An empty indicator means the callee has nothing worth announcing for this call.
+        if (!string.IsNullOrEmpty(clonedMessage.Indication))
         {
-            EventName = ChatEvent.OnIndicationReceived,
-            Data = clonedMessage,
-            RefId = conv.ConversationId
-        });
+            var conv = _services.GetRequiredService<IConversationService>();
+            var messageHub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
+            messageHub.Push(new()
+            {
+                EventName = ChatEvent.OnIndicationReceived,
+                Data = clonedMessage,
+                RefId = conv.ConversationId
+            });
+        }
 
         var hooks = _services.GetHooksOrderByPriority<IConversationHook>(clonedMessage.CurrentAgentId);
         foreach (var hook in hooks)
@@ -43,6 +47,10 @@ public partial class RoutingService
             hook.SetAgent(agent);
             await hook.OnFunctionExecuting(clonedMessage, options);
         }
+
+        // Already pushed and logged: clear it so nested calls resolve their own indication
+        // instead of inheriting this one through GetIndication's `message.Indication ??` fallback.
+        clonedMessage.Indication = null;
 
         bool result = false;
 
