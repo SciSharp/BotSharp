@@ -41,20 +41,34 @@ public class RuleEngine : IRuleEngine
 
         foreach (var item in pendingRules)
         {
+            // A cancellation source of the rule's own, so a rule that runs too long is the only thing given
+            // up on and the loop still gets to the rules behind it. Linked to the caller's token so a
+            // cancelled run cuts the rule in flight short the way it did before there was a per-rule limit;
+            // which of the two fired is what the catch clauses below tell apart. Null when no limit is
+            // configured, which is the default - then there is nothing to cancel but the caller's token.
+            using var ruleCts = CreateRuleCancellation(options, cancellationToken);
+
             try
             {
-                var convId = await RunRule(item.Agent, item.Rule, trigger, text, states, options, cancellationToken);
+                var convId = await RunRule(item.Agent, item.Rule, trigger, text, states, options, ruleCts?.Token ?? cancellationToken);
                 if (!string.IsNullOrEmpty(convId))
                 {
                     newConversationIds.Add(convId);
                 }
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
             {
-                // Cancellation still surfaces to the caller, but the conversations that were already
-                // started ride along on the exception so they are not silently lost.
+                // The caller cancelled the run, so nothing further is dispatched. The conversations that
+                // were already started ride along on the exception so they are not silently lost.
                 _logger.LogWarning($"Rule trigger ({trigger.Name}) was cancelled after starting {newConversationIds.Count} conversation(s).");
                 throw new RuleTriggerCanceledException(newConversationIds.ToList(), cancellationToken, ex);
+            }
+            catch (OperationCanceledException ex)
+            {
+                // The run itself was not cancelled, so this is the rule's own limit running out - or
+                // something inside it timing out on its own account. Either way it is one rule's problem,
+                // and the rules that follow still get their turn, each under a source of its own.
+                _logger.LogError(ex, $"Rule ({item.Rule.TriggerName}) for agent ({item.Agent.Name}) did not finish before it was cancelled, moving on to the next rule.");
             }
             catch (Exception ex)
             {
@@ -64,6 +78,30 @@ public class RuleEngine : IRuleEngine
         }
 
         return newConversationIds;
+    }
+
+    /// <summary>
+    /// The cancellation source a single rule runs under.
+    /// </summary>
+    /// <returns>
+    /// Null when no per-rule limit is configured, which is the default - the caller's own token is then all
+    /// there is to run under, and there is no source to dispose. A limit of zero or less is read the same
+    /// way, so <see cref="Timeout.InfiniteTimeSpan"/> and null say the same thing.
+    /// </returns>
+    private static CancellationTokenSource? CreateRuleCancellation(RuleTriggerOptions? options, CancellationToken cancellationToken)
+    {
+        var timeout = options?.RuleTimeout;
+        if (timeout == null || timeout <= TimeSpan.Zero)
+        {
+            return null;
+        }
+
+        // Linked rather than standalone: a cancelled run should still reach the rule in flight, and the
+        // caller's token is checked first when the exception comes back, so a latched one is read as
+        // "stop the run" rather than being mistaken for this rule's limit.
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(timeout.Value);
+        return cts;
     }
 
     /// <summary>
@@ -115,7 +153,7 @@ public class RuleEngine : IRuleEngine
         cancellationToken.ThrowIfCancellationRequested();
 
         var msg = !string.IsNullOrWhiteSpace(rule.Message) ? rule.Message : text;
-        var convId = await SendMessageToAgent(sp, agent, trigger, text, msg, states);
+        var convId = await SendMessageToAgent(sp, agent, trigger, text, msg, states, options);
 
         // Pause before the next rule, so a large batch does not hammer the downstream provider.
         var delay = options?.SendMessageDelayMs ?? RuleTriggerOptions.DefaultSendMessageDelayMs;
@@ -176,7 +214,7 @@ public class RuleEngine : IRuleEngine
     #endregion
 
     #region Send message to agent
-    private async Task<string> SendMessageToAgent(IServiceProvider sp, Agent agent, IRuleTrigger trigger, string title, string msg, IEnumerable<MessageState>? states = null)
+    private async Task<string> SendMessageToAgent(IServiceProvider sp, Agent agent, IRuleTrigger trigger, string title, string msg, IEnumerable<MessageState>? states = null, RuleTriggerOptions? options = null)
     {
         var convService = sp.GetRequiredService<IConversationService>();
         var conv = await convService.NewConversation(new Conversation
@@ -185,6 +223,12 @@ public class RuleEngine : IRuleEngine
             Title = title,
             AgentId = agent.Id
         });
+
+        // Reported here rather than on the way out: everything below can throw, and the conversation
+        // already exists by this point, so a caller that only saw the returned ids would be left with a
+        // conversation nothing points at. Awaited so the caller has finished recording it before the parts
+        // that can fail run.
+        await NotifyConversationCreated(options, conv.Id);
 
         var allStates = new List<MessageState>
         {
@@ -211,6 +255,30 @@ public class RuleEngine : IRuleEngine
 
         await convService.SaveStates();
         return conv.Id;
+    }
+
+    /// <summary>
+    /// Tells the caller a conversation was created, if it asked to be told.
+    /// </summary>
+    /// <remarks>
+    /// Failures are swallowed on purpose: the callback is a caller's bookkeeping, and letting it cost the
+    /// rule the run it is in the middle of would be the worse outcome of the two.
+    /// </remarks>
+    private async Task NotifyConversationCreated(RuleTriggerOptions? options, string conversationId)
+    {
+        if (options?.OnConversationCreated == null || string.IsNullOrEmpty(conversationId))
+        {
+            return;
+        }
+
+        try
+        {
+            await options.OnConversationCreated(conversationId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Error when reporting the created conversation ({conversationId}) back to the rule trigger caller.");
+        }
     }
 
     private string RenderMessage(IServiceProvider sp, string msg, IEnumerable<MessageState> states)
