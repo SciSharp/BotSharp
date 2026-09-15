@@ -32,6 +32,8 @@
     <!-- For the rate-limit exemption tests: the harness has to be recognised by BotSharp own volume guards. -->
     <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Logger\BotSharp.Logger.csproj" />
     <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.AgentTesting\BotSharp.Plugin.AgentTesting.csproj" />
+    <!-- For ChatEventDispatcherTests: chat events must never make their producer wait on a client. -->
+    <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
   </ItemGroup>
 
 </Project>
