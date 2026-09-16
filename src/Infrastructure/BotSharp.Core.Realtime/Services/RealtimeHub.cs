@@ -58,6 +58,9 @@ public class RealtimeHub : IRealtimeHub
         _completer.SetModelName(model);
         _completer.SetOptions(options);
 
+        // Lets a provider stream display-only events, such as partial transcripts.
+        _conn.SendEventToUser = responseToUser;
+
         await _completer.Connect(
             conn: _conn, 
             onModelReady: async () => 
@@ -200,16 +203,16 @@ public class RealtimeHub : IRealtimeHub
             return (provider, model);
         }
 
-        provider = _settings.Provider;
-        model = _settings.Model;
+        //provider = _settings.Provider;
+        //model = _settings.Model;
 
-        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
-        {
-            return (provider, model);
-        }
+        //if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        //{
+        //    return (provider, model);
+        //}
 
-        provider = "openai";
-        model = "gpt-realtime";
+        provider = "openai-live";
+        model = "gpt-live-1";
         return (provider, model);
     }
 }

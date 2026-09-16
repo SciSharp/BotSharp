@@ -16,6 +16,18 @@ public class RealtimeHubConnection
     public Func<string> OnModelUserInterrupted { get; set; } = null!;
     public Func<string> OnUserSpeechDetected { get; set; } = () => string.Empty;
 
+    /// <summary>
+    /// Serializes a partial transcript (role, delta) for the user stream. Display only: a turn
+    /// still reaches conversation storage only once it is complete.
+    /// </summary>
+    public Func<string, string, string>? OnModelTranscriptDelta { get; set; }
+
+    /// <summary>
+    /// Set by the hub so a provider can push display-only events straight to the user stream,
+    /// without going through the conversation hooks that write history.
+    /// </summary>
+    public Func<string, Task>? SendEventToUser { get; set; }
+
     public void ResetResponseState()
     {
         LastAssistantItemId = null;

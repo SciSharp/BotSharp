@@ -96,8 +96,26 @@ public class ChatStreamMiddleware
             else if (eventType == "disconnect")
             {
                 _logger.LogDebug($"Disconnecting chat stream connection for conversation ({conversationId})");
-                await hub.Completer.Disconnect();
                 break;
+            }
+        }
+
+        /*
+         * Runs however the loop ended, not just on an explicit disconnect. The browser sends
+         * "disconnect" and closes the socket in the same breath, so the close often wins the
+         * race; closing the tab sends nothing at all. Either way the loop simply ends, and
+         * leaving the model session undisconnected stranded the final turn in the provider's
+         * buffer with nothing left to flush it.
+         */
+        if (hub.Completer != null)
+        {
+            try
+            {
+                await hub.Completer.Disconnect();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error when disconnecting the model for conversation ({conversationId})");
             }
         }
 
@@ -158,6 +176,13 @@ public class ChatStreamMiddleware
             {
                 @event = "mark",
                 mark = new { name = "responsePart" }
+            });
+
+        conn.OnModelTranscriptDelta = (role, delta) =>
+            JsonSerializer.Serialize(new
+            {
+                @event = "transcript",
+                transcript = new { role, delta }
             });
 
         conn.OnModelUserInterrupted = () =>

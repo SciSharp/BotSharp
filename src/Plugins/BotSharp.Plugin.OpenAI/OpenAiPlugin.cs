@@ -7,6 +7,7 @@ using BotSharp.Plugin.OpenAI.Providers.Chat;
 using BotSharp.Plugin.OpenAI.Providers.Audio;
 using Microsoft.Extensions.Configuration;
 using BotSharp.Plugin.OpenAI.Providers.Realtime;
+using BotSharp.Plugin.OpenAI.Providers.Live;
 
 namespace BotSharp.Plugin.OpenAI;
 
@@ -35,5 +36,6 @@ public class OpenAiPlugin : IBotSharpPlugin
         services.AddScoped<IAudioTranscription, AudioTranscriptionProvider>();
         services.AddScoped<IAudioSynthesis, AudioSynthesisProvider>();
         services.AddScoped<IRealTimeCompletion, RealTimeCompletionProvider>();
+        services.AddScoped<IRealTimeCompletion, LiveCompletionProvider>();
     }
 }
