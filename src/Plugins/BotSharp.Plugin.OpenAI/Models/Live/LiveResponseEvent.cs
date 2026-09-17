@@ -67,7 +67,7 @@ public class LiveInnerResponseEvent
         return new LiveResponseOutputItem
         {
             Id = ItemId,
-            Type = "function_call",
+            Type = LiveResponseItemType.FunctionCall,
             CallId = CallId,
             Name = Name,
             Arguments = Arguments
@@ -143,8 +143,37 @@ public class LiveResponseOutputItem
     [JsonPropertyName("arguments")]
     public string? Arguments { get; set; }
 
+    /// <summary>
+    /// Where a message item sits in the backend turn: final_answer is the answer the voice
+    /// model is given to speak, earlier phases are working notes on the way to it.
+    /// </summary>
+    [JsonPropertyName("phase")]
+    public string? Phase { get; set; }
+
     [JsonPropertyName("content")]
     public LiveResponseOutputContent[]? Content { get; set; }
+
+    public bool IsCompleted => string.IsNullOrEmpty(Status)
+        || Status.Equals(LiveResponseItemStatus.Completed, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Joins the text parts of a message item. A message carries its text in content[], and
+    /// the parts are fragments of one utterance rather than alternatives, so they concatenate.
+    /// </summary>
+    public string? GetOutputText()
+    {
+        if (Content == null || Content.Length == 0)
+        {
+            return null;
+        }
+
+        var parts = Content
+            .Select(x => x.Text ?? x.Transcript)
+            .Where(x => !string.IsNullOrWhiteSpace(x));
+
+        var text = string.Join(string.Empty, parts).Trim();
+        return string.IsNullOrEmpty(text) ? null : text;
+    }
 }
 
 public class LiveResponseOutputContent

@@ -81,6 +81,32 @@ public static class LiveResponseInnerEventType
     public const string Incomplete = "response.incomplete";
 }
 
+/// <summary>
+/// Output item types carried by <see cref="LiveResponseInnerEventType.OutputItemDone"/>.
+/// </summary>
+public static class LiveResponseItemType
+{
+    public const string FunctionCall = "function_call";
+    public const string Message = "message";
+}
+
+public static class LiveResponseItemStatus
+{
+    public const string Completed = "completed";
+}
+
+/// <summary>
+/// Stage a backend message item belongs to.
+/// </summary>
+public static class LiveResponsePhase
+{
+    /// <summary>
+    /// The answer the backend handler settled on, and the only message worth recording:
+    /// earlier phases are drafts and working notes the caller never hears.
+    /// </summary>
+    public const string FinalAnswer = "final_answer";
+}
+
 public static class LiveDelegationType
 {
     /// <summary>

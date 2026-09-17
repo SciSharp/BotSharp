@@ -88,7 +88,7 @@ public partial class LiveCompletionProvider : IRealTimeCompletion
 
         _currentDelegationId = null;
         _lastAgentInstruction = null;
-        ResetTurnBuffers();
+        ResetSessionState();
 
         var realtimeSettings = _services.GetRequiredService<RealtimeModelSettings>();
 
@@ -154,7 +154,7 @@ public partial class LiveCompletionProvider : IRealTimeCompletion
         // timers go, since disposing them would drop the only other route to that last turn.
         await FlushPendingTurns();
 
-        DisposeTurnTimers();
+        DisposeSessionWorkers();
 
         if (_session != null)
         {

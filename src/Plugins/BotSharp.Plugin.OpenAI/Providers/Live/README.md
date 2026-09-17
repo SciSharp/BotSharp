@@ -126,6 +126,26 @@ The budget is counted in tokens rather than characters because the two diverge b
 prose is roughly four characters per token, CJK closer to one. A character cap sized for English
 overshoots the server limit badly for Chinese, Japanese and Korean.
 
+## Nothing runs on the receive loop
+
+The socket has a single consumer, and anything awaited inside it stops the socket being read.
+On a half duplex session that costs nothing, because the model is silent while a tool runs. On
+Live it is the whole problem: the model keeps talking through a delegation, so audio frames pile
+up unread and the caller hears the reply cut in half - "Okay, checking" ... ten seconds ... "that
+now."
+
+So the receive loop parses an event and moves on. Conversation work - invoking a tool, recording
+a turn - goes to a `SerialWorkQueue`, which runs it on one background worker in the order it was
+queued. Serial rather than fire and forget, because two tool calls must not interleave their
+session updates, and because the conversation state this work touches is not thread safe.
+
+What stays on the loop is what must not queue behind a tool call: audio deltas and live
+transcript deltas, both of which are only a write to the caller's socket.
+
+Turn boundaries are still decided on the loop. The flushes take the buffer there, synchronously,
+and queue only its delivery - otherwise a turn queued behind a slow tool would pick up the words
+the model spoke after it.
+
 ## Behaviour that differs from the realtime provider
 
 - **No turn completion event.** Live streams transcript deltas and never marks the end of a turn,

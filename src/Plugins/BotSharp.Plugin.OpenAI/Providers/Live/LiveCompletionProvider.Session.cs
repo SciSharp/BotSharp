@@ -39,7 +39,10 @@ public partial class LiveCompletionProvider
 
         // The agent instruction reaches the backend through delegation.responses.instructions
         // above, so nothing is appended to the voice model here.
-        await Task.Delay(300);
+        //
+        // No settle delay before returning, unlike the realtime provider this was modelled on.
+        // The caller's next act is response.create on the same socket, and the server applies
+        // what it is sent in order, so there is nothing for a delay to win.
         return instruction;
     }
 

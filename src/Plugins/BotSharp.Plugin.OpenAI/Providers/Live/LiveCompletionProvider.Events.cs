@@ -15,6 +15,13 @@ public partial class LiveCompletionProvider
     private LiveResponseUsage? _lastBackendUsage;
 
     /// <summary>
+    /// Everything that touches the conversation - running a tool, recording a turn - runs here
+    /// rather than on the receive loop, which has to stay free to drain audio. See
+    /// <see cref="SerialWorkQueue"/> for why it is serial.
+    /// </summary>
+    private SerialWorkQueue? _conversationWork;
+
+    /// <summary>
     /// Who spoke most recently, so the final flush can emit the turns in the order they happened.
     /// </summary>
     private volatile string? _lastTranscriptRole;
@@ -22,9 +29,15 @@ public partial class LiveCompletionProvider
     #region Receive loop
     private async Task ReceiveMessage(RealtimeModelSettings realtimeSettings)
     {
-        if (_session == null) return;
+        var session = _session;
+        if (session == null) return;
 
-        await foreach (ChatSessionUpdate update in _session.ReceiveUpdatesAsync(CancellationToken.None))
+        // Captured rather than read from the fields on the way out. A reconnect replaces both
+        // while this loop is unwinding, and tearing down whatever the fields point at by then
+        // would close the session that just replaced this one.
+        var work = _conversationWork;
+
+        await foreach (ChatSessionUpdate update in session.ReceiveUpdatesAsync(CancellationToken.None))
         {
             var receivedText = update?.RawResponse;
             if (string.IsNullOrEmpty(receivedText))
@@ -55,10 +68,14 @@ public partial class LiveCompletionProvider
         }
 
         // The stream is over, so whatever is still buffered is a finished turn.
-        await FlushPendingTurns();
+        await FlushPendingTurns(work);
 
-        DisposeTurnTimers();
-        _session?.Dispose();
+        if (ReferenceEquals(_session, session))
+        {
+            DisposeSessionWorkers();
+        }
+
+        session.Dispose();
     }
 
     /// <summary>
@@ -118,7 +135,7 @@ public partial class LiveCompletionProvider
 
             case LiveServerEventType.ResponseEvent:
                 _logger.LogCritical("{Type}: {Payload}", type, receivedText);
-                await OnBackendResponseEvent(receivedText);
+                OnBackendResponseEvent(receivedText);
                 return false;
 
             case LiveServerEventType.DelegationCreated:
@@ -166,7 +183,7 @@ public partial class LiveCompletionProvider
             Provider, LiveSettings.AudioIdleMs);
 
         await _onModelAudioResponseDone();
-        await FlushOutputTranscript();
+        FlushOutputTranscript();
     }
 
     #region Transcripts
@@ -186,11 +203,11 @@ public partial class LiveCompletionProvider
         // nothing. The flush runs before the append so the turns come out in the order spoken.
         if (role == AgentRole.Assistant)
         {
-            await FlushInputTranscript();
+            FlushInputTranscript();
         }
         else
         {
-            await FlushOutputTranscript();
+            FlushOutputTranscript();
         }
 
         lock (_transcriptLock)
@@ -242,7 +259,12 @@ public partial class LiveCompletionProvider
         }
     }
 
-    private async Task FlushOutputTranscript()
+    /// <summary>
+    /// Closes the model's turn. The buffer is taken here, on the caller's thread, so the turn
+    /// boundary lands where the caller decided it should; recording it is queued, because that
+    /// reaches conversation storage and hooks and must not hold up the receive loop.
+    /// </summary>
+    private void FlushOutputTranscript()
     {
         _outputTranscriptTimer?.Cancel();
 
@@ -254,18 +276,27 @@ public partial class LiveCompletionProvider
 
         _logger.LogInformation("{Provider} model transcript: {Transcript}", Provider, text);
 
+        // Read now rather than inside the queued work: by the time that runs the model may
+        // already be speaking its next turn, and this turn would be filed under its item id.
+        var messageId = _conn.LastAssistantItemId ?? Guid.NewGuid().ToString();
+
+        _conversationWork?.Enqueue(() => DeliverOutputTranscript(text, messageId));
+    }
+
+    private async Task DeliverOutputTranscript(string text, string messageId)
+    {
         await _onModelAudioTranscriptDone(text);
 
         var message = new RoleDialogModel(AgentRole.Assistant, text)
         {
             CurrentAgentId = _conn.CurrentAgentId,
-            MessageId = _conn.LastAssistantItemId ?? Guid.NewGuid().ToString(),
+            MessageId = messageId,
             MessageType = MessageTypeName.Plain
         };
 
         // Deliver before telemetry. The buffer is already drained by this point, so anything that
-        // throws on the way out loses the turn for good - and when the flush is driven by the
-        // idle timer the exception is only logged, so the message vanishes without a trace.
+        // throws on the way out loses the turn for good - and the queue only logs what throws,
+        // so the message would vanish without a trace.
         await _onModelResponseDone([message]);
 
         try
@@ -285,30 +316,46 @@ public partial class LiveCompletionProvider
     /// triggers its flush. Once the stream is over no further delta can arrive, which makes the
     /// buffer a complete turn rather than a half-finished one - so this records it instead of
     /// discarding it. Safe to call more than once; both flushes no-op on an empty buffer.
+    ///
+    /// Queues the turns like any other flush and then drains, so the last words of the call
+    /// reach storage before the session is torn down.
     /// </summary>
-    private async Task FlushPendingTurns()
+    /// <param name="work">
+    /// The queue to drain, for a caller that may no longer own the one in the field.
+    /// </param>
+    private async Task FlushPendingTurns(SerialWorkQueue? work = null)
     {
         // Emit in the order they were spoken, so whoever spoke last is written last. Each is
         // guarded separately: this runs during teardown, where one failing turn must neither
         // take the other down with it nor break the caller's shutdown path.
         var flushes = _lastTranscriptRole == AgentRole.Assistant
-            ? new Func<Task>[] { FlushInputTranscript, FlushOutputTranscript }
+            ? new Action[] { FlushInputTranscript, FlushOutputTranscript }
             : [FlushOutputTranscript, FlushInputTranscript];
 
         foreach (var flush in flushes)
         {
             try
             {
-                await flush();
+                flush();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to flush the final {Provider} transcript.", Provider);
             }
         }
+
+        var queue = work ?? _conversationWork;
+        if (queue != null)
+        {
+            await queue.DrainAsync();
+        }
     }
 
-    private async Task FlushInputTranscript()
+    /// <summary>
+    /// Closes the caller's turn. Split the same way as <see cref="FlushOutputTranscript"/>:
+    /// the boundary is taken here, the recording is queued.
+    /// </summary>
+    private void FlushInputTranscript()
     {
         _inputTranscriptTimer?.Cancel();
 
@@ -320,10 +367,10 @@ public partial class LiveCompletionProvider
 
         _logger.LogInformation("{Provider} user transcript: {Transcript}", Provider, text);
 
-        await _onInputAudioTranscriptionDone(new RoleDialogModel(AgentRole.User, text)
+        _conversationWork?.Enqueue(() => _onInputAudioTranscriptionDone(new RoleDialogModel(AgentRole.User, text)
         {
             CurrentAgentId = _conn.CurrentAgentId
-        });
+        }));
     }
 
     /// <summary>
@@ -360,7 +407,7 @@ public partial class LiveCompletionProvider
     /// Unwraps a backend Responses event. Completed tool calls are surfaced to the hub so
     /// the existing routing pipeline executes them.
     /// </summary>
-    private async Task OnBackendResponseEvent(string receivedText)
+    private void OnBackendResponseEvent(string receivedText)
     {
         var envelope = JsonSerializer.Deserialize<LiveResponseEventEnvelope>(receivedText);
         var inner = envelope?.Event;
@@ -377,25 +424,7 @@ public partial class LiveCompletionProvider
         switch (inner.Type)
         {
             case LiveResponseInnerEventType.OutputItemDone:
-                var item = inner.ResolveItem();
-                if (item?.Type != "function_call" || string.IsNullOrEmpty(item.Name))
-                {
-                    return;
-                }
-
-                _logger.LogInformation("{Provider} tool call {Name}({Arguments})", Provider, item.Name, item.Arguments);
-
-                await _onModelResponseDone([
-                    new RoleDialogModel(AgentRole.Assistant, item.Arguments ?? "{}")
-                    {
-                        CurrentAgentId = _conn.CurrentAgentId,
-                        FunctionName = item.Name,
-                        FunctionArgs = item.Arguments,
-                        ToolCallId = item.CallId,
-                        MessageId = item.Id ?? inner.ItemId ?? Guid.NewGuid().ToString(),
-                        MessageType = MessageTypeName.FunctionCall
-                    }
-                ]);
+                OnBackendOutputItemDone(inner);
                 return;
 
             case LiveResponseInnerEventType.Completed:
@@ -407,6 +436,66 @@ public partial class LiveCompletionProvider
 
             default:
                 _logger.LogDebug("{Type}: {Payload}", inner.Type, receivedText);
+                return;
+        }
+    }
+
+    /// <summary>
+    /// A finished item from the backend turn. Two shapes matter: a function_call, which goes to
+    /// the existing routing pipeline, and a message, the answer the backend settled on, which is
+    /// only logged - the assistant turn is still recorded from the spoken transcript.
+    /// </summary>
+    private void OnBackendOutputItemDone(LiveInnerResponseEvent inner)
+    {
+        var item = inner.ResolveItem();
+        if (item == null || !item.IsCompleted)
+        {
+            return;
+        }
+
+        var messageId = item.Id ?? inner.ItemId ?? Guid.NewGuid().ToString();
+
+        switch (item.Type)
+        {
+            case LiveResponseItemType.FunctionCall:
+                if (string.IsNullOrEmpty(item.Name))
+                {
+                    return;
+                }
+
+                _logger.LogCritical("{Provider} tool call {Name}({Arguments})", Provider, item.Name, item.Arguments);
+
+                var call = new RoleDialogModel(AgentRole.Assistant, item.Arguments ?? "{}")
+                {
+                    CurrentAgentId = _conn.CurrentAgentId,
+                    FunctionName = item.Name,
+                    FunctionArgs = item.Arguments,
+                    ToolCallId = item.CallId,
+                    MessageId = messageId,
+                    MessageType = MessageTypeName.FunctionCall
+                };
+
+                // Queued, never awaited here. Running the function inline would stop the socket
+                // being read for as long as it takes - and on a full duplex call the model is
+                // still speaking through that, so the caller hears the reply cut in half.
+                _conversationWork?.Enqueue(() => _onModelResponseDone([call]));
+                return;
+
+            case LiveResponseItemType.Message:
+                // Logged, not recorded. The conversation still takes its assistant turn from the
+                // spoken transcript, and this is the answer the voice model is about to speak,
+                // so storing it here would put the same turn in the history twice.
+                var text = item.GetOutputText();
+                if (string.IsNullOrEmpty(text))
+                {
+                    return;
+                }
+
+                _logger.LogCritical("{Provider} backend {Phase} answer: {Text}",
+                    Provider, item.Phase ?? LiveResponsePhase.FinalAnswer, text);
+                return;
+
+            default:
                 return;
         }
     }
@@ -428,10 +517,10 @@ public partial class LiveCompletionProvider
     }
     #endregion
 
-    #region Turn boundary timers
-    private void ResetTurnBuffers()
+    #region Turn boundary timers and background work
+    private void ResetSessionState()
     {
-        DisposeTurnTimers();
+        DisposeSessionWorkers();
 
         lock (_transcriptLock)
         {
@@ -442,19 +531,35 @@ public partial class LiveCompletionProvider
         _lastBackendUsage = null;
         _lastTranscriptRole = null;
 
+        _conversationWork = new SerialWorkQueue("conversation", _logger);
+
         var settings = LiveSettings;
         _outputTranscriptTimer = new IdleFlushTimer(
-            "model transcript", TimeSpan.FromMilliseconds(settings.TranscriptIdleMs), FlushOutputTranscript, _logger);
+            "model transcript", TimeSpan.FromMilliseconds(settings.TranscriptIdleMs), FlushOutputTranscriptAsync, _logger);
         // The user's buffer has nothing keeping it armed the way model audio arms the other one,
         // so it waits longer: a speaker pausing mid-sentence must not be mistaken for a finished
         // turn now that the model replying is what normally closes it.
         _inputTranscriptTimer = new IdleFlushTimer(
-            "user transcript", TimeSpan.FromMilliseconds(settings.InputTranscriptIdleMs), FlushInputTranscript, _logger);
+            "user transcript", TimeSpan.FromMilliseconds(settings.InputTranscriptIdleMs), FlushInputTranscriptAsync, _logger);
         _audioIdleTimer = new IdleFlushTimer(
             "model audio", TimeSpan.FromMilliseconds(settings.AudioIdleMs), OnModelAudioIdle, _logger);
     }
 
-    private void DisposeTurnTimers()
+    // The flushes only take a buffer and queue its delivery, so there is nothing left to await;
+    // the timer still wants a Func<Task>.
+    private Task FlushOutputTranscriptAsync()
+    {
+        FlushOutputTranscript();
+        return Task.CompletedTask;
+    }
+
+    private Task FlushInputTranscriptAsync()
+    {
+        FlushInputTranscript();
+        return Task.CompletedTask;
+    }
+
+    private void DisposeSessionWorkers()
     {
         _outputTranscriptTimer?.Dispose();
         _inputTranscriptTimer?.Dispose();
@@ -463,6 +568,11 @@ public partial class LiveCompletionProvider
         _outputTranscriptTimer = null;
         _inputTranscriptTimer = null;
         _audioIdleTimer = null;
+
+        // Already drained by FlushPendingTurns on every path that gets here; this only closes
+        // the queue so a late event cannot start work on a session that is gone.
+        _conversationWork?.Dispose();
+        _conversationWork = null;
     }
     #endregion
 }
