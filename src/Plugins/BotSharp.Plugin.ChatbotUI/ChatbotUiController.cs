@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -77,7 +78,7 @@ public class ChatbotUiController : ControllerBase
         routing.Context.SetMessageId(input.ConversationId, message.MessageId);
 
         await conv.SetConversationId(input.ConversationId, input.States);
-        conv.States.SetState("channel", input.Channel)
+        conv.States.SetState(StateConst.CHANNEL, input.Channel)
                    .SetState("provider", "azure-openai")
                    .SetState("model", model)
                    .SetState("temperature", input.Temperature)

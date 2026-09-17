@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Core.Infrastructures;
@@ -157,7 +158,7 @@ public partial class InstructModeController : ControllerBase
             .SetState("instruction", input.Instruction, source: StateSource.External)
             .SetState("input_text", input.Text, source: StateSource.External)
             .SetState("template_name", input.Template, source: StateSource.External)
-            .SetState("channel", input.Channel, source: StateSource.External)
+            .SetState(StateConst.CHANNEL, input.Channel, source: StateSource.External)
             .SetState("code_options", input.CodeOptions, source: StateSource.External)
             .SetState("file_options", input.FileOptions, source: StateSource.External)
             .SetState("file_count", input.Files?.Count, source: StateSource.External)

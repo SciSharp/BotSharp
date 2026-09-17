@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Graph.Models;
 
 namespace BotSharp.Core.Rules.Actions;
@@ -51,7 +52,7 @@ public class ChatAction : IRuleAction
 
             var allStates = new List<MessageState>
             {
-                new("channel", channel)
+                new(StateConst.CHANNEL, channel)
             };
 
             if (!context.Parameters.IsNullOrEmpty())

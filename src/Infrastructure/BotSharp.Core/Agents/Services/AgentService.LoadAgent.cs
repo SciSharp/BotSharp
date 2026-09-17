@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Hooks;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using System.Collections.Concurrent;
 
@@ -91,7 +92,7 @@ public partial class AgentService
         }
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        var channel = state.GetState("channel");
+        var channel = state.GetState(StateConst.CHANNEL);
         
         var found = instructions.FirstOrDefault(x => x.Channel.IsEqualTo(channel));
         var defaultInstruction = instructions.FirstOrDefault(x => string.IsNullOrEmpty(x.Channel));

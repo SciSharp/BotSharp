@@ -41,7 +41,7 @@ public partial class ConversationController : ControllerBase
     public async Task<ConversationViewModel> NewConversation([FromRoute] string agentId, [FromBody] MessageConfig config)
     {
         var service = _services.GetRequiredService<IConversationService>();
-        var channel = config.States.FirstOrDefault(x => x.Key == "channel");
+        var channel = config.States.FirstOrDefault(x => x.Key == StateConst.CHANNEL);
         var conv = new Conversation
         {
             AgentId = agentId,
@@ -576,9 +576,9 @@ public partial class ConversationController : ControllerBase
     #region Private methods
     private void SetStates(IConversationService conv, NewMessageModel input)
     {
-        if (string.IsNullOrEmpty(conv.States.GetState("channel")))
+        if (string.IsNullOrEmpty(conv.States.GetState(StateConst.CHANNEL)))
         {
-            conv.States.SetState("channel", input.Channel, source: StateSource.External);
+            conv.States.SetState(StateConst.CHANNEL, input.Channel, source: StateSource.External);
         }
         if (string.IsNullOrEmpty(conv.States.GetState("provider")))
         {

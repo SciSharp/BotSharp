@@ -1,4 +1,5 @@
 ﻿using BotSharp.Abstraction.MessageHub.Models;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Templating;
 
@@ -188,7 +189,7 @@ public class RuleEngine : IRuleEngine
 
         var allStates = new List<MessageState>
         {
-            new("channel", trigger.Channel)
+            new(StateConst.CHANNEL, trigger.Channel)
         };
 
         if (!states.IsNullOrEmpty())

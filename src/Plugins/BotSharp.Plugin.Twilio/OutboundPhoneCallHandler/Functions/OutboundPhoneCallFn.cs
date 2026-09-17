@@ -206,7 +206,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
         var subConvStates = new List<MessageState>
         {
             new(StateConst.ORIGIN_CONVERSATION_ID, originConversationId, isGlobal: true),
-            new("channel", "phone", isGlobal: true),
+            new(StateConst.CHANNEL, "phone", isGlobal: true),
             new("phone_from", call.From, isGlobal: true),
             new("phone_direction", call.Direction, isGlobal: true),
             new("phone_number", call.To, isGlobal: true),

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using Microsoft.Agents.Core.Models;
 
 namespace BotSharp.Plugin.MicrosoftTeams.Services;
@@ -35,7 +36,7 @@ public class TeamsMessageHandler
         routing.Context.SetMessageId(userId, inputMsg.MessageId);
         await conv.SetConversationId(userId, new List<MessageState>
         {
-            new MessageState("channel", ConversationChannel.Teams)
+            new MessageState(StateConst.CHANNEL, ConversationChannel.Teams)
         });
 
         var replies = new List<IActivity>();
