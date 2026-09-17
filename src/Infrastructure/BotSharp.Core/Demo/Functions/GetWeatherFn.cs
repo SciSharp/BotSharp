@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Models;
@@ -68,7 +69,7 @@ public class GetWeatherFn : IFunctionCallback
             var text = $"I want to know fun events in {args?.City}";
             var states = new List<MessageState>
             {
-                new() { Key = StateConst.CHANNEL, Value = "email" }
+                new() { Key = StateConst.CHANNEL, Value = ConversationChannel.Email }
             };
 
             var msg = await sidecar.SendMessage(message.CurrentAgentId, text, states: states);

@@ -155,14 +155,14 @@ public partial class InstructModeController : ControllerBase
         state.SetState(LlmStateConst.PROVIDER, input.Provider, source: StateSource.External)
             .SetState(LlmStateConst.MODEL, input.Model, source: StateSource.External)
             .SetState(LlmStateConst.MODEL_ID, input.ModelId, source: StateSource.External)
-            .SetState("instruction", input.Instruction, source: StateSource.External)
-            .SetState("input_text", input.Text, source: StateSource.External)
-            .SetState("template_name", input.Template, source: StateSource.External)
+            .SetState(InstructStateConst.INSTRUCTION, input.Instruction, source: StateSource.External)
+            .SetState(InstructStateConst.INPUT_TEXT, input.Text, source: StateSource.External)
+            .SetState(InstructStateConst.TEMPLATE_NAME, input.Template, source: StateSource.External)
             .SetState(StateConst.CHANNEL, input.Channel, source: StateSource.External)
-            .SetState("code_options", input.CodeOptions, source: StateSource.External)
-            .SetState("file_options", input.FileOptions, source: StateSource.External)
-            .SetState("file_count", input.Files?.Count, source: StateSource.External)
-            .SetState("file_urls", input.Files?.Select(p => p.ToString()), source: StateSource.External);
+            .SetState(InstructStateConst.CODE_OPTIONS, input.CodeOptions, source: StateSource.External)
+            .SetState(InstructStateConst.FILE_OPTIONS, input.FileOptions, source: StateSource.External)
+            .SetState(InstructStateConst.FILE_COUNT, input.Files?.Count, source: StateSource.External)
+            .SetState(InstructStateConst.FILE_URLS, input.Files?.Select(p => p.ToString()), source: StateSource.External);
     }
 
     private async Task OnChunkReceived(HttpResponse response, InstructResult result)

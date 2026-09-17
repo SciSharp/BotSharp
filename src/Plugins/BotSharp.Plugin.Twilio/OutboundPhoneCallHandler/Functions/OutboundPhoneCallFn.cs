@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Options;
@@ -206,7 +207,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
         var subConvStates = new List<MessageState>
         {
             new(StateConst.ORIGIN_CONVERSATION_ID, originConversationId, isGlobal: true),
-            new(StateConst.CHANNEL, "phone", isGlobal: true),
+            new(StateConst.CHANNEL, ConversationChannel.Phone, isGlobal: true),
             new("phone_from", call.From, isGlobal: true),
             new("phone_direction", call.Direction, isGlobal: true),
             new("phone_number", call.To, isGlobal: true),
