@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations.Enums;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users;
 
@@ -30,7 +31,7 @@ public class RateLimitConversationHook : ConversationHookBase
 
         var convId = states.GetConversationId();
         var rateLimit = settings.RateLimit;
-        var channel = states.GetState("channel");
+        var channel = states.GetState(StateConst.CHANNEL);
 
         // Check max input length
         var charCount = message.Content.Length;

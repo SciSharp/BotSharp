@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using Anthropic.SDK.Common;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Core.Infrastructures.Streams;
@@ -468,10 +469,9 @@ public class ChatCompletionProvider : IChatCompletion
             }
         }
 
-        var temperature = decimal.Parse(_state.GetState("temperature", "0.0"));
-        var maxTokens = int.TryParse(_state.GetState("max_tokens"), out var tokens)
-            ? tokens
-            : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
+        var temperature = _state.GetState(LlmStateConst.TEMPERATURE, 0.0m);
+        var maxTokens = _state.GetState<int?>(LlmStateConst.MAX_TOKENS)
+            ?? agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
         parameters.Messages = messages;
         parameters.Tools = tools;
@@ -498,7 +498,7 @@ public class ChatCompletionProvider : IChatCompletion
         var thinkingType = LlmUtility.GetModelParameter(
             param,
             "ThinkingType",
-            _state.GetState("thinking_type"));
+            _state.GetState(LlmStateConst.THINKING_TYPE));
         if (thinkingType.IsEqualTo("disabled"))
         {
             return null;
@@ -514,20 +514,30 @@ public class ChatCompletionProvider : IChatCompletion
             thinking.Type = ThinkingType.enabled;
         }
 
-        var bt = _state.GetState("budget_tokens");
-        if (int.TryParse(bt, out var budgetTokens)
-            || (param.TryGetValue("BudgetTokens", out var value)
-            && int.TryParse(value.Default, out budgetTokens)))
+        var budgetTokens = _state.GetState<int?>(LlmStateConst.BUDGET_TOKENS);
+        if (budgetTokens == null
+            && param.TryGetValue("BudgetTokens", out var value)
+            && int.TryParse(value.Default, out var defaultBudgetTokens))
         {
-            thinking.BudgetTokens = budgetTokens;
+            budgetTokens = defaultBudgetTokens;
         }
 
-        var enableInterleavedThinking = _state.GetState("use_interleaved_thinking");
-        if (bool.TryParse(enableInterleavedThinking, out var useInterleavedThinking)
-            || (param.TryGetValue("UseInterleavedThinking", out value)
-            && bool.TryParse(value.Default, out useInterleavedThinking)))
+        if (budgetTokens.HasValue)
         {
-            thinking.UseInterleavedThinking = useInterleavedThinking;
+            thinking.BudgetTokens = budgetTokens.Value;
+        }
+
+        var useInterleavedThinking = _state.GetState<bool?>(LlmStateConst.USE_INTERLEAVED_THINKING);
+        if (useInterleavedThinking == null
+            && param.TryGetValue("UseInterleavedThinking", out value)
+            && bool.TryParse(value.Default, out var defaultInterleavedThinking))
+        {
+            useInterleavedThinking = defaultInterleavedThinking;
+        }
+
+        if (useInterleavedThinking.HasValue)
+        {
+            thinking.UseInterleavedThinking = useInterleavedThinking.Value;
         }
 
         return thinkingType.IsEqualTo("adaptive")

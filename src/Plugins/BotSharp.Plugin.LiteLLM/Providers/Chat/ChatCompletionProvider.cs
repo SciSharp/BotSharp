@@ -1,4 +1,5 @@
 #pragma warning disable OPENAI001
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.Files;
@@ -428,7 +429,7 @@ public class ChatCompletionProvider : IChatCompletion
         var imageDetailLevel = ChatImageDetailLevel.Auto;
         if (allowMultiModal)
         {
-            imageDetailLevel = ParseChatImageDetailLevel(state.GetState("chat_image_detail_level"));
+            imageDetailLevel = ParseChatImageDetailLevel(state.GetState(LlmStateConst.CHAT_IMAGE_DETAIL_LEVEL));
         }
 
         foreach (var message in filteredMessages)
@@ -574,11 +575,11 @@ public class ChatCompletionProvider : IChatCompletion
 
         // Reasoning effort
         ChatReasoningEffortLevel? reasoningEffortLevel = null;
-        float? temperature = float.Parse(state.GetState("temperature", "0.0"));
+        float? temperature = state.GetState(LlmStateConst.TEMPERATURE, 0.0f);
         if (settings?.Reasoning != null)
         {
             temperature = settings.Reasoning.Temperature;
-            var level = state.GetState("reasoning_effort_level")
+            var level = state.GetState(LlmStateConst.REASONING_EFFORT_LEVEL)
                          .IfNullOrEmptyAs(agent?.LlmConfig?.ReasoningEffortLevel)
                          .IfNullOrEmptyAs(settings?.Reasoning?.EffortLevel);
             reasoningEffortLevel = ParseReasoningEffortLevel(level);
@@ -593,9 +594,8 @@ public class ChatCompletionProvider : IChatCompletion
             webSearchOptions = new();
         }
 
-        var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
-                        ? tokens
-                        : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
+        var maxTokens = state.GetState<int?>(LlmStateConst.MAX_TOKENS)
+                        ?? agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
         return new ChatCompletionOptions()
         {

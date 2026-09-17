@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MLTasks.Settings;
 using System.Net.Http;
@@ -60,7 +61,7 @@ public class TextCompletionProvider : ITextCompletion
         }
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        var temperature = float.Parse(state.GetState("temperature", "0.0"));
+        var temperature = state.GetState(LlmStateConst.TEMPERATURE, 0.0f);
 
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var modelSetting = settingsService.GetSetting(Provider, _model);

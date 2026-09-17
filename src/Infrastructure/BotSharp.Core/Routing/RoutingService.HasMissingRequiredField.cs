@@ -48,7 +48,7 @@ public partial class RoutingService
         var states = _services.GetRequiredService<IConversationStateService>();
         foreach (var field in missingFields.ToList())
         {
-            if (!string.IsNullOrEmpty(states.GetState(field)))
+            if (states.IsNotNullOrEmpty(field))
             {
                 var value = states.GetState(field);
 

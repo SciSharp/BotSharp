@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Conversations.Settings;
 
 namespace BotSharp.Plugin.ImageHandler.Functions;
@@ -52,8 +53,8 @@ public class EditImageFn : IFunctionCallback
     private void SetImageOptions()
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        state.SetState("image_count", "1");
-        state.SetState("image_response_format", "bytes");
+        state.SetState(ImageStateConst.IMAGE_COUNT, "1");
+        state.SetState(ImageStateConst.IMAGE_RESPONSE_FORMAT, "bytes");
     }
 
     private async Task<MessageFileModel?> SelectImage(string? description)

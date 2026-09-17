@@ -54,11 +54,12 @@ public partial class RoutingService : IRoutingService
         else
         {
             var state = _services.GetRequiredService<IConversationStateService>();
-            var useStreamMsg = state.GetState(StateConst.USE_STREAM_MESSAGE);
+            var useStreamMsg = state.GetState<bool>(StateConst.USE_STREAM_MESSAGE);
+            var enLang = state.Equal(StateConst.LANGUAGE, LanguageType.ENGLISH);
             var options = new InvokeAgentOptions()
             {
                 From = InvokeSource.Routing,
-                UseStream = bool.TryParse(useStreamMsg, out var useStream) && useStream
+                UseStream = useStreamMsg && enLang
             };
             var ret = await routing.InvokeAgent(agentId, dialogs, options);
         }

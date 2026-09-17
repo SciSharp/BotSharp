@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
@@ -53,7 +54,7 @@ public class ReadExcelFn : IFunctionCallback
 
         var results = ImportDataFromDialogs(message, dialogs);
         message.Content = GenerateSqlExecutionSummary(results);
-        states.SetState("data_import_result", message.Content);
+        states.SetState(DataStateConst.DATA_IMPORT_RESULT, message.Content);
         dialogs.ForEach(x => x.Files = null);
         return true;
     }

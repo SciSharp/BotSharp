@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Abstraction.MessageHub.Services;
@@ -140,7 +141,7 @@ public class TwilioMessageQueueService : BackgroundService
         routing.Context.SetMessageId(message.ConversationId, inputMsg.MessageId);
         var states = new List<MessageState>
         {
-            new("channel", ConversationChannel.Phone),
+            new(StateConst.CHANNEL, ConversationChannel.Phone),
             new("channel_id", message.From),
             new("calling_phone", message.From)
         };

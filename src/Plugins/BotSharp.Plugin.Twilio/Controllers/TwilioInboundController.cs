@@ -171,7 +171,7 @@ public class TwilioInboundController : TwilioController
 
         var states = new List<MessageState>
         {
-            new("channel", ConversationChannel.Phone, isGlobal: true),
+            new(StateConst.CHANNEL, ConversationChannel.Phone, isGlobal: true),
             new("calling_phone", request.From, isGlobal: true),
             new("phone_direction", request.Direction, isGlobal: true),
             new("twilio_call_sid", request.CallSid, isGlobal: true),

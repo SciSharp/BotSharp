@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
@@ -601,10 +602,9 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        var temperature = float.Parse(state.GetState("temperature", "0.0"));
-        var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
-                            ? tokens
-                            : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
+        var temperature = state.GetState(LlmStateConst.TEMPERATURE, 0.0f);
+        var maxTokens = state.GetState<int?>(LlmStateConst.MAX_TOKENS)
+                            ?? agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
         var thinkingLevel = ParseThinking(settings?.Reasoning, agent);
         var request = new GenerateContentRequest
@@ -694,7 +694,7 @@ public class ChatCompletionProvider : IChatCompletion
     #region Thinking level
     private ThinkingLevel? ParseThinking(ReasoningSetting? settings, Agent agent)
     {
-        var level = _state.GetState("reasoning_effort_level");
+        var level = _state.GetState(LlmStateConst.REASONING_EFFORT_LEVEL);
         if (string.IsNullOrEmpty(level) && _model == agent?.LlmConfig?.Model)
         {
             level = agent?.LlmConfig?.ReasoningEffortLevel;

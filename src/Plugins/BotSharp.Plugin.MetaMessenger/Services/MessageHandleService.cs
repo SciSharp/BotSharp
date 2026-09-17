@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Conversations.Models;
@@ -61,7 +62,7 @@ public class MessageHandleService
         routing.Context.SetMessageId(sender, inputMsg.MessageId);
         await conv.SetConversationId(sender, new List<MessageState>
         {
-            new MessageState("channel", ConversationChannel.Messenger)
+            new MessageState(StateConst.CHANNEL, ConversationChannel.Messenger)
         });
 
         var replies = new List<IRichMessage>();

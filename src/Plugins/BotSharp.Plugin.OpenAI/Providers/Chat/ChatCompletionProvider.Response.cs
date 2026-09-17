@@ -1,4 +1,5 @@
 #pragma warning disable OPENAI001
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
@@ -438,9 +439,8 @@ public partial class ChatCompletionProvider
         var allowMultiModal = settings != null && settings.MultiModal;
         renderedInstructions = [];
 
-        var maxTokens = int.TryParse(_state.GetState("max_tokens"), out var tokens)
-                        ? tokens
-                        : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
+        var maxTokens = _state.GetState<int?>(LlmStateConst.MAX_TOKENS)
+                        ?? agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
         var options = new CreateResponseOptions(_model, [])
         {
@@ -513,7 +513,7 @@ public partial class ChatCompletionProvider
         var imageDetailLevel = ResponseImageDetailLevel.Auto;
         if (allowMultiModal)
         {
-            imageDetailLevel = ParseResponseImageDetailLevel(_state.GetState("chat_image_detail_level"));
+            imageDetailLevel = ParseResponseImageDetailLevel(_state.GetState(LlmStateConst.CHAT_IMAGE_DETAIL_LEVEL));
         }
 
         foreach (var message in filteredMessages)
@@ -605,7 +605,7 @@ public partial class ChatCompletionProvider
     {
         ResponseReasoningEffortLevel? reasoningEffortLevel = null;
 
-        var level = _state.GetState("reasoning_effort_level");
+        var level = _state.GetState(LlmStateConst.REASONING_EFFORT_LEVEL);
         if (string.IsNullOrEmpty(level) && _model == agent?.LlmConfig?.Model)
         {
             level = agent?.LlmConfig?.ReasoningEffortLevel;
@@ -739,12 +739,12 @@ public partial class ChatCompletionProvider
     #region Built-in tools
     private void AddBuiltInTools(IList<ResponseTool> tools, LlmModelSetting? modelSettings)
     {
-        if (bool.TryParse(_state.GetState("enable_web_search"), out var webSearchEnabled) && webSearchEnabled)
+        if (_state.IsTrue(WebSearchStateConst.ENABLE_WEB_SEARCH))
         {
             var (location, contextSize) = ParseWebSearchContext(modelSettings?.WebSearch);
             tools.Add(ResponseTool.CreateWebSearchTool(userLocation: location, searchContextSize: contextSize));
         }
-        else if (bool.TryParse(_state.GetState("enable_web_search_preview"), out var webSearchPreviewEnabled) && webSearchPreviewEnabled)
+        else if (_state.IsTrue(WebSearchStateConst.ENABLE_WEB_SEARCH_PREVIEW))
         {
             var (location, contextSize) = ParseWebSearchContext(modelSettings?.WebSearch);
             tools.Add(ResponseTool.CreateWebSearchPreviewTool(userLocation: location, searchContextSize: contextSize));
@@ -756,7 +756,7 @@ public partial class ChatCompletionProvider
         WebSearchToolLocation? webSearchLocation = null;
         WebSearchToolContextSize? webSearchContextSize = null;
 
-        var contextSize = _state.GetState("web_search_context_size");
+        var contextSize = _state.GetState(WebSearchStateConst.WEB_SEARCH_CONTEXT_SIZE);
         if (string.IsNullOrEmpty(contextSize)
             && settings?.Parameters != null
             && settings.Parameters.TryGetValue("SearchContextSize", out var settingValue)
@@ -789,7 +789,7 @@ public partial class ChatCompletionProvider
 
     private WebSearchUserLocation? ResolveWebSearchUserLocation()
     {
-        var location = WebSearchUserLocation.FromJson(_state.GetState("web_search_user_location"));
+        var location = WebSearchUserLocation.FromJson(_state.GetState(WebSearchStateConst.WEB_SEARCH_USER_LOCATION));
         if (location?.HasAnyValue == true)
         {
             return location;
@@ -813,7 +813,7 @@ public partial class ChatCompletionProvider
         }
 
         // Apply tool_choice only when tools are present; tool_choice is rejected by the API otherwise.
-        if (_state.GetState("tool_choice").IsEqualTo("required"))
+        if (_state.GetState(LlmStateConst.TOOL_CHOICE).IsEqualTo("required"))
         {
             options.ToolChoice = ResponseToolChoice.CreateRequiredChoice();
         }
@@ -821,7 +821,7 @@ public partial class ChatCompletionProvider
 
     private void SetResponseFormat(CreateResponseOptions options, AgentLlmConfig? llmConfig)
     {
-        var format = _state.GetState("response_format").IfNullOrEmptyAs(llmConfig?.ResponseFormat);
+        var format = _state.GetState(LlmStateConst.RESPONSE_FORMAT).IfNullOrEmptyAs(llmConfig?.ResponseFormat);
         var responseFormat = GetResponseTextFormat(format);
         options.TextOptions = responseFormat != null ? new ResponseTextOptions
         {

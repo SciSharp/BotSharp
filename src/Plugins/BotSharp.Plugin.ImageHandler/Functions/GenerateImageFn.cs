@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
+
 namespace BotSharp.Plugin.ImageHandler.Functions;
 
 public class GenerateImageFn : IFunctionCallback
@@ -47,9 +49,9 @@ public class GenerateImageFn : IFunctionCallback
     private void SetImageOptions()
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        state.SetState("image_count", "1");
-        state.SetState("image_quality", "medium");
-        state.SetState("image_response_format", "bytes");
+        state.SetState(ImageStateConst.IMAGE_COUNT, "1");
+        state.SetState(ImageStateConst.IMAGE_QUALITY, "medium");
+        state.SetState(ImageStateConst.IMAGE_RESPONSE_FORMAT, "bytes");
     }
 
     private async Task<string> GetImageGeneration(Agent agent, RoleDialogModel message, string? description)

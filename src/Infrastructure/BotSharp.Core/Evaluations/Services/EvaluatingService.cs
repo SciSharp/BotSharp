@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Evaluations;
 using BotSharp.Abstraction.Evaluations.Models;
@@ -63,7 +64,7 @@ public partial class EvaluatingService : IEvaluatingService
 
             response = await SendMessage(request.AgentId, conv.Id, question, states: new List<MessageState>
             {
-                new MessageState("channel", ConversationChannel.OpenAPI)
+                new MessageState(StateConst.CHANNEL, ConversationChannel.OpenAPI)
             });
             dialogs.Add(new RoleDialogModel(AgentRole.Assistant, response.Content));
             prompt += $"\r\n{AgentRole.Assistant}: {response.Content.Trim()}";

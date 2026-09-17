@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Instructs.Options;
 using BotSharp.Abstraction.Models;
 
@@ -58,7 +59,7 @@ public class SqlValidateFn : IFunctionCallback
             var states = _services.GetRequiredService<IConversationStateService>();
 
             var query = "Correct SQL Statement and keep the comments/explanations";
-            var ddl = states.GetState("table_ddls");
+            var ddl = states.GetState(DataStateConst.TABLE_DDLS);
 
             var correctedSql = await instructService.Instruct<string>(query,
                 new InstructOptions
