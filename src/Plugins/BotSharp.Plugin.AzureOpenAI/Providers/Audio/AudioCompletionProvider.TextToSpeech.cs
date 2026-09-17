@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using OpenAI.Audio;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers.Audio;
@@ -19,7 +20,7 @@ public partial class AudioCompletionProvider
         var state = _services.GetRequiredService<IConversationStateService>();
         var speechVoice = GetVoice(voice ?? "alloy");
         var responseFormat = GetSpeechFormat(format ?? "mp3");
-        var speed = GetSpeed(state.GetState("speech_generate_speed"));
+        var speed = GetSpeed(state.GetState(AudioStateConst.SPEECH_GENERATE_SPEED));
 
         var options = new SpeechGenerationOptions
         {

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Models;
@@ -74,8 +75,8 @@ public class WebIntelligentSearchFn : IFunctionCallback
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
         var settingService = _services.GetRequiredService<ISettingService>();
         
-        var provider = state.GetState("web_search_llm_provider");
-        var model = state.GetState("web_search_llm_model");
+        var provider = state.GetState(WebSearchStateConst.WEB_SEARCH_LLM_PROVIDER);
+        var model = state.GetState(WebSearchStateConst.WEB_SEARCH_LLM_MODEL);
 
         if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
         {

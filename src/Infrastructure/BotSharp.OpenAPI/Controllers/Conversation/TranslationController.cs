@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Translation;
@@ -26,7 +27,7 @@ public class TranslationController : ControllerBase
         var agent = await db.GetAgent(BuiltInAgentId.AIAssistant);
         var translator = _services.GetRequiredService<ITranslationService>();
         var states = _services.GetRequiredService<IConversationStateService>();
-        states.SetState("max_tokens", "8192");
+        states.SetState(LlmStateConst.MAX_TOKENS, "8192");
         var text = await translator.Translate(agent, Guid.NewGuid().ToString(), model.Text.Split("\r\n"), language: model.ToLang);
         return new TranslationResponseModel
         {

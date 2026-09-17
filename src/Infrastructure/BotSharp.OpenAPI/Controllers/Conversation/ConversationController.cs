@@ -576,25 +576,25 @@ public partial class ConversationController : ControllerBase
     #region Private methods
     private void SetStates(IConversationService conv, NewMessageModel input)
     {
-        if (string.IsNullOrEmpty(conv.States.GetState(StateConst.CHANNEL)))
+        if (conv.States.IsNullOrEmpty(StateConst.CHANNEL))
         {
             conv.States.SetState(StateConst.CHANNEL, input.Channel, source: StateSource.External);
         }
-        if (string.IsNullOrEmpty(conv.States.GetState("provider")))
+        if (conv.States.IsNullOrEmpty(LlmStateConst.PROVIDER))
         {
-            conv.States.SetState("provider", input.Provider, source: StateSource.External);
+            conv.States.SetState(LlmStateConst.PROVIDER, input.Provider, source: StateSource.External);
         }
-        if (string.IsNullOrEmpty(conv.States.GetState("model")))
+        if (conv.States.IsNullOrEmpty(LlmStateConst.MODEL))
         {
-            conv.States.SetState("model", input.Model, source: StateSource.External);
+            conv.States.SetState(LlmStateConst.MODEL, input.Model, source: StateSource.External);
         }
-        if (string.IsNullOrEmpty(conv.States.GetState("temperature")))
+        if (conv.States.IsNullOrEmpty(LlmStateConst.TEMPERATURE))
         {
-            conv.States.SetState("temperature", input.Temperature, source: StateSource.External);
+            conv.States.SetState(LlmStateConst.TEMPERATURE, input.Temperature, source: StateSource.External);
         }
-        if (string.IsNullOrEmpty(conv.States.GetState("sampling_factor")))
+        if (conv.States.IsNullOrEmpty(LlmStateConst.SAMPLING_FACTOR))
         {
-            conv.States.SetState("sampling_factor", input.SamplingFactor, source: StateSource.External);
+            conv.States.SetState(LlmStateConst.SAMPLING_FACTOR, input.SamplingFactor, source: StateSource.External);
         }
 
         conv.States.SetState(StateConst.USE_STREAM_MESSAGE, input.IsStreamingMessage, source: StateSource.Application);

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Hooks;
@@ -122,7 +123,7 @@ public class ChatCompletionProvider : IChatCompletion
         content += $"\r\n{AgentRole.Assistant}: ";
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        var model = state.GetState("model", _settings.DefaultModel);
+        var model = state.GetState(LlmStateConst.MODEL, _settings.DefaultModel);
 
         var llama = _services.GetRequiredService<LlamaAiModel>();
         llama.LoadModel(model);
@@ -170,7 +171,7 @@ public class ChatCompletionProvider : IChatCompletion
     public async Task<RoleDialogModel> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        var model = state.GetState("model", "llama-2-7b-chat.Q8_0");
+        var model = state.GetState(LlmStateConst.MODEL, "llama-2-7b-chat.Q8_0");
 
         var llama = _services.GetRequiredService<LlamaAiModel>();
         llama.LoadModel(model);

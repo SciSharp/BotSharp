@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.MLTasks;
 using System.Diagnostics;
 
@@ -21,7 +22,7 @@ public class TokenStatistics : ITokenStatistics
         get 
         {
             var stat = _services.GetRequiredService<IConversationStateService>();
-            return float.Parse(stat.GetState("llm_total_cost", "0"));
+            return stat.GetState(TokenStateConst.LLM_TOTAL_COST, 0f);
         }
     }
 
@@ -80,15 +81,15 @@ public class TokenStatistics : ITokenStatistics
 
         // Accumulated Token
         var state = _services.GetRequiredService<IConversationStateService>();
-        var inputCount = int.Parse(state.GetState("prompt_total", "0"));
-        state.SetState("prompt_total", stats.TotalInputTokens + inputCount, isNeedVersion: false, source: StateSource.Application);
-        var outputCount = int.Parse(state.GetState("completion_total", "0"));
-        state.SetState("completion_total", stats.TotalOutputTokens + outputCount, isNeedVersion: false, source: StateSource.Application);
+        var inputCount = state.GetState(TokenStateConst.PROMPT_TOTAL, 0);
+        state.SetState(TokenStateConst.PROMPT_TOTAL, stats.TotalInputTokens + inputCount, isNeedVersion: false, source: StateSource.Application);
+        var outputCount = state.GetState(TokenStateConst.COMPLETION_TOTAL, 0);
+        state.SetState(TokenStateConst.COMPLETION_TOTAL, stats.TotalOutputTokens + outputCount, isNeedVersion: false, source: StateSource.Application);
 
         // Total cost
-        var total_cost = float.Parse(state.GetState("llm_total_cost", "0"));
+        var total_cost = state.GetState(TokenStateConst.LLM_TOTAL_COST, 0f);
         total_cost += deltaTotal;
-        state.SetState("llm_total_cost", total_cost, isNeedVersion: false, source: StateSource.Application);
+        state.SetState(TokenStateConst.LLM_TOTAL_COST, total_cost, isNeedVersion: false, source: StateSource.Application);
 
         // Save stats
         var metric = StatsMetric.AgentLlmCost;

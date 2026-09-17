@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Realtime.Options;
 using BotSharp.Abstraction.Realtime.Sessions;
@@ -594,10 +595,9 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
         }
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        var temperature = float.Parse(state.GetState("temperature", "0.0"));
-        var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
-            ? tokens
-            : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
+        var temperature = state.GetState(LlmStateConst.TEMPERATURE, 0.0f);
+        var maxTokens = state.GetState<int?>(LlmStateConst.MAX_TOKENS)
+            ?? agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
         
         var request = new GenerateContentRequest
         {

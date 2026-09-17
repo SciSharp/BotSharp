@@ -79,10 +79,10 @@ public class ChatbotUiController : ControllerBase
 
         await conv.SetConversationId(input.ConversationId, input.States);
         conv.States.SetState(StateConst.CHANNEL, input.Channel)
-                   .SetState("provider", "azure-openai")
-                   .SetState("model", model)
-                   .SetState("temperature", input.Temperature)
-                   .SetState("sampling_factor", input.SamplingFactor);
+                   .SetState(LlmStateConst.PROVIDER, "azure-openai")
+                   .SetState(LlmStateConst.MODEL, model)
+                   .SetState(LlmStateConst.TEMPERATURE, input.Temperature)
+                   .SetState(LlmStateConst.SAMPLING_FACTOR, input.SamplingFactor);
 
         var result = await conv.SendMessage(input.AgentId,
             message,

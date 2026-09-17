@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
 
 namespace BotSharp.Plugin.Planner.TwoStaging.Functions;
@@ -24,7 +25,7 @@ public class SummaryPlanFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         var states = _services.GetRequiredService<IConversationStateService>();
 
-        states.SetState("max_tokens", "4096");
+        states.SetState(LlmStateConst.MAX_TOKENS, "4096");
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
         var taskRequirement = states.GetState("requirement_detail");
 
@@ -34,8 +35,8 @@ public class SummaryPlanFn : IFunctionCallback
         var ddlStatements = string.Empty;
         var domainKnowledge = states.GetState("planning_result");
         domainKnowledge += "\r\n" + states.GetState("domain_knowledges");
-        var dictionaryItems = states.GetState("dictionary_items");
-        var excelImportResult = states.GetState("data_import_result");
+        var dictionaryItems = states.GetState(DataStateConst.DICTIONARY_ITEMS);
+        var excelImportResult = states.GetState(DataStateConst.DATA_IMPORT_RESULT);
 
         foreach (var step in steps)
         {
@@ -50,7 +51,7 @@ public class SummaryPlanFn : IFunctionCallback
         });
         await fn.InvokeFunction("sql_table_definition", msgCopy);
         ddlStatements += "\r\n" + msgCopy.Content;
-        states.SetState("table_ddls", ddlStatements);
+        states.SetState(DataStateConst.TABLE_DDLS, ddlStatements);
 
         // Summarize and generate query
         var prompt = await GetSummaryPlanPrompt(msgCopy, taskRequirement, domainKnowledge, dictionaryItems, ddlStatements, excelImportResult);

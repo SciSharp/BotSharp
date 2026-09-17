@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.MLTasks;
 
 namespace BotSharp.Plugin.SqlDriver.Hooks;
@@ -72,7 +73,7 @@ public class SqlDriverPlanningHook : IPlanningHook
         string pattern = @"```sql\s*([\s\S]*?)\s*```";
         var sql = Regex.Match(text, pattern).Groups[1].Value;
         var state = _services.GetRequiredService<IConversationStateService>();
-        var tmpTable = state.GetState("tmp_table");
+        var tmpTable = state.GetState(DataStateConst.TMP_TABLE);
 
         var elements = new List<ElementButton>() { };
         elements.Add(new ElementButton

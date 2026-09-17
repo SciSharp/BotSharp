@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using OpenAI.Audio;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers.Audio;
@@ -17,9 +18,9 @@ public partial class AudioCompletionProvider
     private AudioTranscriptionOptions PrepareTranscriptionOptions(string? text)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        var format = GetTranscriptionResponseFormat(state.GetState("audio_response_format"));
-        var granularity = GetGranularity(state.GetState("audio_granularity"));
-        var temperature = GetTemperature(state.GetState("audio_temperature"));
+        var format = GetTranscriptionResponseFormat(state.GetState(AudioStateConst.AUDIO_RESPONSE_FORMAT));
+        var granularity = GetGranularity(state.GetState(AudioStateConst.AUDIO_GRANULARITY));
+        var temperature = GetTemperature(state.GetState(AudioStateConst.AUDIO_TEMPERATURE));
 
         var options = new AudioTranscriptionOptions
         {

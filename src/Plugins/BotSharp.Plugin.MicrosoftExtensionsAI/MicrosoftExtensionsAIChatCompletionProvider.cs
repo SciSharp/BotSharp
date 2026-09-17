@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
@@ -64,8 +65,8 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
         var state = _services.GetRequiredService<IConversationStateService>();
         var options = new ChatOptions()
         {
-            Temperature = float.Parse(state.GetState("temperature", "0.0")),
-            MaxOutputTokens = int.Parse(state.GetState("max_tokens", "1024"))
+            Temperature = state.GetState(LlmStateConst.TEMPERATURE, 0.0f),
+            MaxOutputTokens = state.GetState(LlmStateConst.MAX_TOKENS, 1024)
         };
 
         // Configure messages

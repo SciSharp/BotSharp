@@ -80,9 +80,9 @@ public partial class InstructModeController : ControllerBase
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
-        state.SetState("provider", input.Provider ?? "azure-openai", source: StateSource.External)
-            .SetState("model", input.Model, source: StateSource.External)
-            .SetState("model_id", input.ModelId, source: StateSource.External);
+        state.SetState(LlmStateConst.PROVIDER, input.Provider ?? "azure-openai", source: StateSource.External)
+            .SetState(LlmStateConst.MODEL, input.Model, source: StateSource.External)
+            .SetState(LlmStateConst.MODEL_ID, input.ModelId, source: StateSource.External);
 
         var agentId = input.AgentId ?? Guid.Empty.ToString();
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
@@ -108,9 +108,9 @@ public partial class InstructModeController : ControllerBase
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
-        state.SetState("provider", input.Provider, source: StateSource.External)
-            .SetState("model", input.Model, source: StateSource.External)
-            .SetState("model_id", input.ModelId, source: StateSource.External);
+        state.SetState(LlmStateConst.PROVIDER, input.Provider, source: StateSource.External)
+            .SetState(LlmStateConst.MODEL, input.Model, source: StateSource.External)
+            .SetState(LlmStateConst.MODEL_ID, input.ModelId, source: StateSource.External);
 
         var agentId = input.AgentId ?? Guid.Empty.ToString();
         var completion = CompletionProvider.GetChatCompletion(_services);
@@ -152,9 +152,9 @@ public partial class InstructModeController : ControllerBase
     {
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
 
-        state.SetState("provider", input.Provider, source: StateSource.External)
-            .SetState("model", input.Model, source: StateSource.External)
-            .SetState("model_id", input.ModelId, source: StateSource.External)
+        state.SetState(LlmStateConst.PROVIDER, input.Provider, source: StateSource.External)
+            .SetState(LlmStateConst.MODEL, input.Model, source: StateSource.External)
+            .SetState(LlmStateConst.MODEL_ID, input.ModelId, source: StateSource.External)
             .SetState("instruction", input.Instruction, source: StateSource.External)
             .SetState("input_text", input.Text, source: StateSource.External)
             .SetState("template_name", input.Template, source: StateSource.External)
