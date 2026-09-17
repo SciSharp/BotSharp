@@ -110,12 +110,6 @@ public partial class LiveCompletionProvider
         RealtimeModelSettings realtimeModelSettings,
         LiveSettings liveSettings)
     {
-        if (liveSettings.DelegationType == LiveDelegationType.Client)
-        {
-            // The application owns routing, context and tool execution.
-            return new LiveDelegationConfig { Type = LiveDelegationType.Client };
-        }
-
         var reasoningEffort = GetReasoningEffort(agent);
 
         return new LiveDelegationConfig

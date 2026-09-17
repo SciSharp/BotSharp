@@ -20,7 +20,6 @@ Reference: https://developers.openai.com/api/docs/guides/live
 "OpenAi": {
   "Live": {
     "Voice": "marin",                // Live has its own voice set; "alloy" is rejected
-    "DelegationType": "responses",   // or "client"
     "BackendModel": "gpt-5.6-luna",  // model that does the reasoning and runs tools
     "TranscriptIdleMs": 800,
     "AudioIdleMs": 500
@@ -53,7 +52,7 @@ Credentials are read from the `openai-live` entry in `LlmProviders` and fall bac
 | `onModelAudioTranscriptDone` / `onModelResponseDone` | `session.output_transcript.delta`, flushed on silence |
 | `onInputAudioTranscriptionDone` | `session.input_transcript.delta`, flushed on silence |
 | `onModelResponseDone` (tool call) | `response.event` → `response.output_item.done` |
-| `onConversationItemCreated` | `session.delegation.created` (client delegation only) |
+| `onConversationItemCreated` | `session.delegation.created` |
 
 ## Greeting the caller
 
@@ -93,34 +92,6 @@ Override it per deployment without touching code:
 The agent instruction is never appended to the voice model. It reaches the backend through
 `session.start`, and is refreshed with `session.update` on `delegation.responses` whenever
 `UpdateSession` runs - after a function call or an agent transfer.
-
-## Client delegation
-
-With `"DelegationType": "client"` the voice model delegates to BotSharp instead of to a managed
-Responses backend. `session.delegation.created` carries only an id and an offset, never the task
-text, so the utterance comes from the transcript stream and the two are paired up in whichever
-order they arrive - the model normally delegates before the user has stopped talking.
-
-Once paired, `RoutingService.InstructLoop` (routing agents) or `InstructDirect` runs the turn and
-the answer is returned with `session.commentary.append`, which the model paraphrases aloud.
-Function results produced along the way go back as `session.thinking.append`.
-
-Two windows govern the pairing:
-
-| Setting | Default | Meaning |
-| --- | --- | --- |
-| `DelegationWaitMs` | 8000 | how long a delegation waits for the user to finish |
-| `UtteranceClaimMs` | 1500 | how long a finished turn waits to be claimed before it is merely recorded |
-
-An unclaimed turn means the voice model answered without help; it is still written to the
-conversation record, just without running the backend.
-
-In this mode there is no `delegation.responses` to carry the agent instruction, and none is
-needed: `InstructLoop` applies it locally. The voice model still runs on the voice prompt alone.
-
-Conversation history holds one user turn (persisted by the routing call) and one assistant turn
-(the spoken transcript). The backend's raw answer is internal and is not persisted, matching how
-responses delegation behaves.
 
 ## TriggerModelInference speaks, it does not re-instruct
 
@@ -172,6 +143,8 @@ overshoots the server limit badly for Chinese, Japanese and Korean.
 - **`audio` has no `input` section.** Live accepts only `audio.format` and `audio.output.voice`;
   noise reduction and turn detection are handled inside the model, unlike the realtime API.
   The server rejects the entire session on an unknown field, so keep this object minimal.
+- **Only responses delegation is supported.** Live also offers a "client" mode, where the
+  application answers delegations itself; it is not implemented here.
 - **Only `delegation.responses` is mutable.** Everything else in the session object is fixed at
   `session.start`; changing the delegation mode requires a new session.
 - **Billing is per second, not per token.** `TokenStatsModel` reports the backend Responses

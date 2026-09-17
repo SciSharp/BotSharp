@@ -83,6 +83,9 @@ public static class LiveResponseInnerEventType
 
 public static class LiveDelegationType
 {
+    /// <summary>
+    /// Live calls the backend model itself. The only mode this provider supports; "client",
+    /// where the application answers delegations on its own, is not implemented.
+    /// </summary>
     public const string Responses = "responses";
-    public const string Client = "client";
 }

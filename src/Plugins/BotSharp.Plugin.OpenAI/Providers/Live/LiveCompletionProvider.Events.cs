@@ -320,13 +320,6 @@ public partial class LiveCompletionProvider
 
         _logger.LogInformation("{Provider} user transcript: {Transcript}", Provider, text);
 
-        if (IsClientDelegation)
-        {
-            // The backend pipeline owns this turn, including persisting the user message.
-            await OnUserUtteranceReady(text);
-            return;
-        }
-
         await _onInputAudioTranscriptionDone(new RoleDialogModel(AgentRole.User, text)
         {
             CurrentAgentId = _conn.CurrentAgentId
@@ -432,11 +425,6 @@ public partial class LiveCompletionProvider
             LiveServerEventType.DelegationCreated, delegationId, data?.Delegation?.Target);
 
         await _onConversationItemCreated(receivedText);
-
-        if (IsClientDelegation && !string.IsNullOrEmpty(delegationId))
-        {
-            await OnClientDelegationCreated(delegationId);
-        }
     }
     #endregion
 
@@ -444,7 +432,6 @@ public partial class LiveCompletionProvider
     private void ResetTurnBuffers()
     {
         DisposeTurnTimers();
-        CreateClientDelegationTimers();
 
         lock (_transcriptLock)
         {
@@ -469,8 +456,6 @@ public partial class LiveCompletionProvider
 
     private void DisposeTurnTimers()
     {
-        DisposeClientDelegationTimers();
-
         _outputTranscriptTimer?.Dispose();
         _inputTranscriptTimer?.Dispose();
         _audioIdleTimer?.Dispose();

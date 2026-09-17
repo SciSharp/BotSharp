@@ -37,13 +37,8 @@ public class LiveSettings
     public string? Greeting { get; set; } = LivePromptConstants.DefaultGreeting;
 
     /// <summary>
-    /// responses lets Live drive the backend model itself; client hands delegations
-    /// to the application through session.delegation.created.
-    /// </summary>
-    public string DelegationType { get; set; } = LiveDelegationType.Responses;
-
-    /// <summary>
-    /// Backend reasoning model that runs tools when DelegationType is "responses".
+    /// Backend reasoning model that does the thinking and runs the tools behind the
+    /// conversation. Live calls it itself and feeds the results back into the call.
     /// </summary>
     public string BackendModel { get; set; } = "gpt-5.6-luna";
 
@@ -88,15 +83,4 @@ public class LiveSettings
     /// </summary>
     public int MaxAppendTokens { get; set; } = 450;
 
-    /// <summary>
-    /// Client delegation only. How long a delegation waits for the user to stop talking before
-    /// it is abandoned. The model usually delegates before the transcript has settled.
-    /// </summary>
-    public int DelegationWaitMs { get; set; } = 8000;
-
-    /// <summary>
-    /// Client delegation only. How long a finished user turn waits to be claimed by a delegation
-    /// before it is recorded without running the backend.
-    /// </summary>
-    public int UtteranceClaimMs { get; set; } = 1500;
 }

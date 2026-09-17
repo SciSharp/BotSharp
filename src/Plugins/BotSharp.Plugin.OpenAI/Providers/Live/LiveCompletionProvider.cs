@@ -212,14 +212,11 @@ public partial class LiveCompletionProvider : IRealTimeCompletion
             await AppendSessionContext(LiveClientEventType.CommentaryAppend, ExtractSpokenText(instructions));
         }
 
-        if (LiveSettings.DelegationType == LiveDelegationType.Responses)
+        await SendEventToModel(new
         {
-            await SendEventToModel(new
-            {
-                type = LiveClientEventType.ResponseCreate,
-                event_id = NewEventId("continue")
-            });
-        }
+            type = LiveClientEventType.ResponseCreate,
+            event_id = NewEventId("continue")
+        });
     }
 
     /// <summary>
@@ -244,14 +241,6 @@ public partial class LiveCompletionProvider : IRealTimeCompletion
     {
         if (message.Role == AgentRole.Function)
         {
-            if (LiveSettings.DelegationType == LiveDelegationType.Client)
-            {
-                // Under client delegation there is no backend turn to append to. The result is
-                // factual context the model may use without reading it out verbatim.
-                await AppendSessionContext(LiveClientEventType.ThinkingAppend, message.Content);
-                return;
-            }
-
             // Tool results go back to the backend handler, not to the voice model.
             await SendEventToModel(new
             {
@@ -272,13 +261,6 @@ public partial class LiveCompletionProvider : IRealTimeCompletion
         }
         else if (message.Role == AgentRole.User)
         {
-            if (LiveSettings.DelegationType == LiveDelegationType.Client)
-            {
-                // Typed input is routed straight to the application's own backend handler.
-                await AppendSessionContext(LiveClientEventType.ThinkingAppend, message.Content);
-                return;
-            }
-
             await SendEventToModel(new
             {
                 type = LiveClientEventType.ResponseItemCreate,
