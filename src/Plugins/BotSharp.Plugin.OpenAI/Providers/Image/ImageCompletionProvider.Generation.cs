@@ -96,7 +96,7 @@ public partial class ImageCompletionProvider
             options.Background = GetImageBackground(background);
         }
 
-        var count = GetImageCount(state.GetState(ImageStateConst.IMAGE_COUNT));
+        var count = GetImageCount(state.GetState<int?>(ImageStateConst.IMAGE_COUNT));
         return (prompt, count, options);
     }
 }

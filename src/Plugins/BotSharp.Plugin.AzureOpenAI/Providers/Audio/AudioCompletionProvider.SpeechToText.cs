@@ -20,7 +20,7 @@ public partial class AudioCompletionProvider
         var state = _services.GetRequiredService<IConversationStateService>();
         var format = GetTranscriptionResponseFormat(state.GetState(AudioStateConst.AUDIO_RESPONSE_FORMAT));
         var granularity = GetGranularity(state.GetState(AudioStateConst.AUDIO_GRANULARITY));
-        var temperature = GetTemperature(state.GetState(AudioStateConst.AUDIO_TEMPERATURE));
+        var temperature = state.GetState<float?>(AudioStateConst.AUDIO_TEMPERATURE);
 
         var options = new AudioTranscriptionOptions
         {
@@ -76,16 +76,6 @@ public partial class AudioCompletionProvider
         }
 
         return granularity;
-    }
-
-    private float? GetTemperature(string input)
-    {
-        if (!float.TryParse(input, out var temperature))
-        {
-            return null;
-        }
-
-        return temperature;
     }
 }
 

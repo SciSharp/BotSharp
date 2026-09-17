@@ -35,7 +35,7 @@ public partial class ImageCompletionProvider
         var quality = GetImageQuality(state.GetState(ImageStateConst.IMAGE_QUALITY));
         var style = GetImageStyle(state.GetState(ImageStateConst.IMAGE_STYLE));
         var format = GetImageFormat(state.GetState(ImageStateConst.IMAGE_RESPONSE_FORMAT));
-        var count = GetImageCount(state.GetState(ImageStateConst.IMAGE_COUNT, "1"));
+        var count = GetImageCount(state.GetState<int?>(ImageStateConst.IMAGE_COUNT));
 
         var options = new ImageGenerationOptions
         {

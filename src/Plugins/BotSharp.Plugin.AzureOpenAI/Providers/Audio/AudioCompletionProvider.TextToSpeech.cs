@@ -20,7 +20,7 @@ public partial class AudioCompletionProvider
         var state = _services.GetRequiredService<IConversationStateService>();
         var speechVoice = GetVoice(voice ?? "alloy");
         var responseFormat = GetSpeechFormat(format ?? "mp3");
-        var speed = GetSpeed(state.GetState(AudioStateConst.SPEECH_GENERATE_SPEED));
+        var speed = state.GetState<float?>(AudioStateConst.SPEECH_GENERATE_SPEED);
 
         var options = new SpeechGenerationOptions
         {
@@ -89,15 +89,5 @@ public partial class AudioCompletionProvider
         }
 
         return format;
-    }
-
-    private float? GetSpeed(string input)
-    {
-        if (!float.TryParse(input, out var speed))
-        {
-            return null;
-        }
-
-        return speed;
     }
 }

@@ -39,14 +39,11 @@ public class AudioTranscriptionProvider : IAudioTranscription
     private AudioTranscriptionOptions PrepareTranscriptionOptions(string? text, AudioTranscriptionSetting? settings)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        var temperature = state.GetState(AudioStateConst.AUDIO_TEMPERATURE);
+        var temperature = state.GetState<float?>(AudioStateConst.AUDIO_TEMPERATURE);
         var responseFormat = state.GetState(AudioStateConst.AUDIO_RESPONSE_FORMAT);
         var granularity = state.GetState(AudioStateConst.AUDIO_GRANULARITY);
 
-        if (string.IsNullOrEmpty(temperature) && settings?.Temperature != null)
-        {
-            temperature = $"{settings.Temperature}";
-        }
+        temperature ??= settings?.Temperature;
 
         responseFormat = LlmUtility.GetModelParameter(settings?.Parameters, "ResponseFormat", responseFormat);
         granularity = LlmUtility.GetModelParameter(settings?.Parameters, "Granularity", granularity);
@@ -56,9 +53,9 @@ public class AudioTranscriptionProvider : IAudioTranscription
             Prompt = text
         };
 
-        if (!string.IsNullOrEmpty(temperature))
+        if (temperature.HasValue)
         {
-            options.Temperature = GetTemperature(temperature);
+            options.Temperature = temperature;
         }
         if (!string.IsNullOrEmpty(responseFormat))
         {
@@ -121,15 +118,5 @@ public class AudioTranscriptionProvider : IAudioTranscription
         }
 
         return granularity;
-    }
-
-    private float? GetTemperature(string input)
-    {
-        if (!float.TryParse(input, out var temperature))
-        {
-            return null;
-        }
-
-        return temperature;
     }
 }

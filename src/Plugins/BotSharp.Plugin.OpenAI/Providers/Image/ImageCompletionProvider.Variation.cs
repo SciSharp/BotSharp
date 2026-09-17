@@ -77,7 +77,7 @@ public partial class ImageCompletionProvider
             options.ResponseFormat = GetImageResponseFormat(responseFormat);
         }
 
-        var count = GetImageCount(state.GetState(ImageStateConst.IMAGE_COUNT, "1"));
+        var count = GetImageCount(state.GetState<int?>(ImageStateConst.IMAGE_COUNT));
         return (count, options);
     }
 }

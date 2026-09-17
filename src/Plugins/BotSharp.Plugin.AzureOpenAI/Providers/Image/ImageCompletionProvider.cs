@@ -141,12 +141,9 @@ public partial class ImageCompletionProvider : IImageCompletion
         return retFormat;
     }
 
-    private int GetImageCount(string count)
+    private int GetImageCount(int? count)
     {
-        if (!int.TryParse(count, out var retCount))
-        {
-            return DEFAULT_IMAGE_COUNT;
-        }
+        var retCount = count ?? DEFAULT_IMAGE_COUNT;
 
         if (retCount <= 0)
         {
