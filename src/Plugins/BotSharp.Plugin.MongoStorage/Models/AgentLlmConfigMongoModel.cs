@@ -15,6 +15,7 @@ public class AgentLlmConfigMongoModel
     public LlmImageCompositionConfigMongoModel? ImageComposition { get; set; }
     public LlmAudioTranscriptionConfigMongoModel? AudioTranscription { get; set; }
     public LlmRealtimeConfigMongoModel? Realtime { get; set; }
+    public LlmLiveConfigMongoModel? Live { get; set; }
 
 
 
@@ -35,7 +36,8 @@ public class AgentLlmConfigMongoModel
             ReasoningEffortLevel = config.ReasoningEffortLevel,
             ImageComposition = LlmImageCompositionConfigMongoModel.ToMongoModel(config.ImageComposition),
             AudioTranscription = LlmAudioTranscriptionConfigMongoModel.ToMongoModel(config.AudioTranscription),
-            Realtime = LlmRealtimeConfigMongoModel.ToMongoModel(config.Realtime)
+            Realtime = LlmRealtimeConfigMongoModel.ToMongoModel(config.Realtime),
+            Live = LlmLiveConfigMongoModel.ToMongoModel(config.Live)
         };
     }
 
@@ -56,7 +58,8 @@ public class AgentLlmConfigMongoModel
             ReasoningEffortLevel = config.ReasoningEffortLevel,
             ImageComposition = LlmImageCompositionConfigMongoModel.ToDomainModel(config.ImageComposition),
             AudioTranscription = LlmAudioTranscriptionConfigMongoModel.ToDomainModel(config.AudioTranscription),
-            Realtime = LlmRealtimeConfigMongoModel.ToDomainModel(config.Realtime)
+            Realtime = LlmRealtimeConfigMongoModel.ToDomainModel(config.Realtime),
+            Live = LlmLiveConfigMongoModel.ToDomainModel(config.Live)
         };
     }
 }
@@ -153,6 +156,42 @@ public class LlmRealtimeConfigMongoModel : LlmProviderModelMongoModel
         }
 
         return new LlmRealtimeConfigMongoModel
+        {
+            Provider = config.Provider,
+            Model = config.Model,
+            ReasoningEffortLevel = config.ReasoningEffortLevel
+        };
+    }
+}
+
+[BsonIgnoreExtraElements(Inherited = true)]
+public class LlmLiveConfigMongoModel : LlmProviderModelMongoModel
+{
+    public string? ReasoningEffortLevel { get; set; }
+
+    public static LlmLiveConfig? ToDomainModel(LlmLiveConfigMongoModel? config)
+    {
+        if (config == null)
+        {
+            return null;
+        }
+
+        return new LlmLiveConfig
+        {
+            Provider = config.Provider,
+            Model = config.Model,
+            ReasoningEffortLevel = config.ReasoningEffortLevel
+        };
+    }
+
+    public static LlmLiveConfigMongoModel? ToMongoModel(LlmLiveConfig? config)
+    {
+        if (config == null)
+        {
+            return null;
+        }
+
+        return new LlmLiveConfigMongoModel
         {
             Provider = config.Provider,
             Model = config.Model,

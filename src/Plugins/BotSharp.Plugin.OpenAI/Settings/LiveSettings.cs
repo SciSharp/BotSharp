@@ -17,13 +17,6 @@ public class LiveSettings
     public string Voice { get; set; } = "marin";
 
     /// <summary>
-    /// Prompt for the voice model: how the conversation sounds and when to delegate.
-    /// The agent instruction is NOT used here - it goes to the backend handler instead.
-    /// Falls back to <see cref="LivePromptConstants.DefaultVoiceInstruction"/>.
-    /// </summary>
-    public string? VoiceInstructions { get; set; }
-
-    /// <summary>
     /// Whether the model opens the call rather than waiting to be spoken to.
     /// </summary>
     public bool GreetOnStart { get; set; } = true;

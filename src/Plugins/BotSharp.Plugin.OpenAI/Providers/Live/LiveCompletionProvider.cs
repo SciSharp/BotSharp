@@ -13,9 +13,9 @@ namespace BotSharp.Plugin.OpenAI.Providers.Live;
 /// transcripts arrive as deltas with no turn completion marker, and reasoning plus tool
 /// calls are delegated to a separate backend model.
 /// </summary>
-public partial class LiveCompletionProvider : IRealTimeCompletion
+public partial class LiveCompletionProvider : ILiveCompletion
 {
-    public string Provider => LiveModelConstants.Provider;
+    public string Provider => "openai";
     public string Model => _model;
 
     private readonly IServiceProvider _services;
@@ -99,10 +99,12 @@ public partial class LiveCompletionProvider : IRealTimeCompletion
             Logger = _logger
         });
 
+        var modelSetting = GetModelSetting();
+
         // The Live endpoint carries the model in session.start rather than in the query string.
         await _session.ConnectAsync(
-            uri: new Uri(LiveModelConstants.Endpoint),
-            headers: BuildHeaders(),
+            uri: GetEndpoint(modelSetting),
+            headers: BuildHeaders(modelSetting),
             cancellationToken: CancellationToken.None);
 
         // session.start must be the first message on the socket.
@@ -369,10 +371,8 @@ public partial class LiveCompletionProvider : IRealTimeCompletion
         }
     }
 
-    private Dictionary<string, string> BuildHeaders()
+    private Dictionary<string, string> BuildHeaders(LlmModelSetting? settings)
     {
-        var settings = GetModelSetting();
-
         return new Dictionary<string, string>
         {
             { "Authorization", $"Bearer {settings?.ApiKey}" }
@@ -380,14 +380,40 @@ public partial class LiveCompletionProvider : IRealTimeCompletion
     }
 
     /// <summary>
-    /// Looks up credentials under the live provider key, falling back to the plain OpenAI
-    /// section so an existing API key does not have to be duplicated.
+    /// Socket address from the model's entry in LlmProviders, so a deployment can point the call
+    /// at a proxy or a regional host without a code change, falling back to the public Live
+    /// endpoint. A configured value that is not a usable absolute URI is logged and ignored
+    /// rather than thrown: a typo in settings should not take the call down.
     /// </summary>
-    private LlmModelSetting? GetModelSetting()
+    private Uri GetEndpoint(LlmModelSetting? settings)
+    {
+        var endpoint = settings?.Endpoint;
+
+        if (string.IsNullOrWhiteSpace(endpoint))
+        {
+            return new Uri(LiveModelConstants.Endpoint);
+        }
+
+        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var uri))
+        {
+            _logger.LogWarning("Ignoring the endpoint configured for {Provider}.{Model}, which is not an absolute URI: {Endpoint}.",
+                Provider, _model, endpoint);
+            return new Uri(LiveModelConstants.Endpoint);
+        }
+
+        return uri;
+    }
+
+    /// <summary>
+    /// Looks up a model's settings under the OpenAI provider key, which is shared with the
+    /// realtime and chat providers: the live models are listed alongside them in LlmProviders.
+    /// </summary>
+    private LlmModelSetting? GetModelSetting(string? model = null)
     {
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        return llmProviderService.GetSetting(Provider, _model)
-            ?? llmProviderService.GetSetting(LiveModelConstants.FallbackSettingsProvider, _model);
+        model = model.IfNullOrEmptyAs(_model);
+
+        return llmProviderService.GetSetting(Provider, model);
     }
 
     private static string NewEventId(string prefix) => $"{prefix}_{Guid.NewGuid():N}";

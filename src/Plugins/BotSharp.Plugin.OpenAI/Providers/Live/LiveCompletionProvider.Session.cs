@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Realtime.Settings;
+using BotSharp.Abstraction.Templating;
+using BotSharp.Abstraction.Templating.Constants;
 using OpenAI.Chat;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Live;
@@ -71,7 +73,7 @@ public partial class LiveCompletionProvider
             Model = _model,
             // The voice model gets conversation style and a delegation policy; the agent
             // instruction is workflow detail and belongs to the backend handler instead.
-            Instructions = liveSettings.VoiceInstructions.IfNullOrEmptyAs(LivePromptConstants.DefaultVoiceInstruction),
+            Instructions = GetVoiceInstruction(agent),
             Store = liveSettings.Store ? true : null,
             Audio = BuildAudioConfig(realtimeModelSettings, liveSettings),
             Delegation = BuildDelegationConfig(agent, instruction, functions, realtimeModelSettings, liveSettings)
@@ -83,6 +85,33 @@ public partial class LiveCompletionProvider
         }, agent.Id);
 
         return (config, instruction);
+    }
+
+    /// <summary>
+    /// Prompt for the voice model: the agent's "live" channel instruction when it has one
+    /// (instruction.live.liquid), otherwise <see cref="LivePromptConstants.DefaultVoiceInstruction"/>.
+    /// It is a liquid template like any other instruction, so it is rendered before being sent.
+    /// The agent's own instruction is workflow detail and goes to the backend handler instead.
+    /// </summary>
+    private string GetVoiceInstruction(Agent? agent)
+    {
+        var instruction = agent?.ChannelInstructions?
+            .FirstOrDefault(x => x.Channel.IsEqualTo(LivePromptConstants.VoiceInstructionChannel))?
+            .Instruction;
+
+        if (string.IsNullOrWhiteSpace(instruction))
+        {
+            return LivePromptConstants.DefaultVoiceInstruction;
+        }
+
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var render = _services.GetRequiredService<ITemplateRender>();
+        var renderData = new Dictionary<string, object>(agentService.CollectRenderData(agent!))
+        {
+            [TemplateRenderConstant.RENDER_AGENT] = agent!
+        };
+
+        return render.Render(instruction, renderData);
     }
 
     private LiveAudioConfig BuildAudioConfig(RealtimeModelSettings realtimeModelSettings, LiveSettings liveSettings)
@@ -166,19 +195,25 @@ public partial class LiveCompletionProvider
         }
     }
 
+    /// <summary>
+    /// Reasoning effort for the delegated backend model, which is the half of the session that
+    /// does the thinking. It comes from the agent's own llm_config, not from llm_config.live:
+    /// that one names the voice model, and the voice model has no reasoning to configure.
+    /// </summary>
     private string? GetReasoningEffort(Agent? agent)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         var reasoningEffort = state.GetState("reasoning_effort_level");
 
-        if (string.IsNullOrEmpty(reasoningEffort) && _model == agent?.LlmConfig?.Realtime?.Model)
+        if (string.IsNullOrEmpty(reasoningEffort))
         {
-            reasoningEffort = agent?.LlmConfig?.Realtime?.ReasoningEffortLevel;
+            reasoningEffort = agent?.LlmConfig?.ReasoningEffortLevel;
         }
 
         if (string.IsNullOrEmpty(reasoningEffort))
         {
-            var settings = GetModelSetting()?.Reasoning;
+            // Settings for the backend model too, for the same reason.
+            var settings = GetModelSetting(LiveSettings.BackendModel)?.Reasoning;
 
             reasoningEffort = settings?.EffortLevel;
             if (settings?.Parameters != null

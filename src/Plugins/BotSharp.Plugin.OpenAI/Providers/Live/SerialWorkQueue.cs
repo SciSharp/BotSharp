@@ -29,12 +29,21 @@ internal sealed class SerialWorkQueue : IDisposable
     private readonly ILogger? _logger;
     private readonly string _name;
 
+    /// <summary>
+    /// The name is suffixed with a fresh id. There is one queue per call, so without it the log
+    /// lines of concurrent sessions all read the same and none of them can be followed.
+    /// </summary>
     public SerialWorkQueue(string name, ILogger? logger = null)
     {
-        _name = name;
+        _name = $"{name}-{Guid.NewGuid():N}";
         _logger = logger;
         _worker = Task.Run(RunAsync);
     }
+
+    /// <summary>
+    /// Name as it appears in this queue's log lines, id included.
+    /// </summary>
+    public string Name => _name;
 
     /// <summary>
     /// Hands work to the worker and returns at once. Never throws: a queue that fails to accept

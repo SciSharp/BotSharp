@@ -52,9 +52,9 @@ public class RealtimeHub : IRealtimeHub
         routing.Context.SetDialogs(dialogs);
         routing.Context.SetMessageId(_conn.ConversationId, Guid.Empty.ToString());
 
-        var (provider, model) = GetLlmProviderModel(agent);
+        var (provider, model, isLive) = GetLlmProviderModel(agent);
 
-        _completer = _services.GetServices<IRealTimeCompletion>().First(x => x.Provider == provider);
+        _completer = ResolveCompleter(provider, isLive);
         _completer.SetModelName(model);
         _completer.SetOptions(options);
 
@@ -192,27 +192,54 @@ public class RealtimeHub : IRealtimeHub
         return _conn;
     }
 
-    private (string, string) GetLlmProviderModel(Agent agent)
+    /// <summary>
+    /// Picks the voice model for this conversation, and which family it belongs to.
+    ///
+    /// The agent's live config wins when it is set, because a live session is a deliberate
+    /// choice rather than a variation of a realtime one. Everything else resolves to realtime:
+    /// RealtimeModelSettings describes a realtime provider, so a live provider is never reached
+    /// by fallback, only by an agent asking for it.
+    /// </summary>
+    private (string provider, string model, bool isLive) GetLlmProviderModel(Agent agent)
     {
-        var provider = agent?.LlmConfig?.Realtime?.Provider;
-        var model = agent?.LlmConfig?.Realtime?.Model;
-        var settingService = _services.GetRequiredService<ISettingService>();
-
-        if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
+        var live = agent?.LlmConfig?.Live;
+        if (live?.IsValid == true)
         {
-            return (provider, model);
+            return (live.Provider!, live.Model!, true);
         }
 
-        //provider = _settings.Provider;
-        //model = _settings.Model;
+        var realtime = agent?.LlmConfig?.Realtime;
+        if (realtime?.IsValid == true)
+        {
+            return (realtime.Provider!, realtime.Model!, false);
+        }
 
-        //if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(model))
-        //{
-        //    return (provider, model);
-        //}
+        if (!string.IsNullOrEmpty(_settings.Provider) && !string.IsNullOrEmpty(_settings.Model))
+        {
+            return (_settings.Provider, _settings.Model, false);
+        }
 
-        provider = "openai-live";
-        model = "gpt-live-1";
-        return (provider, model);
+        return ("openai", "gpt-realtime", false);
+    }
+
+    /// <summary>
+    /// Live providers register as <see cref="ILiveCompletion"/> only, so the two families are
+    /// resolved from separate DI lists and a provider name is looked up in one of them, never
+    /// both. A live completer still drives the hub as a realtime one - the interface derives
+    /// from <see cref="IRealTimeCompletion"/> - so nothing downstream has to know the difference.
+    /// </summary>
+    private IRealTimeCompletion ResolveCompleter(string provider, bool isLive)
+    {
+        var completer = isLive
+            ? _services.GetServices<ILiveCompletion>().FirstOrDefault(x => x.Provider == provider)
+            : _services.GetServices<IRealTimeCompletion>().FirstOrDefault(x => x.Provider == provider);
+
+        if (completer == null)
+        {
+            var family = isLive ? "live" : "realtime";
+            throw new InvalidOperationException($"Can't resolve the {family} completion provider by \"{provider}\".");
+        }
+
+        return completer;
     }
 }

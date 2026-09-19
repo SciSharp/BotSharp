@@ -1,22 +1,49 @@
 # OpenAI Live provider (`gpt-live-1`)
 
-Implements `IRealTimeCompletion` against OpenAI's Live endpoint, `wss://api.openai.com/v1/live/sessions`.
-It is registered alongside the existing realtime provider and selected by the provider key
-**`openai-live`**, so `gpt-realtime` keeps working unchanged.
+Implements `ILiveCompletion` against OpenAI's Live endpoint, `wss://api.openai.com/v1/live/sessions`.
+It shares the **`openai`** provider key with the realtime and chat providers; what separates it is
+the interface, not the name.
+
+`ILiveCompletion` derives from `IRealTimeCompletion`, so a live session drives the same hub,
+middleware and hooks as a realtime one. The separate interface is what keeps the two families
+apart in DI: the live provider registers as `ILiveCompletion` only, so
+`GetServices<IRealTimeCompletion>()` never returns it and `gpt-realtime` cannot be replaced by
+accident. A live session happens only when an agent asks for one.
 
 Reference: https://developers.openai.com/api/docs/guides/live
 
 ## Enabling it
 
+Live is chosen per agent, through `llm_config.live` - a sibling of `llm_config.realtime`, not a
+variation of it:
+
+```jsonc
+// agents/<agent>/agent.json
+"llm_config": {
+  "live": {
+    "provider": "openai",
+    "model": "gpt-live-1"
+  }
+}
+```
+
+`RealtimeHub` resolves it like this:
+
+| Agent config | Family | Resolved from |
+| --- | --- | --- |
+| `llm_config.live` set | live | `GetServices<ILiveCompletion>()` |
+| `llm_config.realtime` set | realtime | `GetServices<IRealTimeCompletion>()` |
+| neither | realtime | `RealtimeModel` settings, else `openai`/`gpt-realtime` |
+
+Both families answer to the provider name `openai`, so the name alone decides nothing: the family
+comes from which agent config is set, and the name is then looked up in that family's list only.
+`RealtimeModel` therefore always means realtime, and a name with no provider in that list throws
+with the family and provider named.
+
+Deployment-wide defaults for the live session itself:
+
 ```jsonc
 // appsettings.json
-"RealtimeModel": {
-  "Provider": "openai-live",
-  "Model": "gpt-live-1",
-  "InputAudioFormat": "g711_ulaw",   // telephony; use "pcm16" for browser audio
-  "OutputAudioFormat": "g711_ulaw"
-},
-
 "OpenAi": {
   "Live": {
     "Voice": "marin",                // Live has its own voice set; "alloy" is rejected
@@ -27,12 +54,22 @@ Reference: https://developers.openai.com/api/docs/guides/live
 }
 ```
 
-Per agent, set `LlmConfig.Realtime.Provider` to `openai-live` instead.
+Audio format still comes from `RealtimeModel` (`g711_ulaw` for telephony, `pcm16` for browser
+audio), as does `MaxResponseOutputTokens`; those settings are shared by both families.
 
-Credentials are read from the `openai-live` entry in `LlmProviders` and fall back to the
-`openai` entry, so an existing API key does not have to be duplicated.
+Credentials come from the `gpt-live-1` model entry under the `openai` provider in `LlmProviders`,
+next to the realtime and chat models, so an existing API key is not duplicated. The entry carries
+`"Type": "live"` and the `Live` capability, which keeps it out of realtime model lookups:
 
-## How the Live protocol maps onto `IRealTimeCompletion`
+```jsonc
+{ "Id": "gpt-live", "Name": "gpt-live-1", "ApiKey": "", "Type": "live", "Capabilities": [ "Live" ] }
+```
+
+Add `"Endpoint"` to that entry to send the socket somewhere else - a proxy, or a regional host.
+Left out, it is `wss://api.openai.com/v1/live/sessions`; a value that is not an absolute URI is
+logged and ignored rather than failing the call.
+
+## How the Live protocol maps onto the completion interface
 
 | Interface member | Live wire event |
 | --- | --- |
@@ -83,11 +120,15 @@ structure in OpenAI's [prompting guide](https://developers.openai.com/api/docs/g
 personality, backchannel policy, interruption policy, delegation policy, response style. Keep it
 short - the guide is explicit that reasoning and procedures belong in the backend prompt.
 
-Override it per deployment without touching code:
+Override it per agent with a `live` channel instruction - the same mechanism as any other
+channel override, so it needs no code and no setting:
 
-```jsonc
-"OpenAi": { "Live": { "VoiceInstructions": "You are Ada, the friendly voice of ..." } }
 ```
+agents/<agent>/instructions/instruction.live.liquid
+```
+
+It is rendered as a liquid template like the default instruction. An agent with no such file
+keeps `DefaultVoiceInstruction`.
 
 The agent instruction is never appended to the voice model. It reaches the backend through
 `session.start`, and is refreshed with `session.update` on `delegation.responses` whenever

@@ -3,6 +3,12 @@ namespace BotSharp.Plugin.OpenAI.Models.Live;
 public static class LivePromptConstants
 {
     /// <summary>
+    /// Agent channel whose instruction becomes the voice model prompt. An agent that has no
+    /// instruction for this channel falls back to <see cref="DefaultVoiceInstruction"/>.
+    /// </summary>
+    public const string VoiceInstructionChannel = "live";
+
+    /// <summary>
     /// Spoken to open the call when the agent has no ".welcome" template of its own. Short and
     /// channel neutral on purpose: it is heard, not read, and it is handed to the model as
     /// commentary, so it is paraphrased rather than recited.
@@ -20,7 +26,7 @@ public static class LivePromptConstants
     /// The prompting guide leaves what to do *during* backend work to the product, so the
     /// "while the backend is working" rules below are ours rather than OpenAI's.
     ///
-    /// Override per deployment with the OpenAi:Live:VoiceInstructions setting.
+    /// Override per agent with a "live" channel instruction (instruction.live.liquid).
     /// </summary>
     public const string DefaultVoiceInstruction =
         """

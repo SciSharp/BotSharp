@@ -36,6 +36,6 @@ public class OpenAiPlugin : IBotSharpPlugin
         services.AddScoped<IAudioTranscription, AudioTranscriptionProvider>();
         services.AddScoped<IAudioSynthesis, AudioSynthesisProvider>();
         services.AddScoped<IRealTimeCompletion, RealTimeCompletionProvider>();
-        services.AddScoped<IRealTimeCompletion, LiveCompletionProvider>();
+        services.AddScoped<ILiveCompletion, LiveCompletionProvider>();
     }
 }
