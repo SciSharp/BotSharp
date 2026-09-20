@@ -117,13 +117,14 @@ public partial class RoutingService
             }
             else
             {
-                // Save to memory dialogs
+                // Save to memory dialogs and to storage
                 var msg = RoleDialogModel.From(message,
                     role: AgentRole.Function,
                     content: message.Content);
 
                 dialogs.Add(msg);
                 Context.AddDialogs([msg]);
+                await Persist(msg);
 
                 // Send to Next LLM
                 var curAgentId = routing.Context.GetCurrentAgentId();
@@ -132,6 +133,12 @@ public partial class RoutingService
         }
         else
         {
+            // The function wrote the reply itself. The call is still worth a record, but kept out
+            // of context, since the assistant message that follows carries the same text.
+            var record = RoleDialogModel.From(message, role: AgentRole.Function);
+            record.ExcludeFromContext = true;
+            await Persist(record);
+
             var msg = RoleDialogModel.From(message,
                 role: AgentRole.Assistant,
                 content: message.Content);
@@ -140,5 +147,17 @@ public partial class RoutingService
         }
 
         return true;
+    }
+
+    private async Task Persist(RoleDialogModel message)
+    {
+        var conv = _services.GetRequiredService<IConversationService>();
+        if (!conv.IsConversationMode())
+        {
+            return;
+        }
+
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        await storage.Append(conv.ConversationId, message);
     }
 }

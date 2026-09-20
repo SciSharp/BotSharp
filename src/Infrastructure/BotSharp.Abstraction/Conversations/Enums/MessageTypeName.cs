@@ -10,7 +10,7 @@ public static class MessageTypeName
     /// <summary>
     /// A message that belongs to the conversation record but not to the conversation as the user
     /// sees it -- what an agent said to itself on the way to an answer. Stored like any other
-    /// message and read back into the model's context; skipped when the dialog is rendered.
+    /// message and left out of later turns; skipped when the dialog is rendered.
     /// </summary>
     public const string Internal = "internal";
 }
