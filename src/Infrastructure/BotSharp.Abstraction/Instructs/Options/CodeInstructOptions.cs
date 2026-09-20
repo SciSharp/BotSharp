@@ -3,6 +3,12 @@ namespace BotSharp.Abstraction.Instructs.Options;
 public class CodeInstructOptions
 {
     /// <summary>
+    /// Skip the code execution and go straight to the llm completion
+    /// </summary>
+    [JsonPropertyName("disabled")]
+    public bool Disabled { get; set; }
+
+    /// <summary>
     /// Code processor provider
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

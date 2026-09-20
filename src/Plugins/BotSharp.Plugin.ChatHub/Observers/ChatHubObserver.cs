@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Conversations.Dtos;
+﻿using BotSharp.Abstraction.Conversations.Dtos;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Abstraction.MessageHub.Observers;
@@ -159,8 +159,12 @@ public class ChatHubObserver : BotSharpObserverBase<HubObserveData<RoleDialogMod
     {
         var user = _services.GetRequiredService<IUserIdentity>();
         var json = JsonSerializer.Serialize(data, _options.JsonSerializerOptions);
-        EventEmitter.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, json, nameof(ChatHubObserver), callerName)
-                     .ConfigureAwait(false).GetAwaiter().GetResult();
+
+        // NOT awaited, and it does not need to be: SendChatEvent queues the event and returns.
+        // This method is called from OnNext, on whatever thread pushed to the MessageHub — for a
+        // tool's progress notifications, the MCP client's own read loop — so anything that waited
+        // here for a socket could stop that thread, and did. See ChatEventDispatcher.
+        _ = EventEmitter.SendChatEvent(_services, _logger, @event, conversationId, user?.Id, json, nameof(ChatHubObserver), callerName);
     }
     #endregion
 }

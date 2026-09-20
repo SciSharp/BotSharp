@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.MessageHub.Models;
+﻿using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Abstraction.MessageHub.Observers;
 using BotSharp.Plugin.ChatHub.Hooks;
 using BotSharp.Plugin.ChatHub.Observers;
@@ -21,6 +21,11 @@ public class ChatHubPlugin : IBotSharpPlugin
         var settings = new ChatHubSettings();
         config.Bind("ChatHub", settings);
         services.AddSingleton(x => settings);
+
+        // One per process: it holds a delivery chain per target, so it has to outlive any scope.
+        // Everything that reaches SignalR goes through it, which is what keeps a stalled client
+        // from stopping the thread that produced the event. See ChatEventDispatcher.
+        services.AddSingleton<ChatEventDispatcher>();
 
         services.AddScoped<IBotSharpObserver<HubObserveData<RoleDialogModel>>, ChatHubObserver>();
 

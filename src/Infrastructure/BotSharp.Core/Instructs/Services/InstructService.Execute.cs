@@ -24,7 +24,8 @@ public partial class InstructService
         IEnumerable<InstructFileModel>? files = null,
         CodeInstructOptions? codeOptions = null,
         FileInstructOptions? fileOptions = null,
-        ResponseFormatType? responseFormat = null)
+        ResponseFormatType? responseFormat = null,
+        IDictionary<string, object>? renderData = null)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
@@ -55,7 +56,7 @@ public partial class InstructService
             return codeResponse;
         }
 
-        response = await RunLlm(agent, message, instruction, templateName, files, fileOptions, responseFormat);
+        response = await RunLlm(agent, message, instruction, templateName, files, fileOptions, responseFormat, renderData);
         return response;
     }
 
@@ -76,6 +77,11 @@ public partial class InstructService
         InstructResult? instructResult = null;
 
         if (agent == null)
+        {
+            return instructResult;
+        }
+
+        if (codeOptions?.Disabled == true)
         {
             return instructResult;
         }
@@ -209,7 +215,8 @@ public partial class InstructService
         string? templateName,
         IEnumerable<InstructFileModel>? files = null,
         FileInstructOptions? fileOptions = null,
-        ResponseFormatType? responseFormat = null)
+        ResponseFormatType? responseFormat = null,
+        IDictionary<string, object>? renderData = null)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -247,7 +254,7 @@ public partial class InstructService
 
         if (!string.IsNullOrEmpty(templateName))
         {
-            prompt = agentService.RenderTemplate(agent, templateName);
+            prompt = agentService.RenderTemplate(agent, templateName, renderData);
             var templateLlmConfig = agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName))?.LlmConfig;
             if (templateLlmConfig?.IsValid == true)
             {
@@ -256,7 +263,7 @@ public partial class InstructService
         }
         else
         {
-            prompt = agentService.RenderInstruction(agent);
+            prompt = agentService.RenderInstruction(agent, renderData);
         }
 
         var completer = CompletionProvider.GetCompletion(_services,

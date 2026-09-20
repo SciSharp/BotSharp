@@ -19,6 +19,7 @@ using BotSharp.Plugin.GoogleAi.Settings;
 using BotSharp.Plugin.OpenAI;
 using BotSharp.Plugin.OpenAI.Settings;
 using BotSharp.Plugin.LiteLLM;
+using BotSharp.Plugin.Daoxe;
 using GenerativeAI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,7 @@ namespace BotSharp.Plugin.Google.Core
         public static bool CanRunOpenAI => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("OPEN_AI_APIKEY"));
         public static bool CanRunAnthropic => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY"));
         public static bool CanRunLiteLLM => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("LITELLM_API_BASE"));
+        public static bool CanRunDaoxe => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DAOXE_API_KEY"));
 
         private static ILoggerFactory  _loggerFactory = LoggerFactory.Create((builder) => builder.AddConsole());
         public static (IServiceCollection services, IConfiguration config, string modelName) CreateGemini()
@@ -200,6 +202,38 @@ namespace BotSharp.Plugin.Google.Core
             AddCommonServices(services, configuration);
 
             new LiteLLMPlugin().RegisterDI(services, configuration);
+            return (services, configuration, modelName);
+        }
+
+        public static (IServiceCollection services, IConfiguration configuration, string modelName) CreateDaoxe()
+        {
+            string modelName = Environment.GetEnvironmentVariable("DAOXE_MODEL") ?? "gpt-4o";
+
+            // Daoxe gateway endpoint, defaults to the public API base.
+            var endpoint = Environment.GetEnvironmentVariable("DAOXE_API_BASE") ?? "https://api.daoxe.com/v1";
+            var apiKey = Environment.GetEnvironmentVariable("DAOXE_API_KEY") ??
+                           throw new Exception("DAOXE_API_KEY is not set");
+
+            var services = new ServiceCollection();
+
+            var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+
+            LlmProviderSetting setting = new LlmProviderSetting();
+            setting.Provider = "daoxe";
+            setting.Models = new List<LlmModelSetting>([
+                new LlmModelSetting()
+                {
+                    Name = modelName,
+                    ApiKey = apiKey,
+                    Endpoint = endpoint
+                }
+            ]);
+
+            services.AddSingleton<List<LlmProviderSetting>>(new List<LlmProviderSetting>([ setting]));
+
+            AddCommonServices(services, configuration);
+
+            new DaoxePlugin().RegisterDI(services, configuration);
             return (services, configuration, modelName);
         }
     }

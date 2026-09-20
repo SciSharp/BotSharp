@@ -16,13 +16,15 @@ public interface IInstructService
     /// <param name="files"></param>
     /// <param name="codeOptions"></param>
     /// <param name="fileOptions"></param>
+    /// <param name="renderData">Data used to render the instruction or template. When null, the conversation states are used.</param>
     /// <returns></returns>
     Task<InstructResult> Execute(string agentId, RoleDialogModel message,
         string? instruction = null, string? templateName = null,
         IEnumerable<InstructFileModel>? files = null,
         CodeInstructOptions? codeOptions = null,
         FileInstructOptions? fileOptions = null,
-        ResponseFormatType? responseFormat = null);
+        ResponseFormatType? responseFormat = null,
+        IDictionary<string, object>? renderData = null);
 
     /// <summary>
     /// A generic way to execute completion by using specified instruction or template
