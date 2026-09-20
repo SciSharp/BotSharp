@@ -15,7 +15,7 @@ public partial class RouteToAgentFn : IFunctionCallback
 #if DEBUG
     public string Indication => "Routing to the specified AI agent...";
 #else
-    public string Indication => "Think...";
+    public string Indication => "Thinking...";
 #endif
 
     public RouteToAgentFn(IServiceProvider services, IRoutingContext context)
