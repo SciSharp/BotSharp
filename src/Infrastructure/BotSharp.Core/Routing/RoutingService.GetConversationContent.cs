@@ -5,28 +5,35 @@ public partial class RoutingService
     public async Task<string> GetConversationContent(List<RoleDialogModel> dialogs, int maxDialogCount = 100)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var conversation = "";
-        var conversationDialogs = dialogs.Where(x => !x.ExcludeFromContext).TakeLast(maxDialogCount).ToList();
+        var conversation = new StringBuilder();
+        // A tool result from an earlier turn says nothing about which agent should answer now.
+        var conversationDialogs = dialogs
+            .Where(x => !x.ExcludeFromContext)
+            .Where(x => x.Role != AgentRole.Function || x.MessageId == Context.MessageId)
+            .TakeLast(maxDialogCount)
+            .ToList();
         foreach (var dialog in conversationDialogs)
         {
-            var role = dialog.Role;
-            if (role != AgentRole.User)
-            {
-                var agent = await agentService.GetAgent(dialog.CurrentAgentId);
-                role = agent.Name;
-            }
+            var agent = dialog.Role == AgentRole.User ? null : await agentService.GetAgent(dialog.CurrentAgentId);
+            var name = agent?.Name ?? dialog.Role;
 
-            if (role == AgentRole.User)
+            if (dialog.Role == AgentRole.User)
             {
-                conversation += $"{role}: {dialog.Payload ?? dialog.Content}\r\n";
+                // What the user said can arrive as a postback payload rather than as text
+                conversation.Append($"{name}: {dialog.LlmContent}\r\n");
+            }
+            else if (dialog.Role == AgentRole.Function)
+            {
+                // A tool result is not something the agent said, so name the call it answers
+                conversation.Append($"{name}: Call function {dialog.FunctionName}({dialog.FunctionArgs}) => {dialog.Content}\r\n");
             }
             else
             {
                 // Assistant reply doesn't need help with payload
-                conversation += $"{role}: {dialog.Content}\r\n";
+                conversation.Append($"{name}: {dialog.Content}\r\n");
             }
         }
 
-        return conversation;
+        return conversation.ToString();
     }
 }

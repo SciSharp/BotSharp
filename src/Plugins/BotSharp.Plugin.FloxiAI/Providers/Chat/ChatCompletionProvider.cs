@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.MessageHub.Models;
@@ -416,11 +417,10 @@ public class ChatCompletionProvider : IChatCompletion
             ["model"] = _model,
             ["messages"] = messages,
             ["stream"] = stream,
-            ["max_tokens"] = int.TryParse(state.GetState("max_tokens"), out var maxTokens)
-                ? maxTokens
-                : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN,
+            ["max_tokens"] = state.GetState<int?>(LlmStateConst.MAX_TOKENS)
+                ?? agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN,
             ["temperature"] = settings?.Reasoning?.Temperature
-                ?? (float.TryParse(state.GetState("temperature", "0.0"), out var temperature) ? temperature : 0f)
+                ?? state.GetState(LlmStateConst.TEMPERATURE, 0f)
         };
 
         if (stream)
@@ -450,7 +450,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     private static bool IsThinkingEnabled(IConversationStateService state)
     {
-        return bool.TryParse(state.GetState(FloxiAiConstants.EnableThinkingState), out var enabled) && enabled;
+        return state.IsTrue(FloxiAiConstants.EnableThinkingState);
     }
 
     private static JsonObject TextMessage(string role, string content)

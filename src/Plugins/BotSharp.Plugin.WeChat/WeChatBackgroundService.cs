@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Conversations.Enums;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
@@ -59,7 +61,7 @@ namespace BotSharp.Plugin.WeChat
 
             await conversationService.SetConversationId(latestConversationId, new List<MessageState>
             {
-                new MessageState("channel", "wechat")
+                new MessageState(StateConst.CHANNEL, ConversationChannel.WeChat)
             });
 
             latestConversationId ??= (await conversationService.NewConversation(new Conversation()

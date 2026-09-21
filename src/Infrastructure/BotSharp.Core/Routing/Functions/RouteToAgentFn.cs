@@ -12,7 +12,12 @@ public partial class RouteToAgentFn : IFunctionCallback
     public string Name => "route_to_agent";
     private readonly IServiceProvider _services;
     private readonly IRoutingContext _context;
+#if DEBUG
     public string Indication => "Routing to the specified AI agent...";
+#else
+    public string Indication => "Thinking...";
+#endif
+
     public RouteToAgentFn(IServiceProvider services, IRoutingContext context)
     {
         _services = services;
@@ -28,10 +33,10 @@ public partial class RouteToAgentFn : IFunctionCallback
         if (!string.IsNullOrEmpty(args.OriginalAgent) && args.OriginalAgent.Length < 32)
         {
             // Correct user goal agent to keep orignal task
-            var goalAgentInState = states.GetState("user_goal_agent", string.Empty);
+            var goalAgentInState = states.GetState(StateConst.USER_GOAL_AGENT, string.Empty);
             if (args.OriginalAgent != goalAgentInState)
             {
-                states.SetState("user_goal_agent", args.OriginalAgent, isNeedVersion: true);
+                states.SetState(StateConst.USER_GOAL_AGENT, args.OriginalAgent, isNeedVersion: true);
             }
 
             var db = _services.GetRequiredService<IBotSharpRepository>();

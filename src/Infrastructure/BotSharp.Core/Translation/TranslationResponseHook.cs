@@ -30,7 +30,7 @@ namespace BotSharp.Logger.Hooks
                 return;
             }
 
-            if (_states.GetState("channel") == ConversationChannel.Phone)
+            if (_states.IsPhoneChannel())
             {
                 return;
             }

@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Instructs.Enums;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Templating;
 using Newtonsoft.Json.Linq;
@@ -39,7 +40,7 @@ public partial class AgentService
         if (channels != null)
         {
             var state = _services.GetRequiredService<IConversationStateService>();
-            var channel = state.GetState("channel");
+            var channel = state.GetState(StateConst.CHANNEL);
             if (!string.IsNullOrWhiteSpace(channel))
             {
                 isRender = isRender && channels.Contains(channel);

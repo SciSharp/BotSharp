@@ -1,4 +1,5 @@
 #pragma warning disable OPENAI001
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
@@ -441,7 +442,7 @@ public partial class ChatCompletionProvider
         var imageDetailLevel = ChatImageDetailLevel.Auto;
         if (allowMultiModal)
         {
-            imageDetailLevel = ParseChatImageDetailLevel(_state.GetState("chat_image_detail_level"));
+            imageDetailLevel = ParseChatImageDetailLevel(_state.GetState(LlmStateConst.CHAT_IMAGE_DETAIL_LEVEL));
         }
 
         foreach (var message in filteredMessages)
@@ -610,7 +611,7 @@ public partial class ChatCompletionProvider
         var settings = settingsService.GetSetting(Provider, _model);
 
         // Reasoning
-        float? temperature = float.Parse(_state.GetState("temperature", "0.0"));
+        float? temperature = _state.GetState(LlmStateConst.TEMPERATURE, 0.0f);
         var (reasoningTemp, reasoningEffortLevel) = ParseReasoning(settings?.Reasoning, agent);
         if (reasoningTemp.HasValue)
         {
@@ -626,9 +627,8 @@ public partial class ChatCompletionProvider
             webSearchOptions = new();
         }
 
-        var maxTokens = int.TryParse(_state.GetState("max_tokens"), out var tokens)
-                        ? tokens
-                        : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
+        var maxTokens = _state.GetState<int?>(LlmStateConst.MAX_TOKENS)
+                        ?? agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
         var options = new ChatCompletionOptions()
         {
@@ -642,7 +642,7 @@ public partial class ChatCompletionProvider
 
         if (webSearchOptions == null)
         {
-            var format = _state.GetState("response_format").IfNullOrEmptyAs(agent.LlmConfig?.ResponseFormat);
+            var format = _state.GetState(LlmStateConst.RESPONSE_FORMAT).IfNullOrEmptyAs(agent.LlmConfig?.ResponseFormat);
             options.ResponseFormat = GetChatResponseFormat(format);
         }
 
@@ -670,7 +670,7 @@ public partial class ChatCompletionProvider
         float? temperature = null;
         ChatReasoningEffortLevel? reasoningEffortLevel = null;
 
-        var level = _state.GetState("reasoning_effort_level");
+        var level = _state.GetState(LlmStateConst.REASONING_EFFORT_LEVEL);
 
         if (string.IsNullOrEmpty(level) && _model == agent?.LlmConfig?.Model)
         {
@@ -744,7 +744,7 @@ public partial class ChatCompletionProvider
         }
 
         // Apply tool_choice only when tools are present; tool_choice is rejected by the API otherwise.
-        if (_state.GetState("tool_choice").IsEqualTo("required"))
+        if (_state.GetState(LlmStateConst.TOOL_CHOICE).IsEqualTo("required"))
         {
             options.ToolChoice = ChatToolChoice.CreateRequiredChoice();
         }
@@ -769,7 +769,7 @@ public partial class ChatCompletionProvider
     /// Concatenating every fragment into a single string, as this did before, produced one
     /// malformed argument blob as soon as the model asked for more than one tool at a time.
     /// </remarks>
-    private static List<LlmToolCall> ReconstructToolCalls(List<StreamingChatToolCallUpdate> updates)
+    internal static List<LlmToolCall> ReconstructToolCalls(List<StreamingChatToolCallUpdate> updates)
     {
         var calls = new List<LlmToolCall>();
         var args = new List<StringBuilder>();

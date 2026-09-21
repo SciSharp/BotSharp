@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using OpenAI.Audio;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Audio;
@@ -35,7 +36,7 @@ public class AudioSynthesisProvider : IAudioSynthesis
         var state = _services.GetRequiredService<IConversationStateService>();
         var speechVoice = GetVoice(voice ?? "alloy");
         var responseFormat = GetSpeechFormat(format ?? "mp3");
-        var speed = GetSpeed(state.GetState("speech_generate_speed"));
+        var speed = state.GetState<float?>(AudioStateConst.SPEECH_GENERATE_SPEED);
 
         var options = new SpeechGenerationOptions
         {
@@ -102,15 +103,5 @@ public class AudioSynthesisProvider : IAudioSynthesis
         }
 
         return format;
-    }
-
-    private float? GetSpeed(string input)
-    {
-        if (!float.TryParse(input, out var speed))
-        {
-            return null;
-        }
-
-        return speed;
     }
 }

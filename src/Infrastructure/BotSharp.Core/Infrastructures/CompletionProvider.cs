@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.MLTasks.Settings;
 using BotSharp.Abstraction.Models;
@@ -253,19 +254,19 @@ public class CompletionProvider
         if (string.IsNullOrEmpty(provider))
         {
             provider = agentConfig?.Provider ?? agentSetting.LlmConfig?.Provider;
-            provider = state.GetState("provider", provider ?? "azure-openai");
+            provider = state.GetState(LlmStateConst.PROVIDER, provider ?? "azure-openai");
         }
 
         if (string.IsNullOrEmpty(model))
         {
             model = agentConfig?.Model ?? agentSetting.LlmConfig?.Model;
-            if (state.ContainsState("model"))
+            if (state.ContainsState(LlmStateConst.MODEL))
             {
-                model = state.GetState("model", model ?? "gpt-image-1-mini");
+                model = state.GetState(LlmStateConst.MODEL, model ?? "gpt-image-1-mini");
             }
-            else if (state.ContainsState("model_id") || !string.IsNullOrEmpty(modelId))
+            else if (state.ContainsState(LlmStateConst.MODEL_ID) || !string.IsNullOrEmpty(modelId))
             {
-                var modelIdentity = state.ContainsState("model_id") ? state.GetState("model_id") : modelId;
+                var modelIdentity = state.ContainsState(LlmStateConst.MODEL_ID) ? state.GetState(LlmStateConst.MODEL_ID) : modelId;
                 var llmProviderService = services.GetRequiredService<ILlmProviderService>();
                 model = llmProviderService.GetProviderModel(provider, modelIdentity,
                     multiModal: multiModal,
@@ -274,8 +275,8 @@ public class CompletionProvider
             }
         }
 
-        state.SetState("provider", provider);
-        state.SetState("model", model);
+        state.SetState(LlmStateConst.PROVIDER, provider);
+        state.SetState(LlmStateConst.MODEL, model);
         return (provider, model);
     }
 }

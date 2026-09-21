@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Hooks;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
@@ -89,8 +90,8 @@ public class TextCompletionProvider : ITextCompletion
     private ChatCompletionOptions PrepareOptions()
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        var temperature = float.Parse(state.GetState("temperature", "0.0"));
-        var maxTokens = int.Parse(state.GetState("max_tokens", "1024"));
+        var temperature = state.GetState(LlmStateConst.TEMPERATURE, 0.0f);
+        var maxTokens = state.GetState(LlmStateConst.MAX_TOKENS, 1024);
 
         return new ChatCompletionOptions
         {

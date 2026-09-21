@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using OpenAI.Images;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers.Image;
@@ -30,11 +31,11 @@ public partial class ImageCompletionProvider
         var prompt = message?.Payload ?? message?.Content ?? string.Empty;
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        var size = GetImageSize(state.GetState("image_size"));
-        var quality = GetImageQuality(state.GetState("image_quality"));
-        var style = GetImageStyle(state.GetState("image_style"));
-        var format = GetImageFormat(state.GetState("image_response_format"));
-        var count = GetImageCount(state.GetState("image_count", "1"));
+        var size = GetImageSize(state.GetState(ImageStateConst.IMAGE_SIZE));
+        var quality = GetImageQuality(state.GetState(ImageStateConst.IMAGE_QUALITY));
+        var style = GetImageStyle(state.GetState(ImageStateConst.IMAGE_STYLE));
+        var format = GetImageFormat(state.GetState(ImageStateConst.IMAGE_RESPONSE_FORMAT));
+        var count = GetImageCount(state.GetState<int?>(ImageStateConst.IMAGE_COUNT));
 
         var options = new ImageGenerationOptions
         {

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Core.Infrastructures;
 using MySqlConnector;
 using static Dapper.SqlMapper;
@@ -61,10 +62,10 @@ public class VerifyDictionaryTerm : IFunctionCallback
         }
 
         var states = _services.GetRequiredService<IConversationStateService>();
-        var dictionaryItems = states.GetState("dictionary_items", "");
+        var dictionaryItems = states.GetState(DataStateConst.DICTIONARY_ITEMS, "");
         var newItem = BuildDictionaryItem(args.Table, args.Reason, message.Content);
         dictionaryItems += !string.IsNullOrWhiteSpace(newItem) ? $"\r\n{newItem}\r\n" : string.Empty;
-        states.SetState("dictionary_items", dictionaryItems);
+        states.SetState(DataStateConst.DICTIONARY_ITEMS, dictionaryItems);
 
         return true;
     }

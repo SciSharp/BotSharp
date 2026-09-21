@@ -13,6 +13,7 @@ public static class StateConst
     public const string LAZY_ROUTING_AGENT_ID = "lazy_routing_agent_id";
 
     public const string LANGUAGE = "language";
+    public const string CHANNEL = "channel";
 
     /// <summary>
     /// Set from the incoming request: whether the caller wants the reply streamed back as it is generated.

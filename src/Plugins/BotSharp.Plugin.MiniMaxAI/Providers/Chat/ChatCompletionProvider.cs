@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using OpenAI.Chat;
 
 namespace BotSharp.Plugin.MiniMaxAI.Providers.Chat;
@@ -25,7 +26,7 @@ public class ChatCompletionProvider : global::BotSharp.Plugin.OpenAI.Providers.C
         var thinkingType = LlmUtility.GetModelParameter(
             parameters,
             "ThinkingType",
-            _state.GetState("thinking_type"));
+            _state.GetState(LlmStateConst.THINKING_TYPE));
         if (thinkingType is "adaptive" or "disabled")
         {
             var thinking = JsonSerializer.SerializeToUtf8Bytes(new { type = thinkingType });
@@ -36,7 +37,7 @@ public class ChatCompletionProvider : global::BotSharp.Plugin.OpenAI.Providers.C
             .Select(x => x.ServiceTier)
             .Distinct(StringComparer.OrdinalIgnoreCase);
         var serviceTier = LlmUtility.VerifyModelParameter(
-            _state.GetState("service_tier"),
+            _state.GetState(LlmStateConst.SERVICE_TIER),
             settings?.Cost?.DefaultServiceTier,
             serviceTiers);
         if (!string.IsNullOrWhiteSpace(serviceTier))

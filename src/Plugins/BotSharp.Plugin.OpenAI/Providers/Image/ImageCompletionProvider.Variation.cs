@@ -1,4 +1,5 @@
 #pragma warning disable OPENAI001
+using BotSharp.Abstraction.Infrastructures.Enums;
 using OpenAI.Images;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Image;
@@ -60,8 +61,8 @@ public partial class ImageCompletionProvider
     {
         var state = _services.GetRequiredService<IConversationStateService>();
 
-        var size = state.GetState("image_size");
-        var responseFormat = state.GetState("image_response_format");
+        var size = state.GetState(ImageStateConst.IMAGE_SIZE);
+        var responseFormat = state.GetState(ImageStateConst.IMAGE_RESPONSE_FORMAT);
 
         size = LlmUtility.GetModelParameter(settings?.Parameters, "Size", size);
         responseFormat = LlmUtility.GetModelParameter(settings?.Parameters, "ResponseFormat", responseFormat);
@@ -76,7 +77,7 @@ public partial class ImageCompletionProvider
             options.ResponseFormat = GetImageResponseFormat(responseFormat);
         }
 
-        var count = GetImageCount(state.GetState("image_count", "1"));
+        var count = GetImageCount(state.GetState<int?>(ImageStateConst.IMAGE_COUNT));
         return (count, options);
     }
 }

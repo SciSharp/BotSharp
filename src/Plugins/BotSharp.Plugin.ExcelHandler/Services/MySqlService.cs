@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using System.Data;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
@@ -53,7 +54,7 @@ public class MySqlService : IDbService
             }
 
             string table = $"{_database}.{_tableName}";
-            state.SetState("tmp_table", table);
+            state.SetState(DataStateConst.TMP_TABLE, table);
 
             var (isInsertSuccess, insertMessage) = SqlInsertDataFn(message, sheet);
             string exampleData = GetInsertExample(message, table);

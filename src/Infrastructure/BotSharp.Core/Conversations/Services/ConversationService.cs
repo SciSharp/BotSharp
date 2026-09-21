@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Users.Models;
 using System.Threading.Tasks;
 
@@ -208,7 +209,7 @@ public partial class ConversationService : IConversationService
         if (converation == null)
         {
             var state = _services.GetRequiredService<IConversationStateService>();
-            var channel = state.GetState("channel");
+            var channel = state.GetState(StateConst.CHANNEL);
             var channelId = state.GetState("channel_id");
             var userId = state.GetState("current_user_id");
             var sess = new Conversation

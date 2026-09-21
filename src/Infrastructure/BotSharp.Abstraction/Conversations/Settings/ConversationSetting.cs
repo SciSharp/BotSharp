@@ -13,8 +13,24 @@ public class ConversationSetting
     public bool EnableStateLog { get; set; }
     public bool EnableTranslationMemory { get; set; }
     public CleanConversationSetting CleanSetting { get; set; } = new();
+    public ToolResultTrimSetting ToolResultTrim { get; set; } = new();
     public RateLimitSetting RateLimit { get; set; } = new();
     public FileSelectSetting? FileSelect { get; set; }
+}
+
+/// <summary>
+/// Caps what an older turn's tool result costs in the prompt. The turn that ran the tool always
+/// sees it whole; only what history replays is shortened.
+/// </summary>
+public class ToolResultTrimSetting
+{
+    public bool Enable { get; set; } = true;
+
+    /// <summary>How many of the most recent turns keep their tool results verbatim.</summary>
+    public int KeepTurns { get; set; } = 2;
+
+    /// <summary>A result longer than this, and older than <see cref="KeepTurns"/>, is shortened.</summary>
+    public int MaxLength { get; set; } = 500;
 }
 
 public class CleanConversationSetting
