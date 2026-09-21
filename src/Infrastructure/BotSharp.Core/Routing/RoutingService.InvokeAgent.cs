@@ -133,11 +133,10 @@ public partial class RoutingService
         }
         else
         {
-            // The function wrote the reply itself. The call is still worth a record, but kept out
-            // of context, since the assistant message that follows carries the same text.
-            var record = RoleDialogModel.From(message, role: AgentRole.Function);
-            record.ExcludeFromContext = true;
-            await Persist(record);
+            // The function wrote the reply itself, and the assistant message that follows repeats
+            // its text. The call is recorded anyway, and stays in context: it is the only thing
+            // telling a later turn that this function already ran.
+            await Persist(RoleDialogModel.From(message, role: AgentRole.Function));
 
             var msg = RoleDialogModel.From(message,
                 role: AgentRole.Assistant,

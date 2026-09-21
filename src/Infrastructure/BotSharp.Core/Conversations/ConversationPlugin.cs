@@ -8,6 +8,7 @@ using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Coding;
+using BotSharp.Core.Conversations.Hooks;
 using BotSharp.Core.Instructs;
 using BotSharp.Core.MessageHub;
 using BotSharp.Core.MessageHub.Observers;
@@ -72,6 +73,8 @@ public class ConversationPlugin : IBotSharpPlugin
         services.AddScoped<ITokenStatistics, TokenStatistics>();
 
         services.AddScoped<IAgentUtilityHook, WebSearchUtilityHook>();
+
+        services.AddScoped<IConversationHook, ToolResultTrimHook>();
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)
