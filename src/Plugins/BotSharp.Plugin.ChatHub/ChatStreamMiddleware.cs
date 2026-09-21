@@ -1,5 +1,7 @@
+using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Realtime.Options;
 using BotSharp.Abstraction.Realtime.Sessions;
+using BotSharp.Core.Infrastructures;
 using BotSharp.Core.Session;
 using Microsoft.AspNetCore.Http;
 using System.Net.WebSockets;
@@ -33,6 +35,23 @@ public class ChatStreamMiddleware
                     var segments = request.Path.Value!.Split("/");
                     var agentId = segments[segments.Length - 2];
                     var conversationId = segments[segments.Length - 1];
+
+                    /*
+                     * Identity, before anything else touches the connection.
+                     *
+                     * The handshake carries no Authorization header - a browser cannot set one on
+                     * a WebSocket - so the signed-in user arrives as a query parameter. It stays
+                     * a query parameter rather than a path segment because agentId and
+                     * conversationId are read from the END of the path above, so an extra segment
+                     * would silently shift both.
+                     *
+                     * Emitted through the SYNCHRONOUS Emit overload: ambient identity is
+                     * AsyncLocal-backed and a write inside an async method does not escape it, so
+                     * an awaited hook would establish nothing for the work awaited below.
+                     */
+                    var userId = httpContext.Request.Query["user-id"].FirstOrDefault();
+                    HookEmitter.Emit<IRealtimeHook>(services,
+                        hook => hook.OnAuthenticate(agentId, conversationId, userId), agentId);
 
                     using var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync();
                     await HandleWebSocket(services, agentId, conversationId, webSocket);
