@@ -23,4 +23,10 @@
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- ReconstructToolCalls is tested directly. It rebuilds a streamed reply's tool calls from
+         fragments that arrive interleaved, and driving that through a live stream is not a test. -->
+    <InternalsVisibleTo Include="BotSharp.Core.UnitTests" />
+  </ItemGroup>
+
 </Project>

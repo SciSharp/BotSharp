@@ -769,7 +769,7 @@ public partial class ChatCompletionProvider
     /// Concatenating every fragment into a single string, as this did before, produced one
     /// malformed argument blob as soon as the model asked for more than one tool at a time.
     /// </remarks>
-    private static List<LlmToolCall> ReconstructToolCalls(List<StreamingChatToolCallUpdate> updates)
+    internal static List<LlmToolCall> ReconstructToolCalls(List<StreamingChatToolCallUpdate> updates)
     {
         var calls = new List<LlmToolCall>();
         var args = new List<StringBuilder>();
