@@ -34,6 +34,8 @@
     <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.AgentTesting\BotSharp.Plugin.AgentTesting.csproj" />
     <!-- For ChatEventDispatcherTests: chat events must never make their producer wait on a client. -->
     <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
+    <!-- For StreamingToolCallReconstructionTests: the streamed tool-call reconstruction lives here. -->
+    <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.OpenAI\BotSharp.Plugin.OpenAI.csproj" />
   </ItemGroup>
 
 </Project>
