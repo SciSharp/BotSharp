@@ -38,16 +38,16 @@ public class GetWeatherFn : IFunctionCallback
 
         await Task.Delay(1500);
 
-#if DEBUG
-        var intermediateMsg = RoleDialogModel.From(message, AgentRole.Assistant, $"Here is your weather in {args?.City}");
-        messageHub.Push(new()
-        {
-            EventName = ChatEvent.OnIntermediateMessageReceivedFromAssistant,
-            Data = intermediateMsg,
-            RefId = conv.ConversationId,
-            SaveDataToDb = true
-        });
-#endif
+//#if DEBUG
+//        var intermediateMsg = RoleDialogModel.From(message, AgentRole.Assistant, $"Here is your weather in {args?.City}");
+//        messageHub.Push(new()
+//        {
+//            EventName = ChatEvent.OnIntermediateMessageReceivedFromAssistant,
+//            Data = intermediateMsg,
+//            RefId = conv.ConversationId,
+//            SaveDataToDb = true
+//        });
+//#endif
 
         message.Indication = $"Still working on it... Hold on, {args?.City}";
         messageHub.Push(new()
@@ -62,20 +62,20 @@ public class GetWeatherFn : IFunctionCallback
         message.Content = $"It is a sunny day!";
         message.StopCompletion = false;
 
-#if DEBUG
-        var sidecar = _services.GetService<IConversationSideCar>();
-        if (sidecar != null)
-        {
-            var text = $"I want to know fun events in {args?.City}";
-            var states = new List<MessageState>
-            {
-                new() { Key = StateConst.CHANNEL, Value = ConversationChannel.Email }
-            };
+//#if DEBUG
+//        var sidecar = _services.GetService<IConversationSideCar>();
+//        if (sidecar != null)
+//        {
+//            var text = $"I want to know fun events in {args?.City}";
+//            var states = new List<MessageState>
+//            {
+//                new() { Key = StateConst.CHANNEL, Value = ConversationChannel.Email }
+//            };
 
-            var msg = await sidecar.SendMessage(message.CurrentAgentId, text, states: states);
-            message.Content = $"{message.Content} {msg.Content}";
-        }
-#endif
+//            var msg = await sidecar.SendMessage(message.CurrentAgentId, text, states: states);
+//            message.Content = $"{message.Content} {msg.Content}";
+//        }
+//#endif
 
         return true;
     }

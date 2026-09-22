@@ -301,7 +301,7 @@ public partial class LiveCompletionProvider
 
         try
         {
-            await ReportGenerated(text);
+            await ReportGenerated(text, messageId);
         }
         catch (Exception ex)
         {
@@ -376,8 +376,15 @@ public partial class LiveCompletionProvider
     /// <summary>
     /// Live voice time is billed per second rather than per token; token counts come from
     /// the backend handler and are zero until it has produced a response.
+    ///
+    /// Reports what the turn cost, nothing else. Prompt is left empty deliberately: the loggers
+    /// that listen on this hook treat a non-empty Prompt as the text sent to the model and write
+    /// it to the content log and the completion log on its own. A live turn has no such text -
+    /// the session instruction went out once, at session update - so filling it with the spoken
+    /// transcript put the assistant's own words in the log a second time, beside the response
+    /// entry <see cref="DeliverOutputTranscript"/> already produced.
     /// </summary>
-    private async Task ReportGenerated(string text)
+    private async Task ReportGenerated(string text, string messageId)
     {
         var usage = _lastBackendUsage;
         _lastBackendUsage = null;
@@ -387,13 +394,14 @@ public partial class LiveCompletionProvider
         {
             await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, text)
             {
-                CurrentAgentId = _conn.CurrentAgentId
+                CurrentAgentId = _conn.CurrentAgentId,
+                MessageId = messageId
             },
             new TokenStatsModel
             {
                 Provider = Provider,
                 Model = _model,
-                Prompt = text,
+                Prompt = string.Empty,
                 TextInputTokens = (usage?.InputTokens ?? 0) - (usage?.InputTokenDetails?.CachedTokens ?? 0),
                 CachedTextInputTokens = usage?.InputTokenDetails?.CachedTokens ?? 0,
                 TextOutputTokens = usage?.OutputTokens ?? 0

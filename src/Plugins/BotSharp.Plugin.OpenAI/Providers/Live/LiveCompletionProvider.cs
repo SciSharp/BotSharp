@@ -282,10 +282,6 @@ public partial class LiveCompletionProvider : ILiveCompletion
                 }
             });
         }
-        else
-        {
-            throw new NotImplementedException($"Unrecognized role {message.Role}.");
-        }
     }
 
     public void SetModelName(string model)
