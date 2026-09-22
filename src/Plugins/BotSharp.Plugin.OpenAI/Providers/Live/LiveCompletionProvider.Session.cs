@@ -68,6 +68,16 @@ public partial class LiveCompletionProvider
 
         _lastAgentInstruction = instruction;
 
+        var backendModel = agent?.LlmConfig?.Model;
+        if (string.IsNullOrEmpty(backendModel))
+        {
+            _logger.LogWarning("No llm_config model on agent {AgentId}; the {Provider} delegation has no backend to think with.",
+                agent?.Id, Provider);
+        }
+
+        _backendProvider = agent?.LlmConfig?.Provider;
+        _backendModel = backendModel;
+
         var config = new LiveSessionConfig
         {
             Model = _model,
@@ -76,7 +86,7 @@ public partial class LiveCompletionProvider
             Instructions = GetVoiceInstruction(agent),
             Store = liveSettings.Store ? true : null,
             Audio = BuildAudioConfig(realtimeModelSettings, liveSettings),
-            Delegation = BuildDelegationConfig(agent, instruction, functions, realtimeModelSettings, liveSettings)
+            Delegation = BuildDelegationConfig(agent, instruction, functions, realtimeModelSettings, backendModel)
         };
 
         await HookEmitter.Emit<IContentGeneratingHook>(_services, async hook =>
@@ -140,16 +150,17 @@ public partial class LiveCompletionProvider
         string instruction,
         FunctionDef[] functions,
         RealtimeModelSettings realtimeModelSettings,
-        LiveSettings liveSettings)
+        string? backendModel)
     {
-        var reasoningEffort = GetReasoningEffort(agent);
+        var liveSettings = LiveSettings;
+        var reasoningEffort = GetReasoningEffort(agent, backendModel);
 
         return new LiveDelegationConfig
         {
             Type = LiveDelegationType.Responses,
             Responses = new LiveResponsesDelegationConfig
             {
-                Model = liveSettings.BackendModel,
+                Model = backendModel,
                 Instructions = instruction,
                 Tools = functions,
                 ToolChoice = "auto",
@@ -200,7 +211,7 @@ public partial class LiveCompletionProvider
     /// does the thinking. It comes from the agent's own llm_config, not from llm_config.live:
     /// that one names the voice model, and the voice model has no reasoning to configure.
     /// </summary>
-    private string? GetReasoningEffort(Agent? agent)
+    private string? GetReasoningEffort(Agent? agent, string? backendModel)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         var reasoningEffort = state.GetState("reasoning_effort_level");
@@ -213,7 +224,7 @@ public partial class LiveCompletionProvider
         if (string.IsNullOrEmpty(reasoningEffort))
         {
             // Settings for the backend model too, for the same reason.
-            var settings = GetModelSetting(LiveSettings.BackendModel)?.Reasoning;
+            var settings = GetModelSetting(backendModel)?.Reasoning;
 
             reasoningEffort = settings?.EffortLevel;
             if (settings?.Parameters != null

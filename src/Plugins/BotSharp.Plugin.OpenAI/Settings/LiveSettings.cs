@@ -30,12 +30,6 @@ public class LiveSettings
     public string? Greeting { get; set; } = LivePromptConstants.DefaultGreeting;
 
     /// <summary>
-    /// Backend reasoning model that does the thinking and runs the tools behind the
-    /// conversation. Live calls it itself and feeds the results back into the call.
-    /// </summary>
-    public string BackendModel { get; set; } = "gpt-5.6-luna";
-
-    /// <summary>
     /// auto, default, flex, or priority (also accepted as "fast").
     /// Applies to the backend Responses call, not to the billed voice minutes.
     /// </summary>

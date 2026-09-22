@@ -39,6 +39,14 @@ public partial class LiveCompletionProvider : ILiveCompletion
     /// </summary>
     private string? _lastAgentInstruction;
 
+    /// <summary>
+    /// Provider and model of the backend handler, as resolved for the agent when the session was
+    /// last configured. Kept so the token stats can be filed against the model that actually
+    /// spent them, from the response event that reports the usage - which carries no agent.
+    /// </summary>
+    private string? _backendProvider;
+    private string? _backendModel;
+
     private RealtimeHubConnection _conn = null!;
     private Func<Task> _onModelReady = null!;
     private Func<string, string, Task> _onModelAudioDeltaReceived = null!;
@@ -88,6 +96,8 @@ public partial class LiveCompletionProvider : ILiveCompletion
 
         _currentDelegationId = null;
         _lastAgentInstruction = null;
+        _backendProvider = null;
+        _backendModel = null;
         ResetSessionState();
 
         var realtimeSettings = _services.GetRequiredService<RealtimeModelSettings>();

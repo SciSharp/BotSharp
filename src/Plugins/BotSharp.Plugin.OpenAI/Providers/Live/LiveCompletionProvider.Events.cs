@@ -12,8 +12,6 @@ public partial class LiveCompletionProvider
     private IdleFlushTimer? _inputTranscriptTimer;
     private IdleFlushTimer? _audioIdleTimer;
 
-    private LiveResponseUsage? _lastBackendUsage;
-
     /// <summary>
     /// Everything that touches the conversation - running a tool, recording a turn - runs here
     /// rather than on the receive loop, which has to stay free to drain audio. See
@@ -294,19 +292,7 @@ public partial class LiveCompletionProvider
             MessageType = MessageTypeName.Plain
         };
 
-        // Deliver before telemetry. The buffer is already drained by this point, so anything that
-        // throws on the way out loses the turn for good - and the queue only logs what throws,
-        // so the message would vanish without a trace.
         await _onModelResponseDone([message]);
-
-        try
-        {
-            await ReportGenerated(text, messageId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to report {Provider} token stats.", Provider);
-        }
     }
 
     /// <summary>
@@ -374,33 +360,43 @@ public partial class LiveCompletionProvider
     }
 
     /// <summary>
-    /// Live voice time is billed per second rather than per token; token counts come from
-    /// the backend handler and are zero until it has produced a response.
+    /// Reports what a backend turn cost. Live voice time is billed per second rather than per
+    /// token; token counts come from the backend handler, which is the only thing here that
+    /// produces any.
     ///
-    /// Reports what the turn cost, nothing else. Prompt is left empty deliberately: the loggers
-    /// that listen on this hook treat a non-empty Prompt as the text sent to the model and write
-    /// it to the content log and the completion log on its own. A live turn has no such text -
-    /// the session instruction went out once, at session update - so filling it with the spoken
-    /// transcript put the assistant's own words in the log a second time, beside the response
-    /// entry <see cref="DeliverOutputTranscript"/> already produced.
+    /// Filed against the backend model rather than the voice model that owns the session. These
+    /// tokens were spent by the delegated Responses call, and the stats are priced by looking the
+    /// reported model up in LlmProviders - so naming the voice model here would charge a
+    /// reasoning turn at the rates of a model that never saw it.
+    ///
+    /// Called from the lifecycle event that carries the usage rather than held in a field until
+    /// the spoken transcript is flushed. Those two run on different threads, so the field went
+    /// stale both ways: a second response completing first overwrote the usage nobody had read
+    /// yet, and a transcript flushed before the backend finished reported zeros.
+    ///
+    /// Prompt is left empty deliberately: the loggers that listen on this hook treat a non-empty
+    /// Prompt as the text sent to the model and write it to the content log and the completion
+    /// log on their own. A live turn has no such text - the session instruction went out once, at
+    /// session update - so filling it with the spoken transcript put the assistant's own words in
+    /// the log a second time, beside the response entry
+    /// <see cref="DeliverOutputTranscript"/> already produced.
     /// </summary>
-    private async Task ReportGenerated(string text, string messageId)
+    private async Task ReportGenerated(LiveResponseUsage? usage, string messageId)
     {
-        var usage = _lastBackendUsage;
-        _lastBackendUsage = null;
-
         var contentHooks = _services.GetHooks<IContentGeneratingHook>(_conn.CurrentAgentId);
         foreach (var hook in contentHooks)
         {
-            await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, text)
+            // The cost belongs to the backend turn, not to anything spoken, so the message
+            // carries no content: it is here for the agent id the stats are filed under.
+            await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, string.Empty)
             {
                 CurrentAgentId = _conn.CurrentAgentId,
                 MessageId = messageId
             },
             new TokenStatsModel
             {
-                Provider = Provider,
-                Model = _model,
+                Provider = _backendProvider.IfNullOrEmptyAs(Provider)!,
+                Model = _backendModel ?? string.Empty,
                 Prompt = string.Empty,
                 TextInputTokens = (usage?.InputTokens ?? 0) - (usage?.InputTokenDetails?.CachedTokens ?? 0),
                 CachedTextInputTokens = usage?.InputTokenDetails?.CachedTokens ?? 0,
@@ -438,8 +434,17 @@ public partial class LiveCompletionProvider
             case LiveResponseInnerEventType.Completed:
             case LiveResponseInnerEventType.Incomplete:
             case LiveResponseInnerEventType.Failed:
-                _lastBackendUsage = inner.Response?.Usage;
                 _logger.LogInformation("{Type}: backend response {Status}", inner.Type, inner.Response?.Status);
+
+                // A turn that came back incomplete or failed was still billed for what it did
+                // produce, so all three report. Queued rather than awaited: this reaches the
+                // stats store, and the receive loop has to stay free to drain audio.
+                var usage = inner.Response?.Usage;
+                if (usage != null)
+                {
+                    var responseId = inner.Response?.Id ?? Guid.NewGuid().ToString();
+                    _conversationWork?.Enqueue(() => ReportGenerated(usage, responseId));
+                }
                 return;
 
             default:
@@ -521,7 +526,7 @@ public partial class LiveCompletionProvider
         _logger.LogInformation("{Type}: delegation {Id} to {Target}",
             LiveServerEventType.DelegationCreated, delegationId, data?.Delegation?.Target);
 
-        await _onConversationItemCreated(receivedText);
+        //await _onConversationItemCreated(receivedText);
     }
     #endregion
 
@@ -536,7 +541,6 @@ public partial class LiveCompletionProvider
             _inputTranscript.Clear();
         }
 
-        _lastBackendUsage = null;
         _lastTranscriptRole = null;
 
         _conversationWork = new SerialWorkQueue("conversation", _logger);
