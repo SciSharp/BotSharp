@@ -23,6 +23,17 @@ public partial class LiveCompletionProvider : ILiveCompletion
     private readonly BotSharpOptions _botsharpOptions;
     private readonly OpenAiSettings _openAiSettings;
 
+    /// <summary>
+    /// Level for the event tracing below. A local debug build raises it to Critical so the live
+    /// traffic stands out in the console; anywhere else it stays at Information, where a running
+    /// call does not read as a fault.
+    /// </summary>
+#if DEBUG
+    private const LogLevel TraceLevel = LogLevel.Critical;
+#else
+    private const LogLevel TraceLevel = LogLevel.Information;
+#endif
+
     private string _model = LiveModelConstants.GPT_Live_1;
     private LlmRealtimeSession? _session;
     private RealtimeOptions? _realtimeOptions;

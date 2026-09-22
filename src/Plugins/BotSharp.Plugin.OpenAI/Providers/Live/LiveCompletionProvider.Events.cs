@@ -85,12 +85,12 @@ public partial class LiveCompletionProvider
         {
             case LiveServerEventType.Error:
                 var error = JsonSerializer.Deserialize<LiveErrorEvent>(receivedText);
-                _logger.LogCritical("{Type}: {Payload}", type, receivedText);
+                _logger.Log(TraceLevel, "{Type}: {Payload}", type, receivedText);
                 // Command level failures leave the session usable; only transport errors end it.
                 return error?.Body?.Type == "server_error";
 
             case LiveServerEventType.SessionStarted:
-                _logger.LogCritical("{Type}: {Payload}", type, receivedText);
+                _logger.Log(TraceLevel, "{Type}: {Payload}", type, receivedText);
                 _isBlocking = false;
                 await _onModelReady();
 
@@ -100,12 +100,12 @@ public partial class LiveCompletionProvider
                 return false;
 
             case LiveServerEventType.SessionUpdated:
-                _logger.LogCritical("{Type}: {Payload}", type, receivedText);
+                _logger.Log(TraceLevel, "{Type}: {Payload}", type, receivedText);
                 return false;
 
             case LiveServerEventType.SessionClosed:
                 var closed = JsonSerializer.Deserialize<LiveSessionClosedEvent>(receivedText);
-                _logger.LogCritical("{Type}: reason {Reason}, billed {Seconds}s",
+                _logger.Log(TraceLevel, "{Type}: reason {Reason}, billed {Seconds}s",
                     type, closed?.Reason, closed?.Usage?.Seconds);
                 // Deliberately not flushed. A turn cut short by the session ending is not a
                 // completed turn, and its partial text has already been shown live.
@@ -113,7 +113,7 @@ public partial class LiveCompletionProvider
 
             case LiveServerEventType.UsageUpdated:
                 var usage = JsonSerializer.Deserialize<LiveUsageUpdatedEvent>(receivedText);
-                _logger.LogCritical("{Type}: {Seconds}s, context {Ratio}",
+                _logger.Log(TraceLevel, "{Type}: {Seconds}s, context {Ratio}",
                     type, usage?.Usage?.Seconds, usage?.Usage?.ContextWindow?.UsageRatio);
                 return false;
 
@@ -122,27 +122,27 @@ public partial class LiveCompletionProvider
                 return false;
 
             case LiveServerEventType.OutputTranscriptDelta:
-                _logger.LogCritical("{Type}: {Payload}", type, receivedText);
+                _logger.Log(TraceLevel, "{Type}: {Payload}", type, receivedText);
                 await OnTranscriptDelta(receivedText, _outputTranscript, _outputTranscriptTimer, AgentRole.Assistant);
                 return false;
 
             case LiveServerEventType.InputTranscriptDelta:
-                _logger.LogCritical("{Type}: {Payload}", type, receivedText);
+                _logger.Log(TraceLevel, "{Type}: {Payload}", type, receivedText);
                 await OnTranscriptDelta(receivedText, _inputTranscript, _inputTranscriptTimer, AgentRole.User);
                 return false;
 
             case LiveServerEventType.ResponseEvent:
-                _logger.LogCritical("{Type}: {Payload}", type, receivedText);
+                _logger.Log(TraceLevel, "{Type}: {Payload}", type, receivedText);
                 OnBackendResponseEvent(receivedText);
                 return false;
 
             case LiveServerEventType.DelegationCreated:
-                _logger.LogCritical("{Type}: {Payload}", type, receivedText);
+                _logger.Log(TraceLevel, "{Type}: {Payload}", type, receivedText);
                 await OnDelegationCreated(receivedText);
                 return false;
 
             default:
-                _logger.LogCritical("{Type}: {Payload}", type, receivedText);
+                _logger.Log(TraceLevel, "{Type}: {Payload}", type, receivedText);
                 return false;
         }
     }
@@ -476,7 +476,7 @@ public partial class LiveCompletionProvider
                     return;
                 }
 
-                _logger.LogCritical("{Provider} tool call {Name}({Arguments})", Provider, item.Name, item.Arguments);
+                _logger.Log(TraceLevel, "{Provider} tool call {Name}({Arguments})", Provider, item.Name, item.Arguments);
 
                 var call = new RoleDialogModel(AgentRole.Assistant, item.Arguments ?? "{}")
                 {
@@ -504,7 +504,7 @@ public partial class LiveCompletionProvider
                     return;
                 }
 
-                _logger.LogCritical("{Provider} backend {Phase} answer: {Text}",
+                _logger.Log(TraceLevel, "{Provider} backend {Phase} answer: {Text}",
                     Provider, item.Phase ?? LiveResponsePhase.FinalAnswer, text);
                 return;
 
