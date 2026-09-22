@@ -208,6 +208,72 @@ public class ToolResultTrimHookTests
     }
 
     [Fact]
+    public async Task Stands_in_for_a_result_the_assistant_message_repeats()
+    {
+        // A function that writes the user-facing reply itself has its text stored twice. Short
+        // enough to pass the length cap, and shown to the model as a tool result echoed word for
+        // word by the assistant -- which is what the model then learns to do.
+        const string reply = "Are you creating a duplicate work order or not?";
+        var dialogs = new List<RoleDialogModel>
+        {
+            Tool(OldTurn, reply, function: "check_prerequisites"),
+            new(AgentRole.Assistant, reply) { MessageId = OldTurn }
+        };
+
+        await BuildHook(Settings(keepTurns: 0), CurrentTurn).OnDialogsLoaded(dialogs);
+
+        Assert.Equal("[replied to the user]", dialogs[0].Content);
+        Assert.Equal("check_prerequisites", dialogs[0].FunctionName);
+        Assert.Equal(reply, dialogs[1].Content);
+    }
+
+    [Fact]
+    public async Task Leaves_a_result_the_assistant_only_paraphrased()
+    {
+        var dialogs = new List<RoleDialogModel>
+        {
+            Tool(OldTurn, "Got location id 750229, resident id 1673151, continue current process."),
+            new(AgentRole.Assistant, "Got it. Can you tell me about the issue?") { MessageId = OldTurn }
+        };
+
+        await BuildHook(Settings(keepTurns: 0), CurrentTurn).OnDialogsLoaded(dialogs);
+
+        Assert.StartsWith("Got location id 750229", dialogs[0].Content);
+    }
+
+    [Fact]
+    public async Task Stands_in_even_for_a_turn_that_keeps_its_results()
+    {
+        // Shortening spares the recent turns because their detail may still be wanted. A repeat
+        // has no detail to spare: the assistant message beside it says the same thing.
+        const string reply = "Are you ready for some questions?";
+        var dialogs = new List<RoleDialogModel>
+        {
+            Tool(RecentTurn, reply),
+            new(AgentRole.Assistant, reply) { MessageId = RecentTurn }
+        };
+
+        await BuildHook(Settings(keepTurns: 2), CurrentTurn).OnDialogsLoaded(dialogs);
+
+        Assert.Equal("[replied to the user]", dialogs[0].Content);
+    }
+
+    [Fact]
+    public async Task Does_not_match_the_same_text_from_another_turn()
+    {
+        const string reply = "Are you creating a duplicate work order or not?";
+        var dialogs = new List<RoleDialogModel>
+        {
+            Tool(OldTurn, reply),
+            new(AgentRole.Assistant, reply) { MessageId = MiddleTurn }
+        };
+
+        await BuildHook(Settings(keepTurns: 0), CurrentTurn).OnDialogsLoaded(dialogs);
+
+        Assert.Equal(reply, dialogs[0].Content);
+    }
+
+    [Fact]
     public async Task Does_nothing_at_all_when_switched_off()
     {
         var dialogs = new List<RoleDialogModel> { Tool(OldTurn, Json(4000)) };
