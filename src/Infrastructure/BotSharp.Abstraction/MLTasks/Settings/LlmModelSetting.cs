@@ -185,7 +185,13 @@ public enum LlmModelType
     Embedding = 4,
     Audio = 5,
     Realtime = 6,
-    Web = 7
+    Web = 7,
+
+    /// <summary>
+    /// Full duplex voice model that runs the conversation itself and delegates the thinking to
+    /// a backend model. Kept apart from <see cref="Realtime"/>: the two are not interchangeable.
+    /// </summary>
+    Live = 8
 }
 
 public enum LlmModelCapability
@@ -203,5 +209,6 @@ public enum LlmModelCapability
     AudioGeneration = 10,
     Realtime = 11,
     WebSearch = 12,
-    PdfReading = 13
+    PdfReading = 13,
+    Live = 14
 }

@@ -12,4 +12,9 @@ public class OpenAiSettings
     /// Conversation state keys take precedence over these values at runtime.
     /// </summary>
     public WebSearchSettings? WebSearch { get; set; }
+
+    /// <summary>
+    /// Defaults for the Live endpoint (gpt-live-1): voice, backend delegation and turn boundaries.
+    /// </summary>
+    public LiveSettings? Live { get; set; }
 }

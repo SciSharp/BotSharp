@@ -40,6 +40,10 @@ public class CompletionProvider
         {
             return GetRealTimeCompletion(services, provider: provider, model: model);
         }
+        else if (settings.Type == LlmModelType.Live)
+        {
+            return GetLiveCompletion(services, provider: provider, model: model);
+        }
         else
         {
             return GetChatCompletion(services, provider: provider, model: model, agentConfig: agentConfig);
@@ -199,6 +203,35 @@ public class CompletionProvider
         {
             var logger = services.GetRequiredService<ILogger<CompletionProvider>>();
             logger.LogError($"Can't resolve completion provider by {provider}");
+        }
+
+        completer?.SetModelName(model);
+        return completer;
+    }
+
+    /// <summary>
+    /// Live providers are registered as <see cref="ILiveCompletion"/> only, so they are resolved
+    /// from their own list: a provider name is never shared between the two voice families here.
+    /// </summary>
+    public static ILiveCompletion GetLiveCompletion(
+        IServiceProvider services,
+        string? provider = null,
+        string? model = null,
+        string? modelId = null,
+        bool? multiModal = null,
+        AgentLlmConfig? agentConfig = null)
+    {
+        var completions = services.GetServices<ILiveCompletion>();
+        (provider, model) = GetProviderAndModel(services, provider: provider, model: model, modelId: modelId,
+            multiModal: multiModal,
+            modelType: LlmModelType.Live,
+            agentConfig: agentConfig);
+
+        var completer = completions.FirstOrDefault(x => x.Provider == provider);
+        if (completer == null)
+        {
+            var logger = services.GetRequiredService<ILogger<CompletionProvider>>();
+            logger.LogError($"Can't resolve live completion provider by {provider}");
         }
 
         completer?.SetModelName(model);

@@ -80,6 +80,16 @@ public class AgentLlmConfig
     [JsonPropertyName("realtime")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public LlmRealtimeConfig? Realtime { get; set; }
+
+    /// <summary>
+    /// Live config, kept apart from <see cref="Realtime"/> because the two are different kinds
+    /// of voice session: a live model runs the conversation itself and delegates the thinking to
+    /// a backend model, so its provider and model are not interchangeable with a realtime one.
+    /// Setting this is what makes a conversation a live session.
+    /// </summary>
+    [JsonPropertyName("live")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public LlmLiveConfig? Live { get; set; }
 }
 
 public class LlmImageCompositionConfig : LlmProviderModel
@@ -91,5 +101,9 @@ public class LlmAudioTranscriptionConfig : LlmProviderModel
 }
 
 public class LlmRealtimeConfig : LlmConfigBase
+{
+}
+
+public class LlmLiveConfig : LlmConfigBase
 {
 }
