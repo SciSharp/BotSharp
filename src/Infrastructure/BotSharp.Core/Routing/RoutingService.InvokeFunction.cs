@@ -29,7 +29,7 @@ public partial class RoutingService
         // Assigned even when empty: the hooks below log this field, and the value From() copied
         // would otherwise linger there.
         clonedMessage.Indication = await funcExecutor.GetIndicatorAsync(message);
-        _services.PushIndication(clonedMessage, clonedMessage.Indication);
+        _services.GetHub().PushIndication(clonedMessage, clonedMessage.Indication);
 
         var hooks = _services.GetHooksOrderByPriority<IConversationHook>(clonedMessage.CurrentAgentId);
         foreach (var hook in hooks)

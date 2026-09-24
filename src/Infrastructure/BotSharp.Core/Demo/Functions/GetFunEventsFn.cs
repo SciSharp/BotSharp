@@ -21,11 +21,11 @@ public class GetFunEventsFn : IFunctionCallback
 
         await Task.Delay(1000);
 
-        _services.PushIndication(message, $"Start querying event data in {args?.City}");
+        _services.GetHub().PushIndication(message, $"Start querying event data in {args?.City}");
 
         await Task.Delay(1500);
 
-        _services.PushIndication(message, $"Still searching events in {args?.City}");
+        _services.GetHub().PushIndication(message, $"Still searching events in {args?.City}");
 
         await Task.Delay(1500);
 

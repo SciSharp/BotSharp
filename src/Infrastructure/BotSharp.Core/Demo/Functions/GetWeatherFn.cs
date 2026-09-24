@@ -28,7 +28,7 @@ public class GetWeatherFn : IFunctionCallback
 
         await Task.Delay(1000);
 
-        _services.PushIndication(message, $"Start querying weather data in {args?.City}");
+        _services.GetHub().PushIndication(message, $"Start querying weather data in {args?.City}");
 
         await Task.Delay(1500);
 
@@ -43,7 +43,7 @@ public class GetWeatherFn : IFunctionCallback
         });
 #endif
 
-        _services.PushIndication(message, $"Still working on it... Hold on, {args?.City}");
+        _services.GetHub().PushIndication(message, $"Still working on it... Hold on, {args?.City}");
 
         await Task.Delay(1500);
 
