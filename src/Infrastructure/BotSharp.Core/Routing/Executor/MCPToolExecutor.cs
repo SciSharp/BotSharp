@@ -145,15 +145,7 @@ public class McpToolExecutor : IFunctionExecutor
 
             // Cloned: this is pushed to observers that read it, and the function's own message is
             // still being used by the call in flight. Its indication is not ours to overwrite.
-            var indication = RoleDialogModel.From(_message);
-            indication.Indication = value.Message;
-
-            _hub.Push(new()
-            {
-                EventName = ChatEvent.OnIndicationReceived,
-                Data = indication,
-                RefId = _conversationId
-            });
+            _hub.PushIndication(RoleDialogModel.From(_message), value.Message, _conversationId);
         }
     }
 

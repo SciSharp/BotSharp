@@ -26,20 +26,10 @@ public partial class RoutingService
         // Clone message
         var clonedMessage = RoleDialogModel.From(message);
         clonedMessage.FunctionName = name;
+        // Assigned even when empty: the hooks below log this field, and the value From() copied
+        // would otherwise linger there.
         clonedMessage.Indication = await funcExecutor.GetIndicatorAsync(message);
-
-        // An empty indicator means the callee has nothing worth announcing for this call.
-        if (!string.IsNullOrEmpty(clonedMessage.Indication))
-        {
-            var conv = _services.GetRequiredService<IConversationService>();
-            var messageHub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
-            messageHub.Push(new()
-            {
-                EventName = ChatEvent.OnIndicationReceived,
-                Data = clonedMessage,
-                RefId = conv.ConversationId
-            });
-        }
+        _services.PushIndication(clonedMessage, clonedMessage.Indication);
 
         var hooks = _services.GetHooksOrderByPriority<IConversationHook>(clonedMessage.CurrentAgentId);
         foreach (var hook in hooks)
