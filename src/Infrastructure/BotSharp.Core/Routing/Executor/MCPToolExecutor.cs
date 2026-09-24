@@ -87,17 +87,12 @@ public class McpToolExecutor : IFunctionExecutor
     /// </summary>
     private sealed class ToolProgressIndicator : IProgress<ProgressNotificationValue>
     {
-        private readonly MessageHub<HubObserveData<RoleDialogModel>> _hub;
-        private readonly string _conversationId;
+        private readonly ConversationHub _hub;
         private readonly RoleDialogModel _message;
 
-        private ToolProgressIndicator(
-            MessageHub<HubObserveData<RoleDialogModel>> hub,
-            string conversationId,
-            RoleDialogModel message)
+        private ToolProgressIndicator(ConversationHub hub, RoleDialogModel message)
         {
             _hub = hub;
-            _conversationId = conversationId;
             _message = message;
         }
 
@@ -106,22 +101,16 @@ public class McpToolExecutor : IFunctionExecutor
         /// tool invoked outside one, from a task or a test. Null is the right answer there rather
         /// than a reporter that drops everything: it also tells the server not to bother sending.
         /// <para>
-        /// The conversation id is read HERE, on the thread that starts the call, and captured.
-        /// <see cref="Report"/> runs on whichever thread the MCP transport is reading on, and
-        /// resolving a scoped service from there to ask again would be a race for a value that
+        /// The hub is taken HERE, on the thread that starts the call, so it carries the conversation
+        /// id with it. <see cref="Report"/> runs on whichever thread the MCP transport is reading on,
+        /// and resolving a scoped service from there to ask again would be a race for a value that
         /// cannot change during the call.
         /// </para>
         /// </summary>
         public static ToolProgressIndicator? For(IServiceProvider services, RoleDialogModel message)
         {
-            var conversationId = services.GetRequiredService<IConversationService>().ConversationId;
-            if (string.IsNullOrWhiteSpace(conversationId))
-            {
-                return null;
-            }
-
-            var hub = services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
-            return new ToolProgressIndicator(hub, conversationId, message);
+            var hub = services.GetHub();
+            return string.IsNullOrWhiteSpace(hub.ConversationId) ? null : new ToolProgressIndicator(hub, message);
         }
 
         /// <summary>
@@ -145,15 +134,7 @@ public class McpToolExecutor : IFunctionExecutor
 
             // Cloned: this is pushed to observers that read it, and the function's own message is
             // still being used by the call in flight. Its indication is not ours to overwrite.
-            var indication = RoleDialogModel.From(_message);
-            indication.Indication = value.Message;
-
-            _hub.Push(new()
-            {
-                EventName = ChatEvent.OnIndicationReceived,
-                Data = indication,
-                RefId = _conversationId
-            });
+            _hub.PushIndication(RoleDialogModel.From(_message), value.Message);
         }
     }
 

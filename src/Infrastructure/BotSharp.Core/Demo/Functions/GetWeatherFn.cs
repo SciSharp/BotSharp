@@ -28,13 +28,7 @@ public class GetWeatherFn : IFunctionCallback
 
         await Task.Delay(1000);
 
-        message.Indication = $"Start querying weather data in {args?.City}";
-        messageHub.Push(new()
-        {
-            EventName = ChatEvent.OnIndicationReceived,
-            Data = message,
-            RefId = conv.ConversationId
-        });
+        _services.GetHub().PushIndication(message, $"Start querying weather data in {args?.City}");
 
         await Task.Delay(1500);
 
@@ -49,13 +43,7 @@ public class GetWeatherFn : IFunctionCallback
 //        });
 //#endif
 
-        message.Indication = $"Still working on it... Hold on, {args?.City}";
-        messageHub.Push(new()
-        {
-            EventName = ChatEvent.OnIndicationReceived,
-            Data = message,
-            RefId = conv.ConversationId
-        });
+        _services.GetHub().PushIndication(message, $"Still working on it... Hold on, {args?.City}");
 
         await Task.Delay(1500);
 

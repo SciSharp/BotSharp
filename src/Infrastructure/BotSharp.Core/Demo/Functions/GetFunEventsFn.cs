@@ -18,28 +18,14 @@ public class GetFunEventsFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<WeatherLocation>(message.FunctionArgs);
-        var conv = _services.GetRequiredService<IConversationService>();
-        var messageHub = _services.GetRequiredService<MessageHub<HubObserveData<RoleDialogModel>>>();
 
         await Task.Delay(1000);
 
-        message.Indication = $"Start querying event data in {args?.City}";
-        messageHub.Push(new()
-        {
-            EventName = ChatEvent.OnIndicationReceived,
-            Data = message,
-            RefId = conv.ConversationId
-        });
+        _services.GetHub().PushIndication(message, $"Start querying event data in {args?.City}");
 
         await Task.Delay(1500);
 
-        message.Indication = $"Still searching events in {args?.City}";
-        messageHub.Push(new()
-        {
-            EventName = ChatEvent.OnIndicationReceived,
-            Data = message,
-            RefId = conv.ConversationId
-        });
+        _services.GetHub().PushIndication(message, $"Still searching events in {args?.City}");
 
         await Task.Delay(1500);
 
