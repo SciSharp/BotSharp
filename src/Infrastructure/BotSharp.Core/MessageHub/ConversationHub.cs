@@ -8,11 +8,14 @@ namespace BotSharp.Core.MessageHub;
 public sealed class ConversationHub
 {
     private readonly MessageHub<HubObserveData<RoleDialogModel>> _hub;
+    private readonly Func<string, string>? _localize;
 
-    internal ConversationHub(MessageHub<HubObserveData<RoleDialogModel>> hub, string? conversationId)
+    internal ConversationHub(MessageHub<HubObserveData<RoleDialogModel>> hub, string? conversationId,
+        Func<string, string>? localize = null)
     {
         _hub = hub;
         ConversationId = conversationId;
+        _localize = localize;
     }
 
     /// <summary>Where every push goes; null when taken outside a conversation.</summary>
@@ -30,7 +33,7 @@ public sealed class ConversationHub
             return;
         }
 
-        message.Indication = indication;
+        message.Indication = _localize?.Invoke(indication) ?? indication;
 
         _hub.Push(new()
         {
