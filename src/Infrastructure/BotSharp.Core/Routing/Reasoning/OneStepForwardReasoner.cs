@@ -67,8 +67,22 @@ public class OneStepForwardReasoner : IRoutingReasoner
         // eliminating format drift where the LLM completes with finishReason=stop and returns
         // free text or JSON in Content instead of a structured function call.
         var response = await GetChatCompletionsWithScopedState(completion, router, dialogs, "tool_choice", "required");
-
         var inst = response.FunctionArgs?.JsonContent<FunctionCallFromLlm>();
+
+        if (inst != null)
+        {
+            if (!string.IsNullOrEmpty(response.FunctionName))
+            {
+                inst.Function = response.FunctionName;
+            }
+
+            if (!string.IsNullOrEmpty(response.FunctionArgs))
+            {
+                inst.FunctionArgs = response.FunctionArgs;
+            }
+        }
+
+
         _logger.LogInformation("[OneStepForwardReasoner] ConversationId: {ConversationId}, MessageId: {MessageId}, Next instruction: {Instruction}",
             _services.GetRequiredService<IRoutingContext>().ConversationId, messageId, response.FunctionArgs);
 
@@ -82,7 +96,14 @@ public class OneStepForwardReasoner : IRoutingReasoner
     {
         // Set user content as Planner's question
         message.FunctionName = inst.Function;
-        message.FunctionArgs = inst.Arguments == null ? "{}" : JsonSerializer.Serialize(inst.Arguments);
+        if (!string.IsNullOrEmpty(inst.FunctionArgs))
+        {
+            message.FunctionArgs = inst.FunctionArgs;
+        }
+        else
+        {
+            message.FunctionArgs = inst.Arguments == null ? "{}" : JsonSerializer.Serialize(inst.Arguments);
+        }
 
         return Task.FromResult(true);
     }
