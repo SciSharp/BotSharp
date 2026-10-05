@@ -1,0 +1,24 @@
+{
+  "MCP": {
+    "Enabled": true,
+    "McpClientOptions": {
+      "ClientInfo": {
+        "Name": "BotSharp",
+        "Version": "5.2.0"
+      }
+    },
+    "McpServerConfigs": [
+      {
+        "Id": "parallel-search",
+        "Name": "Parallel Search",
+        "Enabled": true,
+        "HttpConfig": {
+          "EndPoint": "https://search.parallel.ai/mcp",
+          "AdditionalHeaders": {
+            "User-Agent": "BotSharp/5.2.0"
+          }
+        }
+      }
+    ]
+  }
+}
