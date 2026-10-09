@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Rougamo;
 using System.Collections.Concurrent;
 using System.Globalization;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -147,11 +148,16 @@ public class SharpCacheAttribute : AsyncMoAttribute
         }
 
         // Instance-scoped entries live on the instance itself, so the key needs no instance part.
-        return $"{GetPrefixKey(context.Method.Name)}_{string.Join("_", argKeys)}";
+        return $"{GetPrefixKey(context.Method)}_{string.Join("_", argKeys)}";
     }
 
-    private string GetPrefixKey(string name)
+    /// <summary>
+    /// Includes the declaring type: keyed by method name alone, two classes with a same-named method and equal
+    /// arguments shared one entry, e.g. two IEntityDataLoader implementations' LoadVocabularyAsync().
+    /// </summary>
+    private string GetPrefixKey(MethodBase method)
     {
+        var name = $"{method.DeclaringType?.FullName ?? method.DeclaringType?.Name}.{method.Name}";
         var tenantId = GetTenantId();
         if (!string.IsNullOrWhiteSpace(tenantId))
         {

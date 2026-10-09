@@ -237,6 +237,44 @@ public class SharpCacheAgentMemoryTests : IDisposable
         Assert.Null(KeyOf(cyclic));
     }
 
+    /// <summary>
+    /// OneBrain loads both CsvNERDataLoader and OneDbEntityDataLoader, each with a cached, argument-less
+    /// LoadVocabularyAsync(). Keyed by method name alone, whichever ran first served its vocabulary to both.
+    /// </summary>
+    [Fact]
+    public async Task Same_named_methods_on_different_classes_do_not_share_an_entry()
+    {
+        Build();
+        CsvVocabularyLoader.Loads = 0;
+
+        var first = await new CsvVocabularyLoader().LoadVocabularyAsync();
+        var second = await new DbVocabularyLoader().LoadVocabularyAsync();
+        await new CsvVocabularyLoader().LoadVocabularyAsync();
+
+        Assert.Equal("csv", first);
+        Assert.Equal("db", second);
+        // Proves the test classes are actually woven: without SharpCache the second csv call would load again.
+        Assert.Equal(1, CsvVocabularyLoader.Loads);
+    }
+
+    public class CsvVocabularyLoader
+    {
+        public static int Loads;
+
+        [SharpCache(60)]
+        public async Task<string> LoadVocabularyAsync()
+        {
+            Interlocked.Increment(ref Loads);
+            return await Task.FromResult("csv");
+        }
+    }
+
+    public class DbVocabularyLoader
+    {
+        [SharpCache(60)]
+        public async Task<string> LoadVocabularyAsync() => await Task.FromResult("db");
+    }
+
     private sealed class Node
     {
         public Node? Next { get; set; }
