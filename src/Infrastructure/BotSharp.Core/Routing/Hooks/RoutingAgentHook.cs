@@ -33,8 +33,9 @@ public class RoutingAgentHook : AgentHookBase
             agents = agents.Except(planners).ToArray();
         }
 
-        // GetRoutableAgents is cached and shared by every conversation, so the fields below are removed from
-        // per-conversation copies; removing them in place stripped them for every other conversation too.
+        // GetRoutableAgents is cached and shared by every conversation: build this conversation's view
+        // without the fields it already has, instead of removing them from the cached agents.
+        var states = _services.GetRequiredService<IConversationStateService>();
         agents = agents.Select(x => new RoutableAgent
         {
             AgentId = x.AgentId,
@@ -42,34 +43,9 @@ public class RoutingAgentHook : AgentHookBase
             Description = x.Description,
             Type = x.Type,
             Profiles = x.Profiles,
-            RequiredFields = [.. x.RequiredFields],
-            OptionalFields = [.. x.OptionalFields]
+            RequiredFields = x.RequiredFields.Where(f => !states.ContainsState(f.Name)).ToList(),
+            OptionalFields = x.OptionalFields.Where(f => !states.ContainsState(f.Name)).ToList()
         }).ToArray();
-
-        // Postprocess agent required fields, remove it if the states exists
-        var states = _services.GetRequiredService<IConversationStateService>();
-        foreach (var agent in agents)
-        {
-            var fields = agent.RequiredFields.ToArray();
-            foreach (var field in fields)
-            {
-                if (states.ContainsState(field.Name))
-                {
-                    var requiredField = agent.RequiredFields.First(x => x.Name == field.Name);
-                    agent.RequiredFields.Remove(requiredField);
-                }
-            }
-
-            fields = agent.OptionalFields.ToArray();
-            foreach (var field in fields)
-            {
-                if (states.ContainsState(field.Name))
-                {
-                    var optionalField = agent.OptionalFields.First(x => x.Name == field.Name);
-                    agent.OptionalFields.Remove(optionalField);
-                }
-            }
-        }
 
         dict["routing_agents"] = agents;
 
