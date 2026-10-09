@@ -93,6 +93,22 @@ public class SharpCacheAgentMemoryTests : IDisposable
         Assert.Equal(2, ReadCount(db));
     }
 
+    /// <summary>
+    /// Joined field by field with "_", these two read the same ("[a]_[b]_[c]_z"), because text can move
+    /// between adjacent free-text fields. The content hash keeps them apart.
+    /// </summary>
+    [Fact]
+    public async Task GetAgents_filters_whose_fields_would_splice_into_the_same_text_stay_separate()
+    {
+        var (provider, db) = Build();
+        var agentService = provider.GetRequiredService<IAgentService>();
+
+        await agentService.GetAgents(new AgentFilter { AgentIds = ["a"], AgentNames = ["b"], SimilarName = "[c]_z" });
+        await agentService.GetAgents(new AgentFilter { AgentIds = ["a]_[b"], AgentNames = ["c"], SimilarName = "z" });
+
+        Assert.Equal(2, ReadCount(db));
+    }
+
     [Fact]
     public async Task RuleEngine_Triggered_once_per_work_order_reads_the_agents_once()
     {
