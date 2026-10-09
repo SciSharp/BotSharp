@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing.Hooks;
@@ -31,6 +32,19 @@ public class RoutingAgentHook : AgentHookBase
             var planners = agents.Where(x => x.Type == AgentType.Planning && x.Name != planningRule.Field).ToArray();
             agents = agents.Except(planners).ToArray();
         }
+
+        // GetRoutableAgents is cached and shared by every conversation, so the fields below are removed from
+        // per-conversation copies; removing them in place stripped them for every other conversation too.
+        agents = agents.Select(x => new RoutableAgent
+        {
+            AgentId = x.AgentId,
+            Name = x.Name,
+            Description = x.Description,
+            Type = x.Type,
+            Profiles = x.Profiles,
+            RequiredFields = [.. x.RequiredFields],
+            OptionalFields = [.. x.OptionalFields]
+        }).ToArray();
 
         // Postprocess agent required fields, remove it if the states exists
         var states = _services.GetRequiredService<IConversationStateService>();

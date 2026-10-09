@@ -2,7 +2,13 @@ using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Abstraction.MultiTenancy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Rougamo;
+using System.Collections.Concurrent;
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using System.Text.Json;
 using Rougamo.Context;
 
 namespace BotSharp.Core.Infrastructures;
@@ -10,7 +16,18 @@ namespace BotSharp.Core.Infrastructures;
 public class SharpCacheAttribute : AsyncMoAttribute
 {
     public static IServiceProvider Services { get; set; } = null!;
-    private static readonly object NullMarker = new { __is_null = "$_is_null" };
+    private const string NullKey = "$_is_null";
+    private const int MaxRawStringKeyLength = 128;
+    private static readonly JsonSerializerOptions KeyJsonOptions = new() { WriteIndented = false };
+
+    /// <summary>
+    /// Entries for <c>perInstanceCache</c>, attached to the instance they belong to. Such an entry can only
+    /// ever be hit through that instance, so it is collected together with it. In the shared cache it stayed
+    /// for the full expiry after a scoped service's scope had ended, one dead copy per scope.
+    /// </summary>
+    private static readonly ConditionalWeakTable<object, ConcurrentDictionary<string, InstanceCacheEntry>> InstanceCaches = new();
+
+    private sealed record InstanceCacheEntry(object Value, DateTime ExpiresAt);
 
     private readonly int _minutes;
     private readonly bool _perInstanceCache;
@@ -33,7 +50,14 @@ public class SharpCacheAttribute : AsyncMoAttribute
         }
 
         var key = GetCacheKey(context);
-        var value = await _cache.GetAsync(key, context.TaskReturnType);
+        if (key == null)
+        {
+            return;
+        }
+
+        var value = IsInstanceScoped(context)
+            ? GetInstanceValue(context.Target!, key)
+            : await _cache.GetAsync(key, context.TaskReturnType);
         if (value != null)
         {
             // check if the cache is out of date
@@ -64,8 +88,37 @@ public class SharpCacheAttribute : AsyncMoAttribute
         if (context.ReturnValue != null)
         {
             var key = GetCacheKey(context);
-            await _cache.SetAsync(key, context.ReturnValue, new TimeSpan(0, _minutes, 0));
+            if (key == null)
+            {
+                return;
+            }
+
+            var expiry = new TimeSpan(0, _minutes, 0);
+            if (IsInstanceScoped(context))
+            {
+                InstanceCaches.GetOrCreateValue(context.Target!)[key] = new InstanceCacheEntry(context.ReturnValue, DateTime.UtcNow + expiry);
+            }
+            else
+            {
+                await _cache.SetAsync(key, context.ReturnValue, expiry);
+            }
         }
+    }
+
+    private bool IsInstanceScoped(MethodContext context)
+        => _perInstanceCache && context.Target != null;
+
+    private static object? GetInstanceValue(object target, string key)
+    {
+        if (InstanceCaches.TryGetValue(target, out var entries) && entries.TryGetValue(key, out var entry))
+        {
+            if (entry.ExpiresAt > DateTime.UtcNow)
+            {
+                return entry.Value;
+            }
+            entries.TryRemove(key, out _);
+        }
+        return null;
     }
 
     public virtual Task<bool> IsOutOfDate(MethodContext context, object value)
@@ -74,19 +127,27 @@ public class SharpCacheAttribute : AsyncMoAttribute
     }
 
 
-    private string GetCacheKey(MethodContext context)
+    /// <summary>
+    /// Returns null when an argument cannot be turned into a stable key; the call then bypasses the cache
+    /// rather than risk a key that never hits or that collides with another caller's entry.
+    /// </summary>
+    private string? GetCacheKey(MethodContext context)
     {
-        var prefixKey = GetPrefixKey(context.Method.Name);
-        var argsKey = string.Join("_", context.Arguments.Select(arg => GetCacheKeyByArg(arg)));
+        var argKeys = new List<string>(context.Arguments.Length);
+        foreach (var arg in context.Arguments)
+        {
+            if (!TryGetCacheKeyByArg(arg, out var argKey))
+            {
+                Services.GetService<ILogger<SharpCacheAttribute>>()?.LogDebug(
+                    "SharpCache bypassed for {Method}: argument of type {ArgType} has no stable cache key.",
+                    context.Method.Name, arg?.GetType().FullName);
+                return null;
+            }
+            argKeys.Add(argKey);
+        }
 
-        if (_perInstanceCache && context.Target != null)
-        {
-            return $"{prefixKey}-{context.Target.GetHashCode()}_{argsKey}";
-        }
-        else
-        {
-            return $"{prefixKey}_{argsKey}";
-        }
+        // Instance-scoped entries live on the instance itself, so the key needs no instance part.
+        return $"{GetPrefixKey(context.Method.Name)}_{string.Join("_", argKeys)}";
     }
 
     private string GetPrefixKey(string name)
@@ -113,27 +174,65 @@ public class SharpCacheAttribute : AsyncMoAttribute
         }
     }
 
-    private string GetCacheKeyByArg(object? arg)
+    /// <summary>
+    /// Builds the key from the argument's content. Reference-type arguments used to be keyed by
+    /// <c>GetHashCode()</c>, i.e. object identity: a freshly built filter or list never hit the cache,
+    /// so every call parked another copy of the result, and a 32-bit hash collision could hand one
+    /// caller another caller's entry.
+    /// </summary>
+    private static bool TryGetCacheKeyByArg(object? arg, out string key)
     {
-        if (arg is null)
+        switch (arg)
         {
-            return NullMarker.GetHashCode().ToString();
+            case null:
+                key = NullKey;
+                return true;
+            case ICacheKey withCacheKey:
+                key = withCacheKey.GetCacheKey();
+                return true;
+            case string text:
+                // Length-prefixed so "a_b" + "c" and "a" + "b_c" cannot join into the same key.
+                key = text.Length <= MaxRawStringKeyLength ? $"s{text.Length}:{text}" : $"h:{Sha256(text)}";
+                return true;
+            case DateTime or DateTimeOffset:
+                key = ((IFormattable)arg).ToString("o", CultureInfo.InvariantCulture);
+                return true;
         }
-        else if (arg is ICacheKey withCacheKey)
+
+        var type = arg.GetType();
+        if (type.IsPrimitive || type.IsEnum || arg is decimal or Guid or TimeSpan)
         {
-            return withCacheKey.GetCacheKey();
+            key = Convert.ToString(arg, CultureInfo.InvariantCulture) ?? string.Empty;
+            return true;
         }
-        else
+
+        try
         {
-            return arg.GetHashCode().ToString();
+            var json = JsonSerializer.Serialize(arg, type, KeyJsonOptions);
+            key = $"j:{Sha256(type.FullName + json)}";
+            return true;
+        }
+        catch (Exception ex) when (ex is NotSupportedException or JsonException or InvalidOperationException)
+        {
+            key = string.Empty;
+            return false;
         }
     }
+
+    private static string Sha256(string value)
+        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 
     public async Task ClearCacheAsync()
     {
         var tenantId = GetTenantId();
         var prefix = string.IsNullOrWhiteSpace(tenantId) ? _settings.Prefix : $"{_settings.Prefix}:{tenantId}";
         await _cache.ClearCacheAsync(prefix);
+
+        // Instance-scoped entries were cleared along with the shared cache before they moved out of it.
+        foreach (var (_, entries) in InstanceCaches)
+        {
+            entries.Clear();
+        }
     }
 
 }

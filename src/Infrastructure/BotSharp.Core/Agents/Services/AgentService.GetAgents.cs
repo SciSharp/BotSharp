@@ -61,7 +61,8 @@ public partial class AgentService
         var agentSetting = _services.GetRequiredService<AgentSettings>();
         if (profile.LlmConfig == null)
         {
-            profile.LlmConfig = agentSetting.LlmConfig;
+            // A copy: flagging IsInherit on the shared settings instance marked the default config itself as inherited.
+            profile.LlmConfig = agentSetting.LlmConfig.DeepClone() ?? new AgentLlmConfig();
             profile.LlmConfig.IsInherit = true;
         }
         else if (string.IsNullOrEmpty(profile.LlmConfig?.Provider) || string.IsNullOrEmpty(profile.LlmConfig?.Model))
