@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Agents.Settings;
@@ -131,6 +132,49 @@ public class SharpCacheAgentMemoryTests : IDisposable
 
         Assert.Equal(Scopes, db.Invocations.Count(x => x.Method.Name == nameof(IBotSharpRepository.GetAgent)));
         Assert.Equal(0, SharpCacheEntryCount() - entriesBefore);
+    }
+
+    /// <summary>
+    /// The point of moving per-instance entries out of the shared cache: once the scope is gone, nothing
+    /// holds its cached agent any more, instead of it lingering for the full 10 minutes.
+    /// </summary>
+    [Fact]
+    public async Task GetAgent_entry_is_collected_with_its_scope()
+    {
+        var (provider, db) = Build();
+
+        var (serviceRef, agentRef) = await LoadInDisposedScope(provider);
+        // Moq records every return value; drop those records so they do not keep the agent alive.
+        db.Invocations.Clear();
+        RetainedBytes();
+
+        Assert.False(serviceRef.IsAlive, "The scoped AgentService should be collectable once its scope is disposed.");
+        Assert.False(agentRef.IsAlive, "The per-instance cache entry should be collected together with its instance.");
+    }
+
+    [Fact]
+    public async Task ClearCache_also_clears_per_instance_entries()
+    {
+        var (provider, db) = Build();
+        using var scope = provider.CreateScope();
+        var agentService = scope.ServiceProvider.GetRequiredService<IAgentService>();
+
+        await agentService.GetAgent("agent-0");
+        // What CreateAgent/UpdateAgent call after changing an agent.
+        Utilities.ClearCache();
+        await agentService.GetAgent("agent-0");
+
+        Assert.Equal(2, db.Invocations.Count(x => x.Method.Name == nameof(IBotSharpRepository.GetAgent)));
+    }
+
+    // Kept out of the test method so no local in the caller's frame roots the scope or the agent.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static async Task<(WeakReference service, WeakReference agent)> LoadInDisposedScope(IServiceProvider provider)
+    {
+        using var scope = provider.CreateScope();
+        var agentService = scope.ServiceProvider.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent("agent-0");
+        return (new WeakReference(agentService), new WeakReference(agent));
     }
 
     [Fact]
