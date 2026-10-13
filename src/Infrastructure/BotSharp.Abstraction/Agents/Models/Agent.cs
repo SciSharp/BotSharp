@@ -165,6 +165,12 @@ public class Agent
         => $"{Name} {Id}";
 
 
+    /// <summary>
+    /// Copies every member, including the ones <see cref="Clone"/> leaves out. Lists and nested objects
+    /// are still shared with the source: replace any of them before changing it.
+    /// </summary>
+    public Agent ShallowCopy() => (Agent)MemberwiseClone();
+
     public static Agent Clone(Agent agent)
     {
         return new Agent

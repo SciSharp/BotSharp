@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing.Hooks;
@@ -32,30 +33,19 @@ public class RoutingAgentHook : AgentHookBase
             agents = agents.Except(planners).ToArray();
         }
 
-        // Postprocess agent required fields, remove it if the states exists
+        // GetRoutableAgents is cached and shared by every conversation: build this conversation's view
+        // without the fields it already has, instead of removing them from the cached agents.
         var states = _services.GetRequiredService<IConversationStateService>();
-        foreach (var agent in agents)
+        agents = agents.Select(x => new RoutableAgent
         {
-            var fields = agent.RequiredFields.ToArray();
-            foreach (var field in fields)
-            {
-                if (states.ContainsState(field.Name))
-                {
-                    var requiredField = agent.RequiredFields.First(x => x.Name == field.Name);
-                    agent.RequiredFields.Remove(requiredField);
-                }
-            }
-
-            fields = agent.OptionalFields.ToArray();
-            foreach (var field in fields)
-            {
-                if (states.ContainsState(field.Name))
-                {
-                    var optionalField = agent.OptionalFields.First(x => x.Name == field.Name);
-                    agent.OptionalFields.Remove(optionalField);
-                }
-            }
-        }
+            AgentId = x.AgentId,
+            Name = x.Name,
+            Description = x.Description,
+            Type = x.Type,
+            Profiles = x.Profiles,
+            RequiredFields = x.RequiredFields.Where(f => !states.ContainsState(f.Name)).ToList(),
+            OptionalFields = x.OptionalFields.Where(f => !states.ContainsState(f.Name)).ToList()
+        }).ToArray();
 
         dict["routing_agents"] = agents;
 
