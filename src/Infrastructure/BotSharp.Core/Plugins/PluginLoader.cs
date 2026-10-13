@@ -201,6 +201,9 @@ public class PluginLoader(IServiceCollection services,
                 await agentService.UpdateAgent(agent, AgentField.Disabled);
             }
         }
+
+        // AgentService caches the plugin list; drop it so the new status takes effect right away.
+        Utilities.ClearCache();
         return plugin;
     }
 
