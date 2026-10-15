@@ -395,16 +395,11 @@ public class ChromaDb : IVectorDb
                                           .Where(c => c != null)
                                           .ToList();
 
-        if (groupConditions.IsNullOrEmpty())
-        {
-            return null;
-        }
-
         // Multiple groups are combined with AND, as in the other vector databases
-        return groupConditions.Aggregate((a, b) => a! & b!);
+        return Combine(groupConditions, "and")?.Where;
     }
 
-    private ChromaWhereOperator? BuildFilterGroupCondition(VectorFilterGroup group)
+    private FilterCondition? BuildFilterGroupCondition(VectorFilterGroup group)
     {
         if (group.Filters.IsNullOrEmpty())
         {
@@ -419,7 +414,7 @@ public class ChromaDb : IVectorDb
         return Combine(subGroupConditions, group.LogicalOperator);
     }
 
-    private ChromaWhereOperator? BuildSubGroupCondition(VectorFilterSubGroup subGroup)
+    private FilterCondition? BuildSubGroupCondition(VectorFilterSubGroup subGroup)
     {
         if (subGroup.Operands.IsNullOrEmpty())
         {
@@ -434,21 +429,31 @@ public class ChromaDb : IVectorDb
         return Combine(operandConditions, subGroup.LogicalOperator);
     }
 
-    private ChromaWhereOperator? Combine(List<ChromaWhereOperator?> conditions, string logicalOperator)
+    private FilterCondition? Combine(List<FilterCondition?> conditions, string logicalOperator)
     {
         if (conditions.IsNullOrEmpty())
         {
             return null;
         }
 
-        return logicalOperator.IsEqualTo("and")
-            ? conditions.Aggregate((a, b) => a! & b!)
-            : conditions.Aggregate((a, b) => a! | b!);
+        var hasText = conditions.Any(x => x!.HasText);
+        var hasMetadata = conditions.Any(x => x!.HasMetadata);
+        if (logicalOperator.IsEqualTo("and"))
+        {
+            return new(conditions.Select(x => x!.Where).Aggregate((a, b) => a & b), hasText, hasMetadata);
+        }
+
+        // Chroma takes the filters on the document and the ones on the metadata together only with AND
+        if (hasText && hasMetadata)
+        {
+            throw new NotSupportedException($"Chroma does not combine a filter on {KnowledgePayloadName.Text} with a filter on another payload field by OR.");
+        }
+        return new(conditions.Select(x => x!.Where).Aggregate((a, b) => a | b), hasText, hasMetadata);
     }
 
-    private ChromaWhereOperator? BuildOperandCondition(VectorFilterOperand operand)
+    private FilterCondition? BuildOperandCondition(VectorFilterOperand operand)
     {
-        ChromaWhereOperator? condition = null;
+        FilterCondition? condition = null;
 
         if (operand.Match != null)
         {
@@ -462,11 +467,26 @@ public class ChromaDb : IVectorDb
         return condition;
     }
 
-    private ChromaWhereOperator? BuildMatchCondition(VectorFilterMatch match)
+    private FilterCondition? BuildMatchCondition(VectorFilterMatch match)
     {
         if (string.IsNullOrEmpty(match.Key) || match.Value == null)
         {
             return null;
+        }
+
+        // The text is the document of the record: an exact match is an anchored regular expression on it
+        if (match.Key.IsEqualTo(KnowledgePayloadName.Text))
+        {
+            if (match.Value.Length == 0)
+            {
+                throw new NotSupportedException($"Chroma does not filter {KnowledgePayloadName.Text} by an empty value.");
+            }
+
+            var pattern = $"^{EscapeRegex(match.Value)}$";
+            var document = match.Operator.IsEqualTo("eq")
+                ? ChromaWhereDocumentOperator.Regex(pattern)
+                : ChromaWhereDocumentOperator.NotRegex(pattern);
+            return new(ChromaWhereOperator.Document(document), HasText: true, HasMetadata: false);
         }
 
         object value = match.Value;
@@ -486,12 +506,13 @@ public class ChromaDb : IVectorDb
             value = doubleVal;
         }
 
-        return match.Operator.IsEqualTo("eq")
+        var where = match.Operator.IsEqualTo("eq")
             ? ChromaWhereOperator.Equal(match.Key, value)
             : ChromaWhereOperator.NotEqual(match.Key, value);
+        return new(where, HasText: false, HasMetadata: true);
     }
 
-    private ChromaWhereOperator? BuildRangeCondition(VectorFilterRange range)
+    private FilterCondition? BuildRangeCondition(VectorFilterRange range)
     {
         if (string.IsNullOrEmpty(range.Key) || range.Conditions.IsNullOrEmpty())
         {
@@ -502,11 +523,10 @@ public class ChromaDb : IVectorDb
         if (range.DataType != VectorPayloadDataType.Integer
             && range.DataType != VectorPayloadDataType.Double)
         {
-            _logger.LogWarning($"Chroma does not filter {range.DataType} values by range (Key: {range.Key}).");
-            return null;
+            throw new NotSupportedException($"Chroma does not filter {range.DataType} values by range (Key: {range.Key}).");
         }
 
-        var conditions = new List<ChromaWhereOperator?>();
+        var conditions = new List<FilterCondition?>();
         foreach (var condition in range.Conditions)
         {
             // An integer value stays an integer: Chroma Cloud does not compare a float with integer values
@@ -528,22 +548,31 @@ public class ChromaDb : IVectorDb
             switch (condition.Operator.ToLower())
             {
                 case "lt":
-                    conditions.Add(ChromaWhereOperator.LessThan(range.Key, value));
+                    conditions.Add(new(ChromaWhereOperator.LessThan(range.Key, value), HasText: false, HasMetadata: true));
                     break;
                 case "lte":
-                    conditions.Add(ChromaWhereOperator.LessThanOrEqual(range.Key, value));
+                    conditions.Add(new(ChromaWhereOperator.LessThanOrEqual(range.Key, value), HasText: false, HasMetadata: true));
                     break;
                 case "gt":
-                    conditions.Add(ChromaWhereOperator.GreaterThan(range.Key, value));
+                    conditions.Add(new(ChromaWhereOperator.GreaterThan(range.Key, value), HasText: false, HasMetadata: true));
                     break;
                 case "gte":
-                    conditions.Add(ChromaWhereOperator.GreaterThanOrEqual(range.Key, value));
+                    conditions.Add(new(ChromaWhereOperator.GreaterThanOrEqual(range.Key, value), HasText: false, HasMetadata: true));
                     break;
             }
         }
 
         return Combine(conditions, "and");
     }
+    // The characters that the regular expressions of Chroma, of the Rust crate regex, take as syntax
+    private static string EscapeRegex(string text)
+    {
+        const string syntax = @"\.+*?()|[]{}^$#&-~";
+        return string.Concat(text.Select(c => syntax.Contains(c) ? $"\\{c}" : c.ToString()));
+    }
+
+    // A condition of the filter, and whether it has a condition on the text, which goes to the document, and on the metadata
+    private record FilterCondition(ChromaWhereOperator Where, bool HasText, bool HasMetadata);
     #endregion
 
     private Dictionary<string, VectorPayloadValue> MapPayload(IReadOnlyDictionary<string, object>? metadata, string? document, IEnumerable<string>? fields = null)

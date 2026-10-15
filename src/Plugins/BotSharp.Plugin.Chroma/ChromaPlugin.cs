@@ -19,6 +19,7 @@ public class ChromaPlugin : IBotSharpPlugin
             return settingService.Bind<ChromaSetting>("Chroma");
         });
 
+        services.AddHttpClient();
         services.AddScoped<IVectorDb, ChromaDb>();
     }
 }
