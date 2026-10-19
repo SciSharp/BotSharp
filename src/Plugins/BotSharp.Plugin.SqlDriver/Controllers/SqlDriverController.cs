@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Users;
 using BotSharp.Plugin.SqlDriver.Constants;
 using BotSharp.Plugin.SqlDriver.Controllers.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -11,16 +13,42 @@ namespace BotSharp.Plugin.SqlDriver.Controllers;
 public class SqlDriverController : ControllerBase
 {
     private readonly IServiceProvider _services;
+    private readonly IUserIdentity _user;
 
-    public SqlDriverController(IServiceProvider services)
+    public SqlDriverController(IServiceProvider services, IUserIdentity user)
     {
         _services = services;
+        _user = user;
     }
 
     [HttpPost]
     [Route("/sql-driver/{conversationId}/execute")]
     public async Task<IActionResult> ExecuteSqlQuery([FromRoute] string conversationId, [FromBody] SqlQueryRequest sqlQueryRequest)
     {
+        // [Authorize] only requires a logged-in session; it does not verify the
+        // caller owns conversationId. Without this check, any authenticated
+        // user could execute an arbitrary SQL statement against any configured
+        // data source by supplying any conversationId (including one they
+        // invent themselves), since SetConversationId performs no ownership
+        // check and silently creates the conversation if it doesn't exist.
+        // Mirror the same admin-or-owner check ConversationController.GetConversation
+        // already applies to reading a conversation's own dialog.
+        var userService = _services.GetRequiredService<IUserService>();
+        var conv = _services.GetRequiredService<IConversationService>();
+        var (isAdmin, currentUser) = await userService.IsAdminUser(_user.Id);
+        if (!isAdmin)
+        {
+            var existing = await conv.GetConversations(new ConversationFilter
+            {
+                Id = conversationId,
+                UserId = currentUser?.Id,
+            });
+            if (existing.Items?.FirstOrDefault() == null)
+            {
+                return Forbid();
+            }
+        }
+
         var match = Regex.Match(sqlQueryRequest.SqlStatement, @"```sql\s*([\s\S]*?)\s*```", RegexOptions.IgnoreCase);
         if (match.Success)
         {
@@ -28,13 +56,12 @@ public class SqlDriverController : ControllerBase
         }
 
         var fn = _services.GetRequiredService<IRoutingService>();
-        var conv = _services.GetRequiredService<IConversationService>();
-        await conv.SetConversationId(conversationId, 
+        await conv.SetConversationId(conversationId,
             [
                 new MessageState(StateKeys.DBType, sqlQueryRequest.DbType),
                 new MessageState(StateKeys.DataSource, sqlQueryRequest.DataSource),
             ]);
-        
+
         var msg = new RoleDialogModel(AgentRole.User, sqlQueryRequest.SqlStatement)
         {
             CurrentAgentId = sqlQueryRequest.AgentId
@@ -63,7 +90,22 @@ public class SqlDriverController : ControllerBase
     [Route("/sql-driver/{conversationId}/result")]
     public async Task<IActionResult> AddQueryExecutionResult([FromRoute] string conversationId, [FromBody] SqlQueryExecutionResult sqlQueryResult)
     {
+        var userService = _services.GetRequiredService<IUserService>();
         var conv = _services.GetRequiredService<IConversationService>();
+        var (isAdmin, currentUser) = await userService.IsAdminUser(_user.Id);
+        if (!isAdmin)
+        {
+            var existing = await conv.GetConversations(new ConversationFilter
+            {
+                Id = conversationId,
+                UserId = currentUser?.Id,
+            });
+            if (existing.Items?.FirstOrDefault() == null)
+            {
+                return Forbid();
+            }
+        }
+
         await conv.SetConversationId(conversationId, []);
 
         var storage = _services.GetRequiredService<IConversationStorage>();
