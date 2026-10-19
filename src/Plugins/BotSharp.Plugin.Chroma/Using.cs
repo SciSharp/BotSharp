@@ -1,0 +1,10 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Threading.Tasks;
+global using BotSharp.Abstraction.VectorStorage;
+global using BotSharp.Abstraction.VectorStorage.Enums;
+global using BotSharp.Abstraction.VectorStorage.Models;
+global using BotSharp.Abstraction.Knowledges.Enums;
+global using BotSharp.Abstraction.Knowledges.Models;
+global using BotSharp.Abstraction.Knowledges.Options;
