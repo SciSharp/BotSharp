@@ -44,6 +44,8 @@
     <ProjectReference Include="..\..\src\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
     <!-- For StreamingToolCallReconstructionTests: the streamed tool-call reconstruction lives here. -->
     <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.OpenAI\BotSharp.Plugin.OpenAI.csproj" />
+    <!-- For ReadPdfFnDefaultModelTests: the PDF reading fallback model lives here. -->
+    <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.FileHandler\BotSharp.Plugin.FileHandler.csproj" />
   </ItemGroup>
 
 </Project>

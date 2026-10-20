@@ -146,7 +146,7 @@ public class ReadPdfFn : IFunctionCallback
         }
 
         provider = "google-ai";
-        model = "gemini-2.0-flash";
+        model = "gemini-3.8-flash";
 
         return (provider, model);
     }
