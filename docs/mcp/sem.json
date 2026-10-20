@@ -1,0 +1,19 @@
+{
+  "MCP": {
+    "Enabled": true,
+    "McpServerConfigs": [
+      {
+        "Id": "sem",
+        "Name": "Sem local code",
+        "Enabled": true,
+        "StdioConfig": {
+          "Command": "sem",
+          "Arguments": ["mcp"],
+          "EnvironmentVariables": {
+            "SEM_REPO": "/absolute/path/to/checkout"
+          }
+        }
+      }
+    ]
+  }
+}
