@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
+using BotSharp.Plugin.Twilio.Services;
 using Twilio.Rest.Api.V2010.Account;
 
 namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions;
@@ -33,7 +34,6 @@ public class TransferPhoneCallFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<ForwardPhoneCallArgs>(message.FunctionArgs, _options.JsonSerializerOptions);
 
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var states = _services.GetRequiredService<IConversationStateService>();
         var sid = states.GetState("twilio_call_sid");
         if (string.IsNullOrEmpty(sid))
@@ -50,10 +50,8 @@ public class TransferPhoneCallFn : IFunctionCallback
         // Generate initial assistant audio
         if (!string.IsNullOrEmpty(args.TransitionMessage))
         {
-            var completion = CompletionProvider.GetAudioSynthesizer(_services);
-            var data = await completion.GenerateAudioAsync(args.TransitionMessage);
-            var initAudioFile = "transfer.mp3";
-            fileStorage.SaveSpeechFile(conversationId, initAudioFile, data);
+            var twilio = _services.GetRequiredService<TwilioService>();
+            var initAudioFile = await twilio.SaveSpeechAsync(conversationId, "transfer", args.TransitionMessage);
 
             processUrl += $"&init-audio-file={initAudioFile}";
         }

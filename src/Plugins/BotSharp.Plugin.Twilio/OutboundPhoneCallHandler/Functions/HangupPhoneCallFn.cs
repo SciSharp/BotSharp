@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
+using BotSharp.Plugin.Twilio.Services;
 using Twilio.Rest.Api.V2010.Account;
 
 namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions;
@@ -28,7 +29,6 @@ public class HangupPhoneCallFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<HangupPhoneCallArgs>(message.FunctionArgs);
 
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var convService = _services.GetRequiredService<IConversationService>();
         var conversationId = convService.ConversationId;
         var states = _services.GetRequiredService<IConversationStateService>();
@@ -44,13 +44,10 @@ public class HangupPhoneCallFn : IFunctionCallback
         var processUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/hang-up?agent-id={message.CurrentAgentId}&conversation-id={conversationId}";
 
         // Generate initial assistant audio
-        string initAudioFile = null;
         if (!string.IsNullOrEmpty(args.ResponseContent) && _twilioSetting.GenerateEndingAudio)
         {
-            var completion = CompletionProvider.GetAudioSynthesizer(_services);
-            var data = await completion.GenerateAudioAsync(args.ResponseContent);
-            initAudioFile = "ending.mp3";
-            fileStorage.SaveSpeechFile(conversationId, initAudioFile, data);
+            var twilio = _services.GetRequiredService<TwilioService>();
+            var initAudioFile = await twilio.SaveSpeechAsync(conversationId, "ending", args.ResponseContent);
 
             processUrl += $"&init-audio-file={initAudioFile}";
         }

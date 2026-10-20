@@ -84,8 +84,8 @@ public class TwilioInboundController : TwilioController
             await HookEmitter.Emit<ITwilioCallStatusHook>(_services,
                 async hook => await hook.OnVoicemailStarting(request), request.AgentId);
 
-            var url = twilio.GetSpeechPath(request.ConversationId, "voicemail.mp3");
-            response.Play(new Uri(url));
+            var voicemail = twilio.GetSavedSpeechFile(request.ConversationId, "voicemail");
+            twilio.AppendSpeech(response, request.ConversationId, voicemail);
         }
         else
         {

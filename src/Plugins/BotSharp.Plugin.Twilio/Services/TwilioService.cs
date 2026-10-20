@@ -5,6 +5,7 @@ using BotSharp.Abstraction.Utilities;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
+using BotSharp.Plugin.Twilio.Models.Relay;
 using Twilio.Jwt.AccessToken;
 using Twilio.Rest.Api.V2010.Account.Call;
 using Task = System.Threading.Tasks.Task;
@@ -17,6 +18,9 @@ namespace BotSharp.Plugin.Twilio.Services;
 /// </summary>
 public class TwilioService
 {
+    private const string TextSpeechExtension = ".txt";
+    private const string AudioSpeechExtension = ".mp3";
+
     private readonly TwilioSetting _settings;
     private readonly IServiceProvider _services;
     public readonly ILogger _logger;
@@ -79,13 +83,13 @@ public class TwilioService
         {
             foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
             {
-                gather.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+                AppendSpeech(gather, conversationalVoiceResponse.ConversationId, speechPath);
             }
         }
 
         if (!string.IsNullOrEmpty(conversationalVoiceResponse.Text))
         {
-            gather.Say(conversationalVoiceResponse.Text);
+            gather.Append(CreateSay(conversationalVoiceResponse.Text));
         }
 
         response.Append(gather);
@@ -100,8 +104,7 @@ public class TwilioService
         {
             foreach (var speechPath in voiceResponse.SpeechPaths)
             {
-                var uri = GetSpeechPath(conversationId, speechPath);
-                response.Play(new Uri(uri));
+                AppendSpeech(response, conversationId, speechPath);
             }
         }
 
@@ -145,7 +148,7 @@ public class TwilioService
         var response = new VoiceResponse();
         if (!string.IsNullOrEmpty(speechPath))
         {
-            response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+            AppendSpeech(response, conversationId: null, speechPath);
         }
         response.Hangup();
         return response;
@@ -159,8 +162,7 @@ public class TwilioService
         {
             foreach (var speechPath in voiceResponse.SpeechPaths)
             {
-                var uri = GetSpeechPath(conversationId, speechPath);
-                response.Play(new Uri(uri));
+                AppendSpeech(response, conversationId, speechPath);
             }
         }
 
@@ -173,7 +175,7 @@ public class TwilioService
         var response = new VoiceResponse();
         if (!string.IsNullOrEmpty(speechPath))
         {
-            response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+            AppendSpeech(response, conversationId: null, speechPath);
         }
         response.Dial(_settings.CsrAgentNumber);
         return response;
@@ -187,8 +189,7 @@ public class TwilioService
         {
             foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
             {
-                var uri = GetSpeechPath(conversationId, speechPath);
-                response.Play(new Uri(uri));
+                AppendSpeech(response, conversationId, speechPath);
             }
         }
         response.Dial(conversationalVoiceResponse.TransferTo, answerOnBridge: true);
@@ -214,7 +215,7 @@ public class TwilioService
 
         if (!string.IsNullOrEmpty(message))
         {
-            gather.Say(message);
+            gather.Append(CreateSay(message));
         }
         gather.Pause(interval);
         response.Append(gather);
@@ -252,8 +253,7 @@ public class TwilioService
         {
             foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
             {
-                var uri = GetSpeechPath(conversationId, speechPath);
-                response.Play(new Uri(uri));
+                AppendSpeech(response, conversationId, speechPath);
             }
         }
 
@@ -265,11 +265,54 @@ public class TwilioService
         return response;
     }
 
+    /// <summary>
+    /// Hands the call to Twilio ConversationRelay. Twilio opens a WebSocket to twilio/relay/{agentId}/{conversationId}
+    /// and posts to twilio/relay/action when the session ends.
+    /// </summary>
+    public VoiceResponse ReturnConversationRelay(string agentId, string conversationId, string? welcomeGreeting, int reconnects = 0)
+    {
+        var relay = _settings.ConversationRelay;
+        var connect = new Connect(action: new Uri($"{_settings.CallbackHost}/twilio/relay/action?agent-id={agentId}&conversation-id={conversationId}&reconnects={reconnects}"));
+
+        var element = new ConversationRelay(
+            url: GetConversationRelayUrl(agentId, conversationId),
+            language: relay.Language,
+            ttsProvider: relay.TtsProvider,
+            voice: relay.Voice,
+            transcriptionProvider: relay.TranscriptionProvider,
+            speechModel: relay.SpeechModel,
+            dtmfDetection: relay.DtmfDetection,
+            welcomeGreeting: string.IsNullOrWhiteSpace(welcomeGreeting) ? null : welcomeGreeting);
+
+        // Attributes that the SDK's typed parameters don't cover (or only cover as booleans)
+        element.SetOption("interruptible", relay.Interruptible);
+        element.SetOption("welcomeGreetingInterruptible", relay.WelcomeGreetingInterruptible);
+        element.SetOption("interruptSensitivity", relay.InterruptSensitivity);
+        element.SetOption("ignoreBackchannel", relay.IgnoreBackchannel ? "true" : "false");
+        if (!string.IsNullOrWhiteSpace(relay.Hints))
+        {
+            element.SetOption("hints", relay.Hints);
+        }
+
+        // Lets the session time its idle check from the end of the greeting
+        element.Parameter(name: ConversationRelayParameters.WelcomeGreetingLength, value: (welcomeGreeting?.Length ?? 0).ToString());
+
+        connect.Append(element);
+        var response = new VoiceResponse();
+        response.Append(connect);
+        return response;
+    }
+
+    public string GetConversationRelayUrl(string agentId, string conversationId)
+    {
+        var host = _settings.CallbackHost.Split("://").Last();
+        return $"wss://{host}/twilio/relay/{agentId}/{conversationId}";
+    }
+
     public async Task<VoiceResponse> WaitingForAiResponse(ConversationalVoiceRequest request)
     {
         VoiceResponse response;
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
 
         var indication = await sessionManager.GetReplyIndicationAsync(request.ConversationId, request.SeqNum);
         if (indication != null)
@@ -286,16 +329,7 @@ public class TwilioService
                 else
                 {
                     var hash = Utilities.HashTextMd5(seg);
-                    var fileName = $"indication_{hash}.mp3";
-
-                    var existing = fileStorage.GetSpeechFile(request.ConversationId, fileName);
-                    if (existing == BinaryData.Empty)
-                    {
-                        var completion = CompletionProvider.GetAudioSynthesizer(_services);
-                        var data = await completion.GenerateAudioAsync(seg);
-                        fileStorage.SaveSpeechFile(request.ConversationId, fileName, data);
-                    }
-
+                    var fileName = await SaveSpeechAsync(request.ConversationId, $"indication_{hash}", seg, reuseExisting: true);
                     speechPaths.Add($"twilio/voice/speeches/{request.ConversationId}/{fileName}");
                 }
             }
@@ -361,6 +395,123 @@ public class TwilioService
         {
             return $"{_settings.CallbackHost}/twilio/voice/speeches/{conversationId}/{speechPath}";
         }
+    }
+
+    /// <summary>
+    /// Saves the speech of a text in the conversation and returns its file name: a text file spoken later with Say
+    /// when SayGeneratedSpeech is on, otherwise an mp3 from the audio synthesizer.
+    /// </summary>
+    public async Task<string> SaveSpeechAsync(string conversationId, string name, string text, bool reuseExisting = false)
+    {
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var fileName = name + (_settings.SayGeneratedSpeech ? TextSpeechExtension : AudioSpeechExtension);
+        if (reuseExisting && !fileStorage.GetSpeechFile(conversationId, fileName).ToMemory().IsEmpty)
+        {
+            return fileName;
+        }
+
+        var data = _settings.SayGeneratedSpeech
+            ? BinaryData.FromString(text)
+            : await CompletionProvider.GetAudioSynthesizer(_services).GenerateAudioAsync(text);
+        fileStorage.SaveSpeechFile(conversationId, fileName, data);
+        return fileName;
+    }
+
+    /// <summary>
+    /// Returns the file name of a speech saved by SaveSpeechAsync, whichever mode it was saved in.
+    /// </summary>
+    public string GetSavedSpeechFile(string conversationId, string name)
+    {
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var textFile = name + TextSpeechExtension;
+        return fileStorage.GetSpeechFile(conversationId, textFile).ToMemory().IsEmpty
+            ? name + AudioSpeechExtension
+            : textFile;
+    }
+
+    /// <summary>
+    /// Appends a speech to the TwiML: Say for a text file saved by SaveSpeechAsync, Play for an audio file.
+    /// </summary>
+    public void AppendSpeech(TwiML parent, string? conversationId, string speechPath)
+    {
+        if (_settings.SayGeneratedSpeech && TryGetPromptText(speechPath, out var promptText))
+        {
+            parent.Append(CreateSay(promptText));
+            return;
+        }
+
+        if (!speechPath.EndsWith(TextSpeechExtension, StringComparison.OrdinalIgnoreCase))
+        {
+            parent.Append(new Play(new Uri(GetSpeechPath(conversationId, speechPath))));
+            return;
+        }
+
+        var (convId, fileName) = SplitSpeechPath(conversationId, speechPath);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var data = fileStorage.GetSpeechFile(convId, fileName);
+        if (data.ToMemory().IsEmpty)
+        {
+            _logger.LogWarning($"Speech text {fileName} is missing (conversation {convId}).");
+            return;
+        }
+
+        parent.Append(CreateSay(data.ToString()));
+    }
+
+    /// <summary>
+    /// Looks up the configured text of a prerecorded prompt such as "twilio/say-it-again-1.mp3".
+    /// Files generated per conversation (twilio/voice/speeches/...) never match.
+    /// </summary>
+    private bool TryGetPromptText(string speechPath, out string text)
+    {
+        text = string.Empty;
+        const string promptRoute = "twilio/";
+        var path = StripCallbackHost(speechPath);
+        if (!path.StartsWith(promptRoute))
+        {
+            return false;
+        }
+
+        var fileName = path.Substring(promptRoute.Length);
+        if (fileName.Contains('/'))
+        {
+            return false;
+        }
+
+        return _settings.PromptTexts.TryGetValue(System.IO.Path.GetFileNameWithoutExtension(fileName), out text!)
+            && !string.IsNullOrWhiteSpace(text);
+    }
+
+    private string StripCallbackHost(string speechPath)
+    {
+        return speechPath.StartsWith(_settings.CallbackHost)
+            ? speechPath.Substring(_settings.CallbackHost.Length).TrimStart('/')
+            : speechPath;
+    }
+
+    private (string? ConversationId, string FileName) SplitSpeechPath(string? conversationId, string speechPath)
+    {
+        var path = StripCallbackHost(speechPath);
+
+        // Accepts "twilio/voice/speeches/{conversationId}/{fileName}" or a bare file name in the given conversation
+        const string speechRoute = "twilio/voice/speeches/";
+        if (path.StartsWith(speechRoute))
+        {
+            var parts = path.Substring(speechRoute.Length).Split('/');
+            if (parts.Length == 2)
+            {
+                return (parts[0], parts[1]);
+            }
+        }
+
+        return (conversationId, path);
+    }
+
+    private Say CreateSay(string text)
+    {
+        return string.IsNullOrEmpty(_settings.SayVoice)
+            ? new Say(text)
+            : new Say(text, voice: _settings.SayVoice);
     }
 
     public string GenerateStatesParameter(List<string> states)

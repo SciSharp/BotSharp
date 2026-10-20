@@ -38,8 +38,19 @@ public class TwilioOutboundController : TwilioController
             await HookEmitter.Emit<ITwilioCallStatusHook>(_services,
                 async hook => await hook.OnVoicemailStarting(request), request.AgentId);
 
-            var url = twilio.GetSpeechPath(request.ConversationId, "voicemail.mp3");
-            response.Play(new Uri(url));
+            var voicemail = twilio.GetSavedSpeechFile(request.ConversationId, "voicemail");
+            twilio.AppendSpeech(response, request.ConversationId, voicemail);
+        }
+        else if (_settings.ConversationRelay.IsEnabledFor(request.AgentId))
+        {
+            // OutboundPhoneCallFn stored the initial message as reply 0
+            var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
+            var initial = await sessionManager.GetAssistantReplyAsync(request.ConversationId, 0);
+            if (string.IsNullOrWhiteSpace(initial?.Content))
+            {
+                _logger.LogWarning($"No initial message for conversation {request.ConversationId}; starting ConversationRelay without a greeting.");
+            }
+            response = twilio.ReturnConversationRelay(request.AgentId, request.ConversationId, initial?.Content);
         }
         else
         {

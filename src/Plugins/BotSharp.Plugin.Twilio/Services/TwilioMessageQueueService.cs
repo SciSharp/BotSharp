@@ -67,96 +67,30 @@ public class TwilioMessageQueueService : BackgroundService
     {
         using var scope = _serviceProvider.CreateScope();
         var sp = scope.ServiceProvider;
-
-        // Clean static HttpContext
-        var httpContext = sp.GetRequiredService<IHttpContextAccessor>();
-        httpContext.HttpContext = new DefaultHttpContext();
-        httpContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity());
-        foreach (var header in message.RequestHeaders ?? [])
-        {
-            httpContext.HttpContext.Request.Headers[header.Key] = header.Value;
-        }
-        httpContext.HttpContext.Request.Headers["X-Twilio-BotSharp"] = "LOST";
-
-        AssistantMessage reply = default!;
-
-        var inputMsg = new RoleDialogModel(AgentRole.User, message.Content);
-        var conv = sp.GetRequiredService<IConversationService>();
-        var routing = sp.GetRequiredService<IRoutingService>();
-        var config = sp.GetRequiredService<TwilioSetting>();
         var sessionManager = sp.GetRequiredService<ITwilioSessionManager>();
-        var observer = sp.GetRequiredService<IObserverService>();
 
-        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(message.ConversationId, listeners: new()
+        var reply = await TwilioConversationProcessor.SendCallerMessageAsync(sp, message,
+            async indication => await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, indication));
+        if (reply == null)
         {
-            { ChatEvent.OnIndicationReceived, async data => await OnReceiveToolCallIndication(data.Data, message, sessionManager) }
-        });
-        await InitConversation(message, inputMsg, conv, routing);
-
-        // Need to consider Inbound and Outbound call
-        var conversation = await conv.GetConversation(message.ConversationId);
-        var agentId = message.AgentId;
-
-        var result = await conv.SendMessage(agentId,
-            inputMsg,
-            replyMessage: await BuildPostbackMessageModel(conv, message),
-            async msg =>
-            {
-                reply = new AssistantMessage()
-                {
-                    ConversationEnd = msg.Instruction?.ConversationEnd ?? false,
-                    HumanIntervationNeeded = string.Equals("human_intervention_needed", msg.FunctionName),
-                    Content = msg.Content,
-                    MessageId = msg.MessageId
-                };
-            }
-        );
+            _logger.LogWarning($"No reply for {message}.");
+            return;
+        }
 
         var settings = sp.GetRequiredService<TwilioSetting>();
         if (settings.GenerateReplyAudio)
         {
             reply.SpeechFileName = await GetReplySpeechFileName(message.ConversationId, reply, sp);
         }
-        
-        reply.Hints = await GetHints(agentId, reply, sp);
+
+        reply.Hints = await GetHints(message.AgentId, reply, sp);
         await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
-    }
-
-    private async Task<PostbackMessageModel?> BuildPostbackMessageModel(IConversationService conv, CallerMessage message)
-    {
-        var messages = await conv.GetDialogHistory(1);
-        if (!messages.Any()) return null;
-        var lastMessage = messages[0];
-        if (string.IsNullOrEmpty(lastMessage.PostbackFunctionName)) return null;
-        return new PostbackMessageModel
-        {
-            FunctionName = lastMessage.PostbackFunctionName,
-            ParentId = lastMessage.MessageId,
-            Payload = message.Digits
-        };
-    }
-
-    private static async Task InitConversation(CallerMessage message, RoleDialogModel inputMsg, IConversationService conv, IRoutingService routing)
-    {
-        routing.Context.SetMessageId(message.ConversationId, inputMsg.MessageId);
-        var states = new List<MessageState>
-        {
-            new(StateConst.CHANNEL, ConversationChannel.Phone),
-            new("channel_id", message.From),
-            new("calling_phone", message.From)
-        };
-        states.AddRange(message.States.Select(kvp => new MessageState(kvp.Key, kvp.Value)));
-        await conv.SetConversationId(message.ConversationId, states);
     }
 
     private static async Task<string> GetReplySpeechFileName(string conversationId, AssistantMessage reply, IServiceProvider sp)
     {
-        var completion = CompletionProvider.GetAudioSynthesizer(sp);
-        var fileStorage = sp.GetRequiredService<IFileStorageService>();
-        var data = await completion.GenerateAudioAsync(reply.Content);
-        var fileName = $"reply_{reply.MessageId}.mp3";
-        fileStorage.SaveSpeechFile(conversationId, fileName, data);
-        return fileName;
+        var twilio = sp.GetRequiredService<TwilioService>();
+        return await twilio.SaveSpeechAsync(conversationId, $"reply_{reply.MessageId}", reply.Content);
     }
 
     private static async Task<string> GetHints(string agentId, AssistantMessage reply, IServiceProvider sp)
@@ -190,13 +124,5 @@ public class TwilioMessageQueueService : BackgroundService
         hints.AddRange(["yes", "no", "correct", "right"]);
         hints.AddRange(extraWords);
         return string.Join(", ", hints.Select(x => x.ToLower()).Distinct().Reverse());
-    }
-
-    private static async Task OnReceiveToolCallIndication(RoleDialogModel msg, CallerMessage message, ITwilioSessionManager sessionManager)
-    {
-        if (!string.IsNullOrEmpty(msg.Indication))
-        {
-            await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, msg.Indication);
-        }
     }
 }

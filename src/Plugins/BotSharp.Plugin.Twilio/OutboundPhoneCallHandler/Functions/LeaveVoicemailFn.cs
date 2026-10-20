@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
+using BotSharp.Plugin.Twilio.Services;
 
 namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions;
 
@@ -28,7 +29,6 @@ public class LeaveVoicemailFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<LeaveVoicemailArgs>(message.FunctionArgs);
 
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var routing = _services.GetRequiredService<IRoutingService>();
         var conversationId = routing.Context.ConversationId;
         var states = _services.GetRequiredService<IConversationStateService>();
@@ -42,13 +42,10 @@ public class LeaveVoicemailFn : IFunctionCallback
         }
 
         // Generate voice message audio
-        string initAudioFile = null;
         if (!string.IsNullOrEmpty(args.VoicemailMessage))
         {
-            var completion = CompletionProvider.GetAudioSynthesizer(_services);
-            var data = await completion.GenerateAudioAsync(args.VoicemailMessage);
-            initAudioFile = "voicemail.mp3";
-            fileStorage.SaveSpeechFile(conversationId, initAudioFile, data);
+            var twilio = _services.GetRequiredService<TwilioService>();
+            await twilio.SaveSpeechAsync(conversationId, "voicemail", args.VoicemailMessage);
         }
 
         message.Content = args.VoicemailMessage;

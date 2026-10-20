@@ -9,6 +9,7 @@ using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
+using BotSharp.Plugin.Twilio.Services;
 using Twilio.Exceptions;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.TwiML.Messaging;
@@ -62,7 +63,6 @@ public class OutboundPhoneCallFn : IFunctionCallback
             return false;
         }
 
-        var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var states = _services.GetRequiredService<IConversationStateService>();
 
         // Fork conversation
@@ -73,24 +73,24 @@ public class OutboundPhoneCallFn : IFunctionCallback
         var statusUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/status?agent-id={message.CurrentAgentId}&conversation-id={newConversationId}";
         var recordingStatusUrl = $"{_twilioSetting.CallbackHost}/twilio/recording/status?agent-id={message.CurrentAgentId}&conversation-id={newConversationId}";
 
-        // Generate initial assistant audio
+        // load agent profile
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(message.CurrentAgentId);
+        var realtime = agent.Labels.Contains("realtime");
+
+        // Generate initial assistant audio; on ConversationRelay Twilio speaks the initial message as the welcome greeting
         string initAudioFile = null;
-        if (!string.IsNullOrEmpty(args.InitialMessage))
+        var useConversationRelay = !realtime && _twilioSetting.ConversationRelay.IsEnabledFor(message.CurrentAgentId);
+        if (!string.IsNullOrEmpty(args.InitialMessage) && !useConversationRelay)
         {
-            var completion = CompletionProvider.GetAudioSynthesizer(_services);
-            var data = await completion.GenerateAudioAsync(args.InitialMessage);
-            initAudioFile = "intial.mp3";
-            fileStorage.SaveSpeechFile(newConversationId, initAudioFile, data);
+            var twilio = _services.GetRequiredService<TwilioService>();
+            initAudioFile = await twilio.SaveSpeechAsync(newConversationId, "intial", args.InitialMessage);
 
             statusUrl += $"&init-audio-file={initAudioFile}";
         }
 
-        // load agent profile
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.GetAgent(message.CurrentAgentId);
-
         // Set up process URL streaming or synchronous
-        if (agent.Labels.Contains("realtime"))
+        if (realtime)
         {
             processUrl += "/inbound";
         }
