@@ -21,9 +21,20 @@ public class AudioSynthesisProvider : IAudioSynthesis
         _model = model;
     }
 
+    // A short phrase normally comes back in a few seconds, but some requests never finish;
+    // with the SDK default of 100s per attempt, four stalled attempts block the caller for ~7 minutes.
+    private const int DefaultTimeoutSeconds = 30;
+    private const int DefaultMaxRetries = 3;
+
     public async Task<BinaryData> GenerateAudioAsync(string text, string? voice = "alloy", string? format = "mp3", string? instructions = null)
     {
-        var audioClient = ProviderHelper.GetClient(Provider, _model, apiKey: null, _services)
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var synthesis = settingsService.GetSetting(Provider, _model)?.Audio?.Synthesis;
+        var timeout = TimeSpan.FromSeconds(synthesis?.TimeoutSeconds ?? DefaultTimeoutSeconds);
+        var maxRetries = synthesis?.MaxRetries ?? DefaultMaxRetries;
+
+        var audioClient = ProviderHelper.GetClient(Provider, _model, apiKey: null, _services,
+                                            networkTimeout: timeout, maxRetries: maxRetries)
                                         .GetAudioClient(_model);
 
         var (speechVoice, options) = PrepareGenerationOptions(voice: voice, format: format);
