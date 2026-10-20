@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <None Include="..\..\docs\mcp\parallel-search.json" Link="parallel-search.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\mcp\sem.json" Link="sem.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
