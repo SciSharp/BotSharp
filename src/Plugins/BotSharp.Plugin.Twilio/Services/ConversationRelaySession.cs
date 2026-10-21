@@ -21,7 +21,7 @@ public class ConversationRelaySession
     private readonly string _agentId;
     private readonly string _conversationId;
     private readonly TwilioSetting _settings;
-    private readonly Func<CallerMessage, Func<string, Task>, Task<AssistantMessage?>> _sendCallerMessage;
+    private readonly Func<CallerMessage, AgentTurnCallbacks, Task<AssistantMessage?>> _sendCallerMessage;
     private readonly ILogger _logger;
 
     private readonly SemaphoreSlim _sendLock = new(1, 1);
@@ -39,18 +39,25 @@ public class ConversationRelaySession
     // Caller silence is measured from this moment: the estimated end of what we last said, or the caller's last input
     private DateTime _quietSinceUtc = DateTime.MaxValue;
 
+    // Streaming of the current turn's reply (ConversationRelay.StreamReplies)
+    private readonly StringBuilder _streamSegment = new();
+    private string _lastStreamSegment = string.Empty;
+    private bool _utteranceOpen;
+    private bool _streamedThisTurn;
+    private bool _dropStream;
+
     private string? _callSid;
     private string? _from;
     private string? _to;
     private string? _direction;
 
-    /// <param name="sendCallerMessage">Sends the caller's words to the agent and returns its reply; the second argument receives tool-call indications</param>
+    /// <param name="sendCallerMessage">Sends the caller's words to the agent and returns its reply; the callbacks receive tool-call indications and the streamed reply</param>
     public ConversationRelaySession(
         WebSocket socket,
         string agentId,
         string conversationId,
         TwilioSetting settings,
-        Func<CallerMessage, Func<string, Task>, Task<AssistantMessage?>> sendCallerMessage,
+        Func<CallerMessage, AgentTurnCallbacks, Task<AssistantMessage?>> sendCallerMessage,
         ILogger logger)
     {
         _socket = socket;
@@ -183,6 +190,12 @@ public class ConversationRelaySession
                 lock (_sync)
                 {
                     _quietSinceUtc = DateTime.UtcNow;
+
+                    // The caller talked over a reply still being streamed: don't send the rest of it
+                    if (_isProcessing && _streamedThisTurn)
+                    {
+                        _dropStream = true;
+                    }
                 }
                 _logger.LogInformation($"Caller interrupted the agent in conversation {_conversationId} after {GetString(root, "durationUntilInterruptMs")} ms.");
                 break;
@@ -247,7 +260,21 @@ public class ConversationRelaySession
                 };
                 _pendingInputs.Clear();
                 _pendingDigits = null;
+
+                _streamSegment.Clear();
+                _lastStreamSegment = string.Empty;
+                _utteranceOpen = false;
+                _streamedThisTurn = false;
+                _dropStream = false;
             }
+
+            var stream = _settings.ConversationRelay.StreamReplies;
+            var callbacks = new AgentTurnCallbacks
+            {
+                OnIndication = SpeakIndicationAsync,
+                OnStreamText = stream ? StreamTextAsync : null,
+                OnStreamStarted = stream ? CloseUtteranceAsync : null
+            };
 
             AssistantMessage? reply;
             try
@@ -256,7 +283,7 @@ public class ConversationRelaySession
                 Task<AssistantMessage?> turn;
                 using (ExecutionContext.SuppressFlow())
                 {
-                    turn = Task.Run(() => _sendCallerMessage(message, SpeakIndicationAsync));
+                    turn = Task.Run(() => _sendCallerMessage(message, callbacks));
                 }
 
                 var timeout = Task.Delay(TimeSpan.FromSeconds(_settings.ConversationRelay.AiResponseTimeoutSeconds));
@@ -275,12 +302,13 @@ public class ConversationRelaySession
                 return;
             }
 
+            await CloseUtteranceAsync();
             if (reply == null || string.IsNullOrWhiteSpace(reply.Content) && !reply.ConversationEnd && !reply.HumanIntervationNeeded)
             {
                 continue;
             }
 
-            await SpeakAsync(reply.Content);
+            await SpeakAsync(GetUnstreamedText(reply.Content));
             if (reply.HumanIntervationNeeded)
             {
                 await EndAsync(ConversationRelayHandoff.Transfer);
@@ -337,8 +365,90 @@ public class ConversationRelaySession
 
     private async Task FailAsync()
     {
+        // A turn that timed out may still be streaming; keep its words out of the apology
+        lock (_sync)
+        {
+            _dropStream = true;
+        }
+        await CloseUtteranceAsync();
         await SpeakPromptAsync("error", DefaultErrorText);
         await EndAsync(ConversationRelayHandoff.HangUp);
+    }
+
+    /// <summary>
+    /// Sends a piece of the reply as the model writes it; Twilio speaks it as it arrives.
+    /// </summary>
+    private async Task StreamTextAsync(string text)
+    {
+        lock (_sync)
+        {
+            if (_ended || _dropStream)
+            {
+                return;
+            }
+            _streamSegment.Append(text);
+            _utteranceOpen = true;
+            _streamedThisTurn = true;
+        }
+
+        await SendAsync(new { type = "text", token = text, last = false });
+    }
+
+    /// <summary>
+    /// Ends the utterance being streamed, so what follows (an indication, the next response) is spoken on its own.
+    /// </summary>
+    private async Task CloseUtteranceAsync()
+    {
+        int length;
+        lock (_sync)
+        {
+            if (!_utteranceOpen)
+            {
+                return;
+            }
+            _utteranceOpen = false;
+            _lastStreamSegment = _streamSegment.ToString();
+            _streamSegment.Clear();
+            length = _lastStreamSegment.Length;
+        }
+
+        await SendAsync(new { type = "text", token = string.Empty, last = true });
+        MarkSpeaking(EstimateSpeech(length));
+    }
+
+    /// <summary>
+    /// The part of the final reply that was not streamed. Normally nothing; the whole reply when it is not
+    /// what the model streamed last, e.g. text set by a tool, or a reply rewritten after the model wrote it.
+    /// </summary>
+    private string GetUnstreamedText(string? reply)
+    {
+        var final = reply?.Trim() ?? string.Empty;
+        string streamed;
+        lock (_sync)
+        {
+            if (!_streamedThisTurn)
+            {
+                return final;
+            }
+            if (_dropStream)
+            {
+                // The caller cut in; their words come next as a new turn
+                return string.Empty;
+            }
+            streamed = _lastStreamSegment.Trim();
+        }
+
+        if (final == streamed)
+        {
+            return string.Empty;
+        }
+        if (streamed.Length > 0 && final.StartsWith(streamed, StringComparison.Ordinal))
+        {
+            return final.Substring(streamed.Length);
+        }
+
+        _logger.LogInformation($"Reply in conversation {_conversationId} differs from what was streamed; speaking it in full.");
+        return final;
     }
 
     /// <summary>
@@ -346,6 +456,7 @@ public class ConversationRelaySession
     /// </summary>
     private async Task SpeakIndicationAsync(string indication)
     {
+        await CloseUtteranceAsync();
         foreach (var segment in indication.Split('|'))
         {
             var text = segment.Trim();

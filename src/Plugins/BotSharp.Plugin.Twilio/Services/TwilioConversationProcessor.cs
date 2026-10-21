@@ -16,11 +16,11 @@ namespace BotSharp.Plugin.Twilio.Services;
 public static class TwilioConversationProcessor
 {
     /// <param name="sp">A service scope created for this one caller message</param>
-    /// <param name="onIndication">Receives tool-call indications while the agent is working</param>
+    /// <param name="callbacks">Receives tool-call indications, and the reply as it is written when OnStreamText is set</param>
     public static async Task<AssistantMessage?> SendCallerMessageAsync(
         IServiceProvider sp,
         CallerMessage message,
-        Func<string, Task>? onIndication = null)
+        AgentTurnCallbacks? callbacks = null)
     {
         // Clean static HttpContext
         var httpContext = sp.GetRequiredService<IHttpContextAccessor>();
@@ -39,19 +39,50 @@ public static class TwilioConversationProcessor
         var routing = sp.GetRequiredService<IRoutingService>();
         var observer = sp.GetRequiredService<IObserverService>();
 
-        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(message.ConversationId, listeners: new()
+        var streaming = callbacks?.OnStreamText != null;
+        var listeners = new Dictionary<string, Func<HubObserveData<RoleDialogModel>, Task>>
         {
             {
                 ChatEvent.OnIndicationReceived, async data =>
                 {
-                    if (onIndication != null && !string.IsNullOrEmpty(data.Data.Indication))
+                    if (callbacks?.OnIndication != null && !string.IsNullOrEmpty(data.Data.Indication))
                     {
-                        await onIndication(data.Data.Indication);
+                        await callbacks.OnIndication(data.Data.Indication);
                     }
                 }
             }
-        });
+        };
+        if (streaming)
+        {
+            // Listeners run in push order on the model's stream, so the pieces arrive in order
+            listeners[ChatEvent.BeforeReceiveLlmStreamMessage] = async _ =>
+            {
+                if (callbacks!.OnStreamStarted != null)
+                {
+                    await callbacks.OnStreamStarted();
+                }
+            };
+            listeners[ChatEvent.OnReceiveLlmStreamMessage] = async data =>
+            {
+                if (!string.IsNullOrEmpty(data.Data.Content))
+                {
+                    await callbacks!.OnStreamText!(data.Data.Content);
+                }
+            };
+        }
+
+        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(message.ConversationId, listeners: listeners);
         await InitConversation(message, inputMsg, conv, routing);
+
+        if (streaming)
+        {
+            // Routing streams only when both are set (RoutingService, InstructExecutor)
+            conv.States.SetState(StateConst.USE_STREAM_MESSAGE, true, source: StateSource.Application);
+            if (string.IsNullOrEmpty(conv.States.GetState(StateConst.LANGUAGE)))
+            {
+                conv.States.SetState(StateConst.LANGUAGE, LanguageType.ENGLISH, source: StateSource.Application);
+            }
+        }
 
         // Need to consider Inbound and Outbound call
         var conversation = await conv.GetConversation(message.ConversationId);

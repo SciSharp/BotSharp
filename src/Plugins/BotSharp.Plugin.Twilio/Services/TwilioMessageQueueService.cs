@@ -69,8 +69,10 @@ public class TwilioMessageQueueService : BackgroundService
         var sp = scope.ServiceProvider;
         var sessionManager = sp.GetRequiredService<ITwilioSessionManager>();
 
-        var reply = await TwilioConversationProcessor.SendCallerMessageAsync(sp, message,
-            async indication => await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, indication));
+        var reply = await TwilioConversationProcessor.SendCallerMessageAsync(sp, message, new AgentTurnCallbacks
+        {
+            OnIndication = async indication => await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, indication)
+        });
         if (reply == null)
         {
             _logger.LogWarning($"No reply for {message}.");

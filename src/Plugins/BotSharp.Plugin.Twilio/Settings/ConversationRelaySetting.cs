@@ -54,6 +54,12 @@ public class ConversationRelaySetting
     public int AiResponseTimeoutSeconds { get; set; } = 30;
 
     /// <summary>
+    /// Send the reply to Twilio while the model is still writing it, so speaking starts with the first words.
+    /// Needs a chat provider that supports streaming, and only applies to English conversations.
+    /// </summary>
+    public bool StreamReplies { get; set; }
+
+    /// <summary>
     /// How many times to reconnect a session that failed (e.g. the pod holding the WebSocket went away)
     /// </summary>
     public int MaxReconnects { get; set; } = 2;

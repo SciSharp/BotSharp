@@ -48,15 +48,15 @@ public class TwilioConversationRelayMiddleware
         using var socket = await httpContext.WebSockets.AcceptWebSocketAsync();
         var scopeFactory = services.GetRequiredService<IServiceScopeFactory>();
         var session = new ConversationRelaySession(socket, agentId, conversationId, settings,
-            (message, onIndication) => SendCallerMessageAsync(scopeFactory, message, onIndication),
+            (message, callbacks) => SendCallerMessageAsync(scopeFactory, message, callbacks),
             _logger);
         await session.RunAsync(httpContext.RequestAborted);
     }
 
-    private static async Task<AssistantMessage?> SendCallerMessageAsync(IServiceScopeFactory scopeFactory, CallerMessage message, Func<string, Task> onIndication)
+    private static async Task<AssistantMessage?> SendCallerMessageAsync(IServiceScopeFactory scopeFactory, CallerMessage message, AgentTurnCallbacks callbacks)
     {
         using var scope = scopeFactory.CreateScope();
-        return await TwilioConversationProcessor.SendCallerMessageAsync(scope.ServiceProvider, message, onIndication);
+        return await TwilioConversationProcessor.SendCallerMessageAsync(scope.ServiceProvider, message, callbacks);
     }
 
     /// <summary>
