@@ -26,7 +26,7 @@ public class ConversationRelaySession
 
     private readonly SemaphoreSlim _sendLock = new(1, 1);
     private readonly object _sync = new();
-    private readonly List<PendingInput> _pendingInputs = [];
+    private readonly Queue<PendingInput> _pendingInputs = new();
     private readonly StringBuilder _digits = new();
     private readonly StringBuilder _partialPrompt = new();
     private bool _isProcessing;
@@ -87,23 +87,27 @@ public class ConversationRelaySession
         }
         finally
         {
+            // The call is gone: stop taking turns before waiting on anything, so a turn that finishes
+            // meanwhile cannot start another one from the queue
+            int dropped;
+            lock (_sync)
+            {
+                _ended = true;
+                dropped = _pendingInputs.Count;
+                _pendingInputs.Clear();
+            }
+
             cts.Cancel();
             await SwallowAsync(idleWatch);
+
+            if (dropped > 0)
+            {
+                _logger.LogInformation($"Dropped {dropped} caller input(s) received after the agent's last turn started; " +
+                    $"conversation {_conversationId} has ended.");
+            }
         }
 
-        // The call is gone: start no new turns, but let a turn already running finish so the conversation is saved
-        int dropped;
-        lock (_sync)
-        {
-            _ended = true;
-            dropped = _pendingInputs.Count;
-            _pendingInputs.Clear();
-        }
-        if (dropped > 0)
-        {
-            _logger.LogInformation($"Dropped {dropped} caller input(s) received after the agent's last turn started; " +
-                $"conversation {_conversationId} has ended.");
-        }
+        // Let a turn already running finish so the conversation is saved
         await SwallowAsync(_processing);
     }
 
@@ -239,7 +243,7 @@ public class ConversationRelaySession
                 return;
             }
 
-            _pendingInputs.Add(new PendingInput(content, digits));
+            _pendingInputs.Enqueue(new PendingInput(content, digits));
             _quietSinceUtc = DateTime.UtcNow;
             _idlePrompts = 0;
             _activity++;
@@ -270,7 +274,7 @@ public class ConversationRelaySession
                 }
 
                 var batch = new List<PendingInput>();
-                foreach (var input in _pendingInputs)
+                while (_pendingInputs.TryDequeue(out var input))
                 {
                     batch.Add(input);
                     if (input.Digits != null)
@@ -278,7 +282,6 @@ public class ConversationRelaySession
                         break;
                     }
                 }
-                _pendingInputs.RemoveRange(0, batch.Count);
 
                 var inbound = string.Equals(_direction, "inbound", StringComparison.OrdinalIgnoreCase);
                 message = new CallerMessage
