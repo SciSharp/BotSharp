@@ -9,7 +9,7 @@ public class ConversationRelaySetting
     public bool Enabled { get; set; }
 
     /// <summary>
-    /// Agents that use ConversationRelay for outbound calls. Empty means every agent.
+    /// Agents that use ConversationRelay for their calls, outbound and inbound. Empty means every agent.
     /// </summary>
     public List<string> AgentIds { get; set; } = [];
 
@@ -69,8 +69,30 @@ public class ConversationRelaySetting
     /// </summary>
     public bool ValidateSignature { get; set; } = true;
 
+    /// <summary>
+    /// Seconds to wait for the agent's first words after the caller finishes speaking before saying a short
+    /// filler (e.g. "One moment, please."), at most once per turn. 0 turns it off.
+    /// </summary>
+    public double ResponseWatchdogSeconds { get; set; }
+
+    /// <summary>
+    /// Agents the response watchdog applies to. Empty means every ConversationRelay agent.
+    /// </summary>
+    public List<string> ResponseWatchdogAgentIds { get; set; } = [];
+
+    /// <summary>
+    /// Names of Twilio:PromptTexts entries the filler is picked from at random. Empty uses hold-on-1 to hold-on-5.
+    /// </summary>
+    public List<string> ResponseWatchdogPrompts { get; set; } = [];
+
     public bool IsEnabledFor(string? agentId)
     {
         return Enabled && (AgentIds.Count == 0 || (agentId != null && AgentIds.Contains(agentId)));
+    }
+
+    public bool IsResponseWatchdogEnabledFor(string? agentId)
+    {
+        return ResponseWatchdogSeconds > 0
+            && (ResponseWatchdogAgentIds.Count == 0 || (agentId != null && ResponseWatchdogAgentIds.Contains(agentId)));
     }
 }

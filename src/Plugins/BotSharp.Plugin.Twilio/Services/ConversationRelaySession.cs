@@ -15,7 +15,9 @@ public class ConversationRelaySession
 {
     private const string DefaultSayItAgainText = "Sorry, can you say it again?";
     private const string DefaultErrorText = "Sorry, something went wrong. Please call back later.";
+    private const string DefaultHoldOnText = "One moment, please.";
     private const double SpokenCharsPerSecond = 15;
+    private static readonly List<string> DefaultWatchdogPrompts = ["hold-on-1", "hold-on-2", "hold-on-3", "hold-on-4", "hold-on-5"];
 
     private readonly WebSocket _socket;
     private readonly string _agentId;
@@ -47,6 +49,9 @@ public class ConversationRelaySession
     private bool _utteranceOpen;
     private bool _streamedThisTurn;
     private bool _dropStream;
+
+    // Anything was said to the caller during the current turn; the response watchdog stays quiet once it is set
+    private bool _spokeThisTurn;
 
     private string? _callSid;
     private string? _from;
@@ -296,7 +301,13 @@ public class ConversationRelaySession
                 _utteranceOpen = false;
                 _streamedThisTurn = false;
                 _dropStream = false;
+                _spokeThisTurn = false;
             }
+
+            using var watchdogCts = new CancellationTokenSource();
+            var watchdog = _settings.ConversationRelay.IsResponseWatchdogEnabledFor(_agentId)
+                ? WatchResponseAsync(message.SeqNumber, watchdogCts.Token)
+                : Task.CompletedTask;
 
             var stream = _settings.ConversationRelay.StreamReplies;
             var callbacks = new AgentTurnCallbacks
@@ -332,6 +343,16 @@ public class ConversationRelaySession
                 await FailAsync();
                 return;
             }
+            finally
+            {
+                // The reply is in: a filler that already passed its delay must not slip in ahead of it
+                lock (_sync)
+                {
+                    _spokeThisTurn = true;
+                }
+                watchdogCts.Cancel();
+                await SwallowAsync(watchdog);
+            }
 
             await CloseUtteranceAsync();
             if (reply == null
@@ -352,6 +373,47 @@ public class ConversationRelaySession
                 return;
             }
         }
+    }
+
+    /// <summary>
+    /// Says a short filler when the agent has said nothing this turn after ResponseWatchdogSeconds,
+    /// so the caller does not sit in silence while the model thinks or a tool runs.
+    /// </summary>
+    private async Task WatchResponseAsync(int seqNumber, CancellationToken cancellationToken)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(_settings.ConversationRelay.ResponseWatchdogSeconds), cancellationToken);
+
+        var text = PickFillerText();
+        await _sendLock.WaitAsync(cancellationToken);
+        try
+        {
+            // Decided while holding the send lock, so a reply cannot start streaming between the check and the
+            // filler; a stream that already began has set _utteranceOpen and is waiting for this lock
+            lock (_sync)
+            {
+                if (_ended || _seqNum != seqNumber || _spokeThisTurn || _utteranceOpen)
+                {
+                    return;
+                }
+                _spokeThisTurn = true;
+            }
+            await SendLockedAsync(new { type = "text", token = text, last = true });
+        }
+        finally
+        {
+            _sendLock.Release();
+        }
+        MarkSpeaking(EstimateSpeech(text.Length));
+    }
+
+    private string PickFillerText()
+    {
+        var names = _settings.ConversationRelay.ResponseWatchdogPrompts;
+        var texts = (names.Count > 0 ? names : DefaultWatchdogPrompts)
+            .Select(name => _settings.PromptTexts.TryGetValue(name, out var text) ? text : null)
+            .Where(text => !string.IsNullOrWhiteSpace(text))
+            .ToList();
+        return texts.Count == 0 ? DefaultHoldOnText : texts[Random.Shared.Next(texts.Count)]!;
     }
 
     private async Task WatchIdleAsync(CancellationToken cancellationToken)
@@ -426,6 +488,7 @@ public class ConversationRelaySession
             _streamSegment.Append(text);
             _utteranceOpen = true;
             _streamedThisTurn = true;
+            _spokeThisTurn = true;
         }
 
         await SendAsync(new { type = "text", token = text, last = false });
@@ -543,6 +606,7 @@ public class ConversationRelaySession
             {
                 return;
             }
+            _spokeThisTurn = true;
         }
 
         await SendAsync(new { type = "text", token = text, last = true });
@@ -587,8 +651,23 @@ public class ConversationRelaySession
 
     private async Task SendAsync(object payload)
     {
-        var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload));
         await _sendLock.WaitAsync();
+        try
+        {
+            await SendLockedAsync(payload);
+        }
+        finally
+        {
+            _sendLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Sends with <see cref="_sendLock"/> already held by the caller.
+    /// </summary>
+    private async Task SendLockedAsync(object payload)
+    {
+        var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload));
         try
         {
             if (_socket.State == WebSocketState.Open)
@@ -601,10 +680,6 @@ public class ConversationRelaySession
         {
             // The call already moved on, e.g. a hang-up or transfer redirected it
             _logger.LogInformation($"ConversationRelay socket for conversation {_conversationId} is gone: {ex.Message}");
-        }
-        finally
-        {
-            _sendLock.Release();
         }
     }
 
