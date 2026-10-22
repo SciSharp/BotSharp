@@ -1,4 +1,4 @@
-using BotSharp.Plugin.Twilio.Models;
+﻿using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Models.Relay;
 using System.IO;
 using System.Net.WebSockets;
@@ -18,6 +18,8 @@ public class ConversationRelaySession
     private const string DefaultHoldOnText = "One moment, please.";
     private const double SpokenCharsPerSecond = 15;
     private static readonly List<string> DefaultWatchdogPrompts = ["hold-on-1", "hold-on-2", "hold-on-3", "hold-on-4", "hold-on-5"];
+    private static readonly List<string> DefaultWatchdogLongPrompts = Enumerable.Range(1, 10).Select(i => $"hold-on-long-{i}").ToList();
+    private static readonly TimeSpan WatchdogPollInterval = TimeSpan.FromMilliseconds(100);
 
     private readonly WebSocket _socket;
     private readonly string _agentId;
@@ -50,8 +52,9 @@ public class ConversationRelaySession
     private bool _streamedThisTurn;
     private bool _dropStream;
 
-    // Anything was said to the caller during the current turn; the response watchdog stays quiet once it is set
-    private bool _spokeThisTurn;
+    // The current turn's reply is in; the response watchdog says nothing more once it is set
+    private bool _turnReplied;
+    private DateTime _turnStartedUtc;
 
     private string? _callSid;
     private string? _from;
@@ -301,7 +304,8 @@ public class ConversationRelaySession
                 _utteranceOpen = false;
                 _streamedThisTurn = false;
                 _dropStream = false;
-                _spokeThisTurn = false;
+                _turnReplied = false;
+                _turnStartedUtc = DateTime.UtcNow;
             }
 
             using var watchdogCts = new CancellationTokenSource();
@@ -348,7 +352,7 @@ public class ConversationRelaySession
                 // The reply is in: a filler that already passed its delay must not slip in ahead of it
                 lock (_sync)
                 {
-                    _spokeThisTurn = true;
+                    _turnReplied = true;
                 }
                 watchdogCts.Cancel();
                 await SwallowAsync(watchdog);
@@ -376,26 +380,59 @@ public class ConversationRelaySession
     }
 
     /// <summary>
-    /// Says a short filler when the agent has said nothing this turn after ResponseWatchdogSeconds,
-    /// so the caller does not sit in silence while the model thinks or a tool runs.
+    /// While the agent works on a reply, says a filler each time the line has been silent for the next
+    /// ResponseWatchdogIntervals value, so the caller never sits in a long silence while the model thinks or a tool runs.
+    /// Silence counts from the end of whatever was said last (the caller, a filler, an indication), and no filler is
+    /// said twice in a turn while unused ones remain.
     /// </summary>
     private async Task WatchResponseAsync(int seqNumber, CancellationToken cancellationToken)
     {
-        await Task.Delay(TimeSpan.FromSeconds(_settings.ConversationRelay.ResponseWatchdogSeconds), cancellationToken);
+        var relay = _settings.ConversationRelay;
+        var said = new HashSet<string>();
+        for (var step = 0; ; step++)
+        {
+            var interval = TimeSpan.FromSeconds(relay.ResponseWatchdogIntervals[Math.Min(step, relay.ResponseWatchdogIntervals.Count - 1)]);
+            while (true)
+            {
+                await Task.Delay(WatchdogPollInterval, cancellationToken);
+                lock (_sync)
+                {
+                    if (_ended || _seqNum != seqNumber || _turnReplied)
+                    {
+                        return;
+                    }
+                    // _quietSinceUtc is the estimated end of what was last said, or the caller's last input
+                    var quietSince = _quietSinceUtc == DateTime.MaxValue || _quietSinceUtc < _turnStartedUtc ? _turnStartedUtc : _quietSinceUtc;
+                    if (!_utteranceOpen && DateTime.UtcNow - quietSince >= interval)
+                    {
+                        break;
+                    }
+                }
+            }
 
-        var text = PickFillerText();
-        await _sendLock.WaitAsync(cancellationToken);
+            var text = PickFillerText(step == 0 ? relay.ResponseWatchdogPrompts : relay.ResponseWatchdogLongPrompts,
+                step == 0 ? DefaultWatchdogPrompts : DefaultWatchdogLongPrompts, said);
+            if (!await SpeakFillerAsync(seqNumber, text))
+            {
+                return;
+            }
+            said.Add(text);
+        }
+    }
+
+    private async Task<bool> SpeakFillerAsync(int seqNumber, string text)
+    {
+        await _sendLock.WaitAsync();
         try
         {
             // Decided while holding the send lock, so a reply cannot start streaming between the check and the
             // filler; a stream that already began has set _utteranceOpen and is waiting for this lock
             lock (_sync)
             {
-                if (_ended || _seqNum != seqNumber || _spokeThisTurn || _utteranceOpen)
+                if (_ended || _seqNum != seqNumber || _turnReplied || _utteranceOpen)
                 {
-                    return;
+                    return false;
                 }
-                _spokeThisTurn = true;
             }
             await SendLockedAsync(new { type = "text", token = text, last = true });
         }
@@ -404,16 +441,26 @@ public class ConversationRelaySession
             _sendLock.Release();
         }
         MarkSpeaking(EstimateSpeech(text.Length));
+        return true;
     }
 
-    private string PickFillerText()
+    private string PickFillerText(List<string> names, List<string> defaultNames, HashSet<string> said)
     {
-        var names = _settings.ConversationRelay.ResponseWatchdogPrompts;
-        var texts = (names.Count > 0 ? names : DefaultWatchdogPrompts)
+        var texts = (names.Count > 0 ? names : defaultNames)
             .Select(name => _settings.PromptTexts.TryGetValue(name, out var text) ? text : null)
             .Where(text => !string.IsNullOrWhiteSpace(text))
+            .Select(text => text!)
+            .Distinct()
             .ToList();
-        return texts.Count == 0 ? DefaultHoldOnText : texts[Random.Shared.Next(texts.Count)]!;
+        if (texts.Count == 0)
+        {
+            return DefaultHoldOnText;
+        }
+
+        // A different sentence each time; repeat only once every one has been said
+        var unsaid = texts.Where(text => !said.Contains(text)).ToList();
+        var pool = unsaid.Count > 0 ? unsaid : texts;
+        return pool[Random.Shared.Next(pool.Count)];
     }
 
     private async Task WatchIdleAsync(CancellationToken cancellationToken)
@@ -488,7 +535,6 @@ public class ConversationRelaySession
             _streamSegment.Append(text);
             _utteranceOpen = true;
             _streamedThisTurn = true;
-            _spokeThisTurn = true;
         }
 
         await SendAsync(new { type = "text", token = text, last = false });
@@ -606,7 +652,6 @@ public class ConversationRelaySession
             {
                 return;
             }
-            _spokeThisTurn = true;
         }
 
         await SendAsync(new { type = "text", token = text, last = true });

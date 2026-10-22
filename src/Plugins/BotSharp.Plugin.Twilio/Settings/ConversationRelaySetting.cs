@@ -70,10 +70,11 @@ public class ConversationRelaySetting
     public bool ValidateSignature { get; set; } = true;
 
     /// <summary>
-    /// Seconds to wait for the agent's first words after the caller finishes speaking before saying a short
-    /// filler (e.g. "One moment, please."), at most once per turn. 0 turns it off.
+    /// Seconds of silence on the line, while the agent works on its reply, before each filler such as "One moment, please.":
+    /// the first counts from when the caller finished, each next one from when the previous filler (or anything else
+    /// we said) finished. The last value repeats until the reply comes. Empty turns the watchdog off.
     /// </summary>
-    public double ResponseWatchdogSeconds { get; set; }
+    public List<double> ResponseWatchdogIntervals { get; set; } = [];
 
     /// <summary>
     /// Agents the response watchdog applies to. Empty means every ConversationRelay agent.
@@ -81,9 +82,14 @@ public class ConversationRelaySetting
     public List<string> ResponseWatchdogAgentIds { get; set; } = [];
 
     /// <summary>
-    /// Names of Twilio:PromptTexts entries the filler is picked from at random. Empty uses hold-on-1 to hold-on-5.
+    /// Names of Twilio:PromptTexts entries the first filler of a turn is picked from. Empty uses hold-on-1 to hold-on-5.
     /// </summary>
     public List<string> ResponseWatchdogPrompts { get; set; } = [];
+
+    /// <summary>
+    /// Names of Twilio:PromptTexts entries the later fillers of a long wait are picked from. Empty uses hold-on-long-1 to hold-on-long-10.
+    /// </summary>
+    public List<string> ResponseWatchdogLongPrompts { get; set; } = [];
 
     public bool IsEnabledFor(string? agentId)
     {
@@ -92,7 +98,7 @@ public class ConversationRelaySetting
 
     public bool IsResponseWatchdogEnabledFor(string? agentId)
     {
-        return ResponseWatchdogSeconds > 0
+        return ResponseWatchdogIntervals.Count > 0 && ResponseWatchdogIntervals.All(seconds => seconds > 0)
             && (ResponseWatchdogAgentIds.Count == 0 || (agentId != null && ResponseWatchdogAgentIds.Contains(agentId)));
     }
 }
