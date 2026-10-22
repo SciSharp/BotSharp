@@ -26,15 +26,17 @@ public class ConversationRelaySession
 
     private readonly SemaphoreSlim _sendLock = new(1, 1);
     private readonly object _sync = new();
-    private readonly List<string> _pendingInputs = [];
+    private readonly List<PendingInput> _pendingInputs = [];
     private readonly StringBuilder _digits = new();
     private readonly StringBuilder _partialPrompt = new();
-    private string? _pendingDigits;
     private bool _isProcessing;
     private Task _processing = Task.CompletedTask;
     private int _seqNum;
     private int _idlePrompts;
     private bool _ended;
+
+    // Bumped on every caller input, so a decision taken during silence can tell the caller spoke since
+    private int _activity;
 
     // Caller silence is measured from this moment: the estimated end of what we last said, or the caller's last input
     private DateTime _quietSinceUtc = DateTime.MaxValue;
@@ -51,7 +53,10 @@ public class ConversationRelaySession
     private string? _to;
     private string? _direction;
 
-    /// <param name="sendCallerMessage">Sends the caller's words to the agent and returns its reply; the callbacks receive tool-call indications and the streamed reply</param>
+    /// <param name="sendCallerMessage">
+    /// Sends the caller's words to the agent and returns its reply; the callbacks receive tool-call indications
+    /// and the streamed reply
+    /// </param>
     public ConversationRelaySession(
         WebSocket socket,
         string agentId,
@@ -86,7 +91,19 @@ public class ConversationRelaySession
             await SwallowAsync(idleWatch);
         }
 
-        // Let a turn already running finish so the conversation is saved
+        // The call is gone: start no new turns, but let a turn already running finish so the conversation is saved
+        int dropped;
+        lock (_sync)
+        {
+            _ended = true;
+            dropped = _pendingInputs.Count;
+            _pendingInputs.Clear();
+        }
+        if (dropped > 0)
+        {
+            _logger.LogInformation($"Dropped {dropped} caller input(s) received after the agent's last turn started; " +
+                $"conversation {_conversationId} has ended.");
+        }
         await SwallowAsync(_processing);
     }
 
@@ -146,7 +163,8 @@ public class ConversationRelaySession
                 {
                     _quietSinceUtc = DateTime.UtcNow + EstimateSpeech(greetingLength);
                 }
-                _logger.LogInformation($"ConversationRelay session started for conversation {_conversationId} (call {_callSid}).");
+                _logger.LogInformation(
+                    $"ConversationRelay session started for conversation {_conversationId} (call {_callSid}).");
                 break;
 
             case "prompt":
@@ -181,6 +199,7 @@ public class ConversationRelaySession
                     lock (_sync)
                     {
                         _quietSinceUtc = DateTime.UtcNow;
+                        _activity++;
                     }
                 }
                 break;
@@ -197,11 +216,14 @@ public class ConversationRelaySession
                         _dropStream = true;
                     }
                 }
-                _logger.LogInformation($"Caller interrupted the agent in conversation {_conversationId} after {GetString(root, "durationUntilInterruptMs")} ms.");
+                var interruptedAfter = GetString(root, "durationUntilInterruptMs");
+                _logger.LogInformation(
+                    $"Caller interrupted the agent in conversation {_conversationId} after {interruptedAfter} ms.");
                 break;
 
             case "error":
-                _logger.LogWarning($"ConversationRelay error in conversation {_conversationId}: {GetString(root, "description")}");
+                _logger.LogWarning(
+                    $"ConversationRelay error in conversation {_conversationId}: {GetString(root, "description")}");
                 break;
         }
 
@@ -217,13 +239,10 @@ public class ConversationRelaySession
                 return;
             }
 
-            _pendingInputs.Add(content);
-            if (digits != null)
-            {
-                _pendingDigits = digits;
-            }
+            _pendingInputs.Add(new PendingInput(content, digits));
             _quietSinceUtc = DateTime.UtcNow;
             _idlePrompts = 0;
+            _activity++;
 
             if (!_isProcessing)
             {
@@ -235,6 +254,7 @@ public class ConversationRelaySession
 
     /// <summary>
     /// Runs one agent turn at a time; what the caller says meanwhile is merged into the next turn.
+    /// A keypad entry ends the merge, so each entry keeps its own Digits.
     /// </summary>
     private async Task ProcessPendingAsync()
     {
@@ -249,17 +269,27 @@ public class ConversationRelaySession
                     return;
                 }
 
+                var batch = new List<PendingInput>();
+                foreach (var input in _pendingInputs)
+                {
+                    batch.Add(input);
+                    if (input.Digits != null)
+                    {
+                        break;
+                    }
+                }
+                _pendingInputs.RemoveRange(0, batch.Count);
+
+                var inbound = string.Equals(_direction, "inbound", StringComparison.OrdinalIgnoreCase);
                 message = new CallerMessage
                 {
                     AgentId = _agentId,
                     ConversationId = _conversationId,
                     SeqNumber = ++_seqNum,
-                    Content = string.Join("\r\n", _pendingInputs),
-                    Digits = _pendingDigits,
-                    From = (string.Equals(_direction, "inbound", StringComparison.OrdinalIgnoreCase) ? _from : _to) ?? string.Empty
+                    Content = string.Join("\r\n", batch.Select(x => x.Content)),
+                    Digits = batch[^1].Digits,
+                    From = (inbound ? _from : _to) ?? string.Empty
                 };
-                _pendingInputs.Clear();
-                _pendingDigits = null;
 
                 _streamSegment.Clear();
                 _lastStreamSegment = string.Empty;
@@ -289,7 +319,8 @@ public class ConversationRelaySession
                 var timeout = Task.Delay(TimeSpan.FromSeconds(_settings.ConversationRelay.AiResponseTimeoutSeconds));
                 if (await Task.WhenAny(turn, timeout) != turn)
                 {
-                    _logger.LogWarning($"Agent did not reply within {_settings.ConversationRelay.AiResponseTimeoutSeconds}s in conversation {_conversationId}.");
+                    var timeoutSeconds = _settings.ConversationRelay.AiResponseTimeoutSeconds;
+                    _logger.LogWarning($"Agent did not reply within {timeoutSeconds}s in conversation {_conversationId}.");
                     await FailAsync();
                     return;
                 }
@@ -303,7 +334,8 @@ public class ConversationRelaySession
             }
 
             await CloseUtteranceAsync();
-            if (reply == null || string.IsNullOrWhiteSpace(reply.Content) && !reply.ConversationEnd && !reply.HumanIntervationNeeded)
+            if (reply == null
+                || string.IsNullOrWhiteSpace(reply.Content) && !reply.ConversationEnd && !reply.HumanIntervationNeeded)
             {
                 continue;
             }
@@ -332,9 +364,11 @@ public class ConversationRelaySession
 
             var askAgain = false;
             var hangUp = false;
+            var activity = 0;
             lock (_sync)
             {
-                if (_ended || _isProcessing || _quietSinceUtc == DateTime.MaxValue || DateTime.UtcNow - _quietSinceUtc < idleTimeout)
+                var quietFor = DateTime.UtcNow - _quietSinceUtc;
+                if (_ended || _isProcessing || _quietSinceUtc == DateTime.MaxValue || quietFor < idleTimeout)
                 {
                     continue;
                 }
@@ -343,22 +377,25 @@ public class ConversationRelaySession
                 {
                     _idlePrompts++;
                     askAgain = true;
+                    activity = _activity;
                 }
                 else
                 {
+                    // Decide and end in one step, so caller input arriving now cannot start a turn on a call being hung up
+                    _ended = true;
                     hangUp = true;
                 }
                 _quietSinceUtc = DateTime.UtcNow;
             }
 
-            if (askAgain)
+            if (askAgain && IsStillQuiet(activity))
             {
                 await SpeakPromptAsync($"say-it-again-{Random.Shared.Next(1, 5)}", DefaultSayItAgainText);
             }
             else if (hangUp)
             {
                 _logger.LogInformation($"Caller stayed silent, hanging up conversation {_conversationId}.");
-                await EndAsync(ConversationRelayHandoff.HangUp);
+                await SendEndAsync(ConversationRelayHandoff.HangUp);
             }
         }
     }
@@ -447,12 +484,14 @@ public class ConversationRelaySession
             return final.Substring(streamed.Length);
         }
 
-        _logger.LogInformation($"Reply in conversation {_conversationId} differs from what was streamed; speaking it in full.");
+        _logger.LogInformation(
+            $"Reply in conversation {_conversationId} differs from what was streamed; speaking it in full.");
         return final;
     }
 
     /// <summary>
-    /// Speaks a tool-call indication: "#name" is a prerecorded prompt, anything else is spoken as is; segments are separated by "|".
+    /// Speaks a tool-call indication: "#name" is a prerecorded prompt, anything else is spoken as is;
+    /// segments are separated by "|".
     /// </summary>
     private async Task SpeakIndicationAsync(string indication)
     {
@@ -521,8 +560,30 @@ public class ConversationRelaySession
             _ended = true;
         }
 
+        await SendEndAsync(action);
+    }
+
+    /// <summary>
+    /// Tells Twilio to end the session; the caller has already marked the session ended.
+    /// </summary>
+    private async Task SendEndAsync(string action)
+    {
         await SendAsync(new { type = "end", handoffData = JsonSerializer.Serialize(new { action }) });
     }
+
+    /// <summary>
+    /// True when the caller has not spoken or pressed a key since <paramref name="activity"/> was read
+    /// and nothing else took over.
+    /// </summary>
+    private bool IsStillQuiet(int activity)
+    {
+        lock (_sync)
+        {
+            return !_ended && !_isProcessing && _activity == activity;
+        }
+    }
+
+    private record PendingInput(string Content, string? Digits);
 
     private async Task SendAsync(object payload)
     {
@@ -532,7 +593,8 @@ public class ConversationRelaySession
         {
             if (_socket.State == WebSocketState.Open)
             {
-                await _socket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+                var segment = new ArraySegment<byte>(bytes);
+                await _socket.SendAsync(segment, WebSocketMessageType.Text, true, CancellationToken.None);
             }
         }
         catch (Exception ex) when (ex is WebSocketException or ObjectDisposedException)
@@ -550,7 +612,8 @@ public class ConversationRelaySession
     {
         lock (_sync)
         {
-            var start = _quietSinceUtc == DateTime.MaxValue || _quietSinceUtc < DateTime.UtcNow ? DateTime.UtcNow : _quietSinceUtc;
+            var now = DateTime.UtcNow;
+            var start = _quietSinceUtc == DateTime.MaxValue || _quietSinceUtc < now ? now : _quietSinceUtc;
             _quietSinceUtc = start + duration;
         }
     }

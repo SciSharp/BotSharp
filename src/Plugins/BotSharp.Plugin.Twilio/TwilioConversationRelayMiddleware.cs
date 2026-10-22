@@ -53,7 +53,8 @@ public class TwilioConversationRelayMiddleware
         await session.RunAsync(httpContext.RequestAborted);
     }
 
-    private static async Task<AssistantMessage?> SendCallerMessageAsync(IServiceScopeFactory scopeFactory, CallerMessage message, AgentTurnCallbacks callbacks)
+    private static async Task<AssistantMessage?> SendCallerMessageAsync(
+        IServiceScopeFactory scopeFactory, CallerMessage message, AgentTurnCallbacks callbacks)
     {
         using var scope = scopeFactory.CreateScope();
         return await TwilioConversationProcessor.SendCallerMessageAsync(scope.ServiceProvider, message, callbacks);
@@ -78,7 +79,8 @@ public class TwilioConversationRelayMiddleware
             && new RequestValidator(authToken).Validate(url, new Dictionary<string, string>(), signature);
         if (!valid)
         {
-            _logger.LogWarning($"Rejected ConversationRelay connection for conversation {conversationId}: invalid or missing X-Twilio-Signature.");
+            _logger.LogWarning($"Rejected ConversationRelay connection for conversation {conversationId}: " +
+                "invalid or missing X-Twilio-Signature.");
         }
         return valid;
     }

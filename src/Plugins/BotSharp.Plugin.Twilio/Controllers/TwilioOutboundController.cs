@@ -48,7 +48,8 @@ public class TwilioOutboundController : TwilioController
             var initial = await sessionManager.GetAssistantReplyAsync(request.ConversationId, 0);
             if (string.IsNullOrWhiteSpace(initial?.Content))
             {
-                _logger.LogWarning($"No initial message for conversation {request.ConversationId}; starting ConversationRelay without a greeting.");
+                _logger.LogWarning($"No initial message for conversation {request.ConversationId}; " +
+                    "starting ConversationRelay without a greeting.");
             }
             response = twilio.ReturnConversationRelay(request.AgentId, request.ConversationId, initial?.Content);
         }

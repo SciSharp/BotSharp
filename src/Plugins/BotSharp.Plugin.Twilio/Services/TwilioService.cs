@@ -269,10 +269,13 @@ public class TwilioService
     /// Hands the call to Twilio ConversationRelay. Twilio opens a WebSocket to twilio/relay/{agentId}/{conversationId}
     /// and posts to twilio/relay/action when the session ends.
     /// </summary>
-    public VoiceResponse ReturnConversationRelay(string agentId, string conversationId, string? welcomeGreeting, int reconnects = 0)
+    public VoiceResponse ReturnConversationRelay(
+        string agentId, string conversationId, string? welcomeGreeting, int reconnects = 0)
     {
         var relay = _settings.ConversationRelay;
-        var connect = new Connect(action: new Uri($"{_settings.CallbackHost}/twilio/relay/action?agent-id={agentId}&conversation-id={conversationId}&reconnects={reconnects}"));
+        var query = $"agent-id={Uri.EscapeDataString(agentId)}" +
+            $"&conversation-id={Uri.EscapeDataString(conversationId)}&reconnects={reconnects}";
+        var connect = new Connect(action: new Uri($"{_settings.CallbackHost}/twilio/relay/action?{query}"));
 
         var element = new ConversationRelay(
             url: GetConversationRelayUrl(agentId, conversationId),
@@ -295,7 +298,8 @@ public class TwilioService
         }
 
         // Lets the session time its idle check from the end of the greeting
-        element.Parameter(name: ConversationRelayParameters.WelcomeGreetingLength, value: (welcomeGreeting?.Length ?? 0).ToString());
+        var greetingLength = (welcomeGreeting?.Length ?? 0).ToString();
+        element.Parameter(name: ConversationRelayParameters.WelcomeGreetingLength, value: greetingLength);
 
         connect.Append(element);
         var response = new VoiceResponse();
@@ -305,8 +309,9 @@ public class TwilioService
 
     public string GetConversationRelayUrl(string agentId, string conversationId)
     {
+        // Each id is one path segment, so a "/" or "?" in it cannot change the route
         var host = _settings.CallbackHost.Split("://").Last();
-        return $"wss://{host}/twilio/relay/{agentId}/{conversationId}";
+        return $"wss://{host}/twilio/relay/{Uri.EscapeDataString(agentId)}/{Uri.EscapeDataString(conversationId)}";
     }
 
     public async Task<VoiceResponse> WaitingForAiResponse(ConversationalVoiceRequest request)
@@ -329,7 +334,8 @@ public class TwilioService
                 else
                 {
                     var hash = Utilities.HashTextMd5(seg);
-                    var fileName = await SaveSpeechAsync(request.ConversationId, $"indication_{hash}", seg, reuseExisting: true);
+                    var fileName = await SaveSpeechAsync(request.ConversationId, $"indication_{hash}", seg,
+                        reuseExisting: true);
                     speechPaths.Add($"twilio/voice/speeches/{request.ConversationId}/{fileName}");
                 }
             }

@@ -16,7 +16,9 @@ namespace BotSharp.Plugin.Twilio.Services;
 public static class TwilioConversationProcessor
 {
     /// <param name="sp">A service scope created for this one caller message</param>
-    /// <param name="callbacks">Receives tool-call indications, and the reply as it is written when OnStreamText is set</param>
+    /// <param name="callbacks">
+    /// Receives tool-call indications, and the reply as it is written when OnStreamText is set
+    /// </param>
     public static async Task<AssistantMessage?> SendCallerMessageAsync(
         IServiceProvider sp,
         CallerMessage message,
@@ -71,7 +73,8 @@ public static class TwilioConversationProcessor
             };
         }
 
-        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(message.ConversationId, listeners: listeners);
+        using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(
+            message.ConversationId, listeners: listeners);
         await InitConversation(message, inputMsg, conv, routing);
 
         if (streaming)
@@ -83,9 +86,6 @@ public static class TwilioConversationProcessor
                 conv.States.SetState(StateConst.LANGUAGE, LanguageType.ENGLISH, source: StateSource.Application);
             }
         }
-
-        // Need to consider Inbound and Outbound call
-        var conversation = await conv.GetConversation(message.ConversationId);
 
         await conv.SendMessage(message.AgentId,
             inputMsg,
@@ -105,7 +105,8 @@ public static class TwilioConversationProcessor
         return reply;
     }
 
-    private static async Task<PostbackMessageModel?> BuildPostbackMessageModel(IConversationService conv, CallerMessage message)
+    private static async Task<PostbackMessageModel?> BuildPostbackMessageModel(
+        IConversationService conv, CallerMessage message)
     {
         var messages = await conv.GetDialogHistory(1);
         if (!messages.Any()) return null;
@@ -119,7 +120,8 @@ public static class TwilioConversationProcessor
         };
     }
 
-    private static async Task InitConversation(CallerMessage message, RoleDialogModel inputMsg, IConversationService conv, IRoutingService routing)
+    private static async Task InitConversation(
+        CallerMessage message, RoleDialogModel inputMsg, IConversationService conv, IRoutingService routing)
     {
         routing.Context.SetMessageId(message.ConversationId, inputMsg.MessageId);
         var states = new List<MessageState>

@@ -71,7 +71,8 @@ public class TwilioMessageQueueService : BackgroundService
 
         var reply = await TwilioConversationProcessor.SendCallerMessageAsync(sp, message, new AgentTurnCallbacks
         {
-            OnIndication = async indication => await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, indication)
+            OnIndication = async indication =>
+                await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, indication)
         });
         if (reply == null)
         {
