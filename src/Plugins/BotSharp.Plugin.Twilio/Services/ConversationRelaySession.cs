@@ -1,4 +1,4 @@
-using BotSharp.Plugin.Twilio.Models;
+﻿using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Models.Relay;
 using System.IO;
 using System.Net.WebSockets;
@@ -15,7 +15,11 @@ public class ConversationRelaySession
 {
     private const string DefaultSayItAgainText = "Sorry, can you say it again?";
     private const string DefaultErrorText = "Sorry, something went wrong. Please call back later.";
+    private const string DefaultHoldOnText = "One moment, please.";
     private const double SpokenCharsPerSecond = 15;
+    private static readonly List<string> DefaultWatchdogPrompts = ["hold-on-1", "hold-on-2", "hold-on-3", "hold-on-4", "hold-on-5"];
+    private static readonly List<string> DefaultWatchdogLongPrompts = Enumerable.Range(1, 10).Select(i => $"hold-on-long-{i}").ToList();
+    private static readonly TimeSpan WatchdogPollInterval = TimeSpan.FromMilliseconds(100);
 
     private readonly WebSocket _socket;
     private readonly string _agentId;
@@ -47,6 +51,10 @@ public class ConversationRelaySession
     private bool _utteranceOpen;
     private bool _streamedThisTurn;
     private bool _dropStream;
+
+    // The current turn's reply is in; the response watchdog says nothing more once it is set
+    private bool _turnReplied;
+    private DateTime _turnStartedUtc;
 
     private string? _callSid;
     private string? _from;
@@ -175,6 +183,15 @@ public class ConversationRelaySession
                 var text = GetString(root, "voicePrompt") ?? string.Empty;
                 var last = !root.TryGetProperty("last", out var lastElement) || lastElement.ValueKind != JsonValueKind.False;
                 _partialPrompt.Append(text);
+                if (!last && text.Length > 0)
+                {
+                    // With partialPrompts on, the caller is mid-sentence: not silent, and not to be asked to repeat
+                    lock (_sync)
+                    {
+                        _quietSinceUtc = DateTime.UtcNow;
+                        _activity++;
+                    }
+                }
                 if (last)
                 {
                     var prompt = _partialPrompt.ToString().Trim();
@@ -299,14 +316,24 @@ public class ConversationRelaySession
                 _utteranceOpen = false;
                 _streamedThisTurn = false;
                 _dropStream = false;
+                _turnReplied = false;
+                _turnStartedUtc = DateTime.UtcNow;
             }
+
+            using var watchdogCts = new CancellationTokenSource();
+            var watchdog = _settings.ConversationRelay.IsResponseWatchdogEnabledFor(_agentId)
+                ? WatchResponseAsync(message.SeqNumber, watchdogCts.Token)
+                : Task.CompletedTask;
 
             var stream = _settings.ConversationRelay.StreamReplies;
             var callbacks = new AgentTurnCallbacks
             {
                 OnIndication = SpeakIndicationAsync,
                 OnStreamText = stream ? StreamTextAsync : null,
-                OnStreamStarted = stream ? CloseUtteranceAsync : null
+                OnStreamStarted = stream ? CloseUtteranceAsync : null,
+                // A line said before a slow tool ("Okay, that's everything I need") is spoken now, and the watchdog
+                // counts the silence after it instead of waiting for the next response to close it
+                OnStreamEndedWithToolCall = stream ? CloseUtteranceAsync : null
             };
 
             AssistantMessage? reply;
@@ -335,6 +362,16 @@ public class ConversationRelaySession
                 await FailAsync();
                 return;
             }
+            finally
+            {
+                // The reply is in: a filler that already passed its delay must not slip in ahead of it
+                lock (_sync)
+                {
+                    _turnReplied = true;
+                }
+                watchdogCts.Cancel();
+                await SwallowAsync(watchdog);
+            }
 
             await CloseUtteranceAsync();
             if (reply == null
@@ -355,6 +392,79 @@ public class ConversationRelaySession
                 return;
             }
         }
+    }
+
+    /// <summary>
+    /// While the agent works on a reply, says a filler each time the line has been silent for the next
+    /// ResponseWatchdogIntervals value, so the caller never sits in a long silence while the model thinks or a tool runs.
+    /// Silence counts from the end of whatever was said last (the caller, a filler, an indication), and no filler is
+    /// said twice in a turn while unused ones remain.
+    /// </summary>
+    private async Task WatchResponseAsync(int seqNumber, CancellationToken cancellationToken)
+    {
+        var relay = _settings.ConversationRelay;
+        var said = new HashSet<string>();
+        for (var step = 0; ; step++)
+        {
+            var interval = TimeSpan.FromSeconds(relay.ResponseWatchdogIntervals[Math.Min(step, relay.ResponseWatchdogIntervals.Count - 1)]);
+            while (true)
+            {
+                await Task.Delay(WatchdogPollInterval, cancellationToken);
+                lock (_sync)
+                {
+                    if (_ended || _seqNum != seqNumber || _turnReplied)
+                    {
+                        return;
+                    }
+                    // _quietSinceUtc is the estimated end of what was last said, or the caller's last input
+                    var quietSince = _quietSinceUtc == DateTime.MaxValue || _quietSinceUtc < _turnStartedUtc ? _turnStartedUtc : _quietSinceUtc;
+                    if (!_utteranceOpen && DateTime.UtcNow - quietSince >= interval)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            var text = PickFillerText(step == 0 ? relay.ResponseWatchdogPrompts : relay.ResponseWatchdogLongPrompts,
+                step == 0 ? DefaultWatchdogPrompts : DefaultWatchdogLongPrompts, said);
+            if (!await SpeakFillerAsync(seqNumber, text))
+            {
+                return;
+            }
+            said.Add(text);
+        }
+    }
+
+    private async Task<bool> SpeakFillerAsync(int seqNumber, string text)
+    {
+        // A stream that already began has set _utteranceOpen and may be waiting for the send lock
+        var sent = await SendIfAsync(
+            () => !_ended && _seqNum == seqNumber && !_turnReplied && !_utteranceOpen,
+            new { type = "text", token = text, last = true });
+        if (sent)
+        {
+            MarkSpeaking(EstimateSpeech(text.Length));
+        }
+        return sent;
+    }
+
+    private string PickFillerText(List<string> names, List<string> defaultNames, HashSet<string> said)
+    {
+        var texts = (names.Count > 0 ? names : defaultNames)
+            .Select(name => _settings.PromptTexts.TryGetValue(name, out var text) ? text : null)
+            .Where(text => !string.IsNullOrWhiteSpace(text))
+            .Select(text => text!)
+            .Distinct()
+            .ToList();
+        if (texts.Count == 0)
+        {
+            return DefaultHoldOnText;
+        }
+
+        // A different sentence each time; repeat only once every one has been said
+        var unsaid = texts.Where(text => !said.Contains(text)).ToList();
+        var pool = unsaid.Count > 0 ? unsaid : texts;
+        return pool[Random.Shared.Next(pool.Count)];
     }
 
     private async Task WatchIdleAsync(CancellationToken cancellationToken)
@@ -391,9 +501,12 @@ public class ConversationRelaySession
                 _quietSinceUtc = DateTime.UtcNow;
             }
 
-            if (askAgain && IsStillQuiet(activity))
+            if (askAgain)
             {
-                await SpeakPromptAsync($"say-it-again-{Random.Shared.Next(1, 5)}", DefaultSayItAgainText);
+                // Rechecked once the send lock is held: caller input arriving meanwhile starts a turn, and the
+                // prompt must not then be said over or after that turn's reply
+                await SpeakPromptAsync($"say-it-again-{Random.Shared.Next(1, 5)}", DefaultSayItAgainText,
+                    canSpeak: () => !_isProcessing && _activity == activity);
             }
             else if (hangUp)
             {
@@ -420,18 +533,19 @@ public class ConversationRelaySession
     /// </summary>
     private async Task StreamTextAsync(string text)
     {
-        lock (_sync)
+        // Decided once the send lock is held: a piece queued behind another send must not go out after the
+        // caller cut in (_dropStream) or the session ended meanwhile
+        await SendIfAsync(() =>
         {
             if (_ended || _dropStream)
             {
-                return;
+                return false;
             }
             _streamSegment.Append(text);
             _utteranceOpen = true;
             _streamedThisTurn = true;
-        }
-
-        await SendAsync(new { type = "text", token = text, last = false });
+            return true;
+        }, new { type = "text", token = text, last = false });
     }
 
     /// <summary>
@@ -516,40 +630,36 @@ public class ConversationRelaySession
     /// <summary>
     /// Speaks a prerecorded prompt's configured text so the voice matches; without one, plays the recording.
     /// </summary>
-    private async Task SpeakPromptAsync(string name, string? fallbackText)
+    /// <param name="canSpeak">Extra condition, checked under <see cref="_sync"/> once the send lock is held</param>
+    private async Task SpeakPromptAsync(string name, string? fallbackText, Func<bool>? canSpeak = null)
     {
         if (_settings.PromptTexts.TryGetValue(name, out var text) && !string.IsNullOrWhiteSpace(text))
         {
-            await SpeakAsync(text);
+            await SpeakAsync(text, canSpeak);
         }
         else if (fallbackText != null)
         {
-            await SpeakAsync(fallbackText);
+            await SpeakAsync(fallbackText, canSpeak);
         }
-        else
+        else if (await SendIfAsync(() => !_ended && (canSpeak?.Invoke() ?? true),
+                     new { type = "play", source = $"{_settings.CallbackHost}/twilio/{name}.mp3" }))
         {
-            await SendAsync(new { type = "play", source = $"{_settings.CallbackHost}/twilio/{name}.mp3" });
             MarkSpeaking(TimeSpan.FromSeconds(3));
         }
     }
 
-    private async Task SpeakAsync(string? text)
+    /// <param name="canSpeak">Extra condition, checked under <see cref="_sync"/> once the send lock is held</param>
+    private async Task SpeakAsync(string? text, Func<bool>? canSpeak = null)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
             return;
         }
 
-        lock (_sync)
+        if (await SendIfAsync(() => !_ended && (canSpeak?.Invoke() ?? true), new { type = "text", token = text, last = true }))
         {
-            if (_ended)
-            {
-                return;
-            }
+            MarkSpeaking(EstimateSpeech(text.Length));
         }
-
-        await SendAsync(new { type = "text", token = text, last = true });
-        MarkSpeaking(EstimateSpeech(text.Length));
     }
 
     private async Task EndAsync(string action)
@@ -574,24 +684,53 @@ public class ConversationRelaySession
         await SendAsync(new { type = "end", handoffData = JsonSerializer.Serialize(new { action }) });
     }
 
-    /// <summary>
-    /// True when the caller has not spoken or pressed a key since <paramref name="activity"/> was read
-    /// and nothing else took over.
-    /// </summary>
-    private bool IsStillQuiet(int activity)
-    {
-        lock (_sync)
-        {
-            return !_ended && !_isProcessing && _activity == activity;
-        }
-    }
-
     private record PendingInput(string Content, string? Digits);
 
     private async Task SendAsync(object payload)
     {
-        var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload));
         await _sendLock.WaitAsync();
+        try
+        {
+            await SendLockedAsync(payload);
+        }
+        finally
+        {
+            _sendLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Sends only if <paramref name="canSend"/> still holds once the send lock is held, so a decision taken
+    /// before waiting for the lock cannot go stale. It runs under <see cref="_sync"/> and may update session
+    /// state that must change only when the send goes ahead.
+    /// </summary>
+    private async Task<bool> SendIfAsync(Func<bool> canSend, object payload)
+    {
+        await _sendLock.WaitAsync();
+        try
+        {
+            lock (_sync)
+            {
+                if (!canSend())
+                {
+                    return false;
+                }
+            }
+            await SendLockedAsync(payload);
+            return true;
+        }
+        finally
+        {
+            _sendLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Sends with <see cref="_sendLock"/> already held by the caller.
+    /// </summary>
+    private async Task SendLockedAsync(object payload)
+    {
+        var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload));
         try
         {
             if (_socket.State == WebSocketState.Open)
@@ -604,10 +743,6 @@ public class ConversationRelaySession
         {
             // The call already moved on, e.g. a hang-up or transfer redirected it
             _logger.LogInformation($"ConversationRelay socket for conversation {_conversationId} is gone: {ex.Message}");
-        }
-        finally
-        {
-            _sendLock.Release();
         }
     }
 
