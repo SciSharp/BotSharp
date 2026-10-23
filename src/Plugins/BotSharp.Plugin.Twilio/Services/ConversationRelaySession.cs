@@ -179,6 +179,15 @@ public class ConversationRelaySession
                 var text = GetString(root, "voicePrompt") ?? string.Empty;
                 var last = !root.TryGetProperty("last", out var lastElement) || lastElement.ValueKind != JsonValueKind.False;
                 _partialPrompt.Append(text);
+                if (!last && text.Length > 0)
+                {
+                    // With partialPrompts on, the caller is mid-sentence: not silent, and not to be asked to repeat
+                    lock (_sync)
+                    {
+                        _quietSinceUtc = DateTime.UtcNow;
+                        _activity++;
+                    }
+                }
                 if (last)
                 {
                     var prompt = _partialPrompt.ToString().Trim();
@@ -425,26 +434,15 @@ public class ConversationRelaySession
 
     private async Task<bool> SpeakFillerAsync(int seqNumber, string text)
     {
-        await _sendLock.WaitAsync();
-        try
+        // A stream that already began has set _utteranceOpen and may be waiting for the send lock
+        var sent = await SendIfAsync(
+            () => !_ended && _seqNum == seqNumber && !_turnReplied && !_utteranceOpen,
+            new { type = "text", token = text, last = true });
+        if (sent)
         {
-            // Decided while holding the send lock, so a reply cannot start streaming between the check and the
-            // filler; a stream that already began has set _utteranceOpen and is waiting for this lock
-            lock (_sync)
-            {
-                if (_ended || _seqNum != seqNumber || _turnReplied || _utteranceOpen)
-                {
-                    return false;
-                }
-            }
-            await SendLockedAsync(new { type = "text", token = text, last = true });
+            MarkSpeaking(EstimateSpeech(text.Length));
         }
-        finally
-        {
-            _sendLock.Release();
-        }
-        MarkSpeaking(EstimateSpeech(text.Length));
-        return true;
+        return sent;
     }
 
     private string PickFillerText(List<string> names, List<string> defaultNames, HashSet<string> said)
@@ -500,9 +498,12 @@ public class ConversationRelaySession
                 _quietSinceUtc = DateTime.UtcNow;
             }
 
-            if (askAgain && IsStillQuiet(activity))
+            if (askAgain)
             {
-                await SpeakPromptAsync($"say-it-again-{Random.Shared.Next(1, 5)}", DefaultSayItAgainText);
+                // Rechecked once the send lock is held: caller input arriving meanwhile starts a turn, and the
+                // prompt must not then be said over or after that turn's reply
+                await SpeakPromptAsync($"say-it-again-{Random.Shared.Next(1, 5)}", DefaultSayItAgainText,
+                    canSpeak: () => !_isProcessing && _activity == activity);
             }
             else if (hangUp)
             {
@@ -529,18 +530,19 @@ public class ConversationRelaySession
     /// </summary>
     private async Task StreamTextAsync(string text)
     {
-        lock (_sync)
+        // Decided once the send lock is held: a piece queued behind another send must not go out after the
+        // caller cut in (_dropStream) or the session ended meanwhile
+        await SendIfAsync(() =>
         {
             if (_ended || _dropStream)
             {
-                return;
+                return false;
             }
             _streamSegment.Append(text);
             _utteranceOpen = true;
             _streamedThisTurn = true;
-        }
-
-        await SendAsync(new { type = "text", token = text, last = false });
+            return true;
+        }, new { type = "text", token = text, last = false });
     }
 
     /// <summary>
@@ -625,40 +627,36 @@ public class ConversationRelaySession
     /// <summary>
     /// Speaks a prerecorded prompt's configured text so the voice matches; without one, plays the recording.
     /// </summary>
-    private async Task SpeakPromptAsync(string name, string? fallbackText)
+    /// <param name="canSpeak">Extra condition, checked under <see cref="_sync"/> once the send lock is held</param>
+    private async Task SpeakPromptAsync(string name, string? fallbackText, Func<bool>? canSpeak = null)
     {
         if (_settings.PromptTexts.TryGetValue(name, out var text) && !string.IsNullOrWhiteSpace(text))
         {
-            await SpeakAsync(text);
+            await SpeakAsync(text, canSpeak);
         }
         else if (fallbackText != null)
         {
-            await SpeakAsync(fallbackText);
+            await SpeakAsync(fallbackText, canSpeak);
         }
-        else
+        else if (await SendIfAsync(() => !_ended && (canSpeak?.Invoke() ?? true),
+                     new { type = "play", source = $"{_settings.CallbackHost}/twilio/{name}.mp3" }))
         {
-            await SendAsync(new { type = "play", source = $"{_settings.CallbackHost}/twilio/{name}.mp3" });
             MarkSpeaking(TimeSpan.FromSeconds(3));
         }
     }
 
-    private async Task SpeakAsync(string? text)
+    /// <param name="canSpeak">Extra condition, checked under <see cref="_sync"/> once the send lock is held</param>
+    private async Task SpeakAsync(string? text, Func<bool>? canSpeak = null)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
             return;
         }
 
-        lock (_sync)
+        if (await SendIfAsync(() => !_ended && (canSpeak?.Invoke() ?? true), new { type = "text", token = text, last = true }))
         {
-            if (_ended)
-            {
-                return;
-            }
+            MarkSpeaking(EstimateSpeech(text.Length));
         }
-
-        await SendAsync(new { type = "text", token = text, last = true });
-        MarkSpeaking(EstimateSpeech(text.Length));
     }
 
     private async Task EndAsync(string action)
@@ -683,18 +681,6 @@ public class ConversationRelaySession
         await SendAsync(new { type = "end", handoffData = JsonSerializer.Serialize(new { action }) });
     }
 
-    /// <summary>
-    /// True when the caller has not spoken or pressed a key since <paramref name="activity"/> was read
-    /// and nothing else took over.
-    /// </summary>
-    private bool IsStillQuiet(int activity)
-    {
-        lock (_sync)
-        {
-            return !_ended && !_isProcessing && _activity == activity;
-        }
-    }
-
     private record PendingInput(string Content, string? Digits);
 
     private async Task SendAsync(object payload)
@@ -703,6 +689,32 @@ public class ConversationRelaySession
         try
         {
             await SendLockedAsync(payload);
+        }
+        finally
+        {
+            _sendLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Sends only if <paramref name="canSend"/> still holds once the send lock is held, so a decision taken
+    /// before waiting for the lock cannot go stale. It runs under <see cref="_sync"/> and may update session
+    /// state that must change only when the send goes ahead.
+    /// </summary>
+    private async Task<bool> SendIfAsync(Func<bool> canSend, object payload)
+    {
+        await _sendLock.WaitAsync();
+        try
+        {
+            lock (_sync)
+            {
+                if (!canSend())
+                {
+                    return false;
+                }
+            }
+            await SendLockedAsync(payload);
+            return true;
         }
         finally
         {
