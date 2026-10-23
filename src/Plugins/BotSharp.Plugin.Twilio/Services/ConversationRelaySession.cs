@@ -318,7 +318,10 @@ public class ConversationRelaySession
             {
                 OnIndication = SpeakIndicationAsync,
                 OnStreamText = stream ? StreamTextAsync : null,
-                OnStreamStarted = stream ? CloseUtteranceAsync : null
+                OnStreamStarted = stream ? CloseUtteranceAsync : null,
+                // A line said before a slow tool ("Okay, that's everything I need") is spoken now, and the watchdog
+                // counts the silence after it instead of waiting for the next response to close it
+                OnStreamEndedWithToolCall = stream ? CloseUtteranceAsync : null
             };
 
             AssistantMessage? reply;
