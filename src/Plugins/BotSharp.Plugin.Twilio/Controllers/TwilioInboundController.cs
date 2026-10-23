@@ -96,10 +96,13 @@ public class TwilioInboundController : TwilioController
             // A call that arrives with an intent already has its first message queued for the Gather flow
             else if (string.IsNullOrWhiteSpace(request.Intent) && _settings.ConversationRelay.IsEnabledFor(request.AgentId))
             {
-                // ConversationRelay speaks text only: the prompts the session hooks queued become the greeting
-                var greeting = string.Join(" ", instruction.SpeechPaths
-                    .Select(twilio.GetPromptText)
-                    .Where(text => !string.IsNullOrWhiteSpace(text)));
+                // ConversationRelay speaks text only: a greeting a session hook wrote (e.g. with the caller's name) is
+                // said as it is, otherwise the prompts the session hooks queued become the greeting
+                var greeting = !string.IsNullOrWhiteSpace(instruction.Text)
+                    ? instruction.Text
+                    : string.Join(" ", instruction.SpeechPaths
+                        .Select(twilio.GetPromptText)
+                        .Where(text => !string.IsNullOrWhiteSpace(text)));
                 if (greeting.Length == 0 && instruction.SpeechPaths.Count > 0)
                 {
                     _logger.LogWarning($"No prompt text for the welcome speech of agent {request.AgentId}; " +
