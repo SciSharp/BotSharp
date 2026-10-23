@@ -154,6 +154,23 @@ public class ImageVariationSetting
 public class AudioSetting
 {
     public AudioTranscriptionSetting? Transcription { get; set; }
+    public AudioSynthesisSetting? Synthesis { get; set; }
+}
+
+/// <summary>
+/// Audio synthesis (text-to-speech) setting
+/// </summary>
+public class AudioSynthesisSetting
+{
+    /// <summary>
+    /// Timeout of a single request attempt, in seconds
+    /// </summary>
+    public int? TimeoutSeconds { get; set; }
+
+    /// <summary>
+    /// Number of retries after the first attempt fails or times out
+    /// </summary>
+    public int? MaxRetries { get; set; }
 }
 
 /// <summary>

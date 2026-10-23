@@ -28,8 +28,7 @@ public class TwilioReconnectController : TwilioController
         if (!string.IsNullOrEmpty(request.InitAudioFile))
         {
             var twilio = _services.GetRequiredService<TwilioService>();
-            var audioUrl = twilio.GetSpeechPath(request.ConversationId, request.InitAudioFile);
-            response.Play(new Uri(audioUrl));
+            twilio.AppendSpeech(response, request.ConversationId, request.InitAudioFile);
         }
         else
         {
