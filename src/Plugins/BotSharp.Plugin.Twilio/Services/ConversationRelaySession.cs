@@ -85,6 +85,7 @@ public class ConversationRelaySession
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var idleWatch = WatchIdleAsync(cts.Token);
+        int dropped;
         try
         {
             await ReceiveLoopAsync(cts.Token);
@@ -95,18 +96,18 @@ public class ConversationRelaySession
         }
         finally
         {
+            // The call is gone: start no new turns, but let a turn already running finish so the conversation is saved.
+            // Marked before waiting on the idle watchdog, so a turn finishing meanwhile cannot pick up the next input
+            lock (_sync)
+            {
+                _ended = true;
+                dropped = _pendingInputs.Count;
+                _pendingInputs.Clear();
+            }
             cts.Cancel();
             await SwallowAsync(idleWatch);
         }
 
-        // The call is gone: start no new turns, but let a turn already running finish so the conversation is saved
-        int dropped;
-        lock (_sync)
-        {
-            _ended = true;
-            dropped = _pendingInputs.Count;
-            _pendingInputs.Clear();
-        }
         if (dropped > 0)
         {
             _logger.LogInformation($"Dropped {dropped} caller input(s) received after the agent's last turn started; " +
@@ -401,48 +402,57 @@ public class ConversationRelaySession
     {
         var relay = _settings.ConversationRelay;
         var said = new HashSet<string>();
-        for (var step = 0; ; step++)
+        var step = 0;
+        while (true)
         {
             var interval = TimeSpan.FromSeconds(relay.ResponseWatchdogIntervals[Math.Min(step, relay.ResponseWatchdogIntervals.Count - 1)]);
-            while (true)
+            await Task.Delay(WatchdogPollInterval, cancellationToken);
+            lock (_sync)
             {
-                await Task.Delay(WatchdogPollInterval, cancellationToken);
-                lock (_sync)
+                if (IsTurnOver(seqNumber))
                 {
-                    if (_ended || _seqNum != seqNumber || _turnReplied)
-                    {
-                        return;
-                    }
-                    // _quietSinceUtc is the estimated end of what was last said, or the caller's last input
-                    var quietSince = _quietSinceUtc == DateTime.MaxValue || _quietSinceUtc < _turnStartedUtc ? _turnStartedUtc : _quietSinceUtc;
-                    if (!_utteranceOpen && DateTime.UtcNow - quietSince >= interval)
-                    {
-                        break;
-                    }
+                    return;
+                }
+                if (!IsSilentFor(interval))
+                {
+                    continue;
                 }
             }
 
             var text = PickFillerText(step == 0 ? relay.ResponseWatchdogPrompts : relay.ResponseWatchdogLongPrompts,
                 step == 0 ? DefaultWatchdogPrompts : DefaultWatchdogLongPrompts, said);
-            if (!await SpeakFillerAsync(seqNumber, text))
+            if (await SpeakFillerAsync(seqNumber, text, interval))
             {
-                return;
+                said.Add(text);
+                step++;
             }
-            said.Add(text);
         }
     }
 
-    private async Task<bool> SpeakFillerAsync(int seqNumber, string text)
+    private async Task<bool> SpeakFillerAsync(int seqNumber, string text, TimeSpan interval)
     {
-        // A stream that already began has set _utteranceOpen and may be waiting for the send lock
-        var sent = await SendIfAsync(
-            () => !_ended && _seqNum == seqNumber && !_turnReplied && !_utteranceOpen,
-            new { type = "text", token = text, last = true });
-        if (sent)
-        {
-            MarkSpeaking(EstimateSpeech(text.Length));
-        }
-        return sent;
+        // Decided again once the send lock is held: while waiting for it the reply may have come in, or a streamed
+        // line may have started or been closed, and then the silence this filler was meant for is over
+        return await SpeakIfAsync(() => !IsTurnOver(seqNumber) && IsSilentFor(interval),
+            new { type = "text", token = text, last = true }, EstimateSpeech(text.Length));
+    }
+
+    /// <summary>
+    /// The turn the response watchdog was started for has its reply, or the call moved on. Call under <see cref="_sync"/>.
+    /// </summary>
+    private bool IsTurnOver(int seqNumber)
+    {
+        return _ended || _seqNum != seqNumber || _turnReplied;
+    }
+
+    /// <summary>
+    /// Nothing has been said, by either side, for <paramref name="interval"/>. Call under <see cref="_sync"/>.
+    /// </summary>
+    private bool IsSilentFor(TimeSpan interval)
+    {
+        // _quietSinceUtc is the estimated end of what was last said, or the caller's last input
+        var quietSince = _quietSinceUtc == DateTime.MaxValue || _quietSinceUtc < _turnStartedUtc ? _turnStartedUtc : _quietSinceUtc;
+        return !_utteranceOpen && DateTime.UtcNow - quietSince >= interval;
     }
 
     private string PickFillerText(List<string> names, List<string> defaultNames, HashSet<string> said)
@@ -550,21 +560,29 @@ public class ConversationRelaySession
     /// </summary>
     private async Task CloseUtteranceAsync()
     {
-        int length;
         lock (_sync)
         {
             if (!_utteranceOpen)
             {
                 return;
             }
+        }
+
+        // Closed only once the send lock is held, so nothing else (a filler) can go out between the utterance being
+        // marked closed and its closing frame, and the silence clock already counts the closed line when a filler
+        // next looks at it
+        await SendIfAsync(() =>
+        {
+            if (!_utteranceOpen)
+            {
+                return false;
+            }
             _utteranceOpen = false;
             _lastStreamSegment = _streamSegment.ToString();
             _streamSegment.Clear();
-            length = _lastStreamSegment.Length;
-        }
-
-        await SendAsync(new { type = "text", token = string.Empty, last = true });
-        MarkSpeaking(EstimateSpeech(length));
+            MarkSpeaking(EstimateSpeech(_lastStreamSegment.Length));
+            return true;
+        }, new { type = "text", token = string.Empty, last = true });
     }
 
     /// <summary>
@@ -638,10 +656,10 @@ public class ConversationRelaySession
         {
             await SpeakAsync(fallbackText, canSpeak);
         }
-        else if (await SendIfAsync(() => !_ended && (canSpeak?.Invoke() ?? true),
-                     new { type = "play", source = $"{_settings.CallbackHost}/twilio/{name}.mp3" }))
+        else
         {
-            MarkSpeaking(TimeSpan.FromSeconds(3));
+            await SpeakIfAsync(() => !_ended && (canSpeak?.Invoke() ?? true),
+                new { type = "play", source = $"{_settings.CallbackHost}/twilio/{name}.mp3" }, TimeSpan.FromSeconds(3));
         }
     }
 
@@ -653,10 +671,26 @@ public class ConversationRelaySession
             return;
         }
 
-        if (await SendIfAsync(() => !_ended && (canSpeak?.Invoke() ?? true), new { type = "text", token = text, last = true }))
+        await SpeakIfAsync(() => !_ended && (canSpeak?.Invoke() ?? true),
+            new { type = "text", token = text, last = true }, EstimateSpeech(text.Length));
+    }
+
+    /// <summary>
+    /// Sends something the caller hears, if <paramref name="canSpeak"/> still holds once the send lock is held. How long
+    /// it takes to say is recorded before the frame goes out, so a cut-in arriving once it plays restarts the silence
+    /// clock instead of being overwritten by it.
+    /// </summary>
+    private async Task<bool> SpeakIfAsync(Func<bool> canSpeak, object payload, TimeSpan duration)
+    {
+        return await SendIfAsync(() =>
         {
-            MarkSpeaking(EstimateSpeech(text.Length));
-        }
+            if (!canSpeak())
+            {
+                return false;
+            }
+            MarkSpeaking(duration);
+            return true;
+        }, payload);
     }
 
     private async Task EndAsync(string action)
@@ -743,14 +777,15 @@ public class ConversationRelaySession
         }
     }
 
+    /// <summary>
+    /// Moves the start of caller silence past something about to be said. Call under <see cref="_sync"/>, before the
+    /// frame is sent.
+    /// </summary>
     private void MarkSpeaking(TimeSpan duration)
     {
-        lock (_sync)
-        {
-            var now = DateTime.UtcNow;
-            var start = _quietSinceUtc == DateTime.MaxValue || _quietSinceUtc < now ? now : _quietSinceUtc;
-            _quietSinceUtc = start + duration;
-        }
+        var now = DateTime.UtcNow;
+        var start = _quietSinceUtc == DateTime.MaxValue || _quietSinceUtc < now ? now : _quietSinceUtc;
+        _quietSinceUtc = start + duration;
     }
 
     private static TimeSpan EstimateSpeech(int characters)

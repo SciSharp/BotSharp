@@ -65,7 +65,8 @@ public class ConversationRelaySetting
     public int MaxReconnects { get; set; } = 2;
 
     /// <summary>
-    /// Verify the X-Twilio-Signature header of the WebSocket handshake
+    /// Verify the X-Twilio-Signature header of the WebSocket handshake. Needs Twilio:RequestValidation:AuthToken;
+    /// without it every handshake is refused
     /// </summary>
     public bool ValidateSignature { get; set; } = true;
 
