@@ -71,6 +71,13 @@ public static class TwilioConversationProcessor
                     await callbacks!.OnStreamText!(data.Data.Content);
                 }
             };
+            listeners[ChatEvent.AfterReceiveLlmStreamMessage] = async data =>
+            {
+                if (data.Data.Role == AgentRole.Function && callbacks!.OnStreamEndedWithToolCall != null)
+                {
+                    await callbacks.OnStreamEndedWithToolCall();
+                }
+            };
         }
 
         using var container = observer.SubscribeObservers<HubObserveData<RoleDialogModel>>(

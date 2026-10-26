@@ -56,7 +56,7 @@ public partial class ChatCompletionProvider
         }
         else if (reason == ChatFinishReason.Length)
         {
-            _logger.LogWarning($"Action: {nameof(InnerGetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{text}");
+            _logger.LogWarning($"Action: {nameof(InnerGetChatCompletions)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{DescribeContent(text)}, ToolCalls: {DescribeToolCalls(ToLlmToolCalls(value.ToolCalls))}");
 
             responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
             {
@@ -176,7 +176,7 @@ public partial class ChatCompletionProvider
         }
         else if (reason == ChatFinishReason.Length)
         {
-            _logger.LogWarning($"Action: {nameof(InnerGetChatCompletionsAsync)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{text}");
+            _logger.LogWarning($"Action: {nameof(InnerGetChatCompletionsAsync)}, Reason: {reason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{DescribeContent(text)}, ToolCalls: {DescribeToolCalls(ToLlmToolCalls(value.ToolCalls))}");
 
             msg = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
             {
@@ -321,6 +321,13 @@ public partial class ChatCompletionProvider
                 }
                 else if (choice.FinishReason.HasValue)
                 {
+                    if (choice.FinishReason == ChatFinishReason.Length)
+                    {
+                        // What the model wrote before the limit is replaced by the notice below, so this is the only record of it
+                        _logger.LogWarning($"Action: {nameof(InnerGetChatCompletionsStreamingAsync)}, Reason: {choice.FinishReason}, Agent: {agent.Name}, " +
+                            $"MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{DescribeContent(textStream.GetText())}, ToolCalls: {DescribeToolCalls(ReconstructToolCalls(toolCalls))}");
+                    }
+
                     var text = choice.FinishReason == ChatFinishReason.Length ? "Model reached the maximum number of tokens allowed."
                         : choice.FinishReason == ChatFinishReason.ContentFilter ? "Content is omitted due to content filter rule."
                         : choice.FinishReason.Value.ToString();
@@ -758,6 +765,20 @@ public partial class ChatCompletionProvider
         => (toolCalls ?? [])
             .Select(x => new LlmToolCall(x.Id, x.FunctionName, x.FunctionArguments?.ToString()))
             .ToList();
+
+    /// <summary>
+    /// The tool calls of a reply cut off by the output limit: each name and how long its arguments got. The arguments
+    /// themselves are left out, since they can hold the user's personal data.
+    /// </summary>
+    internal static string DescribeToolCalls(List<LlmToolCall> calls)
+        => string.Join(", ", calls.Select(x => $"{x.FunctionName}({x.FunctionArgs?.Length ?? 0} chars)"));
+
+    /// <summary>
+    /// What a reply cut off by the output limit said: its length and only its start, enough to tell what the model was
+    /// writing without logging the whole reply.
+    /// </summary>
+    internal static string DescribeContent(string? text)
+        => string.IsNullOrEmpty(text) ? "(none)" : $"{text.Length} chars: {(text.Length > 200 ? text[..200] + "..." : text)}";
 
     /// <summary>
     /// Rebuilds the tool calls a streaming reply asked for.

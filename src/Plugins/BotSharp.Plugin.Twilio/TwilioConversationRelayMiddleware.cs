@@ -69,8 +69,11 @@ public class TwilioConversationRelayMiddleware
         var authToken = services.GetRequiredService<IConfiguration>()["Twilio:RequestValidation:AuthToken"];
         if (string.IsNullOrEmpty(authToken))
         {
-            _logger.LogWarning("Twilio auth token is not configured; skipping ConversationRelay signature check.");
-            return true;
+            // Fail closed: a deployment missing the token must not open the relay to unsigned handshakes
+            _logger.LogError("Rejected ConversationRelay connection: ConversationRelay.ValidateSignature is on but " +
+                "Twilio:RequestValidation:AuthToken is not configured. Configure the token, or turn ValidateSignature off " +
+                "for local testing.");
+            return false;
         }
 
         var signature = httpContext.Request.Headers["X-Twilio-Signature"].ToString();

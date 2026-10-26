@@ -465,6 +465,15 @@ public class TwilioService
     }
 
     /// <summary>
+    /// The configured text of a prerecorded prompt, or null when the path has none (e.g. a per-conversation file).
+    /// ConversationRelay can only speak text, so this is how its greeting reuses the prompts a hook queued.
+    /// </summary>
+    public string? GetPromptText(string speechPath)
+    {
+        return TryGetPromptText(speechPath, out var text) ? text : null;
+    }
+
+    /// <summary>
     /// Looks up the configured text of a prerecorded prompt such as "twilio/say-it-again-1.mp3".
     /// Files generated per conversation (twilio/voice/speeches/...) never match.
     /// </summary>

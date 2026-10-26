@@ -21,4 +21,10 @@ public class AgentTurnCallbacks
     /// Called when the model starts writing a new response, e.g. after a tool call
     /// </summary>
     public Func<Task>? OnStreamStarted { get; init; }
+
+    /// <summary>
+    /// Called when a response the model wrote ends in a tool call: what it said before the call is complete,
+    /// and the tool may take a while before anything else is said
+    /// </summary>
+    public Func<Task>? OnStreamEndedWithToolCall { get; init; }
 }
