@@ -6,7 +6,9 @@ using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Models.Relay;
+using Twilio.Exceptions;
 using Twilio.Jwt.AccessToken;
+using CallResource = Twilio.Rest.Api.V2010.Account.CallResource;
 using Twilio.Rest.Api.V2010.Account.Call;
 using Task = System.Threading.Tasks.Task;
 using Token = Twilio.Jwt.AccessToken.Token;
@@ -422,6 +424,30 @@ public class TwilioService
         fileStorage.SaveSpeechFile(conversationId, fileName, data);
         return fileName;
     }
+
+    /// <summary>
+    /// Points a live call at new TwiML. Returns false when the call is no longer in progress (Twilio 21220): the caller
+    /// already hung up, or the message did not come from a live call at all (e.g. a phone conversation continued over
+    /// the REST API). Any other Twilio error is thrown.
+    /// </summary>
+    public async Task<bool> TryRedirectCallAsync(string callSid, string url)
+    {
+        try
+        {
+            await CallResource.UpdateAsync(pathSid: callSid, url: new Uri(url));
+            return true;
+        }
+        catch (ApiException ex) when (ex.Code == CallNotInProgressErrorCode)
+        {
+            _logger.LogInformation($"Call {callSid} is no longer in progress, not redirected: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Twilio's "Call is not in-progress. Cannot redirect.",see https://www.twilio.com/docs/api/errors/21220
+    /// </summary>
+    private const int CallNotInProgressErrorCode = 21220;
 
     /// <summary>
     /// Returns the file name of a speech saved by SaveSpeechAsync, whichever mode it was saved in.
