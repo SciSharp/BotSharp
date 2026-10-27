@@ -3,7 +3,7 @@ using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
-using Twilio.Rest.Api.V2010.Account;
+using BotSharp.Plugin.Twilio.Services;
 using Task = System.Threading.Tasks.Task;
 
 namespace BotSharp.Plugin.Twilio.Hooks;
@@ -57,10 +57,7 @@ public class TwilioConversationHook : ConversationHookBase, IConversationHook
                 // Save all states before reconnect
                 await states.Save();
 
-                CallResource.Update(
-                    pathSid: sid,
-                    url: new Uri(processUrl));
-
+                await _services.GetRequiredService<TwilioService>().TryRedirectCallAsync(sid, processUrl);
                 break;
             }
         }
