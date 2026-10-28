@@ -600,7 +600,7 @@ public class AgentTestControllerTests
 
         var result = await controller.CreateSuite(new AgentTestSuiteUpsertRequest { AgentId = "agent-1", Name = "s" });
 
-        Assert.True(result.Enabled);
+        Assert.True(result.Value!.Enabled);
     }
 
     [Fact]
@@ -612,7 +612,103 @@ public class AgentTestControllerTests
         var result = await controller.CreateSuite(
             new AgentTestSuiteUpsertRequest { AgentId = "agent-1", Name = "s", Enabled = false });
 
-        Assert.False(result.Enabled);
+        Assert.False(result.Value!.Enabled);
+    }
+
+    // ---- How many cases a run executes at once ----------------------------------------------
+
+    [Fact]
+    public async Task CreateSuite_defaults_to_running_several_cases_at_a_time()
+    {
+        var repo = new InMemoryRepo();
+        var controller = BuildController(repo, out _);
+
+        var result = await controller.CreateSuite(new AgentTestSuiteUpsertRequest { AgentId = "agent-1", Name = "s" });
+
+        Assert.Equal(AgentTestConcurrency.Default, result.Value!.MaxParallelCases);
+    }
+
+    [Fact]
+    public async Task UpdateSuite_keeps_the_stored_parallelism_when_the_request_omits_it()
+    {
+        // Same hazard as Enabled: a partial PUT that only meant to change the timeout must not
+        // quietly put a suite deliberately pinned to one case at a time back to the default.
+        var repo = new InMemoryRepo();
+        repo.Suites["suite-1"] = new AgentTestSuite
+        {
+            Id = "suite-1", AgentId = "agent-1", Name = "s", MaxParallelCases = 1
+        };
+        var controller = BuildController(repo, out _);
+
+        await controller.UpdateSuite("suite-1", new AgentTestSuiteUpsertRequest { CaseTimeoutSeconds = 300 });
+
+        Assert.Equal(1, repo.Suites["suite-1"].MaxParallelCases);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(100)]
+    public async Task CreateSuite_rejects_a_parallelism_outside_the_allowed_range(int value)
+    {
+        // Rejected rather than clamped: a stored 100 that every run silently reads as 16 is a
+        // setting that lies about itself every time someone opens the suite.
+        var repo = new InMemoryRepo();
+        var controller = BuildController(repo, out _);
+
+        var result = await controller.CreateSuite(new AgentTestSuiteUpsertRequest
+        {
+            AgentId = "agent-1", Name = "s", MaxParallelCases = value
+        });
+
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.Empty(repo.Suites);
+    }
+
+    [Fact]
+    public async Task TriggerRun_persists_the_requested_parallelism_on_the_run()
+    {
+        var repo = new InMemoryRepo();
+        repo.Suites["suite-1"] = EnabledSuite();
+        var controller = BuildController(repo, out _);
+
+        var result = await controller.TriggerRun(
+            "suite-1", new AgentTestRunTriggerRequest { MaxParallelCases = 2 });
+
+        Assert.Null(result.Result);
+        Assert.Equal(2, result.Value!.MaxParallelCases);
+    }
+
+    [Fact]
+    public async Task TriggerRun_leaves_the_parallelism_to_the_suite_when_the_body_omits_it()
+    {
+        // Zero is "the suite decides" -- AgentTestRunExecutor resolves it as the run starts and
+        // writes back the figure it settled on.
+        var repo = new InMemoryRepo();
+        repo.Suites["suite-1"] = EnabledSuite();
+        var controller = BuildController(repo, out _);
+
+        var result = await controller.TriggerRun("suite-1", new AgentTestRunTriggerRequest());
+
+        Assert.Equal(0, result.Value!.MaxParallelCases);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-3)]
+    [InlineData(64)]
+    public async Task TriggerRun_rejects_a_parallelism_outside_the_allowed_range(int value)
+    {
+        var repo = new InMemoryRepo();
+        repo.Suites["suite-1"] = EnabledSuite();
+        var controller = BuildController(repo, out var queue);
+
+        var result = await controller.TriggerRun(
+            "suite-1", new AgentTestRunTriggerRequest { MaxParallelCases = value });
+
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.Empty(queue.Enqueued);
+        Assert.Empty(repo.Runs);
     }
 
     // ---- Item 8c: cancelling an already-terminal run is rejected ----------------------------

@@ -41,6 +41,19 @@ public class AgentTestRun : MongoBase
     /// </summary>
     public List<TestModel>? Models { get; set; }
 
+    /// <summary>
+    /// Cases this run executed at the same time. Written by the executor as the run starts, from
+    /// the trigger request's value or the suite's -- a record of what actually happened, not a
+    /// request.
+    ///
+    /// It belongs on the run because the performance figures below are only comparable between two
+    /// runs that were produced under the same concurrency: a case's own latency includes whatever
+    /// queueing the other in-flight cases caused at the provider, so a P95 from a four-at-a-time run
+    /// and one from a serial run are different measurements. Zero on a run document written before
+    /// this field existed, which reads as "unknown, it ran serially".
+    /// </summary>
+    public int MaxParallelCases { get; set; }
+
     public int TotalCount { get; set; }
     public int PassedCount { get; set; }
     public int FailedCount { get; set; }

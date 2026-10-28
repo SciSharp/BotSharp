@@ -5,11 +5,20 @@ using BotSharp.Plugin.AgentTesting.Repositories;
 namespace BotSharp.Plugin.AgentTesting.Services;
 
 /// <summary>
-/// Run-level orchestration: turns an already-created AgentTestRun into serial execution of every
-/// enabled case in its suite.
+/// Run-level orchestration: turns an already-created AgentTestRun into execution of every enabled
+/// case in its suite, up to AgentTestConcurrency.Resolve(run, suite) of them at a time.
+///
+/// Concurrency lives here and nowhere else. Two things make it safe at this layer rather than
+/// needing changes further down: every case already gets its own DI scope (see ScopedCaseRunner
+/// below) and its own conversation id, and the mock seam, the model override and the tool recorder
+/// all find their case by that conversation id in a ConcurrentDictionary (AgentTestRunRegistry) --
+/// never by an ambient or static "current case". So two cases in flight cannot see each other.
+/// What is NOT safe to overlap is this class's own bookkeeping: the run document's counts are a
+/// read-modify-write of one document, so each case's tally is taken under `bookkeeping` while only
+/// the case executions themselves overlap.
 ///
 /// This class knows nothing about DI scopes -- it calls the single ICaseRunner instance handed to
-/// its constructor, and the loop below decides how often and when. "A fresh DI scope per case" is
+/// its constructor, and the loop below decides how many, how often and when. "A fresh DI scope per case" is
 /// not done here; AgentTestRunQueue achieves it by injecting an ICaseRunner decorator that wraps
 /// IServiceScopeFactory/IServiceProvider (see AgentTestRunQueue.ScopedCaseRunner). That decorator's
 /// RunAsync opens a new scope on every call -- that is, per case -- resolves the real
@@ -23,7 +32,7 @@ namespace BotSharp.Plugin.AgentTesting.Services;
 /// makes it the only field a whole-document ReplaceOneAsync could revert to a stale value --
 /// TotalCount/PassedCount/... are written by this class alone. Hence the re-read AFTER each case
 /// rather than before: the object it returns becomes the `run` this method then mutates and
-/// persists, so both "should the next case run" and "will this write clobber an external one" are
+/// persists, so both "should the next case start" and "will this write clobber an external one" are
 /// decided from the state as of the moment that case finished, not from the copy read at the very
 /// top and never refreshed. One read covers both questions, so no separate check is needed before
 /// it.
@@ -124,6 +133,13 @@ public class AgentTestRunExecutor
             }
         }
 
+        // The run's own value wins, then the suite's, then the default -- resolved once here and
+        // written onto the run, so a reader of the finished document can tell what the latency
+        // figures below were produced under rather than having to guess from the suite's value as
+        // it stands today.
+        var parallelism = AgentTestConcurrency.Resolve(run.MaxParallelCases, suite.MaxParallelCases);
+
+        run.MaxParallelCases = parallelism;
         run.Status = AgentTestStatus.Running;
         run.StartedAt = DateTime.UtcNow;
         run.TotalCount = 0;
@@ -132,7 +148,12 @@ public class AgentTestRunExecutor
         run.ErrorCount = 0;
         await _repo.UpdateRunAsync(run);
 
-        var cancelled = false;
+        // "Stop starting new work" (cancelRequested) is a different fact from "the run ended
+        // early because of it" (cancelSkipped). A cancel that lands while the LAST case is
+        // executing stops nothing -- the run finished everything it was ever going to run -- so
+        // only a case that was actually held back turns the terminal status into Cancelled.
+        var cancelRequested = false;
+        var cancelSkipped = 0;
 
         // The model dimension. An absent/empty Models list means "one pass, using each agent's own
         // LlmConfig" -- byte-for-byte the behavior from before multi-model existed, which is what
@@ -150,8 +171,34 @@ public class AgentTestRunExecutor
             .SelectMany(testCase => models.Select(model => (Case: testCase, Model: model)))
             .ToList();
 
-        foreach (var (testCase, model) in workItems)
+        // Serialises everything that touches the run document or the result collection, so the
+        // only thing that actually overlaps is the case executions. Each pass below is a
+        // read-modify-write of one document (GetRunAsync, then UpdateRunAsync -- a whole-document
+        // replace), and two of those interleaved lose whichever increment landed first. It costs
+        // nothing worth having: a case takes tens of seconds, this takes one round trip.
+        var bookkeeping = new SemaphoreSlim(1, 1);
+
+        _logger.LogInformation(
+            "Agent test run {RunId} is executing {WorkItemCount} case(s) {Parallelism} at a time.",
+            runId, workItems.Count, parallelism);
+
+        // The host is shutting down. Set by whichever worker notices first and read by the others,
+        // so the remaining work items return without starting rather than each being half-run
+        // through a disappearing process.
+        var hostStopping = false;
+
+        // MaxDegreeOfParallelism, not the CancellationToken: passing `ct` here would surface host
+        // shutdown as an OperationCanceledException out of this method, and this run's row has to
+        // be left exactly as it is on that path (see the hostStopping check inside). At
+        // parallelism 1 this runs the work items in order, one at a time, which is what a suite
+        // that sets MaxParallelCases = 1 is asking for.
+        await Parallel.ForEachAsync(
+            workItems,
+            new ParallelOptions { MaxDegreeOfParallelism = parallelism },
+            async (item, _) =>
         {
+            var (testCase, model) = item;
+
             if (ct.IsCancellationRequested)
             {
                 // The host itself is shutting down (BackgroundService's stoppingToken), not a
@@ -159,17 +206,19 @@ public class AgentTestRunExecutor
                 // the shutdown grace period to persist a different terminal status here -- the
                 // queue's own startup reconciliation step sweeps any Running row a killed process
                 // left behind into Error the next time it boots.
+                Volatile.Write(ref hostStopping, true);
                 return;
             }
 
-            // `run` here is either the initial load (for the first case) or the post-case read
-            // from the PREVIOUS iteration (see below) -- either way it is the freshest state this
-            // method has seen, so this check can never miss a cancel that arrived any time up to
-            // "the moment the previous case finished."
-            if (run.CancelRequested)
+            // Set under `bookkeeping` by whichever case first read CancelRequested back as true
+            // (see below), so this can never miss a cancel that arrived up to "the moment the last
+            // case to finish finished." The cases already in flight are not abortable -- BotSharp's
+            // SendMessage takes no CancellationToken, see AgentTestCaseRunner -- so a cancel stops
+            // the ones that have not started and lets the running ones finish and record.
+            if (Volatile.Read(ref cancelRequested))
             {
-                cancelled = true;
-                break;
+                Interlocked.Increment(ref cancelSkipped);
+                return;
             }
 
             AgentTestCaseResult result;
@@ -200,45 +249,75 @@ public class AgentTestRunExecutor
                 };
             }
 
-            await _repo.AddCaseResultAsync(result);
-
-            // Re-read AFTER the case ran, not before. This is what picks up a concurrent
-            // POST /runs/{id}/cancel that landed WHILE the case was executing -- both for the
-            // NEXT iteration's check above, and so the persist a few lines down (a whole-document
-            // ReplaceOneAsync) never overwrites that external write with a stale
-            // CancelRequested=false. `run` becomes this fresh object for the remainder of the
-            // method (including the terminal write after the loop, if this was the last case) --
-            // that's what keeps a cancel that arrives during the very last case's own execution
-            // from being silently erased, with no extra read needed after the loop.
-            run = await _repo.GetRunAsync(runId) ?? run;
-
-            run.TotalCount++;
-            TallyRoutingAccuracy(run, result);
-            switch (result.Status)
+            // CancellationToken.None: the tally for a case that already ran has to be recorded
+            // even as the host goes down, and it is a couple of writes.
+            await bookkeeping.WaitAsync(CancellationToken.None);
+            try
             {
-                case AgentTestStatus.Passed:
-                    run.PassedCount++;
-                    break;
-                case AgentTestStatus.Failed:
-                    run.FailedCount++;
-                    break;
-                default:
-                    // Error, Cancelled (e.g. a per-case timeout inside the real case runner), or
-                    // any other non-Passed/Failed status all count against ErrorCount -- AgentTestRun
-                    // has no separate CancelledCount field, and a per-case timeout is an
-                    // infrastructure failure for THAT case, not a graceful run-level cancellation.
-                    run.ErrorCount++;
-                    break;
-            }
+                await _repo.AddCaseResultAsync(result);
 
-            // Real-time accumulation, per case -- not just at the very end. Without this, GET
-            // /agent-test/runs/{id} shows 0/0/0/0 for the run's entire duration, and a process
-            // death mid-run leaves the startup sweep's Error row claiming zero cases ran even
-            // though N AgentTestCaseResult rows already exist for it.
-            await _repo.UpdateRunAsync(run);
+                // Re-read AFTER the case ran, not before. This is what picks up a concurrent
+                // POST /runs/{id}/cancel that landed WHILE the case was executing -- both for the
+                // cancel check the work items that have not started yet make above, and so the
+                // persist a few lines down (a whole-document ReplaceOneAsync) never overwrites that
+                // external write with a stale CancelRequested=false. `run` becomes this fresh
+                // object for the remainder of the method (including the terminal write after the
+                // loop, if this was the last case) -- that's what keeps a cancel that arrives
+                // during the very last case's own execution from being silently erased, with no
+                // extra read needed after the loop. Safe to assign across workers because every
+                // reader and writer of it holds `bookkeeping`, and the loop has joined before the
+                // terminal write reads it.
+                run = await _repo.GetRunAsync(runId) ?? run;
+
+                run.TotalCount++;
+                TallyRoutingAccuracy(run, result);
+                switch (result.Status)
+                {
+                    case AgentTestStatus.Passed:
+                        run.PassedCount++;
+                        break;
+                    case AgentTestStatus.Failed:
+                        run.FailedCount++;
+                        break;
+                    default:
+                        // Error, Cancelled (e.g. a per-case timeout inside the real case runner), or
+                        // any other non-Passed/Failed status all count against ErrorCount -- AgentTestRun
+                        // has no separate CancelledCount field, and a per-case timeout is an
+                        // infrastructure failure for THAT case, not a graceful run-level cancellation.
+                        run.ErrorCount++;
+                        break;
+                }
+
+                if (run.CancelRequested)
+                {
+                    Volatile.Write(ref cancelRequested, true);
+                }
+
+                // Progress, one line per finished case. Serial execution used to make progress
+                // readable from the order of a case's own log lines; several cases interleaved do
+                // not, so the run says where it is itself.
+                _logger.LogInformation(
+                    "Agent test run {RunId}: {Completed}/{Total} -- case {CaseName} {Status}.",
+                    runId, run.TotalCount, workItems.Count, testCase.Name, result.Status);
+
+                // Real-time accumulation, per case -- not just at the very end. Without this, GET
+                // /agent-test/runs/{id} shows 0/0/0/0 for the run's entire duration, and a process
+                // death mid-run leaves the startup sweep's Error row claiming zero cases ran even
+                // though N AgentTestCaseResult rows already exist for it.
+                await _repo.UpdateRunAsync(run);
+            }
+            finally
+            {
+                bookkeeping.Release();
+            }
+        });
+
+        if (hostStopping)
+        {
+            return;
         }
 
-        run.Status = cancelled
+        run.Status = cancelSkipped > 0
             ? AgentTestStatus.Cancelled
             : run.FailedCount == 0 && run.ErrorCount == 0
                 ? AgentTestStatus.Passed
