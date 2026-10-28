@@ -62,13 +62,21 @@ public class LlmAgentTestJudge : IAgentTestJudge
                 + "Set the suite's judgeProvider and judgeModel, or remove the llmJudge assertion.");
         }
 
-        if (string.IsNullOrWhiteSpace(context.Output))
+        var source = OutputSources.Normalize(assertion.Target);
+        if (source == null)
+        {
+            throw new AgentTestJudgeUnavailableException(OutputSources.InvalidTargetMessage(assertion));
+        }
+
+        var output = OutputSources.Read(source, context);
+        if (string.IsNullOrWhiteSpace(output))
         {
             // Not a failing verdict: the agent produced no text at all, so there is nothing for the
             // judge to grade. Whatever went wrong upstream is the real finding, and the other
             // assertions on this case will say so far more usefully than a fabricated score would.
-            throw new AgentTestJudgeUnavailableException(
-                "the agent produced no reply text, so there is nothing for llmJudge to score");
+            throw new AgentTestJudgeUnavailableException(source == OutputSources.RichContent
+                ? "the agent produced no rich content, so there is nothing for llmJudge to score"
+                : "the agent produced no reply text, so there is nothing for llmJudge to score");
         }
 
         ct.ThrowIfCancellationRequested();
@@ -101,7 +109,7 @@ public class LlmAgentTestJudge : IAgentTestJudge
         {
             var response = await completion.GetChatCompletions(
                 promptAgent,
-                [new RoleDialogModel(AgentRole.User, BuildPrompt(criterion, context.Output))]);
+                [new RoleDialogModel(AgentRole.User, BuildPrompt(criterion, output))]);
 
             raw = response?.Content ?? string.Empty;
         }

@@ -115,7 +115,7 @@ public class AgentTestCaseRunnerTests
         public IAgentTestRunRegistry? Registry { get; set; }
         public List<string> BlockedOnFirstSend { get; } = [];
 
-        public async Task<string?> SendAsync(string conversationId, string agentId, string userMessage, CancellationToken ct)
+        public async Task<AgentReply> SendAsync(string conversationId, string agentId, string userMessage, CancellationToken ct)
         {
             Sent.Add(userMessage);
             SentAgentIds.Add(agentId);
@@ -171,7 +171,7 @@ public class AgentTestCaseRunnerTests
                 throw ThrowAfterDelay;
             }
 
-            return Replies.Count > 0 ? Replies.Dequeue() : string.Empty;
+            return new AgentReply(Replies.Count > 0 ? Replies.Dequeue() : string.Empty, null);
         }
 
         public Task<int> InjectHistoryAsync(

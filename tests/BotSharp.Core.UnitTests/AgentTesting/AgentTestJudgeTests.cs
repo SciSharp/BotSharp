@@ -212,8 +212,8 @@ public class AgentTestJudgeTests
         public Task PrepareAsync(string conversationId, string agentId, IReadOnlyList<TestState> initialStates)
             => Task.CompletedTask;
 
-        public Task<string?> SendAsync(string conversationId, string agentId, string userMessage, CancellationToken ct)
-            => Task.FromResult<string?>(_reply);
+        public Task<AgentReply> SendAsync(string conversationId, string agentId, string userMessage, CancellationToken ct)
+            => Task.FromResult(new AgentReply(_reply, null));
 
         public Task<bool> RunCanaryAsync(string conversationId, string agentId, CancellationToken ct)
             => Task.FromResult(true);

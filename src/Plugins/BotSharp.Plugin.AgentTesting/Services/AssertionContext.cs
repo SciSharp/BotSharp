@@ -7,6 +7,10 @@ namespace BotSharp.Plugin.AgentTesting.Services;
 public class AssertionContext
 {
     public string? Output { get; set; }
+
+    /// <summary>Read only by assertions targeting <see cref="OutputSources.RichContent"/>.</summary>
+    public string? RichContent { get; set; }
+
     public IReadOnlyList<ObservedToolCall> ToolCalls { get; set; } = [];
     public IReadOnlyDictionary<string, string?> States { get; set; } = new Dictionary<string, string?>();
 

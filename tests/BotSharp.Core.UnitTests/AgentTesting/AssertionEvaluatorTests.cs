@@ -73,6 +73,35 @@ public class AssertionEvaluatorTests
     }
 
     [Fact]
+    public void Output_assertions_read_the_rich_content_only_when_targeted()
+    {
+        var context = Context(output: "One photo would help.");
+        context.RichContent = """{"upload_guidance":{"photos":["Photograph the cracked pipe"]},"buttons":[{"title":"Skip upload"}]}""";
+
+        var targeted = AssertionEvaluator.Evaluate(
+            new TestAssertion { Type = AssertionTypes.OutputContains, Target = "richcontent", Expected = "cracked pipe" },
+            context);
+        var untargeted = AssertionEvaluator.Evaluate(
+            new TestAssertion { Type = AssertionTypes.OutputNotContains, Expected = "skip" },
+            context);
+
+        Assert.True(targeted.Passed);
+        Assert.Equal(context.RichContent, targeted.Actual);
+        Assert.True(untargeted.Passed);
+    }
+
+    [Fact]
+    public void Output_assertions_fail_on_an_unknown_target_instead_of_reading_the_reply()
+    {
+        var result = AssertionEvaluator.Evaluate(
+            new TestAssertion { Type = AssertionTypes.OutputContains, Target = "rich", Expected = "photo" },
+            Context(output: "One photo would help."));
+
+        Assert.False(result.Passed);
+        Assert.Contains("'target' must be one of", result.Message!);
+    }
+
+    [Fact]
     public void Tool_called_matches_arguments_as_a_subset()
     {
         var calls = new List<ObservedToolCall>
