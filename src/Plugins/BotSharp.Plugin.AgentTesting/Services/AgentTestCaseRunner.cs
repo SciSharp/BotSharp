@@ -213,7 +213,7 @@ public class AgentTestCaseRunner : ICaseRunner
                 // canary, the mock lookups and the conversation reads, and on a fast case that
                 // overhead is a big enough share to move a latency percentile.
                 var turnTimer = Stopwatch.StartNew();
-                var output = await AwaitOrHandOffAsync(
+                var reply = await AwaitOrHandOffAsync(
                     _driver.SendAsync(conversationId, entryAgentId, turn.UserMessage, timeout.Token));
                 turnTimer.Stop();
                 modelDurationMs += turnTimer.ElapsedMilliseconds;
@@ -226,7 +226,8 @@ public class AgentTestCaseRunner : ICaseRunner
                 {
                     Index = turn.Index,
                     UserMessage = turn.UserMessage,
-                    Output = output,
+                    Output = reply.Text,
+                    RichContent = reply.RichContent,
                     ModelDurationMs = turnTimer.ElapsedMilliseconds,
                     // Names, not hops: a result is read by a person, and the ids are only needed
                     // while an assertion is being evaluated.
@@ -239,7 +240,8 @@ public class AgentTestCaseRunner : ICaseRunner
                 // assertion about routing that never happened.
                 var turnContext = new AssertionContext
                 {
-                    Output = output,
+                    Output = reply.Text,
+                    RichContent = reply.RichContent,
                     ToolCalls = active.ObservedCalls.Where(c => c.TurnIndex == turn.Index).ToList(),
                     States = await _driver.ReadStatesAsync(conversationId),
                     AgentChain = turnChain
@@ -265,6 +267,7 @@ public class AgentTestCaseRunner : ICaseRunner
             var finalContext = new AssertionContext
             {
                 Output = result.Turns.LastOrDefault()?.Output,
+                RichContent = result.Turns.LastOrDefault()?.RichContent,
                 ToolCalls = active.ObservedCalls,
                 States = await _driver.ReadStatesAsync(conversationId),
                 AgentChain = caseChain

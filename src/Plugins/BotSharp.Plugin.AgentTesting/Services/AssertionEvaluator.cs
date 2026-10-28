@@ -41,10 +41,23 @@ public static class AssertionEvaluator
             Expected = assertion.Expected
         };
 
+        string? output = null;
+        if (assertion.Type is AssertionTypes.OutputContains or AssertionTypes.OutputNotContains or AssertionTypes.OutputRegex)
+        {
+            var source = OutputSources.Normalize(assertion.Target);
+            if (source == null)
+            {
+                result.Passed = false;
+                result.Message = OutputSources.InvalidTargetMessage(assertion);
+                return result;
+            }
+            output = OutputSources.Read(source, context);
+        }
+
         switch (assertion.Type)
         {
             case AssertionTypes.OutputContains:
-                result.Actual = context.Output;
+                result.Actual = output;
                 if (string.IsNullOrEmpty(assertion.Expected))
                 {
                     // Contains("") is vacuously true for any non-null string -- a blank/omitted
@@ -55,21 +68,21 @@ public static class AssertionEvaluator
                 }
                 else
                 {
-                    result.Passed = context.Output?.Contains(assertion.Expected,
+                    result.Passed = output?.Contains(assertion.Expected,
                         StringComparison.OrdinalIgnoreCase) == true;
                     if (!result.Passed) result.Message = "output does not contain the expected text";
                 }
                 break;
 
             case AssertionTypes.OutputNotContains:
-                result.Actual = context.Output;
-                result.Passed = context.Output?.Contains(assertion.Expected ?? string.Empty,
+                result.Actual = output;
+                result.Passed = output?.Contains(assertion.Expected ?? string.Empty,
                     StringComparison.OrdinalIgnoreCase) != true;
                 if (!result.Passed) result.Message = "output contains text that should not appear";
                 break;
 
             case AssertionTypes.OutputRegex:
-                result.Actual = context.Output;
+                result.Actual = output;
                 if (string.IsNullOrEmpty(assertion.Expected))
                 {
                     // An empty pattern matches everything -- a blank/omitted Expected must not
@@ -80,7 +93,7 @@ public static class AssertionEvaluator
                 }
                 try
                 {
-                    result.Passed = Regex.IsMatch(context.Output ?? string.Empty, assertion.Expected,
+                    result.Passed = Regex.IsMatch(output ?? string.Empty, assertion.Expected,
                         RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
                     if (!result.Passed) result.Message = "output does not match the pattern";
                 }
@@ -336,6 +349,39 @@ public static class AgentChainModes
         => string.IsNullOrWhiteSpace(value)
             ? Contains
             : All.FirstOrDefault(m => string.Equals(m, value.Trim(), StringComparison.OrdinalIgnoreCase));
+}
+
+/// <summary>
+/// Which text outputContains / outputNotContains / outputRegex and llmJudge read, selected by
+/// <see cref="TestAssertion.Target"/>.
+///
+/// Reply       -- the text a user reads. The default.
+/// RichContent -- the reply's rich message as JSON, for content that exists only there, such as an
+///                upload card's photo and video lists. Opt-in, so button titles and other structure
+///                never leak into the reply text every existing assertion was written against.
+/// </summary>
+public static class OutputSources
+{
+    public const string Reply = "reply";
+    public const string RichContent = "richContent";
+
+    public static readonly string[] All = [Reply, RichContent];
+
+    /// <summary>
+    /// Canonical source for any casing, with blank meaning <see cref="Reply"/>; null for an
+    /// unrecognised value, so a typo fails loudly instead of silently reading the reply text.
+    /// </summary>
+    public static string? Normalize(string? value)
+        => string.IsNullOrWhiteSpace(value)
+            ? Reply
+            : All.FirstOrDefault(s => string.Equals(s, value.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    public static string? Read(string source, AssertionContext context)
+        => source == RichContent ? context.RichContent : context.Output;
+
+    public static string InvalidTargetMessage(TestAssertion assertion)
+        => $"{assertion.Type} 'target' must be one of {string.Join(", ", All)} "
+         + $"(or empty for {Reply}), not '{assertion.Target}'";
 }
 
 /// <summary>

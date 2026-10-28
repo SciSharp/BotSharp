@@ -97,6 +97,10 @@ public class TurnResult
     public int Index { get; set; }
     public string UserMessage { get; set; } = default!;
     public string? Output { get; set; }
+
+    /// <summary>The reply's rich message as JSON, null for a plain reply. What richContent assertions read.</summary>
+    public string? RichContent { get; set; }
+
     public List<AssertionResult> Assertions { get; set; } = [];
 
     /// <summary>

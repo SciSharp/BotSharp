@@ -22,8 +22,8 @@ public interface IAgentConversationDriver
     Task<int> InjectHistoryAsync(
         string conversationId, string agentId, IReadOnlyList<TestHistoryMessage> history);
 
-    /// <summary>Drives one turn and returns that turn's output text.</summary>
-    Task<string?> SendAsync(string conversationId, string agentId, string userMessage, CancellationToken ct);
+    /// <summary>Drives one turn and returns what that turn produced.</summary>
+    Task<AgentReply> SendAsync(string conversationId, string agentId, string userMessage, CancellationToken ct);
 
     /// <summary>Calls the canary function once; returns whether the mock seam took it over.</summary>
     Task<bool> RunCanaryAsync(string conversationId, string agentId, CancellationToken ct);
@@ -43,3 +43,10 @@ public interface IAgentConversationDriver
     /// </summary>
     Task<IReadOnlyList<AgentChainHop>> ReadAssistantAgentSequenceAsync(string conversationId);
 }
+
+/// <summary>
+/// One turn's reply. Text is what a user reads: the rich message's text, else the plain content.
+/// RichContent is the rich message serialized as JSON, null for a plain reply -- structured content
+/// such as an upload card's photo list exists only there.
+/// </summary>
+public record AgentReply(string? Text, string? RichContent);
