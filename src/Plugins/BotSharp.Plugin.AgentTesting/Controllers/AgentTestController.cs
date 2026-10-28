@@ -52,8 +52,13 @@ public class AgentTestController : ControllerBase
         => await _repo.ListSuitesAsync(agentId);
 
     [HttpPost("suites")]
-    public async Task<AgentTestSuite> CreateSuite([FromBody] AgentTestSuiteUpsertRequest request)
+    public async Task<ActionResult<AgentTestSuite>> CreateSuite([FromBody] AgentTestSuiteUpsertRequest request)
     {
+        if (ValidateParallelism(request.MaxParallelCases) is { } parallelError)
+        {
+            return BadRequest(parallelError);
+        }
+
         var suite = new AgentTestSuite();
         ApplySuite(suite, request);
 
@@ -93,6 +98,11 @@ public class AgentTestController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Name))
         {
             request.Name = suite.Name;
+        }
+
+        if (ValidateParallelism(request.MaxParallelCases) is { } parallelError)
+        {
+            return BadRequest(parallelError);
         }
 
         ApplySuite(suite, request);
@@ -577,6 +587,11 @@ public class AgentTestController : ControllerBase
             return BadRequest(modelError);
         }
 
+        if (ValidateParallelism(request?.MaxParallelCases) is { } parallelError)
+        {
+            return BadRequest(parallelError);
+        }
+
         if (!suite.Enabled)
         {
             // The suite's own Enabled flag is advertised in the design as a way to turn a whole
@@ -598,6 +613,9 @@ public class AgentTestController : ControllerBase
             // Empty list and null mean the same thing downstream ("agent's own LlmConfig"), so
             // normalise to null rather than persisting an empty array that reads like a choice.
             Models = request?.Models is { Count: > 0 } ? request.Models : null,
+            // Zero means "the suite decides" -- AgentTestRunExecutor resolves it against the suite
+            // as the run starts and writes the figure it settled on back onto this document.
+            MaxParallelCases = request?.MaxParallelCases ?? 0,
             // This controller action is the only place in the whole trigger-to-execute path that
             // ever runs inside a real HTTP request -- AgentTestRunQueue's background loop has no
             // HttpContext at all, so if the triggering identity isn't captured here it can never
@@ -712,6 +730,17 @@ public class AgentTestController : ControllerBase
         return duplicate == null ? null : $"model '{duplicate.Key}' is listed more than once";
     }
 
+    /// <summary>
+    /// Rejected rather than clamped, for a suite and for a run alike: a stored 100 that every run
+    /// silently reads as 16 is a setting that lies about itself every time someone opens it, and a
+    /// caller asking for 100 cases at a time has misunderstood what the harness will do to the
+    /// provider's rate limit.
+    /// </summary>
+    private static string? ValidateParallelism(int? maxParallelCases)
+        => maxParallelCases is { } value && (value < 1 || value > AgentTestConcurrency.Max)
+            ? $"'maxParallelCases' has to be between 1 and {AgentTestConcurrency.Max}"
+            : null;
+
     private static void ApplySuite(AgentTestSuite suite, AgentTestSuiteUpsertRequest request)
     {
         suite.AgentId = request.AgentId;
@@ -728,6 +757,8 @@ public class AgentTestController : ControllerBase
         suite.ExtraAllowedFunctions = request.ExtraAllowedFunctions ?? [];
         suite.ForceBlockedFunctions = request.ForceBlockedFunctions ?? [];
         suite.CaseTimeoutSeconds = request.CaseTimeoutSeconds;
+        // Null means the body omitted it -- keep what the suite has, like Enabled above.
+        suite.MaxParallelCases = request.MaxParallelCases ?? suite.MaxParallelCases;
     }
 
     private static void ApplyCase(AgentTestCase testCase, AgentTestCaseUpsertRequest request)

@@ -15,10 +15,13 @@ using Moq;
 namespace BotSharp.Core.UnitTests.AgentTesting;
 
 /// <summary>
-/// Run-level orchestration: cases run serially, one failing case does not affect the rest, the counts
-/// are right, and cancellation takes effect promptly. Serial execution is a safety choice rather than
-/// a performance one -- cases share external dependencies, and running them concurrently would let
-/// them pollute each other's state.
+/// Run-level orchestration: cases run up to MaxParallelCases at a time, one failing case does not
+/// affect the rest, the counts are right whether or not cases overlapped, and cancellation takes
+/// effect promptly.
+///
+/// Both fake repos below hand out a run pinned to MaxParallelCases = 1, so every test that asserts
+/// an ORDER (which case ran first, which result landed first) states what it depends on instead of
+/// relying on a default that is now 4. The concurrency tests set it themselves.
 /// </summary>
 public class AgentTestRunExecutorTests
 {
@@ -26,7 +29,9 @@ public class AgentTestRunExecutorTests
     {
         public AgentTestSuite Suite = new() { Id = "suite-1", AgentId = "agent-1", Name = "s" };
         public List<AgentTestCase> Cases = [];
-        public AgentTestRun Run = new() { Id = "run-1", SuiteId = "suite-1" };
+        // Serial unless a test says otherwise: the tests below that assert an execution or
+        // result ORDER only mean anything one case at a time, and the default is 4.
+        public AgentTestRun Run = new() { Id = "run-1", SuiteId = "suite-1", MaxParallelCases = 1 };
         public List<AgentTestCaseResult> Results = [];
 
         public Task<AgentTestSuite?> GetSuiteAsync(string id) => Task.FromResult<AgentTestSuite?>(Suite);
@@ -68,7 +73,7 @@ public class AgentTestRunExecutorTests
         public List<AgentTestCase> Cases = [];
         public List<AgentTestCaseResult> Results = [];
 
-        private AgentTestRun _stored = new() { Id = "run-1", SuiteId = "suite-1" };
+        private AgentTestRun _stored = new() { Id = "run-1", SuiteId = "suite-1", MaxParallelCases = 1 };
 
         /// <summary>The current backing state, for assertions -- a clone, so tests can't cheat by mutating it directly.</summary>
         public AgentTestRun Stored => Clone(_stored);
@@ -105,6 +110,7 @@ public class AgentTestRunExecutorTests
             Status = source.Status,
             TriggeredBy = source.TriggeredBy,
             CaseIds = source.CaseIds,
+            MaxParallelCases = source.MaxParallelCases,
             TotalCount = source.TotalCount,
             PassedCount = source.PassedCount,
             FailedCount = source.FailedCount,
@@ -154,8 +160,17 @@ public class AgentTestRunExecutorTests
 
     private sealed class DelegatingCaseRunner(Func<AgentTestCase, AgentTestCaseResult> run) : ICaseRunner
     {
-        /// <summary>Every (case, model) pair the executor asked for, in the order it asked.</summary>
-        public List<(string CaseId, string? Model)> Invocations { get; } = [];
+        private readonly List<(string CaseId, string? Model)> _invocations = [];
+
+        /// <summary>
+        /// Every (case, model) pair the executor asked for, in the order it asked. Locked because
+        /// the executor can call RunAsync from several threads at once -- only meaningful as an
+        /// ORDER for a run pinned to MaxParallelCases = 1.
+        /// </summary>
+        public List<(string CaseId, string? Model)> Invocations
+        {
+            get { lock (_invocations) return [.. _invocations]; }
+        }
 
         /// <summary>
         /// Set instead of relying on the constructor delegate when a test's outcome has to depend on
@@ -167,7 +182,7 @@ public class AgentTestRunExecutorTests
         public Task<AgentTestCaseResult> RunAsync(
             AgentTestSuite suite, AgentTestCase testCase, string runId, TestModel? model, CancellationToken ct)
         {
-            Invocations.Add((testCase.Id, model?.Model));
+            lock (_invocations) _invocations.Add((testCase.Id, model?.Model));
             var result = RunWithModel != null ? RunWithModel(testCase, model) : run(testCase);
             // The real runner stamps these onto the result; mirror it so tests can assert that a
             // result can be attributed back to the model that produced it.
@@ -328,6 +343,192 @@ public class AgentTestRunExecutorTests
 
         Assert.Single(repo.Results);
         Assert.Equal(AgentTestStatus.Cancelled, repo.Run.Status);
+    }
+
+    /// <summary>
+    /// An ICaseRunner that records how many cases were in flight at once, and holds each one until
+    /// it is released -- the only way to observe overlap rather than infer it from timing.
+    /// </summary>
+    private sealed class ConcurrencyProbeRunner : ICaseRunner
+    {
+        private readonly TaskCompletionSource _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly object _gate = new();
+        private int _inFlight;
+
+        /// <summary>The most cases that were ever executing at the same moment.</summary>
+        public int PeakInFlight { get; private set; }
+
+        public int Started { get; private set; }
+
+        /// <summary>
+        /// Completes once <paramref name="count"/> cases have started and are waiting. Gives up
+        /// after ten seconds rather than hanging the test run: "they never overlapped" is the
+        /// failure this probe exists to catch, and a hung suite reports it as nothing at all.
+        /// </summary>
+        public async Task WaitForStartedAsync(int count)
+        {
+            for (var attempt = 0; attempt < 2000; attempt++)
+            {
+                lock (_gate)
+                {
+                    if (Started >= count) return;
+                }
+                await Task.Delay(5);
+            }
+
+            throw new TimeoutException($"only {Started} case(s) ever started at once; expected {count}");
+        }
+
+        public void ReleaseAll() => _release.TrySetResult();
+
+        public async Task<AgentTestCaseResult> RunAsync(
+            AgentTestSuite suite, AgentTestCase testCase, string runId, TestModel? model, CancellationToken ct)
+        {
+            lock (_gate)
+            {
+                Started++;
+                _inFlight++;
+                PeakInFlight = Math.Max(PeakInFlight, _inFlight);
+            }
+
+            await _release.Task;
+
+            lock (_gate)
+            {
+                _inFlight--;
+            }
+
+            return new AgentTestCaseResult { CaseId = testCase.Id, Status = AgentTestStatus.Passed };
+        }
+    }
+
+    [Fact]
+    public async Task Cases_run_several_at_a_time_up_to_the_runs_limit()
+    {
+        // The point of the feature: a suite of cases that each spend ~40s waiting on the model used
+        // to take the sum of those waits. This is the only test that proves cases actually overlap
+        // -- every other one here would pass just as well against the old serial loop.
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a"), CaseNamed("b"), CaseNamed("c"), CaseNamed("d"), CaseNamed("e")] };
+        repo.Run.MaxParallelCases = 3;
+        var runner = new ConcurrencyProbeRunner();
+        var executor = new AgentTestRunExecutor(repo, runner, NullLogger<AgentTestRunExecutor>.Instance);
+
+        var execution = executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        // Three cases hanging in the runner at once is only reachable if the executor started them
+        // without waiting for the first to finish.
+        await runner.WaitForStartedAsync(3);
+        runner.ReleaseAll();
+        await execution;
+
+        Assert.Equal(3, runner.PeakInFlight);
+        // ... and the limit is a limit: the remaining two waited for a slot rather than all five
+        // going at once.
+        Assert.Equal(5, repo.Run.TotalCount);
+        Assert.Equal(5, repo.Run.PassedCount);
+        Assert.Equal(5, repo.Results.Count);
+        Assert.Equal(5, repo.Results.Select(r => r.CaseId).Distinct().Count());
+    }
+
+    [Fact]
+    public async Task A_run_that_asks_for_no_parallelism_takes_the_suites()
+    {
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a"), CaseNamed("b"), CaseNamed("c")] };
+        // What POST .../run writes when its body omits maxParallelCases.
+        repo.Run.MaxParallelCases = 0;
+        repo.Suite.MaxParallelCases = 2;
+        var runner = new ConcurrencyProbeRunner();
+        var executor = new AgentTestRunExecutor(repo, runner, NullLogger<AgentTestRunExecutor>.Instance);
+
+        var execution = executor.ExecuteAsync("run-1", CancellationToken.None);
+        await runner.WaitForStartedAsync(2);
+        runner.ReleaseAll();
+        await execution;
+
+        Assert.Equal(2, runner.PeakInFlight);
+        // Written back onto the run: a latency percentile from a two-at-a-time run is not the same
+        // measurement as one from a serial run, and the suite's setting today says nothing about
+        // what this run did.
+        Assert.Equal(2, repo.Run.MaxParallelCases);
+    }
+
+    [Fact]
+    public async Task A_run_document_written_before_parallelism_existed_runs_at_the_default()
+    {
+        // Neither the run nor the suite carries a value -- which is exactly what deserialising an
+        // old Mongo document gives, since AgentTestSuite's own default only applies to objects this
+        // process constructs. Zero must not read as "no cases at a time."
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a")] };
+        repo.Run.MaxParallelCases = 0;
+        repo.Suite.MaxParallelCases = 0;
+        var executor = Build(repo, c => new AgentTestCaseResult { CaseId = c.Id, Status = AgentTestStatus.Passed });
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Single(repo.Results);
+        Assert.Equal(AgentTestConcurrency.Default, repo.Run.MaxParallelCases);
+    }
+
+    [Fact]
+    public async Task A_parallelism_above_the_ceiling_is_clamped_rather_than_honoured()
+    {
+        // The API rejects such a value, so this is only reachable from a hand-edited document --
+        // but "the document said 500" must not mean 500 conversations at once.
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a")] };
+        repo.Run.MaxParallelCases = 500;
+        var executor = Build(repo, c => new AgentTestCaseResult { CaseId = c.Id, Status = AgentTestStatus.Passed });
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Equal(AgentTestConcurrency.Max, repo.Run.MaxParallelCases);
+    }
+
+    [Fact]
+    public async Task Every_case_is_counted_exactly_once_when_cases_overlap()
+    {
+        // The run document's counts are a read-modify-write of one document. Without the
+        // executor's bookkeeping lock, concurrent tallies lose increments -- and a run that
+        // reports 7 of 10 cases, all passed, looks like a short suite rather than a broken count.
+        var repo = new InMemoryRepo { Cases = [.. Enumerable.Range(0, 24).Select(i => CaseNamed($"c{i}"))] };
+        repo.Run.MaxParallelCases = AgentTestConcurrency.Max;
+        var executor = Build(repo, c => new AgentTestCaseResult
+        {
+            CaseId = c.Id,
+            Status = int.Parse(c.Id[1..]) % 5 == 0 ? AgentTestStatus.Failed : AgentTestStatus.Passed
+        });
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Equal(24, repo.Run.TotalCount);
+        Assert.Equal(5, repo.Run.FailedCount);
+        Assert.Equal(19, repo.Run.PassedCount);
+        Assert.Equal(0, repo.Run.ErrorCount);
+        Assert.Equal(24, repo.Results.Select(r => r.CaseId).Distinct().Count());
+        Assert.Equal(AgentTestStatus.Failed, repo.Run.Status);
+    }
+
+    [Fact]
+    public async Task A_cancel_stops_the_cases_that_have_not_started_yet()
+    {
+        // Cases already in flight cannot be aborted (BotSharp's SendMessage takes no
+        // CancellationToken -- see AgentTestCaseRunner), so cancelling a parallel run means the
+        // ones running finish and record, and nothing new starts. The alternative -- dropping the
+        // results of work already paid for -- would make cancel lose data.
+        var repo = new InMemoryRepo { Cases = [.. Enumerable.Range(0, 8).Select(i => CaseNamed($"c{i}"))] };
+        repo.Run.MaxParallelCases = 2;
+        var executor = Build(repo, c =>
+        {
+            repo.Run.CancelRequested = true;
+            return new AgentTestCaseResult { CaseId = c.Id, Status = AgentTestStatus.Passed };
+        });
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Equal(AgentTestStatus.Cancelled, repo.Run.Status);
+        // The two that were already in flight when the cancel was seen may both record; the other
+        // six must not have run at all.
+        Assert.InRange(repo.Results.Count, 1, 2);
+        Assert.Equal(repo.Results.Count, repo.Run.TotalCount);
     }
 
     [Fact]

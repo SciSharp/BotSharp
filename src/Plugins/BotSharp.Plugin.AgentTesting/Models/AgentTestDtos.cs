@@ -26,6 +26,13 @@ public class AgentTestSuiteUpsertRequest
     public List<string> ExtraAllowedFunctions { get; set; } = [];
     public List<string> ForceBlockedFunctions { get; set; } = [];
     public int CaseTimeoutSeconds { get; set; } = 120;
+
+    /// <summary>
+    /// Cases to execute at the same time, 1 to <see cref="AgentTestConcurrency.Max"/>. Nullable for
+    /// the same reason <see cref="Enabled"/> is: a partial PUT that omits it must leave the suite's
+    /// value alone rather than resetting it to the default.
+    /// </summary>
+    public int? MaxParallelCases { get; set; }
 }
 
 /// <summary>
@@ -211,6 +218,16 @@ public class AgentTestRunTriggerRequest
     /// and every AgentTestCaseResult records which model produced it.
     /// </summary>
     public List<TestModel>? Models { get; set; }
+
+    /// <summary>
+    /// Cases to execute at the same time for this run only, 1 to
+    /// <see cref="AgentTestConcurrency.Max"/>; null falls back to the suite's own setting.
+    ///
+    /// Per run as well as per suite because the reason to change it is usually about the moment
+    /// rather than the suite: turning it down to 1 to read a flaky case's logs without three other
+    /// cases interleaved in them, or because the provider is already busy with something else.
+    /// </summary>
+    public int? MaxParallelCases { get; set; }
 }
 
 /// <summary>
