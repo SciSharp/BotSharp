@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Models;
+
 namespace BotSharp.Abstraction.Conversations;
 
 /// <summary>
@@ -28,4 +30,10 @@ public interface ISyntheticConversationProbe
     /// traffic from the very limits it is meant to be held to.
     /// </summary>
     bool IsSynthetic(string conversationId);
+
+    /// <summary>
+    /// The provider/model the harness forces every chat completion in this conversation onto, or null
+    /// to leave it alone. Applied by CompletionProvider.GetChatCompletion.
+    /// </summary>
+    AgentLlmConfig? GetModelOverride(string conversationId) => null;
 }

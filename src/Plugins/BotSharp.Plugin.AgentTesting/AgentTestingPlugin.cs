@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Repositories.Settings;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Plugin.AgentTesting.Repositories;
@@ -55,10 +56,9 @@ public class AgentTestingPlugin : IBotSharpPlugin
         // working -- the runner's canary self-check is what catches that.
         services.AddScoped<IFunctionExecutorProvider, TestMockExecutorProvider>();
 
-        // The model-override seam, which lets one run sweep the same agent across several models.
-        // Losing this line does not raise an error: every model would run on the agent's own
-        // LlmConfig and the comparison grid would show them all behaving identically.
-        services.AddScoped<IAgentHook, AgentTestModelOverrideHook>();
+        // Records the provider/model each completion actually ran on, so an "agent default" result
+        // still says which model produced it.
+        services.AddScoped<IContentGeneratingHook, AgentTestModelUsageHook>();
 
         services.AddScoped<IAgentConversationDriver, BotSharpAgentConversationDriver>();
 
