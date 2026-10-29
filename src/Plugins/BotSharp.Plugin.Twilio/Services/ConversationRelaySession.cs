@@ -53,6 +53,12 @@ public class ConversationRelaySession
     private bool _dropStream;
     private bool _cutInMidReply;
 
+    // The current turn's callbacks, for what the flow wants of the reply as it goes out
+    private AgentTurnCallbacks? _turnCallbacks;
+
+    // How the utterance being streamed went out, so its closing frame goes out the same way
+    private bool _utteranceKeptUninterrupted;
+
     // The current turn's reply is in; the response watchdog says nothing more once it is set
     private bool _turnReplied;
     private DateTime _turnStartedUtc;
@@ -339,6 +345,7 @@ public class ConversationRelaySession
                 OnStreamEndedWithToolCall = stream ? CloseUtteranceAsync : null,
                 RewriteReply = stream ? MarkWhatTheCallerCutOff : null
             };
+            _turnCallbacks = callbacks;
 
             AssistantMessage? reply;
             try
@@ -384,7 +391,7 @@ public class ConversationRelaySession
                 continue;
             }
 
-            await SpeakAsync(GetUnstreamedText(reply.Content));
+            await SpeakAsync(GetUnstreamedText(reply.Content), keepUninterrupted: reply.KeepUninterrupted);
             if (reply.HumanIntervationNeeded)
             {
                 await EndAsync(ConversationRelayHandoff.Transfer);
@@ -546,6 +553,8 @@ public class ConversationRelaySession
     /// </summary>
     private async Task StreamTextAsync(string text)
     {
+        var keep = _turnCallbacks?.KeepUninterrupted?.Invoke() == true;
+
         // Decided once the send lock is held: a piece queued behind another send must not go out after the
         // caller cut in (_dropStream) or the session ended meanwhile
         await SendIfAsync(() =>
@@ -557,21 +566,30 @@ public class ConversationRelaySession
             _streamSegment.Append(text);
             _utteranceOpen = true;
             _streamedThisTurn = true;
+            _utteranceKeptUninterrupted = keep;
             return true;
-        }, new { type = "text", token = text, last = false });
+        }, TextFrame(text, last: false, keep));
     }
+
+    // A line the caller must hear goes out marked so: Twilio then plays it to the end, whoever speaks over it, which
+    // overrides the interruptible attribute set for the call
+    private static object TextFrame(string token, bool last, bool keepUninterrupted) => keepUninterrupted
+        ? new { type = "text", token, last, interruptible = false }
+        : new { type = "text", token, last };
 
     /// <summary>
     /// Ends the utterance being streamed, so what follows (an indication, the next response) is spoken on its own.
     /// </summary>
     private async Task CloseUtteranceAsync()
     {
+        bool keep;
         lock (_sync)
         {
             if (!_utteranceOpen)
             {
                 return;
             }
+            keep = _utteranceKeptUninterrupted;
         }
 
         // Closed only once the send lock is held, so nothing else (a filler) can go out between the utterance being
@@ -588,7 +606,7 @@ public class ConversationRelaySession
             _streamSegment.Clear();
             MarkSpeaking(EstimateSpeech(_lastStreamSegment.Length));
             return true;
-        }, new { type = "text", token = string.Empty, last = true });
+        }, TextFrame(string.Empty, last: true, keep));
     }
 
     /// <summary>
@@ -704,7 +722,8 @@ public class ConversationRelaySession
     }
 
     /// <param name="canSpeak">Extra condition, checked under <see cref="_sync"/> once the send lock is held</param>
-    private async Task SpeakAsync(string? text, Func<bool>? canSpeak = null)
+    /// <param name="keepUninterrupted">The caller must hear all of it, so it plays to the end whoever speaks over it</param>
+    private async Task SpeakAsync(string? text, Func<bool>? canSpeak = null, bool keepUninterrupted = false)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -712,7 +731,7 @@ public class ConversationRelaySession
         }
 
         await SpeakIfAsync(() => !_ended && (canSpeak?.Invoke() ?? true),
-            new { type = "text", token = text, last = true }, EstimateSpeech(text.Length));
+            TextFrame(text, last: true, keepUninterrupted), EstimateSpeech(text.Length));
     }
 
     /// <summary>

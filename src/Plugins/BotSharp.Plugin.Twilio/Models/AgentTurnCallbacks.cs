@@ -33,4 +33,14 @@ public class AgentTurnCallbacks
     /// returns what is stored in its place. Lets a flow record a reply the caller cut off as the part they heard.
     /// </summary>
     public Func<string, string>? RewriteReply { get; init; }
+
+    /// <summary>
+    /// Set by the turn once it can read the conversation's states: whether what the agent says now must play to the end
+    /// (<see cref="ConversationRelayStates.KeepUninterrupted"/>).
+    /// </summary>
+    /// <remarks>
+    /// Read before each piece of the reply goes out, so a flow can turn it on part way through a turn, e.g. once a
+    /// confirmation number is coming up. Only valid while the turn runs.
+    /// </remarks>
+    public Func<bool>? KeepUninterrupted { get; set; }
 }

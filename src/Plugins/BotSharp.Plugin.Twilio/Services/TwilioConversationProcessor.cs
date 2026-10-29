@@ -94,6 +94,13 @@ public static class TwilioConversationProcessor
             }
         }
 
+        if (callbacks != null)
+        {
+            // Read live while the turn runs, so a tool that turns it on (a confirmation number coming up) covers what
+            // the agent says after it in the same turn
+            callbacks.KeepUninterrupted = () => conv.States.GetState(ConversationRelayStates.KeepUninterrupted) == "true";
+        }
+
         await conv.SendMessage(message.AgentId,
             inputMsg,
             replyMessage: await BuildPostbackMessageModel(conv, message),
@@ -107,7 +114,8 @@ public static class TwilioConversationProcessor
                     ConversationEnd = msg.Instruction?.ConversationEnd ?? false,
                     HumanIntervationNeeded = string.Equals("human_intervention_needed", msg.FunctionName),
                     Content = spoken,
-                    MessageId = msg.MessageId
+                    MessageId = msg.MessageId,
+                    KeepUninterrupted = callbacks?.KeepUninterrupted?.Invoke() ?? false
                 };
             }
         );
