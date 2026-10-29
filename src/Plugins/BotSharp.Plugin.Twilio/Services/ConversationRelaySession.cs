@@ -51,6 +51,7 @@ public class ConversationRelaySession
     private bool _utteranceOpen;
     private bool _streamedThisTurn;
     private bool _dropStream;
+    private bool _cutInMidReply;
 
     // The current turn's reply is in; the response watchdog says nothing more once it is set
     private bool _turnReplied;
@@ -235,6 +236,7 @@ public class ConversationRelaySession
                     if (_isProcessing && _streamedThisTurn)
                     {
                         _dropStream = true;
+                        _cutInMidReply = true;
                     }
                 }
                 var interruptedAfter = GetString(root, "durationUntilInterruptMs");
@@ -316,6 +318,7 @@ public class ConversationRelaySession
                 _utteranceOpen = false;
                 _streamedThisTurn = false;
                 _dropStream = false;
+                _cutInMidReply = false;
                 _turnReplied = false;
                 _turnStartedUtc = DateTime.UtcNow;
             }
@@ -333,7 +336,8 @@ public class ConversationRelaySession
                 OnStreamStarted = stream ? CloseUtteranceAsync : null,
                 // A line said before a slow tool ("Okay, that's everything I need") is spoken now, and the watchdog
                 // counts the silence after it instead of waiting for the next response to close it
-                OnStreamEndedWithToolCall = stream ? CloseUtteranceAsync : null
+                OnStreamEndedWithToolCall = stream ? CloseUtteranceAsync : null,
+                RewriteReply = stream ? MarkWhatTheCallerCutOff : null
             };
 
             AssistantMessage? reply;
@@ -585,6 +589,40 @@ public class ConversationRelaySession
             MarkSpeaking(EstimateSpeech(_lastStreamSegment.Length));
             return true;
         }, new { type = "text", token = string.Empty, last = true });
+    }
+
+    /// <summary>
+    /// What the conversation history keeps of a reply the caller cut in on: the part that went out, and after it a
+    /// mark naming the rest, so the next turn knows the caller never heard it. Every other reply is kept as it is.
+    /// </summary>
+    /// <remarks>
+    /// Only a reply cut off while it was still being streamed can be marked: once the whole reply is out, Twilio
+    /// holds the text it has yet to speak and a cut-in there leaves nothing of ours to go by.
+    /// </remarks>
+    private string MarkWhatTheCallerCutOff(string content)
+    {
+        var final = content?.Trim() ?? string.Empty;
+        string sent;
+        lock (_sync)
+        {
+            if (!_cutInMidReply || final.Length == 0)
+            {
+                return content;
+            }
+            sent = (_utteranceOpen ? _streamSegment.ToString() : _lastStreamSegment).Trim();
+        }
+
+        // The reply is not what was streamed (text set by a tool, or a reply rewritten after the model wrote it),
+        // so where the caller cut in is not known
+        if (sent.Length == 0 || !final.StartsWith(sent, StringComparison.Ordinal))
+        {
+            return content;
+        }
+
+        var unheard = final.Substring(sent.Length).Trim();
+        return unheard.Length == 0
+            ? content
+            : $"{sent} [the caller cut in here; they did not hear: \"{unheard}\"]";
     }
 
     /// <summary>

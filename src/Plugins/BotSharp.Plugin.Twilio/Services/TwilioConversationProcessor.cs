@@ -99,17 +99,45 @@ public static class TwilioConversationProcessor
             replyMessage: await BuildPostbackMessageModel(conv, message),
             async msg =>
             {
+                // What the caller is told, which a rewrite below must not change
+                var spoken = msg.Content;
+                RewriteForHistory(msg, callbacks);
                 reply = new AssistantMessage()
                 {
                     ConversationEnd = msg.Instruction?.ConversationEnd ?? false,
                     HumanIntervationNeeded = string.Equals("human_intervention_needed", msg.FunctionName),
-                    Content = msg.Content,
+                    Content = spoken,
                     MessageId = msg.MessageId
                 };
             }
         );
 
         return reply;
+    }
+
+    /// <summary>
+    /// Lets the flow change what the history keeps of the reply. The dialog is appended after this callback runs,
+    /// so the message changed here is the one that is stored.
+    /// </summary>
+    private static void RewriteForHistory(RoleDialogModel msg, AgentTurnCallbacks? callbacks)
+    {
+        if (callbacks?.RewriteReply == null || string.IsNullOrEmpty(msg.Content))
+        {
+            return;
+        }
+
+        var stored = callbacks.RewriteReply(msg.Content);
+        if (string.IsNullOrEmpty(stored) || stored == msg.Content)
+        {
+            return;
+        }
+
+        // Kept in step only where it is the reply itself; a rich message the model refined is left alone
+        if (msg.RichContent?.Message != null && msg.RichContent.Message.Text == msg.Content)
+        {
+            msg.RichContent.Message.Text = stored;
+        }
+        msg.Content = stored;
     }
 
     private static async Task<PostbackMessageModel?> BuildPostbackMessageModel(

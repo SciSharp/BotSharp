@@ -27,4 +27,10 @@ public class AgentTurnCallbacks
     /// and the tool may take a while before anything else is said
     /// </summary>
     public Func<Task>? OnStreamEndedWithToolCall { get; init; }
+
+    /// <summary>
+    /// The last say over what the conversation history keeps of the reply: called with the reply the agent wrote,
+    /// returns what is stored in its place. Lets a flow record a reply the caller cut off as the part they heard.
+    /// </summary>
+    public Func<string, string>? RewriteReply { get; init; }
 }
