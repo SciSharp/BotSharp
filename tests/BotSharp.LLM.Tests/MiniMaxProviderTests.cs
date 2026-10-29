@@ -52,8 +52,20 @@ public class MiniMaxProviderTests
         foreach (var expected in ExpectedEndpoints)
         {
             var provider = providers.Single(x => x.Provider == expected.Key);
-            provider.Models.Select(x => x.Id).ShouldBe(["MiniMax-M3", "MiniMax-M2.7"]);
+            provider.Models.Select(x => x.Id).ShouldBe(["MiniMax-M3.1-Flash", "MiniMax-M3", "MiniMax-M2.7"]);
             provider.Models.ShouldAllBe(x => x.Endpoint == expected.Value);
+
+            var flash = provider.Models.Single(x => x.Id == "MiniMax-M3.1-Flash");
+            flash.ContextWindow.ShouldBe(1_000_000);
+            flash.MultiModal.ShouldBeTrue();
+            flash.InputModalities.ShouldBe(["text", "image", "video"]);
+            flash.Reasoning!.Parameters!["ThinkingType"].Default.ShouldBe("adaptive");
+            flash.Reasoning.Parameters["EffortLevel"].Default.ShouldBe("max");
+            flash.Reasoning.Parameters["EffortLevel"].Options.ShouldBe(["low", "medium", "high", "xhigh", "max"]);
+            flash.Cost.TextInputCost.ShouldBe(0.00015f);
+            flash.Cost.CachedTextInputCost.ShouldBe(0.000015f);
+            flash.Cost.TextOutputCost.ShouldBe(0.0006f);
+            flash.Cost.TextTokenCostTiers.ShouldBeNull();
 
             var m3 = provider.Models.Single(x => x.Id == "MiniMax-M3");
             m3.ContextWindow.ShouldBe(1_000_000);
