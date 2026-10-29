@@ -15,12 +15,11 @@ public class ActiveTestRun
     /// <summary>
     /// The model this execution is forced onto; null = no override, use the agent's own LlmConfig.
     ///
-    /// Applied by AgentTestModelOverrideHook, writing into agent.LlmConfig at the moment the agent
-    /// finishes loading. That moment is the only one that works: the main conversation path,
-    /// RoutingService.InvokeAgent, passes agent.LlmConfig.Provider/Model to CompletionProvider
-    /// EXPLICITLY, and CompletionProvider.GetProviderAndModel only consults the conversation-state
-    /// override when what it was passed is empty. So writing provider/model into conversation state
-    /// has no effect on the main path, and overriding any later than agent load is already too late.
+    /// Applied by CompletionProvider.GetChatCompletion (read through
+    /// AgentTestSyntheticConversationProbe), so it holds whatever provider/model the caller passed --
+    /// an agent's, a template's llm_config, or a hard-coded one. Writing provider/model into
+    /// conversation state would not do: GetProviderAndModel only consults state when what it was
+    /// passed is empty. The agent's own LlmConfig is left untouched.
     /// </summary>
     public TestModel? ModelOverride { get; set; }
 
@@ -57,6 +56,25 @@ public class ActiveTestRun
     /// </summary>
     public int NextCallOrdinal(string functionName)
         => _ordinals.AddOrUpdate(functionName, 0, (_, prev) => prev + 1);
+
+    private readonly List<string> _usedModels = [];
+
+    /// <summary>
+    /// "provider/model" of every completion this case ran, in first-use order. Recorded by
+    /// AgentTestModelUsageHook.
+    /// </summary>
+    public IReadOnlyList<string> UsedModels
+    {
+        get { lock (_usedModels) return _usedModels.ToList(); }
+    }
+
+    public void RecordModel(string model)
+    {
+        lock (_usedModels)
+        {
+            if (!_usedModels.Contains(model)) _usedModels.Add(model);
+        }
+    }
 }
 
 public interface IAgentTestRunRegistry

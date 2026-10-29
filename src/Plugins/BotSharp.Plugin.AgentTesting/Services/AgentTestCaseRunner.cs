@@ -341,6 +341,7 @@ public class AgentTestCaseRunner : ICaseRunner
             stopwatch.Stop();
             result.DurationMs = stopwatch.ElapsedMilliseconds;
             result.ModelDurationMs = modelDurationMs;
+            result.UsedModels = active.UsedModels.ToList();
 
             // In the finally block so a timed-out or crashed case still reports what it spent. A run
             // that fell over having burned the budget is exactly the run whose cost matters.

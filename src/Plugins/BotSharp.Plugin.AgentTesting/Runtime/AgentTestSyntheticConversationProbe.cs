@@ -28,4 +28,14 @@ public class AgentTestSyntheticConversationProbe : ISyntheticConversationProbe
 
     public bool IsSynthetic(string conversationId)
         => !string.IsNullOrEmpty(conversationId) && _registry.TryGet(conversationId) != null;
+
+    /// <summary>
+    /// The model this run forces, which CompletionProvider.GetChatCompletion applies to every chat
+    /// completion in the conversation.
+    /// </summary>
+    public AgentLlmConfig? GetModelOverride(string conversationId)
+    {
+        var over = _registry.TryGet(conversationId)?.ModelOverride;
+        return over == null ? null : new AgentLlmConfig { Provider = over.Provider, Model = over.Model };
+    }
 }

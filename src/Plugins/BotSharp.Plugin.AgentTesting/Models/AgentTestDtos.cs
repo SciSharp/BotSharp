@@ -213,9 +213,8 @@ public class AgentTestRunTriggerRequest
     ///
     /// This is not a revival of the two deleted Provider/Model fields above: those were stored and
     /// never read back, so they lied. This one genuinely takes effect --
-    /// AgentTestModelOverrideHook rewrites agent.LlmConfig to the named provider/model as the agent
-    /// loads, so the main conversation path (RoutingService.InvokeAgent) reads the rewritten value,
-    /// and every AgentTestCaseResult records which model produced it.
+    /// CompletionProvider.GetChatCompletion forces every chat completion in the case's conversation
+    /// onto the named provider/model, and every AgentTestCaseResult records which model produced it.
     /// </summary>
     public List<TestModel>? Models { get; set; }
 

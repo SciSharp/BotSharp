@@ -60,7 +60,13 @@ public class CompletionProvider
         AgentLlmConfig? agentConfig = null)
     {
         var completions = services.GetServices<IChatCompletion>();
-        (provider, model) = GetProviderAndModel(services, provider: provider, model: model, modelId: modelId, 
+        var over = GetModelOverride(services);
+        if (over != null)
+        {
+            (provider, model) = (over.Provider, over.Model);
+        }
+
+        (provider, model) = GetProviderAndModel(services, provider: provider, model: model, modelId: modelId,
             multiModal: multiModal,
             agentConfig: agentConfig);
 
@@ -236,6 +242,24 @@ public class CompletionProvider
 
         completer?.SetModelName(model);
         return completer;
+    }
+
+    /// <summary>
+    /// A harness can force every chat completion in its conversation onto one model. Applied here, not
+    /// on the agent, so it holds no matter where the caller got its provider/model from -- an agent,
+    /// a template's llm_config, a hard-coded replacement model, or conversation state.
+    /// </summary>
+    private static AgentLlmConfig? GetModelOverride(IServiceProvider services)
+    {
+        var conversationId = services.GetService<IConversationService>()?.ConversationId;
+        if (string.IsNullOrEmpty(conversationId))
+        {
+            return null;
+        }
+
+        return services.GetServices<ISyntheticConversationProbe>()
+            .Select(p => p.GetModelOverride(conversationId))
+            .FirstOrDefault(x => x != null);
     }
 
     private static (string, string) GetProviderAndModel(

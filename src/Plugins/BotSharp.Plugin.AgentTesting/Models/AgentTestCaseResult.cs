@@ -24,12 +24,21 @@ public class AgentTestCaseResult : MongoBase
 
     /// <summary>
     /// Which model produced this result. Null = the agent's own LlmConfig was used (the run named
-    /// no models). Unlike the deleted AgentTestRunTriggerRequest.Provider/Model, these values were
-    /// genuinely applied to this execution by AgentTestModelOverrideHook -- they are not a
-    /// decorative record of something that never took effect.
+    /// no models); <see cref="UsedModels"/> says what that resolved to. Unlike the deleted
+    /// AgentTestRunTriggerRequest.Provider/Model, these values were genuinely applied to this
+    /// execution by CompletionProvider.GetChatCompletion -- they are not a decorative record of something
+    /// that never took effect.
     /// </summary>
     public string? Provider { get; set; }
     public string? Model { get; set; }
+
+    /// <summary>
+    /// "provider/model" of every completion the agents under test actually ran on, in first-use
+    /// order. Filled whether or not the run named a model, so an "agent default" result still says
+    /// what it ran on. Can hold more than one entry: a router and the agent it hands off to may use
+    /// different models.
+    /// </summary>
+    public List<string> UsedModels { get; set; } = [];
 
     /// <summary>
     /// Wall clock for the whole case, including the canary, the mock lookups and the conversation
