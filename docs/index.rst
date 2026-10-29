@@ -101,6 +101,7 @@ The main documentation for the site is organized into the following sections:
    :caption: MCP
 
    mcp/parallel-search
+   mcp/sem
 
 .. _llamasharp:
 
