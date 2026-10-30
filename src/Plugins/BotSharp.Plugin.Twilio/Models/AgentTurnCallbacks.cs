@@ -43,4 +43,47 @@ public class AgentTurnCallbacks
     /// confirmation number is coming up. Only valid while the turn runs.
     /// </remarks>
     public Func<bool>? KeepUninterrupted { get; set; }
+
+    private readonly object _cancelSync = new();
+    private Action? _cancel;
+    private bool _cancelRequested;
+
+    /// <summary>
+    /// The flow no longer wants this turn's reply: the model stops writing it, and any response the turn would
+    /// still ask the model for comes back empty. What already ran (hooks, a tool) stays done.
+    /// </summary>
+    /// <remarks>
+    /// May be called before the turn can be cancelled; it is then cancelled as soon as it can be.
+    /// </remarks>
+    public void Cancel()
+    {
+        Action? cancel;
+        lock (_cancelSync)
+        {
+            if (_cancelRequested)
+            {
+                return;
+            }
+            _cancelRequested = true;
+            cancel = _cancel;
+        }
+        cancel?.Invoke();
+    }
+
+    /// <summary>
+    /// Set by the turn once it can be cancelled; runs at once when <see cref="Cancel"/> came first
+    /// </summary>
+    public void OnCancel(Action cancel)
+    {
+        bool requested;
+        lock (_cancelSync)
+        {
+            _cancel = cancel;
+            requested = _cancelRequested;
+        }
+        if (requested)
+        {
+            cancel();
+        }
+    }
 }
