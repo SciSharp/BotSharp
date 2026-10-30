@@ -63,6 +63,21 @@ public class ConversationRelaySession
     private bool _turnReplied;
     private DateTime _turnStartedUtc;
 
+    // What the current turn has done that the caller would notice, so it can't be taken back once one is set:
+    // anything said (a filler, an indication, a streamed piece), or a tool called
+    private bool _spokeThisTurn;
+    private bool _toolCalledThisTurn;
+    private bool _turnFromKeypad;
+
+    // What the flow last said about keeping the agent's words uninterrupted, read on the turn
+    // (AgentTurnCallbacks.KeepUninterrupted reads the conversation's states, which only the turn may touch). Kept across
+    // turns: until a turn has read it, the last turn's answer is the best guess.
+    private bool _keptUninterrupted;
+
+    // The caller went on talking before the current turn said anything: its reply is dropped, and their words so far
+    // are answered together in the next turn
+    private bool _superseded;
+
     private string? _callSid;
     private string? _from;
     private string? _to;
@@ -261,6 +276,7 @@ public class ConversationRelaySession
 
     private void Enqueue(string content, string? digits)
     {
+        AgentTurnCallbacks? supersede = null;
         lock (_sync)
         {
             if (_ended)
@@ -278,17 +294,89 @@ public class ConversationRelaySession
                 _isProcessing = true;
                 _processing = Task.Run(ProcessPendingAsync);
             }
+            else if (digits == null && CanSupersede())
+            {
+                _superseded = true;
+                _dropStream = true;
+                supersede = _turnCallbacks;
+            }
+        }
+
+        if (supersede != null)
+        {
+            _logger.LogInformation($"Caller went on talking before the agent replied in conversation {_conversationId}; " +
+                "dropping that reply and answering all they said.");
+            // Outside the lock: cancelling runs the chat provider's cancellation inline
+            supersede.Cancel();
         }
     }
 
     /// <summary>
+    /// The current turn can still be taken back for what the caller says next: it streams (so it can be cancelled),
+    /// was spoken, not keyed in, has neither said anything nor called a tool, and the flow isn't keeping what the agent
+    /// says uninterrupted. Call under <see cref="_sync"/>.
+    /// </summary>
+    /// <remarks>
+    /// The caller paused mid-thought and Twilio took that for the end of what they said: answering the first half
+    /// would talk over the rest, which then comes in as a cut-in. A flow that keeps the agent's words uninterrupted
+    /// has a line the caller must hear coming (a confirmation number), and may fetch it in code, where no tool call
+    /// shows.
+    /// </remarks>
+    private bool CanSupersede()
+    {
+        return _settings.ConversationRelay.StreamReplies && _turnCallbacks != null && !_turnFromKeypad
+            && !_turnReplied && !_superseded && !_streamedThisTurn && !_spokeThisTurn && !_toolCalledThisTurn
+            && !_keptUninterrupted;
+    }
+
+    /// <summary>
+    /// Whether the flow keeps what the agent says now uninterrupted; call on the turn only
+    /// </summary>
+    private bool ReadKeepUninterrupted()
+    {
+        var keep = _turnCallbacks?.KeepUninterrupted?.Invoke() == true;
+        lock (_sync)
+        {
+            _keptUninterrupted = keep;
+        }
+        return keep;
+    }
+
+    private Task ReadFlowAtTurnStartAsync()
+    {
+        ReadKeepUninterrupted();
+        return Task.CompletedTask;
+    }
+
+    private async Task StartStreamAsync()
+    {
+        ReadKeepUninterrupted();
+        await CloseUtteranceAsync();
+    }
+
+    /// <summary>
     /// Runs one agent turn at a time; what the caller says meanwhile is merged into the next turn.
-    /// A keypad entry ends the merge, so each entry keeps its own Digits.
+    /// A keypad entry ends the merge, so each entry keeps its own Digits. A turn that has done nothing the caller
+    /// would notice yet is cancelled when they go on talking (<see cref="CanSupersede"/>), and the next turn answers
+    /// what they said with the earlier words in its history.
     /// </summary>
     private async Task ProcessPendingAsync()
     {
         while (true)
         {
+            var stream = _settings.ConversationRelay.StreamReplies;
+            var callbacks = new AgentTurnCallbacks
+            {
+                OnIndication = SpeakToolIndicationAsync,
+                OnTurnStarted = ReadFlowAtTurnStartAsync,
+                OnStreamText = stream ? StreamTextAsync : null,
+                OnStreamStarted = stream ? StartStreamAsync : null,
+                // A line said before a slow tool ("Okay, that's everything I need") is spoken now, and the watchdog
+                // counts the silence after it instead of waiting for the next response to close it
+                OnStreamEndedWithToolCall = stream ? CloseUtteranceBeforeToolAsync : null,
+                RewriteReply = stream ? MarkWhatTheCallerCutOff : null
+            };
+
             CallerMessage message;
             lock (_sync)
             {
@@ -327,25 +415,18 @@ public class ConversationRelaySession
                 _cutInMidReply = false;
                 _turnReplied = false;
                 _turnStartedUtc = DateTime.UtcNow;
+                _spokeThisTurn = false;
+                _toolCalledThisTurn = false;
+                _turnFromKeypad = message.Digits != null;
+                _superseded = false;
+                // Set with the flags above, so caller input arriving now never sees the last turn's callbacks
+                _turnCallbacks = callbacks;
             }
 
             using var watchdogCts = new CancellationTokenSource();
             var watchdog = _settings.ConversationRelay.IsResponseWatchdogEnabledFor(_agentId)
                 ? WatchResponseAsync(message.SeqNumber, watchdogCts.Token)
                 : Task.CompletedTask;
-
-            var stream = _settings.ConversationRelay.StreamReplies;
-            var callbacks = new AgentTurnCallbacks
-            {
-                OnIndication = SpeakIndicationAsync,
-                OnStreamText = stream ? StreamTextAsync : null,
-                OnStreamStarted = stream ? CloseUtteranceAsync : null,
-                // A line said before a slow tool ("Okay, that's everything I need") is spoken now, and the watchdog
-                // counts the silence after it instead of waiting for the next response to close it
-                OnStreamEndedWithToolCall = stream ? CloseUtteranceAsync : null,
-                RewriteReply = stream ? MarkWhatTheCallerCutOff : null
-            };
-            _turnCallbacks = callbacks;
 
             AssistantMessage? reply;
             try
@@ -387,6 +468,18 @@ public class ConversationRelaySession
             await CloseUtteranceAsync();
             if (reply == null
                 || string.IsNullOrWhiteSpace(reply.Content) && !reply.ConversationEnd && !reply.HumanIntervationNeeded)
+            {
+                continue;
+            }
+
+            bool superseded;
+            lock (_sync)
+            {
+                superseded = _superseded;
+                _keptUninterrupted = reply.KeepUninterrupted;
+            }
+            // A transfer or hang-up still goes ahead: the caller's next words would not change it
+            if (superseded && !reply.ConversationEnd && !reply.HumanIntervationNeeded)
             {
                 continue;
             }
@@ -455,7 +548,7 @@ public class ConversationRelaySession
     /// </summary>
     private bool IsTurnOver(int seqNumber)
     {
-        return _ended || _seqNum != seqNumber || _turnReplied;
+        return _ended || _seqNum != seqNumber || _turnReplied || _superseded;
     }
 
     /// <summary>
@@ -553,7 +646,7 @@ public class ConversationRelaySession
     /// </summary>
     private async Task StreamTextAsync(string text)
     {
-        var keep = _turnCallbacks?.KeepUninterrupted?.Invoke() == true;
+        var keep = ReadKeepUninterrupted();
 
         // Decided once the send lock is held: a piece queued behind another send must not go out after the
         // caller cut in (_dropStream) or the session ended meanwhile
@@ -615,7 +708,8 @@ public class ConversationRelaySession
     /// </summary>
     /// <remarks>
     /// Only a reply cut off while it was still being streamed can be marked: once the whole reply is out, Twilio
-    /// holds the text it has yet to speak and a cut-in there leaves nothing of ours to go by.
+    /// holds the text it has yet to speak and a cut-in there leaves nothing of ours to go by. A reply dropped because
+    /// the caller went on talking first is marked as never said, so the next turn doesn't take it as heard.
     /// </remarks>
     private string MarkWhatTheCallerCutOff(string content)
     {
@@ -623,6 +717,12 @@ public class ConversationRelaySession
         string sent;
         lock (_sync)
         {
+            if (_superseded)
+            {
+                return final.Length == 0
+                    ? "[the caller went on talking before anything was said]"
+                    : $"[the caller went on talking before this was said; they did not hear: \"{final}\"]";
+            }
             if (!_cutInMidReply || final.Length == 0)
             {
                 return content;
@@ -677,6 +777,37 @@ public class ConversationRelaySession
         _logger.LogInformation(
             $"Reply in conversation {_conversationId} differs from what was streamed; speaking it in full.");
         return final;
+    }
+
+    /// <summary>
+    /// A tool is about to run: from now on the turn has done something that stays done
+    /// </summary>
+    private void MarkToolCalled()
+    {
+        lock (_sync)
+        {
+            _toolCalledThisTurn = true;
+        }
+    }
+
+    private async Task SpeakToolIndicationAsync(string indication)
+    {
+        MarkToolCalled();
+        lock (_sync)
+        {
+            // A tool the model asked for just before the turn was cancelled still runs; it is not announced
+            if (_superseded)
+            {
+                return;
+            }
+        }
+        await SpeakIndicationAsync(indication);
+    }
+
+    private async Task CloseUtteranceBeforeToolAsync()
+    {
+        MarkToolCalled();
+        await CloseUtteranceAsync();
     }
 
     /// <summary>
@@ -842,6 +973,7 @@ public class ConversationRelaySession
     /// </summary>
     private void MarkSpeaking(TimeSpan duration)
     {
+        _spokeThisTurn = true;
         var now = DateTime.UtcNow;
         var start = _quietSinceUtc == DateTime.MaxValue || _quietSinceUtc < now ? now : _quietSinceUtc;
         _quietSinceUtc = start + duration;

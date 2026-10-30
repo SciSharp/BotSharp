@@ -99,26 +99,46 @@ public static class TwilioConversationProcessor
             // Read live while the turn runs, so a tool that turns it on (a confirmation number coming up) covers what
             // the agent says after it in the same turn
             callbacks.KeepUninterrupted = () => conv.States.GetState(ConversationRelayStates.KeepUninterrupted) == "true";
+            if (callbacks.OnTurnStarted != null)
+            {
+                await callbacks.OnTurnStarted();
+            }
         }
 
-        await conv.SendMessage(message.AgentId,
-            inputMsg,
-            replyMessage: await BuildPostbackMessageModel(conv, message),
-            async msg =>
-            {
-                // What the caller is told, which a rewrite below must not change
-                var spoken = msg.Content;
-                RewriteForHistory(msg, callbacks);
-                reply = new AssistantMessage()
+        // Chat providers stop a streamed response on the conversation's cancellation token, and every response asked
+        // for once it is cancelled comes back empty, so a turn the flow cancels ends without saying anything
+        var cancellation = streaming ? sp.GetService<IConversationCancellationService>() : null;
+        if (cancellation != null)
+        {
+            cancellation.RegisterConversation(message.ConversationId);
+            callbacks!.OnCancel(() => cancellation.CancelStreaming(message.ConversationId));
+        }
+
+        try
+        {
+            await conv.SendMessage(message.AgentId,
+                inputMsg,
+                replyMessage: await BuildPostbackMessageModel(conv, message),
+                async msg =>
                 {
-                    ConversationEnd = msg.Instruction?.ConversationEnd ?? false,
-                    HumanIntervationNeeded = string.Equals("human_intervention_needed", msg.FunctionName),
-                    Content = spoken,
-                    MessageId = msg.MessageId,
-                    KeepUninterrupted = callbacks?.KeepUninterrupted?.Invoke() ?? false
-                };
-            }
-        );
+                    // What the caller is told, which a rewrite below must not change
+                    var spoken = msg.Content;
+                    RewriteForHistory(msg, callbacks);
+                    reply = new AssistantMessage()
+                    {
+                        ConversationEnd = msg.Instruction?.ConversationEnd ?? false,
+                        HumanIntervationNeeded = string.Equals("human_intervention_needed", msg.FunctionName),
+                        Content = spoken,
+                        MessageId = msg.MessageId,
+                        KeepUninterrupted = callbacks?.KeepUninterrupted?.Invoke() ?? false
+                    };
+                }
+            );
+        }
+        finally
+        {
+            cancellation?.UnregisterConversation(message.ConversationId);
+        }
 
         return reply;
     }
@@ -127,14 +147,17 @@ public static class TwilioConversationProcessor
     /// Lets the flow change what the history keeps of the reply. The dialog is appended after this callback runs,
     /// so the message changed here is the one that is stored.
     /// </summary>
+    /// <remarks>
+    /// An empty reply is offered too: a turn the flow cancelled may have none, and the flow can say why.
+    /// </remarks>
     private static void RewriteForHistory(RoleDialogModel msg, AgentTurnCallbacks? callbacks)
     {
-        if (callbacks?.RewriteReply == null || string.IsNullOrEmpty(msg.Content))
+        if (callbacks?.RewriteReply == null)
         {
             return;
         }
 
-        var stored = callbacks.RewriteReply(msg.Content);
+        var stored = callbacks.RewriteReply(msg.Content ?? string.Empty);
         if (string.IsNullOrEmpty(stored) || stored == msg.Content)
         {
             return;
