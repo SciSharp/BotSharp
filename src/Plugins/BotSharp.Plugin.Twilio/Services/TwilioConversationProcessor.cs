@@ -99,6 +99,10 @@ public static class TwilioConversationProcessor
             // Read live while the turn runs, so a tool that turns it on (a confirmation number coming up) covers what
             // the agent says after it in the same turn
             callbacks.KeepUninterrupted = () => conv.States.GetState(ConversationRelayStates.KeepUninterrupted) == "true";
+            if (callbacks.OnTurnStarted != null)
+            {
+                await callbacks.OnTurnStarted();
+            }
         }
 
         // Chat providers stop a streamed response on the conversation's cancellation token, and every response asked

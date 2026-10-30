@@ -44,6 +44,12 @@ public class AgentTurnCallbacks
     /// </remarks>
     public Func<bool>? KeepUninterrupted { get; set; }
 
+    /// <summary>
+    /// Called on the turn once it has read the conversation's states (<see cref="KeepUninterrupted"/> is set), before the
+    /// agent hears the caller's words
+    /// </summary>
+    public Func<Task>? OnTurnStarted { get; init; }
+
     private readonly object _cancelSync = new();
     private Action? _cancel;
     private bool _cancelRequested;

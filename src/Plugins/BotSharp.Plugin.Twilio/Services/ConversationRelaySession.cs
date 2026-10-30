@@ -69,6 +69,11 @@ public class ConversationRelaySession
     private bool _toolCalledThisTurn;
     private bool _turnFromKeypad;
 
+    // What the flow last said about keeping the agent's words uninterrupted, read on the turn
+    // (AgentTurnCallbacks.KeepUninterrupted reads the conversation's states, which only the turn may touch). Kept across
+    // turns: until a turn has read it, the last turn's answer is the best guess.
+    private bool _keptUninterrupted;
+
     // The caller went on talking before the current turn said anything: its reply is dropped, and their words so far
     // are answered together in the next turn
     private bool _superseded;
@@ -308,16 +313,45 @@ public class ConversationRelaySession
 
     /// <summary>
     /// The current turn can still be taken back for what the caller says next: it streams (so it can be cancelled),
-    /// was spoken, not keyed in, and has neither said anything nor called a tool. Call under <see cref="_sync"/>.
+    /// was spoken, not keyed in, has neither said anything nor called a tool, and the flow isn't keeping what the agent
+    /// says uninterrupted. Call under <see cref="_sync"/>.
     /// </summary>
     /// <remarks>
     /// The caller paused mid-thought and Twilio took that for the end of what they said: answering the first half
-    /// would talk over the rest, which then comes in as a cut-in.
+    /// would talk over the rest, which then comes in as a cut-in. A flow that keeps the agent's words uninterrupted
+    /// has a line the caller must hear coming (a confirmation number), and may fetch it in code, where no tool call
+    /// shows.
     /// </remarks>
     private bool CanSupersede()
     {
         return _settings.ConversationRelay.StreamReplies && _turnCallbacks != null && !_turnFromKeypad
-            && !_turnReplied && !_superseded && !_streamedThisTurn && !_spokeThisTurn && !_toolCalledThisTurn;
+            && !_turnReplied && !_superseded && !_streamedThisTurn && !_spokeThisTurn && !_toolCalledThisTurn
+            && !_keptUninterrupted;
+    }
+
+    /// <summary>
+    /// Whether the flow keeps what the agent says now uninterrupted; call on the turn only
+    /// </summary>
+    private bool ReadKeepUninterrupted()
+    {
+        var keep = _turnCallbacks?.KeepUninterrupted?.Invoke() == true;
+        lock (_sync)
+        {
+            _keptUninterrupted = keep;
+        }
+        return keep;
+    }
+
+    private Task ReadFlowAtTurnStartAsync()
+    {
+        ReadKeepUninterrupted();
+        return Task.CompletedTask;
+    }
+
+    private async Task StartStreamAsync()
+    {
+        ReadKeepUninterrupted();
+        await CloseUtteranceAsync();
     }
 
     /// <summary>
@@ -334,8 +368,9 @@ public class ConversationRelaySession
             var callbacks = new AgentTurnCallbacks
             {
                 OnIndication = SpeakToolIndicationAsync,
+                OnTurnStarted = ReadFlowAtTurnStartAsync,
                 OnStreamText = stream ? StreamTextAsync : null,
-                OnStreamStarted = stream ? CloseUtteranceAsync : null,
+                OnStreamStarted = stream ? StartStreamAsync : null,
                 // A line said before a slow tool ("Okay, that's everything I need") is spoken now, and the watchdog
                 // counts the silence after it instead of waiting for the next response to close it
                 OnStreamEndedWithToolCall = stream ? CloseUtteranceBeforeToolAsync : null,
@@ -441,6 +476,7 @@ public class ConversationRelaySession
             lock (_sync)
             {
                 superseded = _superseded;
+                _keptUninterrupted = reply.KeepUninterrupted;
             }
             // A transfer or hang-up still goes ahead: the caller's next words would not change it
             if (superseded && !reply.ConversationEnd && !reply.HumanIntervationNeeded)
@@ -610,7 +646,7 @@ public class ConversationRelaySession
     /// </summary>
     private async Task StreamTextAsync(string text)
     {
-        var keep = _turnCallbacks?.KeepUninterrupted?.Invoke() == true;
+        var keep = ReadKeepUninterrupted();
 
         // Decided once the send lock is held: a piece queued behind another send must not go out after the
         // caller cut in (_dropStream) or the session ended meanwhile
