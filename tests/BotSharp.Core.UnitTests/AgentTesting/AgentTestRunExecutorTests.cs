@@ -48,6 +48,7 @@ public class AgentTestRunExecutorTests
         public Task<List<AgentTestRun>> ListRunsByStatusAsync(string status)
             => Task.FromResult(Run.Status == status ? new List<AgentTestRun> { Run } : []);
         public Task UpdateRunAsync(AgentTestRun run) { Run = run; return Task.CompletedTask; }
+        public Task<bool> RequestRunCancelAsync(string id) { Run.CancelRequested = true; return Task.FromResult(true); }
         public Task<long> DeleteRunAsync(string id)
         {
             var removed = Results.RemoveAll(r => r.RunId == id);
@@ -95,6 +96,7 @@ public class AgentTestRunExecutorTests
         public Task<List<AgentTestRun>> ListRunsByStatusAsync(string status)
             => Task.FromResult(_stored.Status == status ? new List<AgentTestRun> { Clone(_stored) } : []);
         public Task UpdateRunAsync(AgentTestRun run) { _stored = Clone(run); return Task.CompletedTask; }
+        public Task<bool> RequestRunCancelAsync(string id) { _stored.CancelRequested = true; return Task.FromResult(true); }
         public Task<long> DeleteRunAsync(string id)
         {
             var removed = Results.RemoveAll(r => r.RunId == id);
@@ -342,6 +344,24 @@ public class AgentTestRunExecutorTests
         await executor.ExecuteAsync("run-1", CancellationToken.None);
 
         Assert.Single(repo.Results);
+        Assert.Equal(AgentTestStatus.Cancelled, repo.Run.Status);
+    }
+
+    [Fact]
+    public async Task A_cancel_sent_while_the_run_was_pending_starts_no_case()
+    {
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a"), CaseNamed("b")] };
+        repo.Run.CancelRequested = true;
+        var started = 0;
+        var executor = Build(repo, c =>
+        {
+            started++;
+            return new AgentTestCaseResult { CaseId = c.Id, Status = AgentTestStatus.Passed };
+        });
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Equal(0, started);
         Assert.Equal(AgentTestStatus.Cancelled, repo.Run.Status);
     }
 

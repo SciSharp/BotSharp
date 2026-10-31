@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Channels;
 using BotSharp.Abstraction.MLTasks;
 using Microsoft.Extensions.Hosting;
@@ -82,17 +83,26 @@ public class AgentTestRunQueue : BackgroundService, IAgentTestRunQueue
             // Status-filtered at the query level, not ListRunsAsync(null) filtered in memory --
             // this collection only ever grows, and every host restart used to pull the entire
             // thing into memory just to find a handful of stale Running rows.
-            var runs = await repo.ListRunsByStatusAsync(AgentTestStatus.Running);
-            foreach (var run in runs)
+            var running = await repo.ListRunsByStatusAsync(AgentTestStatus.Running);
+
+            // Pending runs were waiting in the old process's channel and are lost with it. Only
+            // those created before this process started: a run triggered since may already sit in
+            // this process's channel while the sweep is still going.
+            var processStartedAt = Process.GetCurrentProcess().StartTime.ToUniversalTime();
+            var pending = (await repo.ListRunsByStatusAsync(AgentTestStatus.Pending))
+                .Where(r => r.CreateDate < processStartedAt);
+
+            foreach (var run in running.Concat(pending))
             {
+                var previousStatus = run.Status;
                 run.Status = AgentTestStatus.Error;
-                run.Error = "The host restarted while this run was still going, so it was abandoned. "
+                run.Error = "The host restarted before this run finished, so it was abandoned. "
                     + "The queue is in-process and does not survive a restart -- trigger the run again.";
                 run.CompletedAt = DateTime.UtcNow;
                 await repo.UpdateRunAsync(run);
                 _logger.LogWarning(
-                    "Agent test run {RunId} was left Running by a previous process; marked Error on startup.",
-                    run.Id);
+                    "Agent test run {RunId} was left {Status} by a previous process; marked Error on startup.",
+                    run.Id, previousStatus);
             }
         }
         catch (Exception ex)

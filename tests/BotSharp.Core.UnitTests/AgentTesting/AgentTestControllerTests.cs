@@ -85,6 +85,16 @@ public class AgentTestControllerTests
         public Task<List<AgentTestRun>> ListRunsByStatusAsync(string status)
             => Task.FromResult(Runs.Values.Where(r => r.Status == status).ToList());
         public Task UpdateRunAsync(AgentTestRun run) { Runs[run.Id] = run; return Task.CompletedTask; }
+        public Task<bool> RequestRunCancelAsync(string id)
+        {
+            if (!Runs.TryGetValue(id, out var run)
+                || (run.Status != AgentTestStatus.Pending && run.Status != AgentTestStatus.Running))
+            {
+                return Task.FromResult(false);
+            }
+            run.CancelRequested = true;
+            return Task.FromResult(true);
+        }
 
         /// <summary>
         /// Cascades exactly as the real repository does. A fake that dropped only the run would let

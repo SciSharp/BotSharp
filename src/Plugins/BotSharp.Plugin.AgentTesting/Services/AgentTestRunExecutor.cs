@@ -152,7 +152,10 @@ public class AgentTestRunExecutor
         // early because of it" (cancelSkipped). A cancel that lands while the LAST case is
         // executing stops nothing -- the run finished everything it was ever going to run -- so
         // only a case that was actually held back turns the terminal status into Cancelled.
-        var cancelRequested = false;
+        // Seeded from the run, not false: a cancel sent while the run was still Pending is already
+        // on it (UpdateRunAsync above carries over one that raced the Running write), and no case
+        // should start after it.
+        var cancelRequested = run.CancelRequested;
         var cancelSkipped = 0;
 
         // The model dimension. An absent/empty Models list means "one pass, using each agent's own

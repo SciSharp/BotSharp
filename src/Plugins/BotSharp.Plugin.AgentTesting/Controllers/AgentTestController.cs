@@ -669,8 +669,13 @@ public class AgentTestController : ControllerBase
             return Conflict($"agent test run {id} has already finished ({run.Status}) and cannot be cancelled");
         }
 
-        run.CancelRequested = true;
-        await _repo.UpdateRunAsync(run);
+        // A single-field update, not a write-back of `run`: the executor keeps writing this document
+        // while the run goes, and replacing it with the copy read above would revert its progress.
+        if (!await _repo.RequestRunCancelAsync(id))
+        {
+            return Conflict($"agent test run {id} finished before it could be cancelled");
+        }
+
         return Ok();
     }
 
@@ -765,7 +770,9 @@ public class AgentTestController : ControllerBase
     {
         testCase.SuiteId = request.SuiteId;
         testCase.Name = request.Name;
-        testCase.Enabled = request.Enabled;
+        // Null keeps the case's current value, as ApplySuite does: a partial PUT must not enable a
+        // recorded draft nobody has reviewed yet.
+        testCase.Enabled = request.Enabled ?? testCase.Enabled;
         // Normalised, not taken verbatim: CaseValidation.Validate has already rejected anything that is
         // neither blank nor a known type, so this only fixes casing ("routing" -> "Routing") and
         // maps blank onto the default. Storing the caller's casing would break every later
