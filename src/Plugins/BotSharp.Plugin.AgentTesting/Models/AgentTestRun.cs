@@ -91,6 +91,13 @@ public class AgentTestRun : MongoBase
     public List<ModelPricingSnapshot> ModelPricing { get; set; } = [];
 
     /// <summary>
+    /// The judge model llmJudge assertions were scored with, and its unit costs. Taken from the suite
+    /// this run executed against, because the suite's setting can change afterwards and the run report
+    /// would then name a judge that never scored it. Null when the suite had no judge configured.
+    /// </summary>
+    public ModelPricingSnapshot? JudgePricing { get; set; }
+
+    /// <summary>
     /// Why a run ended as <see cref="AgentTestStatus.Error"/> -- an infrastructure stop that
     /// happened before or instead of executing cases (suite gone, suite disabled, the CaseIds
     /// filter matched nothing, the host died mid-run, an unhandled exception).

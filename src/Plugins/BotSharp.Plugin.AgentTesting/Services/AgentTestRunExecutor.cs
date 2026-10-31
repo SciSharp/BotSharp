@@ -328,6 +328,7 @@ public class AgentTestRunExecutor
         run.CompletedAt = DateTime.UtcNow;
 
         await SummarisePerformanceAsync(run);
+        run.JudgePricing = SnapshotJudgePricing(run, suite);
 
         await _repo.UpdateRunAsync(run);
     }
@@ -426,29 +427,45 @@ public class AgentTestRunExecutor
         }
 
         return run.Models
-            .Select(m =>
-            {
-                LlmModelSetting? setting = null;
-                try
-                {
-                    setting = _llmProviders.GetSetting(m.Provider, m.Model);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex,
-                        "Could not read pricing for {Provider}/{Model} while summarising run {RunId}.",
-                        m.Provider, m.Model, run.Id);
-                }
-
-                return new ModelPricingSnapshot
-                {
-                    Provider = m.Provider,
-                    Model = m.Model,
-                    TextInputCost = setting?.Cost?.TextInputCost,
-                    TextOutputCost = setting?.Cost?.TextOutputCost
-                };
-            })
+            .Select(m => SnapshotModelPricing(m.Provider, m.Model, run.Id))
             .ToList();
+    }
+
+    /// <summary>
+    /// The suite's judge model and its unit costs. The same suite instance the cases were judged
+    /// with, so it names the judge that actually scored this run.
+    /// </summary>
+    private ModelPricingSnapshot? SnapshotJudgePricing(AgentTestRun run, AgentTestSuite suite)
+    {
+        if (string.IsNullOrWhiteSpace(suite.JudgeProvider) || string.IsNullOrWhiteSpace(suite.JudgeModel))
+        {
+            return null;
+        }
+
+        return SnapshotModelPricing(suite.JudgeProvider, suite.JudgeModel, run.Id);
+    }
+
+    private ModelPricingSnapshot SnapshotModelPricing(string provider, string model, string runId)
+    {
+        LlmModelSetting? setting = null;
+        try
+        {
+            setting = _llmProviders?.GetSetting(provider, model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Could not read pricing for {Provider}/{Model} while summarising run {RunId}.",
+                provider, model, runId);
+        }
+
+        return new ModelPricingSnapshot
+        {
+            Provider = provider,
+            Model = model,
+            TextInputCost = setting?.Cost?.TextInputCost,
+            TextOutputCost = setting?.Cost?.TextOutputCost
+        };
     }
 
     /// <summary>
