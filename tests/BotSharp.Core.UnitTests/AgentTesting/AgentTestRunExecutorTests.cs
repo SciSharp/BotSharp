@@ -848,6 +848,26 @@ public class AgentTestRunExecutorTests
     }
 
     [Fact]
+    public async Task Judge_spend_is_summarised_apart_from_the_model_under_test()
+    {
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a"), CaseNamed("b")] };
+        var executor = Build(repo, c =>
+        {
+            var result = Timed(c.Id, modelMs: 100, tokens: 10, cost: 0.001);
+            result.JudgeTokens = 40;
+            result.JudgeCost = 0.002;
+            return result;
+        });
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        var summary = Assert.Single(repo.Run.PerformanceSummaries);
+        Assert.Equal(20, summary.TotalTokens);
+        Assert.Equal(80, summary.JudgeTokens);
+        Assert.Equal(0.004, summary.JudgeCost, precision: 6);
+    }
+
+    [Fact]
     public async Task Performance_is_summarised_per_model()
     {
         // Same reason routing accuracy is: one figure covering every model averages the candidate

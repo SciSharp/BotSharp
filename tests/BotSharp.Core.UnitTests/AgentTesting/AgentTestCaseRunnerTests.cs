@@ -1043,6 +1043,51 @@ public class AgentTestCaseRunnerTests
         Assert.Equal(0.03, result.Cost, precision: 4);
     }
 
+    /// <summary>Spends tokens the way the real judge does: into the case's own ITokenStatistics.</summary>
+    private sealed class SpendingJudge(FakeTokens tokens) : IAgentTestJudge
+    {
+        public Task<AssertionResult> JudgeAsync(TestAssertion assertion, AssertionContext context, AgentTestSuite suite, CancellationToken ct)
+        {
+            tokens.Total += 1000;
+            tokens.AccumulatedCost += 0.5f;
+            return Task.FromResult(new AssertionResult { Type = assertion.Type, Passed = true });
+        }
+    }
+
+    [Fact]
+    public async Task Judge_usage_is_not_billed_to_the_model_under_test()
+    {
+        var driver = new FakeDriver();
+        driver.Replies.Enqueue("done");
+        var tokens = new FakeTokens();
+        driver.OnSend = () => { tokens.Total += 300; tokens.AccumulatedCost += 0.03f; };
+        var runner = new AgentTestCaseRunner(
+            new AgentTestRunRegistry(), driver, NullLogger<AgentTestCaseRunner>.Instance,
+            judge: new SpendingJudge(tokens), tokens: tokens);
+
+        var result = await runner.RunAsync(Suite(), new AgentTestCase
+        {
+            Id = "case-1",
+            Name = "c",
+            Turns =
+            [
+                new TestTurn
+                {
+                    Index = 0,
+                    UserMessage = "a",
+                    Assertions = [new TestAssertion { Type = AssertionTypes.LlmJudge, Expected = "anything" }]
+                }
+            ],
+            Assertions = [new TestAssertion { Type = AssertionTypes.LlmJudge, Expected = "anything" }]
+        }, "run-1", model: null, CancellationToken.None);
+
+        Assert.Equal(AgentTestStatus.Passed, result.Status);
+        Assert.Equal(300, result.TotalTokens);
+        Assert.Equal(0.03, result.Cost, precision: 4);
+        Assert.Equal(2000, result.JudgeTokens);
+        Assert.Equal(1.0, result.JudgeCost, precision: 4);
+    }
+
     [Fact]
     public async Task Usage_is_still_recorded_when_the_case_times_out()
     {

@@ -132,6 +132,10 @@ public class PerformanceSummary
 
     public long TotalTokens { get; set; }
     public double TotalCost { get; set; }
+
+    /// <summary>llmJudge spend for this model's cases, not included in TotalTokens/TotalCost.</summary>
+    public long JudgeTokens { get; set; }
+    public double JudgeCost { get; set; }
 }
 
 /// <summary>

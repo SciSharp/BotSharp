@@ -386,7 +386,9 @@ public class AgentTestRunExecutor
             // Tokens and cost come from EVERY result, unlike latency: a case that errored still spent
             // whatever it spent, and hiding that would understate the run's real cost.
             TotalTokens = results.Sum(r => r.TotalTokens),
-            TotalCost = results.Sum(r => r.Cost)
+            TotalCost = results.Sum(r => r.Cost),
+            JudgeTokens = results.Sum(r => r.JudgeTokens),
+            JudgeCost = results.Sum(r => r.JudgeCost)
         };
     }
 

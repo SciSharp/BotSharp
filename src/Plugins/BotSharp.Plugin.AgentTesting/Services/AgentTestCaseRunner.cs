@@ -11,6 +11,12 @@ public class AgentTestCaseRunner : ICaseRunner
     private readonly ITokenStatistics? _tokens;
     private readonly ILogger<AgentTestCaseRunner> _logger;
 
+    // What llmJudge calls added to _tokens. The judge resolves its completion provider from this
+    // scope, so TokenStatsConversationHook counts it alongside the model under test; it is taken
+    // back out of the case's figures so a model comparison is not skewed by the judge.
+    private long _judgeTokens;
+    private float _judgeCost;
+
     public AgentTestCaseRunner(
         IAgentTestRunRegistry registry,
         IAgentConversationDriver driver,
@@ -96,6 +102,8 @@ public class AgentTestCaseRunner : ICaseRunner
         // the delta is simply the final reading.
         var tokensBefore = _tokens?.Total ?? 0;
         var costBefore = _tokens?.AccumulatedCost ?? 0f;
+        var judgeTokensBefore = _judgeTokens;
+        var judgeCostBefore = _judgeCost;
         long modelDurationMs = 0;
 
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -348,8 +356,10 @@ public class AgentTestCaseRunner : ICaseRunner
 
             // In the finally block so a timed-out or crashed case still reports what it spent. A run
             // that fell over having burned the budget is exactly the run whose cost matters.
-            result.TotalTokens = Math.Max(0, (_tokens?.Total ?? 0) - tokensBefore);
-            result.Cost = Math.Max(0, (_tokens?.AccumulatedCost ?? 0f) - costBefore);
+            result.JudgeTokens = _judgeTokens - judgeTokensBefore;
+            result.JudgeCost = _judgeCost - judgeCostBefore;
+            result.TotalTokens = Math.Max(0, (_tokens?.Total ?? 0) - tokensBefore - result.JudgeTokens);
+            result.Cost = Math.Max(0, (_tokens?.AccumulatedCost ?? 0f) - costBefore - result.JudgeCost);
 
             if (result.TotalTokens == 0 && result.Turns.Count > 0 && _tokens != null)
             {
@@ -417,7 +427,19 @@ public class AgentTestCaseRunner : ICaseRunner
                 "no IAgentTestJudge is registered, so llmJudge assertions cannot be scored");
         }
 
-        return await _judge.JudgeAsync(assertion, context, suite, ct);
+        // Turns and assertions run one after another, so nothing else reports into _tokens while
+        // the judge call is in flight and the difference is the judge's alone.
+        var tokensBefore = _tokens?.Total ?? 0;
+        var costBefore = _tokens?.AccumulatedCost ?? 0f;
+        try
+        {
+            return await _judge.JudgeAsync(assertion, context, suite, ct);
+        }
+        finally
+        {
+            _judgeTokens += (_tokens?.Total ?? 0) - tokensBefore;
+            _judgeCost += (_tokens?.AccumulatedCost ?? 0f) - costBefore;
+        }
     }
 
     /// <summary>
