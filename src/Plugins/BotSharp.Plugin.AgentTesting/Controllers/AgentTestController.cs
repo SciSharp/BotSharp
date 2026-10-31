@@ -772,6 +772,7 @@ public class AgentTestController : ControllerBase
         // Ordinal comparison against CaseTypes.Routing.
         testCase.CaseType = CaseTypes.Normalize(request.CaseType) ?? CaseTypes.Agent;
         testCase.EntryAgentId = string.IsNullOrWhiteSpace(request.EntryAgentId) ? null : request.EntryAgentId.Trim();
+        testCase.TemplateName = string.IsNullOrWhiteSpace(request.TemplateName) ? null : request.TemplateName.Trim();
         testCase.Turns = request.Turns ?? [];
         testCase.Assertions = request.Assertions ?? [];
         testCase.InitialStates = request.InitialStates ?? [];
@@ -822,7 +823,21 @@ public class AgentTestController : ControllerBase
         }
 
         var agent = await _agents.GetAgent(request.EntryAgentId.Trim());
-        return agent == null ? $"entry agent {request.EntryAgentId} not found" : null;
+        if (agent == null)
+        {
+            return $"entry agent {request.EntryAgentId} not found";
+        }
+
+        var isTemplateCase = string.Equals(
+            CaseTypes.Normalize(request.CaseType), CaseTypes.Template, StringComparison.Ordinal);
+        if (isTemplateCase
+            && !string.IsNullOrWhiteSpace(request.TemplateName)
+            && agent.Templates?.Any(t => string.Equals(t.Name, request.TemplateName.Trim(), StringComparison.OrdinalIgnoreCase)) != true)
+        {
+            return $"agent {agent.Name} has no template '{request.TemplateName}'";
+        }
+
+        return null;
     }
 
     private static bool IsTerminalStatus(string status) =>

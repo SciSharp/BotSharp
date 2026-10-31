@@ -67,6 +67,9 @@ public class AgentTestCaseUpsertRequest
     /// </summary>
     public string? EntryAgentId { get; set; }
 
+    /// <summary>See <see cref="AgentTestCase.TemplateName"/>. Required for a Template case.</summary>
+    public string? TemplateName { get; set; }
+
     public List<TestTurn> Turns { get; set; } = [];
     public List<TestAssertion> Assertions { get; set; } = [];
     public List<TestState> InitialStates { get; set; } = [];

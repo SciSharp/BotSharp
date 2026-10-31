@@ -115,8 +115,21 @@ public class AgentTestCaseRunnerTests
         public IAgentTestRunRegistry? Registry { get; set; }
         public List<string> BlockedOnFirstSend { get; } = [];
 
-        public async Task<AgentReply> SendAsync(string conversationId, string agentId, string userMessage, CancellationToken ct)
+        /// <summary>Every InstructAsync call, so a test can tell a template call from a conversation turn.</summary>
+        public List<(string AgentId, string TemplateName, string UserMessage, IReadOnlyList<TestFile> Files)> Instructed { get; } = [];
+        public List<IReadOnlyList<TestFile>> SentFiles { get; } = [];
+
+        public Task<AgentReply> InstructAsync(
+            string agentId, string templateName, string userMessage, IReadOnlyList<TestFile> files, CancellationToken ct)
         {
+            Instructed.Add((agentId, templateName, userMessage, files));
+            return Task.FromResult(new AgentReply(Replies.Count > 0 ? Replies.Dequeue() : string.Empty, null));
+        }
+
+        public async Task<AgentReply> SendAsync(
+            string conversationId, string agentId, string userMessage, IReadOnlyList<TestFile> files, CancellationToken ct)
+        {
+            SentFiles.Add(files);
             Sent.Add(userMessage);
             SentAgentIds.Add(agentId);
             OnSend?.Invoke();
@@ -239,6 +252,60 @@ public class AgentTestCaseRunnerTests
         Name = "s",
         CaseTimeoutSeconds = timeoutSeconds
     };
+
+    [Fact]
+    public async Task A_template_case_calls_the_template_with_the_turn_files_and_never_sends_a_message()
+    {
+        var driver = new FakeDriver();
+        driver.Replies.Enqueue("{\"issue_photos\":[]}");
+        var runner = Build(driver, out _);
+        var file = new TestFile { FileName = "dark.jpg", FileUrl = "https://example.com/dark.jpg" };
+
+        var result = await runner.RunAsync(Suite(), new AgentTestCase
+        {
+            Id = "case-1",
+            Name = "photo check",
+            CaseType = CaseTypes.Template,
+            EntryAgentId = "wo-creator",
+            TemplateName = "photo_upload_check",
+            Turns =
+            [
+                new TestTurn
+                {
+                    Index = 0,
+                    UserMessage = "{\"issue_description\":\"leak\"}",
+                    Files = [file],
+                    Assertions = [new TestAssertion { Type = AssertionTypes.OutputContains, Expected = "issue_photos" }]
+                }
+            ]
+        }, "run-1", model: null, CancellationToken.None);
+
+        Assert.Equal(AgentTestStatus.Passed, result.Status);
+        Assert.Empty(driver.Sent);
+        var call = Assert.Single(driver.Instructed);
+        Assert.Equal("wo-creator", call.AgentId);
+        Assert.Equal("photo_upload_check", call.TemplateName);
+        Assert.Same(file, Assert.Single(call.Files));
+    }
+
+    [Fact]
+    public async Task An_agent_case_passes_the_turn_files_to_the_conversation()
+    {
+        var driver = new FakeDriver();
+        driver.Replies.Enqueue("ok");
+        var runner = Build(driver, out _);
+        var file = new TestFile { FileName = "sink.jpg", FileUrl = "https://example.com/sink.jpg" };
+
+        await runner.RunAsync(Suite(), new AgentTestCase
+        {
+            Id = "case-1",
+            Name = "photo in a conversation",
+            Turns = [new TestTurn { Index = 0, UserMessage = "here is the sink", Files = [file] }]
+        }, "run-1", model: null, CancellationToken.None);
+
+        Assert.Empty(driver.Instructed);
+        Assert.Same(file, Assert.Single(Assert.Single(driver.SentFiles)));
+    }
 
     [Fact]
     public async Task A_blocked_tool_fails_the_case_even_when_every_authored_assertion_passed()

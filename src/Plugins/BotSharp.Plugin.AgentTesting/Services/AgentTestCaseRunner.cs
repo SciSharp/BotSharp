@@ -213,8 +213,11 @@ public class AgentTestCaseRunner : ICaseRunner
                 // canary, the mock lookups and the conversation reads, and on a fast case that
                 // overhead is a big enough share to move a latency percentile.
                 var turnTimer = Stopwatch.StartNew();
+                var files = turn.Files ?? [];
                 var reply = await AwaitOrHandOffAsync(
-                    _driver.SendAsync(conversationId, entryAgentId, turn.UserMessage, timeout.Token));
+                    string.Equals(testCase.CaseType, CaseTypes.Template, StringComparison.Ordinal)
+                        ? _driver.InstructAsync(entryAgentId, testCase.TemplateName!, turn.UserMessage, files, timeout.Token)
+                        : _driver.SendAsync(conversationId, entryAgentId, turn.UserMessage, files, timeout.Token));
                 turnTimer.Stop();
                 modelDurationMs += turnTimer.ElapsedMilliseconds;
 
