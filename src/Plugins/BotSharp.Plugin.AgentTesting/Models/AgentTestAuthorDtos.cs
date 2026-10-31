@@ -135,6 +135,7 @@ public static class AuthorFields
     public const string Enabled = "enabled";
     public const string CaseType = "caseType";
     public const string EntryAgentId = "entryAgentId";
+    public const string TemplateName = "templateName";
     public const string Turns = "turns";
     public const string Assertions = "assertions";
     public const string InitialStates = "initialStates";
@@ -150,7 +151,7 @@ public static class AuthorFields
 
     public static readonly string[] All =
     [
-        Name, Enabled, CaseType, EntryAgentId, Turns, Assertions, InitialStates, History, Mocks,
+        Name, Enabled, CaseType, EntryAgentId, TemplateName, Turns, Assertions, InitialStates, History, Mocks,
         Priority, Severity, Batch, CrossCutting, InvolvedAgents, BusinessDomain, ExpectedOutcome
     ];
 

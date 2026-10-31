@@ -98,7 +98,22 @@ public class AgentTestRunExecutorTests
         public Task<AgentTestRun> CreateRunAsync(AgentTestRun run) => Task.FromResult(run);
         public Task<AgentTestRun?> GetRunAsync(string id) => Task.FromResult<AgentTestRun?>(Clone(_stored));
         public Task<List<AgentTestRun>> ListRunsAsync(string? suiteId) => Task.FromResult(new List<AgentTestRun> { Clone(_stored) });
-        public Task UpdateRunAsync(AgentTestRun run) { _stored = Clone(run); return Task.CompletedTask; }
+        /// <summary>
+        /// A cancel landing just before the next write: like the real repository, the write keeps
+        /// it and sets it on the caller's run.
+        /// </summary>
+        public bool CancelBeforeNextWrite;
+
+        public Task UpdateRunAsync(AgentTestRun run)
+        {
+            if (CancelBeforeNextWrite)
+            {
+                CancelBeforeNextWrite = false;
+                run.CancelRequested = true;
+            }
+            _stored = Clone(run);
+            return Task.CompletedTask;
+        }
         public Task<bool> RequestRunCancelAsync(string id) { _stored.CancelRequested = true; return Task.FromResult(true); }
         public Task<bool> TouchRunAsync(string id) => Task.FromResult(_stored.Status == AgentTestStatus.Running);
         public Task<bool> TryAbandonRunAsync(string id, DateTime? observedUpdateDate, string error) => Task.FromResult(false);
@@ -679,6 +694,29 @@ public class AgentTestRunExecutorTests
         var summary = Assert.Single(storedBeforeSecondCase.PerformanceSummaries);
         Assert.Equal(100, summary.TotalTokens);
         Assert.Equal(200, Assert.Single(repo.Stored.PerformanceSummaries).TotalTokens);
+    }
+
+    [Fact]
+    public async Task A_cancel_carried_over_by_the_per_case_write_stops_the_next_case()
+    {
+        // The cancel lands after the executor re-read the run but before it wrote: only the write
+        // sees it.
+        var repo = new CloningRunRepo { Cases = [CaseNamed("a"), CaseNamed("b")] };
+        var ran = new List<string>();
+        var executor = new AgentTestRunExecutor(
+            repo,
+            new DelegatingCaseRunner(c =>
+            {
+                ran.Add(c.Id);
+                repo.CancelBeforeNextWrite = true;
+                return new AgentTestCaseResult { CaseId = c.Id, Status = AgentTestStatus.Passed };
+            }),
+            NullLogger<AgentTestRunExecutor>.Instance);
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Equal(["a"], ran);
+        Assert.Equal(AgentTestStatus.Cancelled, repo.Stored.Status);
     }
 
     [Fact]

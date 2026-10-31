@@ -68,6 +68,23 @@ public class CaseAuthoringTests
     // ---- 1. A field the model does not declare survives -------------------------------------
 
     [Fact]
+    public void A_declared_template_name_is_taken_from_the_model()
+    {
+        var modelDraft = new AgentTestCaseUpsertRequest
+        {
+            CaseType = CaseTypes.Template,
+            EntryAgentId = "agent-1",
+            TemplateName = "photo_check"
+        };
+
+        var response = Run(Attempt(["caseType", "entryAgentId", "templateName"], modelDraft));
+
+        Assert.Equal(AuthorFields.TemplateName, AuthorFields.Normalize("templateName"));
+        Assert.Equal("photo_check", response.Draft.TemplateName);
+        Assert.Contains(response.Changes, c => c.Field == AuthorFields.TemplateName);
+    }
+
+    [Fact]
     public void An_undeclared_field_is_kept_even_when_the_model_returns_it_empty()
     {
         // The whole reason for the declared-fields whitelist. A model that returns the document with

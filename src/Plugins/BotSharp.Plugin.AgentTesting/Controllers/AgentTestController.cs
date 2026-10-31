@@ -848,7 +848,9 @@ public class AgentTestController : ControllerBase
             CaseTypes.Normalize(request.CaseType), CaseTypes.Template, StringComparison.Ordinal);
         if (isTemplateCase
             && !string.IsNullOrWhiteSpace(request.TemplateName)
-            && agent.Templates?.Any(t => string.Equals(t.Name, request.TemplateName.Trim(), StringComparison.OrdinalIgnoreCase)) != true)
+            // Ordinal, as AgentService.RenderTemplate looks templates up with ==: a name that only
+            // matches ignoring case would save fine and then render an empty instruction.
+            && agent.Templates?.Any(t => string.Equals(t.Name, request.TemplateName.Trim(), StringComparison.Ordinal)) != true)
         {
             return $"agent {agent.Name} has no template '{request.TemplateName}'";
         }

@@ -456,6 +456,7 @@ public class LlmCaseAuthor : ICaseAuthor
             case AuthorFields.Enabled: target.Enabled = source.Enabled; break;
             case AuthorFields.CaseType: target.CaseType = source.CaseType; break;
             case AuthorFields.EntryAgentId: target.EntryAgentId = source.EntryAgentId; break;
+            case AuthorFields.TemplateName: target.TemplateName = source.TemplateName; break;
             case AuthorFields.Turns: target.Turns = source.Turns ?? []; break;
             case AuthorFields.Assertions: target.Assertions = source.Assertions ?? []; break;
             case AuthorFields.InitialStates: target.InitialStates = source.InitialStates ?? []; break;
@@ -667,6 +668,7 @@ public class LlmCaseAuthor : ICaseAuthor
         AuthorFields.Enabled => draft.Enabled,
         AuthorFields.CaseType => draft.CaseType,
         AuthorFields.EntryAgentId => draft.EntryAgentId,
+        AuthorFields.TemplateName => draft.TemplateName,
         AuthorFields.Turns => draft.Turns,
         AuthorFields.Assertions => draft.Assertions,
         AuthorFields.InitialStates => draft.InitialStates,
@@ -898,6 +900,8 @@ public class LlmCaseAuthor : ICaseAuthor
             - caseType "Routing" means "did the router pick the right agent": exactly one turn, at
               least one routedToAgent or agentChain assertion, and no llmJudge.
             - caseType "Agent" is everything else, including multi-agent journeys.
+            - caseType "Template" calls one template of the entry agent directly: it needs
+              entryAgentId and templateName, and no history.
             - priority P0/P1/P2 decides which batch runs first; severity S0/S1/S2 says what a failure
               means. Leave them at P1/S1 unless the user says otherwise.
 

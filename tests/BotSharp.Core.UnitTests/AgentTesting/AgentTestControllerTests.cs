@@ -788,6 +788,33 @@ public class AgentTestControllerTests
         Assert.True(repo.Runs["run-1"].CancelRequested);
     }
 
+    // ---- Template cases: the template name must match exactly, as the runtime looks it up -----
+
+    [Theory]
+    [InlineData("photo_check", true)]
+    [InlineData("PHOTO_CHECK", false)]
+    public async Task A_template_case_needs_the_template_name_spelled_exactly(string templateName, bool accepted)
+    {
+        var repo = new InMemoryRepo();
+        repo.Suites["suite-1"] = EnabledSuite();
+        var agents = new Mock<IAgentService>();
+        agents.Setup(x => x.GetAgent("agent-1")).ReturnsAsync(new Agent
+        {
+            Id = "agent-1", Name = "agent-1", Templates = [new AgentTemplate("photo_check", "check the photo")]
+        });
+        var controller = BuildController(repo, out _, agents: agents.Object);
+
+        var request = ValidRequest();
+        request.CaseType = CaseTypes.Template;
+        request.EntryAgentId = "agent-1";
+        request.TemplateName = templateName;
+
+        var result = await controller.CreateCase(request);
+
+        Assert.Equal(accepted, result.Result is not BadRequestObjectResult);
+        Assert.Equal(accepted ? 1 : 0, repo.Cases.Count);
+    }
+
     // ---- Abandoned runs: a Running run whose heartbeat stopped for 3 minutes -------------------
 
     [Fact]

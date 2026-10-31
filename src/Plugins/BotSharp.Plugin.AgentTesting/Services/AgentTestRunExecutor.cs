@@ -302,11 +302,6 @@ public class AgentTestRunExecutor
                         break;
                 }
 
-                if (run.CancelRequested)
-                {
-                    Volatile.Write(ref cancelRequested, true);
-                }
-
                 // Progress, one line per finished case. Serial execution used to make progress
                 // readable from the order of a case's own log lines; several cases interleaved do
                 // not, so the run says where it is itself.
@@ -320,6 +315,13 @@ public class AgentTestRunExecutor
                 // though N AgentTestCaseResult rows already exist for it.
                 await SummarisePerformanceAsync(run);
                 await _repo.UpdateRunAsync(run);
+
+                // After the write, not before: UpdateRunAsync sets CancelRequested on `run` when a
+                // cancel landed between the re-read above and this write.
+                if (run.CancelRequested)
+                {
+                    Volatile.Write(ref cancelRequested, true);
+                }
             }
             finally
             {

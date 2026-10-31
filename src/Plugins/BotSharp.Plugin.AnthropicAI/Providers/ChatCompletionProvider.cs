@@ -634,6 +634,19 @@ public class ChatCompletionProvider : IChatCompletion
                 };
                 contentParts.Add(contentPart);
             }
+            else if (!string.IsNullOrEmpty(file.FileUrl))
+            {
+                // Claude fetches a public image URL itself.
+                var contentPart = new ImageContent
+                {
+                    Source = new ImageSource
+                    {
+                        Type = SourceType.url,
+                        Url = file.FileUrl
+                    }
+                };
+                contentParts.Add(contentPart);
+            }
         }
     }
 }
