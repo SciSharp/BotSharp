@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using BotSharp.Abstraction.MLTasks;
 using Microsoft.Extensions.Hosting;
 using BotSharp.Plugin.AgentTesting.Repositories;
 
@@ -108,7 +109,8 @@ public class AgentTestRunQueue : BackgroundService, IAgentTestRunQueue
             var repo = scope.ServiceProvider.GetRequiredService<IAgentTestRepository>();
             var executorLogger = scope.ServiceProvider.GetRequiredService<ILogger<AgentTestRunExecutor>>();
 
-            var executor = new AgentTestRunExecutor(repo, new ScopedCaseRunner(_serviceProvider), executorLogger);
+            var executor = new AgentTestRunExecutor(repo, new ScopedCaseRunner(_serviceProvider), executorLogger,
+                scope.ServiceProvider.GetService<ILlmProviderService>());
             await executor.ExecuteAsync(runId, ct);
         }
         catch (Exception ex)
