@@ -54,6 +54,12 @@ public class AgentTestRun : MongoBase
     /// </summary>
     public int MaxParallelCases { get; set; }
 
+    /// <summary>
+    /// How many case x model executions the run set out to do, set when it starts Running.
+    /// TotalCount is how many of them have finished. Zero on runs written before this field existed.
+    /// </summary>
+    public int PlannedCount { get; set; }
+
     public int TotalCount { get; set; }
     public int PassedCount { get; set; }
     public int FailedCount { get; set; }

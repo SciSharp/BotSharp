@@ -109,11 +109,13 @@ public class AgentTestRunExecutorTests
             TriggeredBy = source.TriggeredBy,
             CaseIds = source.CaseIds,
             MaxParallelCases = source.MaxParallelCases,
+            PlannedCount = source.PlannedCount,
             TotalCount = source.TotalCount,
             PassedCount = source.PassedCount,
             FailedCount = source.FailedCount,
             ErrorCount = source.ErrorCount,
             CancelRequested = source.CancelRequested,
+            PerformanceSummaries = source.PerformanceSummaries,
             StartedAt = source.StartedAt,
             CompletedAt = source.CompletedAt,
             CreateDate = source.CreateDate
@@ -636,6 +638,38 @@ public class AgentTestRunExecutorTests
 
         Assert.Equal(1, observedTotalBeforeSecondCase);
         Assert.Equal(2, repo.Stored.TotalCount);
+    }
+
+    [Fact]
+    public async Task Persists_the_planned_count_and_the_spend_so_far_while_the_run_goes()
+    {
+        // The run page shows "1 / 2" and the cost table mid-run, and a run whose host dies keeps
+        // both for the cases that finished.
+        var repo = new CloningRunRepo { Cases = [CaseNamed("a"), CaseNamed("b")] };
+        AgentTestRun? storedBeforeSecondCase = null;
+        var executor = new AgentTestRunExecutor(
+            repo,
+            new DelegatingCaseRunner(c =>
+            {
+                if (c.Id == "b")
+                {
+                    storedBeforeSecondCase = repo.Stored;
+                }
+                return new AgentTestCaseResult
+                {
+                    CaseId = c.Id, Status = AgentTestStatus.Passed,
+                    ModelDurationMs = 10, TotalTokens = 100, Cost = 0.5
+                };
+            }),
+            NullLogger<AgentTestRunExecutor>.Instance);
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Equal(2, storedBeforeSecondCase!.PlannedCount);
+        Assert.Equal(1, storedBeforeSecondCase.TotalCount);
+        var summary = Assert.Single(storedBeforeSecondCase.PerformanceSummaries);
+        Assert.Equal(100, summary.TotalTokens);
+        Assert.Equal(200, Assert.Single(repo.Stored.PerformanceSummaries).TotalTokens);
     }
 
     [Fact]

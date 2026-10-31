@@ -139,25 +139,6 @@ public class AgentTestRunExecutor
         // it stands today.
         var parallelism = AgentTestConcurrency.Resolve(run.MaxParallelCases, suite.MaxParallelCases);
 
-        run.MaxParallelCases = parallelism;
-        run.Status = AgentTestStatus.Running;
-        run.StartedAt = DateTime.UtcNow;
-        run.TotalCount = 0;
-        run.PassedCount = 0;
-        run.FailedCount = 0;
-        run.ErrorCount = 0;
-        await _repo.UpdateRunAsync(run);
-
-        // "Stop starting new work" (cancelRequested) is a different fact from "the run ended
-        // early because of it" (cancelSkipped). A cancel that lands while the LAST case is
-        // executing stops nothing -- the run finished everything it was ever going to run -- so
-        // only a case that was actually held back turns the terminal status into Cancelled.
-        // Seeded from the run, not false: a cancel sent while the run was still Pending is already
-        // on it (UpdateRunAsync above carries over one that raced the Running write), and no case
-        // should start after it.
-        var cancelRequested = run.CancelRequested;
-        var cancelSkipped = 0;
-
         // The model dimension. An absent/empty Models list means "one pass, using each agent's own
         // LlmConfig" -- byte-for-byte the behavior from before multi-model existed, which is what
         // keeps every historical run document and every caller that omits the field working.
@@ -173,6 +154,26 @@ public class AgentTestRunExecutor
         var workItems = enabledCases
             .SelectMany(testCase => models.Select(model => (Case: testCase, Model: model)))
             .ToList();
+
+        run.MaxParallelCases = parallelism;
+        run.Status = AgentTestStatus.Running;
+        run.StartedAt = DateTime.UtcNow;
+        run.PlannedCount = workItems.Count;
+        run.TotalCount = 0;
+        run.PassedCount = 0;
+        run.FailedCount = 0;
+        run.ErrorCount = 0;
+        await _repo.UpdateRunAsync(run);
+
+        // "Stop starting new work" (cancelRequested) is a different fact from "the run ended
+        // early because of it" (cancelSkipped). A cancel that lands while the LAST case is
+        // executing stops nothing -- the run finished everything it was ever going to run -- so
+        // only a case that was actually held back turns the terminal status into Cancelled.
+        // Seeded from the run, not false: a cancel sent while the run was still Pending is already
+        // on it (UpdateRunAsync above carries over one that raced the Running write), and no case
+        // should start after it.
+        var cancelRequested = run.CancelRequested;
+        var cancelSkipped = 0;
 
         // Serialises everything that touches the run document or the result collection, so the
         // only thing that actually overlaps is the case executions. Each pass below is a
@@ -307,6 +308,7 @@ public class AgentTestRunExecutor
                 // /agent-test/runs/{id} shows 0/0/0/0 for the run's entire duration, and a process
                 // death mid-run leaves the abandoned-run Error row claiming zero cases ran even
                 // though N AgentTestCaseResult rows already exist for it.
+                await SummarisePerformanceAsync(run);
                 await _repo.UpdateRunAsync(run);
             }
             finally
@@ -337,9 +339,11 @@ public class AgentTestRunExecutor
     /// Fills in the run's per-model latency, token and cost figures, plus the pricing that produced
     /// the cost.
     ///
-    /// Once, at the end, reading the results back -- not accumulated per case like the counts are.
-    /// A percentile is not incrementally computable: it needs every value at once, and keeping the
-    /// whole list on the run document to update it in place would store the same numbers twice.
+    /// Recomputed from the stored results after every case and once more at the end -- not
+    /// accumulated like the counts are. A percentile is not incrementally computable: it needs every
+    /// value at once, and keeping the whole list on the run document to update it in place would
+    /// store the same numbers twice. Per case so the run page shows spend while the run goes, and a
+    /// run whose host dies keeps the figures for the cases that finished.
     /// </summary>
     private async Task SummarisePerformanceAsync(AgentTestRun run)
     {
