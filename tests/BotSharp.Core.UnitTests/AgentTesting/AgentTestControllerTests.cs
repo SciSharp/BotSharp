@@ -99,6 +99,36 @@ public class AgentTestControllerTests
             return Task.FromResult(true);
         }
 
+        public Task<bool> TouchRunAsync(string id)
+        {
+            if (!Runs.TryGetValue(id, out var run) || run.Status != AgentTestStatus.Running)
+            {
+                return Task.FromResult(false);
+            }
+            run.UpdateDate = DateTime.UtcNow;
+            return Task.FromResult(true);
+        }
+
+        /// <summary>Runs first inside TryAbandonRunAsync: an executor write landing after the read.</summary>
+        public Action<AgentTestRun>? BeforeAbandon { get; set; }
+
+        public Task<bool> TryAbandonRunAsync(string id, DateTime? observedUpdateDate, string error)
+        {
+            if (!Runs.TryGetValue(id, out var run))
+            {
+                return Task.FromResult(false);
+            }
+            BeforeAbandon?.Invoke(run);
+            if (run.Status != AgentTestStatus.Running || run.UpdateDate != observedUpdateDate)
+            {
+                return Task.FromResult(false);
+            }
+            run.Status = AgentTestStatus.Error;
+            run.Error = error;
+            run.CompletedAt = DateTime.UtcNow;
+            return Task.FromResult(true);
+        }
+
         /// <summary>
         /// Cascades exactly as the real repository does. A fake that dropped only the run would let
         /// a test pass while production left unreachable result rows behind.
@@ -758,17 +788,16 @@ public class AgentTestControllerTests
         Assert.True(repo.Runs["run-1"].CancelRequested);
     }
 
-    // ---- Abandoned runs: a Running run with no write for 2x CaseTimeoutSeconds ----------------
+    // ---- Abandoned runs: a Running run whose heartbeat stopped for 3 minutes -------------------
 
     [Fact]
-    public async Task GetRun_fails_a_running_run_with_no_progress_for_twice_the_case_timeout()
+    public async Task GetRun_fails_a_running_run_whose_heartbeat_stopped()
     {
         var repo = new InMemoryRepo();
-        repo.Suites["suite-1"] = new AgentTestSuite { Id = "suite-1", CaseTimeoutSeconds = 60 };
         repo.Runs["run-1"] = new AgentTestRun
         {
             Id = "run-1", SuiteId = "suite-1", Status = AgentTestStatus.Running,
-            UpdateDate = DateTime.UtcNow.AddSeconds(-121)
+            UpdateDate = DateTime.UtcNow.AddMinutes(-4)
         };
         var controller = BuildController(repo, out _);
 
@@ -780,16 +809,15 @@ public class AgentTestControllerTests
     }
 
     [Fact]
-    public async Task ListRuns_leaves_a_running_run_alone_while_it_is_within_twice_the_case_timeout()
+    public async Task ListRuns_leaves_a_running_run_alone_while_its_heartbeat_is_recent()
     {
-        // Another host may be executing it: a long run is fine as long as cases keep finishing.
+        // Another host may be executing it: a long run is fine as long as its heartbeat goes on.
         var repo = new InMemoryRepo();
-        repo.Suites["suite-1"] = new AgentTestSuite { Id = "suite-1", CaseTimeoutSeconds = 60 };
         repo.Runs["run-1"] = new AgentTestRun
         {
             Id = "run-1", SuiteId = "suite-1", Status = AgentTestStatus.Running,
             StartedAt = DateTime.UtcNow.AddHours(-1),
-            UpdateDate = DateTime.UtcNow.AddSeconds(-110)
+            UpdateDate = DateTime.UtcNow.AddMinutes(-2)
         };
         var controller = BuildController(repo, out _);
 
@@ -799,11 +827,33 @@ public class AgentTestControllerTests
     }
 
     [Fact]
+    public async Task A_stale_read_does_not_fail_a_run_the_executor_wrote_to_since()
+    {
+        var repo = new InMemoryRepo();
+        repo.Runs["run-1"] = new AgentTestRun
+        {
+            Id = "run-1", SuiteId = "suite-1", Status = AgentTestStatus.Running,
+            UpdateDate = DateTime.UtcNow.AddMinutes(-4)
+        };
+        repo.BeforeAbandon = run =>
+        {
+            run.TotalCount = 5;
+            run.UpdateDate = DateTime.UtcNow;
+        };
+        var controller = BuildController(repo, out _);
+
+        var result = await controller.GetRun("run-1");
+
+        Assert.Equal(AgentTestStatus.Running, result.Value!.Run.Status);
+        Assert.Equal(AgentTestStatus.Running, repo.Runs["run-1"].Status);
+        Assert.Equal(5, repo.Runs["run-1"].TotalCount);
+    }
+
+    [Fact]
     public async Task An_abandoned_running_run_can_be_deleted()
     {
         // A run written before UpdateDate existed falls back to StartedAt.
         var repo = new InMemoryRepo();
-        repo.Suites["suite-1"] = new AgentTestSuite { Id = "suite-1", CaseTimeoutSeconds = 60 };
         repo.Runs["run-1"] = new AgentTestRun
         {
             Id = "run-1", SuiteId = "suite-1", Status = AgentTestStatus.Running,

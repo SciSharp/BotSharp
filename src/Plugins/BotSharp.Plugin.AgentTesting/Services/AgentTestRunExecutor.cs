@@ -59,6 +59,14 @@ public class AgentTestRunExecutor
         _logger = logger;
     }
 
+    /// <summary>
+    /// How often a Running run stamps UpdateDate while its cases execute. Case completions alone are
+    /// no proof of life: PrepareAsync and the judge's provider call are not cut off by the case
+    /// timeout, so a live case can go quiet for longer than it. AgentTestController fails a Running
+    /// run whose heartbeat stopped.
+    /// </summary>
+    public TimeSpan HeartbeatInterval { get; init; } = TimeSpan.FromSeconds(30);
+
     public async Task ExecuteAsync(string runId, CancellationToken ct)
     {
         var run = await _repo.GetRunAsync(runId);
@@ -191,6 +199,9 @@ public class AgentTestRunExecutor
         // through a disappearing process.
         var hostStopping = false;
 
+        var heartbeatStop = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var heartbeat = BeatAsync(runId, heartbeatStop.Token);
+
         // MaxDegreeOfParallelism, not the CancellationToken: passing `ct` here would surface host
         // shutdown as an OperationCanceledException out of this method, and this run's row has to
         // be left exactly as it is on that path (see the hostStopping check inside). At
@@ -207,9 +218,8 @@ public class AgentTestRunExecutor
             {
                 // The host itself is shutting down (BackgroundService's stoppingToken), not a
                 // user-requested cancel of THIS run. Leave the row as Running rather than racing
-                // the shutdown grace period to persist a different terminal status here -- the
-                // queue's own startup reconciliation step sweeps any Running row a killed process
-                // left behind into Error the next time it boots.
+                // the shutdown grace period to persist a different terminal status here -- once
+                // the heartbeat stops, the next read of the run fails it (see HeartbeatInterval).
                 Volatile.Write(ref hostStopping, true);
                 return;
             }
@@ -317,6 +327,10 @@ public class AgentTestRunExecutor
             }
         });
 
+        heartbeatStop.Cancel();
+        await heartbeat;
+        heartbeatStop.Dispose();
+
         if (hostStopping)
         {
             return;
@@ -333,6 +347,37 @@ public class AgentTestRunExecutor
         run.JudgePricing = SnapshotJudgePricing(run, suite);
 
         await _repo.UpdateRunAsync(run);
+    }
+
+    /// <summary>
+    /// Stamps UpdateDate every HeartbeatInterval until stopped, or until the run is no longer
+    /// Running -- e.g. the queue marked it Error after a crash out of the case loop. A failed write
+    /// is logged and retried on the next tick rather than ending the heartbeat, which would get a
+    /// live run failed as abandoned.
+    /// </summary>
+    private async Task BeatAsync(string runId, CancellationToken ct)
+    {
+        using var timer = new PeriodicTimer(HeartbeatInterval);
+        try
+        {
+            while (await timer.WaitForNextTickAsync(ct))
+            {
+                try
+                {
+                    if (!await _repo.TouchRunAsync(runId))
+                    {
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not record the heartbeat of agent test run {RunId}.", runId);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
     }
 
     /// <summary>

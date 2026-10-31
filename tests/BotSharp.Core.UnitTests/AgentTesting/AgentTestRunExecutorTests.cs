@@ -47,6 +47,13 @@ public class AgentTestRunExecutorTests
         public Task<List<AgentTestRun>> ListRunsAsync(string? suiteId) => Task.FromResult(new List<AgentTestRun> { Run });
         public Task UpdateRunAsync(AgentTestRun run) { Run = run; return Task.CompletedTask; }
         public Task<bool> RequestRunCancelAsync(string id) { Run.CancelRequested = true; return Task.FromResult(true); }
+        public int Heartbeats;
+        public Task<bool> TouchRunAsync(string id)
+        {
+            Interlocked.Increment(ref Heartbeats);
+            return Task.FromResult(Run.Status == AgentTestStatus.Running);
+        }
+        public Task<bool> TryAbandonRunAsync(string id, DateTime? observedUpdateDate, string error) => Task.FromResult(false);
         public Task<long> DeleteRunAsync(string id)
         {
             var removed = Results.RemoveAll(r => r.RunId == id);
@@ -93,6 +100,8 @@ public class AgentTestRunExecutorTests
         public Task<List<AgentTestRun>> ListRunsAsync(string? suiteId) => Task.FromResult(new List<AgentTestRun> { Clone(_stored) });
         public Task UpdateRunAsync(AgentTestRun run) { _stored = Clone(run); return Task.CompletedTask; }
         public Task<bool> RequestRunCancelAsync(string id) { _stored.CancelRequested = true; return Task.FromResult(true); }
+        public Task<bool> TouchRunAsync(string id) => Task.FromResult(_stored.Status == AgentTestStatus.Running);
+        public Task<bool> TryAbandonRunAsync(string id, DateTime? observedUpdateDate, string error) => Task.FromResult(false);
         public Task<long> DeleteRunAsync(string id)
         {
             var removed = Results.RemoveAll(r => r.RunId == id);
@@ -670,6 +679,32 @@ public class AgentTestRunExecutorTests
         var summary = Assert.Single(storedBeforeSecondCase.PerformanceSummaries);
         Assert.Equal(100, summary.TotalTokens);
         Assert.Equal(200, Assert.Single(repo.Stored.PerformanceSummaries).TotalTokens);
+    }
+
+    [Fact]
+    public async Task Beats_while_a_case_runs_and_stops_once_the_run_ends()
+    {
+        // A case can go quiet for longer than its timeout, so liveness comes from the heartbeat,
+        // not from case completions.
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a")] };
+        var executor = new AgentTestRunExecutor(
+            repo,
+            new DelegatingCaseRunner(c =>
+            {
+                Thread.Sleep(300);
+                return new AgentTestCaseResult { CaseId = c.Id, Status = AgentTestStatus.Passed };
+            }),
+            NullLogger<AgentTestRunExecutor>.Instance)
+        {
+            HeartbeatInterval = TimeSpan.FromMilliseconds(20)
+        };
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+        var beatsAtEnd = Volatile.Read(ref repo.Heartbeats);
+        await Task.Delay(100);
+
+        Assert.True(beatsAtEnd > 0);
+        Assert.Equal(beatsAtEnd, Volatile.Read(ref repo.Heartbeats));
     }
 
     [Fact]

@@ -413,7 +413,7 @@ public class AgentTestController : ControllerBase
                 continue;
             }
 
-            await FailIfAbandonedAsync(run);
+            run = await FailIfAbandonedAsync(run);
             if (!IsTerminalStatus(run.Status))
             {
                 // Deleting a run that is still executing does not stop it: the queue keeps driving
@@ -640,9 +640,9 @@ public class AgentTestController : ControllerBase
     public async Task<List<AgentTestRun>> ListRuns([FromQuery] string? suiteId)
     {
         var runs = await _repo.ListRunsAsync(suiteId);
-        foreach (var run in runs)
+        for (var i = 0; i < runs.Count; i++)
         {
-            await FailIfAbandonedAsync(run);
+            runs[i] = await FailIfAbandonedAsync(runs[i]);
         }
         return runs;
     }
@@ -656,7 +656,7 @@ public class AgentTestController : ControllerBase
             return NotFound($"agent test run {id} not found");
         }
 
-        await FailIfAbandonedAsync(run);
+        run = await FailIfAbandonedAsync(run);
         var results = await _repo.ListCaseResultsAsync(id);
         return new AgentTestRunDetailDto { Run = run, Results = results };
     }
@@ -858,31 +858,42 @@ public class AgentTestController : ControllerBase
 
     /// <summary>
     /// The run queue is in-process, so a run whose host died stays Running in the database. A live
-    /// executor writes the run after every case and a case is cut off at the suite's
-    /// CaseTimeoutSeconds, so twice that with no write means nothing is executing it any more.
-    /// Checked when a run is read rather than swept on host startup: hosts share one database, and
-    /// a sweep cannot tell another host's live run from a dead one.
+    /// executor stamps UpdateDate every AgentTestRunExecutor.HeartbeatInterval (30s), so this long
+    /// without one means nothing is executing it any more.
     /// </summary>
-    private async Task FailIfAbandonedAsync(AgentTestRun run)
+    private static readonly TimeSpan AbandonedAfter = TimeSpan.FromMinutes(3);
+
+    /// <summary>
+    /// Fails a Running run whose heartbeat stopped, and returns the run as it now stands. Checked
+    /// when a run is read rather than swept on host startup: hosts share one database, and a sweep
+    /// cannot tell another host's live run from a dead one.
+    /// </summary>
+    private async Task<AgentTestRun> FailIfAbandonedAsync(AgentTestRun run)
     {
         if (run.Status != AgentTestStatus.Running)
         {
-            return;
+            return run;
         }
 
-        var suite = await _repo.GetSuiteAsync(run.SuiteId);
-        var limit = TimeSpan.FromSeconds(2 * Math.Max(1, suite?.CaseTimeoutSeconds ?? 120));
         var lastProgress = run.UpdateDate ?? run.StartedAt ?? run.CreateDate;
-        if (DateTime.UtcNow - lastProgress <= limit)
+        if (DateTime.UtcNow - lastProgress <= AbandonedAfter)
         {
-            return;
+            return run;
+        }
+
+        var error = $"The run stopped reporting progress for over {AbandonedAfter.TotalMinutes:0} minutes, so "
+            + "the host running it has stopped. The queue is in-process and does not survive a restart -- "
+            + "trigger the run again.";
+        if (!await _repo.TryAbandonRunAsync(run.Id, run.UpdateDate, error))
+        {
+            // The executor wrote since this copy was read: it is alive, or already finished.
+            return await _repo.GetRunAsync(run.Id) ?? run;
         }
 
         run.Status = AgentTestStatus.Error;
-        run.Error = $"No case finished for over {limit.TotalSeconds:0}s, so the host running this run "
-            + "has stopped. The queue is in-process and does not survive a restart -- trigger the run again.";
+        run.Error = error;
         run.CompletedAt = DateTime.UtcNow;
-        await _repo.UpdateRunAsync(run);
+        return run;
     }
 
     private static bool IsTerminalStatus(string status) =>

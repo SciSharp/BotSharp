@@ -37,6 +37,20 @@ public interface IAgentTestRepository
     Task<bool> RequestRunCancelAsync(string id);
 
     /// <summary>
+    /// Stamps UpdateDate on a Running run and touches no other field. False when the run is gone or
+    /// no longer Running.
+    /// </summary>
+    Task<bool> TouchRunAsync(string id);
+
+    /// <summary>
+    /// Marks a Running run Error only while its UpdateDate still equals
+    /// <paramref name="observedUpdateDate"/>, setting just Status, Error and CompletedAt. False when
+    /// the executor wrote anything since it was observed, so a stale copy never overwrites newer
+    /// progress or a terminal status.
+    /// </summary>
+    Task<bool> TryAbandonRunAsync(string id, DateTime? observedUpdateDate, string error);
+
+    /// <summary>
     /// Removes a run and every case result belonging to it, and reports how many results went with
     /// it.
     ///
@@ -175,6 +189,28 @@ public class AgentTestRepository : IAgentTestRepository
         var updated = await _mongoDbContext.AgentTestRuns.UpdateOneAsync(
             x => x.Id == id && (x.Status == AgentTestStatus.Pending || x.Status == AgentTestStatus.Running),
             Builders<AgentTestRun>.Update.Set(x => x.CancelRequested, true));
+        return updated.MatchedCount > 0;
+    }
+
+    public async Task<bool> TouchRunAsync(string id)
+    {
+        var updated = await _mongoDbContext.AgentTestRuns.UpdateOneAsync(
+            x => x.Id == id && x.Status == AgentTestStatus.Running,
+            Builders<AgentTestRun>.Update.Set(x => x.UpdateDate, DateTime.UtcNow));
+        return updated.MatchedCount > 0;
+    }
+
+    public async Task<bool> TryAbandonRunAsync(string id, DateTime? observedUpdateDate, string error)
+    {
+        // observedUpdateDate was read back from this collection, so it carries the stored
+        // millisecond precision and compares equal. Null matches a run written before UpdateDate
+        // existed.
+        var updated = await _mongoDbContext.AgentTestRuns.UpdateOneAsync(
+            x => x.Id == id && x.Status == AgentTestStatus.Running && x.UpdateDate == observedUpdateDate,
+            Builders<AgentTestRun>.Update
+                .Set(x => x.Status, AgentTestStatus.Error)
+                .Set(x => x.Error, error)
+                .Set(x => x.CompletedAt, DateTime.UtcNow));
         return updated.MatchedCount > 0;
     }
 
