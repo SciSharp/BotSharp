@@ -24,17 +24,9 @@ public interface IAgentTestRepository
     Task<List<AgentTestRun>> ListRunsAsync(string? suiteId);
 
     /// <summary>
-    /// Bounded counterpart to <see cref="ListRunsAsync"/> for the startup reconciliation sweep
-    /// (AgentTestRunQueue.ReconcileStaleRunningRunsAsync), which only ever cares about one status
-    /// (AgentTestStatus.Running) across every suite -- ListRunsAsync(null) would otherwise pull
-    /// the entire, ever-growing AgentTestRuns collection into memory on every host startup just to
-    /// filter it down to a handful of rows client-side.
-    /// </summary>
-    Task<List<AgentTestRun>> ListRunsByStatusAsync(string status);
-
-    /// <summary>
     /// Whole-document replace that never reverts CancelRequested: if a cancel landed after
     /// <paramref name="run"/> was read, the write keeps it and sets it on <paramref name="run"/>.
+    /// Stamps UpdateDate.
     /// </summary>
     Task UpdateRunAsync(AgentTestRun run);
 
@@ -161,13 +153,10 @@ public class AgentTestRepository : IAgentTestRepository
             .ToListAsync();
     }
 
-    public async Task<List<AgentTestRun>> ListRunsByStatusAsync(string status)
-        => await _mongoDbContext.AgentTestRuns
-            .Find(x => x.Status == status)
-            .ToListAsync();
-
     public async Task UpdateRunAsync(AgentTestRun run)
     {
+        run.UpdateDate = DateTime.UtcNow;
+
         // CancelRequested is the one field written outside the executor, and it only ever goes
         // false -> true. Replacing only while the stored flag still matches ours means a cancel that
         // arrived after this copy was read is never overwritten; on a miss, carry it over and write.

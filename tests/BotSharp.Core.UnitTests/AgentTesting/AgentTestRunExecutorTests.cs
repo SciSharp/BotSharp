@@ -45,8 +45,6 @@ public class AgentTestRunExecutorTests
         public Task<AgentTestRun> CreateRunAsync(AgentTestRun run) => Task.FromResult(run);
         public Task<AgentTestRun?> GetRunAsync(string id) => Task.FromResult<AgentTestRun?>(Run);
         public Task<List<AgentTestRun>> ListRunsAsync(string? suiteId) => Task.FromResult(new List<AgentTestRun> { Run });
-        public Task<List<AgentTestRun>> ListRunsByStatusAsync(string status)
-            => Task.FromResult(Run.Status == status ? new List<AgentTestRun> { Run } : []);
         public Task UpdateRunAsync(AgentTestRun run) { Run = run; return Task.CompletedTask; }
         public Task<bool> RequestRunCancelAsync(string id) { Run.CancelRequested = true; return Task.FromResult(true); }
         public Task<long> DeleteRunAsync(string id)
@@ -93,8 +91,6 @@ public class AgentTestRunExecutorTests
         public Task<AgentTestRun> CreateRunAsync(AgentTestRun run) => Task.FromResult(run);
         public Task<AgentTestRun?> GetRunAsync(string id) => Task.FromResult<AgentTestRun?>(Clone(_stored));
         public Task<List<AgentTestRun>> ListRunsAsync(string? suiteId) => Task.FromResult(new List<AgentTestRun> { Clone(_stored) });
-        public Task<List<AgentTestRun>> ListRunsByStatusAsync(string status)
-            => Task.FromResult(_stored.Status == status ? new List<AgentTestRun> { Clone(_stored) } : []);
         public Task UpdateRunAsync(AgentTestRun run) { _stored = Clone(run); return Task.CompletedTask; }
         public Task<bool> RequestRunCancelAsync(string id) { _stored.CancelRequested = true; return Task.FromResult(true); }
         public Task<long> DeleteRunAsync(string id)
@@ -610,7 +606,7 @@ public class AgentTestRunExecutorTests
         // Important 1: GET /agent-test/runs/{id} is the only progress surface while a run is in
         // flight. If counters are only written once at the very end, a 10-case suite at the
         // default 120s-per-case timeout would show 0/0/0/0 for up to 20 minutes, and a process
-        // death mid-run would leave the startup sweep's Error row claiming zero cases ran even
+        // death mid-run would leave the abandoned-run Error row claiming zero cases ran even
         // though N AgentTestCaseResult rows already exist.
         //
         // This has to use CloningRunRepo, not InMemoryRepo: InMemoryRepo's GetRunAsync/Run field

@@ -82,9 +82,12 @@ public class AgentTestControllerTests
         }
         public Task<AgentTestRun?> GetRunAsync(string id) => Task.FromResult(Runs.TryGetValue(id, out var r) ? r : null);
         public Task<List<AgentTestRun>> ListRunsAsync(string? suiteId) => Task.FromResult(Runs.Values.ToList());
-        public Task<List<AgentTestRun>> ListRunsByStatusAsync(string status)
-            => Task.FromResult(Runs.Values.Where(r => r.Status == status).ToList());
-        public Task UpdateRunAsync(AgentTestRun run) { Runs[run.Id] = run; return Task.CompletedTask; }
+        public Task UpdateRunAsync(AgentTestRun run)
+        {
+            run.UpdateDate = DateTime.UtcNow;
+            Runs[run.Id] = run;
+            return Task.CompletedTask;
+        }
         public Task<bool> RequestRunCancelAsync(string id)
         {
             if (!Runs.TryGetValue(id, out var run)
@@ -753,6 +756,65 @@ public class AgentTestControllerTests
 
         Assert.IsType<OkResult>(result);
         Assert.True(repo.Runs["run-1"].CancelRequested);
+    }
+
+    // ---- Abandoned runs: a Running run with no write for 2x CaseTimeoutSeconds ----------------
+
+    [Fact]
+    public async Task GetRun_fails_a_running_run_with_no_progress_for_twice_the_case_timeout()
+    {
+        var repo = new InMemoryRepo();
+        repo.Suites["suite-1"] = new AgentTestSuite { Id = "suite-1", CaseTimeoutSeconds = 60 };
+        repo.Runs["run-1"] = new AgentTestRun
+        {
+            Id = "run-1", SuiteId = "suite-1", Status = AgentTestStatus.Running,
+            UpdateDate = DateTime.UtcNow.AddSeconds(-121)
+        };
+        var controller = BuildController(repo, out _);
+
+        var result = await controller.GetRun("run-1");
+
+        Assert.Equal(AgentTestStatus.Error, result.Value!.Run.Status);
+        Assert.Equal(AgentTestStatus.Error, repo.Runs["run-1"].Status);
+        Assert.NotNull(repo.Runs["run-1"].CompletedAt);
+    }
+
+    [Fact]
+    public async Task ListRuns_leaves_a_running_run_alone_while_it_is_within_twice_the_case_timeout()
+    {
+        // Another host may be executing it: a long run is fine as long as cases keep finishing.
+        var repo = new InMemoryRepo();
+        repo.Suites["suite-1"] = new AgentTestSuite { Id = "suite-1", CaseTimeoutSeconds = 60 };
+        repo.Runs["run-1"] = new AgentTestRun
+        {
+            Id = "run-1", SuiteId = "suite-1", Status = AgentTestStatus.Running,
+            StartedAt = DateTime.UtcNow.AddHours(-1),
+            UpdateDate = DateTime.UtcNow.AddSeconds(-110)
+        };
+        var controller = BuildController(repo, out _);
+
+        var runs = await controller.ListRuns(null);
+
+        Assert.Equal(AgentTestStatus.Running, Assert.Single(runs).Status);
+    }
+
+    [Fact]
+    public async Task An_abandoned_running_run_can_be_deleted()
+    {
+        // A run written before UpdateDate existed falls back to StartedAt.
+        var repo = new InMemoryRepo();
+        repo.Suites["suite-1"] = new AgentTestSuite { Id = "suite-1", CaseTimeoutSeconds = 60 };
+        repo.Runs["run-1"] = new AgentTestRun
+        {
+            Id = "run-1", SuiteId = "suite-1", Status = AgentTestStatus.Running,
+            StartedAt = DateTime.UtcNow.AddMinutes(-5)
+        };
+        var controller = BuildController(repo, out _);
+
+        var result = await controller.DeleteRuns(new AgentTestRunDeleteRequest { RunIds = ["run-1"] });
+
+        Assert.Empty(result.Value!.Skipped);
+        Assert.False(repo.Runs.ContainsKey("run-1"));
     }
 
     private static AgentTestCaseUpsertRequest RoutingCaseRequest(

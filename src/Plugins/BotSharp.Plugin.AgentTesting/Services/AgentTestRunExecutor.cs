@@ -305,7 +305,7 @@ public class AgentTestRunExecutor
 
                 // Real-time accumulation, per case -- not just at the very end. Without this, GET
                 // /agent-test/runs/{id} shows 0/0/0/0 for the run's entire duration, and a process
-                // death mid-run leaves the startup sweep's Error row claiming zero cases ran even
+                // death mid-run leaves the abandoned-run Error row claiming zero cases ran even
                 // though N AgentTestCaseResult rows already exist for it.
                 await _repo.UpdateRunAsync(run);
             }

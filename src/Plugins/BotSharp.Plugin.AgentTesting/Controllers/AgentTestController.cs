@@ -413,6 +413,7 @@ public class AgentTestController : ControllerBase
                 continue;
             }
 
+            await FailIfAbandonedAsync(run);
             if (!IsTerminalStatus(run.Status))
             {
                 // Deleting a run that is still executing does not stop it: the queue keeps driving
@@ -637,7 +638,14 @@ public class AgentTestController : ControllerBase
 
     [HttpGet("runs")]
     public async Task<List<AgentTestRun>> ListRuns([FromQuery] string? suiteId)
-        => await _repo.ListRunsAsync(suiteId);
+    {
+        var runs = await _repo.ListRunsAsync(suiteId);
+        foreach (var run in runs)
+        {
+            await FailIfAbandonedAsync(run);
+        }
+        return runs;
+    }
 
     [HttpGet("runs/{id}")]
     public async Task<ActionResult<AgentTestRunDetailDto>> GetRun(string id)
@@ -648,6 +656,7 @@ public class AgentTestController : ControllerBase
             return NotFound($"agent test run {id} not found");
         }
 
+        await FailIfAbandonedAsync(run);
         var results = await _repo.ListCaseResultsAsync(id);
         return new AgentTestRunDetailDto { Run = run, Results = results };
     }
@@ -845,6 +854,35 @@ public class AgentTestController : ControllerBase
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// The run queue is in-process, so a run whose host died stays Running in the database. A live
+    /// executor writes the run after every case and a case is cut off at the suite's
+    /// CaseTimeoutSeconds, so twice that with no write means nothing is executing it any more.
+    /// Checked when a run is read rather than swept on host startup: hosts share one database, and
+    /// a sweep cannot tell another host's live run from a dead one.
+    /// </summary>
+    private async Task FailIfAbandonedAsync(AgentTestRun run)
+    {
+        if (run.Status != AgentTestStatus.Running)
+        {
+            return;
+        }
+
+        var suite = await _repo.GetSuiteAsync(run.SuiteId);
+        var limit = TimeSpan.FromSeconds(2 * Math.Max(1, suite?.CaseTimeoutSeconds ?? 120));
+        var lastProgress = run.UpdateDate ?? run.StartedAt ?? run.CreateDate;
+        if (DateTime.UtcNow - lastProgress <= limit)
+        {
+            return;
+        }
+
+        run.Status = AgentTestStatus.Error;
+        run.Error = $"No case finished for over {limit.TotalSeconds:0}s, so the host running this run "
+            + "has stopped. The queue is in-process and does not survive a restart -- trigger the run again.";
+        run.CompletedAt = DateTime.UtcNow;
+        await _repo.UpdateRunAsync(run);
     }
 
     private static bool IsTerminalStatus(string status) =>

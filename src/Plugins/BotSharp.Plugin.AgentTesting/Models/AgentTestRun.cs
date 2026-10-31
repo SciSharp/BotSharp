@@ -106,6 +106,13 @@ public class AgentTestRun : MongoBase
     public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public DateTime CreateDate { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Set by the repository on every run write. The executor writes after each case, so a Running
+    /// run whose UpdateDate falls far behind no longer has a live executor. Null on runs written
+    /// before this field existed.
+    /// </summary>
+    public DateTime? UpdateDate { get; set; }
 }
 
 /// <summary>
