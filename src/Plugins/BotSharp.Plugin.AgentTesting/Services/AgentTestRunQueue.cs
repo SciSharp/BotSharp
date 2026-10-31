@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using BotSharp.Abstraction.MLTasks;
 using Microsoft.Extensions.Hosting;
 using BotSharp.Plugin.AgentTesting.Repositories;
 
@@ -48,11 +49,9 @@ public class AgentTestRunQueue : BackgroundService, IAgentTestRunQueue
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // The queue is in-process, so a restart wipes out every run still in flight. Without
-        // sweeping them to Error they stay Running forever and the admin page keeps claiming they
-        // are still going. Runs once per host start.
-        await ReconcileStaleRunningRunsAsync();
-
+        // The queue is in-process, so a restart loses every run still in flight. Those are failed
+        // when read (AgentTestController.FailIfAbandonedAsync), not swept here on startup: hosts
+        // share one database, and a sweep cannot tell another host's live run from a dead one.
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -71,35 +70,6 @@ public class AgentTestRunQueue : BackgroundService, IAgentTestRunQueue
         }
     }
 
-    private async Task ReconcileStaleRunningRunsAsync()
-    {
-        try
-        {
-            using var scope = _serviceProvider.CreateScope();
-            var repo = scope.ServiceProvider.GetRequiredService<IAgentTestRepository>();
-
-            // Status-filtered at the query level, not ListRunsAsync(null) filtered in memory --
-            // this collection only ever grows, and every host restart used to pull the entire
-            // thing into memory just to find a handful of stale Running rows.
-            var runs = await repo.ListRunsByStatusAsync(AgentTestStatus.Running);
-            foreach (var run in runs)
-            {
-                run.Status = AgentTestStatus.Error;
-                run.Error = "The host restarted while this run was still going, so it was abandoned. "
-                    + "The queue is in-process and does not survive a restart -- trigger the run again.";
-                run.CompletedAt = DateTime.UtcNow;
-                await repo.UpdateRunAsync(run);
-                _logger.LogWarning(
-                    "Agent test run {RunId} was left Running by a previous process; marked Error on startup.",
-                    run.Id);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to reconcile leftover Running agent test runs on startup.");
-        }
-    }
-
     private async Task ProcessAsync(string runId, CancellationToken ct)
     {
         try
@@ -108,7 +78,8 @@ public class AgentTestRunQueue : BackgroundService, IAgentTestRunQueue
             var repo = scope.ServiceProvider.GetRequiredService<IAgentTestRepository>();
             var executorLogger = scope.ServiceProvider.GetRequiredService<ILogger<AgentTestRunExecutor>>();
 
-            var executor = new AgentTestRunExecutor(repo, new ScopedCaseRunner(_serviceProvider), executorLogger);
+            var executor = new AgentTestRunExecutor(repo, new ScopedCaseRunner(_serviceProvider), executorLogger,
+                scope.ServiceProvider.GetService<ILlmProviderService>());
             await executor.ExecuteAsync(runId, ct);
         }
         catch (Exception ex)

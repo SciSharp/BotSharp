@@ -3,6 +3,8 @@ using System.Text.Json;
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations.Enums;
+using BotSharp.Abstraction.Files.Models;
+using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories;
@@ -35,6 +37,7 @@ public class BotSharpAgentConversationDriver : IAgentConversationDriver
     private readonly IRoutingService _routing;
     private readonly IBotSharpRepository _repository;
     private readonly IAgentService _agents;
+    private readonly IInstructService _instructs;
     private readonly ILogger<BotSharpAgentConversationDriver> _logger;
 
     // Set at most once per instance: this driver is scoped per-case (a fresh DI scope per case,
@@ -49,12 +52,14 @@ public class BotSharpAgentConversationDriver : IAgentConversationDriver
         IRoutingService routing,
         IBotSharpRepository repository,
         IAgentService agents,
+        IInstructService instructs,
         ILogger<BotSharpAgentConversationDriver> logger)
     {
         _conversations = conversations;
         _routing = routing;
         _repository = repository;
         _agents = agents;
+        _instructs = instructs;
         _logger = logger;
     }
 
@@ -129,7 +134,8 @@ public class BotSharpAgentConversationDriver : IAgentConversationDriver
         return stored.Count(d => d.MetaData?.MessageId != null && written.Contains(d.MetaData.MessageId));
     }
 
-    public async Task<AgentReply> SendAsync(string conversationId, string agentId, string userMessage, CancellationToken ct)
+    public async Task<AgentReply> SendAsync(
+        string conversationId, string agentId, string userMessage, IReadOnlyList<TestFile> files, CancellationToken ct)
     {
         // Fail fast only if the case had already timed out before we ever got here (e.g. a prior
         // turn ran long). Once the real call below starts, there is no cancellation hook left to
@@ -140,7 +146,10 @@ public class BotSharpAgentConversationDriver : IAgentConversationDriver
 
         await _conversations.SendMessage(
             agentId,
-            new RoleDialogModel(AgentRole.User, userMessage),
+            new RoleDialogModel(AgentRole.User, userMessage)
+            {
+                Files = files.Select(f => new BotSharpFile { FileName = f.FileName, FileUrl = f.FileUrl }).ToList()
+            },
             replyMessage: null,
             onResponseReceived: r =>
             {
@@ -157,6 +166,25 @@ public class BotSharpAgentConversationDriver : IAgentConversationDriver
 
         var message = last?.RichContent?.Message;
         return new AgentReply(message?.Text ?? last?.Content, SerializeRichMessage(message));
+    }
+
+    public async Task<AgentReply> InstructAsync(
+        string agentId, string templateName, string userMessage, IReadOnlyList<TestFile> files, CancellationToken ct)
+    {
+        // Same fail-fast-only cancellation as SendAsync: Execute takes no token either.
+        ct.ThrowIfCancellationRequested();
+
+        // "#TEMPLATE#" makes the rendered template the system instruction and userMessage the user
+        // message. Without it InstructService sends the template as the user message and drops
+        // userMessage entirely, which is not how code that calls a template in production uses it.
+        var result = await _instructs.Execute(
+            agentId,
+            new RoleDialogModel(AgentRole.User, userMessage),
+            instruction: "#TEMPLATE#",
+            templateName: templateName,
+            files: files.Select(f => new InstructFileModel { FileName = f.FileName, FileUrl = f.FileUrl }).ToList());
+
+        return new AgentReply(result.Text, null);
     }
 
     // Unescaped so apostrophes and dashes stay literal: assertions match against this text and a

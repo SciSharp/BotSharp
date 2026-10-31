@@ -54,6 +54,12 @@ public class AgentTestRun : MongoBase
     /// </summary>
     public int MaxParallelCases { get; set; }
 
+    /// <summary>
+    /// How many case x model executions the run set out to do, set when it starts Running.
+    /// TotalCount is how many of them have finished. Zero on runs written before this field existed.
+    /// </summary>
+    public int PlannedCount { get; set; }
+
     public int TotalCount { get; set; }
     public int PassedCount { get; set; }
     public int FailedCount { get; set; }
@@ -91,6 +97,13 @@ public class AgentTestRun : MongoBase
     public List<ModelPricingSnapshot> ModelPricing { get; set; } = [];
 
     /// <summary>
+    /// The judge model llmJudge assertions were scored with, and its unit costs. Taken from the suite
+    /// this run executed against, because the suite's setting can change afterwards and the run report
+    /// would then name a judge that never scored it. Null when the suite had no judge configured.
+    /// </summary>
+    public ModelPricingSnapshot? JudgePricing { get; set; }
+
+    /// <summary>
     /// Why a run ended as <see cref="AgentTestStatus.Error"/> -- an infrastructure stop that
     /// happened before or instead of executing cases (suite gone, suite disabled, the CaseIds
     /// filter matched nothing, the host died mid-run, an unhandled exception).
@@ -106,6 +119,13 @@ public class AgentTestRun : MongoBase
     public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public DateTime CreateDate { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Set on every run write and by the executor's heartbeat while cases run, so a Running run whose
+    /// UpdateDate falls far behind no longer has a live executor. Null on runs written before this
+    /// field existed.
+    /// </summary>
+    public DateTime? UpdateDate { get; set; }
 }
 
 /// <summary>
@@ -132,6 +152,10 @@ public class PerformanceSummary
 
     public long TotalTokens { get; set; }
     public double TotalCost { get; set; }
+
+    /// <summary>llmJudge spend for this model's cases, not included in TotalTokens/TotalCost.</summary>
+    public long JudgeTokens { get; set; }
+    public double JudgeCost { get; set; }
 }
 
 /// <summary>

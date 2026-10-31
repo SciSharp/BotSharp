@@ -45,9 +45,15 @@ public class AgentTestRunExecutorTests
         public Task<AgentTestRun> CreateRunAsync(AgentTestRun run) => Task.FromResult(run);
         public Task<AgentTestRun?> GetRunAsync(string id) => Task.FromResult<AgentTestRun?>(Run);
         public Task<List<AgentTestRun>> ListRunsAsync(string? suiteId) => Task.FromResult(new List<AgentTestRun> { Run });
-        public Task<List<AgentTestRun>> ListRunsByStatusAsync(string status)
-            => Task.FromResult(Run.Status == status ? new List<AgentTestRun> { Run } : []);
         public Task UpdateRunAsync(AgentTestRun run) { Run = run; return Task.CompletedTask; }
+        public Task<bool> RequestRunCancelAsync(string id) { Run.CancelRequested = true; return Task.FromResult(true); }
+        public int Heartbeats;
+        public Task<bool> TouchRunAsync(string id)
+        {
+            Interlocked.Increment(ref Heartbeats);
+            return Task.FromResult(Run.Status == AgentTestStatus.Running);
+        }
+        public Task<bool> TryAbandonRunAsync(string id, DateTime? observedUpdateDate, string error) => Task.FromResult(false);
         public Task<long> DeleteRunAsync(string id)
         {
             var removed = Results.RemoveAll(r => r.RunId == id);
@@ -92,9 +98,25 @@ public class AgentTestRunExecutorTests
         public Task<AgentTestRun> CreateRunAsync(AgentTestRun run) => Task.FromResult(run);
         public Task<AgentTestRun?> GetRunAsync(string id) => Task.FromResult<AgentTestRun?>(Clone(_stored));
         public Task<List<AgentTestRun>> ListRunsAsync(string? suiteId) => Task.FromResult(new List<AgentTestRun> { Clone(_stored) });
-        public Task<List<AgentTestRun>> ListRunsByStatusAsync(string status)
-            => Task.FromResult(_stored.Status == status ? new List<AgentTestRun> { Clone(_stored) } : []);
-        public Task UpdateRunAsync(AgentTestRun run) { _stored = Clone(run); return Task.CompletedTask; }
+        /// <summary>
+        /// A cancel landing just before the next write: like the real repository, the write keeps
+        /// it and sets it on the caller's run.
+        /// </summary>
+        public bool CancelBeforeNextWrite;
+
+        public Task UpdateRunAsync(AgentTestRun run)
+        {
+            if (CancelBeforeNextWrite)
+            {
+                CancelBeforeNextWrite = false;
+                run.CancelRequested = true;
+            }
+            _stored = Clone(run);
+            return Task.CompletedTask;
+        }
+        public Task<bool> RequestRunCancelAsync(string id) { _stored.CancelRequested = true; return Task.FromResult(true); }
+        public Task<bool> TouchRunAsync(string id) => Task.FromResult(_stored.Status == AgentTestStatus.Running);
+        public Task<bool> TryAbandonRunAsync(string id, DateTime? observedUpdateDate, string error) => Task.FromResult(false);
         public Task<long> DeleteRunAsync(string id)
         {
             var removed = Results.RemoveAll(r => r.RunId == id);
@@ -111,11 +133,13 @@ public class AgentTestRunExecutorTests
             TriggeredBy = source.TriggeredBy,
             CaseIds = source.CaseIds,
             MaxParallelCases = source.MaxParallelCases,
+            PlannedCount = source.PlannedCount,
             TotalCount = source.TotalCount,
             PassedCount = source.PassedCount,
             FailedCount = source.FailedCount,
             ErrorCount = source.ErrorCount,
             CancelRequested = source.CancelRequested,
+            PerformanceSummaries = source.PerformanceSummaries,
             StartedAt = source.StartedAt,
             CompletedAt = source.CompletedAt,
             CreateDate = source.CreateDate
@@ -342,6 +366,24 @@ public class AgentTestRunExecutorTests
         await executor.ExecuteAsync("run-1", CancellationToken.None);
 
         Assert.Single(repo.Results);
+        Assert.Equal(AgentTestStatus.Cancelled, repo.Run.Status);
+    }
+
+    [Fact]
+    public async Task A_cancel_sent_while_the_run_was_pending_starts_no_case()
+    {
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a"), CaseNamed("b")] };
+        repo.Run.CancelRequested = true;
+        var started = 0;
+        var executor = Build(repo, c =>
+        {
+            started++;
+            return new AgentTestCaseResult { CaseId = c.Id, Status = AgentTestStatus.Passed };
+        });
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Equal(0, started);
         Assert.Equal(AgentTestStatus.Cancelled, repo.Run.Status);
     }
 
@@ -590,7 +632,7 @@ public class AgentTestRunExecutorTests
         // Important 1: GET /agent-test/runs/{id} is the only progress surface while a run is in
         // flight. If counters are only written once at the very end, a 10-case suite at the
         // default 120s-per-case timeout would show 0/0/0/0 for up to 20 minutes, and a process
-        // death mid-run would leave the startup sweep's Error row claiming zero cases ran even
+        // death mid-run would leave the abandoned-run Error row claiming zero cases ran even
         // though N AgentTestCaseResult rows already exist.
         //
         // This has to use CloningRunRepo, not InMemoryRepo: InMemoryRepo's GetRunAsync/Run field
@@ -620,6 +662,87 @@ public class AgentTestRunExecutorTests
 
         Assert.Equal(1, observedTotalBeforeSecondCase);
         Assert.Equal(2, repo.Stored.TotalCount);
+    }
+
+    [Fact]
+    public async Task Persists_the_planned_count_and_the_spend_so_far_while_the_run_goes()
+    {
+        // The run page shows "1 / 2" and the cost table mid-run, and a run whose host dies keeps
+        // both for the cases that finished.
+        var repo = new CloningRunRepo { Cases = [CaseNamed("a"), CaseNamed("b")] };
+        AgentTestRun? storedBeforeSecondCase = null;
+        var executor = new AgentTestRunExecutor(
+            repo,
+            new DelegatingCaseRunner(c =>
+            {
+                if (c.Id == "b")
+                {
+                    storedBeforeSecondCase = repo.Stored;
+                }
+                return new AgentTestCaseResult
+                {
+                    CaseId = c.Id, Status = AgentTestStatus.Passed,
+                    ModelDurationMs = 10, TotalTokens = 100, Cost = 0.5
+                };
+            }),
+            NullLogger<AgentTestRunExecutor>.Instance);
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Equal(2, storedBeforeSecondCase!.PlannedCount);
+        Assert.Equal(1, storedBeforeSecondCase.TotalCount);
+        var summary = Assert.Single(storedBeforeSecondCase.PerformanceSummaries);
+        Assert.Equal(100, summary.TotalTokens);
+        Assert.Equal(200, Assert.Single(repo.Stored.PerformanceSummaries).TotalTokens);
+    }
+
+    [Fact]
+    public async Task A_cancel_carried_over_by_the_per_case_write_stops_the_next_case()
+    {
+        // The cancel lands after the executor re-read the run but before it wrote: only the write
+        // sees it.
+        var repo = new CloningRunRepo { Cases = [CaseNamed("a"), CaseNamed("b")] };
+        var ran = new List<string>();
+        var executor = new AgentTestRunExecutor(
+            repo,
+            new DelegatingCaseRunner(c =>
+            {
+                ran.Add(c.Id);
+                repo.CancelBeforeNextWrite = true;
+                return new AgentTestCaseResult { CaseId = c.Id, Status = AgentTestStatus.Passed };
+            }),
+            NullLogger<AgentTestRunExecutor>.Instance);
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        Assert.Equal(["a"], ran);
+        Assert.Equal(AgentTestStatus.Cancelled, repo.Stored.Status);
+    }
+
+    [Fact]
+    public async Task Beats_while_a_case_runs_and_stops_once_the_run_ends()
+    {
+        // A case can go quiet for longer than its timeout, so liveness comes from the heartbeat,
+        // not from case completions.
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a")] };
+        var executor = new AgentTestRunExecutor(
+            repo,
+            new DelegatingCaseRunner(c =>
+            {
+                Thread.Sleep(300);
+                return new AgentTestCaseResult { CaseId = c.Id, Status = AgentTestStatus.Passed };
+            }),
+            NullLogger<AgentTestRunExecutor>.Instance)
+        {
+            HeartbeatInterval = TimeSpan.FromMilliseconds(20)
+        };
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+        var beatsAtEnd = Volatile.Read(ref repo.Heartbeats);
+        await Task.Delay(100);
+
+        Assert.True(beatsAtEnd > 0);
+        Assert.Equal(beatsAtEnd, Volatile.Read(ref repo.Heartbeats));
     }
 
     [Fact]
@@ -825,6 +948,26 @@ public class AgentTestRunExecutorTests
         // that would understate the run's real cost.
         Assert.Equal(17, summary.TotalTokens);
         Assert.Equal(0.0015, summary.TotalCost, precision: 6);
+    }
+
+    [Fact]
+    public async Task Judge_spend_is_summarised_apart_from_the_model_under_test()
+    {
+        var repo = new InMemoryRepo { Cases = [CaseNamed("a"), CaseNamed("b")] };
+        var executor = Build(repo, c =>
+        {
+            var result = Timed(c.Id, modelMs: 100, tokens: 10, cost: 0.001);
+            result.JudgeTokens = 40;
+            result.JudgeCost = 0.002;
+            return result;
+        });
+
+        await executor.ExecuteAsync("run-1", CancellationToken.None);
+
+        var summary = Assert.Single(repo.Run.PerformanceSummaries);
+        Assert.Equal(20, summary.TotalTokens);
+        Assert.Equal(80, summary.JudgeTokens);
+        Assert.Equal(0.004, summary.JudgeCost, precision: 6);
     }
 
     [Fact]

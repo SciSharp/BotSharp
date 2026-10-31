@@ -72,6 +72,13 @@ public class AgentTestCaseResult : MongoBase
     public double Cost { get; set; }
 
     /// <summary>
+    /// What this case's llmJudge assertions spent, kept out of <see cref="TotalTokens"/> and
+    /// <see cref="Cost"/> so those describe the model under test alone. Priced by the judge model.
+    /// </summary>
+    public long JudgeTokens { get; set; }
+    public double JudgeCost { get; set; }
+
+    /// <summary>
     /// Infrastructure-level reason for failure (a timeout, a dead canary), kept distinct from an
     /// assertion failure.
     /// </summary>

@@ -59,6 +59,14 @@ public class AgentTestRunExecutor
         _logger = logger;
     }
 
+    /// <summary>
+    /// How often a Running run stamps UpdateDate while its cases execute. Case completions alone are
+    /// no proof of life: PrepareAsync and the judge's provider call are not cut off by the case
+    /// timeout, so a live case can go quiet for longer than it. AgentTestController fails a Running
+    /// run whose heartbeat stopped.
+    /// </summary>
+    public TimeSpan HeartbeatInterval { get; init; } = TimeSpan.FromSeconds(30);
+
     public async Task ExecuteAsync(string runId, CancellationToken ct)
     {
         var run = await _repo.GetRunAsync(runId);
@@ -139,22 +147,6 @@ public class AgentTestRunExecutor
         // it stands today.
         var parallelism = AgentTestConcurrency.Resolve(run.MaxParallelCases, suite.MaxParallelCases);
 
-        run.MaxParallelCases = parallelism;
-        run.Status = AgentTestStatus.Running;
-        run.StartedAt = DateTime.UtcNow;
-        run.TotalCount = 0;
-        run.PassedCount = 0;
-        run.FailedCount = 0;
-        run.ErrorCount = 0;
-        await _repo.UpdateRunAsync(run);
-
-        // "Stop starting new work" (cancelRequested) is a different fact from "the run ended
-        // early because of it" (cancelSkipped). A cancel that lands while the LAST case is
-        // executing stops nothing -- the run finished everything it was ever going to run -- so
-        // only a case that was actually held back turns the terminal status into Cancelled.
-        var cancelRequested = false;
-        var cancelSkipped = 0;
-
         // The model dimension. An absent/empty Models list means "one pass, using each agent's own
         // LlmConfig" -- byte-for-byte the behavior from before multi-model existed, which is what
         // keeps every historical run document and every caller that omits the field working.
@@ -170,6 +162,26 @@ public class AgentTestRunExecutor
         var workItems = enabledCases
             .SelectMany(testCase => models.Select(model => (Case: testCase, Model: model)))
             .ToList();
+
+        run.MaxParallelCases = parallelism;
+        run.Status = AgentTestStatus.Running;
+        run.StartedAt = DateTime.UtcNow;
+        run.PlannedCount = workItems.Count;
+        run.TotalCount = 0;
+        run.PassedCount = 0;
+        run.FailedCount = 0;
+        run.ErrorCount = 0;
+        await _repo.UpdateRunAsync(run);
+
+        // "Stop starting new work" (cancelRequested) is a different fact from "the run ended
+        // early because of it" (cancelSkipped). A cancel that lands while the LAST case is
+        // executing stops nothing -- the run finished everything it was ever going to run -- so
+        // only a case that was actually held back turns the terminal status into Cancelled.
+        // Seeded from the run, not false: a cancel sent while the run was still Pending is already
+        // on it (UpdateRunAsync above carries over one that raced the Running write), and no case
+        // should start after it.
+        var cancelRequested = run.CancelRequested;
+        var cancelSkipped = 0;
 
         // Serialises everything that touches the run document or the result collection, so the
         // only thing that actually overlaps is the case executions. Each pass below is a
@@ -187,6 +199,9 @@ public class AgentTestRunExecutor
         // through a disappearing process.
         var hostStopping = false;
 
+        var heartbeatStop = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var heartbeat = BeatAsync(runId, heartbeatStop.Token);
+
         // MaxDegreeOfParallelism, not the CancellationToken: passing `ct` here would surface host
         // shutdown as an OperationCanceledException out of this method, and this run's row has to
         // be left exactly as it is on that path (see the hostStopping check inside). At
@@ -203,9 +218,8 @@ public class AgentTestRunExecutor
             {
                 // The host itself is shutting down (BackgroundService's stoppingToken), not a
                 // user-requested cancel of THIS run. Leave the row as Running rather than racing
-                // the shutdown grace period to persist a different terminal status here -- the
-                // queue's own startup reconciliation step sweeps any Running row a killed process
-                // left behind into Error the next time it boots.
+                // the shutdown grace period to persist a different terminal status here -- once
+                // the heartbeat stops, the next read of the run fails it (see HeartbeatInterval).
                 Volatile.Write(ref hostStopping, true);
                 return;
             }
@@ -288,11 +302,6 @@ public class AgentTestRunExecutor
                         break;
                 }
 
-                if (run.CancelRequested)
-                {
-                    Volatile.Write(ref cancelRequested, true);
-                }
-
                 // Progress, one line per finished case. Serial execution used to make progress
                 // readable from the order of a case's own log lines; several cases interleaved do
                 // not, so the run says where it is itself.
@@ -302,15 +311,27 @@ public class AgentTestRunExecutor
 
                 // Real-time accumulation, per case -- not just at the very end. Without this, GET
                 // /agent-test/runs/{id} shows 0/0/0/0 for the run's entire duration, and a process
-                // death mid-run leaves the startup sweep's Error row claiming zero cases ran even
+                // death mid-run leaves the abandoned-run Error row claiming zero cases ran even
                 // though N AgentTestCaseResult rows already exist for it.
+                await SummarisePerformanceAsync(run);
                 await _repo.UpdateRunAsync(run);
+
+                // After the write, not before: UpdateRunAsync sets CancelRequested on `run` when a
+                // cancel landed between the re-read above and this write.
+                if (run.CancelRequested)
+                {
+                    Volatile.Write(ref cancelRequested, true);
+                }
             }
             finally
             {
                 bookkeeping.Release();
             }
         });
+
+        heartbeatStop.Cancel();
+        await heartbeat;
+        heartbeatStop.Dispose();
 
         if (hostStopping)
         {
@@ -325,17 +346,51 @@ public class AgentTestRunExecutor
         run.CompletedAt = DateTime.UtcNow;
 
         await SummarisePerformanceAsync(run);
+        run.JudgePricing = SnapshotJudgePricing(run, suite);
 
         await _repo.UpdateRunAsync(run);
+    }
+
+    /// <summary>
+    /// Stamps UpdateDate every HeartbeatInterval until stopped, or until the run is no longer
+    /// Running -- e.g. the queue marked it Error after a crash out of the case loop. A failed write
+    /// is logged and retried on the next tick rather than ending the heartbeat, which would get a
+    /// live run failed as abandoned.
+    /// </summary>
+    private async Task BeatAsync(string runId, CancellationToken ct)
+    {
+        using var timer = new PeriodicTimer(HeartbeatInterval);
+        try
+        {
+            while (await timer.WaitForNextTickAsync(ct))
+            {
+                try
+                {
+                    if (!await _repo.TouchRunAsync(runId))
+                    {
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not record the heartbeat of agent test run {RunId}.", runId);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
     }
 
     /// <summary>
     /// Fills in the run's per-model latency, token and cost figures, plus the pricing that produced
     /// the cost.
     ///
-    /// Once, at the end, reading the results back -- not accumulated per case like the counts are.
-    /// A percentile is not incrementally computable: it needs every value at once, and keeping the
-    /// whole list on the run document to update it in place would store the same numbers twice.
+    /// Recomputed from the stored results after every case and once more at the end -- not
+    /// accumulated like the counts are. A percentile is not incrementally computable: it needs every
+    /// value at once, and keeping the whole list on the run document to update it in place would
+    /// store the same numbers twice. Per case so the run page shows spend while the run goes, and a
+    /// run whose host dies keeps the figures for the cases that finished.
     /// </summary>
     private async Task SummarisePerformanceAsync(AgentTestRun run)
     {
@@ -383,7 +438,9 @@ public class AgentTestRunExecutor
             // Tokens and cost come from EVERY result, unlike latency: a case that errored still spent
             // whatever it spent, and hiding that would understate the run's real cost.
             TotalTokens = results.Sum(r => r.TotalTokens),
-            TotalCost = results.Sum(r => r.Cost)
+            TotalCost = results.Sum(r => r.Cost),
+            JudgeTokens = results.Sum(r => r.JudgeTokens),
+            JudgeCost = results.Sum(r => r.JudgeCost)
         };
     }
 
@@ -421,29 +478,45 @@ public class AgentTestRunExecutor
         }
 
         return run.Models
-            .Select(m =>
-            {
-                LlmModelSetting? setting = null;
-                try
-                {
-                    setting = _llmProviders.GetSetting(m.Provider, m.Model);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex,
-                        "Could not read pricing for {Provider}/{Model} while summarising run {RunId}.",
-                        m.Provider, m.Model, run.Id);
-                }
-
-                return new ModelPricingSnapshot
-                {
-                    Provider = m.Provider,
-                    Model = m.Model,
-                    TextInputCost = setting?.Cost?.TextInputCost,
-                    TextOutputCost = setting?.Cost?.TextOutputCost
-                };
-            })
+            .Select(m => SnapshotModelPricing(m.Provider, m.Model, run.Id))
             .ToList();
+    }
+
+    /// <summary>
+    /// The suite's judge model and its unit costs. The same suite instance the cases were judged
+    /// with, so it names the judge that actually scored this run.
+    /// </summary>
+    private ModelPricingSnapshot? SnapshotJudgePricing(AgentTestRun run, AgentTestSuite suite)
+    {
+        if (string.IsNullOrWhiteSpace(suite.JudgeProvider) || string.IsNullOrWhiteSpace(suite.JudgeModel))
+        {
+            return null;
+        }
+
+        return SnapshotModelPricing(suite.JudgeProvider, suite.JudgeModel, run.Id);
+    }
+
+    private ModelPricingSnapshot SnapshotModelPricing(string provider, string model, string runId)
+    {
+        LlmModelSetting? setting = null;
+        try
+        {
+            setting = _llmProviders?.GetSetting(provider, model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Could not read pricing for {Provider}/{Model} while summarising run {RunId}.",
+                provider, model, runId);
+        }
+
+        return new ModelPricingSnapshot
+        {
+            Provider = provider,
+            Model = model,
+            TextInputCost = setting?.Cost?.TextInputCost,
+            TextOutputCost = setting?.Cost?.TextOutputCost
+        };
     }
 
     /// <summary>

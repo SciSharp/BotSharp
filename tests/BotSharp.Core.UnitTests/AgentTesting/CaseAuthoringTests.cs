@@ -13,7 +13,8 @@ namespace BotSharp.Core.UnitTests.AgentTesting;
 /// <see cref="LlmCaseAuthor.Parse"/>, and this is where they are pinned:
 ///
 /// 1. a field the model does not declare cannot be deleted by being left out of its answer;
-/// 2. a mock or tool assertion naming a function the agent cannot call is removed, not stored;
+/// 2. a mock or tool assertion naming a function the entry agent lacks is kept with a warning --
+///    mocks match across every agent in the conversation, so a routed-to agent may call it;
 /// 3. a draft that would fail on save comes back labelled, not presented as progress;
 /// 4. the diff shown to the user is computed from the two drafts, never read off the model's own
 ///    account of what it did.
@@ -65,6 +66,23 @@ public class CaseAuthoringTests
             suite ?? Suite());
 
     // ---- 1. A field the model does not declare survives -------------------------------------
+
+    [Fact]
+    public void A_declared_template_name_is_taken_from_the_model()
+    {
+        var modelDraft = new AgentTestCaseUpsertRequest
+        {
+            CaseType = CaseTypes.Template,
+            EntryAgentId = "agent-1",
+            TemplateName = "photo_check"
+        };
+
+        var response = Run(Attempt(["caseType", "entryAgentId", "templateName"], modelDraft));
+
+        Assert.Equal(AuthorFields.TemplateName, AuthorFields.Normalize("templateName"));
+        Assert.Equal("photo_check", response.Draft.TemplateName);
+        Assert.Contains(response.Changes, c => c.Field == AuthorFields.TemplateName);
+    }
 
     [Fact]
     public void An_undeclared_field_is_kept_even_when_the_model_returns_it_empty()
@@ -150,10 +168,10 @@ public class CaseAuthoringTests
         Assert.Contains(response.Warnings, w => w.Contains("returned no draft"));
     }
 
-    // ---- 2. Never a function the agent cannot call ------------------------------------------
+    // ---- 2. A function the entry agent lacks is flagged, not removed ------------------------
 
     [Fact]
-    public void A_mock_for_an_unknown_function_is_dropped()
+    public void A_mock_for_a_function_the_entry_agent_lacks_is_kept_with_a_warning()
     {
         var modelDraft = new AgentTestCaseUpsertRequest
         {
@@ -166,16 +184,33 @@ public class CaseAuthoringTests
 
         var response = Run(Attempt(["mocks"], modelDraft));
 
-        Assert.Single(response.Draft.Mocks);
-        Assert.Equal("get_eta", response.Draft.Mocks[0].FunctionName);
+        Assert.Equal(["get_eta", "send_sms_to_resident"], response.Draft.Mocks.Select(m => m.FunctionName));
         Assert.Contains(response.Warnings, w => w.Contains("send_sms_to_resident"));
     }
 
     [Fact]
-    public void A_tool_assertion_on_an_unknown_function_is_dropped()
+    public void A_mock_with_no_function_name_is_dropped()
     {
-        // Kept, it would never match at run time, so the case would fail forever for a reason that
-        // reads as an agent regression.
+        var modelDraft = new AgentTestCaseUpsertRequest
+        {
+            Mocks =
+            [
+                new TestToolMock { FunctionName = "get_eta", ResultContent = "{}" },
+                new TestToolMock { FunctionName = " ", ResultContent = "{}" }
+            ]
+        };
+
+        var response = Run(Attempt(["mocks"], modelDraft));
+
+        Assert.Single(response.Draft.Mocks);
+        Assert.Contains(response.Warnings, w => w.Contains("no function name"));
+    }
+
+    [Fact]
+    public void A_tool_assertion_on_a_function_the_entry_agent_lacks_is_kept_with_a_warning()
+    {
+        // Kept: a routed-to agent's calls are observed too. The warning is what catches a name the
+        // model made up.
         var modelDraft = new AgentTestCaseUpsertRequest
         {
             Assertions =
@@ -187,9 +222,65 @@ public class CaseAuthoringTests
 
         var response = Run(Attempt(["assertions"], modelDraft));
 
-        Assert.Single(response.Draft.Assertions);
-        Assert.Equal("get_eta", response.Draft.Assertions[0].Target);
+        Assert.Equal(["get_eta", "get_estimated_arrival"], response.Draft.Assertions.Select(a => a.Target));
         Assert.Contains(response.Warnings, w => w.Contains("get_estimated_arrival"));
+    }
+
+    // ---- Turn files survive a rewrite that leaves them out -----------------------------------
+
+    private static AgentTestCaseUpsertRequest BaselineWithFile() => new()
+    {
+        SuiteId = "suite-1",
+        Name = "dark photo",
+        Turns =
+        [
+            new TestTurn
+            {
+                Index = 0,
+                UserMessage = "my toilet keeps running",
+                Files = [new TestFile { FileName = "photo_1.jpg", FileUrl = "https://example.com/photo_1.jpg" }]
+            }
+        ]
+    };
+
+    [Fact]
+    public void A_rewritten_turn_that_drops_its_files_gets_them_back()
+    {
+        var modelDraft = new AgentTestCaseUpsertRequest
+        {
+            Turns =
+            [
+                new TestTurn
+                {
+                    Index = 0,
+                    UserMessage = "my toilet keeps running",
+                    Assertions = [new TestAssertion { Type = AssertionTypes.OutputContains, Expected = "dark" }]
+                }
+            ]
+        };
+
+        var response = Run(Attempt(["turns"], modelDraft), baseline: BaselineWithFile());
+
+        Assert.Equal("photo_1.jpg", Assert.Single(response.Draft.Turns[0].Files).FileName);
+        Assert.Single(response.Draft.Turns[0].Assertions);
+    }
+
+    [Fact]
+    public void Files_are_not_guessed_back_when_the_turn_count_changed()
+    {
+        var modelDraft = new AgentTestCaseUpsertRequest
+        {
+            Turns =
+            [
+                new TestTurn { Index = 0, UserMessage = "hi" },
+                new TestTurn { Index = 1, UserMessage = "my toilet keeps running" }
+            ]
+        };
+
+        var response = Run(Attempt(["turns"], modelDraft), baseline: BaselineWithFile());
+
+        Assert.All(response.Draft.Turns, t => Assert.Empty(t.Files));
+        Assert.Contains(response.Warnings, w => w.Contains("file(s)"));
     }
 
     [Fact]

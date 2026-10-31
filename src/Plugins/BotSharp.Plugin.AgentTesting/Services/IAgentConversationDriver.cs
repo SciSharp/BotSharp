@@ -23,7 +23,16 @@ public interface IAgentConversationDriver
         string conversationId, string agentId, IReadOnlyList<TestHistoryMessage> history);
 
     /// <summary>Drives one turn and returns what that turn produced.</summary>
-    Task<AgentReply> SendAsync(string conversationId, string agentId, string userMessage, CancellationToken ct);
+    Task<AgentReply> SendAsync(
+        string conversationId, string agentId, string userMessage, IReadOnlyList<TestFile> files, CancellationToken ct);
+
+    /// <summary>
+    /// Calls one of the agent's templates directly, outside the conversation: the template is the
+    /// system instruction and <paramref name="userMessage"/> the user message, with
+    /// <paramref name="files"/> attached to it. Rich content is always null.
+    /// </summary>
+    Task<AgentReply> InstructAsync(
+        string agentId, string templateName, string userMessage, IReadOnlyList<TestFile> files, CancellationToken ct);
 
     /// <summary>Calls the canary function once; returns whether the mock seam took it over.</summary>
     Task<bool> RunCanaryAsync(string conversationId, string agentId, CancellationToken ct);

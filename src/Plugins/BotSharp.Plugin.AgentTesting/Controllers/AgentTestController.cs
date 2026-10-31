@@ -413,6 +413,7 @@ public class AgentTestController : ControllerBase
                 continue;
             }
 
+            run = await FailIfAbandonedAsync(run);
             if (!IsTerminalStatus(run.Status))
             {
                 // Deleting a run that is still executing does not stop it: the queue keeps driving
@@ -637,7 +638,14 @@ public class AgentTestController : ControllerBase
 
     [HttpGet("runs")]
     public async Task<List<AgentTestRun>> ListRuns([FromQuery] string? suiteId)
-        => await _repo.ListRunsAsync(suiteId);
+    {
+        var runs = await _repo.ListRunsAsync(suiteId);
+        for (var i = 0; i < runs.Count; i++)
+        {
+            runs[i] = await FailIfAbandonedAsync(runs[i]);
+        }
+        return runs;
+    }
 
     [HttpGet("runs/{id}")]
     public async Task<ActionResult<AgentTestRunDetailDto>> GetRun(string id)
@@ -648,6 +656,7 @@ public class AgentTestController : ControllerBase
             return NotFound($"agent test run {id} not found");
         }
 
+        run = await FailIfAbandonedAsync(run);
         var results = await _repo.ListCaseResultsAsync(id);
         return new AgentTestRunDetailDto { Run = run, Results = results };
     }
@@ -669,8 +678,13 @@ public class AgentTestController : ControllerBase
             return Conflict($"agent test run {id} has already finished ({run.Status}) and cannot be cancelled");
         }
 
-        run.CancelRequested = true;
-        await _repo.UpdateRunAsync(run);
+        // A single-field update, not a write-back of `run`: the executor keeps writing this document
+        // while the run goes, and replacing it with the copy read above would revert its progress.
+        if (!await _repo.RequestRunCancelAsync(id))
+        {
+            return Conflict($"agent test run {id} finished before it could be cancelled");
+        }
+
         return Ok();
     }
 
@@ -765,13 +779,16 @@ public class AgentTestController : ControllerBase
     {
         testCase.SuiteId = request.SuiteId;
         testCase.Name = request.Name;
-        testCase.Enabled = request.Enabled;
+        // Null keeps the case's current value, as ApplySuite does: a partial PUT must not enable a
+        // recorded draft nobody has reviewed yet.
+        testCase.Enabled = request.Enabled ?? testCase.Enabled;
         // Normalised, not taken verbatim: CaseValidation.Validate has already rejected anything that is
         // neither blank nor a known type, so this only fixes casing ("routing" -> "Routing") and
         // maps blank onto the default. Storing the caller's casing would break every later
         // Ordinal comparison against CaseTypes.Routing.
         testCase.CaseType = CaseTypes.Normalize(request.CaseType) ?? CaseTypes.Agent;
         testCase.EntryAgentId = string.IsNullOrWhiteSpace(request.EntryAgentId) ? null : request.EntryAgentId.Trim();
+        testCase.TemplateName = string.IsNullOrWhiteSpace(request.TemplateName) ? null : request.TemplateName.Trim();
         testCase.Turns = request.Turns ?? [];
         testCase.Assertions = request.Assertions ?? [];
         testCase.InitialStates = request.InitialStates ?? [];
@@ -822,7 +839,63 @@ public class AgentTestController : ControllerBase
         }
 
         var agent = await _agents.GetAgent(request.EntryAgentId.Trim());
-        return agent == null ? $"entry agent {request.EntryAgentId} not found" : null;
+        if (agent == null)
+        {
+            return $"entry agent {request.EntryAgentId} not found";
+        }
+
+        var isTemplateCase = string.Equals(
+            CaseTypes.Normalize(request.CaseType), CaseTypes.Template, StringComparison.Ordinal);
+        if (isTemplateCase
+            && !string.IsNullOrWhiteSpace(request.TemplateName)
+            // Ordinal, as AgentService.RenderTemplate looks templates up with ==: a name that only
+            // matches ignoring case would save fine and then render an empty instruction.
+            && agent.Templates?.Any(t => string.Equals(t.Name, request.TemplateName.Trim(), StringComparison.Ordinal)) != true)
+        {
+            return $"agent {agent.Name} has no template '{request.TemplateName}'";
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// The run queue is in-process, so a run whose host died stays Running in the database. A live
+    /// executor stamps UpdateDate every AgentTestRunExecutor.HeartbeatInterval (30s), so this long
+    /// without one means nothing is executing it any more.
+    /// </summary>
+    private static readonly TimeSpan AbandonedAfter = TimeSpan.FromMinutes(3);
+
+    /// <summary>
+    /// Fails a Running run whose heartbeat stopped, and returns the run as it now stands. Checked
+    /// when a run is read rather than swept on host startup: hosts share one database, and a sweep
+    /// cannot tell another host's live run from a dead one.
+    /// </summary>
+    private async Task<AgentTestRun> FailIfAbandonedAsync(AgentTestRun run)
+    {
+        if (run.Status != AgentTestStatus.Running)
+        {
+            return run;
+        }
+
+        var lastProgress = run.UpdateDate ?? run.StartedAt ?? run.CreateDate;
+        if (DateTime.UtcNow - lastProgress <= AbandonedAfter)
+        {
+            return run;
+        }
+
+        var error = $"The run stopped reporting progress for over {AbandonedAfter.TotalMinutes:0} minutes, so "
+            + "the host running it has stopped. The queue is in-process and does not survive a restart -- "
+            + "trigger the run again.";
+        if (!await _repo.TryAbandonRunAsync(run.Id, run.UpdateDate, error))
+        {
+            // The executor wrote since this copy was read: it is alive, or already finished.
+            return await _repo.GetRunAsync(run.Id) ?? run;
+        }
+
+        run.Status = AgentTestStatus.Error;
+        run.Error = error;
+        run.CompletedAt = DateTime.UtcNow;
+        return run;
     }
 
     private static bool IsTerminalStatus(string status) =>

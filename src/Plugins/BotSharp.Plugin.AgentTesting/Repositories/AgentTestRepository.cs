@@ -24,15 +24,31 @@ public interface IAgentTestRepository
     Task<List<AgentTestRun>> ListRunsAsync(string? suiteId);
 
     /// <summary>
-    /// Bounded counterpart to <see cref="ListRunsAsync"/> for the startup reconciliation sweep
-    /// (AgentTestRunQueue.ReconcileStaleRunningRunsAsync), which only ever cares about one status
-    /// (AgentTestStatus.Running) across every suite -- ListRunsAsync(null) would otherwise pull
-    /// the entire, ever-growing AgentTestRuns collection into memory on every host startup just to
-    /// filter it down to a handful of rows client-side.
+    /// Whole-document replace that never reverts CancelRequested: if a cancel landed after
+    /// <paramref name="run"/> was read, the write keeps it and sets it on <paramref name="run"/>.
+    /// Stamps UpdateDate.
     /// </summary>
-    Task<List<AgentTestRun>> ListRunsByStatusAsync(string status);
-
     Task UpdateRunAsync(AgentTestRun run);
+
+    /// <summary>
+    /// Sets CancelRequested on a Pending or Running run and touches no other field. False when the
+    /// run does not exist or has already finished.
+    /// </summary>
+    Task<bool> RequestRunCancelAsync(string id);
+
+    /// <summary>
+    /// Stamps UpdateDate on a Running run and touches no other field. False when the run is gone or
+    /// no longer Running.
+    /// </summary>
+    Task<bool> TouchRunAsync(string id);
+
+    /// <summary>
+    /// Marks a Running run Error only while its UpdateDate still equals
+    /// <paramref name="observedUpdateDate"/>, setting just Status, Error and CompletedAt. False when
+    /// the executor wrote anything since it was observed, so a stale copy never overwrites newer
+    /// progress or a terminal status.
+    /// </summary>
+    Task<bool> TryAbandonRunAsync(string id, DateTime? observedUpdateDate, string error);
 
     /// <summary>
     /// Removes a run and every case result belonging to it, and reports how many results went with
@@ -151,13 +167,52 @@ public class AgentTestRepository : IAgentTestRepository
             .ToListAsync();
     }
 
-    public async Task<List<AgentTestRun>> ListRunsByStatusAsync(string status)
-        => await _mongoDbContext.AgentTestRuns
-            .Find(x => x.Status == status)
-            .ToListAsync();
-
     public async Task UpdateRunAsync(AgentTestRun run)
-        => await _mongoDbContext.AgentTestRuns.ReplaceOneAsync(x => x.Id == run.Id, run);
+    {
+        run.UpdateDate = DateTime.UtcNow;
+
+        // CancelRequested is the one field written outside the executor, and it only ever goes
+        // false -> true. Replacing only while the stored flag still matches ours means a cancel that
+        // arrived after this copy was read is never overwritten; on a miss, carry it over and write.
+        var replaced = await _mongoDbContext.AgentTestRuns.ReplaceOneAsync(
+            x => x.Id == run.Id && x.CancelRequested == run.CancelRequested, run);
+
+        if (replaced.MatchedCount == 0 && !run.CancelRequested)
+        {
+            run.CancelRequested = true;
+            await _mongoDbContext.AgentTestRuns.ReplaceOneAsync(x => x.Id == run.Id, run);
+        }
+    }
+
+    public async Task<bool> RequestRunCancelAsync(string id)
+    {
+        var updated = await _mongoDbContext.AgentTestRuns.UpdateOneAsync(
+            x => x.Id == id && (x.Status == AgentTestStatus.Pending || x.Status == AgentTestStatus.Running),
+            Builders<AgentTestRun>.Update.Set(x => x.CancelRequested, true));
+        return updated.MatchedCount > 0;
+    }
+
+    public async Task<bool> TouchRunAsync(string id)
+    {
+        var updated = await _mongoDbContext.AgentTestRuns.UpdateOneAsync(
+            x => x.Id == id && x.Status == AgentTestStatus.Running,
+            Builders<AgentTestRun>.Update.Set(x => x.UpdateDate, DateTime.UtcNow));
+        return updated.MatchedCount > 0;
+    }
+
+    public async Task<bool> TryAbandonRunAsync(string id, DateTime? observedUpdateDate, string error)
+    {
+        // observedUpdateDate was read back from this collection, so it carries the stored
+        // millisecond precision and compares equal. Null matches a run written before UpdateDate
+        // existed.
+        var updated = await _mongoDbContext.AgentTestRuns.UpdateOneAsync(
+            x => x.Id == id && x.Status == AgentTestStatus.Running && x.UpdateDate == observedUpdateDate,
+            Builders<AgentTestRun>.Update
+                .Set(x => x.Status, AgentTestStatus.Error)
+                .Set(x => x.Error, error)
+                .Set(x => x.CompletedAt, DateTime.UtcNow));
+        return updated.MatchedCount > 0;
+    }
 
     public async Task<long> DeleteRunAsync(string id)
     {

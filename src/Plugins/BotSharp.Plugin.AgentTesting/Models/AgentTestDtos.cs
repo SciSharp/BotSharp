@@ -43,7 +43,9 @@ public class AgentTestCaseUpsertRequest
 {
     public string SuiteId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
-    public bool Enabled { get; set; } = true;
+
+    /// <summary>Null keeps the current value on update; a new case defaults to enabled.</summary>
+    public bool? Enabled { get; set; }
 
     /// <summary>
     /// See <see cref="CaseTypes"/>. Blank or omitted means Agent, so an existing client that never
@@ -66,6 +68,9 @@ public class AgentTestCaseUpsertRequest
     /// otherwise turn every run of the case into an opaque infrastructure Error.
     /// </summary>
     public string? EntryAgentId { get; set; }
+
+    /// <summary>See <see cref="AgentTestCase.TemplateName"/>. Required for a Template case.</summary>
+    public string? TemplateName { get; set; }
 
     public List<TestTurn> Turns { get; set; } = [];
     public List<TestAssertion> Assertions { get; set; } = [];

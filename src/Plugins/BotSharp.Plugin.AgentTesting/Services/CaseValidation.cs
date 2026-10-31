@@ -80,7 +80,39 @@ public static class CaseValidation
             }
         }
 
-        return ValidateRoutingCase(caseType ?? CaseTypes.Agent, request, allAssertions);
+        return ValidateRoutingCase(caseType ?? CaseTypes.Agent, request, allAssertions)
+            ?? ValidateTemplateCase(caseType ?? CaseTypes.Agent, request);
+    }
+
+    /// <summary>
+    /// The entry agent is required rather than falling back to the suite's, so the controller can
+    /// check the template exists on a known agent at save time instead of every run failing on it.
+    /// History is rejected because a template call never reads the dialog: it would be silently
+    /// ignored and the case would test a context it never had.
+    /// </summary>
+    private static string? ValidateTemplateCase(string caseType, AgentTestCaseUpsertRequest request)
+    {
+        if (!string.Equals(caseType, CaseTypes.Template, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.EntryAgentId))
+        {
+            return "a Template case needs an entryAgentId: the agent that owns the template";
+        }
+
+        if (string.IsNullOrWhiteSpace(request.TemplateName))
+        {
+            return "a Template case needs a templateName";
+        }
+
+        if ((request.History ?? []).Count > 0)
+        {
+            return "a Template case cannot have history: a template call does not read the conversation";
+        }
+
+        return null;
     }
 
     /// <summary>

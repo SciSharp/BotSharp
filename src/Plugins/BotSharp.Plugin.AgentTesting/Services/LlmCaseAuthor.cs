@@ -415,6 +415,11 @@ public class LlmCaseAuthor : ICaseAuthor
                 {
                     Apply(merged, attempt.Draft, field);
                 }
+
+                if (attempt.DeclaredFields.Contains(AuthorFields.Turns))
+                {
+                    RestoreTurnFiles(baseline.Turns, merged.Turns, warnings);
+                }
             }
         }
 
@@ -451,6 +456,7 @@ public class LlmCaseAuthor : ICaseAuthor
             case AuthorFields.Enabled: target.Enabled = source.Enabled; break;
             case AuthorFields.CaseType: target.CaseType = source.CaseType; break;
             case AuthorFields.EntryAgentId: target.EntryAgentId = source.EntryAgentId; break;
+            case AuthorFields.TemplateName: target.TemplateName = source.TemplateName; break;
             case AuthorFields.Turns: target.Turns = source.Turns ?? []; break;
             case AuthorFields.Assertions: target.Assertions = source.Assertions ?? []; break;
             case AuthorFields.InitialStates: target.InitialStates = source.InitialStates ?? []; break;
@@ -467,10 +473,44 @@ public class LlmCaseAuthor : ICaseAuthor
     }
 
     /// <summary>
+    /// A model rewriting turns tends to copy back only what the prompt talks about, and the files a
+    /// turn attaches are easy to leave out -- the turn then runs without them and nothing says so.
+    /// With the same number of turns a turn is the same turn, so an empty file list is filled from
+    /// the baseline; once turns were added or removed the positions no longer line up, so a loss is
+    /// only reported.
+    /// </summary>
+    private static void RestoreTurnFiles(List<TestTurn>? baseline, List<TestTurn>? merged, List<string> warnings)
+    {
+        baseline ??= [];
+        merged ??= [];
+
+        if (baseline.Count == merged.Count)
+        {
+            for (var i = 0; i < merged.Count; i++)
+            {
+                if ((merged[i].Files ?? []).Count == 0 && (baseline[i].Files ?? []).Count > 0)
+                {
+                    merged[i].Files = baseline[i].Files;
+                }
+            }
+            return;
+        }
+
+        var before = baseline.Sum(t => (t.Files ?? []).Count);
+        var after = merged.Sum(t => (t.Files ?? []).Count);
+        if (after < before)
+        {
+            warnings.Add($"the turns now attach {after} file(s) where they attached {before}; "
+                       + "check each turn's files");
+        }
+    }
+
+    /// <summary>
     /// Corrects what is provably wrong and flags what is merely suspect.
     ///
-    /// The split matters. A function name is authoritative -- it comes from the agent definition, so a
-    /// mock naming something else can never match and is dropped. A state key is not: nothing in this
+    /// The split matters. Only a mock with no function name is provably wrong and dropped. A function
+    /// the entry agent lacks is merely suspect: a routed-to agent may call it, and mocks match across
+    /// every agent in the conversation. A state key is the same: nothing in this
     /// system enumerates the keys an agent writes (a state value records the message it was written
     /// on and a coarse source, never a function name), so the only key list available is the one
     /// other cases in this suite happen to use. Dropping a key for being absent from an admittedly
@@ -488,11 +528,18 @@ public class LlmCaseAuthor : ICaseAuthor
         var keptMocks = new List<TestToolMock>();
         foreach (var mock in draft.Mocks ?? [])
         {
-            if (string.IsNullOrWhiteSpace(mock.FunctionName) || !callable.Contains(mock.FunctionName))
+            if (string.IsNullOrWhiteSpace(mock.FunctionName))
             {
-                warnings.Add($"dropped a mock for '{mock.FunctionName}': this agent has no such function, "
-                           + "so the mock could never match at run time");
+                warnings.Add("dropped a mock with no function name: it could never match at run time");
                 continue;
+            }
+
+            // Kept, not dropped: mocks match by function name for every agent in the conversation,
+            // so a mock for a function of an agent the entry agent routes to is valid and needed.
+            if (!callable.Contains(mock.FunctionName))
+            {
+                warnings.Add($"the entry agent has no function '{mock.FunctionName}'; the mock was kept "
+                           + "because a routed-to agent may call it -- check the name");
             }
 
             keptMocks.Add(mock);
@@ -577,11 +624,12 @@ public class LlmCaseAuthor : ICaseAuthor
                 string.Equals(assertion.Type, AssertionTypes.ToolCalled, StringComparison.Ordinal)
                 || string.Equals(assertion.Type, AssertionTypes.ToolNotCalled, StringComparison.Ordinal);
 
+            // Warned, not dropped, for the same reason as mocks in Sanitise: a routed-to agent's
+            // calls are observed too.
             if (isToolAssertion && !string.IsNullOrWhiteSpace(assertion.Target) && !callable.Contains(assertion.Target!))
             {
-                warnings.Add($"dropped a {assertion.Type} assertion on {where}: this agent has no function "
-                           + $"called '{assertion.Target}'");
-                continue;
+                warnings.Add($"the {assertion.Type} assertion on {where} names '{assertion.Target}', which the "
+                           + "entry agent has no function for; kept because a routed-to agent may call it -- check the name");
             }
 
             kept.Add(assertion);
@@ -620,6 +668,7 @@ public class LlmCaseAuthor : ICaseAuthor
         AuthorFields.Enabled => draft.Enabled,
         AuthorFields.CaseType => draft.CaseType,
         AuthorFields.EntryAgentId => draft.EntryAgentId,
+        AuthorFields.TemplateName => draft.TemplateName,
         AuthorFields.Turns => draft.Turns,
         AuthorFields.Assertions => draft.Assertions,
         AuthorFields.InitialStates => draft.InitialStates,
@@ -851,6 +900,8 @@ public class LlmCaseAuthor : ICaseAuthor
             - caseType "Routing" means "did the router pick the right agent": exactly one turn, at
               least one routedToAgent or agentChain assertion, and no llmJudge.
             - caseType "Agent" is everything else, including multi-agent journeys.
+            - caseType "Template" calls one template of the entry agent directly: it needs
+              entryAgentId and templateName, and no history.
             - priority P0/P1/P2 decides which batch runs first; severity S0/S1/S2 says what a failure
               means. Leave them at P1/S1 unless the user says otherwise.
 
