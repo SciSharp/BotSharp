@@ -80,6 +80,15 @@ public interface ITwilioSessionHook : IHookBase
         => Task.CompletedTask;
 
     /// <summary>
+    /// The caller hung up while talking to the agent (a ConversationRelay session ended with the call completed and no
+    /// handoff from the agent)
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    Task OnCallerHangUp(ConversationalVoiceRequest request)
+        => Task.CompletedTask;
+
+    /// <summary>
     /// Before agent transferred
     /// </summary>
     /// <param name="request"></param>

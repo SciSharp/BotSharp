@@ -63,6 +63,11 @@ public class TwilioConversationRelayController : TwilioController
             await HookEmitter.Emit<ITwilioSessionHook>(_services,
                 async hook => await hook.OnAgentHangUp(request), request.AgentId);
         }
+        else if (!callStillUp)
+        {
+            await HookEmitter.Emit<ITwilioSessionHook>(_services,
+                async hook => await hook.OnCallerHangUp(request), request.AgentId);
+        }
 
         var response = new VoiceResponse();
         response.Hangup();
