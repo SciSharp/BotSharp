@@ -99,6 +99,14 @@ public static class TwilioConversationProcessor
             // Read live while the turn runs, so a tool that turns it on (a confirmation number coming up) covers what
             // the agent says after it in the same turn
             callbacks.KeepUninterrupted = () => conv.States.GetState(ConversationRelayStates.KeepUninterrupted) == "true";
+            if (callbacks.LastReplyCutOff)
+            {
+                conv.States.SetState(ConversationRelayStates.LastReplyCutOff, "true", source: StateSource.Application);
+            }
+            else
+            {
+                conv.States.RemoveState(ConversationRelayStates.LastReplyCutOff);
+            }
             if (callbacks.OnTurnStarted != null)
             {
                 await callbacks.OnTurnStarted();

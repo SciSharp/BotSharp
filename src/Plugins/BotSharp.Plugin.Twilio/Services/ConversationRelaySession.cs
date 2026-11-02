@@ -80,6 +80,11 @@ public class ConversationRelaySession
     // are answered together in the next turn
     private bool _superseded;
 
+    // Text was said once the last turn was over (text a tool gave), and whether the caller cut into it; the next turn is
+    // told (AgentTurnCallbacks.LastReplyCutOff), as the history keeps that text whole
+    private bool _spokeAfterTurn;
+    private bool _cutAfterTurn;
+
     private string? _callSid;
     private string? _from;
     private string? _to;
@@ -264,6 +269,11 @@ public class ConversationRelaySession
                         _cutInMidReply = true;
                         _heardBeforeCutIn = GetString(root, "utteranceUntilInterrupt");
                     }
+
+                    if (_spokeAfterTurn && !_ended)
+                    {
+                        _cutAfterTurn = true;
+                    }
                 }
                 var interruptedAfter = GetString(root, "durationUntilInterruptMs");
                 _logger.LogInformation(
@@ -425,6 +435,9 @@ public class ConversationRelaySession
                 _toolCalledThisTurn = false;
                 _turnFromKeypad = message.Digits != null;
                 _superseded = false;
+                callbacks.LastReplyCutOff = _cutAfterTurn;
+                _spokeAfterTurn = false;
+                _cutAfterTurn = false;
                 // Set with the flags above, so caller input arriving now never sees the last turn's callbacks
                 _turnCallbacks = callbacks;
             }
@@ -490,7 +503,16 @@ public class ConversationRelaySession
                 continue;
             }
 
-            await SpeakAsync(GetUnstreamedText(reply.Content), keepUninterrupted: reply.KeepUninterrupted);
+            var unstreamed = GetUnstreamedText(reply.Content);
+            if (!string.IsNullOrWhiteSpace(unstreamed))
+            {
+                // Before it goes out: the caller may cut in as soon as it starts playing
+                lock (_sync)
+                {
+                    _spokeAfterTurn = true;
+                }
+            }
+            await SpeakAsync(unstreamed, keepUninterrupted: reply.KeepUninterrupted);
             if (reply.HumanIntervationNeeded)
             {
                 await EndAsync(ConversationRelayHandoff.Transfer);
