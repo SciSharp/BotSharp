@@ -747,7 +747,8 @@ public class ConversationRelaySession
             return content;
         }
 
-        if (!string.IsNullOrEmpty(heard) && sent.StartsWith(heard, StringComparison.Ordinal))
+        // Empty when the caller cut in before any of it played: then none of it was heard
+        if (heard != null && sent.StartsWith(heard, StringComparison.Ordinal))
         {
             sent = heard;
         }
@@ -758,9 +759,12 @@ public class ConversationRelaySession
         }
 
         var unheard = final.Substring(sent.Length).Trim();
-        return unheard.Length == 0
-            ? content
-            : $"{sent} [the caller cut in here; they did not hear: \"{unheard}\"]";
+        if (unheard.Length == 0)
+        {
+            return content;
+        }
+        var mark = $"[the caller cut in here; they did not hear: \"{unheard}\"]";
+        return sent.Length == 0 ? mark : $"{sent} {mark}";
     }
 
     /// <summary>
