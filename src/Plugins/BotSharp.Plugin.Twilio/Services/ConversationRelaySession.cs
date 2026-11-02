@@ -52,6 +52,8 @@ public class ConversationRelaySession
     private bool _streamedThisTurn;
     private bool _dropStream;
     private bool _cutInMidReply;
+    // What Twilio says it had spoken of the utterance when the caller cut in (utteranceUntilInterrupt)
+    private string? _heardBeforeCutIn;
 
     // The current turn's callbacks, for what the flow wants of the reply as it goes out
     private AgentTurnCallbacks? _turnCallbacks;
@@ -253,11 +255,14 @@ public class ConversationRelaySession
                 {
                     _quietSinceUtc = DateTime.UtcNow;
 
-                    // The caller talked over a reply still being streamed: don't send the rest of it
-                    if (_isProcessing && _streamedThisTurn)
+                    // The caller talked over a reply still being streamed: don't send the rest of it. A stream already
+                    // dropped (the turn timed out and the apology is playing, or the caller cut in before) or a
+                    // session that ended is not cut in on again
+                    if (_isProcessing && _streamedThisTurn && !_dropStream && !_ended)
                     {
                         _dropStream = true;
                         _cutInMidReply = true;
+                        _heardBeforeCutIn = GetString(root, "utteranceUntilInterrupt");
                     }
                 }
                 var interruptedAfter = GetString(root, "durationUntilInterruptMs");
@@ -413,6 +418,7 @@ public class ConversationRelaySession
                 _streamedThisTurn = false;
                 _dropStream = false;
                 _cutInMidReply = false;
+                _heardBeforeCutIn = null;
                 _turnReplied = false;
                 _turnStartedUtc = DateTime.UtcNow;
                 _spokeThisTurn = false;
@@ -707,14 +713,17 @@ public class ConversationRelaySession
     /// mark naming the rest, so the next turn knows the caller never heard it. Every other reply is kept as it is.
     /// </summary>
     /// <remarks>
-    /// Only a reply cut off while it was still being streamed can be marked: once the whole reply is out, Twilio
-    /// holds the text it has yet to speak and a cut-in there leaves nothing of ours to go by. A reply dropped because
-    /// the caller went on talking first is marked as never said, so the next turn doesn't take it as heard.
+    /// Only a reply cut off before the turn is over can be marked: once it is over, the history has taken the reply.
+    /// Text goes out faster than it is spoken, so the cut is placed where Twilio says playback stopped; when Twilio
+    /// doesn't say, or what it says is not the start of what went out, the cut falls where the sending stopped. A reply
+    /// dropped because the caller went on talking first is marked as never said, so the next turn doesn't take it as
+    /// heard.
     /// </remarks>
     private string MarkWhatTheCallerCutOff(string content)
     {
         var final = content?.Trim() ?? string.Empty;
         string sent;
+        string? heard;
         lock (_sync)
         {
             if (_superseded)
@@ -728,6 +737,7 @@ public class ConversationRelaySession
                 return content;
             }
             sent = (_utteranceOpen ? _streamSegment.ToString() : _lastStreamSegment).Trim();
+            heard = _heardBeforeCutIn?.Trim();
         }
 
         // The reply is not what was streamed (text set by a tool, or a reply rewritten after the model wrote it),
@@ -735,6 +745,16 @@ public class ConversationRelaySession
         if (sent.Length == 0 || !final.StartsWith(sent, StringComparison.Ordinal))
         {
             return content;
+        }
+
+        if (!string.IsNullOrEmpty(heard) && sent.StartsWith(heard, StringComparison.Ordinal))
+        {
+            sent = heard;
+        }
+        else
+        {
+            _logger.LogInformation($"Where playback stopped in conversation {_conversationId} doesn't match the " +
+                "reply that went out; marking the cut where the sending stopped.");
         }
 
         var unheard = final.Substring(sent.Length).Trim();
