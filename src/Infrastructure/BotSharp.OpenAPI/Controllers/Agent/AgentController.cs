@@ -129,6 +129,12 @@ public partial class AgentController : ControllerBase
             {
                 return Conflict($"Agent {agent.Id} already exists.");
             }
+
+            var sameName = await db.GetAgents(new AgentFilter { AgentNames = [agent.Name] });
+            if (sameName.Any())
+            {
+                return Conflict($"Agent named \"{agent.Name}\" already exists.");
+            }
         }
 
         var createdAgent = await _agentService.CreateAgent(agent.ToAgent());

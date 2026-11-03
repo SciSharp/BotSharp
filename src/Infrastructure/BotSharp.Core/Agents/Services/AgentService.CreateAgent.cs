@@ -11,16 +11,11 @@ public partial class AgentService
     public async Task<Agent> CreateAgent(Agent agent)
     {
         var userIdentity = _services.GetRequiredService<IUserIdentity>();
-
-        // An explicit id identifies the agent, so skip reusing an existing agent by name
-        if (string.IsNullOrEmpty(agent.Id))
+        var userAgents = await _db.GetUserAgents(userIdentity.Id);
+        var found = userAgents?.FirstOrDefault(x => x.Agent != null && x.Agent.Name.IsEqualTo(agent.Name));
+        if (found != null)
         {
-            var userAgents = await _db.GetUserAgents(userIdentity.Id);
-            var found = userAgents?.FirstOrDefault(x => x.Agent != null && x.Agent.Name.IsEqualTo(agent.Name));
-            if (found != null)
-            {
-                return found.Agent;
-            }
+            return found.Agent;
         }
 
         var agentRecord = Agent.Clone(agent);
