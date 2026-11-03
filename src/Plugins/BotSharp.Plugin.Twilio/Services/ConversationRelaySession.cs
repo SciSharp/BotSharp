@@ -35,6 +35,8 @@ public class ConversationRelaySession
     private readonly StringBuilder _partialPrompt = new();
     private bool _isProcessing;
     private Task _processing = Task.CompletedTask;
+    // A turn given up on after AiResponseTimeoutSeconds keeps running until it saves the conversation
+    private Task _timedOutTurn = Task.CompletedTask;
     private int _seqNum;
     private int _idlePrompts;
     private bool _ended;
@@ -151,8 +153,9 @@ public class ConversationRelaySession
             }
         }
 
-        // Let a turn already running finish so the conversation is saved
+        // Let a turn already running finish so the conversation is saved, as well as one that ran past the timeout
         await SwallowAsync(_processing);
+        await SwallowAsync(_timedOutTurn);
     }
 
     private async Task ReceiveLoopAsync(CancellationToken cancellationToken)
@@ -475,6 +478,7 @@ public class ConversationRelaySession
                 {
                     var timeoutSeconds = _settings.ConversationRelay.AiResponseTimeoutSeconds;
                     _logger.LogWarning($"Agent did not reply within {timeoutSeconds}s in conversation {_conversationId}.");
+                    _timedOutTurn = turn;
                     await FailAsync();
                     return;
                 }
@@ -971,17 +975,18 @@ public class ConversationRelaySession
     /// Whether an interrupt landed on the last line said after its turn. Call under <see cref="_sync"/>.
     /// </summary>
     /// <remarks>
-    /// Twilio's utteranceUntilInterrupt is the start of the utterance it was playing: when it is the start of the line,
-    /// the caller cut into the line, whatever was queued behind it. Otherwise (missing, empty, or another utterance's
-    /// words, such as a filler or a "say it again" prompt) it is the line only if nothing was said after it, since only
-    /// something playing can be interrupted.
+    /// Twilio's utteranceUntilInterrupt is what it had played of the utterance it was on: when it is the start of the
+    /// line, the caller cut into the line, whatever was queued behind it; when it is the whole line, the caller heard
+    /// all of it. Otherwise (missing, empty, or another utterance's words, such as a filler or a "say it again" prompt)
+    /// it is the line only if nothing was said after it, since only something playing can be interrupted.
     /// </remarks>
     private bool CutIntoAfterTurnLine(string? heard)
     {
         var playing = heard?.Trim();
-        if (!string.IsNullOrEmpty(playing) && _afterTurnLine!.Trim().StartsWith(playing, StringComparison.Ordinal))
+        var line = _afterTurnLine!.Trim();
+        if (!string.IsNullOrEmpty(playing) && line.StartsWith(playing, StringComparison.Ordinal))
         {
-            return true;
+            return playing.Length < line.Length;
         }
         return _saidCount == _afterTurnLineMark;
     }

@@ -66,7 +66,7 @@ public class TwilioConversationRelayController : TwilioController
             await HookEmitter.Emit<ITwilioSessionHook>(_services,
                 async hook => await hook.OnAgentHangUp(request), request.AgentId);
         }
-        else if (!callStillUp)
+        else if (action == null && !callStillUp)
         {
             // The WebSocket may still be finishing the turn the caller hung up on; it saves the conversation when it does
             var wait = TimeSpan.FromSeconds(_settings.ConversationRelay.CallerHangUpWaitSeconds);
