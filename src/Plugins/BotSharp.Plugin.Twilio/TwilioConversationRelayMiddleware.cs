@@ -50,7 +50,8 @@ public class TwilioConversationRelayMiddleware
         var session = new ConversationRelaySession(socket, agentId, conversationId, settings,
             (message, callbacks) => SendCallerMessageAsync(scopeFactory, message, callbacks),
             _logger);
-        await session.RunAsync(httpContext.RequestAborted);
+        await services.GetRequiredService<ConversationRelaySessions>()
+            .RunAsync(conversationId, () => session.RunAsync(httpContext.RequestAborted));
     }
 
     private static async Task<AssistantMessage?> SendCallerMessageAsync(

@@ -11,15 +11,18 @@ public class TwilioConversationRelayController : TwilioController
 {
     private readonly TwilioSetting _settings;
     private readonly IServiceProvider _services;
+    private readonly ConversationRelaySessions _sessions;
     private readonly ILogger _logger;
 
     public TwilioConversationRelayController(
         TwilioSetting settings,
         IServiceProvider services,
+        ConversationRelaySessions sessions,
         ILogger<TwilioConversationRelayController> logger)
     {
         _settings = settings;
         _services = services;
+        _sessions = sessions;
         _logger = logger;
     }
 
@@ -65,6 +68,15 @@ public class TwilioConversationRelayController : TwilioController
         }
         else if (!callStillUp)
         {
+            // The WebSocket may still be finishing the turn the caller hung up on; it saves the conversation when it does
+            var wait = TimeSpan.FromSeconds(_settings.ConversationRelay.CallerHangUpWaitSeconds);
+            if (!string.IsNullOrEmpty(request.ConversationId)
+                && !await _sessions.WaitForAsync(request.ConversationId, wait))
+            {
+                _logger.LogWarning($"ConversationRelay session for conversation {request.ConversationId} was still " +
+                    $"running {wait.TotalSeconds}s after the caller hung up; its last turn may not be saved yet.");
+            }
+
             await HookEmitter.Emit<ITwilioSessionHook>(_services,
                 async hook => await hook.OnCallerHangUp(request), request.AgentId);
         }
