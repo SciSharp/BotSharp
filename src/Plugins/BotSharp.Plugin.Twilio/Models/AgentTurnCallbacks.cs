@@ -45,6 +45,12 @@ public class AgentTurnCallbacks
     public Func<bool>? KeepUninterrupted { get; set; }
 
     /// <summary>
+    /// Whether the caller missed some of what the agent said after the previous turn was over: they cut into it, or
+    /// what this turn answers was said before it went out (<see cref="ConversationRelayStates.LastReplyCutOff"/>)
+    /// </summary>
+    public bool LastReplyCutOff { get; set; }
+
+    /// <summary>
     /// Called on the turn once it has read the conversation's states (<see cref="KeepUninterrupted"/> is set), before the
     /// agent hears the caller's words
     /// </summary>

@@ -65,6 +65,13 @@ public class ConversationRelaySetting
     public int MaxReconnects { get; set; } = 2;
 
     /// <summary>
+    /// Seconds the session-ended callback for a caller hanging up waits for the turn still running on this instance to
+    /// save the conversation before the hooks are told. Keep it under Twilio's 15-second webhook timeout; a session on
+    /// another instance is not waited for.
+    /// </summary>
+    public double CallerHangUpWaitSeconds { get; set; } = 10;
+
+    /// <summary>
     /// Verify the X-Twilio-Signature header of the WebSocket handshake. Needs Twilio:RequestValidation:AuthToken;
     /// without it every handshake is refused
     /// </summary>
