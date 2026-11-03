@@ -1,5 +1,5 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using System.Text.RegularExpressions;
-using BotSharp.Abstraction.Conversations.Settings;
 
 namespace BotSharp.Core.Conversations.Hooks;
 
@@ -43,11 +43,13 @@ public class ToolResultTrimHook : ConversationHookBase
         // A turn is a message id. The current one is left alone for a function that reloads the
         // history mid-turn.
         var currentMessageId = _services.GetRequiredService<IRoutingContext>().MessageId;
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var keepTurns = state.GetState(StateConst.TOOL_RESULT_KEEP_TURNS,setting.KeepTurns);
         var recentTurns = dialogs
             .Select(x => x.MessageId)
             .Where(x => !string.IsNullOrEmpty(x))
             .Distinct()
-            .TakeLast(Math.Max(setting.KeepTurns, 0))
+            .TakeLast(Math.Max(keepTurns, 0))
             .ToHashSet();
 
         var replies = dialogs

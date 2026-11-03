@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Conversations.Settings;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Conversations.Hooks;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,13 +25,17 @@ public class ToolResultTrimHookTests
     private const string RecentTurn = "turn-3";
     private const string CurrentTurn = "turn-4";
 
-    private static ToolResultTrimHook BuildHook(ConversationSetting settings, string currentMessageId)
+    private static ToolResultTrimHook BuildHook(ConversationSetting settings, string currentMessageId, string? stateKeepTurns = null)
     {
         var context = new Mock<IRoutingContext>();
         context.SetupGet(x => x.MessageId).Returns(currentMessageId);
 
+        var state = new Mock<IConversationStateService>();
+        state.Setup(x => x.GetState(StateConst.TOOL_RESULT_KEEP_TURNS,It.IsAny<string>())).Returns((string _, string defaultValue) => stateKeepTurns ?? defaultValue);
+
         var services = new ServiceCollection();
         services.AddSingleton(context.Object);
+        services.AddSingleton(state.Object);
 
         return new ToolResultTrimHook(
             services.BuildServiceProvider(),
@@ -97,6 +103,23 @@ public class ToolResultTrimHookTests
         Assert.True(dialogs[1].Content.Length < 4000);
         Assert.Equal(4000, dialogs[2].Content.Length);
         Assert.Equal(4000, dialogs[3].Content.Length);
+    }
+
+    [Fact]
+    public async Task Takes_keep_turns_from_the_conversation_state_over_the_setting()
+    {
+        var dialogs = new List<RoleDialogModel>
+        {
+            Tool(OldTurn, Rendered(4000)),
+            Tool(MiddleTurn, Rendered(4000)),
+            Tool(RecentTurn, Rendered(4000))
+        };
+
+        await BuildHook(Settings(keepTurns: 2), CurrentTurn, stateKeepTurns: "1").OnDialogsLoaded(dialogs);
+
+        Assert.True(dialogs[0].Content.Length < 4000);
+        Assert.True(dialogs[1].Content.Length < 4000);
+        Assert.Equal(4000, dialogs[2].Content.Length);
     }
 
     [Fact]

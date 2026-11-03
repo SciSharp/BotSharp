@@ -20,6 +20,11 @@ public static class StateConst
     /// </summary>
     public const string USE_STREAM_MESSAGE = "use_stream_message";
 
+    /// <summary>
+    /// Overrides <c>ToolResultTrimSetting.KeepTurns</c> for the conversation.
+    /// </summary>
+    public const string TOOL_RESULT_KEEP_TURNS = "tool_result_keep_turns";
+
     public const string SUB_CONVERSATION_ID = "sub_conversation_id";
     public const string ORIGIN_CONVERSATION_ID = "origin_conversation_id";
     public const string WEB_DRIVER_TASK_ID = "web_driver_task_id";
