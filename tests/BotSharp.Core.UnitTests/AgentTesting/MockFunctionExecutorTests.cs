@@ -69,6 +69,40 @@ public class MockFunctionExecutorTests
     }
 
     [Fact]
+    public async Task Fills_the_result_with_the_calls_own_arguments()
+    {
+        var run = Run(UnmockedToolPolicies.Block, new TestToolMock
+        {
+            FunctionName = "say_back",
+            ResultContent = "{{args.restatement}} You're at {{ args.address }}? ({{args.count}}, {{args.missing}})",
+            StopCompletion = true
+        });
+        var (executor, _) = Build(run, "say_back");
+        var message = Call("say_back", """{"restatement":"Got it, the sink is leaking.","address":"100 Main","count":2}""");
+
+        await executor.ExecuteAsync(message);
+
+        Assert.Equal("Got it, the sink is leaking. You're at 100 Main? (2, )", message.Content);
+        Assert.Equal(message.Content, run.ObservedCalls[0].ResultContent);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("not json")]
+    [InlineData("[1,2]")]
+    public void Arguments_that_are_not_an_object_fill_nothing(string? args)
+    {
+        Assert.Equal("Said: .", MockResultTemplate.Render("Said: {{args.restatement}}.", args));
+    }
+
+    [Fact]
+    public void A_result_without_placeholders_is_left_as_it_is()
+    {
+        const string json = """{"status":"Open","note":"{literal}"}""";
+        Assert.Equal(json, MockResultTemplate.Render(json, """{"status":"x"}"""));
+    }
+
+    [Fact]
     public async Task Applies_the_mocks_state_writes()
     {
         var run = Run(UnmockedToolPolicies.Block, new TestToolMock

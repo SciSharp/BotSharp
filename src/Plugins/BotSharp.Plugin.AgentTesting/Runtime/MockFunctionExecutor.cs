@@ -50,7 +50,8 @@ public class MockFunctionExecutor : IFunctionExecutor
             return Task.FromResult(false);
         }
 
-        message.Content = mock.ResultContent;
+        var content = MockResultTemplate.Render(mock.ResultContent, message.FunctionArgs);
+        message.Content = content;
         if (mock.StopCompletion)
         {
             message.StopCompletion = true;
@@ -67,7 +68,7 @@ public class MockFunctionExecutor : IFunctionExecutor
             FunctionName = _functionName,
             ArgsJson = message.FunctionArgs,
             Outcome = "Mocked",
-            ResultContent = mock.ResultContent
+            ResultContent = content
         });
 
         return Task.FromResult(true);
