@@ -12,9 +12,9 @@ public static class ConversationRelayStates
     public const string KeepUninterrupted = "twilio_relay_keep_uninterrupted";
 
     /// <summary>
-    /// "true" for a turn whose caller cut into what the agent said once the turn before was over (text a tool gave,
-    /// spoken after the turn): the history keeps that text whole, so this is the only sign the caller missed some of it.
-    /// Set by the session at the start of every turn.
+    /// "true" for a turn whose caller missed some of what the agent said once the turn before was over (text a tool gave,
+    /// spoken after the turn): they cut into it, or what the turn answers was said before it went out. The history keeps
+    /// that text whole, so this is the only sign. Set by the session at the start of every turn.
     /// </summary>
     public const string LastReplyCutOff = "twilio_relay_last_reply_cut_off";
 }

@@ -80,10 +80,17 @@ public class ConversationRelaySession
     // are answered together in the next turn
     private bool _superseded;
 
-    // Text was said once the last turn was over (text a tool gave), and whether the caller cut into it; the next turn is
-    // told (AgentTurnCallbacks.LastReplyCutOff), as the history keeps that text whole
-    private bool _spokeAfterTurn;
+    // The last line said once its turn was over (text a tool gave), and whether the caller cut into it; the next turn is
+    // told (AgentTurnCallbacks.LastReplyCutOff), as the history keeps that text whole. The line is kept past the next
+    // turn's start: Twilio may still be playing it while that turn runs.
+    private string? _afterTurnLine;
+    private DateTime _afterTurnLineSentUtc;
+    // _saidCount once the line went out: anything said since moves it on, and an interrupt is then not the line's
+    private int _afterTurnLineMark;
     private bool _cutAfterTurn;
+
+    // Bumped on everything sent for the caller to hear (a line, a streamed piece, a filler, a prompt)
+    private int _saidCount;
 
     private string? _callSid;
     private string? _from;
@@ -270,7 +277,7 @@ public class ConversationRelaySession
                         _heardBeforeCutIn = GetString(root, "utteranceUntilInterrupt");
                     }
 
-                    if (_spokeAfterTurn && !_ended)
+                    if (_afterTurnLine != null && !_ended && CutIntoAfterTurnLine(GetString(root, "utteranceUntilInterrupt")))
                     {
                         _cutAfterTurn = true;
                     }
@@ -299,7 +306,7 @@ public class ConversationRelaySession
                 return;
             }
 
-            _pendingInputs.Enqueue(new PendingInput(content, digits));
+            _pendingInputs.Enqueue(new PendingInput(content, digits, DateTime.UtcNow));
             _quietSinceUtc = DateTime.UtcNow;
             _idlePrompts = 0;
             _activity++;
@@ -314,6 +321,11 @@ public class ConversationRelaySession
                 _superseded = true;
                 _dropStream = true;
                 supersede = _turnCallbacks;
+                // The turn taking its place is told instead: the dropped turn said nothing that replaced the line
+                if (supersede!.LastReplyCutOff)
+                {
+                    _cutAfterTurn = true;
+                }
             }
         }
 
@@ -435,8 +447,9 @@ public class ConversationRelaySession
                 _toolCalledThisTurn = false;
                 _turnFromKeypad = message.Digits != null;
                 _superseded = false;
-                callbacks.LastReplyCutOff = _cutAfterTurn;
-                _spokeAfterTurn = false;
+                // Words that came in before the line went out (said while the last turn worked) can't answer it either
+                callbacks.LastReplyCutOff = _cutAfterTurn
+                    || _afterTurnLine != null && batch.Any(input => input.ReceivedUtc < _afterTurnLineSentUtc);
                 _cutAfterTurn = false;
                 // Set with the flags above, so caller input arriving now never sees the last turn's callbacks
                 _turnCallbacks = callbacks;
@@ -503,16 +516,16 @@ public class ConversationRelaySession
                 continue;
             }
 
+            // Noted once the send lock is held, as it goes out: an interrupt of something said before it isn't its
             var unstreamed = GetUnstreamedText(reply.Content);
-            if (!string.IsNullOrWhiteSpace(unstreamed))
+            await SpeakAsync(unstreamed, canSpeak: () =>
             {
-                // Before it goes out: the caller may cut in as soon as it starts playing
-                lock (_sync)
-                {
-                    _spokeAfterTurn = true;
-                }
-            }
-            await SpeakAsync(unstreamed, keepUninterrupted: reply.KeepUninterrupted);
+                _afterTurnLine = unstreamed;
+                _afterTurnLineSentUtc = DateTime.UtcNow;
+                // MarkSpeaking, right after this, counts the line itself
+                _afterTurnLineMark = _saidCount + 1;
+                return true;
+            }, keepUninterrupted: reply.KeepUninterrupted);
             if (reply.HumanIntervationNeeded)
             {
                 await EndAsync(ConversationRelayHandoff.Transfer);
@@ -687,6 +700,7 @@ public class ConversationRelaySession
             _streamSegment.Append(text);
             _utteranceOpen = true;
             _streamedThisTurn = true;
+            _saidCount++;
             _utteranceKeptUninterrupted = keep;
             return true;
         }, TextFrame(text, last: false, keep));
@@ -951,7 +965,26 @@ public class ConversationRelaySession
         await SendAsync(new { type = "end", handoffData = JsonSerializer.Serialize(new { action }) });
     }
 
-    private record PendingInput(string Content, string? Digits);
+    private record PendingInput(string Content, string? Digits, DateTime ReceivedUtc);
+
+    /// <summary>
+    /// Whether an interrupt landed on the last line said after its turn. Call under <see cref="_sync"/>.
+    /// </summary>
+    /// <remarks>
+    /// Twilio's utteranceUntilInterrupt is the start of the utterance it was playing: when it is the start of the line,
+    /// the caller cut into the line, whatever was queued behind it. Otherwise (missing, empty, or another utterance's
+    /// words, such as a filler or a "say it again" prompt) it is the line only if nothing was said after it, since only
+    /// something playing can be interrupted.
+    /// </remarks>
+    private bool CutIntoAfterTurnLine(string? heard)
+    {
+        var playing = heard?.Trim();
+        if (!string.IsNullOrEmpty(playing) && _afterTurnLine!.Trim().StartsWith(playing, StringComparison.Ordinal))
+        {
+            return true;
+        }
+        return _saidCount == _afterTurnLineMark;
+    }
 
     private async Task SendAsync(object payload)
     {
@@ -1020,6 +1053,7 @@ public class ConversationRelaySession
     private void MarkSpeaking(TimeSpan duration)
     {
         _spokeThisTurn = true;
+        _saidCount++;
         var now = DateTime.UtcNow;
         var start = _quietSinceUtc == DateTime.MaxValue || _quietSinceUtc < now ? now : _quietSinceUtc;
         _quietSinceUtc = start + duration;
