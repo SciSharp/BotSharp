@@ -22,6 +22,7 @@ public class TwilioService
 {
     private const string TextSpeechExtension = ".txt";
     private const string AudioSpeechExtension = ".mp3";
+    private const string RealtimeAgentLabel = "realtime";
 
     private readonly TwilioSetting _settings;
     private readonly IServiceProvider _services;
@@ -238,14 +239,14 @@ public class TwilioService
         if (_settings.TranscribeEnabled)
         {
             var words = new List<string>();
-            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)), 
+            HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)),
                 agent.Id);
             var hints = string.Join(", ", words);
             var start = new Start();
             start.Transcription(
                 track: "inbound_track",
                 partialResults: false,
-                statusCallbackUrl: $"{_settings.CallbackHost}/twilio/transcribe?agent-id={conversationalVoiceResponse.AgentId}&conversation-id={conversationId}", 
+                statusCallbackUrl: $"{_settings.CallbackHost}/twilio/transcribe?agent-id={conversationalVoiceResponse.AgentId}&conversation-id={conversationId}",
                 name: conversationId,
                 hints: hints);
             response.Append(start);
@@ -255,7 +256,7 @@ public class TwilioService
         {
             foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
             {
-                AppendSpeech(response, conversationId, speechPath);
+                AppendSpeech(response, conversationId, speechPath, preferRecording: true);
             }
         }
 
@@ -409,20 +410,35 @@ public class TwilioService
     /// Saves the speech of a text in the conversation and returns its file name: a text file spoken later with Say
     /// when SayGeneratedSpeech is on, otherwise an mp3 from the audio synthesizer.
     /// </summary>
-    public async Task<string> SaveSpeechAsync(string conversationId, string name, string text, bool reuseExisting = false)
+    /// <param name="preferAudio">
+    /// Synthesizes the mp3 even when SayGeneratedSpeech is on, for a call whose own voice Say cannot match, such as a
+    /// realtime call.
+    /// </param>
+    public async Task<string> SaveSpeechAsync(string conversationId, string name, string text,
+        bool reuseExisting = false, bool preferAudio = false)
     {
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var fileName = name + (_settings.SayGeneratedSpeech ? TextSpeechExtension : AudioSpeechExtension);
+        var useSay = _settings.SayGeneratedSpeech && !preferAudio;
+        var fileName = name + (useSay ? TextSpeechExtension : AudioSpeechExtension);
         if (reuseExisting && !fileStorage.GetSpeechFile(conversationId, fileName).ToMemory().IsEmpty)
         {
             return fileName;
         }
 
-        var data = _settings.SayGeneratedSpeech
+        var data = useSay
             ? BinaryData.FromString(text)
             : await CompletionProvider.GetAudioSynthesizer(_services).GenerateAudioAsync(text);
         fileStorage.SaveSpeechFile(conversationId, fileName, data);
         return fileName;
+    }
+
+    /// <summary>
+    /// Whether the agent's calls run on a realtime stream, which TwilioInboundController decides by its label.
+    /// </summary>
+    public async Task<bool> IsRealtimeAgentAsync(string agentId)
+    {
+        var agent = await _services.GetRequiredService<IAgentService>().GetAgent(agentId);
+        return agent.Labels.Contains(RealtimeAgentLabel);
     }
 
     /// <summary>
@@ -464,9 +480,13 @@ public class TwilioService
     /// <summary>
     /// Appends a speech to the TwiML: Say for a text file saved by SaveSpeechAsync, Play for an audio file.
     /// </summary>
-    public void AppendSpeech(TwiML parent, string? conversationId, string speechPath)
+    /// <param name="preferRecording">
+    /// Plays a prerecorded prompt as recorded even when SayGeneratedSpeech is on and its text is configured, for a call
+    /// whose own voice Say cannot match, such as a realtime call.
+    /// </param>
+    public void AppendSpeech(TwiML parent, string? conversationId, string speechPath, bool preferRecording = false)
     {
-        if (_settings.SayGeneratedSpeech && TryGetPromptText(speechPath, out var promptText))
+        if (_settings.SayGeneratedSpeech && !preferRecording && TryGetPromptText(speechPath, out var promptText))
         {
             parent.Append(CreateSay(promptText));
             return;
