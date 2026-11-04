@@ -22,7 +22,7 @@ public class TwilioService
 {
     private const string TextSpeechExtension = ".txt";
     private const string AudioSpeechExtension = ".mp3";
-    private const string RealtimeAgentLabel = "realtime";
+    public const string RealtimeCallState = "twilio_realtime_call";
 
     private readonly TwilioSetting _settings;
     private readonly IServiceProvider _services;
@@ -433,12 +433,12 @@ public class TwilioService
     }
 
     /// <summary>
-    /// Whether the agent's calls run on a realtime stream, which TwilioInboundController decides by its label.
+    /// Whether the call runs on a realtime stream. TwilioInboundController records it when it picks the stream by the
+    /// realtime label of the agent that took the call, which can differ from the agent speaking after a routing.
     /// </summary>
-    public async Task<bool> IsRealtimeAgentAsync(string agentId)
+    public bool IsRealtimeCall()
     {
-        var agent = await _services.GetRequiredService<IAgentService>().GetAgent(agentId);
-        return agent.Labels.Contains(RealtimeAgentLabel);
+        return _services.GetRequiredService<IConversationStateService>().GetState(RealtimeCallState) == "true";
     }
 
     /// <summary>

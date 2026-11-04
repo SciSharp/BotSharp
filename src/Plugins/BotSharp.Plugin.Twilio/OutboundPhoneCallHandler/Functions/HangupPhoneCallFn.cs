@@ -47,7 +47,7 @@ public class HangupPhoneCallFn : IFunctionCallback
         if (!string.IsNullOrEmpty(args.ResponseContent) && _twilioSetting.GenerateEndingAudio)
         {
             var initAudioFile = await twilio.SaveSpeechAsync(conversationId, "ending", args.ResponseContent,
-                preferAudio: await twilio.IsRealtimeAgentAsync(message.CurrentAgentId));
+                preferAudio: twilio.IsRealtimeCall());
 
             processUrl += $"&init-audio-file={initAudioFile}";
         }
