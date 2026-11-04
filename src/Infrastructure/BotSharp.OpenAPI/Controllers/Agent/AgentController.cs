@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Infrastructures.Attributes;
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Tasks;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -114,8 +115,28 @@ public partial class AgentController : ControllerBase
     }
 
     [HttpPost("/agent")]
-    public async Task<AgentViewModel> CreateAgent(AgentCreationModel agent)
+    public async Task<ActionResult<AgentViewModel>> CreateAgent(AgentCreationModel agent)
     {
+        if (!string.IsNullOrEmpty(agent.Id))
+        {
+            if (!Guid.TryParse(agent.Id, out _))
+            {
+                return BadRequest($"Invalid agent id: {agent.Id}");
+            }
+
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            if (await db.GetAgent(agent.Id, basicsOnly: true) != null)
+            {
+                return Conflict($"Agent {agent.Id} already exists.");
+            }
+
+            var sameName = await db.GetAgents(new AgentFilter { AgentNames = [agent.Name] });
+            if (sameName.Any())
+            {
+                return Conflict($"Agent named \"{agent.Name}\" already exists.");
+            }
+        }
+
         var createdAgent = await _agentService.CreateAgent(agent.ToAgent());
         return AgentViewModel.FromAgent(createdAgent);
     }

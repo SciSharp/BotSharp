@@ -19,7 +19,7 @@ public partial class AgentService
         }
 
         var agentRecord = Agent.Clone(agent);
-        agentRecord.Id = Guid.NewGuid().ToString();
+        agentRecord.Id = !string.IsNullOrEmpty(agent.Id) ? agent.Id : Guid.NewGuid().ToString();
         agentRecord.CreatedDateTime = DateTime.UtcNow;
         agentRecord.UpdatedDateTime = DateTime.UtcNow;
 

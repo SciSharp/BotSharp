@@ -6,6 +6,10 @@ namespace BotSharp.OpenAPI.ViewModels.Agents;
 
 public class AgentCreationModel
 {
+    /// <summary>
+    /// Optional agent id, e.g. to keep the original id when importing an exported agent
+    /// </summary>
+    public string? Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string Type { get; set; } = AgentType.Task;
@@ -77,6 +81,7 @@ public class AgentCreationModel
     {
         return new Agent
         {
+            Id = Id,
             Name = Name,
             Type = Type,
             Mode = Mode,
