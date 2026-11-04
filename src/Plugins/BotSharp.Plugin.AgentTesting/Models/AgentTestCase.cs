@@ -186,7 +186,10 @@ public class TestToolMock
     /// <summary>Optional: match only the Nth call (0-based).</summary>
     public int? CallIndex { get; set; }
 
-    /// <summary>The faked return, written to message.Content.</summary>
+    /// <summary>
+    /// The faked return, written to message.Content. <c>{{args.name}}</c> is filled with that argument of the call
+    /// (<see cref="Runtime.MockResultTemplate"/>).
+    /// </summary>
     public string ResultContent { get; set; } = string.Empty;
 
     /// <summary>Reproduces a real tool's "stop this turn's LLM completion" behaviour.</summary>
