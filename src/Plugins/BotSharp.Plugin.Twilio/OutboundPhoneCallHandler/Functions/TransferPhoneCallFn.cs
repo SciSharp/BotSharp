@@ -51,7 +51,8 @@ public class TransferPhoneCallFn : IFunctionCallback
         // Generate initial assistant audio
         if (!string.IsNullOrEmpty(args.TransitionMessage))
         {
-            var initAudioFile = await twilio.SaveSpeechAsync(conversationId, "transfer", args.TransitionMessage);
+            var initAudioFile = await twilio.SaveSpeechAsync(conversationId, "transfer", args.TransitionMessage,
+                preferAudio: twilio.IsRealtimeCall());
 
             processUrl += $"&init-audio-file={initAudioFile}";
         }

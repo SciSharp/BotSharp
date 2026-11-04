@@ -28,7 +28,7 @@ public class TwilioReconnectController : TwilioController
         if (!string.IsNullOrEmpty(request.InitAudioFile))
         {
             var twilio = _services.GetRequiredService<TwilioService>();
-            twilio.AppendSpeech(response, request.ConversationId, request.InitAudioFile);
+            twilio.AppendSpeech(response, request.ConversationId, request.InitAudioFile, preferRecording: true);
         }
         else
         {

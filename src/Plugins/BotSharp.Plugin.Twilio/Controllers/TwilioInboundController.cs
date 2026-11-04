@@ -222,6 +222,9 @@ public class TwilioInboundController : TwilioController
             states.Add(new(StateConst.ROUTING_MODE, agent.Mode));
         }
 
+        // Kept for the whole call: the agent speaking after a routing may not carry the label, the stream stays
+        states.Add(new(TwilioService.RealtimeCallState, agent.Labels.Contains("realtime") ? "true" : "false", isGlobal: true));
+
         await convService.SetConversationId(conversation.Id, states);
 
         if (!string.IsNullOrEmpty(request.Intent))
