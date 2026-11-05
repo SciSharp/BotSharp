@@ -116,13 +116,15 @@ public partial class UserService : IUserService
         if (hasRegisterId == null)
         {
             await db.CreateUser(record);
+            _logger.LogInformation($"Created new user account: {record.Id} {record.UserName}, RegionCode: {record.RegionCode}");
+
         }
         else
         {
             await db.UpdateExistUser(hasRegisterId, record);
+            _logger.LogInformation($"Updated user account: {record.Id} {record.UserName}, RegionCode: {record.RegionCode}");
         }
 
-        _logger.LogWarning($"Created new user account: {record.Id} {record.UserName}, RegionCode: {record.RegionCode}");
         Utilities.ClearCache();
 
         var hooks = _services.GetServices<IAuthenticationHook>();
@@ -132,6 +134,38 @@ public partial class UserService : IUserService
         }
 
         return record;
+    }
+
+    public async Task<User> CreateExternalUser(User user)
+    {
+        if (string.IsNullOrWhiteSpace(user.ExternalId))
+        {
+            throw new ArgumentException("ExternalId is required.", nameof(user));
+        }
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        // GetUserById matches either Id or ExternalId; never merge by username/email.
+        var existing = await db.GetUserById(user.ExternalId);
+        if (existing != null)
+        {
+            return existing;
+        }
+
+        user.Id = string.IsNullOrWhiteSpace(user.Id) ? Guid.NewGuid().ToString() : user.Id;
+        user.UserName = user.UserName?.ToLower();
+        user.Email = user.Email?.ToLower();
+        user.Salt = Guid.NewGuid().ToString("N");
+
+        await db.CreateUser(user);
+        _logger.LogInformation($"Created new external user account: {user.Id} {user.UserName}, ExternalId: {user.ExternalId}");
+
+        foreach (var hook in _services.GetServices<IAuthenticationHook>())
+        {
+            await hook.UserCreated(user);
+        }
+
+        return user;
     }
 
     public async Task<bool> UpdatePassword(string password, string verificationCode)
