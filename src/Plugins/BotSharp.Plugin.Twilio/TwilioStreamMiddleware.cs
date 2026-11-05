@@ -7,8 +7,10 @@ using BotSharp.Abstraction.Realtime.Options;
 using BotSharp.Abstraction.Realtime.Sessions;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Utilities;
+using BotSharp.Core.Infrastructures;
 using BotSharp.Core.Session;
 using BotSharp.Plugin.Twilio.Interfaces;
+using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Models.Stream;
 using Microsoft.AspNetCore.Http;
 using System.Net.WebSockets;
@@ -75,11 +77,19 @@ public class TwilioStreamMiddleware
         var conn = hub.SetHubConnection(conversationId);
         conn.CurrentAgentId = agentId;
 
+        // The media stream is a separate HTTP request, so the identity set on the inbound webhook does not carry over.
+        // Authenticate synchronously (so AsyncLocal identity writes survive) and before loading states:
+        var request = new ConversationalVoiceRequest
+        {
+            AgentId = agentId,
+            ConversationId = conversationId
+        };
+        HookEmitter.Emit<ITwilioSessionHook>(services, hook => hook.OnAuthenticate(request), agentId);
+
         // load conversation and state
         var convService = services.GetRequiredService<IConversationService>();
         await convService.SetConversationId(conversationId, []);
 
-        // No OnAuthenticate before these hooks — identity is established only at the HTTP entry points.
         var hooks = services.GetHooks<ITwilioSessionHook>(agentId);
         foreach (var hook in hooks)
         {
