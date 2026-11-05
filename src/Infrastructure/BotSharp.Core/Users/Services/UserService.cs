@@ -116,13 +116,15 @@ public partial class UserService : IUserService
         if (hasRegisterId == null)
         {
             await db.CreateUser(record);
+            _logger.LogInformation($"Created new user account: {record.Id} {record.UserName}, RegionCode: {record.RegionCode}");
+
         }
         else
         {
             await db.UpdateExistUser(hasRegisterId, record);
+            _logger.LogInformation($"Updated user account: {record.Id} {record.UserName}, RegionCode: {record.RegionCode}");
         }
 
-        _logger.LogWarning($"Created new user account: {record.Id} {record.UserName}, RegionCode: {record.RegionCode}");
         Utilities.ClearCache();
 
         var hooks = _services.GetServices<IAuthenticationHook>();
