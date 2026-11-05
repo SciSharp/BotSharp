@@ -44,6 +44,10 @@ public class TwilioTranscribeController : TwilioController
                 var routing = _services.GetRequiredService<IRoutingService>();
                 routing.Context.SetMessageId(request.ConversationId, message.MessageId);
 
+                // Authenticate synchronously and before loading states: this is the fallback identity,
+                // which OnStateLoaded may override with the caller's own.
+                HookEmitter.Emit<ITwilioSessionHook>(_services, hook => hook.OnAuthenticate(request), request.AgentId);
+
                 var convService = _services.GetRequiredService<IConversationService>();
                 await convService.SetConversationId(request.ConversationId, []);
 

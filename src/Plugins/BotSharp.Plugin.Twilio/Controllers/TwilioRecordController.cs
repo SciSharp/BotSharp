@@ -28,6 +28,9 @@ public class TwilioRecordController : TwilioController
         {
             _logger.LogInformation($"Recording completed for {request.CallSid}, the record URL is {request.RecordingUrl}");
 
+            // Authenticate before loading states, so the caller's own identity (OnStateLoaded) is not overwritten
+            HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnAuthenticate(request), request.AgentId);
+
             // Set the recording URL to the conversation state
             var convService = _services.GetRequiredService<IConversationService>();
             await convService.SetConversationId(request.ConversationId, new List<MessageState>
@@ -36,7 +39,6 @@ public class TwilioRecordController : TwilioController
             });
             await convService.SaveStates();
 
-            HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnAuthenticate(request), request.AgentId);
             // recording completed
             await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnRecordingCompleted(request), request.AgentId);
         }
