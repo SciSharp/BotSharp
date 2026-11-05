@@ -2,6 +2,8 @@ using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Abstraction.MessageHub.Services;
 using BotSharp.Abstraction.Routing;
+using BotSharp.Core.Infrastructures;
+using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
@@ -33,6 +35,15 @@ public static class TwilioConversationProcessor
             httpContext.HttpContext.Request.Headers[header.Key] = header.Value;
         }
         httpContext.HttpContext.Request.Headers["X-Twilio-BotSharp"] = "LOST";
+
+        // Authenticate synchronously and before loading states: this is the fallback identity,
+        // which OnStateLoaded may override with the caller's own.
+        var request = new ConversationalVoiceRequest
+        {
+            AgentId = message.AgentId,
+            ConversationId = message.ConversationId
+        };
+        HookEmitter.Emit<ITwilioSessionHook>(sp, hook => hook.OnAuthenticate(request), message.AgentId);
 
         AssistantMessage? reply = null;
 
