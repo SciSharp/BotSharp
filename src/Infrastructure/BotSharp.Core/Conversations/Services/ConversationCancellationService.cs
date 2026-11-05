@@ -51,8 +51,16 @@ public class ConversationCancellationService : IConversationCancellationService
         }
     }
 
+    /// <summary>
+    /// A completion streamed outside a conversation (a plain API request or a job) has no id and nothing that can cancel it.
+    /// </summary>
     public CancellationToken GetToken(string conversationId)
     {
+        if (string.IsNullOrEmpty(conversationId))
+        {
+            return CancellationToken.None;
+        }
+
         if (_cancellationTokenSources.TryGetValue(conversationId, out var cts))
         {
             return cts.Token;
