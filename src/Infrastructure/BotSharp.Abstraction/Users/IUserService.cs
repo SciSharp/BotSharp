@@ -15,6 +15,13 @@ public interface IUserService
     Task<UserAuthorization> GetUserAuthorizations(IEnumerable<string>? agentIds = null);
     Task<bool> UpdateUser(User user, bool isUpdateUserAgents = false);
     Task<User> CreateUser(User user);
+
+    /// <summary>
+    /// Creates a user that an external system identifies by <see cref="User.ExternalId"/>.
+    /// Unlike <see cref="CreateUser"/>, it never merges into another record by username, phone or email;
+    /// it returns the existing record only when one is already bound to the same ExternalId.
+    /// </summary>
+    Task<User> CreateExternalUser(User user);
     Task<Token> ActiveUser(UserActivationModel model);
     Task<Token?> GetAffiliateToken(string authorization);
     Task<Token?> GetAdminToken(string authorization);
