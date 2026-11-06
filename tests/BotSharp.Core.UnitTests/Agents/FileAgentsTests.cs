@@ -15,12 +15,12 @@ namespace BotSharp.Core.UnitTests.Agents;
 /// <summary>
 /// The agents the migration page can offer: those of the file repository, as id and name.
 /// </summary>
-public sealed class FileAgentOptionsTests : IDisposable
+public sealed class FileAgentsTests : IDisposable
 {
-    private readonly string _repository = $"agent-options-{Guid.NewGuid():N}";
+    private readonly string _repository = $"file-agents-{Guid.NewGuid():N}";
     private readonly string _root;
 
-    public FileAgentOptionsTests()
+    public FileAgentsTests()
     {
         _root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _repository);
         WriteAgent("id-b", "Beta");
@@ -53,15 +53,15 @@ public sealed class FileAgentOptionsTests : IDisposable
     [Fact]
     public async Task ListsIdAndNameOfEveryFileAgentSortedByName()
     {
-        var options = await CreateService().GetFileAgentOptions();
+        var agents = await CreateService().GetFileAgents();
 
-        Assert.Equal(["id-a:Alpha", "id-b:Beta"], options.Select(x => $"{x.Id}:{x.Name}"));
+        Assert.Equal(["id-a:Alpha", "id-b:Beta"], agents.Select(x => $"{x.Id}:{x.Name}"));
     }
 
     [Fact]
     public async Task IsEmptyWhenMigrationIsNotAvailable()
     {
-        Assert.Empty(await CreateService(RepositoryEnum.FileRepository).GetFileAgentOptions());
+        Assert.Empty(await CreateService(RepositoryEnum.FileRepository).GetFileAgents());
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public sealed class FileAgentOptionsTests : IDisposable
     {
         var service = CreateService();
 
-        await service.GetFileAgentOptions();
+        await service.GetFileAgents();
 
         // FileRepository rewrites the settings it is built with; the shared instance has to stay as configured.
         Assert.Equal(_repository, service.GetDataDir());
