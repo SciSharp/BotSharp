@@ -150,10 +150,7 @@ public partial class AgentController : ControllerBase
 
     [BotSharpAuth]
     [HttpGet("/refresh-agents/options")]
-    public IEnumerable<IdName> GetFileAgentOptions()
-    {
-        return _agentService.GetFileAgentOptions();
-    }
+    public Task<List<IdName>> GetFileAgentOptions() => _agentService.GetFileAgentOptions();
 
     [HttpPut("/agent/{agentId}")]
     public async Task UpdateAgent([FromRoute] string agentId, [FromBody] AgentUpdateModel agent)

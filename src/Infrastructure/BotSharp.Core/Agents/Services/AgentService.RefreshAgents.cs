@@ -7,17 +7,16 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
+    private sealed record AgentFileHeader(string? Name);
+
     /// <summary>
-    /// List the agents defined in the file repository (agent.json), i.e. the candidates RefreshAgents can migrate.
+    /// The agents RefreshAgents can migrate. The id is the directory name, the key RefreshAgents filters on.
     /// </summary>
-    public IEnumerable<IdName> GetFileAgentOptions()
+    public async Task<List<IdName>> GetFileAgentOptions()
     {
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        var agentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                                    dbSettings.FileRepository,
-                                    _agentSettings.DataDir);
-
-        if (!Directory.Exists(agentDir))
+        var agentDir = GetFileAgentRoot();
+        if (dbSettings.Default == RepositoryEnum.FileRepository || !Directory.Exists(agentDir))
         {
             return [];
         }
@@ -25,27 +24,35 @@ public partial class AgentService
         var options = new List<IdName>();
         foreach (var dir in Directory.GetDirectories(agentDir))
         {
-            var file = Path.Combine(dir, "agent.json");
-            if (!File.Exists(file))
+            var name = await ReadAgentName(dir);
+            if (name != null)
             {
-                continue;
-            }
-
-            try
-            {
-                var agent = JsonSerializer.Deserialize<Agent>(File.ReadAllText(file), _options.JsonSerializerOptions);
-                if (agent != null && !string.IsNullOrEmpty(agent.Id))
-                {
-                    options.Add(new IdName(agent.Id, agent.Name));
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, $"Cannot read agent in file directory: {dir}");
+                options.Add(new IdName(Path.GetFileName(dir), name));
             }
         }
 
         return options.OrderBy(x => x.Name).ToList();
+    }
+
+    private async Task<string?> ReadAgentName(string dir)
+    {
+        var file = Path.Combine(dir, "agent.json");
+        if (!File.Exists(file))
+        {
+            return null;
+        }
+
+        try
+        {
+            await using var stream = File.OpenRead(file);
+            var header = await JsonSerializer.DeserializeAsync<AgentFileHeader>(stream, _options.JsonSerializerOptions);
+            return header?.Name ?? Path.GetFileName(dir);
+        }
+        catch (Exception ex) when (ex is JsonException or IOException)
+        {
+            _logger.LogWarning(ex, $"Cannot read agent in file directory: {dir}");
+            return null;
+        }
     }
 
     public async Task<string> RefreshAgents(IEnumerable<string>? agentIds = null)
@@ -59,10 +66,7 @@ public partial class AgentService
             return refreshResult;
         }
 
-        var agentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                                    dbSettings.FileRepository,
-                                    _agentSettings.DataDir);
-
+        var agentDir = GetFileAgentRoot();
         if (!Directory.Exists(agentDir))
         {
             refreshResult = $"Cannot find the directory: {agentDir}";
