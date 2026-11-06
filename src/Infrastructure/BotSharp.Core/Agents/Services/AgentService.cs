@@ -31,15 +31,10 @@ public partial class AgentService : IAgentService
         return Path.Combine(dbSettings.FileRepository);
     }
 
-    private string GetFileAgentRoot()
-    {
-        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbSettings.FileRepository, _agentSettings.DataDir);
-    }
-
     public string GetAgentDataDir(string agentId)
     {
-        var dir = Path.Combine(GetFileAgentRoot(), agentId);
+        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
+        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbSettings.FileRepository, _agentSettings.DataDir, agentId);
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);

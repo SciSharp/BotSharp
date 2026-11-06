@@ -17,7 +17,7 @@ public interface IAgentService
     Task<string> RefreshAgents(IEnumerable<string>? agentIds = null);
 
     /// <summary>
-    /// Agents in the file repository that <see cref="RefreshAgents"/> can migrate (id is the agent directory name)
+    /// Agents in the file repository that <see cref="RefreshAgents"/> can migrate
     /// </summary>
     Task<List<IdName>> GetFileAgentOptions() => Task.FromResult<List<IdName>>([]);
     Task<PagedItems<Agent>> GetAgents(AgentFilter filter);
