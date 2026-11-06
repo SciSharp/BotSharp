@@ -1,30 +1,11 @@
-using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Abstraction.Repositories.Settings;
-using BotSharp.Core.Repository;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    /// <summary>
-    /// The agents in the file repository, i.e. the ones <see cref="RefreshAgents"/> can migrate.
-    /// </summary>
-    public async Task<List<IdName>> GetFileAgentOptions()
-    {
-        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        if (dbSettings.Default == RepositoryEnum.FileRepository)
-        {
-            return [];
-        }
-
-        // FileRepository rewrites the database settings it is given, so hand it a copy of the shared ones.
-        var fileRepository = ActivatorUtilities.CreateInstance<FileRepository>(_services, dbSettings.DeepClone()!);
-        var agents = await fileRepository.GetAgents(AgentFilter.Empty());
-        return agents.Select(x => new IdName(x.Id, x.Name)).OrderBy(x => x.Name).ToList();
-    }
-
     public async Task<string> RefreshAgents(IEnumerable<string>? agentIds = null)
     {
         string refreshResult;
@@ -47,7 +28,13 @@ public partial class AgentService
         }
         
         var refreshedAgents = new List<string>();
-        foreach (var dir in Directory.GetDirectories(agentDir))
+        var dirs = Directory.GetDirectories(agentDir);
+        if (!agentIds.IsNullOrEmpty())
+        {
+            dirs = dirs.Where(x => agentIds.Contains(x.Split(Path.DirectorySeparatorChar).Last())).ToArray();
+        }
+
+        foreach (var dir in dirs)
         {
             try
             {
@@ -57,11 +44,6 @@ public partial class AgentService
                 if (agent == null)
                 {
                     _logger.LogError($"Cannot find agent in file directory: {dir}");
-                    continue;
-                }
-
-                if (!agentIds.IsNullOrEmpty() && !agentIds.Contains(agent.Id))
-                {
                     continue;
                 }
 

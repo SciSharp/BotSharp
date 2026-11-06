@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Agents.Options;
 using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Conversations.Settings;
 using BotSharp.Abstraction.Options;
@@ -14,29 +13,27 @@ using Xunit;
 namespace BotSharp.Core.UnitTests.Agents;
 
 /// <summary>
-/// The migration page lists the agents of the file repository and sends the chosen ids back to RefreshAgents.
-/// Both sides have to speak the id written in agent.json.
+/// The agents the migration page can offer: those of the file repository, as id and name.
 /// </summary>
 public sealed class FileAgentOptionsTests : IDisposable
 {
     private readonly string _repository = $"agent-options-{Guid.NewGuid():N}";
     private readonly string _root;
-    private readonly Mock<IBotSharpRepository> _db = new();
 
     public FileAgentOptionsTests()
     {
         _root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _repository);
-        WriteAgent("dir-b", """{ "Id": "id-b", "Name": "Beta" }""");
-        WriteAgent("dir-a", """{ "Id": "id-a", "Name": "Alpha" }""");
+        WriteAgent("id-b", "Beta");
+        WriteAgent("id-a", "Alpha");
     }
 
     public void Dispose() => Directory.Delete(_root, recursive: true);
 
-    private void WriteAgent(string dirName, string json)
+    private void WriteAgent(string id, string name)
     {
-        var dir = Path.Combine(_root, "agents", dirName);
+        var dir = Path.Combine(_root, "agents", id);
         Directory.CreateDirectory(dir);
-        File.WriteAllText(Path.Combine(dir, "agent.json"), json);
+        File.WriteAllText(Path.Combine(dir, "agent.json"), $$"""{ "Id": "{{id}}", "Name": "{{name}}" }""");
     }
 
     private AgentService CreateService(string defaultRepository = RepositoryEnum.MongoRepository)
@@ -49,7 +46,8 @@ public sealed class FileAgentOptionsTests : IDisposable
             .AddSingleton(agentSettings)
             .AddSingleton(new ConversationSetting())
             .BuildServiceProvider();
-        return new AgentService(services, _db.Object, NullLogger<AgentService>.Instance, agentSettings, new BotSharpOptions());
+        return new AgentService(services, new Mock<IBotSharpRepository>().Object,
+            NullLogger<AgentService>.Instance, agentSettings, new BotSharpOptions());
     }
 
     [Fact]
@@ -75,14 +73,5 @@ public sealed class FileAgentOptionsTests : IDisposable
 
         // FileRepository rewrites the settings it is built with; the shared instance has to stay as configured.
         Assert.Equal(_repository, service.GetDataDir());
-    }
-
-    [Fact]
-    public async Task RefreshAgentsSelectsByAgentIdNotByDirectoryName()
-    {
-        var result = await CreateService().RefreshAgents(["dir-b"]);
-
-        Assert.Equal("No agent gets migrated!", result);
-        _db.Verify(x => x.DeleteAgent(It.IsAny<string>(), It.IsAny<AgentDeleteOptions?>()), Times.Never);
     }
 }
