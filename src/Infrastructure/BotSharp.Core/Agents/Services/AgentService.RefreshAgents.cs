@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Abstraction.Repositories.Settings;
 using System.IO;
@@ -6,6 +7,47 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
+    /// <summary>
+    /// List the agents defined in the file repository (agent.json), i.e. the candidates RefreshAgents can migrate.
+    /// </summary>
+    public IEnumerable<IdName> GetFileAgentOptions()
+    {
+        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
+        var agentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                                    dbSettings.FileRepository,
+                                    _agentSettings.DataDir);
+
+        if (!Directory.Exists(agentDir))
+        {
+            return [];
+        }
+
+        var options = new List<IdName>();
+        foreach (var dir in Directory.GetDirectories(agentDir))
+        {
+            var file = Path.Combine(dir, "agent.json");
+            if (!File.Exists(file))
+            {
+                continue;
+            }
+
+            try
+            {
+                var agent = JsonSerializer.Deserialize<Agent>(File.ReadAllText(file), _options.JsonSerializerOptions);
+                if (agent != null && !string.IsNullOrEmpty(agent.Id))
+                {
+                    options.Add(new IdName(agent.Id, agent.Name));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Cannot read agent in file directory: {dir}");
+            }
+        }
+
+        return options.OrderBy(x => x.Name).ToList();
+    }
+
     public async Task<string> RefreshAgents(IEnumerable<string>? agentIds = null)
     {
         string refreshResult;
