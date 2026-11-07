@@ -47,6 +47,8 @@
     <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.OpenAI\BotSharp.Plugin.OpenAI.csproj" />
     <!-- For ReadPdfFnDefaultModelTests: the PDF reading fallback model lives here. -->
     <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.FileHandler\BotSharp.Plugin.FileHandler.csproj" />
+    <!-- For GoogleAiUsageTests: Gemini thinking tokens must be counted as output tokens. -->
+    <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.GoogleAI\BotSharp.Plugin.GoogleAI.csproj" />
   </ItemGroup>
 
 </Project>

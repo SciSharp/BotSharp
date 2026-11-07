@@ -63,7 +63,7 @@ public class TextCompletionProvider : ITextCompletion
                 Provider = Provider,
                 Model = _model,
                 TextInputTokens = response?.UsageMetadata?.PromptTokenCount ?? 0,
-                TextOutputTokens = response?.UsageMetadata?.CandidatesTokenCount ?? 0
+                TextOutputTokens = ProviderHelper.GetOutputTokens(response?.UsageMetadata)
             });
         }
 

@@ -127,7 +127,7 @@ public class ChatCompletionProvider : IChatCompletion
                 Provider = Provider,
                 Model = _model,
                 TextInputTokens = response?.UsageMetadata?.PromptTokenCount ?? 0,
-                TextOutputTokens = response?.UsageMetadata?.CandidatesTokenCount ?? 0
+                TextOutputTokens = ProviderHelper.GetOutputTokens(response?.UsageMetadata)
             });
         }
 
@@ -184,7 +184,7 @@ public class ChatCompletionProvider : IChatCompletion
                 Provider = Provider,
                 Model = _model,
                 TextInputTokens = response?.UsageMetadata?.PromptTokenCount ?? 0,
-                TextOutputTokens = response?.UsageMetadata?.CandidatesTokenCount ?? 0
+                TextOutputTokens = ProviderHelper.GetOutputTokens(response?.UsageMetadata)
             });
         }
 
@@ -447,7 +447,7 @@ public class ChatCompletionProvider : IChatCompletion
                 Provider = Provider,
                 Model = _model,
                 TextInputTokens = tokenUsage?.PromptTokenCount ?? 0,
-                TextOutputTokens = tokenUsage?.CandidatesTokenCount ?? 0
+                TextOutputTokens = ProviderHelper.GetOutputTokens(tokenUsage)
             });
         }
 
