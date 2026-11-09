@@ -74,7 +74,7 @@ public class ChatCompletionProvider : IChatCompletion
         {
             _logger.LogWarning($"Action: {nameof(GetChatCompletions)}, Reason: {response.StopReason}, Agent: {agent.Name}, MaxOutputTokens: {parameters.MaxTokens}, Content:{text}");
 
-            responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, ProviderHelper.MaxTokensMessage)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
@@ -157,7 +157,7 @@ public class ChatCompletionProvider : IChatCompletion
         {            
             _logger.LogWarning($"Action: {nameof(GetChatCompletionsAsync)}, Reason: {response.StopReason}, Agent: {agent.Name}, MaxOutputTokens: {parameters.MaxTokens}, Content:{text}");
 
-            responseMessage = new RoleDialogModel(AgentRole.Assistant, $"AI response exceeded max output length")
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, ProviderHelper.MaxTokensMessage)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
@@ -274,9 +274,9 @@ public class ChatCompletionProvider : IChatCompletion
                         }
 #endif
                     }
-                    else if (delta.StopReason == StopReason.EndTurn)
+                    else if (!string.IsNullOrEmpty(delta.StopReason))
                     {
-                        var allText = textStream.GetText();
+                        var allText = ProviderHelper.ResolveStreamedContent(delta.StopReason, textStream.GetText());
                         responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
                         {
                             CurrentAgentId = agent.Id,
@@ -287,15 +287,6 @@ public class ChatCompletionProvider : IChatCompletion
 #if DEBUG
                         _logger.LogDebug($"Stream text Content: {allText}");
 #endif
-                    }
-                    else if (!string.IsNullOrEmpty(delta.StopReason))
-                    {
-                        responseMessage = new RoleDialogModel(AgentRole.Assistant, delta.StopReason)
-                        {
-                            CurrentAgentId = agent.Id,
-                            MessageId = messageId,
-                            IsStreaming = true
-                        };
                     }
                     else
                     {

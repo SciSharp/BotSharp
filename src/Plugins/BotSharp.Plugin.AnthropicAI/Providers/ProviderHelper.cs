@@ -13,4 +13,20 @@ public static class ProviderHelper
         }
         return client;
     }
+
+    public const string MaxTokensMessage = "AI response exceeded max output length";
+
+    /// <summary>
+    /// Content of the final streamed message. end_turn keeps the collected text; max_tokens uses the same
+    /// notice as the non-streaming path instead of the raw stop reason; other stop reasons are unchanged.
+    /// </summary>
+    public static string ResolveStreamedContent(string? stopReason, string collectedText)
+    {
+        return stopReason switch
+        {
+            StopReason.EndTurn => collectedText,
+            StopReason.MaxTokens => MaxTokensMessage,
+            _ => stopReason ?? string.Empty
+        };
+    }
 }
