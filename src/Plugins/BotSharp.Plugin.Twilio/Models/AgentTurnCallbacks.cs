@@ -51,6 +51,23 @@ public class AgentTurnCallbacks
     public bool LastReplyCutOff { get; set; }
 
     /// <summary>
+    /// With <see cref="LastReplyCutOff"/>, when the caller cut into the line: the line, and the part of it played before
+    /// they did ("" when none of it was). Null when it is not known, or the caller's words came before the line went out.
+    /// </summary>
+    /// <remarks>
+    /// The turn marks the line in the history with what the caller missed, as a reply cut off while it streamed is marked
+    /// (<see cref="RewriteReply"/>): a line a tool gave is said only once its turn is over, so the history took it whole.
+    /// </remarks>
+    public string? LastReplyLine { get; set; }
+    public string? LastReplyHeard { get; set; }
+
+    /// <summary>
+    /// Set by the turn: called with each filler said while the agent works on the reply ("One moment, please."), which
+    /// the turn keeps in the history out of the agent's context, so what the caller heard is all there
+    /// </summary>
+    public Action<string>? OnFillerSaid { get; set; }
+
+    /// <summary>
     /// Called on the turn once it has read the conversation's states (<see cref="KeepUninterrupted"/> is set), before the
     /// agent hears the caller's words
     /// </summary>
