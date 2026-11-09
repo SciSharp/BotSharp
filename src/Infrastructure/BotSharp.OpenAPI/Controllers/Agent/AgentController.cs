@@ -148,8 +148,7 @@ public partial class AgentController : ControllerBase
         return await _agentService.RefreshAgents(request?.AgentIds);
     }
 
-    [BotSharpAuth]
-    [HttpGet("/refresh-agents/options")]
+    [HttpGet("/file-agents")]
     public Task<List<IdName>> GetFileAgents() => _agentService.GetFileAgents();
 
     [HttpPut("/agent/{agentId}")]
