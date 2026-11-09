@@ -275,7 +275,7 @@ public class TwilioService
     public VoiceResponse ReturnConversationRelay(
         string agentId, string conversationId, string? welcomeGreeting, int reconnects = 0)
     {
-        var relay = _settings.ConversationRelay;
+        var relay = _settings.ConversationRelay.For(agentId);
         var query = $"agent-id={Uri.EscapeDataString(agentId)}" +
             $"&conversation-id={Uri.EscapeDataString(conversationId)}&reconnects={reconnects}";
         var connect = new Connect(action: new Uri($"{_settings.CallbackHost}/twilio/relay/action?{query}"));

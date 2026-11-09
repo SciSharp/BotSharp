@@ -1,6 +1,7 @@
 ﻿using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Models.Relay;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Net.WebSockets;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
@@ -16,6 +17,9 @@ public class ConversationRelaySession
     private const string DefaultSayItAgainText = "Sorry, can you say it again?";
     private const string DefaultErrorText = "Sorry, something went wrong. Please call back later.";
     private const string DefaultHoldOnText = "One moment, please.";
+    private const string DefaultAskAgainText = "Sorry, I didn't catch that. {0}";
+    private const string DefaultStillThereText = "Are you still there?";
+    private const string DefaultIdleGoodbyeText = "It sounds like we got disconnected. Please call back anytime.";
     private const double SpokenCharsPerSecond = 15;
     private static readonly List<string> DefaultWatchdogPrompts = ["hold-on-1", "hold-on-2", "hold-on-3", "hold-on-4", "hold-on-5"];
     private static readonly List<string> DefaultWatchdogLongPrompts = Enumerable.Range(1, 10).Select(i => $"hold-on-long-{i}").ToList();
@@ -31,6 +35,8 @@ public class ConversationRelaySession
     private readonly string _agentId;
     private readonly string _conversationId;
     private readonly TwilioSetting _settings;
+    // The ConversationRelay settings for this agent's calls
+    private readonly ConversationRelaySetting _relay;
     private readonly Func<CallerMessage, AgentTurnCallbacks, Task<AssistantMessage?>> _sendCallerMessage;
     private readonly ILogger _logger;
 
@@ -68,6 +74,8 @@ public class ConversationRelaySession
 
     // How the utterance being streamed went out, so its closing frame goes out the same way
     private bool _utteranceKeptUninterrupted;
+    // _saidCount as its first piece went out
+    private int _utteranceStartMark;
 
     // The current turn's reply is in; the response watchdog says nothing more once it is set
     private bool _turnReplied;
@@ -102,6 +110,25 @@ public class ConversationRelaySession
     // Bumped on everything sent for the caller to hear (a line, a streamed piece, a filler, a prompt)
     private int _saidCount;
 
+    // The agent's last line (a reply or a line a tool gave, not a filler or a prompt) and when it went out: what an idle
+    // prompt asks again, and what a caller's words that came too soon after it are checked against
+    private string? _lastLine;
+    private DateTime _lastLineSentUtc;
+    // The caller heard a few words of the last line before cutting in: what they say next is meant for it
+    private bool _lastLineHeardSome;
+
+    // What was said, newest last, with _saidCount as it went out: tells which utterance Twilio says was playing at a
+    // cut-in. Only the last few are kept.
+    private readonly List<(string Text, int Mark)> _utterances = [];
+    private const int UtterancesKept = 8;
+
+    // The line the caller cut into, to say again once nothing follows the cut-in (ResumeAfterCutInSeconds)
+    private string? _resumeLine;
+    private DateTime _cutInUtc;
+    private int _cutInActivity;
+    // The last line said was a line said again: cut into again, it isn't said a third time
+    private bool _lastWasResume;
+
     private string? _callSid;
     private string? _from;
     private string? _to;
@@ -123,6 +150,7 @@ public class ConversationRelaySession
         _agentId = agentId;
         _conversationId = conversationId;
         _settings = settings;
+        _relay = settings.ConversationRelay.For(agentId);
         _sendCallerMessage = sendCallerMessage;
         _logger = logger;
     }
@@ -243,7 +271,9 @@ public class ConversationRelaySession
                 {
                     var prompt = _partialPrompt.ToString().Trim();
                     _partialPrompt.Clear();
-                    if (prompt.Length > 0)
+                    // Only punctuation (".") is no words at all: answered, it took the place of the reply to the caller's
+                    // real words right after it (seen on a call)
+                    if (prompt.Any(char.IsLetterOrDigit))
                     {
                         Enqueue(prompt, digits: null);
                     }
@@ -294,6 +324,10 @@ public class ConversationRelaySession
                         _cutAfterTurn = true;
                         _heardOfAfterTurnLine = HeardOfAfterTurnLine(heard);
                     }
+
+                    // A few words heard and what the caller says next answers the line, however soon it comes
+                    _lastLineHeardSome = CountWords(heard) >= HeardSomeWords;
+                    NoteCutIn();
                 }
                 var interruptedAfter = GetString(root, "durationUntilInterruptMs");
                 _logger.LogInformation(
@@ -316,6 +350,13 @@ public class ConversationRelaySession
         {
             if (_ended)
             {
+                return;
+            }
+
+            if (digits == null && IsBackchannelTail(content))
+            {
+                _logger.LogInformation($"Dropped \"{content}\" in conversation {_conversationId}: an acknowledgement that came in " +
+                    "before the caller could hear the question just asked, the tail of what they said before.");
                 return;
             }
 
@@ -352,6 +393,45 @@ public class ConversationRelaySession
         }
     }
 
+    // Words that only acknowledge
+    private static readonly HashSet<string> Backchannel = new(StringComparer.Ordinal)
+    {
+        "yes", "yeah", "yep", "okay", "ok", "sure", "i", "agree", "that's", "that", "is", "fine", "good", "right", "correct",
+        "alright", "great", "thanks", "thank", "you", "it", "uh", "um", "so", "perfect", "sounds", "mm-hmm", "uh-huh"
+    };
+
+    // A caller who heard this many words of a line before cutting in was answering it
+    private const int HeardSomeWords = 3;
+
+    /// <summary>
+    /// Whether these words are the tail of what the caller said before the last line went out: they only acknowledge,
+    /// came in too soon after that line to be about it, and the line asks something (DropBackchannelTails). Call under
+    /// <see cref="_sync"/>.
+    /// </summary>
+    /// <remarks>
+    /// Why: the transcription splits an utterance in two ("Yes." then "I agree."); the second part came in after the next
+    /// question went out and was taken as its answer (seen on calls).
+    /// </remarks>
+    private bool IsBackchannelTail(string content)
+    {
+        if (!_relay.DropBackchannelTails || _lastLineHeardSome || _lastLine == null || !_lastLine.Contains('?')
+            || DateTime.UtcNow >= _lastLineSentUtc + TooSoonToAnswer)
+        {
+            return false;
+        }
+
+        var words = Words(content);
+        return words.Count > 0 && words.All(Backchannel.Contains);
+    }
+
+    private static List<string> Words(string? text)
+    {
+        return Regex.Replace((text ?? string.Empty).ToLowerInvariant().Replace('’', '\''), @"[^a-z0-9'\- ]", " ")
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+    }
+
+    private static int CountWords(string? text) => Words(text).Count;
+
     /// <summary>
     /// The current turn can still be taken back for what the caller says next: it streams (so it can be cancelled),
     /// was spoken, not keyed in, has neither said anything nor called a tool, and the flow isn't keeping what the agent
@@ -365,7 +445,7 @@ public class ConversationRelaySession
     /// </remarks>
     private bool CanSupersede()
     {
-        return _settings.ConversationRelay.StreamReplies && _turnCallbacks != null && !_turnFromKeypad
+        return _relay.StreamReplies && _turnCallbacks != null && !_turnFromKeypad
             && !_turnReplied && !_superseded && !_streamedThisTurn && !_spokeThisTurn && !_toolCalledThisTurn
             && !_keptUninterrupted;
     }
@@ -405,7 +485,7 @@ public class ConversationRelaySession
     {
         while (true)
         {
-            var stream = _settings.ConversationRelay.StreamReplies;
+            var stream = _relay.StreamReplies;
             var callbacks = new AgentTurnCallbacks
             {
                 OnIndication = SpeakToolIndicationAsync,
@@ -477,7 +557,7 @@ public class ConversationRelaySession
             }
 
             using var watchdogCts = new CancellationTokenSource();
-            var watchdog = _settings.ConversationRelay.IsResponseWatchdogEnabledFor(_agentId)
+            var watchdog = _relay.IsResponseWatchdogEnabledFor(_agentId)
                 ? WatchResponseAsync(message.SeqNumber, callbacks, watchdogCts.Token)
                 : Task.CompletedTask;
 
@@ -491,10 +571,10 @@ public class ConversationRelaySession
                     turn = Task.Run(() => _sendCallerMessage(message, callbacks));
                 }
 
-                var timeout = Task.Delay(TimeSpan.FromSeconds(_settings.ConversationRelay.AiResponseTimeoutSeconds));
+                var timeout = Task.Delay(TimeSpan.FromSeconds(_relay.AiResponseTimeoutSeconds));
                 if (await Task.WhenAny(turn, timeout) != turn)
                 {
-                    var timeoutSeconds = _settings.ConversationRelay.AiResponseTimeoutSeconds;
+                    var timeoutSeconds = _relay.AiResponseTimeoutSeconds;
                     _logger.LogWarning($"Agent did not reply within {timeoutSeconds}s in conversation {_conversationId}.");
                     _timedOutTurn = turn;
                     await FailAsync();
@@ -546,6 +626,7 @@ public class ConversationRelaySession
                 _afterTurnLineSentUtc = DateTime.UtcNow;
                 // MarkSpeaking, right after this, counts the line itself
                 _afterTurnLineMark = _saidCount + 1;
+                NoteLine(unstreamed);
                 return true;
             }, keepUninterrupted: reply.KeepUninterrupted);
             if (reply.HumanIntervationNeeded)
@@ -569,7 +650,7 @@ public class ConversationRelaySession
     /// </summary>
     private async Task WatchResponseAsync(int seqNumber, AgentTurnCallbacks callbacks, CancellationToken cancellationToken)
     {
-        var relay = _settings.ConversationRelay;
+        var relay = _relay;
         var said = new HashSet<string>();
         var step = 0;
         while (true)
@@ -603,8 +684,47 @@ public class ConversationRelaySession
     {
         // Decided again once the send lock is held: while waiting for it the reply may have come in, or a streamed
         // line may have started or been closed, and then the silence this filler was meant for is over
-        return await SpeakIfAsync(() => !IsTurnOver(seqNumber) && IsSilentFor(interval),
+        return await SpeakIfAsync(() =>
+            {
+                if (IsTurnOver(seqNumber) || !IsSilentFor(interval))
+                {
+                    return false;
+                }
+                RememberUtterance(text, _saidCount + 1);
+                return true;
+            },
             new { type = "text", token = text, last = true }, EstimateSpeech(text.Length));
+    }
+
+    /// <summary>
+    /// Notes the agent's line that just went out (<see cref="_lastLine"/>). Call under <see cref="_sync"/>.
+    /// </summary>
+    private void NoteLine(string? line)
+    {
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            return;
+        }
+        _lastLine = line.Trim();
+        _lastLineSentUtc = DateTime.UtcNow;
+        _lastLineHeardSome = false;
+        _lastWasResume = false;
+    }
+
+    /// <summary>
+    /// Notes something said, with the _saidCount it went out at. Call under <see cref="_sync"/>.
+    /// </summary>
+    private void RememberUtterance(string text, int mark)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+        _utterances.Add((text.Trim(), mark));
+        if (_utterances.Count > UtterancesKept)
+        {
+            _utterances.RemoveAt(0);
+        }
     }
 
     /// <summary>
@@ -646,28 +766,33 @@ public class ConversationRelaySession
 
     private async Task WatchIdleAsync(CancellationToken cancellationToken)
     {
-        var relay = _settings.ConversationRelay;
-        var idleTimeout = TimeSpan.FromSeconds(relay.IdleTimeoutSeconds);
+        var relay = _relay;
         while (!cancellationToken.IsCancellationRequested)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
+            await ResumeIfSilentAsync();
 
             var askAgain = false;
             var hangUp = false;
             var activity = 0;
+            var stage = 0;
+            string? question = null;
             lock (_sync)
             {
                 var quietFor = DateTime.UtcNow - _quietSinceUtc;
-                if (_ended || _isProcessing || _quietSinceUtc == DateTime.MaxValue || quietFor < idleTimeout)
+                if (_ended || _isProcessing || _quietSinceUtc == DateTime.MaxValue || _resumeLine != null
+                    || quietFor < IdleTimeout(_idlePrompts))
                 {
                     continue;
                 }
 
+                stage = _idlePrompts;
                 if (_idlePrompts < relay.MaxIdlePrompts)
                 {
                     _idlePrompts++;
                     askAgain = true;
                     activity = _activity;
+                    question = relay.IdleAsksAgain && stage == 0 ? ConversationRelayLines.LastQuestion(_lastLine) : null;
                 }
                 else
                 {
@@ -678,18 +803,117 @@ public class ConversationRelaySession
                 _quietSinceUtc = DateTime.UtcNow;
             }
 
-            if (askAgain)
+            // Rechecked once the send lock is held: caller input arriving meanwhile starts a turn, and the prompt must not
+            // then be said over or after that turn's reply
+            bool StillSilent() => !_isProcessing && _activity == activity;
+            if (askAgain && question != null)
             {
-                // Rechecked once the send lock is held: caller input arriving meanwhile starts a turn, and the
-                // prompt must not then be said over or after that turn's reply
-                await SpeakPromptAsync($"say-it-again-{Random.Shared.Next(1, 5)}", DefaultSayItAgainText,
-                    canSpeak: () => !_isProcessing && _activity == activity);
+                await SpeakAsync(PromptText("say-it-again-question", DefaultAskAgainText).Replace("{0}", question), StillSilent);
+            }
+            else if (askAgain && relay.IdleAsksAgain && stage > 0)
+            {
+                await SpeakPromptAsync("still-there", DefaultStillThereText, StillSilent);
+            }
+            else if (askAgain)
+            {
+                await SpeakPromptAsync($"say-it-again-{Random.Shared.Next(1, 5)}", DefaultSayItAgainText, StillSilent);
             }
             else if (hangUp)
             {
                 _logger.LogInformation($"Caller stayed silent, hanging up conversation {_conversationId}.");
+                if (relay.IdleAsksAgain)
+                {
+                    // The session is marked ended already, so nothing else can be said after it
+                    await SendAsync(TextFrame(PromptText("idle-goodbye", DefaultIdleGoodbyeText), last: true, keepUninterrupted: false));
+                }
                 await SendEndAsync(ConversationRelayHandoff.HangUp);
             }
+        }
+    }
+
+    // How long the caller may stay silent before the idle prompt after this many (the last is before the hang-up)
+    private TimeSpan IdleTimeout(int prompts)
+    {
+        var timeouts = _relay.IdleTimeouts;
+        return TimeSpan.FromSeconds(timeouts.Count > 0 ? timeouts[Math.Min(prompts, timeouts.Count - 1)] : _relay.IdleTimeoutSeconds);
+    }
+
+    private string PromptText(string name, string fallback)
+    {
+        return _settings.PromptTexts.TryGetValue(name, out var text) && !string.IsNullOrWhiteSpace(text) ? text : fallback;
+    }
+
+    /// <summary>
+    /// The caller cut in and then said nothing: a noise, or the line's own voice coming back. Notes the line they cut into
+    /// to say again (ResumeAfterCutInSeconds). Call under <see cref="_sync"/>, on the interrupt.
+    /// </summary>
+    /// <remarks>
+    /// Only a line a tool gave, said after its turn (a question): the caller otherwise waits in silence for an answer to a
+    /// question they never heard (seen on calls). A line said again and cut into again is not said a third time: the
+    /// caller is talking.
+    /// </remarks>
+    private void NoteCutIn()
+    {
+        if (_relay.ResumeAfterCutInSeconds <= 0 || _ended || _lastWasResume || !_cutAfterTurn)
+        {
+            _resumeLine = null;
+            return;
+        }
+
+        _resumeLine = _afterTurnLine;
+        _cutInUtc = DateTime.UtcNow;
+        _cutInActivity = _activity;
+    }
+
+    private async Task ResumeIfSilentAsync()
+    {
+        string? line;
+        int activity;
+        lock (_sync)
+        {
+            if (_resumeLine == null)
+            {
+                return;
+            }
+            // Anything from the caller since the cut-in (words, keys) is their turn: nothing is said again
+            if (_ended || _activity != _cutInActivity)
+            {
+                _resumeLine = null;
+                return;
+            }
+            if (_isProcessing || DateTime.UtcNow - _cutInUtc < TimeSpan.FromSeconds(_relay.ResumeAfterCutInSeconds))
+            {
+                return;
+            }
+            line = _resumeLine;
+            activity = _activity;
+            _resumeLine = null;
+        }
+
+        var said = false;
+        await SpeakAsync(line, canSpeak: () =>
+        {
+            if (_isProcessing || _activity != activity)
+            {
+                return false;
+            }
+            // Said again in full: the caller has now heard it, so the next turn isn't told it was cut off
+            _afterTurnLine = line;
+            _afterTurnLineSentUtc = DateTime.UtcNow;
+            _afterTurnLineMark = _saidCount + 1;
+            _cutAfterTurn = false;
+            _heardOfAfterTurnLine = null;
+            NoteLine(line);
+            said = true;
+            return true;
+        });
+        if (said)
+        {
+            lock (_sync)
+            {
+                _lastWasResume = true;
+            }
+            _logger.LogInformation($"Nothing followed the caller's cut-in in conversation {_conversationId}; said the line again.");
         }
     }
 
@@ -719,6 +943,10 @@ public class ConversationRelaySession
             if (_ended || _dropStream)
             {
                 return false;
+            }
+            if (!_utteranceOpen)
+            {
+                _utteranceStartMark = _saidCount + 1;
             }
             _streamSegment.Append(text);
             _utteranceOpen = true;
@@ -763,6 +991,8 @@ public class ConversationRelaySession
             _lastStreamSegment = _streamSegment.ToString();
             _streamSegment.Clear();
             MarkSpeaking(EstimateSpeech(_lastStreamSegment.Length));
+            RememberUtterance(_lastStreamSegment, _utteranceStartMark);
+            NoteLine(_lastStreamSegment);
             return true;
         }, TextFrame(string.Empty, last: true, keep));
     }
@@ -939,7 +1169,15 @@ public class ConversationRelaySession
             return;
         }
 
-        await SpeakIfAsync(() => !_ended && (canSpeak?.Invoke() ?? true),
+        await SpeakIfAsync(() =>
+            {
+                if (_ended || !(canSpeak?.Invoke() ?? true))
+                {
+                    return false;
+                }
+                RememberUtterance(text, _saidCount + 1);
+                return true;
+            },
             TextFrame(text, last: true, keepUninterrupted), EstimateSpeech(text.Length));
     }
 
@@ -992,7 +1230,8 @@ public class ConversationRelaySession
     /// Twilio's utteranceUntilInterrupt is what it had played of the utterance it was on: when it is the start of the
     /// line, the caller cut into the line, whatever was queued behind it; when it is the whole line, the caller heard
     /// all of it. Otherwise (missing, empty, or another utterance's words, such as a filler or a "say it again" prompt)
-    /// it is the line only if nothing was said after it, since only something playing can be interrupted.
+    /// it is the line only if nothing was said after it, since only something playing can be interrupted. Words of
+    /// something said before the line mean the line was still queued behind it: cut off before any of it played.
     /// </remarks>
     private bool CutIntoAfterTurnLine(string? heard)
     {
@@ -1002,13 +1241,13 @@ public class ConversationRelaySession
         {
             return playing.Length < line.Length;
         }
-        return _saidCount == _afterTurnLineMark;
+        return _saidCount == _afterTurnLineMark || PlayingBeforeAfterTurnLine(playing);
     }
 
     /// <summary>
     /// What the caller heard of the last line said after its turn, when they cut into it: Twilio's utteranceUntilInterrupt
-    /// when it is the start of the line ("" when none of it played), otherwise null, as it is then not known. Call under
-    /// <see cref="_sync"/>.
+    /// when it is the start of the line, "" when none of it played (Twilio was still playing something said before it),
+    /// otherwise null, as it is then not known. Call under <see cref="_sync"/>.
     /// </summary>
     private string? HeardOfAfterTurnLine(string? heard)
     {
@@ -1017,7 +1256,21 @@ public class ConversationRelaySession
         {
             return null;
         }
-        return _afterTurnLine!.Trim().StartsWith(playing, StringComparison.Ordinal) ? playing : null;
+        if (_afterTurnLine!.Trim().StartsWith(playing, StringComparison.Ordinal))
+        {
+            return playing;
+        }
+        return PlayingBeforeAfterTurnLine(playing) ? string.Empty : null;
+    }
+
+    // Twilio was playing something said before the after-turn line (a filler, the reply's first part) when the caller cut
+    // in. Why: a line queued behind a filler that was cut off was taken as heard, and the caller's "Yes." to the filler
+    // as the answer to it (seen on calls).
+    private bool PlayingBeforeAfterTurnLine(string? playing)
+    {
+        return !string.IsNullOrEmpty(playing)
+            && _utterances.Any(u => u.Mark < _afterTurnLineMark && u.Text.StartsWith(playing, StringComparison.Ordinal)
+                && !_afterTurnLine!.Trim().StartsWith(playing, StringComparison.Ordinal));
     }
 
     private async Task SendAsync(object payload)
