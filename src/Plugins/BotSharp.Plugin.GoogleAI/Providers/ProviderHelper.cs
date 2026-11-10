@@ -17,4 +17,13 @@ public static class ProviderHelper
             return new GenerativeAI.GoogleAi(aiSettings.Gemini.ApiKey);
         }
     }
+
+    /// <summary>
+    /// Gemini bills thinking tokens as output but reports them separately from
+    /// the candidates, so both have to be counted.
+    /// </summary>
+    public static long GetOutputTokens(GenerativeAI.Types.UsageMetadata? usage)
+    {
+        return (usage?.CandidatesTokenCount ?? 0) + (usage?.ThoughtsTokenCount ?? 0);
+    }
 }
