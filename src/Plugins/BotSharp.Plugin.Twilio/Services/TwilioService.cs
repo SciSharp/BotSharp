@@ -295,6 +295,12 @@ public class TwilioService
         element.SetOption("welcomeGreetingInterruptible", relay.WelcomeGreetingInterruptible);
         element.SetOption("interruptSensitivity", relay.InterruptSensitivity);
         element.SetOption("ignoreBackchannel", relay.IgnoreBackchannel ? "true" : "false");
+        // A line said again after a cut-in must not go out while the caller is still talking: the unfinalized transcripts
+        // say they are (Deepgram Flux only sends them)
+        if (relay.ResumeAfterCutInSeconds > 0)
+        {
+            element.SetOption("partialPrompts", "true");
+        }
         if (!string.IsNullOrWhiteSpace(relay.Hints))
         {
             element.SetOption("hints", relay.Hints);

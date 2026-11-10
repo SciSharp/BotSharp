@@ -10,7 +10,11 @@ public static class ConversationRelayLines
     // Fewer words than this ("Is that your address?") need the sentence before them to make sense on their own
     private const int ShortQuestionWords = 6;
 
-    private static readonly Regex Sentence = new(@"[^.?!]+[.?!]+", RegexOptions.Compiled);
+    // Where one sentence ends and the next starts: after a period, question or exclamation mark and a space, but not after
+    // an abbreviation ("100 Main St. Apt 4"); a decimal ("$12.50") has no space after its point
+    private static readonly Regex SentenceEnd = new(
+        @"(?<=[.?!])(?<!\b(?:Mr|Mrs|Ms|Dr|St|Ave|Rd|Blvd|Ln|Ct|Hwy|Apt|Ste|Mt|Ft|Jr|Sr|vs|etc)\.)\s+",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     // What leads into a question and isn't worth saying again
     private static readonly Regex Acknowledgement = new(@"^(?:(?:Got it|Understood|Okay|Thank you|Thanks|Great|Sure|No problem)[.!]\s*)+$",
@@ -27,7 +31,7 @@ public static class ConversationRelayLines
             return null;
         }
 
-        var sentences = Sentence.Matches(line).Select(m => m.Value.Trim()).Where(s => s.Length > 0).ToList();
+        var sentences = SentenceEnd.Split(line.Trim()).Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
         var last = sentences.FindLastIndex(s => s.EndsWith('?'));
         if (last < 0)
         {

@@ -104,6 +104,11 @@ public class ConversationRelaySetting
     /// (a cut-in no words follow is a noise or the line's own echo). A line said again and cut into again is not said a
     /// third time: the caller is talking. 0 turns it off.
     /// </summary>
+    /// <remarks>
+    /// On, the TwiML asks for partialPrompts, so a caller still talking is heard as activity before their words are final
+    /// and nothing is said over them. Twilio only sends those with Deepgram Flux: with another transcription, this has to
+    /// be longer than a caller's longest sentence after a cut-in.
+    /// </remarks>
     public double ResumeAfterCutInSeconds { get; set; }
 
     /// <summary>

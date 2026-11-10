@@ -44,7 +44,6 @@ public class ConversationRelaySession
     private readonly object _sync = new();
     private readonly Queue<PendingInput> _pendingInputs = new();
     private readonly StringBuilder _digits = new();
-    private readonly StringBuilder _partialPrompt = new();
     private bool _isProcessing;
     private Task _processing = Task.CompletedTask;
     // A turn given up on after AiResponseTimeoutSeconds keeps running until it saves the conversation
@@ -257,26 +256,28 @@ public class ConversationRelaySession
             case "prompt":
                 var text = GetString(root, "voicePrompt") ?? string.Empty;
                 var last = !root.TryGetProperty("last", out var lastElement) || lastElement.ValueKind != JsonValueKind.False;
-                _partialPrompt.Append(text);
-                if (!last && text.Length > 0)
+                if (!last)
                 {
-                    // With partialPrompts on, the caller is mid-sentence: not silent, and not to be asked to repeat
-                    lock (_sync)
+                    // An unfinalized transcript (partialPrompts, or an eager end of turn): the caller is mid-sentence, so
+                    // not silent, not to be asked to repeat, and not to have a line said again over them. Its words are
+                    // not kept: the final prompt carries the whole turn
+                    if (text.Length > 0)
                     {
-                        _quietSinceUtc = DateTime.UtcNow;
-                        _activity++;
+                        lock (_sync)
+                        {
+                            _quietSinceUtc = DateTime.UtcNow;
+                            _activity++;
+                        }
                     }
+                    break;
                 }
-                if (last)
+
+                var prompt = text.Trim();
+                // Only punctuation (".") is no words at all: answered, it took the place of the reply to the caller's real
+                // words right after it (seen on a call)
+                if (prompt.Any(char.IsLetterOrDigit))
                 {
-                    var prompt = _partialPrompt.ToString().Trim();
-                    _partialPrompt.Clear();
-                    // Only punctuation (".") is no words at all: answered, it took the place of the reply to the caller's
-                    // real words right after it (seen on a call)
-                    if (prompt.Any(char.IsLetterOrDigit))
-                    {
-                        Enqueue(prompt, digits: null);
-                    }
+                    Enqueue(prompt, digits: null);
                 }
                 break;
 
@@ -325,8 +326,11 @@ public class ConversationRelaySession
                         _heardOfAfterTurnLine = HeardOfAfterTurnLine(heard);
                     }
 
-                    // A few words heard and what the caller says next answers the line, however soon it comes
-                    _lastLineHeardSome = CountWords(heard) >= HeardSomeWords;
+                    // A few words of the line heard and what the caller says next answers it, however soon it comes.
+                    // What was playing may be something else (a filler): words of that are no part of the line
+                    var heardOfLine = heard?.Trim();
+                    _lastLineHeardSome = !string.IsNullOrEmpty(heardOfLine) && _lastLine != null
+                        && _lastLine.StartsWith(heardOfLine, StringComparison.Ordinal) && CountWords(heardOfLine) >= HeardSomeWords;
                     NoteCutIn();
                 }
                 var interruptedAfter = GetString(root, "durationUntilInterruptMs");
@@ -393,11 +397,17 @@ public class ConversationRelaySession
         }
     }
 
-    // Words that only acknowledge
-    private static readonly HashSet<string> Backchannel = new(StringComparer.Ordinal)
+    // Words that acknowledge
+    private static readonly HashSet<string> Acknowledgements = new(StringComparer.Ordinal)
     {
-        "yes", "yeah", "yep", "okay", "ok", "sure", "i", "agree", "that's", "that", "is", "fine", "good", "right", "correct",
-        "alright", "great", "thanks", "thank", "you", "it", "uh", "um", "so", "perfect", "sounds", "mm-hmm", "uh-huh"
+        "yes", "yeah", "yep", "okay", "ok", "sure", "agree", "fine", "good", "right", "correct", "alright", "great", "thanks",
+        "thank", "perfect", "sounds", "mm-hmm", "uh-huh"
+    };
+
+    // Words that come with one and say nothing alone ("I agree.", "That's fine.", "Thank you."): "Is that it?" is a question
+    private static readonly HashSet<string> AcknowledgementFillers = new(StringComparer.Ordinal)
+    {
+        "i", "that's", "that", "is", "it", "you", "uh", "um", "so"
     };
 
     // A caller who heard this many words of a line before cutting in was answering it
@@ -421,7 +431,8 @@ public class ConversationRelaySession
         }
 
         var words = Words(content);
-        return words.Count > 0 && words.All(Backchannel.Contains);
+        return !content.Contains('?') && words.Any(Acknowledgements.Contains)
+            && words.All(w => Acknowledgements.Contains(w) || AcknowledgementFillers.Contains(w));
     }
 
     private static List<string> Words(string? text)
@@ -709,6 +720,8 @@ public class ConversationRelaySession
         _lastLineSentUtc = DateTime.UtcNow;
         _lastLineHeardSome = false;
         _lastWasResume = false;
+        // A line cut into before this one went out is not said again after it
+        _resumeLine = null;
     }
 
     /// <summary>
@@ -904,15 +917,13 @@ public class ConversationRelaySession
             _cutAfterTurn = false;
             _heardOfAfterTurnLine = null;
             NoteLine(line);
+            // Set as it goes out: a cut-in into it, however soon, doesn't get it said a third time
+            _lastWasResume = true;
             said = true;
             return true;
         });
         if (said)
         {
-            lock (_sync)
-            {
-                _lastWasResume = true;
-            }
             _logger.LogInformation($"Nothing followed the caller's cut-in in conversation {_conversationId}; said the line again.");
         }
     }
@@ -1265,12 +1276,16 @@ public class ConversationRelaySession
 
     // Twilio was playing something said before the after-turn line (a filler, the reply's first part) when the caller cut
     // in. Why: a line queued behind a filler that was cut off was taken as heard, and the caller's "Yes." to the filler
-    // as the answer to it (seen on calls).
+    // as the answer to it (seen on calls). Only the latest thing said with those words counts: a filler said again on a
+    // later turn ("One moment, please.") is the one playing, not the same words said before the line.
     private bool PlayingBeforeAfterTurnLine(string? playing)
     {
-        return !string.IsNullOrEmpty(playing)
-            && _utterances.Any(u => u.Mark < _afterTurnLineMark && u.Text.StartsWith(playing, StringComparison.Ordinal)
-                && !_afterTurnLine!.Trim().StartsWith(playing, StringComparison.Ordinal));
+        if (string.IsNullOrEmpty(playing) || _afterTurnLine!.Trim().StartsWith(playing, StringComparison.Ordinal))
+        {
+            return false;
+        }
+        var latest = _utterances.LastOrDefault(u => u.Text.StartsWith(playing, StringComparison.Ordinal));
+        return latest.Text != null && latest.Mark < _afterTurnLineMark;
     }
 
     private async Task SendAsync(object payload)
