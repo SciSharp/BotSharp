@@ -99,6 +99,67 @@ public class ConversationRelaySetting
     /// </summary>
     public List<string> ResponseWatchdogLongPrompts { get; set; } = [];
 
+    /// <summary>
+    /// Seconds after the caller cut in, with nothing from them since, before the line they cut into is said again, once
+    /// (a cut-in no words follow is a noise or the line's own echo). A line said again and cut into again is not said a
+    /// third time: the caller is talking. 0 turns it off.
+    /// </summary>
+    /// <remarks>
+    /// On, the TwiML asks for partialPrompts, so a caller still talking is heard as activity before their words are final
+    /// and nothing is said over them. Twilio only sends those with Deepgram Flux: with another transcription, this has to
+    /// be longer than a caller's longest sentence after a cut-in.
+    /// </remarks>
+    public double ResumeAfterCutInSeconds { get; set; }
+
+    /// <summary>
+    /// Seconds of caller silence before each idle prompt, in turn; the last one is before hanging up. Empty uses
+    /// <see cref="IdleTimeoutSeconds"/> for every one.
+    /// </summary>
+    public List<double> IdleTimeouts { get; set; } = [];
+
+    /// <summary>
+    /// The first idle prompt asks the question the agent's last line asked again ("Sorry, I didn't catch that. ..."), the
+    /// next ones ask if the caller is still there, and the hang-up says goodbye (Twilio:PromptTexts say-it-again-question,
+    /// still-there and idle-goodbye). Off, every idle prompt is a "say it again" one and the hang-up is silent.
+    /// </summary>
+    public bool IdleAsksAgain { get; set; }
+
+    /// <summary>
+    /// Drop a caller's words that came in before they could hear the line just said (TooSoonToAnswer) when they only
+    /// acknowledge ("I agree.", "Okay.") and that line asks something: the tail of what they said before, which the
+    /// transcription split off. Words said after the caller heard a few words of the line are kept.
+    /// </summary>
+    public bool DropBackchannelTails { get; set; }
+
+    /// <summary>
+    /// Settings for one agent's calls, by agent id, over the ones above
+    /// </summary>
+    public Dictionary<string, ConversationRelayAgentSetting> Agents { get; set; } = [];
+
+    /// <summary>
+    /// The settings for an agent's calls: these, with what <see cref="Agents"/> sets for it in their place
+    /// </summary>
+    public ConversationRelaySetting For(string? agentId)
+    {
+        if (agentId == null || !Agents.TryGetValue(agentId, out var agent))
+        {
+            return this;
+        }
+
+        var settings = (ConversationRelaySetting)MemberwiseClone();
+        settings.TranscriptionProvider = agent.TranscriptionProvider ?? TranscriptionProvider;
+        settings.SpeechModel = agent.SpeechModel ?? SpeechModel;
+        settings.InterruptSensitivity = agent.InterruptSensitivity ?? InterruptSensitivity;
+        settings.IgnoreBackchannel = agent.IgnoreBackchannel ?? IgnoreBackchannel;
+        settings.IdleTimeoutSeconds = agent.IdleTimeoutSeconds ?? IdleTimeoutSeconds;
+        settings.MaxIdlePrompts = agent.MaxIdlePrompts ?? MaxIdlePrompts;
+        settings.IdleTimeouts = agent.IdleTimeouts ?? IdleTimeouts;
+        settings.IdleAsksAgain = agent.IdleAsksAgain ?? IdleAsksAgain;
+        settings.ResumeAfterCutInSeconds = agent.ResumeAfterCutInSeconds ?? ResumeAfterCutInSeconds;
+        settings.DropBackchannelTails = agent.DropBackchannelTails ?? DropBackchannelTails;
+        return settings;
+    }
+
     public bool IsEnabledFor(string? agentId)
     {
         return Enabled && (AgentIds.Count == 0 || (agentId != null && AgentIds.Contains(agentId)));

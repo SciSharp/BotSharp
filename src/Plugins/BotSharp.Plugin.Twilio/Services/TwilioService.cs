@@ -275,7 +275,7 @@ public class TwilioService
     public VoiceResponse ReturnConversationRelay(
         string agentId, string conversationId, string? welcomeGreeting, int reconnects = 0)
     {
-        var relay = _settings.ConversationRelay;
+        var relay = _settings.ConversationRelay.For(agentId);
         var query = $"agent-id={Uri.EscapeDataString(agentId)}" +
             $"&conversation-id={Uri.EscapeDataString(conversationId)}&reconnects={reconnects}";
         var connect = new Connect(action: new Uri($"{_settings.CallbackHost}/twilio/relay/action?{query}"));
@@ -295,6 +295,12 @@ public class TwilioService
         element.SetOption("welcomeGreetingInterruptible", relay.WelcomeGreetingInterruptible);
         element.SetOption("interruptSensitivity", relay.InterruptSensitivity);
         element.SetOption("ignoreBackchannel", relay.IgnoreBackchannel ? "true" : "false");
+        // A line said again after a cut-in must not go out while the caller is still talking: the unfinalized transcripts
+        // say they are (Deepgram Flux only sends them)
+        if (relay.ResumeAfterCutInSeconds > 0)
+        {
+            element.SetOption("partialPrompts", "true");
+        }
         if (!string.IsNullOrWhiteSpace(relay.Hints))
         {
             element.SetOption("hints", relay.Hints);
