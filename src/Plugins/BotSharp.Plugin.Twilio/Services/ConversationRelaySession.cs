@@ -21,6 +21,12 @@ public class ConversationRelaySession
     private static readonly List<string> DefaultWatchdogLongPrompts = Enumerable.Range(1, 10).Select(i => $"hold-on-long-{i}").ToList();
     private static readonly TimeSpan WatchdogPollInterval = TimeSpan.FromMilliseconds(100);
 
+    // Words that come in this soon after a line went out were said before the caller heard any of it: the line starts
+    // playing a moment after it is sent, and the transcript of what they said arrives a second or more after they said
+    // it. Seen on a dev call: "Sure.", said back to a filler, came in 0.1 s after the address question went out and was
+    // taken as the address confirmed.
+    private static readonly TimeSpan TooSoonToAnswer = TimeSpan.FromSeconds(1);
+
     private readonly WebSocket _socket;
     private readonly string _agentId;
     private readonly string _conversationId;
@@ -90,6 +96,8 @@ public class ConversationRelaySession
     // _saidCount once the line went out: anything said since moves it on, and an interrupt is then not the line's
     private int _afterTurnLineMark;
     private bool _cutAfterTurn;
+    // With _cutAfterTurn, what Twilio had played of the line when the caller cut in; null when it didn't say
+    private string? _heardOfAfterTurnLine;
 
     // Bumped on everything sent for the caller to hear (a line, a streamed piece, a filler, a prompt)
     private int _saidCount;
@@ -280,9 +288,11 @@ public class ConversationRelaySession
                         _heardBeforeCutIn = GetString(root, "utteranceUntilInterrupt");
                     }
 
-                    if (_afterTurnLine != null && !_ended && CutIntoAfterTurnLine(GetString(root, "utteranceUntilInterrupt")))
+                    var heard = GetString(root, "utteranceUntilInterrupt");
+                    if (_afterTurnLine != null && !_ended && CutIntoAfterTurnLine(heard))
                     {
                         _cutAfterTurn = true;
+                        _heardOfAfterTurnLine = HeardOfAfterTurnLine(heard);
                     }
                 }
                 var interruptedAfter = GetString(root, "durationUntilInterruptMs");
@@ -328,6 +338,7 @@ public class ConversationRelaySession
                 if (supersede!.LastReplyCutOff)
                 {
                     _cutAfterTurn = true;
+                    _heardOfAfterTurnLine ??= supersede.LastReplyHeard;
                 }
             }
         }
@@ -450,17 +461,24 @@ public class ConversationRelaySession
                 _toolCalledThisTurn = false;
                 _turnFromKeypad = message.Digits != null;
                 _superseded = false;
-                // Words that came in before the line went out (said while the last turn worked) can't answer it either
+                // Words that came in before the line went out (said while the last turn worked) can't answer it either,
+                // nor words that came in too soon after it to be about it (TooSoonToAnswer)
                 callbacks.LastReplyCutOff = _cutAfterTurn
-                    || _afterTurnLine != null && batch.Any(input => input.ReceivedUtc < _afterTurnLineSentUtc);
+                    || _afterTurnLine != null && batch.Any(input => input.ReceivedUtc < _afterTurnLineSentUtc + TooSoonToAnswer);
+                if (_cutAfterTurn && _heardOfAfterTurnLine != null)
+                {
+                    callbacks.LastReplyLine = _afterTurnLine;
+                    callbacks.LastReplyHeard = _heardOfAfterTurnLine;
+                }
                 _cutAfterTurn = false;
+                _heardOfAfterTurnLine = null;
                 // Set with the flags above, so caller input arriving now never sees the last turn's callbacks
                 _turnCallbacks = callbacks;
             }
 
             using var watchdogCts = new CancellationTokenSource();
             var watchdog = _settings.ConversationRelay.IsResponseWatchdogEnabledFor(_agentId)
-                ? WatchResponseAsync(message.SeqNumber, watchdogCts.Token)
+                ? WatchResponseAsync(message.SeqNumber, callbacks, watchdogCts.Token)
                 : Task.CompletedTask;
 
             AssistantMessage? reply;
@@ -547,9 +565,9 @@ public class ConversationRelaySession
     /// While the agent works on a reply, says a filler each time the line has been silent for the next
     /// ResponseWatchdogIntervals value, so the caller never sits in a long silence while the model thinks or a tool runs.
     /// Silence counts from the end of whatever was said last (the caller, a filler, an indication), and no filler is
-    /// said twice in a turn while unused ones remain.
+    /// said twice in a turn while unused ones remain. The turn is told of each one said (OnFillerSaid).
     /// </summary>
-    private async Task WatchResponseAsync(int seqNumber, CancellationToken cancellationToken)
+    private async Task WatchResponseAsync(int seqNumber, AgentTurnCallbacks callbacks, CancellationToken cancellationToken)
     {
         var relay = _settings.ConversationRelay;
         var said = new HashSet<string>();
@@ -576,6 +594,7 @@ public class ConversationRelaySession
             {
                 said.Add(text);
                 step++;
+                callbacks.OnFillerSaid?.Invoke(text);
             }
         }
     }
@@ -799,12 +818,7 @@ public class ConversationRelaySession
         }
 
         var unheard = final.Substring(sent.Length).Trim();
-        if (unheard.Length == 0)
-        {
-            return content;
-        }
-        var mark = $"[the caller cut in here; they did not hear: \"{unheard}\"]";
-        return sent.Length == 0 ? mark : $"{sent} {mark}";
+        return unheard.Length == 0 ? content : ConversationRelayCutIn.Mark(sent, unheard);
     }
 
     /// <summary>
@@ -989,6 +1003,21 @@ public class ConversationRelaySession
             return playing.Length < line.Length;
         }
         return _saidCount == _afterTurnLineMark;
+    }
+
+    /// <summary>
+    /// What the caller heard of the last line said after its turn, when they cut into it: Twilio's utteranceUntilInterrupt
+    /// when it is the start of the line ("" when none of it played), otherwise null, as it is then not known. Call under
+    /// <see cref="_sync"/>.
+    /// </summary>
+    private string? HeardOfAfterTurnLine(string? heard)
+    {
+        var playing = heard?.Trim();
+        if (playing == null)
+        {
+            return null;
+        }
+        return _afterTurnLine!.Trim().StartsWith(playing, StringComparison.Ordinal) ? playing : null;
     }
 
     private async Task SendAsync(object payload)
