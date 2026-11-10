@@ -73,8 +73,11 @@ public class ConversationRelaySession
 
     // How the utterance being streamed went out, so its closing frame goes out the same way
     private bool _utteranceKeptUninterrupted;
-    // _saidCount as its first piece went out
+    // _saidCount, and the time, as its first piece went out
     private int _utteranceStartMark;
+    private DateTime _utteranceStartUtc;
+    // The caller cut into the utterance being streamed
+    private bool _utteranceCutIn;
 
     // The current turn's reply is in; the response watchdog says nothing more once it is set
     private bool _turnReplied;
@@ -327,10 +330,13 @@ public class ConversationRelaySession
                     }
 
                     // A few words of the line heard and what the caller says next answers it, however soon it comes.
-                    // What was playing may be something else (a filler): words of that are no part of the line
+                    // What was playing may be something else (a filler): words of that are no part of the line. A line
+                    // still being streamed is the one cut into, as far as it went out
                     var heardOfLine = heard?.Trim();
-                    _lastLineHeardSome = !string.IsNullOrEmpty(heardOfLine) && _lastLine != null
-                        && _lastLine.StartsWith(heardOfLine, StringComparison.Ordinal) && CountWords(heardOfLine) >= HeardSomeWords;
+                    var lineCutInto = _utteranceOpen ? _streamSegment.ToString().Trim() : _lastLine;
+                    _lastLineHeardSome = !string.IsNullOrEmpty(heardOfLine) && lineCutInto != null
+                        && lineCutInto.StartsWith(heardOfLine, StringComparison.Ordinal) && CountWords(heardOfLine) >= HeardSomeWords;
+                    _utteranceCutIn |= _utteranceOpen;
                     NoteCutIn();
                 }
                 var interruptedAfter = GetString(root, "durationUntilInterruptMs");
@@ -431,7 +437,9 @@ public class ConversationRelaySession
         }
 
         var words = Words(content);
-        return !content.Contains('?') && words.Any(Acknowledgements.Contains)
+        // "Is that right" asks, whether or not the transcript gave it its question mark
+        var asks = content.Contains('?') || words.SkipWhile(w => w is "uh" or "um" or "so").FirstOrDefault() == "is";
+        return !asks && words.Any(Acknowledgements.Contains)
             && words.All(w => Acknowledgements.Contains(w) || AcknowledgementFillers.Contains(w));
     }
 
@@ -710,15 +718,18 @@ public class ConversationRelaySession
     /// <summary>
     /// Notes the agent's line that just went out (<see cref="_lastLine"/>). Call under <see cref="_sync"/>.
     /// </summary>
-    private void NoteLine(string? line)
+    private void NoteLine(string? line, DateTime? sentUtc = null, bool keepHeard = false)
     {
         if (string.IsNullOrWhiteSpace(line))
         {
             return;
         }
         _lastLine = line.Trim();
-        _lastLineSentUtc = DateTime.UtcNow;
-        _lastLineHeardSome = false;
+        _lastLineSentUtc = sentUtc ?? DateTime.UtcNow;
+        if (!keepHeard)
+        {
+            _lastLineHeardSome = false;
+        }
         _lastWasResume = false;
         // A line cut into before this one went out is not said again after it
         _resumeLine = null;
@@ -958,6 +969,8 @@ public class ConversationRelaySession
             if (!_utteranceOpen)
             {
                 _utteranceStartMark = _saidCount + 1;
+                _utteranceStartUtc = DateTime.UtcNow;
+                _utteranceCutIn = false;
             }
             _streamSegment.Append(text);
             _utteranceOpen = true;
@@ -1003,7 +1016,16 @@ public class ConversationRelaySession
             _streamSegment.Clear();
             MarkSpeaking(EstimateSpeech(_lastStreamSegment.Length));
             RememberUtterance(_lastStreamSegment, _utteranceStartMark);
-            NoteLine(_lastStreamSegment);
+            // Cut into while it streamed: the caller's words are about it, so it dates from when it started and keeps
+            // what they heard of it, not from now (a "Yes." said over it was dropped as a tail, review)
+            if (_utteranceCutIn)
+            {
+                NoteLine(_lastStreamSegment, _utteranceStartUtc, keepHeard: true);
+            }
+            else
+            {
+                NoteLine(_lastStreamSegment);
+            }
             return true;
         }, TextFrame(string.Empty, last: true, keep));
     }
