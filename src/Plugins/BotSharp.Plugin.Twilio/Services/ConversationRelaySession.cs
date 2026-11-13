@@ -31,6 +31,11 @@ public class ConversationRelaySession
     // taken as the address confirmed.
     private static readonly TimeSpan TooSoonToAnswer = TimeSpan.FromSeconds(1);
 
+    // The fastest a line is spoken: a line played to the end reaches its question no sooner than its words before the
+    // question take at this pace, so an answer said once the question was heard is never taken for a word said to what
+    // came before it (SpokenCharsPerSecond is the usual pace)
+    private const double FastestSpokenCharsPerSecond = 20;
+
     private readonly WebSocket _socket;
     private readonly string _agentId;
     private readonly string _conversationId;
@@ -117,6 +122,8 @@ public class ConversationRelaySession
     // prompt asks again, and what a caller's words that came too soon after it are checked against
     private string? _lastLine;
     private DateTime _lastLineSentUtc;
+    // The last line plays to the end whoever speaks over it, so Twilio reports no cut-in into it
+    private bool _lastLineKeptUninterrupted;
     // The caller heard a few words of the last line before cutting in: what they say next is meant for it
     private bool _lastLineHeardSome;
 
@@ -375,7 +382,8 @@ public class ConversationRelaySession
             if (digits == null && IsBackchannelTail(content))
             {
                 _logger.LogInformation($"Dropped \"{content}\" in conversation {_conversationId}: an acknowledgement that came in " +
-                    "before the caller could hear the question just asked, the tail of what they said before.");
+                    "before the caller could hear the question just asked, the tail of what they said before or a word said " +
+                    "to what came before the question.");
                 // Its unfinalized words were no turn of the caller's either: a line it cut into is said again once they are
                 // quiet (ResumeAfterCutInSeconds). Why: "That's right." after "Yes." cut a question off at its first word,
                 // and the question was never said again (a dev call)
@@ -438,8 +446,8 @@ public class ConversationRelaySession
 
     /// <summary>
     /// Whether these words are the tail of what the caller said before the last line went out: they only acknowledge,
-    /// came in too soon after that line to be about it, and the line asks something (DropBackchannelTails). Call under
-    /// <see cref="_sync"/>.
+    /// came in too soon after that line to be about it (for a line played to the end, before its question could have
+    /// been heard), and the line asks something (DropBackchannelTails). Call under <see cref="_sync"/>.
     /// </summary>
     /// <remarks>
     /// Why: the transcription splits an utterance in two ("Yes." then "I agree."); the second part came in after the next
@@ -448,7 +456,7 @@ public class ConversationRelaySession
     private bool IsBackchannelTail(string content)
     {
         if (!_relay.DropBackchannelTails || _lastLineHeardSome || _lastLine == null || !_lastLine.Contains('?')
-            || DateTime.UtcNow >= _lastLineSentUtc + TooSoonToAnswer)
+            || DateTime.UtcNow >= _lastLineSentUtc + TooSoonToAnswer + UntilQuestionPlays())
         {
             return false;
         }
@@ -458,6 +466,23 @@ public class ConversationRelaySession
         var asks = content.Contains('?') || words.SkipWhile(w => w is "uh" or "um" or "so").FirstOrDefault() == "is";
         return !asks && words.Any(Acknowledgements.Contains)
             && words.All(w => Acknowledgements.Contains(w) || AcknowledgementFillers.Contains(w));
+    }
+
+    /// <summary>
+    /// How long after the last line went out its question starts playing, when the line plays to the end; zero for a line
+    /// the caller may cut into. Call under <see cref="_sync"/>.
+    /// </summary>
+    /// <remarks>
+    /// Why: "Perfect.", said to "Someone will be out within the next three days." while the rest of the line ("... I just
+    /// texted it to you. Can you check if you got it?") still played, came in 2.8 s after the line went out and was taken
+    /// as the link checked; the request number went out next, before the caller heard the question (dev call 4bcd88e1).
+    /// A line the caller may cut into is left as it was: Twilio stops it where they speak and says what they heard.
+    /// </remarks>
+    private TimeSpan UntilQuestionPlays()
+    {
+        return _lastLineKeptUninterrupted
+            ? TimeSpan.FromSeconds(ConversationRelayLines.BeforeFirstQuestion(_lastLine).Length / FastestSpokenCharsPerSecond)
+            : TimeSpan.Zero;
     }
 
     private static List<string> Words(string? text)
@@ -664,7 +689,7 @@ public class ConversationRelaySession
                 _afterTurnLineSentUtc = DateTime.UtcNow;
                 // MarkSpeaking, right after this, counts the line itself
                 _afterTurnLineMark = _saidCount + 1;
-                NoteLine(unstreamed);
+                NoteLine(unstreamed, keptUninterrupted: reply.KeepUninterrupted);
                 return true;
             }, keepUninterrupted: reply.KeepUninterrupted);
             if (reply.HumanIntervationNeeded)
@@ -740,7 +765,8 @@ public class ConversationRelaySession
     /// <summary>
     /// Notes the agent's line that just went out (<see cref="_lastLine"/>). Call under <see cref="_sync"/>.
     /// </summary>
-    private void NoteLine(string? line, DateTime? sentUtc = null, bool keepHeard = false)
+    /// <param name="keptUninterrupted">The line went out to play to the end whoever speaks over it</param>
+    private void NoteLine(string? line, DateTime? sentUtc = null, bool keepHeard = false, bool keptUninterrupted = false)
     {
         if (string.IsNullOrWhiteSpace(line))
         {
@@ -748,6 +774,7 @@ public class ConversationRelaySession
         }
         _lastLine = line.Trim();
         _lastLineSentUtc = sentUtc ?? DateTime.UtcNow;
+        _lastLineKeptUninterrupted = keptUninterrupted;
         if (!keepHeard)
         {
             _lastLineHeardSome = false;
@@ -1253,11 +1280,18 @@ public class ConversationRelaySession
 
     /// <summary>
     /// Speaks a tool-call indication: "#name" is a prerecorded prompt, anything else is spoken as is;
-    /// segments are separated by "|".
+    /// segments are separated by "|". Said while the flow keeps what the agent says uninterrupted, the spoken text plays
+    /// to the end too.
     /// </summary>
+    /// <remarks>
+    /// Why: the recap said while the request went in, and the line before it, were each cut off by an interrupt 0 ms
+    /// into them with no words after it, so the caller heard neither (dev call 4bcd88e1); the reply after them, kept
+    /// uninterrupted, played whole.
+    /// </remarks>
     private async Task SpeakIndicationAsync(string indication)
     {
         await CloseUtteranceAsync();
+        var keep = ReadKeepUninterrupted();
         foreach (var segment in indication.Split('|'))
         {
             var text = segment.Trim();
@@ -1267,7 +1301,7 @@ public class ConversationRelaySession
             }
             else
             {
-                await SpeakAsync(text);
+                await SpeakAsync(text, keepUninterrupted: keep);
             }
         }
     }
