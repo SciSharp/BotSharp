@@ -47,8 +47,6 @@ public static class TwilioConversationProcessor
         HookEmitter.Emit<ITwilioSessionHook>(sp, hook => hook.OnAuthenticate(request), message.AgentId);
 
         AssistantMessage? reply = null;
-        // Said while the agent worked on the reply; kept in the history just ahead of it
-        var fillers = new List<(string Text, DateTime SaidUtc)>();
 
         var inputMsg = new RoleDialogModel(AgentRole.User, message.Content);
         var conv = sp.GetRequiredService<IConversationService>();
@@ -134,13 +132,6 @@ public static class TwilioConversationProcessor
             {
                 conv.States.RemoveState(ConversationRelayStates.LastReplyCutOff);
             }
-            callbacks.OnFillerSaid = filler =>
-            {
-                lock (fillers)
-                {
-                    fillers.Add((filler, DateTime.UtcNow));
-                }
-            };
             if (callbacks.OnTurnStarted != null)
             {
                 await callbacks.OnTurnStarted();
@@ -163,8 +154,10 @@ public static class TwilioConversationProcessor
                 replyMessage: await BuildPostbackMessageModel(conv, message),
                 async msg =>
                 {
-                    // The reply is appended once this returns, so the fillers go in ahead of it
-                    await StoreFillers(sp, message, inputMsg.MessageId, fillers);
+                    // Said while the agent worked on the reply: the reply is appended once this returns, so they go in
+                    // ahead of it
+                    await KeepSaidLines(sp, message.AgentId, message.ConversationId, inputMsg.MessageId,
+                        ConversationRelayLabels.Filler, callbacks?.TakeFillers() ?? []);
                     // What the caller is told, which a rewrite below must not change
                     var spoken = msg.Content;
                     RewriteForHistory(msg, callbacks);
@@ -255,48 +248,47 @@ public static class TwilioConversationProcessor
     }
 
     /// <summary>
-    /// Keeps the fillers said while the agent worked on this reply in the history, out of the agent's context: they are
-    /// what the caller heard, and a reply to one ("Sure.") makes sense only next to it
+    /// Keeps lines the caller heard in the history, out of the agent's context: the fillers said while the agent worked
+    /// on a reply, kept just ahead of it (a reply to one, "Sure.", makes sense only next to it), and what a
+    /// ConversationRelay session says on its own (an apology, an idle prompt, a line said again)
     /// </summary>
-    private static async Task StoreFillers(IServiceProvider sp, CallerMessage message, string messageId,
-        List<(string Text, DateTime SaidUtc)> fillers)
+    /// <param name="messageId">The caller message the lines go with; null gives each line a message of its own</param>
+    /// <param name="label">What the lines were (<see cref="ConversationRelayLabels"/>), kept as their MessageLabel</param>
+    public static async Task KeepSaidLines(IServiceProvider sp, string agentId, string conversationId, string? messageId,
+        string label, IReadOnlyCollection<(string Text, DateTime SaidUtc)> lines)
     {
-        List<(string Text, DateTime SaidUtc)> said;
-        lock (fillers)
-        {
-            said = [.. fillers];
-            fillers.Clear();
-        }
-        if (said.Count == 0)
+        if (lines.Count == 0)
         {
             return;
         }
 
-        var dialogs = said.Select(f => new RoleDialogModel(AgentRole.Assistant, f.Text)
+        var dialogs = lines.Select(line => new RoleDialogModel(AgentRole.Assistant, line.Text)
         {
-            CurrentAgentId = message.AgentId,
-            MessageId = messageId,
-            CreatedAt = f.SaidUtc,
+            CurrentAgentId = agentId,
+            MessageId = messageId ?? Guid.NewGuid().ToString(),
+            MessageLabel = label,
+            CreatedAt = line.SaidUtc,
             ExcludeFromContext = true
-        });
+        }).ToList();
         try
         {
-            await sp.GetRequiredService<IConversationStorage>().Append(message.ConversationId, dialogs);
+            await sp.GetRequiredService<IConversationStorage>().Append(conversationId, dialogs);
         }
         catch (Exception ex)
         {
-            // The reply still goes out and is stored; only the record of the fillers is lost
+            // The call goes on, and a reply is still stored; only the record of these lines is lost
             sp.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(TwilioConversationProcessor))
-                .LogWarning(ex, $"Could not keep the fillers said in conversation {message.ConversationId}.");
+                .LogWarning(ex, $"Could not keep what was said in conversation {conversationId}.");
         }
     }
 
     private static async Task<PostbackMessageModel?> BuildPostbackMessageModel(
         IConversationService conv, CallerMessage message)
     {
-        var messages = await conv.GetDialogHistory(1);
-        if (!messages.Any()) return null;
-        var lastMessage = messages[0];
+        // A line kept only as a record of what the caller heard (KeepSaidLines) may have been said after the reply that
+        // asked for the postback
+        var lastMessage = (await conv.GetDialogHistory()).LastOrDefault(x => !x.ExcludeFromContext);
+        if (lastMessage == null) return null;
         if (string.IsNullOrEmpty(lastMessage.PostbackFunctionName)) return null;
         return new PostbackMessageModel
         {

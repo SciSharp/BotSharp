@@ -61,11 +61,36 @@ public class AgentTurnCallbacks
     public string? LastReplyLine { get; set; }
     public string? LastReplyHeard { get; set; }
 
+    private readonly List<(string Text, DateTime SaidUtc)> _fillers = [];
+
     /// <summary>
-    /// Set by the turn: called with each filler said while the agent works on the reply ("One moment, please."), which
-    /// the turn keeps in the history out of the agent's context, so what the caller heard is all there
+    /// Notes a filler said while the agent works on the reply ("One moment, please."), to be kept in the history out of
+    /// the agent's context, so what the caller heard is all there
     /// </summary>
-    public Action<string>? OnFillerSaid { get; set; }
+    public void NoteFillerSaid(string text)
+    {
+        lock (_fillers)
+        {
+            _fillers.Add((text, DateTime.UtcNow));
+        }
+    }
+
+    /// <summary>
+    /// The fillers said and not kept yet, oldest first; each is taken once
+    /// </summary>
+    /// <remarks>
+    /// The turn takes them as it stores its reply, to keep them just ahead of it. The flow takes what is left once the
+    /// turn is over: the fillers of a turn that failed, ran past its time or stored no reply, lost otherwise.
+    /// </remarks>
+    public List<(string Text, DateTime SaidUtc)> TakeFillers()
+    {
+        lock (_fillers)
+        {
+            var taken = _fillers.ToList();
+            _fillers.Clear();
+            return taken;
+        }
+    }
 
     /// <summary>
     /// Called on the turn once it has read the conversation's states (<see cref="KeepUninterrupted"/> is set), before the
