@@ -367,6 +367,14 @@ public class ConversationRelaySession
             {
                 _logger.LogInformation($"Dropped \"{content}\" in conversation {_conversationId}: an acknowledgement that came in " +
                     "before the caller could hear the question just asked, the tail of what they said before.");
+                // Its unfinalized words were no turn of the caller's either: a line it cut into is said again once they are
+                // quiet (ResumeAfterCutInSeconds). Why: "That's right." after "Yes." cut a question off at its first word,
+                // and the question was never said again (a dev call)
+                if (_resumeLine != null)
+                {
+                    _cutInActivity = _activity;
+                    _cutInUtc = DateTime.UtcNow;
+                }
                 return;
             }
 
