@@ -19,6 +19,8 @@ public class ConversationRelayAgentSetting
     public int? MaxIdlePrompts { get; set; }
     public List<double>? IdleTimeouts { get; set; }
     public bool? IdleAsksAgain { get; set; }
+    public double? QuietWaitSeconds { get; set; }
+    public int? MaxQuietWaitPrompts { get; set; }
     public double? ResumeAfterCutInSeconds { get; set; }
     public bool? DropBackchannelTails { get; set; }
 }

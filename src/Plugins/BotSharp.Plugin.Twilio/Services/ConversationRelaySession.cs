@@ -20,6 +20,7 @@ public class ConversationRelaySession
     private const string DefaultAskAgainText = "Sorry, I didn't catch that. {0}";
     private const string DefaultStillThereText = "Are you still there?";
     private const string DefaultIdleGoodbyeText = "It sounds like we got disconnected. Please call back anytime.";
+    private const string DefaultQuietWaitCheckInText = "I'm still here whenever you're ready.";
     private const double SpokenCharsPerSecond = 15;
     private static readonly List<string> DefaultWatchdogPrompts = ["hold-on-1", "hold-on-2", "hold-on-3", "hold-on-4", "hold-on-5"];
     private static readonly List<string> DefaultWatchdogLongPrompts = Enumerable.Range(1, 10).Select(i => $"hold-on-long-{i}").ToList();
@@ -94,6 +95,11 @@ public class ConversationRelaySession
     // (AgentTurnCallbacks.KeepUninterrupted reads the conversation's states, which only the turn may touch). Kept across
     // turns: until a turn has read it, the last turn's answer is the best guess.
     private bool _keptUninterrupted;
+
+    // What the flow said, as the last reply came in, about a caller going quiet (ConversationRelayStates.QuietWait and
+    // GoodbyeOnSilence): kept until a later reply says otherwise, as a turn that says nothing still reads them
+    private bool _quietWait;
+    private string? _goodbyeOnSilence;
 
     // The caller went on talking before the current turn said anything: its reply is dropped, and their words so far
     // are answered together in the next turn
@@ -638,6 +644,16 @@ public class ConversationRelaySession
             }
 
             await CloseUtteranceAsync();
+            if (reply != null)
+            {
+                // Before a reply with nothing to say is passed over: a flow waiting quietly answers the caller's asides
+                // with nothing
+                lock (_sync)
+                {
+                    _quietWait = reply.QuietWait;
+                    _goodbyeOnSilence = reply.GoodbyeOnSilence;
+                }
+            }
             if (reply == null
                 || string.IsNullOrWhiteSpace(reply.Content) && !reply.ConversationEnd && !reply.HumanIntervationNeeded)
             {
@@ -823,22 +839,26 @@ public class ConversationRelaySession
             var activity = 0;
             var stage = 0;
             string? question = null;
+            var quietWait = false;
+            string? goodbyeOnSilence = null;
             lock (_sync)
             {
                 var quietFor = DateTime.UtcNow - _quietSinceUtc;
                 if (_ended || _isProcessing || _quietSinceUtc == DateTime.MaxValue || _resumeLine != null
-                    || quietFor < IdleTimeout(_idlePrompts))
+                    || quietFor < IdleTimeout(_idlePrompts, _quietWait))
                 {
                     continue;
                 }
 
                 stage = _idlePrompts;
-                if (_idlePrompts < relay.MaxIdlePrompts)
+                quietWait = _quietWait;
+                goodbyeOnSilence = _goodbyeOnSilence;
+                if (_idlePrompts < (quietWait ? relay.MaxQuietWaitPrompts : relay.MaxIdlePrompts))
                 {
                     _idlePrompts++;
                     askAgain = true;
                     activity = _activity;
-                    question = relay.IdleAsksAgain && stage == 0 ? ConversationRelayLines.LastQuestion(_lastLine) : null;
+                    question = !quietWait && relay.IdleAsksAgain && stage == 0 ? ConversationRelayLines.LastQuestion(_lastLine) : null;
                 }
                 else
                 {
@@ -852,7 +872,15 @@ public class ConversationRelaySession
             // Rechecked once the send lock is held: caller input arriving meanwhile starts a turn, and the prompt must not
             // then be said over or after that turn's reply
             bool StillSilent() => !_isProcessing && _activity == activity;
-            if (askAgain && question != null)
+            // The caller is busy on their phone: nothing to say again and no "Are you still there?", only that the agent
+            // is still on the line. Why: the previous build read that silence as a dead call and hung up on callers
+            // filling in the form it had texted them
+            if (askAgain && quietWait)
+            {
+                await SayOwnLineAsync(PromptText("quiet-wait-check-in", DefaultQuietWaitCheckInText), ConversationRelayLabels.IdlePrompt,
+                    StillSilent);
+            }
+            else if (askAgain && question != null)
             {
                 await SayOwnLineAsync(PromptText("say-it-again-question", DefaultAskAgainText).Replace("{0}", question),
                     ConversationRelayLabels.IdlePrompt, StillSilent);
@@ -873,11 +901,13 @@ public class ConversationRelaySession
                 _logger.LogInformation($"Caller stayed silent, hanging up conversation {_conversationId}.");
                 string? goodbye = null;
                 var goodbyeUtc = DateTime.MinValue;
-                if (relay.IdleAsksAgain)
+                // The flow's own goodbye is said whether or not the idle prompts say one: it tells what the caller still has
+                // to hear, such as a confirmation number
+                if (goodbyeOnSilence != null || relay.IdleAsksAgain)
                 {
                     // The session is marked ended already, so nothing else can be said after it, and nothing the caller
                     // says over it is answered: it plays to the end
-                    goodbye = PromptText("idle-goodbye", DefaultIdleGoodbyeText);
+                    goodbye = goodbyeOnSilence ?? PromptText("idle-goodbye", DefaultIdleGoodbyeText);
                     await SendAsync(TextFrame(goodbye, last: true, keepUninterrupted: true));
                     goodbyeUtc = DateTime.UtcNow;
                 }
@@ -892,8 +922,12 @@ public class ConversationRelaySession
     }
 
     // How long the caller may stay silent before the idle prompt after this many (the last is before the hang-up)
-    private TimeSpan IdleTimeout(int prompts)
+    private TimeSpan IdleTimeout(int prompts, bool quietWait)
     {
+        if (quietWait)
+        {
+            return TimeSpan.FromSeconds(_relay.QuietWaitSeconds);
+        }
         var timeouts = _relay.IdleTimeouts;
         return TimeSpan.FromSeconds(timeouts.Count > 0 ? timeouts[Math.Min(prompts, timeouts.Count - 1)] : _relay.IdleTimeoutSeconds);
     }
