@@ -167,7 +167,10 @@ public static class TwilioConversationProcessor
                         HumanIntervationNeeded = string.Equals("human_intervention_needed", msg.FunctionName),
                         Content = spoken,
                         MessageId = msg.MessageId,
-                        KeepUninterrupted = callbacks?.KeepUninterrupted?.Invoke() ?? false
+                        KeepUninterrupted = callbacks?.KeepUninterrupted?.Invoke() ?? false,
+                        QuietWait = conv.States.GetState(ConversationRelayStates.QuietWait) == "true",
+                        GoodbyeOnSilence = conv.States.GetState(ConversationRelayStates.GoodbyeOnSilence) is { Length: > 0 } goodbye
+                            ? goodbye : null
                     };
                 }
             );

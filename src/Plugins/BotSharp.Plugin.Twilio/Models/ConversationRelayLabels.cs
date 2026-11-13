@@ -13,8 +13,9 @@ public static class ConversationRelayLabels
 
     /// <summary>
     /// Said to a caller gone quiet: the last question asked again ("Sorry, I didn't catch that. ..."), "Are you still
-    /// there?", or "Sorry, can you say it again?". It checks the caller is there, so it is no line of the agent's to say
-    /// again when they ask what was said.
+    /// there?", or "Sorry, can you say it again?"; while the flow waits quietly, the soft check-in ("I'm still here
+    /// whenever you're ready."). It checks the caller is there, so it is no line of the agent's to say again when they ask
+    /// what was said.
     /// </summary>
     public const string IdlePrompt = "twilio_relay_idle_prompt";
 

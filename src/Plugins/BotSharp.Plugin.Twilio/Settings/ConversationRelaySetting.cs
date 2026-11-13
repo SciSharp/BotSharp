@@ -126,6 +126,18 @@ public class ConversationRelaySetting
     public bool IdleAsksAgain { get; set; }
 
     /// <summary>
+    /// Seconds of caller silence before each soft check-in ("I'm still here whenever you're ready.", prompt
+    /// quiet-wait-check-in) while a flow waits for the caller to do something on their phone
+    /// (<see cref="Models.ConversationRelayStates.QuietWait"/>); the last one is before hanging up
+    /// </summary>
+    public double QuietWaitSeconds { get; set; } = 60;
+
+    /// <summary>
+    /// How many soft check-ins a caller who stays silent while the flow waits quietly hears before the call is hung up
+    /// </summary>
+    public int MaxQuietWaitPrompts { get; set; } = 4;
+
+    /// <summary>
     /// Drop a caller's words that came in before they could hear the line just said (TooSoonToAnswer) when they only
     /// acknowledge ("I agree.", "Okay.") and that line asks something: the tail of what they said before, which the
     /// transcription split off. Words said after the caller heard a few words of the line are kept.
@@ -156,6 +168,8 @@ public class ConversationRelaySetting
         settings.MaxIdlePrompts = agent.MaxIdlePrompts ?? MaxIdlePrompts;
         settings.IdleTimeouts = agent.IdleTimeouts ?? IdleTimeouts;
         settings.IdleAsksAgain = agent.IdleAsksAgain ?? IdleAsksAgain;
+        settings.QuietWaitSeconds = agent.QuietWaitSeconds ?? QuietWaitSeconds;
+        settings.MaxQuietWaitPrompts = agent.MaxQuietWaitPrompts ?? MaxQuietWaitPrompts;
         settings.ResumeAfterCutInSeconds = agent.ResumeAfterCutInSeconds ?? ResumeAfterCutInSeconds;
         settings.DropBackchannelTails = agent.DropBackchannelTails ?? DropBackchannelTails;
         return settings;
