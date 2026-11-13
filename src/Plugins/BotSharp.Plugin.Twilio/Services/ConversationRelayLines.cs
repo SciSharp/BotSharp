@@ -51,4 +51,34 @@ public static class ConversationRelayLines
         }
         return question;
     }
+
+    /// <summary>
+    /// What the line says before its first question ("Someone will be out tomorrow. I just texted you a link." of "... Can
+    /// you check if you got it?"); empty when the line opens with its question or asks nothing
+    /// </summary>
+    public static string BeforeFirstQuestion(string? line)
+    {
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            return string.Empty;
+        }
+
+        // A piece starting in lower case goes on the sentence before it: the split took a time ("8 a.m. and 5 p.m.?") for
+        // two sentences
+        var sentences = new List<string>();
+        foreach (var piece in SentenceEnd.Split(line.Trim()).Select(s => s.Trim()).Where(s => s.Length > 0))
+        {
+            if (sentences.Count > 0 && char.IsLower(piece[0]))
+            {
+                sentences[^1] = $"{sentences[^1]} {piece}";
+            }
+            else
+            {
+                sentences.Add(piece);
+            }
+        }
+
+        var first = sentences.FindIndex(s => s.EndsWith('?'));
+        return first <= 0 ? string.Empty : string.Join(" ", sentences.Take(first));
+    }
 }
