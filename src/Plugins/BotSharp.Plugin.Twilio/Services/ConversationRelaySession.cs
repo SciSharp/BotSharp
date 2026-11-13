@@ -330,6 +330,7 @@ public class ConversationRelaySession
 
             case "interrupt":
                 // Playback stopped where the caller cut in; the caller's words follow as a prompt
+                bool sayAgain;
                 lock (_sync)
                 {
                     _quietSinceUtc = DateTime.UtcNow;
@@ -360,10 +361,12 @@ public class ConversationRelaySession
                         && lineCutInto.StartsWith(heardOfLine, StringComparison.Ordinal) && CountWords(heardOfLine) >= HeardSomeWords;
                     _utteranceCutIn |= _utteranceOpen;
                     NoteCutIn();
+                    sayAgain = _resumeLine != null;
                 }
                 var interruptedAfter = GetString(root, "durationUntilInterruptMs");
                 _logger.LogInformation(
-                    $"Caller interrupted the agent in conversation {_conversationId} after {interruptedAfter} ms.");
+                    $"Caller interrupted the agent in conversation {_conversationId} after {interruptedAfter} ms" +
+                    (sayAgain ? $"; the line is said again if nothing follows for {_relay.ResumeAfterCutInSeconds} s." : "."));
                 break;
 
             case "error":
@@ -999,6 +1002,13 @@ public class ConversationRelaySession
             // Anything from the caller since the cut-in (words, keys) is their turn: nothing is said again
             if (_ended || _activity != _cutInActivity)
             {
+                // Why logged: after a cut-in the line never came back and the call sat silent, and nothing showed whether
+                // the caller had started talking or the line was never set to be said again (a staging call, 2026-11-13)
+                if (!_ended)
+                {
+                    _logger.LogInformation($"The caller spoke within {(DateTime.UtcNow - _cutInUtc).TotalSeconds:0.0} s of cutting in, " +
+                        $"in conversation {_conversationId}; the line they cut into is not said again.");
+                }
                 _resumeLine = null;
                 return;
             }
