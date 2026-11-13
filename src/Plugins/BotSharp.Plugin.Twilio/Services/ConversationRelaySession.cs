@@ -531,7 +531,8 @@ public class ConversationRelaySession
                 // A line said before a slow tool ("Okay, that's everything I need") is spoken now, and the watchdog
                 // counts the silence after it instead of waiting for the next response to close it
                 OnStreamEndedWithToolCall = stream ? CloseUtteranceBeforeToolAsync : null,
-                RewriteReply = stream ? MarkWhatTheCallerCutOff : null
+                // Streamed or not: a reply the call ended before is marked as never said
+                RewriteReply = MarkWhatTheCallerCutOff
             };
 
             CallerMessage message;
@@ -856,7 +857,9 @@ public class ConversationRelaySession
                 await SayOwnLineAsync(PromptText("say-it-again-question", DefaultAskAgainText).Replace("{0}", question),
                     ConversationRelayLabels.IdlePrompt, StillSilent);
             }
-            else if (askAgain && relay.IdleAsksAgain && stage > 0)
+            // Nothing heard from the caller yet (no words, no keys): there is nothing for them to say again, only whether
+            // they are there. Why: silence after the greeting got "Sorry, can you say it again?" (local call simulation)
+            else if (askAgain && (relay.IdleAsksAgain && stage > 0 || activity == 0))
             {
                 await SayOwnLineAsync(PromptText("still-there", DefaultStillThereText), ConversationRelayLabels.IdlePrompt, StillSilent);
             }
@@ -1129,7 +1132,9 @@ public class ConversationRelaySession
     /// Text goes out faster than it is spoken, so the cut is placed where Twilio says playback stopped; when Twilio
     /// doesn't say, or what it says is not the start of what went out, the cut falls where the sending stopped. A reply
     /// dropped because the caller went on talking first is marked as never said, so the next turn doesn't take it as
-    /// heard.
+    /// heard, and so is one the call ended before: the caller hung up while the agent worked, or the turn ran past
+    /// AiResponseTimeoutSeconds and the session apologized and hung up (it came back after the apology, and the history
+    /// showed it as said).
     /// </remarks>
     private string MarkWhatTheCallerCutOff(string content)
     {
@@ -1143,6 +1148,11 @@ public class ConversationRelaySession
                 return final.Length == 0
                     ? "[the caller went on talking before anything was said]"
                     : $"[the caller went on talking before this was said; they did not hear: \"{final}\"]";
+            }
+            // Nothing of it went out before the call ended, and nothing is said once it has (SpeakAsync)
+            if (_ended && !_streamedThisTurn && final.Length > 0)
+            {
+                return $"[the call ended before this was said; the caller did not hear: \"{final}\"]";
             }
             if (!_cutInMidReply || final.Length == 0)
             {

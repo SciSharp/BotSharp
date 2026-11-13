@@ -120,7 +120,8 @@ public class ConversationRelaySetting
     /// <summary>
     /// The first idle prompt asks the question the agent's last line asked again ("Sorry, I didn't catch that. ..."), the
     /// next ones ask if the caller is still there, and the hang-up says goodbye (Twilio:PromptTexts say-it-again-question,
-    /// still-there and idle-goodbye). Off, every idle prompt is a "say it again" one and the hang-up is silent.
+    /// still-there and idle-goodbye). Off, every idle prompt is a "say it again" one and the hang-up is silent. Either
+    /// way, a caller who has said nothing yet is only asked if they are still there.
     /// </summary>
     public bool IdleAsksAgain { get; set; }
 

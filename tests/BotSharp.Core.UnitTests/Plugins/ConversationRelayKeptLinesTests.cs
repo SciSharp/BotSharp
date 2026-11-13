@@ -51,14 +51,16 @@ public class ConversationRelayKeptLinesTests
     }
 
     [Fact]
-    public async Task A_timed_out_turn_leaves_no_filler_to_keep_again_when_it_finally_replies()
+    public async Task A_timed_out_turn_that_finally_replies_keeps_no_filler_again_and_its_reply_as_never_said()
     {
         var lateTake = new TaskCompletionSource<List<(string Text, DateTime SaidUtc)>>();
+        string? stored = null;
         var call = Call.Start(Settings(relay => relay.AiResponseTimeoutSeconds = 1), async (self, callbacks) =>
         {
             await WaitUntil(() => self.Socket.SentTexts().Contains(Filler));
             await WaitUntil(() => self.Kept.Count == 2);
-            // Where TwilioConversationProcessor takes them as it stores the reply
+            // Where TwilioConversationProcessor takes them, and asks what to store, as it stores the reply
+            stored = callbacks.RewriteReply!("Here you go.");
             lateTake.SetResult(callbacks.TakeFillers());
             return new AssistantMessage { Content = "Here you go." };
         });
@@ -69,16 +71,45 @@ public class ConversationRelayKeptLinesTests
 
         Assert.Equal(new[] { Filler, Apology }, call.Kept.Select(line => line.Text));
         Assert.DoesNotContain("Here you go.", call.Socket.SentTexts());
+        Assert.Equal("[the call ended before this was said; the caller did not hear: \"Here you go.\"]", stored);
+    }
+
+    [Fact]
+    public async Task A_reply_that_comes_back_after_the_caller_hung_up_is_kept_as_never_said()
+    {
+        const string reply = "Could you tell me what's broken?";
+        var started = new TaskCompletionSource();
+        var hungUp = new TaskCompletionSource();
+        string? stored = null;
+        var call = Call.Start(Settings(relay => relay.ResponseWatchdogIntervals = []), async (self, callbacks) =>
+        {
+            started.SetResult();
+            await hungUp.Task;
+            stored = callbacks.RewriteReply!(reply);
+            return new AssistantMessage { Content = reply };
+        });
+
+        await started.Task.WaitAsync(Patience);
+        call.Socket.Close();
+        // The session marks the call ended as soon as it reads the close
+        await Task.Delay(TimeSpan.FromMilliseconds(300));
+        hungUp.SetResult();
+        await call.Run.WaitAsync(Patience);
+
+        Assert.Equal($"[the call ended before this was said; the caller did not hear: \"{reply}\"]", stored);
+        Assert.Empty(call.Socket.SentTexts());
     }
 
     [Fact]
     public async Task Fillers_a_turn_kept_with_its_reply_are_not_kept_again()
     {
         List<(string Text, DateTime SaidUtc)>? taken = null;
+        string? stored = null;
         var call = Call.Start(Settings(), async (self, callbacks) =>
         {
             await WaitUntil(() => self.Socket.SentTexts().Contains(Filler));
             taken = callbacks.TakeFillers();
+            stored = callbacks.RewriteReply!("Your request is in.");
             return new AssistantMessage { Content = "Your request is in." };
         });
 
@@ -87,6 +118,8 @@ public class ConversationRelayKeptLinesTests
 
         Assert.Equal(new[] { Filler }, taken!.Select(line => line.Text));
         Assert.Empty(call.Kept);
+        // A reply said while the call is on is stored as it is
+        Assert.Equal("Your request is in.", stored);
     }
 
     [Fact]
@@ -172,7 +205,7 @@ public class ConversationRelayKeptLinesTests
                 relay.IdleTimeouts = [0.1];
                 relay.MaxIdlePrompts = 1;
             }),
-            (_, _) => Task.FromResult<AssistantMessage?>(null), prompt: null);
+            (_, _) => Task.FromResult<AssistantMessage?>(null));
 
         await WaitUntil(() => call.Socket.SentEnd);
         await call.HangUpAsync();
@@ -180,6 +213,27 @@ public class ConversationRelayKeptLinesTests
         // Without IdleAsksAgain the hang-up says nothing
         Assert.Equal(new[] { ("Say that again?", ConversationRelayLabels.IdlePrompt) }, call.Kept.Select(line => (line.Text, line.Label)));
         Assert.Equal(new[] { "Say that again?" }, call.Socket.SentTexts());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task A_caller_who_has_said_nothing_yet_is_asked_if_they_are_there_not_to_say_it_again(bool asksAgain)
+    {
+        var call = Call.Start(Settings(relay =>
+            {
+                relay.ResponseWatchdogIntervals = [];
+                relay.IdleAsksAgain = asksAgain;
+                relay.IdleTimeouts = [0.1];
+                relay.MaxIdlePrompts = 1;
+            }),
+            (_, _) => Task.FromResult<AssistantMessage?>(null), prompt: null);
+
+        await WaitUntil(() => call.Socket.SentEnd);
+        await call.HangUpAsync();
+
+        Assert.Equal(new[] { ("Hello?", ConversationRelayLabels.IdlePrompt) }, call.Kept.Select(line => (line.Text, line.Label)).Take(1));
+        Assert.Equal("Hello?", call.Socket.SentTexts()[0]);
     }
 
     [Fact]
