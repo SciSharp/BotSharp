@@ -47,6 +47,8 @@
     <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.OpenAI\BotSharp.Plugin.OpenAI.csproj" />
     <!-- For AnthropicStreamedContentTests: the streamed final-message content lives here. -->
     <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.AnthropicAI\BotSharp.Plugin.AnthropicAI.csproj" />
+    <!-- For AzureOpenAiStreamedContentTests: the streamed final-message content lives here. -->
+    <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.AzureOpenAI\BotSharp.Plugin.AzureOpenAI.csproj" />
     <!-- For ReadPdfFnDefaultModelTests: the PDF reading fallback model lives here. -->
     <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.FileHandler\BotSharp.Plugin.FileHandler.csproj" />
     <!-- For GoogleAiUsageTests: Gemini thinking tokens must be counted as output tokens. -->
