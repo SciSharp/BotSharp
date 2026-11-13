@@ -157,7 +157,7 @@ public static class TwilioConversationProcessor
                     // Said while the agent worked on the reply: the reply is appended once this returns, so they go in
                     // ahead of it
                     await KeepSaidLines(sp, message.AgentId, message.ConversationId, inputMsg.MessageId,
-                        callbacks?.TakeFillers() ?? []);
+                        ConversationRelayLabels.Filler, callbacks?.TakeFillers() ?? []);
                     // What the caller is told, which a rewrite below must not change
                     var spoken = msg.Content;
                     RewriteForHistory(msg, callbacks);
@@ -253,8 +253,9 @@ public static class TwilioConversationProcessor
     /// ConversationRelay session says on its own (an apology, an idle prompt, a line said again)
     /// </summary>
     /// <param name="messageId">The caller message the lines go with; null gives each line a message of its own</param>
+    /// <param name="label">What the lines were (<see cref="ConversationRelayLabels"/>), kept as their MessageLabel</param>
     public static async Task KeepSaidLines(IServiceProvider sp, string agentId, string conversationId, string? messageId,
-        IReadOnlyCollection<(string Text, DateTime SaidUtc)> lines)
+        string label, IReadOnlyCollection<(string Text, DateTime SaidUtc)> lines)
     {
         if (lines.Count == 0)
         {
@@ -265,6 +266,7 @@ public static class TwilioConversationProcessor
         {
             CurrentAgentId = agentId,
             MessageId = messageId ?? Guid.NewGuid().ToString(),
+            MessageLabel = label,
             CreatedAt = line.SaidUtc,
             ExcludeFromContext = true
         }).ToList();

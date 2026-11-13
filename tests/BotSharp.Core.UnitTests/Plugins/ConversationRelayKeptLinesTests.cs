@@ -17,9 +17,10 @@ using Xunit;
 namespace BotSharp.Core.UnitTests.Plugins;
 
 /// <summary>
-/// A ConversationRelay session keeps every line it says on its own in the conversation history, so the history shows
-/// what the caller heard: the apology of a failed turn and the fillers said before it, idle prompts and their goodbye, and
-/// a line said again after a cut-in. A line that never went out is not kept, and a turn's fillers are kept only once.
+/// A ConversationRelay session keeps every line it says on its own in the conversation history, labeled with what it
+/// was, so the history shows what the caller heard: the apology of a failed turn and the fillers said before it, idle
+/// prompts and their goodbye, and a line said again after a cut-in. A line that never went out is not kept, a turn's
+/// fillers are kept only once, and the lines said as the session hangs up play to the end.
 /// </summary>
 public class ConversationRelayKeptLinesTests
 {
@@ -41,9 +42,12 @@ public class ConversationRelayKeptLinesTests
         await call.HangUpAsync();
 
         Assert.Equal(new[] { Filler, Apology }, call.Kept.Select(line => line.Text));
+        Assert.Equal(new[] { ConversationRelayLabels.Filler, ConversationRelayLabels.Apology }, call.Kept.Select(line => line.Label));
         Assert.True(call.Kept.First().SaidUtc <= call.Kept.Last().SaidUtc);
         Assert.Equal(new[] { Filler, Apology }, call.Socket.SentTexts());
         Assert.True(call.Socket.SentEnd);
+        // The call ends after the apology: the caller can't cut it off, a filler is left to the call's setting
+        Assert.Equal(new bool?[] { null, false }, call.Socket.SentInterruptible());
     }
 
     [Fact]
@@ -97,7 +101,7 @@ public class ConversationRelayKeptLinesTests
         await WaitUntil(() => call.Kept.Count == 1);
         await call.HangUpAsync();
 
-        Assert.Equal(new[] { Filler }, call.Kept.Select(line => line.Text));
+        Assert.Equal(new[] { (Filler, ConversationRelayLabels.Filler) }, call.Kept.Select(line => (line.Text, line.Label)));
     }
 
     [Fact]
@@ -126,7 +130,7 @@ public class ConversationRelayKeptLinesTests
     public async Task A_line_that_cannot_be_kept_does_not_stop_the_hang_up()
     {
         var call = Call.Start(Settings(), (_, _) => throw new InvalidOperationException("The model is down."),
-            keep: (_, _) => throw new InvalidOperationException("The storage is down."));
+            keep: (_, _, _) => throw new InvalidOperationException("The storage is down."));
 
         await WaitUntil(() => call.Socket.SentEnd);
         await call.HangUpAsync();
@@ -152,7 +156,11 @@ public class ConversationRelayKeptLinesTests
 
         // The reply is the turn's to keep; the prompts are kept with their text, not their names
         Assert.Equal(new[] { "Pardon? Which unit?", "Hello?", "Bye now." }, call.Kept.Select(line => line.Text));
+        Assert.Equal(new[] { ConversationRelayLabels.IdlePrompt, ConversationRelayLabels.IdlePrompt, ConversationRelayLabels.IdleGoodbye },
+            call.Kept.Select(line => line.Label));
         Assert.Equal(new[] { "Which unit?", "Pardon? Which unit?", "Hello?", "Bye now." }, call.Socket.SentTexts());
+        // A prompt waits for the caller to speak, so they can cut it off; the goodbye plays to the end
+        Assert.Equal(new bool?[] { null, null, null, false }, call.Socket.SentInterruptible());
     }
 
     [Fact]
@@ -170,7 +178,7 @@ public class ConversationRelayKeptLinesTests
         await call.HangUpAsync();
 
         // Without IdleAsksAgain the hang-up says nothing
-        Assert.Equal(new[] { "Say that again?" }, call.Kept.Select(line => line.Text));
+        Assert.Equal(new[] { ("Say that again?", ConversationRelayLabels.IdlePrompt) }, call.Kept.Select(line => (line.Text, line.Label)));
         Assert.Equal(new[] { "Say that again?" }, call.Socket.SentTexts());
     }
 
@@ -191,8 +199,9 @@ public class ConversationRelayKeptLinesTests
         await WaitUntil(() => call.Kept.Count == 1);
         await call.HangUpAsync();
 
-        Assert.Equal(new[] { line }, call.Kept.Select(kept => kept.Text));
+        Assert.Equal(new[] { (line, ConversationRelayLabels.SaidAgain) }, call.Kept.Select(kept => (kept.Text, kept.Label)));
         Assert.Equal(new[] { line, line }, call.Socket.SentTexts());
+        Assert.Equal(new bool?[] { null, null }, call.Socket.SentInterruptible());
     }
 
     [Fact]
@@ -207,10 +216,13 @@ public class ConversationRelayKeptLinesTests
         var said = new DateTime(2026, 11, 13, 1, 31, 0, DateTimeKind.Utc);
 
         await TwilioConversationProcessor.KeepSaidLines(sp, AgentId, "conv-1", messageId: null,
-            [(Apology, said), ("Bye now.", said.AddSeconds(2))]);
-        await TwilioConversationProcessor.KeepSaidLines(sp, AgentId, "conv-1", messageId: "msg-1", [(Filler, said)]);
+            ConversationRelayLabels.IdlePrompt, [("Hello?", said), ("Say that again?", said.AddSeconds(2))]);
+        await TwilioConversationProcessor.KeepSaidLines(sp, AgentId, "conv-1", messageId: "msg-1",
+            ConversationRelayLabels.Filler, [(Filler, said)]);
 
-        Assert.Equal(new[] { Apology, "Bye now.", Filler }, stored.Select(d => d.Content));
+        Assert.Equal(new[] { "Hello?", "Say that again?", Filler }, stored.Select(d => d.Content));
+        Assert.Equal(new[] { ConversationRelayLabels.IdlePrompt, ConversationRelayLabels.IdlePrompt, ConversationRelayLabels.Filler },
+            stored.Select(d => d.MessageLabel));
         Assert.All(stored, d =>
         {
             Assert.Equal(AgentRole.Assistant, d.Role);
@@ -231,7 +243,8 @@ public class ConversationRelayKeptLinesTests
             .ThrowsAsync(new InvalidOperationException("The storage is down."));
         var sp = new ServiceCollection().AddLogging().AddSingleton(storage.Object).BuildServiceProvider();
 
-        await TwilioConversationProcessor.KeepSaidLines(sp, AgentId, "conv-1", messageId: null, [(Apology, DateTime.UtcNow)]);
+        await TwilioConversationProcessor.KeepSaidLines(sp, AgentId, "conv-1", messageId: null, ConversationRelayLabels.Apology,
+            [(Apology, DateTime.UtcNow)]);
 
         storage.Verify(s => s.Append("conv-1", It.IsAny<IEnumerable<RoleDialogModel>>()), Times.Once);
     }
@@ -283,19 +296,19 @@ public class ConversationRelayKeptLinesTests
     private sealed class Call
     {
         public FakeWebSocket Socket { get; } = new();
-        public ConcurrentQueue<(string Text, DateTime SaidUtc)> Kept { get; } = new();
+        public ConcurrentQueue<(string Text, string Label, DateTime SaidUtc)> Kept { get; } = new();
         public Task Run { get; private set; } = Task.CompletedTask;
 
         /// <param name="prompt">What the caller says first; null says nothing</param>
         public static Call Start(TwilioSetting settings, Func<Call, AgentTurnCallbacks, Task<AssistantMessage?>> turn,
-            Func<string, DateTime, Task>? keep = null, string? prompt = "My sink is leaking")
+            Func<string, string, DateTime, Task>? keep = null, string? prompt = "My sink is leaking")
         {
             var call = new Call();
             var session = new ConversationRelaySession(call.Socket, AgentId, "conv-1", settings,
                 (_, callbacks) => turn(call, callbacks), NullLogger.Instance,
-                keep ?? ((text, saidUtc) =>
+                keep ?? ((text, label, saidUtc) =>
                 {
-                    call.Kept.Enqueue((text, saidUtc));
+                    call.Kept.Enqueue((text, label, saidUtc));
                     return Task.CompletedTask;
                 }));
             call.Run = session.RunAsync(CancellationToken.None);
@@ -329,11 +342,24 @@ public class ConversationRelayKeptLinesTests
         /// </summary>
         public List<string> SentTexts()
         {
+            return TextFrames().Select(frame => frame.GetProperty("token").GetString()!).ToList();
+        }
+
+        /// <summary>
+        /// Each text said's interruptible flag, in order: null when the frame leaves it to the call's setting
+        /// </summary>
+        public List<bool?> SentInterruptible()
+        {
+            return TextFrames()
+                .Select(frame => frame.TryGetProperty("interruptible", out var flag) ? flag.GetBoolean() : (bool?)null)
+                .ToList();
+        }
+
+        private IEnumerable<JsonElement> TextFrames()
+        {
             return Frames()
                 .Where(frame => frame.GetProperty("type").GetString() == "text")
-                .Select(frame => frame.GetProperty("token").GetString() ?? string.Empty)
-                .Where(token => token.Length > 0)
-                .ToList();
+                .Where(frame => !string.IsNullOrEmpty(frame.GetProperty("token").GetString()));
         }
 
         public bool SentEnd => Frames().Any(frame => frame.GetProperty("type").GetString() == "end");
