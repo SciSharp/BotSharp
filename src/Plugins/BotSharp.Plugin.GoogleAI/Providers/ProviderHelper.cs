@@ -26,4 +26,18 @@ public static class ProviderHelper
     {
         return (usage?.CandidatesTokenCount ?? 0) + (usage?.ThoughtsTokenCount ?? 0);
     }
+
+    /// <summary>
+    /// Gemini's prompt count includes the tokens served from the context cache,
+    /// which are billed at a separate rate, so they are subtracted here.
+    /// </summary>
+    public static long GetInputTokens(GenerativeAI.Types.UsageMetadata? usage)
+    {
+        return Math.Max((usage?.PromptTokenCount ?? 0) - GetCachedInputTokens(usage), 0);
+    }
+
+    public static long GetCachedInputTokens(GenerativeAI.Types.UsageMetadata? usage)
+    {
+        return usage?.CachedContentTokenCount ?? 0;
+    }
 }
