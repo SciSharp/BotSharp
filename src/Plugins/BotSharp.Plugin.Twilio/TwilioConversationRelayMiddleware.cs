@@ -49,7 +49,8 @@ public class TwilioConversationRelayMiddleware
         var scopeFactory = services.GetRequiredService<IServiceScopeFactory>();
         var session = new ConversationRelaySession(socket, agentId, conversationId, settings,
             (message, callbacks) => SendCallerMessageAsync(scopeFactory, message, callbacks),
-            _logger);
+            _logger,
+            (line, saidUtc) => KeepSaidLineAsync(scopeFactory, agentId, conversationId, line, saidUtc));
         await services.GetRequiredService<ConversationRelaySessions>()
             .RunAsync(conversationId, () => session.RunAsync(httpContext.RequestAborted));
     }
@@ -59,6 +60,17 @@ public class TwilioConversationRelayMiddleware
     {
         using var scope = scopeFactory.CreateScope();
         return await TwilioConversationProcessor.SendCallerMessageAsync(scope.ServiceProvider, message, callbacks);
+    }
+
+    /// <summary>
+    /// Keeps a line the session said on its own in the history, in a scope of its own: it is said outside any turn's
+    /// </summary>
+    private static async Task KeepSaidLineAsync(
+        IServiceScopeFactory scopeFactory, string agentId, string conversationId, string line, DateTime saidUtc)
+    {
+        using var scope = scopeFactory.CreateScope();
+        await TwilioConversationProcessor.KeepSaidLines(scope.ServiceProvider, agentId, conversationId, messageId: null,
+            [(line, saidUtc)]);
     }
 
     /// <summary>

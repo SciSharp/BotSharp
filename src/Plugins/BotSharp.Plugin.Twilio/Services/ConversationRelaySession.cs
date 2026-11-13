@@ -39,6 +39,7 @@ public class ConversationRelaySession
     private readonly ConversationRelaySetting _relay;
     private readonly Func<CallerMessage, AgentTurnCallbacks, Task<AssistantMessage?>> _sendCallerMessage;
     private readonly ILogger _logger;
+    private readonly Func<string, DateTime, Task>? _keepSaidLine;
 
     private readonly SemaphoreSlim _sendLock = new(1, 1);
     private readonly object _sync = new();
@@ -140,13 +141,20 @@ public class ConversationRelaySession
     /// Sends the caller's words to the agent and returns its reply; the callbacks receive tool-call indications
     /// and the streamed reply
     /// </param>
+    /// <param name="keepSaidLine">
+    /// Keeps a line the session said on its own in the conversation history, with when it was said, so the history shows
+    /// what the caller heard: the apology of a failed turn, an idle prompt and its goodbye, a line said again after a
+    /// cut-in, and the fillers of a turn that kept none. A turn keeps its own reply, and a tool-call indication is the
+    /// flow's to keep.
+    /// </param>
     public ConversationRelaySession(
         WebSocket socket,
         string agentId,
         string conversationId,
         TwilioSetting settings,
         Func<CallerMessage, AgentTurnCallbacks, Task<AssistantMessage?>> sendCallerMessage,
-        ILogger logger)
+        ILogger logger,
+        Func<string, DateTime, Task>? keepSaidLine = null)
     {
         _socket = socket;
         _agentId = agentId;
@@ -155,6 +163,7 @@ public class ConversationRelaySession
         _relay = settings.ConversationRelay.For(agentId);
         _sendCallerMessage = sendCallerMessage;
         _logger = logger;
+        _keepSaidLine = keepSaidLine;
     }
 
     public async Task RunAsync(CancellationToken cancellationToken)
@@ -604,7 +613,7 @@ public class ConversationRelaySession
                     var timeoutSeconds = _relay.AiResponseTimeoutSeconds;
                     _logger.LogWarning($"Agent did not reply within {timeoutSeconds}s in conversation {_conversationId}.");
                     _timedOutTurn = turn;
-                    await FailAsync();
+                    await FailAsync(callbacks);
                     return;
                 }
                 reply = await turn;
@@ -612,7 +621,7 @@ public class ConversationRelaySession
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Agent turn failed in conversation {_conversationId}.");
-                await FailAsync();
+                await FailAsync(callbacks);
                 return;
             }
             finally
@@ -624,6 +633,7 @@ public class ConversationRelaySession
                 }
                 watchdogCts.Cancel();
                 await SwallowAsync(watchdog);
+                await KeepFillersLeftAsync(callbacks);
             }
 
             await CloseUtteranceAsync();
@@ -673,7 +683,8 @@ public class ConversationRelaySession
     /// While the agent works on a reply, says a filler each time the line has been silent for the next
     /// ResponseWatchdogIntervals value, so the caller never sits in a long silence while the model thinks or a tool runs.
     /// Silence counts from the end of whatever was said last (the caller, a filler, an indication), and no filler is
-    /// said twice in a turn while unused ones remain. The turn is told of each one said (OnFillerSaid).
+    /// said twice in a turn while unused ones remain. Each one said is noted on the turn's callbacks (NoteFillerSaid), to be
+    /// kept in the history.
     /// </summary>
     private async Task WatchResponseAsync(int seqNumber, AgentTurnCallbacks callbacks, CancellationToken cancellationToken)
     {
@@ -698,16 +709,15 @@ public class ConversationRelaySession
 
             var text = PickFillerText(step == 0 ? relay.ResponseWatchdogPrompts : relay.ResponseWatchdogLongPrompts,
                 step == 0 ? DefaultWatchdogPrompts : DefaultWatchdogLongPrompts, said);
-            if (await SpeakFillerAsync(seqNumber, text, interval))
+            if (await SpeakFillerAsync(seqNumber, text, interval, callbacks))
             {
                 said.Add(text);
                 step++;
-                callbacks.OnFillerSaid?.Invoke(text);
             }
         }
     }
 
-    private async Task<bool> SpeakFillerAsync(int seqNumber, string text, TimeSpan interval)
+    private async Task<bool> SpeakFillerAsync(int seqNumber, string text, TimeSpan interval, AgentTurnCallbacks callbacks)
     {
         // Decided again once the send lock is held: while waiting for it the reply may have come in, or a streamed
         // line may have started or been closed, and then the silence this filler was meant for is over
@@ -718,6 +728,9 @@ public class ConversationRelaySession
                     return false;
                 }
                 RememberUtterance(text, _saidCount + 1);
+                // Noted as it goes out, under the send lock: a turn that fails meanwhile finds every filler said before
+                // its apology
+                callbacks.NoteFillerSaid(text);
                 return true;
             },
             new { type = "text", token = text, last = true }, EstimateSpeech(text.Length));
@@ -840,25 +853,34 @@ public class ConversationRelaySession
             bool StillSilent() => !_isProcessing && _activity == activity;
             if (askAgain && question != null)
             {
-                await SpeakAsync(PromptText("say-it-again-question", DefaultAskAgainText).Replace("{0}", question), StillSilent);
+                await SayOwnLineAsync(PromptText("say-it-again-question", DefaultAskAgainText).Replace("{0}", question), StillSilent);
             }
             else if (askAgain && relay.IdleAsksAgain && stage > 0)
             {
-                await SpeakPromptAsync("still-there", DefaultStillThereText, StillSilent);
+                await SayOwnLineAsync(PromptText("still-there", DefaultStillThereText), StillSilent);
             }
             else if (askAgain)
             {
-                await SpeakPromptAsync($"say-it-again-{Random.Shared.Next(1, 5)}", DefaultSayItAgainText, StillSilent);
+                await SayOwnLineAsync(PromptText($"say-it-again-{Random.Shared.Next(1, 5)}", DefaultSayItAgainText), StillSilent);
             }
             else if (hangUp)
             {
                 _logger.LogInformation($"Caller stayed silent, hanging up conversation {_conversationId}.");
+                string? goodbye = null;
+                var goodbyeUtc = DateTime.MinValue;
                 if (relay.IdleAsksAgain)
                 {
                     // The session is marked ended already, so nothing else can be said after it
-                    await SendAsync(TextFrame(PromptText("idle-goodbye", DefaultIdleGoodbyeText), last: true, keepUninterrupted: false));
+                    goodbye = PromptText("idle-goodbye", DefaultIdleGoodbyeText);
+                    await SendAsync(TextFrame(goodbye, last: true, keepUninterrupted: false));
+                    goodbyeUtc = DateTime.UtcNow;
                 }
                 await SendEndAsync(ConversationRelayHandoff.HangUp);
+                // Kept once the call is ended, so the storage doesn't hold up the hang-up
+                if (goodbye != null)
+                {
+                    await KeepSaidAsync(goodbye, goodbyeUtc);
+                }
             }
         }
     }
@@ -922,8 +944,7 @@ public class ConversationRelaySession
             _resumeLine = null;
         }
 
-        var said = false;
-        await SpeakAsync(line, canSpeak: () =>
+        var said = await SpeakAsync(line, canSpeak: () =>
         {
             if (_isProcessing || _activity != activity)
             {
@@ -938,16 +959,16 @@ public class ConversationRelaySession
             NoteLine(line);
             // Set as it goes out: a cut-in into it, however soon, doesn't get it said a third time
             _lastWasResume = true;
-            said = true;
             return true;
         });
         if (said)
         {
             _logger.LogInformation($"Nothing followed the caller's cut-in in conversation {_conversationId}; said the line again.");
+            await KeepSaidAsync(line, DateTime.UtcNow);
         }
     }
 
-    private async Task FailAsync()
+    private async Task FailAsync(AgentTurnCallbacks callbacks)
     {
         // A turn that timed out may still be streaming; keep its words out of the apology
         lock (_sync)
@@ -955,8 +976,63 @@ public class ConversationRelaySession
             _dropStream = true;
         }
         await CloseUtteranceAsync();
-        await SpeakPromptAsync("error", DefaultErrorText);
+        var apology = PromptText("error", DefaultErrorText);
+        var apologized = await SpeakAsync(apology);
+        var apologyUtc = DateTime.UtcNow;
         await EndAsync(ConversationRelayHandoff.HangUp);
+
+        // Kept once the call is ended, so the storage doesn't hold up the hang-up and no filler can come after the
+        // apology. The turn kept none of the fillers it took to fail: they go first, as they were said first.
+        await KeepFillersLeftAsync(callbacks);
+        if (apologized)
+        {
+            await KeepSaidAsync(apology, apologyUtc);
+        }
+    }
+
+    /// <summary>
+    /// Keeps the fillers of a turn that it didn't keep itself: it failed, ran past its time, or stored no reply. Call once
+    /// the turn can say nothing more.
+    /// </summary>
+    private async Task KeepFillersLeftAsync(AgentTurnCallbacks callbacks)
+    {
+        foreach (var (text, saidUtc) in callbacks.TakeFillers())
+        {
+            await KeepSaidAsync(text, saidUtc);
+        }
+    }
+
+    /// <summary>
+    /// Says a line of the session's own, not the agent's, and keeps it in the history once it went out
+    /// </summary>
+    /// <param name="canSpeak">Extra condition, checked under <see cref="_sync"/> once the send lock is held</param>
+    private async Task SayOwnLineAsync(string text, Func<bool>? canSpeak = null)
+    {
+        if (await SpeakAsync(text, canSpeak))
+        {
+            await KeepSaidAsync(text, DateTime.UtcNow);
+        }
+    }
+
+    /// <summary>
+    /// Keeps a line the session said on its own in the conversation history, so the history shows what the caller heard
+    /// </summary>
+    private async Task KeepSaidAsync(string text, DateTime saidUtc)
+    {
+        if (_keepSaidLine == null || string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        try
+        {
+            await _keepSaidLine(text.Trim(), saidUtc);
+        }
+        catch (Exception ex)
+        {
+            // Only the record of the line is lost: the call goes on
+            _logger.LogWarning(ex, $"Could not keep a line said in conversation {_conversationId}.");
+        }
     }
 
     /// <summary>
@@ -1203,14 +1279,15 @@ public class ConversationRelaySession
 
     /// <param name="canSpeak">Extra condition, checked under <see cref="_sync"/> once the send lock is held</param>
     /// <param name="keepUninterrupted">The caller must hear all of it, so it plays to the end whoever speaks over it</param>
-    private async Task SpeakAsync(string? text, Func<bool>? canSpeak = null, bool keepUninterrupted = false)
+    /// <returns>Whether it went out</returns>
+    private async Task<bool> SpeakAsync(string? text, Func<bool>? canSpeak = null, bool keepUninterrupted = false)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
-            return;
+            return false;
         }
 
-        await SpeakIfAsync(() =>
+        return await SpeakIfAsync(() =>
             {
                 if (_ended || !(canSpeak?.Invoke() ?? true))
                 {
