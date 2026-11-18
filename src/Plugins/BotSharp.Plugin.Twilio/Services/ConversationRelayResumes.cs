@@ -62,12 +62,17 @@ public class ConversationRelayResumes
         {
             try
             {
-                var db = redis.GetDatabase();
-                var kept = await db.StringGetAsync(Key(conversationId));
-                if (kept.HasValue)
+                // Read and deleted in one transaction, so two callbacks at once (Twilio retrying one) can't both take it.
+                // Not GETDEL, which needs Redis 6.2.
+                var transaction = redis.GetDatabase().CreateTransaction();
+                var kept = transaction.StringGetAsync(Key(conversationId));
+                var deleted = transaction.KeyDeleteAsync(Key(conversationId));
+                await transaction.ExecuteAsync();
+                await deleted;
+                var value = await kept;
+                if (value.HasValue)
                 {
-                    await db.KeyDeleteAsync(Key(conversationId));
-                    return kept.ToString();
+                    return value.ToString();
                 }
             }
             catch (RedisException ex)

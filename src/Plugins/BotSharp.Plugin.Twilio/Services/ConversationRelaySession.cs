@@ -134,16 +134,22 @@ public class ConversationRelaySession
     private bool _lastLineHeardSome;
 
     // What was said, newest last, with _saidCount as it went out: tells which utterance Twilio says was playing at a
-    // cut-in, and which never finished playing when the playback got stuck (with whether it went out to play to the end,
-    // and whether it is one to say again then: not a filler or an idle prompt). Only the last few are kept.
-    private readonly List<(string Text, int Mark, bool KeptUninterrupted, bool Again)> _utterances = [];
+    // cut-in. Only the last few are kept.
+    private readonly List<(string Text, int Mark)> _utterances = [];
     private const int UtterancesKept = 8;
 
-    // Twilio's speaker events (the events attribute with speaker-events): whether it last said the agent is speaking, and
-    // _saidCount when it last said the playback stopped (all of it played, or the caller cut in). What was said after that
-    // isn't known to have been heard.
+    // Twilio's speaker events (the events attribute with speaker-events): whether it last said the agent is speaking
     private bool _agentSpeaking;
-    private int _playedThroughMark;
+    // The lines said since Twilio last said the playback stopped (all of it played, or the caller cut in), with whether
+    // each went out to play to the end and when: the ones to say again on a new session if the playback gets stuck
+    // (ReconnectIfStuckAsync). Not fillers or idle prompts, which were about a moment that has passed. Kept only while
+    // watching for a stuck playback, and all of them, unlike _utterances: a stuck playback plays none of what went out
+    // after it, however much that is.
+    private readonly List<(string Text, bool KeptUninterrupted, DateTime SentUtc)> _unheard = [];
+    // A line that went out this soon before Twilio said the playback stopped may have crossed that message: Twilio
+    // stopped before the line came, and plays it next. A line it played in that playback went out at least as long before
+    // as it takes to play, which is longer for nearly any line; one that isn't is only said again needlessly.
+    private static readonly TimeSpan CrossedPlaybackStop = TimeSpan.FromSeconds(1);
     // When everything said should have finished playing, by its length (EstimateSpeech)
     private DateTime _playedByUtc = DateTime.MinValue;
     // How many times the call's relay has been connected again (ConversationRelayParameters.Reconnects)
@@ -323,11 +329,8 @@ public class ConversationRelaySession
                         _agentSpeaking = GetString(root, "value") == "on";
                         if (!_agentSpeaking)
                         {
-                            _playedThroughMark = _saidCount;
-                            // Nothing is left to play: what goes out next plays from now, not after what the estimate
-                            // still had to come
                             var now = DateTime.UtcNow;
-                            _playedByUtc = now;
+                            NotePlaybackStopped(now);
                             // Watching for a stuck playback, the caller's silence starts no sooner than the playback ended
                             // (the estimate may be short of it): no idle prompt was said while it played (WatchIdleAsync)
                             if (_relay.StuckPlaybackSeconds != 0 && _quietSinceUtc != DateTime.MaxValue && _quietSinceUtc < now)
@@ -398,8 +401,7 @@ public class ConversationRelaySession
                     // The playback stopped where the caller cut in: what is said again after a cut-in is the cut-in's to
                     // decide (ResumeAfterCutInSeconds), not a stuck playback's
                     _agentSpeaking = false;
-                    _playedThroughMark = _saidCount;
-                    _playedByUtc = DateTime.UtcNow;
+                    NotePlaybackStopped(DateTime.UtcNow);
 
                     // The caller talked over a reply still being streamed: don't send the rest of it. A stream already
                     // dropped (the turn timed out and the apology is playing, or the caller cut in before) or a
@@ -881,11 +883,27 @@ public class ConversationRelaySession
         {
             return;
         }
-        _utterances.Add((text.Trim(), mark, keptUninterrupted, again));
+        _utterances.Add((text.Trim(), mark));
         if (_utterances.Count > UtterancesKept)
         {
             _utterances.RemoveAt(0);
         }
+        if (again && _relay.StuckPlaybackSeconds != 0)
+        {
+            _unheard.Add((text.Trim(), keptUninterrupted, DateTime.UtcNow));
+        }
+    }
+
+    /// <summary>
+    /// Twilio said the playback stopped: all of it played, or the caller cut in. Call under <see cref="_sync"/>.
+    /// </summary>
+    private void NotePlaybackStopped(DateTime now)
+    {
+        // What went out before it is over, but for a line that may have crossed Twilio's message (CrossedPlaybackStop)
+        _unheard.RemoveAll(line => line.SentUtc < now - CrossedPlaybackStop);
+        // Nothing is left to play but such a line: what goes out next plays after it, not after what the estimate still
+        // had to come. Without it, a long line that crossed the message would be taken as stuck while it still plays.
+        _playedByUtc = now + _unheard.Aggregate(TimeSpan.Zero, (sum, line) => sum + EstimateSpeech(line.Text.Length));
     }
 
     /// <summary>
@@ -1060,15 +1078,11 @@ public class ConversationRelaySession
                 return false;
             }
 
-            var lines = _utterances.Where(u => u.Mark > _playedThroughMark && u.Again)
-                .Select(u => new ConversationRelayResumeLine { Text = u.Text, KeepUninterrupted = u.KeptUninterrupted })
+            // None when only a filler or an idle prompt went out since the playback last stopped: the new session then says
+            // nothing until the caller does, or its own idle prompt
+            var lines = _unheard
+                .Select(line => new ConversationRelayResumeLine { Text = line.Text, KeepUninterrupted = line.KeptUninterrupted })
                 .ToList();
-            // Nothing to say again went out since the playback last stopped (it went out just as Twilio said so): the last
-            // line, which the caller may not have heard either
-            if (lines.Count == 0 && _lastLine != null)
-            {
-                lines.Add(new ConversationRelayResumeLine { Text = _lastLine, KeepUninterrupted = _lastLineKeptUninterrupted });
-            }
             resume = new ConversationRelayResume { Lines = lines, QuietWait = _quietWait, GoodbyeOnSilence = _goodbyeOnSilence };
             overdueSeconds = overdue.TotalSeconds;
             // Ended in the same step, so caller input arriving now can't start a turn on a session being replaced

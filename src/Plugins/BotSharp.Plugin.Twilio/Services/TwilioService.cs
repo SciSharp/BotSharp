@@ -308,6 +308,11 @@ public class TwilioService
         {
             element.SetOption("hints", relay.Hints);
         }
+        // Watching for a stuck playback reads when Twilio says the agent starts and stops speaking
+        if (relay.StuckPlaybackSeconds != 0)
+        {
+            element.SetOption("events", "speaker-events");
+        }
 
         // Lets the session time its idle check from the end of the greeting
         var greetingLength = (welcomeGreeting?.Length ?? 0).ToString();
