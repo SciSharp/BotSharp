@@ -47,10 +47,12 @@ public class TwilioConversationRelayMiddleware
 
         using var socket = await httpContext.WebSockets.AcceptWebSocketAsync();
         var scopeFactory = services.GetRequiredService<IServiceScopeFactory>();
+        var resumes = services.GetRequiredService<ConversationRelayResumes>();
         var session = new ConversationRelaySession(socket, agentId, conversationId, settings,
             (message, callbacks) => SendCallerMessageAsync(scopeFactory, message, callbacks),
             _logger,
-            (line, label, saidUtc) => KeepSaidLineAsync(scopeFactory, agentId, conversationId, line, label, saidUtc));
+            (line, label, saidUtc) => KeepSaidLineAsync(scopeFactory, agentId, conversationId, line, label, saidUtc),
+            resume => resumes.KeepAsync(conversationId, resume));
         await services.GetRequiredService<ConversationRelaySessions>()
             .RunAsync(conversationId, () => session.RunAsync(httpContext.RequestAborted));
     }

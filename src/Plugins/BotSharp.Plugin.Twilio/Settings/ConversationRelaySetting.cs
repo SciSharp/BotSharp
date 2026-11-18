@@ -146,9 +146,10 @@ public class ConversationRelaySetting
 
     /// <summary>
     /// Seconds past the moment everything said should have finished playing, with Twilio still saying the agent is speaking
-    /// and nothing cut into, before the session's playback is taken as stuck: the session is ended, Twilio connects the
-    /// call again, and the lines that never finished playing are said on the new session. Needs Twilio's speaker events
-    /// (the events attribute with speaker-events); stops after <see cref="MaxReconnects"/>. 0 turns it off.
+    /// and nothing cut into, before the session's playback is taken as stuck: the session drops its socket, Twilio connects
+    /// the call again, and the lines that never finished playing are said on the new session. Needs Twilio's speaker events
+    /// (the events attribute with speaker-events); stops after <see cref="MaxReconnects"/>. 0 turns it off. A negative value
+    /// takes a playback still going that long before its expected end as stuck: only to try the reconnect on a test call.
     /// </summary>
     /// <remarks>
     /// Why: on some calls Twilio said the agent started speaking and never that it stopped. Nothing said after that played,

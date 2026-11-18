@@ -5,8 +5,8 @@ namespace BotSharp.Plugin.Twilio.Models.Relay;
 /// all of, and how the flow last said to treat a silent caller
 /// </summary>
 /// <remarks>
-/// It goes from the stuck session to the new one through Twilio (the "end" message's handoffData, then a TwiML Parameter),
-/// so the new session may run on another instance.
+/// The stuck session keeps it (ConversationRelayResumes), Twilio's callback takes it into the new relay's TwiML as a
+/// Parameter, and the new session reads it from its setup, so each may run on another instance.
 /// </remarks>
 public class ConversationRelayResume
 {

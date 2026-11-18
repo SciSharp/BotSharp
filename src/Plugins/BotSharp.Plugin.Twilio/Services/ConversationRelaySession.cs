@@ -171,6 +171,10 @@ public class ConversationRelaySession
     /// apology of a failed turn, an idle prompt and its goodbye, a line said again after a cut-in, and the fillers of a
     /// turn that kept none. A turn keeps its own reply, and a tool-call indication is the flow's to keep.
     /// </param>
+    /// <param name="keepResume">
+    /// Keeps what the session taking this one's place starts with (a <see cref="ConversationRelayResume"/> as JSON) when the
+    /// playback is stuck, for Twilio's callback to hand on (<see cref="ConversationRelayResumes"/>)
+    /// </param>
     public ConversationRelaySession(
         WebSocket socket,
         string agentId,
@@ -178,7 +182,8 @@ public class ConversationRelaySession
         TwilioSetting settings,
         Func<CallerMessage, AgentTurnCallbacks, Task<AssistantMessage?>> sendCallerMessage,
         ILogger logger,
-        Func<string, string, DateTime, Task>? keepSaidLine = null)
+        Func<string, string, DateTime, Task>? keepSaidLine = null,
+        Func<string, Task>? keepResume = null)
     {
         _socket = socket;
         _agentId = agentId;
@@ -188,7 +193,10 @@ public class ConversationRelaySession
         _sendCallerMessage = sendCallerMessage;
         _logger = logger;
         _keepSaidLine = keepSaidLine;
+        _keepResume = keepResume;
     }
+
+    private readonly Func<string, Task>? _keepResume;
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
@@ -198,7 +206,8 @@ public class ConversationRelaySession
         {
             await ReceiveLoopAsync(cts.Token);
         }
-        catch (Exception ex) when (ex is WebSocketException or OperationCanceledException)
+        // ObjectDisposedException: the socket dropped on purpose under a pending receive (ReconnectIfStuckAsync)
+        catch (Exception ex) when (ex is WebSocketException or OperationCanceledException or ObjectDisposedException)
         {
             _logger.LogInformation($"ConversationRelay socket closed for conversation {_conversationId}: {ex.Message}");
         }
@@ -321,7 +330,7 @@ public class ConversationRelaySession
                             _playedByUtc = now;
                             // Watching for a stuck playback, the caller's silence starts no sooner than the playback ended
                             // (the estimate may be short of it): no idle prompt was said while it played (WatchIdleAsync)
-                            if (_relay.StuckPlaybackSeconds > 0 && _quietSinceUtc != DateTime.MaxValue && _quietSinceUtc < now)
+                            if (_relay.StuckPlaybackSeconds != 0 && _quietSinceUtc != DateTime.MaxValue && _quietSinceUtc < now)
                             {
                                 _quietSinceUtc = now;
                             }
@@ -941,7 +950,7 @@ public class ConversationRelaySession
                 // Watching for a stuck playback, a caller Twilio is still playing to isn't silent: an idle prompt then would
                 // only queue behind the playback, and each one would put off finding it stuck until the idle prompts ran out
                 // and hung up (ReconnectIfStuckAsync)
-                var stillPlaying = _relay.StuckPlaybackSeconds > 0 && _agentSpeaking;
+                var stillPlaying = _relay.StuckPlaybackSeconds != 0 && _agentSpeaking;
                 if (_ended || _isProcessing || _quietSinceUtc == DateTime.MaxValue || _resumeLine != null || stillPlaying
                     || quietFor < IdleTimeout(_idlePrompts, _quietWait))
                 {
@@ -1029,6 +1038,10 @@ public class ConversationRelaySession
     /// connected again (MaxReconnects): past that the action callback would hang it up.
     /// Why say the lines again rather than carry on: a stuck playback plays nothing queued behind it and lets none of the
     /// caller's words through, so the caller heard neither the lines nor anything after them (dev calls 1c28cefa, 46bc439c).
+    /// Why the socket is dropped rather than the session ended: Twilio acts on an "end" message only once what is queued has
+    /// played (dev: the session ended 5.4-6.0 s after a goodbye and its "end" went out together, the goodbye's length), and a
+    /// stuck playback never has. A dropped socket ends it at once: Twilio's callback then finds the session failed, as when
+    /// an instance holding a socket goes away, and connects the call again with what was kept (<see cref="ConversationRelayResumes"/>).
     /// </remarks>
     private async Task<bool> ReconnectIfStuckAsync()
     {
@@ -1037,7 +1050,7 @@ public class ConversationRelaySession
         lock (_sync)
         {
             var stuckAfter = _relay.StuckPlaybackSeconds;
-            if (stuckAfter <= 0 || _ended || _isProcessing || !_agentSpeaking || _reconnects >= _relay.MaxReconnects)
+            if (stuckAfter == 0 || _ended || _isProcessing || !_agentSpeaking || _reconnects >= _relay.MaxReconnects)
             {
                 return false;
             }
@@ -1063,17 +1076,30 @@ public class ConversationRelaySession
         }
 
         _logger.LogWarning($"ConversationRelay playback is stuck in conversation {_conversationId}: Twilio still says the " +
-            $"agent is speaking {overdueSeconds:0.0} s after all of it should have played. Connecting the call again to say " +
-            $"{resume.Lines.Count} line(s) again.");
-        await SendAsync(new
+            $"agent is speaking {overdueSeconds:0.0} s after all of it should have played. Dropping the socket so the call is " +
+            $"connected again, to say {resume.Lines.Count} line(s) again.");
+        if (_keepResume != null)
         {
-            type = "end",
-            handoffData = JsonSerializer.Serialize(new Dictionary<string, object>
+            try
             {
-                ["action"] = ConversationRelayHandoff.Reconnect,
-                [ConversationRelayHandoff.ResumeField] = resume
-            })
-        });
+                await _keepResume(JsonSerializer.Serialize(resume));
+            }
+            catch (Exception ex)
+            {
+                // Connected again all the same: a new session that says nothing beats a stuck one, and its idle prompts ask
+                _logger.LogWarning(ex, $"Could not keep what to say again in conversation {_conversationId}.");
+            }
+        }
+        // Under the send lock, so no frame is going out as the socket drops
+        await _sendLock.WaitAsync();
+        try
+        {
+            _socket.Abort();
+        }
+        finally
+        {
+            _sendLock.Release();
+        }
         return true;
     }
 
