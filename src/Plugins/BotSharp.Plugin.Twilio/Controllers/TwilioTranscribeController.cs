@@ -58,6 +58,7 @@ public class TwilioTranscribeController : TwilioController
             }
         }
 
-        return Ok();
+        // 204 and no body, as Twilio wants of a callback (an empty 200 with no content type reads to it as a failure)
+        return NoContent();
     }
 }
