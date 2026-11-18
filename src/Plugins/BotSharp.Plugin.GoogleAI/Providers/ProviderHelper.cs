@@ -26,4 +26,22 @@ public static class ProviderHelper
     {
         return (usage?.CandidatesTokenCount ?? 0) + (usage?.ThoughtsTokenCount ?? 0);
     }
+
+    /// <summary>
+    /// Tokens served from the implicit/explicit context cache. Gemini includes
+    /// them in <c>PromptTokenCount</c>, so they are billed at the cached rate.
+    /// </summary>
+    public static long GetCachedInputTokens(GenerativeAI.Types.UsageMetadata? usage)
+    {
+        return usage?.CachedContentTokenCount ?? 0;
+    }
+
+    /// <summary>
+    /// Prompt tokens billed at the full input price (prompt minus cache hits).
+    /// </summary>
+    public static long GetTextInputTokens(GenerativeAI.Types.UsageMetadata? usage)
+    {
+        var uncached = (usage?.PromptTokenCount ?? 0) - GetCachedInputTokens(usage);
+        return uncached > 0 ? uncached : 0;
+    }
 }
