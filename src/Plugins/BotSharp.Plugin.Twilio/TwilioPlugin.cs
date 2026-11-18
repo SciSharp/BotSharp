@@ -31,6 +31,7 @@ public class TwilioPlugin : IBotSharpPlugin
         services.AddSingleton<ITwilioSessionManager>(sessionManager);
         services.AddSingleton<TwilioMessageQueue>();
         services.AddSingleton<ConversationRelaySessions>();
+        services.AddSingleton<ConversationRelayResumes>();
         services.AddHostedService<TwilioMessageQueueService>();
         services.AddTwilioRequestValidation();
         services.AddScoped<IAgentUtilityHook, OutboundPhoneCallHandlerUtilityHook>();

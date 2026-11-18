@@ -138,6 +138,23 @@ public class ConversationRelaySession
     private readonly List<(string Text, int Mark)> _utterances = [];
     private const int UtterancesKept = 8;
 
+    // Twilio's speaker events (the events attribute with speaker-events): whether it last said the agent is speaking
+    private bool _agentSpeaking;
+    // The lines said since Twilio last said the playback stopped (all of it played, or the caller cut in), with whether
+    // each went out to play to the end and when: the ones to say again on a new session if the playback gets stuck
+    // (ReconnectIfStuckAsync). Not fillers or idle prompts, which were about a moment that has passed. Kept only while
+    // watching for a stuck playback, and all of them, unlike _utterances: a stuck playback plays none of what went out
+    // after it, however much that is.
+    private readonly List<(string Text, bool KeptUninterrupted, DateTime SentUtc)> _unheard = [];
+    // A line that went out this soon before Twilio said the playback stopped may have crossed that message: Twilio
+    // stopped before the line came, and plays it next. A line it played in that playback went out at least as long before
+    // as it takes to play, which is longer for nearly any line; one that isn't is only said again needlessly.
+    private static readonly TimeSpan CrossedPlaybackStop = TimeSpan.FromSeconds(1);
+    // When everything said should have finished playing, by its length (EstimateSpeech)
+    private DateTime _playedByUtc = DateTime.MinValue;
+    // How many times the call's relay has been connected again (ConversationRelayParameters.Reconnects)
+    private int _reconnects;
+
     // The line the caller cut into, to say again once nothing follows the cut-in (ResumeAfterCutInSeconds)
     private string? _resumeLine;
     private DateTime _cutInUtc;
@@ -160,6 +177,10 @@ public class ConversationRelaySession
     /// apology of a failed turn, an idle prompt and its goodbye, a line said again after a cut-in, and the fillers of a
     /// turn that kept none. A turn keeps its own reply, and a tool-call indication is the flow's to keep.
     /// </param>
+    /// <param name="keepResume">
+    /// Keeps what the session taking this one's place starts with (a <see cref="ConversationRelayResume"/> as JSON) when the
+    /// playback is stuck, for Twilio's callback to hand on (<see cref="ConversationRelayResumes"/>)
+    /// </param>
     public ConversationRelaySession(
         WebSocket socket,
         string agentId,
@@ -167,7 +188,8 @@ public class ConversationRelaySession
         TwilioSetting settings,
         Func<CallerMessage, AgentTurnCallbacks, Task<AssistantMessage?>> sendCallerMessage,
         ILogger logger,
-        Func<string, string, DateTime, Task>? keepSaidLine = null)
+        Func<string, string, DateTime, Task>? keepSaidLine = null,
+        Func<string, Task>? keepResume = null)
     {
         _socket = socket;
         _agentId = agentId;
@@ -177,7 +199,10 @@ public class ConversationRelaySession
         _sendCallerMessage = sendCallerMessage;
         _logger = logger;
         _keepSaidLine = keepSaidLine;
+        _keepResume = keepResume;
     }
+
+    private readonly Func<string, Task>? _keepResume;
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
@@ -187,7 +212,8 @@ public class ConversationRelaySession
         {
             await ReceiveLoopAsync(cts.Token);
         }
-        catch (Exception ex) when (ex is WebSocketException or OperationCanceledException)
+        // ObjectDisposedException: the socket dropped on purpose under a pending receive (ReconnectIfStuckAsync)
+        catch (Exception ex) when (ex is WebSocketException or OperationCanceledException or ObjectDisposedException)
         {
             _logger.LogInformation($"ConversationRelay socket closed for conversation {_conversationId}: {ex.Message}");
         }
@@ -265,17 +291,55 @@ public class ConversationRelaySession
                 _to = GetString(root, "to");
                 _direction = GetString(root, "direction");
                 var greetingLength = 0;
-                if (root.TryGetProperty("customParameters", out var parameters)
-                    && GetString(parameters, ConversationRelayParameters.WelcomeGreetingLength) is string length)
+                var reconnects = 0;
+                string? resume = null;
+                if (root.TryGetProperty("customParameters", out var parameters))
                 {
-                    int.TryParse(length, out greetingLength);
+                    if (GetString(parameters, ConversationRelayParameters.WelcomeGreetingLength) is string length)
+                    {
+                        int.TryParse(length, out greetingLength);
+                    }
+                    if (GetString(parameters, ConversationRelayParameters.Reconnects) is string count)
+                    {
+                        int.TryParse(count, out reconnects);
+                    }
+                    resume = GetString(parameters, ConversationRelayParameters.Resume);
                 }
                 lock (_sync)
                 {
                     _quietSinceUtc = DateTime.UtcNow + EstimateSpeech(greetingLength);
+                    _playedByUtc = _quietSinceUtc;
+                    _reconnects = reconnects;
                 }
                 _logger.LogInformation(
                     $"ConversationRelay session started for conversation {_conversationId} (call {_callSid}).");
+                if (resume != null)
+                {
+                    await ResumeAsync(resume);
+                }
+                break;
+
+            case "info":
+                // Twilio's speaker events. One "on" and one "off" cover everything played back to back, however many lines
+                // went out meanwhile: at "off" all of it has played.
+                if (GetString(root, "name") == "agentSpeaking")
+                {
+                    lock (_sync)
+                    {
+                        _agentSpeaking = GetString(root, "value") == "on";
+                        if (!_agentSpeaking)
+                        {
+                            var now = DateTime.UtcNow;
+                            NotePlaybackStopped(now);
+                            // Watching for a stuck playback, the caller's silence starts no sooner than the playback ended
+                            // (the estimate may be short of it): no idle prompt was said while it played (WatchIdleAsync)
+                            if (_relay.StuckPlaybackSeconds != 0 && _quietSinceUtc != DateTime.MaxValue && _quietSinceUtc < now)
+                            {
+                                _quietSinceUtc = now;
+                            }
+                        }
+                    }
+                }
                 break;
 
             case "prompt":
@@ -334,6 +398,10 @@ public class ConversationRelaySession
                 lock (_sync)
                 {
                     _quietSinceUtc = DateTime.UtcNow;
+                    // The playback stopped where the caller cut in: what is said again after a cut-in is the cut-in's to
+                    // decide (ResumeAfterCutInSeconds), not a stuck playback's
+                    _agentSpeaking = false;
+                    NotePlaybackStopped(DateTime.UtcNow);
 
                     // The caller talked over a reply still being streamed: don't send the rest of it. A stream already
                     // dropped (the turn timed out and the apology is playing, or the caller cut in before) or a
@@ -772,7 +840,7 @@ public class ConversationRelaySession
                 {
                     return false;
                 }
-                RememberUtterance(text, _saidCount + 1);
+                RememberUtterance(text, _saidCount + 1, again: false);
                 // Noted as it goes out, under the send lock: a turn that fails meanwhile finds every filler said before
                 // its apology
                 callbacks.NoteFillerSaid(text);
@@ -806,7 +874,10 @@ public class ConversationRelaySession
     /// <summary>
     /// Notes something said, with the _saidCount it went out at. Call under <see cref="_sync"/>.
     /// </summary>
-    private void RememberUtterance(string text, int mark)
+    /// <param name="keptUninterrupted">It went out to play to the end whoever speaks over it</param>
+    /// <param name="again">Said again on a new session if it never finished playing (ReconnectIfStuckAsync): not for a
+    /// filler or an idle prompt, which were about a moment that has passed</param>
+    private void RememberUtterance(string text, int mark, bool keptUninterrupted = false, bool again = true)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -817,6 +888,22 @@ public class ConversationRelaySession
         {
             _utterances.RemoveAt(0);
         }
+        if (again && _relay.StuckPlaybackSeconds != 0)
+        {
+            _unheard.Add((text.Trim(), keptUninterrupted, DateTime.UtcNow));
+        }
+    }
+
+    /// <summary>
+    /// Twilio said the playback stopped: all of it played, or the caller cut in. Call under <see cref="_sync"/>.
+    /// </summary>
+    private void NotePlaybackStopped(DateTime now)
+    {
+        // What went out before it is over, but for a line that may have crossed Twilio's message (CrossedPlaybackStop)
+        _unheard.RemoveAll(line => line.SentUtc < now - CrossedPlaybackStop);
+        // Nothing is left to play but such a line: what goes out next plays after it, not after what the estimate still
+        // had to come. Without it, a long line that crossed the message would be taken as stuck while it still plays.
+        _playedByUtc = now + _unheard.Aggregate(TimeSpan.Zero, (sum, line) => sum + EstimateSpeech(line.Text.Length));
     }
 
     /// <summary>
@@ -862,6 +949,10 @@ public class ConversationRelaySession
         while (!cancellationToken.IsCancellationRequested)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
+            if (await ReconnectIfStuckAsync())
+            {
+                return;
+            }
             await ResumeIfSilentAsync();
 
             var askAgain = false;
@@ -874,7 +965,11 @@ public class ConversationRelaySession
             lock (_sync)
             {
                 var quietFor = DateTime.UtcNow - _quietSinceUtc;
-                if (_ended || _isProcessing || _quietSinceUtc == DateTime.MaxValue || _resumeLine != null
+                // Watching for a stuck playback, a caller Twilio is still playing to isn't silent: an idle prompt then would
+                // only queue behind the playback, and each one would put off finding it stuck until the idle prompts ran out
+                // and hung up (ReconnectIfStuckAsync)
+                var stillPlaying = _relay.StuckPlaybackSeconds != 0 && _agentSpeaking;
+                if (_ended || _isProcessing || _quietSinceUtc == DateTime.MaxValue || _resumeLine != null || stillPlaying
                     || quietFor < IdleTimeout(_idlePrompts, _quietWait))
                 {
                     continue;
@@ -949,6 +1044,120 @@ public class ConversationRelaySession
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Ends a session whose playback is stuck (ConversationRelaySetting.StuckPlaybackSeconds) and has Twilio connect the call
+    /// again: the new session says the lines that never finished playing (<see cref="ResumeAsync"/>). Whether it did.
+    /// </summary>
+    /// <remarks>
+    /// Stuck: Twilio still says the agent is speaking well after everything said should have finished playing, and no turn
+    /// is running (one still running may say more, which then goes with the rest). Only while the call may still be
+    /// connected again (MaxReconnects): past that the action callback would hang it up.
+    /// Why say the lines again rather than carry on: a stuck playback plays nothing queued behind it and lets none of the
+    /// caller's words through, so the caller heard neither the lines nor anything after them (dev calls 1c28cefa, 46bc439c).
+    /// Why the socket is dropped rather than the session ended: Twilio acts on an "end" message only once what is queued has
+    /// played (dev: the session ended 5.4-6.0 s after a goodbye and its "end" went out together, the goodbye's length), and a
+    /// stuck playback never has. A dropped socket ends it at once: Twilio's callback then finds the session failed, as when
+    /// an instance holding a socket goes away, and connects the call again with what was kept (<see cref="ConversationRelayResumes"/>).
+    /// </remarks>
+    private async Task<bool> ReconnectIfStuckAsync()
+    {
+        ConversationRelayResume resume;
+        double overdueSeconds;
+        lock (_sync)
+        {
+            var stuckAfter = _relay.StuckPlaybackSeconds;
+            if (stuckAfter == 0 || _ended || _isProcessing || !_agentSpeaking || _reconnects >= _relay.MaxReconnects)
+            {
+                return false;
+            }
+            var overdue = DateTime.UtcNow - _playedByUtc;
+            if (overdue < TimeSpan.FromSeconds(stuckAfter))
+            {
+                return false;
+            }
+
+            // None when only a filler or an idle prompt went out since the playback last stopped: the new session then says
+            // nothing until the caller does, or its own idle prompt
+            var lines = _unheard
+                .Select(line => new ConversationRelayResumeLine { Text = line.Text, KeepUninterrupted = line.KeptUninterrupted })
+                .ToList();
+            resume = new ConversationRelayResume { Lines = lines, QuietWait = _quietWait, GoodbyeOnSilence = _goodbyeOnSilence };
+            overdueSeconds = overdue.TotalSeconds;
+            // Ended in the same step, so caller input arriving now can't start a turn on a session being replaced
+            _ended = true;
+        }
+
+        _logger.LogWarning($"ConversationRelay playback is stuck in conversation {_conversationId}: Twilio still says the " +
+            $"agent is speaking {overdueSeconds:0.0} s after all of it should have played. Dropping the socket so the call is " +
+            $"connected again, to say {resume.Lines.Count} line(s) again.");
+        if (_keepResume != null)
+        {
+            try
+            {
+                await _keepResume(JsonSerializer.Serialize(resume));
+            }
+            catch (Exception ex)
+            {
+                // Connected again all the same: a new session that says nothing beats a stuck one, and its idle prompts ask
+                _logger.LogWarning(ex, $"Could not keep what to say again in conversation {_conversationId}.");
+            }
+        }
+        // Under the send lock, so no frame is going out as the socket drops
+        await _sendLock.WaitAsync();
+        try
+        {
+            _socket.Abort();
+        }
+        finally
+        {
+            _sendLock.Release();
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Starts a session that takes the place of one whose playback was stuck (<see cref="ReconnectIfStuckAsync"/>): the
+    /// lines the caller never heard all of are said again, each as it went out, and a silent caller is treated as the flow
+    /// last said. They are in the history already, so they aren't kept again.
+    /// </summary>
+    private async Task ResumeAsync(string json)
+    {
+        ConversationRelayResume? resume;
+        try
+        {
+            resume = JsonSerializer.Deserialize<ConversationRelayResume>(json);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning($"Unreadable resume for conversation {_conversationId}; nothing is said again: {ex.Message}");
+            return;
+        }
+        if (resume == null)
+        {
+            return;
+        }
+
+        lock (_sync)
+        {
+            _quietWait = resume.QuietWait;
+            _goodbyeOnSilence = resume.GoodbyeOnSilence;
+        }
+        var said = 0;
+        foreach (var line in resume.Lines)
+        {
+            if (await SpeakAsync(line.Text, canSpeak: () =>
+                {
+                    NoteLine(line.Text, keptUninterrupted: line.KeepUninterrupted);
+                    return true;
+                }, keepUninterrupted: line.KeepUninterrupted))
+            {
+                said++;
+            }
+        }
+        _logger.LogInformation($"ConversationRelay session for conversation {_conversationId} took the place of one whose " +
+            $"playback was stuck; said {said} line(s) again.");
     }
 
     // How long the caller may stay silent before the idle prompt after this many (the last is before the hang-up)
@@ -1087,7 +1296,7 @@ public class ConversationRelaySession
     /// <param name="canSpeak">Extra condition, checked under <see cref="_sync"/> once the send lock is held</param>
     private async Task SayOwnLineAsync(string text, string label, Func<bool>? canSpeak = null)
     {
-        if (await SpeakAsync(text, canSpeak))
+        if (await SpeakAsync(text, canSpeak, sayAgainIfStuck: label != ConversationRelayLabels.IdlePrompt))
         {
             await KeepSaidAsync(text, label, DateTime.UtcNow);
         }
@@ -1179,7 +1388,7 @@ public class ConversationRelaySession
             _lastStreamSegment = _streamSegment.ToString();
             _streamSegment.Clear();
             MarkSpeaking(EstimateSpeech(_lastStreamSegment.Length));
-            RememberUtterance(_lastStreamSegment, _utteranceStartMark);
+            RememberUtterance(_lastStreamSegment, _utteranceStartMark, keep);
             // Cut into while it streamed: the caller's words are about it, so it dates from when it started and keeps
             // what they heard of it, not from now (a "Yes." said over it was dropped as a tail, review)
             if (_utteranceCutIn)
@@ -1373,8 +1582,10 @@ public class ConversationRelaySession
 
     /// <param name="canSpeak">Extra condition, checked under <see cref="_sync"/> once the send lock is held</param>
     /// <param name="keepUninterrupted">The caller must hear all of it, so it plays to the end whoever speaks over it</param>
+    /// <param name="sayAgainIfStuck">Said again on a new session if it never finished playing (RememberUtterance)</param>
     /// <returns>Whether it went out</returns>
-    private async Task<bool> SpeakAsync(string? text, Func<bool>? canSpeak = null, bool keepUninterrupted = false)
+    private async Task<bool> SpeakAsync(string? text, Func<bool>? canSpeak = null, bool keepUninterrupted = false,
+        bool sayAgainIfStuck = true)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -1387,7 +1598,7 @@ public class ConversationRelaySession
                 {
                     return false;
                 }
-                RememberUtterance(text, _saidCount + 1);
+                RememberUtterance(text, _saidCount + 1, keepUninterrupted, sayAgainIfStuck);
                 return true;
             },
             TextFrame(text, last: true, keepUninterrupted), EstimateSpeech(text.Length));
@@ -1560,6 +1771,8 @@ public class ConversationRelaySession
         var now = DateTime.UtcNow;
         var start = _quietSinceUtc == DateTime.MaxValue || _quietSinceUtc < now ? now : _quietSinceUtc;
         _quietSinceUtc = start + duration;
+        // Queued behind what is still to play; unlike the silence clock, the caller's words don't move it
+        _playedByUtc = (_playedByUtc < now ? now : _playedByUtc) + duration;
     }
 
     private static TimeSpan EstimateSpeech(int characters)

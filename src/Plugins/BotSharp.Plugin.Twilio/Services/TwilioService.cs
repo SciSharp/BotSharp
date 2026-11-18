@@ -272,8 +272,11 @@ public class TwilioService
     /// Hands the call to Twilio ConversationRelay. Twilio opens a WebSocket to twilio/relay/{agentId}/{conversationId}
     /// and posts to twilio/relay/action when the session ends.
     /// </summary>
+    /// <param name="reconnects">How many times the call's relay has been connected again</param>
+    /// <param name="resume">What the session starts with when it takes the place of one whose playback was stuck: a
+    /// <see cref="ConversationRelayResume"/> as JSON</param>
     public VoiceResponse ReturnConversationRelay(
-        string agentId, string conversationId, string? welcomeGreeting, int reconnects = 0)
+        string agentId, string conversationId, string? welcomeGreeting, int reconnects = 0, string? resume = null)
     {
         var relay = _settings.ConversationRelay.For(agentId);
         var query = $"agent-id={Uri.EscapeDataString(agentId)}" +
@@ -305,10 +308,21 @@ public class TwilioService
         {
             element.SetOption("hints", relay.Hints);
         }
+        // Watching for a stuck playback reads when Twilio says the agent starts and stops speaking
+        if (relay.StuckPlaybackSeconds != 0)
+        {
+            element.SetOption("events", "speaker-events");
+        }
 
         // Lets the session time its idle check from the end of the greeting
         var greetingLength = (welcomeGreeting?.Length ?? 0).ToString();
         element.Parameter(name: ConversationRelayParameters.WelcomeGreetingLength, value: greetingLength);
+        // The session reconnects a stuck playback only while the call may still be connected again
+        element.Parameter(name: ConversationRelayParameters.Reconnects, value: reconnects.ToString());
+        if (!string.IsNullOrWhiteSpace(resume))
+        {
+            element.Parameter(name: ConversationRelayParameters.Resume, value: resume);
+        }
 
         connect.Append(element);
         var response = new VoiceResponse();

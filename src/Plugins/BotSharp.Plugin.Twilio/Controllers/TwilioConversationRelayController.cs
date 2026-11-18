@@ -12,17 +12,20 @@ public class TwilioConversationRelayController : TwilioController
     private readonly TwilioSetting _settings;
     private readonly IServiceProvider _services;
     private readonly ConversationRelaySessions _sessions;
+    private readonly ConversationRelayResumes _resumes;
     private readonly ILogger _logger;
 
     public TwilioConversationRelayController(
         TwilioSetting settings,
         IServiceProvider services,
         ConversationRelaySessions sessions,
+        ConversationRelayResumes resumes,
         ILogger<TwilioConversationRelayController> logger)
     {
         _settings = settings;
         _services = services;
         _sessions = sessions;
+        _resumes = resumes;
         _logger = logger;
     }
 
@@ -52,6 +55,18 @@ public class TwilioConversationRelayController : TwilioController
 
         var callStillUp = !string.Equals(request.CallStatus, "completed", StringComparison.OrdinalIgnoreCase);
         var canReconnect = request.Reconnects < _settings.ConversationRelay.MaxReconnects;
+
+        // A session whose playback was stuck dropped its socket and kept what never finished playing: a new session says it.
+        // Nothing is told to the hooks, as the call goes on. Whatever status Twilio gives the dropped session.
+        var resume = action == null && callStillUp && canReconnect ? await _resumes.TakeAsync(request.ConversationId) : null;
+        if (resume != null)
+        {
+            _logger.LogWarning($"Reconnecting ConversationRelay for conversation {request.ConversationId}: its playback was " +
+                $"stuck (attempt {request.Reconnects + 1}).");
+            return TwiML(twilio.ReturnConversationRelay(request.AgentId, request.ConversationId, welcomeGreeting: null,
+                request.Reconnects + 1, resume));
+        }
+
         if (request.SessionStatus == "failed" && callStillUp && canReconnect)
         {
             _logger.LogWarning($"Reconnecting ConversationRelay for conversation {request.ConversationId} " +

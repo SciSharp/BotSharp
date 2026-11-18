@@ -23,4 +23,5 @@ public class ConversationRelayAgentSetting
     public int? MaxQuietWaitPrompts { get; set; }
     public double? ResumeAfterCutInSeconds { get; set; }
     public bool? DropBackchannelTails { get; set; }
+    public double? StuckPlaybackSeconds { get; set; }
 }
