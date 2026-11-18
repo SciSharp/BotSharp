@@ -47,6 +47,7 @@ public class TwilioRecordController : TwilioController
             _logger.LogError($"Unknown record status: {request.CallStatus}, {request.CallSid}");
         }
 
-        return Ok();
+        // 204 and no body, as Twilio wants of a callback (an empty 200 with no content type reads to it as a failure)
+        return NoContent();
     }
 }

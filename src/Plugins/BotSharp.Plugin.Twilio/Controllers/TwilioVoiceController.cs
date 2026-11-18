@@ -390,7 +390,9 @@ public class TwilioVoiceController : TwilioController
                 break;
         }
 
-        return Ok();
+        // Twilio takes an empty 200 with no content type for a failed callback (warning 15003, "Got HTTP 502", on every
+        // call); it wants 204 and no body, or TwiML
+        return NoContent();
     }
 
     protected Dictionary<string, string> ParseStates(List<string> states)
