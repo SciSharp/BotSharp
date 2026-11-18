@@ -145,6 +145,20 @@ public class ConversationRelaySetting
     public bool DropBackchannelTails { get; set; }
 
     /// <summary>
+    /// Seconds past the moment everything said should have finished playing, with Twilio still saying the agent is speaking
+    /// and nothing cut into, before the session's playback is taken as stuck: the session is ended, Twilio connects the
+    /// call again, and the lines that never finished playing are said on the new session. Needs Twilio's speaker events
+    /// (the events attribute with speaker-events); stops after <see cref="MaxReconnects"/>. 0 turns it off.
+    /// </summary>
+    /// <remarks>
+    /// Why: on some calls Twilio said the agent started speaking and never that it stopped. Nothing said after that played,
+    /// and none of the caller's words came through, until they hung up; Twilio reported no error (dev calls 1c28cefa,
+    /// 46bc439c). How long a line takes is estimated from its length, on the slow side, so this is how much later than
+    /// even that the playback must still be going.
+    /// </remarks>
+    public double StuckPlaybackSeconds { get; set; }
+
+    /// <summary>
     /// Settings for one agent's calls, by agent id, over the ones above
     /// </summary>
     public Dictionary<string, ConversationRelayAgentSetting> Agents { get; set; } = [];
@@ -172,6 +186,7 @@ public class ConversationRelaySetting
         settings.MaxQuietWaitPrompts = agent.MaxQuietWaitPrompts ?? MaxQuietWaitPrompts;
         settings.ResumeAfterCutInSeconds = agent.ResumeAfterCutInSeconds ?? ResumeAfterCutInSeconds;
         settings.DropBackchannelTails = agent.DropBackchannelTails ?? DropBackchannelTails;
+        settings.StuckPlaybackSeconds = agent.StuckPlaybackSeconds ?? StuckPlaybackSeconds;
         return settings;
     }
 

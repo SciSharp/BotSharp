@@ -52,6 +52,23 @@ public class TwilioConversationRelayController : TwilioController
 
         var callStillUp = !string.Equals(request.CallStatus, "completed", StringComparison.OrdinalIgnoreCase);
         var canReconnect = request.Reconnects < _settings.ConversationRelay.MaxReconnects;
+
+        // The session's playback was stuck: a new session says what never finished playing. Nothing is told to the hooks:
+        // the call goes on.
+        if (action == ConversationRelayHandoff.Reconnect)
+        {
+            if (callStillUp && canReconnect)
+            {
+                _logger.LogWarning($"Reconnecting ConversationRelay for conversation {request.ConversationId}: its playback " +
+                    $"was stuck (attempt {request.Reconnects + 1}).");
+                return TwiML(twilio.ReturnConversationRelay(request.AgentId, request.ConversationId, welcomeGreeting: null,
+                    request.Reconnects + 1, GetHandoffField(request.HandoffData, ConversationRelayHandoff.ResumeField)));
+            }
+            // The session asks only while it may (it knows its reconnects): a caller who hung up meanwhile ends the call
+            // as any hang-up does, and anything else as the agent's
+            action = callStillUp ? ConversationRelayHandoff.HangUp : null;
+        }
+
         if (request.SessionStatus == "failed" && callStillUp && canReconnect)
         {
             _logger.LogWarning($"Reconnecting ConversationRelay for conversation {request.ConversationId} " +
@@ -101,6 +118,29 @@ public class TwilioConversationRelayController : TwilioController
         catch (JsonException)
         {
             return handoffData;
+        }
+    }
+
+    /// <summary>
+    /// A field of the handoffData as JSON, or null when it has none
+    /// </summary>
+    private static string? GetHandoffField(string? handoffData, string name)
+    {
+        if (string.IsNullOrWhiteSpace(handoffData))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(handoffData);
+            return doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.TryGetProperty(name, out var field)
+                ? field.GetRawText()
+                : null;
+        }
+        catch (JsonException)
+        {
+            return null;
         }
     }
 }
