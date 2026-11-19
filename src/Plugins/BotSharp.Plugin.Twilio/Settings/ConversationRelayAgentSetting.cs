@@ -24,4 +24,5 @@ public class ConversationRelayAgentSetting
     public double? ResumeAfterCutInSeconds { get; set; }
     public bool? DropBackchannelTails { get; set; }
     public double? StuckPlaybackSeconds { get; set; }
+    public bool? EndingLinesInterruptible { get; set; }
 }

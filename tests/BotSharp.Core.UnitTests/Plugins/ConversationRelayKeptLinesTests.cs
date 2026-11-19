@@ -196,6 +196,56 @@ public class ConversationRelayKeptLinesTests
         Assert.Equal(new bool?[] { null, null, null, false }, call.Socket.SentInterruptible());
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task With_ending_lines_interruptible_the_caller_may_cut_into_the_goodbye_and_the_call_still_ends(bool forTheAgentOnly)
+    {
+        // A line kept playing to the end that Twilio never takes as played holds the "end" behind it back for good
+        var call = Call.Start(Settings(relay =>
+            {
+                relay.ResponseWatchdogIntervals = [];
+                relay.IdleAsksAgain = true;
+                relay.IdleTimeouts = [0.1];
+                relay.MaxIdlePrompts = 0;
+                if (forTheAgentOnly)
+                {
+                    relay.Agents[AgentId] = new ConversationRelayAgentSetting { EndingLinesInterruptible = true };
+                }
+                else
+                {
+                    relay.EndingLinesInterruptible = true;
+                }
+            }),
+            (_, _) => Task.FromResult<AssistantMessage?>(new AssistantMessage { Content = "Which unit?" }));
+
+        await WaitUntil(() => call.Socket.SentEnd);
+        await WaitUntil(() => call.Kept.Count == 1);
+        await call.HangUpAsync();
+
+        Assert.Equal(new[] { "Which unit?", "Bye now." }, call.Socket.SentTexts());
+        Assert.Equal(new bool?[] { null, null }, call.Socket.SentInterruptible());
+        Assert.Equal(new[] { ConversationRelayLabels.IdleGoodbye }, call.Kept.Select(line => line.Label));
+    }
+
+    [Fact]
+    public async Task With_ending_lines_interruptible_the_caller_may_cut_into_the_apology_of_a_failed_turn()
+    {
+        var call = Call.Start(Settings(relay =>
+            {
+                relay.ResponseWatchdogIntervals = [];
+                relay.EndingLinesInterruptible = true;
+            }),
+            (_, _) => throw new InvalidOperationException("The model is down."));
+
+        await WaitUntil(() => call.Kept.Count == 1);
+        await call.HangUpAsync();
+
+        Assert.Equal(new[] { Apology }, call.Socket.SentTexts());
+        Assert.True(call.Socket.SentEnd);
+        Assert.Equal(new bool?[] { null }, call.Socket.SentInterruptible());
+    }
+
     [Fact]
     public async Task A_say_it_again_prompt_is_kept_with_its_text()
     {

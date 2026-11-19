@@ -1031,9 +1031,10 @@ public class ConversationRelaySession
                 if (goodbyeOnSilence != null || relay.IdleAsksAgain)
                 {
                     // The session is marked ended already, so nothing else can be said after it, and nothing the caller
-                    // says over it is answered: it plays to the end
+                    // says over it is answered: it plays to the end, unless the caller may cut into the lines a call
+                    // ends with (EndingLinesInterruptible)
                     goodbye = goodbyeOnSilence ?? PromptText("idle-goodbye", DefaultIdleGoodbyeText);
-                    await SendAsync(TextFrame(goodbye, last: true, keepUninterrupted: true));
+                    await SendAsync(TextFrame(goodbye, last: true, keepUninterrupted: !relay.EndingLinesInterruptible));
                     goodbyeUtc = DateTime.UtcNow;
                 }
                 await SendEndAsync(ConversationRelayHandoff.HangUp);
@@ -1263,8 +1264,9 @@ public class ConversationRelaySession
         }
         await CloseUtteranceAsync();
         var apology = PromptText("error", DefaultErrorText);
-        // The call ends after it, so nothing the caller says over it is answered: it plays to the end
-        var apologized = await SpeakAsync(apology, keepUninterrupted: true);
+        // The call ends after it, so nothing the caller says over it is answered: it plays to the end, unless the caller
+        // may cut into the lines a call ends with (EndingLinesInterruptible)
+        var apologized = await SpeakAsync(apology, keepUninterrupted: !_relay.EndingLinesInterruptible);
         var apologyUtc = DateTime.UtcNow;
         await EndAsync(ConversationRelayHandoff.HangUp);
 

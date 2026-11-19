@@ -160,6 +160,20 @@ public class ConversationRelaySetting
     public double StuckPlaybackSeconds { get; set; }
 
     /// <summary>
+    /// The caller may cut into the lines the session says as it ends a call on its own: the goodbye to a caller who stayed
+    /// silent (the flow's GoodbyeOnSilence or the idle-goodbye prompt) and the apology of a turn that failed. Twilio then
+    /// stops the line where they speak and ends the call; what they say is not answered, as the session has ended. Off,
+    /// the default, these lines play to the end whatever the caller says over them.
+    /// </summary>
+    /// <remarks>
+    /// Why: Twilio acts on the "end" that follows such a line only once the line has played, and a playback it takes as
+    /// still going never has. Only lines kept playing to the end were seen to get stuck so (dev calls 1c28cefa, 46bc439c;
+    /// stage call 6880f902), and such a call stays up, silent, until the caller hangs up. A line the caller may cut into
+    /// ends at their first word, and the call with it.
+    /// </remarks>
+    public bool EndingLinesInterruptible { get; set; }
+
+    /// <summary>
     /// Settings for one agent's calls, by agent id, over the ones above
     /// </summary>
     public Dictionary<string, ConversationRelayAgentSetting> Agents { get; set; } = [];
@@ -188,6 +202,7 @@ public class ConversationRelaySetting
         settings.ResumeAfterCutInSeconds = agent.ResumeAfterCutInSeconds ?? ResumeAfterCutInSeconds;
         settings.DropBackchannelTails = agent.DropBackchannelTails ?? DropBackchannelTails;
         settings.StuckPlaybackSeconds = agent.StuckPlaybackSeconds ?? StuckPlaybackSeconds;
+        settings.EndingLinesInterruptible = agent.EndingLinesInterruptible ?? EndingLinesInterruptible;
         return settings;
     }
 
