@@ -246,7 +246,7 @@ public class ChatCompletionProvider : IChatCompletion
                 var contentBlock = choice.ContentBlock;
                 var delta = choice.Delta;
 
-                tokenUsage = delta?.Usage ?? startMsg?.Usage ?? choice.Usage;
+                tokenUsage = ProviderHelper.UpdateStreamedUsage(tokenUsage, choice);
 
                 if (delta != null)
                 {
