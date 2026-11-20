@@ -62,7 +62,8 @@ public class TextCompletionProvider : ITextCompletion
                 Prompt = text,
                 Provider = Provider,
                 Model = _model,
-                TextInputTokens = response?.UsageMetadata?.PromptTokenCount ?? 0,
+                TextInputTokens = ProviderHelper.GetInputTokens(response?.UsageMetadata),
+                CachedTextInputTokens = ProviderHelper.GetCachedInputTokens(response?.UsageMetadata),
                 TextOutputTokens = ProviderHelper.GetOutputTokens(response?.UsageMetadata)
             });
         }
