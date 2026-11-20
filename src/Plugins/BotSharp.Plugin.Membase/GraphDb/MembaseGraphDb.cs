@@ -165,7 +165,7 @@ public partial class MembaseGraphDb : IGraphDb
     {
         // Timeouts are not retried: a query that ran out of time is usually just slow, and would run out again.
         var retryPolicy = Policy
-            .Handle<HttpRequestException>()
+            .Handle<Exception>(IsTransportFailure)
             .Or<ApiException>(IsTransientApiException)
             .WaitAndRetryAsync(
                 retryCount: RETRY_COUNT,
@@ -188,6 +188,19 @@ public partial class MembaseGraphDb : IGraphDb
 
         // One timeout around the whole query, back-off included, rather than one per attempt.
         return Policy.TimeoutAsync(budget).WrapAsync(retryPolicy);
+    }
+
+    /// <summary>
+    /// The request never got a response: the connection was refused, reset or dropped.
+    /// Refit 8 lets the <see cref="HttpRequestException"/> through; newer Refit wraps it in
+    /// <c>ApiRequestException</c>, a sibling of <see cref="ApiException"/> rather than a subclass,
+    /// so the wrapper is matched by its inner exception. A client timeout is not an
+    /// <see cref="HttpRequestException"/>, so it is still not retried.
+    /// </summary>
+    private static bool IsTransportFailure(Exception ex)
+    {
+        return ex is HttpRequestException
+            || (ex is not ApiException && ex.InnerException is HttpRequestException);
     }
 
     private static bool IsTransientApiException(ApiException ex)
