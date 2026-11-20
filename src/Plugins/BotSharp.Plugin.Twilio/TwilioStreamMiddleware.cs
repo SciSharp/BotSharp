@@ -101,6 +101,34 @@ public class TwilioStreamMiddleware
         var routing = services.GetRequiredService<IRoutingService>();
         await routing.Context.Push(agentId);
 
+        try
+        {
+            await ReceiveUpdates(services, session, hub, conn, conversationId, webSocket);
+        }
+        finally
+        {
+            // A dropped WebSocket ends the loop with no "stop" event, so this is the one place every stream end passes
+            foreach (var hook in hooks)
+            {
+                // A failing hook must not skip the other hooks or the state save and disconnect below
+                try
+                {
+                    await hook.OnStreamingStopped(conn);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"{hook.GetType().Name}.OnStreamingStopped failed for conversation {conversationId}");
+                }
+            }
+        }
+
+        await convService.SaveStates();
+        await session.DisconnectAsync();
+    }
+
+    private async Task ReceiveUpdates(IServiceProvider services, BotSharpRealtimeSession session, IRealtimeHub hub,
+        RealtimeHubConnection conn, string conversationId, WebSocket webSocket)
+    {
         await foreach (ChatSessionUpdate update in session.ReceiveUpdatesAsync(CancellationToken.None))
         {
             var receivedText = update?.RawResponse;
@@ -147,13 +175,9 @@ public class TwilioStreamMiddleware
                 _logger.LogInformation($"Disconnecting twilio stream connection for conversation ({conversationId})");
 #endif
                 await hub.Completer.Disconnect();
-                await HandleUserDisconnected();
                 break;
             }
         }
-
-        await convService.SaveStates();
-        await session.DisconnectAsync();
     }
 
     private async Task ConnectToModel(IRealtimeHub hub, WebSocket webSocket)
@@ -242,11 +266,6 @@ public class TwilioStreamMiddleware
             });
 
         return (eventType, data);
-    }
-
-    private async Task HandleUserDisconnected()
-    {
-
     }
 
     private async Task SendMark(WebSocket userWebSocket, RealtimeHubConnection conn)
