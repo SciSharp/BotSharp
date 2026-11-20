@@ -82,7 +82,8 @@ public class MembaseController : ControllerBase
             var result = await graph.ExecuteQueryAsync(query: request.Query, options: new()
             {
                 GraphId = graphId,
-                Arguments = request.Parameters
+                Arguments = request.Parameters,
+                CancellationToken = HttpContext.RequestAborted
             });
             return Ok(new
             {

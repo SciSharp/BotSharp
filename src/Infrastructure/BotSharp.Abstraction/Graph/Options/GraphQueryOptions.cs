@@ -16,6 +16,7 @@ public class GraphQueryExecuteOptions
     /// <summary>
     /// Upper bound for the whole query, retries included. Null keeps the provider's own timeout.
     /// Set it when the caller is itself waited on with a deadline, so the query gives up before the caller does.
+    /// A provider's own HTTP timeout may still end a single attempt sooner.
     /// </summary>
     public TimeSpan? Timeout { get; set; }
 
