@@ -1,7 +1,7 @@
 using System.Net;
+using System.Threading;
 using BotSharp.Plugin.Membase.Models.Graph;
 using Polly;
-using Polly.Timeout;
 using Refit;
 
 namespace BotSharp.Plugin.Membase.GraphDb;
@@ -38,16 +38,18 @@ public partial class MembaseGraphDb : IGraphDb
 
         var args = options?.Arguments ?? new();
         var argLogs = JsonSerializer.Serialize(args, BotSharpOptions.defaultJsonOptions);
+        var callerToken = options!.CancellationToken;
 
         try
         {
-            var retryPolicy = BuildRetryPolicy();
-            var response = await retryPolicy.ExecuteAsync(() =>
-                _membaseApi.CypherQueryAsync(options!.GraphId, new CypherQueryRequest
+            var retryPolicy = BuildRetryPolicy(options.Timeout);
+            // The token must reach the HTTP call: Polly timeouts are optimistic and only fire through it.
+            var response = await retryPolicy.ExecuteAsync(ct =>
+                _membaseApi.CypherQueryAsync(options.GraphId, new CypherQueryRequest
                 {
                     Query = query,
                     Parameters = args
-                }));
+                }, ct), callerToken);
 
             return new GraphQueryResult
             {
@@ -55,6 +57,18 @@ public partial class MembaseGraphDb : IGraphDb
                 Values = response.Data,
                 Result = JsonSerializer.Serialize(response.Data)
             };
+        }
+        // The caller stopped waiting, which is not a Membase error, so it is not logged as one.
+        catch (OperationCanceledException) when (callerToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Query in {Provider} graph db was cancelled by its caller.", Provider);
+            throw;
+        }
+        catch (Exception ex) when (callerToken.IsCancellationRequested)
+        {
+            // The HTTP client may wrap the cancellation in its own exception; surface it the standard way.
+            _logger.LogInformation("Query in {Provider} graph db was cancelled by its caller.", Provider);
+            throw new OperationCanceledException("The caller cancelled the query.", ex, callerToken);
         }
         catch (ApiException ex)
         {
@@ -147,17 +161,11 @@ public partial class MembaseGraphDb : IGraphDb
     #endregion
 
     #region Private methods
-    private AsyncPolicy BuildRetryPolicy()
+    private AsyncPolicy BuildRetryPolicy(TimeSpan? totalTimeout)
     {
-        var settings = _services.GetRequiredService<MembaseSettings>();
-        var timeoutSeconds = (double)settings.TimeoutSecond / RETRY_COUNT;
-
-        var timeoutPolicy = Policy.TimeoutAsync(TimeSpan.FromSeconds(timeoutSeconds));
-
+        // Timeouts are not retried: a query that ran out of time is usually just slow, and would run out again.
         var retryPolicy = Policy
             .Handle<HttpRequestException>()
-            .Or<TaskCanceledException>()
-            .Or<TimeoutRejectedException>()
             .Or<ApiException>(IsTransientApiException)
             .WaitAndRetryAsync(
                 retryCount: RETRY_COUNT,
@@ -169,7 +177,17 @@ public partial class MembaseGraphDb : IGraphDb
                         retryAttempt, RETRY_COUNT, timespan.TotalSeconds, ex.Message);
                 });
 
-        return Policy.WrapAsync(retryPolicy, timeoutPolicy);
+        var settings = _services.GetRequiredService<MembaseSettings>();
+        var budget = totalTimeout is { } requested && requested > TimeSpan.Zero
+            ? requested
+            : TimeSpan.FromSeconds(settings.TimeoutSecond);
+        if (budget <= TimeSpan.Zero)
+        {
+            return retryPolicy;
+        }
+
+        // One timeout around the whole query, back-off included, rather than one per attempt.
+        return Policy.TimeoutAsync(budget).WrapAsync(retryPolicy);
     }
 
     private static bool IsTransientApiException(ApiException ex)
