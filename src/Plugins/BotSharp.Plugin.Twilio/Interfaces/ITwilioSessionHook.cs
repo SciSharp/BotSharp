@@ -31,7 +31,21 @@ public interface ITwilioSessionHook : IHookBase
     Task OnSessionCreated(ConversationalVoiceRequest request)
         => Task.CompletedTask;
 
+    /// <summary>
+    /// A realtime media stream started. Once per stream; a call can have several (stream reconnect).
+    /// </summary>
+    /// <param name="conn"></param>
+    /// <returns></returns>
     Task OnStreamingStarted(RealtimeHubConnection conn)
+        => Task.CompletedTask;
+
+    /// <summary>
+    /// A realtime media stream ended, for any reason (hang-up, transfer, stream reconnect, dropped WebSocket).
+    /// Once per stream; a call can have several (stream reconnect).
+    /// </summary>
+    /// <param name="conn"></param>
+    /// <returns></returns>
+    Task OnStreamingStopped(RealtimeHubConnection conn)
         => Task.CompletedTask;
 
     /// <summary>
@@ -71,7 +85,7 @@ public interface ITwilioSessionHook : IHookBase
         => Task.CompletedTask;
 
     /// <summary>
-    /// On agent hang up
+    /// On agent hang up. Gather and ConversationRelay only; realtime streams use OnStreamingStopped.
     /// </summary>
     /// <param name="request"></param>
     /// <param name="response"></param>
@@ -81,7 +95,7 @@ public interface ITwilioSessionHook : IHookBase
 
     /// <summary>
     /// The caller hung up while talking to the agent (a ConversationRelay session ended with the call completed and no
-    /// handoff from the agent)
+    /// handoff from the agent). ConversationRelay only; realtime streams use OnStreamingStopped.
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
@@ -89,7 +103,7 @@ public interface ITwilioSessionHook : IHookBase
         => Task.CompletedTask;
 
     /// <summary>
-    /// Before agent transferred
+    /// Before agent transferred. Gather and ConversationRelay only; realtime streams use OnStreamingStopped.
     /// </summary>
     /// <param name="request"></param>
     /// <param name="response"></param>
