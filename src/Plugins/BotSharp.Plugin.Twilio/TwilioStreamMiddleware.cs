@@ -108,18 +108,7 @@ public class TwilioStreamMiddleware
         finally
         {
             // A dropped WebSocket ends the loop with no "stop" event, so this is the one place every stream end passes
-            foreach (var hook in hooks)
-            {
-                // A failing hook must not skip the other hooks or the state save and disconnect below
-                try
-                {
-                    await hook.OnStreamingStopped(conn);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"{hook.GetType().Name}.OnStreamingStopped failed for conversation {conversationId}");
-                }
-            }
+            await HookEmitter.Emit<ITwilioSessionHook>(services, async hook => await hook.OnStreamingStopped(conn), agentId);
         }
 
         await convService.SaveStates();
