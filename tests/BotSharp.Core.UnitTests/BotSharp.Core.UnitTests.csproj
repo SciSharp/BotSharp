@@ -53,6 +53,8 @@
     <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.GoogleAI\BotSharp.Plugin.GoogleAI.csproj" />
     <!-- For ConversationRelayKeptLinesTests: the history must show every line the caller heard on a relay call. -->
     <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.Twilio\BotSharp.Plugin.Twilio.csproj" />
+    <!-- For MicrosoftExtensionsAIChatOptionsTests: the chat options must reach the IChatClient. -->
+    <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.MicrosoftExtensionsAI\BotSharp.Plugin.MicrosoftExtensionsAI.csproj" />
   </ItemGroup>
 
 </Project>
