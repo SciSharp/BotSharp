@@ -1,4 +1,5 @@
 using System.Net;
+using System.Threading;
 using BotSharp.Plugin.Membase.Models.Graph;
 using Polly;
 using Polly.Timeout;
@@ -41,13 +42,14 @@ public partial class MembaseGraphDb : IGraphDb
 
         try
         {
-            var retryPolicy = BuildRetryPolicy();
-            var response = await retryPolicy.ExecuteAsync(() =>
-                _membaseApi.CypherQueryAsync(options!.GraphId, new CypherQueryRequest
+            var retryPolicy = BuildRetryPolicy(options!.Timeout);
+            // The token must reach the HTTP call: Polly timeouts are optimistic and only fire through it.
+            var response = await retryPolicy.ExecuteAsync(ct =>
+                _membaseApi.CypherQueryAsync(options.GraphId, new CypherQueryRequest
                 {
                     Query = query,
                     Parameters = args
-                }));
+                }, ct), CancellationToken.None);
 
             return new GraphQueryResult
             {
@@ -147,7 +149,7 @@ public partial class MembaseGraphDb : IGraphDb
     #endregion
 
     #region Private methods
-    private AsyncPolicy BuildRetryPolicy()
+    private AsyncPolicy BuildRetryPolicy(TimeSpan? totalTimeout)
     {
         var settings = _services.GetRequiredService<MembaseSettings>();
         var timeoutSeconds = (double)settings.TimeoutSecond / RETRY_COUNT;
@@ -169,7 +171,14 @@ public partial class MembaseGraphDb : IGraphDb
                         retryAttempt, RETRY_COUNT, timespan.TotalSeconds, ex.Message);
                 });
 
-        return Policy.WrapAsync(retryPolicy, timeoutPolicy);
+        var policy = Policy.WrapAsync(retryPolicy, timeoutPolicy);
+        if (totalTimeout is not { } budget || budget <= TimeSpan.Zero)
+        {
+            return policy;
+        }
+
+        // Outermost, so the caller's budget also cuts short the back-off between retries.
+        return Policy.TimeoutAsync(budget).WrapAsync(policy);
     }
 
     private static bool IsTransientApiException(ApiException ex)

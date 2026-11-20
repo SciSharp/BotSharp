@@ -1,3 +1,4 @@
+using System.Threading;
 using BotSharp.Plugin.Membase.Models.Graph;
 using Refit;
 
@@ -13,7 +14,7 @@ public interface IMembaseApi
     Task<GraphInfo> GetGraphInfoAsync(string graphId);
 
     [Post("/cypher/execute")]
-    Task<CypherQueryResponse> CypherQueryAsync([Query] string graphId, [Body] CypherQueryRequest request);
+    Task<CypherQueryResponse> CypherQueryAsync([Query] string graphId, [Body] CypherQueryRequest request, CancellationToken cancellationToken = default);
 
     #region Node
     [Get("/graph/{graphId}/node/{nodeId}")]
