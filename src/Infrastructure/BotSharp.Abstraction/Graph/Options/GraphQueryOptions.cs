@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace BotSharp.Abstraction.Graph.Options;
 
 public class GraphQueryOptions : GraphQueryExecuteOptions
@@ -16,4 +18,10 @@ public class GraphQueryExecuteOptions
     /// Set it when the caller is itself waited on with a deadline, so the query gives up before the caller does.
     /// </summary>
     public TimeSpan? Timeout { get; set; }
+
+    /// <summary>
+    /// Cancels the query, retries included, e.g. when the request that needs the result is aborted.
+    /// </summary>
+    [JsonIgnore]
+    public CancellationToken CancellationToken { get; set; }
 }

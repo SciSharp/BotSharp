@@ -38,17 +38,18 @@ public partial class MembaseGraphDb : IGraphDb
 
         var args = options?.Arguments ?? new();
         var argLogs = JsonSerializer.Serialize(args, BotSharpOptions.defaultJsonOptions);
+        var callerToken = options!.CancellationToken;
 
         try
         {
-            var retryPolicy = BuildRetryPolicy(options!.Timeout);
+            var retryPolicy = BuildRetryPolicy(options.Timeout);
             // The token must reach the HTTP call: Polly timeouts are optimistic and only fire through it.
             var response = await retryPolicy.ExecuteAsync(ct =>
                 _membaseApi.CypherQueryAsync(options.GraphId, new CypherQueryRequest
                 {
                     Query = query,
                     Parameters = args
-                }, ct), CancellationToken.None);
+                }, ct), callerToken);
 
             return new GraphQueryResult
             {
@@ -56,6 +57,18 @@ public partial class MembaseGraphDb : IGraphDb
                 Values = response.Data,
                 Result = JsonSerializer.Serialize(response.Data)
             };
+        }
+        // The caller stopped waiting, which is not a Membase error, so it is not logged as one.
+        catch (OperationCanceledException) when (callerToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Query in {Provider} graph db was cancelled by its caller.", Provider);
+            throw;
+        }
+        catch (Exception ex) when (callerToken.IsCancellationRequested)
+        {
+            // The HTTP client may wrap the cancellation in its own exception; surface it the standard way.
+            _logger.LogInformation("Query in {Provider} graph db was cancelled by its caller.", Provider);
+            throw new OperationCanceledException("The caller cancelled the query.", ex, callerToken);
         }
         catch (ApiException ex)
         {
