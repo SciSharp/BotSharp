@@ -2,7 +2,6 @@ using System.Net;
 using System.Threading;
 using BotSharp.Plugin.Membase.Models.Graph;
 using Polly;
-using Polly.Timeout;
 using Refit;
 
 namespace BotSharp.Plugin.Membase.GraphDb;
@@ -151,15 +150,9 @@ public partial class MembaseGraphDb : IGraphDb
     #region Private methods
     private AsyncPolicy BuildRetryPolicy(TimeSpan? totalTimeout)
     {
-        var settings = _services.GetRequiredService<MembaseSettings>();
-        var timeoutSeconds = (double)settings.TimeoutSecond / RETRY_COUNT;
-
-        var timeoutPolicy = Policy.TimeoutAsync(TimeSpan.FromSeconds(timeoutSeconds));
-
+        // Timeouts are not retried: a query that ran out of time is usually just slow, and would run out again.
         var retryPolicy = Policy
             .Handle<HttpRequestException>()
-            .Or<TaskCanceledException>()
-            .Or<TimeoutRejectedException>()
             .Or<ApiException>(IsTransientApiException)
             .WaitAndRetryAsync(
                 retryCount: RETRY_COUNT,
@@ -171,14 +164,17 @@ public partial class MembaseGraphDb : IGraphDb
                         retryAttempt, RETRY_COUNT, timespan.TotalSeconds, ex.Message);
                 });
 
-        var policy = Policy.WrapAsync(retryPolicy, timeoutPolicy);
-        if (totalTimeout is not { } budget || budget <= TimeSpan.Zero)
+        var settings = _services.GetRequiredService<MembaseSettings>();
+        var budget = totalTimeout is { } requested && requested > TimeSpan.Zero
+            ? requested
+            : TimeSpan.FromSeconds(settings.TimeoutSecond);
+        if (budget <= TimeSpan.Zero)
         {
-            return policy;
+            return retryPolicy;
         }
 
-        // Outermost, so the caller's budget also cuts short the back-off between retries.
-        return Policy.TimeoutAsync(budget).WrapAsync(policy);
+        // One timeout around the whole query, back-off included, rather than one per attempt.
+        return Policy.TimeoutAsync(budget).WrapAsync(retryPolicy);
     }
 
     private static bool IsTransientApiException(ApiException ex)
