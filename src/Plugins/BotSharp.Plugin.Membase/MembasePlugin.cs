@@ -4,6 +4,8 @@ using BotSharp.Plugin.Membase.GraphDb;
 using BotSharp.Plugin.Membase.Handlers;
 using BotSharp.Plugin.Membase.Hooks;
 using Refit;
+using System.Net.Http;
+using System.Net.Sockets;
 
 namespace BotSharp.Plugin.Membase;
 
@@ -30,6 +32,7 @@ public class MembasePlugin : IBotSharpPlugin
                 {
                     CollectionFormat = CollectionFormat.Multi
                 })
+                .ConfigurePrimaryHttpMessageHandler(CreatePrimaryHandler)
                 .AddHttpMessageHandler<MembaseAuthHandler>()
                 .ConfigureHttpClient(c =>
                 {
@@ -46,6 +49,36 @@ public class MembasePlugin : IBotSharpPlugin
         _membaseCredential = config.GetValue<string>("Membase:ApiKey") ?? string.Empty;
         _membaseProjectId = config.GetValue<string>("Membase:ProjectId") ?? string.Empty;
     }
+
+    /// <summary>
+    /// Keeps pooled connections from being reset by NATs, firewalls and proxies between the caller and Membase.
+    /// Membase's front end closes connections idle for about two minutes, and middleboxes may drop them sooner,
+    /// so idle connections are retired after 30 s instead of being reused once something on the path has
+    /// forgotten them. TCP keepalive keeps a connection's flow alive while a long query is still running.
+    /// </summary>
+    private static SocketsHttpHandler CreatePrimaryHandler() => new()
+    {
+        PooledConnectionIdleTimeout = TimeSpan.FromSeconds(30),
+        PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+        ConnectCallback = async (context, cancellationToken) =>
+        {
+            var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+            try
+            {
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
+                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 10);
+                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 3);
+                await socket.ConnectAsync(context.DnsEndPoint, cancellationToken).ConfigureAwait(false);
+                return new NetworkStream(socket, ownsSocket: true);
+            }
+            catch
+            {
+                socket.Dispose();
+                throw;
+            }
+        }
+    };
 
     public bool AttachMenu(List<PluginMenuDef> menu)
     {
