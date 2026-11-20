@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.AspNetCore.Http;
 using ApiException = Refit.ApiException;
 
@@ -64,7 +65,7 @@ public class MembaseController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> ExecuteGraphQuery(string graphId, [FromBody] CypherQueryRequest request)
+    public async Task<IActionResult> ExecuteGraphQuery(string graphId, [FromBody] CypherQueryRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(graphId))
         {
@@ -83,7 +84,7 @@ public class MembaseController : ControllerBase
             {
                 GraphId = graphId,
                 Arguments = request.Parameters,
-                CancellationToken = HttpContext.RequestAborted
+                CancellationToken = cancellationToken
             });
             return Ok(new
             {
