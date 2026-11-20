@@ -1,10 +1,22 @@
 using Azure.AI.OpenAI;
+using OpenAI.Chat;
 using System.ClientModel;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
 public class ProviderHelper
 {
+    public const string MaxTokensMessage = "AI response exceeded max output length";
+
+    /// <summary>
+    /// Content of the final streamed message. A reply cut off by the output limit gets the same notice as the
+    /// non-streaming path instead of silently passing the truncated text off as a complete answer.
+    /// </summary>
+    public static string ResolveStreamedContent(ChatFinishReason reason, string collectedText)
+    {
+        return reason == ChatFinishReason.Length ? MaxTokensMessage : collectedText;
+    }
+
     public static AzureOpenAIClient GetClient(string provider, string model, IServiceProvider services)
     {
         var settingsService = services.GetRequiredService<ILlmProviderService>();

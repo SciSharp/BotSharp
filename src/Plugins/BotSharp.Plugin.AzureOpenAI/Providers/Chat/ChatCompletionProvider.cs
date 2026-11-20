@@ -350,7 +350,12 @@ public class ChatCompletionProvider : IChatCompletion
                     var allText = textStream.GetText();
                     _logger.LogCritical($"Text Content: {allText}");
 
-                    responseMessage = new RoleDialogModel(AgentRole.Assistant, allText)
+                    if (choice.FinishReason == ChatFinishReason.Length)
+                    {
+                        _logger.LogWarning($"Action: {nameof(GetChatCompletionsStreamingAsync)}, Reason: {choice.FinishReason}, Agent: {agent.Name}, MaxOutputTokens: {options.MaxOutputTokenCount}, Content:{allText}");
+                    }
+
+                    responseMessage = new RoleDialogModel(AgentRole.Assistant, ProviderHelper.ResolveStreamedContent(choice.FinishReason.Value, allText))
                     {
                         CurrentAgentId = agent.Id,
                         MessageId = messageId,
