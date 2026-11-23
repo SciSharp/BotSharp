@@ -152,6 +152,9 @@ public class ConversationRelaySession
     private static readonly TimeSpan CrossedPlaybackStop = TimeSpan.FromSeconds(1);
     // When everything said should have finished playing, by its length (EstimateSpeech)
     private DateTime _playedByUtc = DateTime.MinValue;
+    // When the welcome greeting should have finished playing (by its length, or when Twilio said the playback stopped);
+    // it can't be cut into, so what the caller says over it is answered after it. MinValue: no greeting, or it is over.
+    private DateTime _welcomeEndsUtc = DateTime.MinValue;
     // How many times the call's relay has been connected again (ConversationRelayParameters.Reconnects)
     private int _reconnects;
 
@@ -309,6 +312,7 @@ public class ConversationRelaySession
                 {
                     _quietSinceUtc = DateTime.UtcNow + EstimateSpeech(greetingLength);
                     _playedByUtc = _quietSinceUtc;
+                    _welcomeEndsUtc = greetingLength > 0 ? _quietSinceUtc : DateTime.MinValue;
                     _reconnects = reconnects;
                 }
                 _logger.LogInformation(
@@ -354,7 +358,7 @@ public class ConversationRelaySession
                     {
                         lock (_sync)
                         {
-                            _quietSinceUtc = DateTime.UtcNow;
+                            _quietSinceUtc = CallerActiveUtc();
                             _activity++;
                         }
                     }
@@ -472,8 +476,15 @@ public class ConversationRelaySession
                 return;
             }
 
+            if (digits == null && IsGreetingDuringWelcome(content))
+            {
+                _logger.LogInformation($"Dropped \"{content}\" in conversation {_conversationId}: a greeting said over the " +
+                    "welcome greeting, which already says what a reply would.");
+                return;
+            }
+
             _pendingInputs.Enqueue(new PendingInput(content, digits, DateTime.UtcNow));
-            _quietSinceUtc = DateTime.UtcNow;
+            _quietSinceUtc = CallerActiveUtc();
             _idlePrompts = 0;
             _activity++;
 
@@ -503,6 +514,56 @@ public class ConversationRelaySession
             // Outside the lock: cancelling runs the chat provider's cancellation inline
             supersede.Cancel();
         }
+    }
+
+    /// <summary>
+    /// When the caller's silence is measured from after they speak: now, but no sooner than the end of the welcome greeting.
+    /// Call under <see cref="_sync"/>.
+    /// </summary>
+    /// <remarks>
+    /// Why: the greeting can't be cut into, so a caller who speaks over it is answered after it. Measured from now, the
+    /// silence began before the greeting ended and the reply that waits behind it was counted as already played: the idle
+    /// prompt ("I didn't get anything") came right behind the reply.
+    /// </remarks>
+    private DateTime CallerActiveUtc()
+    {
+        var now = DateTime.UtcNow;
+        return _welcomeEndsUtc > now ? _welcomeEndsUtc : now;
+    }
+
+    // Words that only greet, and the ones a greeting needs at least one of
+    private static readonly HashSet<string> GreetingWords = new(StringComparer.Ordinal)
+    {
+        "hello", "hi", "hey", "hiya", "good", "morning", "afternoon", "evening", "there", "uh", "um", "oh"
+    };
+
+    private static readonly HashSet<string> GreetingOpeners = new(StringComparer.Ordinal)
+    {
+        "hello", "hi", "hey", "hiya", "morning", "afternoon", "evening"
+    };
+
+    private const int MaxGreetingWords = 4;
+
+    /// <summary>
+    /// Whether these words only greet, came in while the welcome greeting was playing (or within TooSoonToAnswer after it),
+    /// and the agent has said nothing of its own yet (DropGreetingsDuringWelcome). Call under <see cref="_sync"/>.
+    /// </summary>
+    /// <remarks>
+    /// Why: the greeting can't be cut into, and the caller's "Hello?" over it was taken as a turn and answered with the
+    /// greeting's own words again, right after it. Only greetings are dropped: anything more, such as "Hello, this is ...",
+    /// may be a voicemail greeting or an answer.
+    /// </remarks>
+    private bool IsGreetingDuringWelcome(string content)
+    {
+        if (!_relay.DropGreetingsDuringWelcome || _welcomeEndsUtc == DateTime.MinValue || _saidCount > 0
+            || DateTime.UtcNow >= _welcomeEndsUtc + TooSoonToAnswer)
+        {
+            return false;
+        }
+
+        var words = Words(content);
+        return words.Count is > 0 and <= MaxGreetingWords
+            && words.All(GreetingWords.Contains) && words.Any(GreetingOpeners.Contains);
     }
 
     // Words that acknowledge
@@ -899,6 +960,11 @@ public class ConversationRelaySession
     /// </summary>
     private void NotePlaybackStopped(DateTime now)
     {
+        // The welcome greeting, if it was still playing by the estimate, is over
+        if (_welcomeEndsUtc > now)
+        {
+            _welcomeEndsUtc = now;
+        }
         // What went out before it is over, but for a line that may have crossed Twilio's message (CrossedPlaybackStop)
         _unheard.RemoveAll(line => line.SentUtc < now - CrossedPlaybackStop);
         // Nothing is left to play but such a line: what goes out next plays after it, not after what the estimate still

@@ -145,6 +145,13 @@ public class ConversationRelaySetting
     public bool DropBackchannelTails { get; set; }
 
     /// <summary>
+    /// Drop a caller's words that only greet ("Hello.", "Hi there.") while the welcome greeting is still playing, or just
+    /// after it, before the agent has said anything of its own. The greeting can't be cut into, so such words are the caller
+    /// answering a call they have just picked up, and the greeting already says what a reply would.
+    /// </summary>
+    public bool DropGreetingsDuringWelcome { get; set; }
+
+    /// <summary>
     /// Seconds past the moment everything said should have finished playing, with Twilio still saying the agent is speaking
     /// and nothing cut into, before the session's playback is taken as stuck: the session drops its socket, Twilio connects
     /// the call again, and the lines that never finished playing are said on the new session. Asks Twilio for its speaker
@@ -187,6 +194,7 @@ public class ConversationRelaySetting
         settings.MaxQuietWaitPrompts = agent.MaxQuietWaitPrompts ?? MaxQuietWaitPrompts;
         settings.ResumeAfterCutInSeconds = agent.ResumeAfterCutInSeconds ?? ResumeAfterCutInSeconds;
         settings.DropBackchannelTails = agent.DropBackchannelTails ?? DropBackchannelTails;
+        settings.DropGreetingsDuringWelcome = agent.DropGreetingsDuringWelcome ?? DropGreetingsDuringWelcome;
         settings.StuckPlaybackSeconds = agent.StuckPlaybackSeconds ?? StuckPlaybackSeconds;
         return settings;
     }
