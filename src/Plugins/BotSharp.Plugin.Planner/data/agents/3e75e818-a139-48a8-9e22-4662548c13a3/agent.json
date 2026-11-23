@@ -12,8 +12,6 @@
   "mergeUtility": true,
   "utilities": [],
   "llmConfig": {
-    "provider": "openai",
-    "model": "gpt-5-mini",
     "max_recursion_depth": 10
   }
 }

@@ -10,8 +10,9 @@ internal static class AiResponseHelper
                    $"inform user that you have completed the required image: {description}";
 
         var settingService = services.GetRequiredService<ISettingService>();
-        var provider = agent?.LlmConfig?.Provider ?? "openai";
-        var model = agent?.LlmConfig?.Model ?? Gpt4xModelConstants.GPT_4o_Mini;
+        var agentSettings = services.GetRequiredService<AgentSettings>();
+        var provider = agent?.LlmConfig?.Provider ?? agentSettings.LlmConfig.Provider;
+        var model = agent?.LlmConfig?.Model ?? agentSettings.LlmConfig.Model;
         var completion = CompletionProvider.GetChatCompletion(services, provider: provider, model: model);
         var response = await completion.GetChatCompletions(agent, [new RoleDialogModel(AgentRole.User, text)]);
         return response.Content.IfNullOrEmptyAs(GetDefaultResponse(files)) ?? string.Empty;
