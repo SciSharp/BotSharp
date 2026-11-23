@@ -27,6 +27,13 @@ public static class ConversationRelayStates
     public const string QuietWait = "twilio_relay_quiet_wait";
 
     /// <summary>
+    /// "true" while the quiet wait is one the agent asked for with util-twilio-wait_for_caller (the other party said they
+    /// need a moment). Such a wait ends as the other party speaks again, at the start of that turn, which clears this and
+    /// <see cref="QuietWait"/>; a quiet wait a flow set itself is not touched.
+    /// </summary>
+    public const string WaitForCallerRequested = "twilio_relay_wait_for_caller_requested";
+
+    /// <summary>
     /// What is said as the session hangs up on a caller who stayed quiet, in place of the idle-goodbye prompt: a flow sets
     /// it while something is still to be told, such as the confirmation number of a request already made, and clears it
     /// once that is said. Read when a turn's reply is in.
