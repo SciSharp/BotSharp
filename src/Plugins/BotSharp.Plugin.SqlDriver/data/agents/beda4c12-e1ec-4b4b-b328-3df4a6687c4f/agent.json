@@ -9,10 +9,6 @@
   "disabled": false,
   "isPublic": true,
   "profiles": [ "database" ],
-  "llmConfig": {
-    "provider": "openai",
-    "model": "gpt-5-mini"
-  },
   "routingRules": [
     {
       "field": "sql_statement",

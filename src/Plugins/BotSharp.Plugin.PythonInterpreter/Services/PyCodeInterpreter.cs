@@ -367,8 +367,9 @@ public class PyCodeInterpreter : ICodeProcessor
             return (provider, model);
         }
 
-        provider = "openai";
-        model = "gpt-5-mini";
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        provider = agentSettings.LlmConfig.Provider;
+        model = agentSettings.LlmConfig.Model;
 
         return (provider, model);
     }

@@ -155,8 +155,9 @@ public partial class FileInstructService
 
 
             // Get ai response
-            var provider = options.Provider ?? "openai";
-            var model = options?.Model ?? "gpt-5-mini";
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
+            var provider = options.Provider ?? agentSettings.LlmConfig.Provider;
+            var model = options?.Model ?? agentSettings.LlmConfig.Model;
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
 
             var response = await completion.GetChatCompletions(agent, innerDialogs);

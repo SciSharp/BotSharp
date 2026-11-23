@@ -183,8 +183,9 @@ public class PyProgrammerFn : IFunctionCallback
             return (provider, model);
         }
 
-        provider = "openai";
-        model = "gpt-5";
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        provider = agentSettings.LlmConfig.Provider;
+        model = agentSettings.LlmConfig.Model;
 
         return (provider, model);
     }

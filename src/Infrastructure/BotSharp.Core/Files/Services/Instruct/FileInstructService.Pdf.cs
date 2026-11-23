@@ -23,8 +23,9 @@ public partial class FileInstructService
 
         try
         {
-            var provider = options?.Provider ?? "openai";
-            var model = options?.Model ?? "gpt-5-mini";
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
+            var provider = options?.Provider ?? agentSettings.LlmConfig.Provider;
+            var model = options?.Model ?? agentSettings.LlmConfig.Model;
 
             var pdfFiles = await DownloadAndSaveFiles(sessionDir, files);
             var targetFiles = pdfFiles;

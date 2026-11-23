@@ -24,8 +24,9 @@ internal static class AiResponseHelper
         var text = $"Please generate a user-friendly and short response from the following description to " +
                    $"inform user that the required image is generated : {description}";
 
-        var provider = agent?.LlmConfig?.Provider ?? "openai";
-        var model = agent?.LlmConfig?.Model ?? "gpt-5-mini";
+        var agentSettings = services.GetRequiredService<AgentSettings>();
+        var provider = agent?.LlmConfig?.Provider ?? agentSettings.LlmConfig.Provider;
+        var model = agent?.LlmConfig?.Model ?? agentSettings.LlmConfig.Model;
         var completion = CompletionProvider.GetChatCompletion(services, provider: provider, model: model);
         var response = await completion.GetChatCompletions(agent, [new RoleDialogModel(AgentRole.User, text)]);
         return response.Content;
