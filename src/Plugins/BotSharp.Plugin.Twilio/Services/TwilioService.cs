@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Core.Infrastructures;
@@ -269,6 +270,28 @@ public class TwilioService
     }
 
     /// <summary>
+    /// The text as the agent's speech hooks make it for the voice (<see cref="ITwilioSpeechHook"/>); as it is when there
+    /// are none, or one fails
+    /// </summary>
+    private string? FormatSpeech(string agentId, string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return text;
+        }
+
+        try
+        {
+            return _services.GetHooks<ITwilioSpeechHook>(agentId).Aggregate(text, (spoken, hook) => hook.FormatSpeech(spoken));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not format the welcome greeting of agent {AgentId}; it is said as written.", agentId);
+            return text;
+        }
+    }
+
+    /// <summary>
     /// Hands the call to Twilio ConversationRelay. Twilio opens a WebSocket to twilio/relay/{agentId}/{conversationId}
     /// and posts to twilio/relay/action when the session ends.
     /// </summary>
@@ -279,6 +302,9 @@ public class TwilioService
         string agentId, string conversationId, string? welcomeGreeting, int reconnects = 0, string? resume = null)
     {
         var relay = _settings.ConversationRelay.For(agentId);
+        // The welcome greeting is the agent's opening line, spoken by Twilio from the TwiML and never sent through the
+        // session, so the speech hooks are applied to it here
+        welcomeGreeting = FormatSpeech(agentId, welcomeGreeting);
         var query = $"agent-id={Uri.EscapeDataString(agentId)}" +
             $"&conversation-id={Uri.EscapeDataString(conversationId)}&reconnects={reconnects}";
         var connect = new Connect(action: new Uri($"{_settings.CallbackHost}/twilio/relay/action?{query}"));

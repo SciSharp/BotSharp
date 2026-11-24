@@ -9,7 +9,7 @@ namespace BotSharp.Plugin.Twilio.Interfaces;
 /// <remarks>
 /// Why: the text-to-speech voice reads "B16649128" as one big number and "Ln" as two letters. Putting the spoken forms in
 /// the prompt made the model copy them into its replies, and into the history it reads again. A ConversationRelay session
-/// calls this for the agent's own reply only (not the session's prompts or a flow's lines), a clause at a time when the
+/// calls this for the agent's own reply and its welcome greeting (the opening line), not the session's prompts or a flow's lines, a clause at a time when the
 /// reply is streamed, so a hook sees whole words and may match across several of them.
 /// </remarks>
 public interface ITwilioSpeechHook : IHookBase
