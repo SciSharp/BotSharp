@@ -10,5 +10,5 @@ If the user only provides requested information, keep the previous next action a
 Expected user goal agent is {{ expected_user_goal_agent }}. 
 {%- else -%}
 User goal agent is inferred from the user's active goal.
-Keep the existing user goal agent unless the latest user message explicitly starts a different task or workflow.
+Keep the existing user goal agent{% if user_goal_agent != blank %} ({{ user_goal_agent }}){% endif %} unless the latest user message explicitly starts a different task or workflow.
 {%- endif %}

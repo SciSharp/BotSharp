@@ -104,7 +104,8 @@ public class NaiveReasoner : IRoutingReasoner
         return render.Render(template, new Dictionary<string, object>
         {
             { StateConst.EXPECTED_ACTION_AGENT,  states.GetState(StateConst.EXPECTED_ACTION_AGENT) },
-            { StateConst.EXPECTED_GOAL_AGENT,  states.GetState(StateConst.EXPECTED_GOAL_AGENT) }
+            { StateConst.EXPECTED_GOAL_AGENT,  states.GetState(StateConst.EXPECTED_GOAL_AGENT) },
+            { StateConst.USER_GOAL_AGENT,  states.GetState(StateConst.USER_GOAL_AGENT) }
         });
     }
 }
