@@ -67,6 +67,8 @@ public class ConversationRelaySession
 
     // Streaming of the current turn's reply (ConversationRelay.StreamReplies)
     private readonly StringBuilder _streamSegment = new();
+    // The part of the streamed reply that waits for the end of its clause before it is formatted and said (FormatSpeech)
+    private readonly StringBuilder _speechHeld = new();
     private string _lastStreamSegment = string.Empty;
     private bool _utteranceOpen;
     private bool _streamedThisTurn;
@@ -189,7 +191,8 @@ public class ConversationRelaySession
         Func<CallerMessage, AgentTurnCallbacks, Task<AssistantMessage?>> sendCallerMessage,
         ILogger logger,
         Func<string, string, DateTime, Task>? keepSaidLine = null,
-        Func<string, Task>? keepResume = null)
+        Func<string, Task>? keepResume = null,
+        Func<string, string>? formatSpeech = null)
     {
         _socket = socket;
         _agentId = agentId;
@@ -200,9 +203,12 @@ public class ConversationRelaySession
         _logger = logger;
         _keepSaidLine = keepSaidLine;
         _keepResume = keepResume;
+        _formatSpeech = formatSpeech;
     }
 
     private readonly Func<string, Task>? _keepResume;
+    // Rewrites the agent's reply into how the voice should say it as it goes out; null: said as the model wrote it
+    private readonly Func<string, string>? _formatSpeech;
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
@@ -425,8 +431,10 @@ public class ConversationRelaySession
                     // still being streamed is the one cut into, as far as it went out
                     var heardOfLine = heard?.Trim();
                     var lineCutInto = _utteranceOpen ? _streamSegment.ToString().Trim() : _lastLine;
+                    // Twilio says what played in the voice's words (FormatSpeech)
                     _lastLineHeardSome = !string.IsNullOrEmpty(heardOfLine) && lineCutInto != null
-                        && lineCutInto.StartsWith(heardOfLine, StringComparison.Ordinal) && CountWords(heardOfLine) >= HeardSomeWords;
+                        && Speech(lineCutInto).StartsWith(heardOfLine, StringComparison.Ordinal)
+                        && CountWords(heardOfLine) >= HeardSomeWords;
                     _utteranceCutIn |= _utteranceOpen;
                     NoteCutIn();
                     sayAgain = _resumeLine != null;
@@ -668,6 +676,7 @@ public class ConversationRelaySession
                 };
 
                 _streamSegment.Clear();
+                _speechHeld.Clear();
                 _lastStreamSegment = string.Empty;
                 _utteranceOpen = false;
                 _streamedThisTurn = false;
@@ -769,7 +778,7 @@ public class ConversationRelaySession
             }
 
             // Noted once the send lock is held, as it goes out: an interrupt of something said before it isn't its
-            var unstreamed = GetUnstreamedText(reply.Content);
+            var unstreamed = Speech(GetUnstreamedText(reply.Content));
             await SpeakAsync(unstreamed, canSpeak: () =>
             {
                 _afterTurnLine = unstreamed;
@@ -921,7 +930,8 @@ public class ConversationRelaySession
     {
         // _quietSinceUtc is the estimated end of what was last said, or the caller's last input
         var quietSince = _quietSinceUtc == DateTime.MaxValue || _quietSinceUtc < _turnStartedUtc ? _turnStartedUtc : _quietSinceUtc;
-        return !_utteranceOpen && DateTime.UtcNow - quietSince >= interval;
+        // Text held for the end of its clause (FormatSpeech) is the reply on its way, as an open utterance is
+        return !_utteranceOpen && _speechHeld.Length == 0 && DateTime.UtcNow - quietSince >= interval;
     }
 
     private string PickFillerText(List<string> names, List<string> defaultNames, HashSet<string> said)
@@ -1007,7 +1017,8 @@ public class ConversationRelaySession
             }
             else if (askAgain && question != null)
             {
-                await SayOwnLineAsync(PromptText("say-it-again-question", DefaultAskAgainText).Replace("{0}", question),
+                await SayOwnLineAsync(
+                    PromptText("say-it-again-question", DefaultAskAgainText).Replace("{0}", Speech(question)),
                     ConversationRelayLabels.IdlePrompt, StillSilent);
             }
             // Nothing heard from the caller yet (no words, no keys): there is nothing for them to say again, only whether
@@ -1329,6 +1340,70 @@ public class ConversationRelaySession
     /// </summary>
     private async Task StreamTextAsync(string text)
     {
+        if (_formatSpeech == null)
+        {
+            await SendStreamAsync(text, text);
+            return;
+        }
+
+        // Held until the end of its clause (punctuation and a space), so the rewrite sees whole words: the model's tokens
+        // are pieces of them
+        string ready = string.Empty;
+        lock (_sync)
+        {
+            _speechHeld.Append(text);
+            var held = _speechHeld.ToString();
+            var end = ClauseEnd(held);
+            if (end >= 0)
+            {
+                ready = held[..(end + 1)];
+                _speechHeld.Clear().Append(held[(end + 1)..]);
+            }
+        }
+        if (ready.Length > 0)
+        {
+            await SendStreamAsync(ready, Speech(ready));
+        }
+    }
+
+    /// <summary>
+    /// Sends what is still held of the reply, formatted, before the line is closed
+    /// </summary>
+    private async Task FlushSpeechAsync()
+    {
+        string rest;
+        lock (_sync)
+        {
+            rest = _speechHeld.ToString();
+            _speechHeld.Clear();
+        }
+        // The space after the last clause is no line of its own
+        if (!string.IsNullOrWhiteSpace(rest))
+        {
+            await SendStreamAsync(rest, Speech(rest));
+        }
+    }
+
+    // The text as the voice says it (ITwilioSpeechHook)
+    private string Speech(string text) => _formatSpeech?.Invoke(text) ?? text;
+
+    // Where the last clause of the text ends (punctuation and a space, or a line break); -1 when none does
+    private static int ClauseEnd(string text)
+    {
+        for (var i = text.Length - 1; i >= 0; i--)
+        {
+            if (text[i] == '\n' || (".,;:!?".Contains(text[i]) && i + 1 < text.Length && char.IsWhiteSpace(text[i + 1])))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /// <param name="text">What the model wrote, which the session keeps (the history, what was cut into)</param>
+    /// <param name="spoken">What goes out to the voice for it</param>
+    private async Task SendStreamAsync(string text, string spoken)
+    {
         var keep = ReadKeepUninterrupted();
 
         // Decided once the send lock is held: a piece queued behind another send must not go out after the
@@ -1351,7 +1426,7 @@ public class ConversationRelaySession
             _saidCount++;
             _utteranceKeptUninterrupted = keep;
             return true;
-        }, TextFrame(text, last: false, keep));
+        }, TextFrame(spoken, last: false, keep));
     }
 
     // A line the caller must hear goes out marked so: Twilio then plays it to the end, whoever speaks over it, which
@@ -1365,6 +1440,7 @@ public class ConversationRelaySession
     /// </summary>
     private async Task CloseUtteranceAsync()
     {
+        await FlushSpeechAsync();
         bool keep;
         lock (_sync)
         {
@@ -1449,10 +1525,16 @@ public class ConversationRelaySession
             return content;
         }
 
-        // Empty when the caller cut in before any of it played: then none of it was heard
-        if (heard != null && sent.StartsWith(heard, StringComparison.Ordinal))
+        // Empty when the caller cut in before any of it played: then none of it was heard. Twilio says what played in the
+        // voice's words (FormatSpeech): the cut goes where it says up to the first word the voice says differently, and
+        // no further than the start of that word past it
+        var spoken = Speech(sent).Trim();
+        if (heard != null && spoken.StartsWith(heard, StringComparison.Ordinal))
         {
-            sent = heard;
+            var same = sent.AsSpan().CommonPrefixLength(spoken);
+            sent = heard.Length >= spoken.Length ? sent
+                : heard.Length <= same ? sent[..heard.Length]
+                : sent[..(same == 0 ? 0 : sent.LastIndexOf(' ', same - 1) + 1)].TrimEnd();
         }
         else
         {

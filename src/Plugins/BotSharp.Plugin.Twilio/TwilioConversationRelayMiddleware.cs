@@ -52,7 +52,8 @@ public class TwilioConversationRelayMiddleware
             (message, callbacks) => SendCallerMessageAsync(scopeFactory, message, callbacks),
             _logger,
             (line, label, saidUtc) => KeepSaidLineAsync(scopeFactory, agentId, conversationId, line, label, saidUtc),
-            resume => resumes.KeepAsync(conversationId, resume));
+            resume => resumes.KeepAsync(conversationId, resume),
+            services.GetRequiredService<TwilioService>().GetSpeechFormatter(agentId));
         await services.GetRequiredService<ConversationRelaySessions>()
             .RunAsync(conversationId, () => session.RunAsync(httpContext.RequestAborted));
     }

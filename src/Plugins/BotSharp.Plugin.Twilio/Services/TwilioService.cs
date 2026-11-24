@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Core.Infrastructures;
@@ -269,6 +270,33 @@ public class TwilioService
     }
 
     /// <summary>
+    /// What the agent's speech hooks make of a text for the voice, or null when it has none. A hook that fails changes
+    /// nothing: the text is said as written.
+    /// </summary>
+    public Func<string, string>? GetSpeechFormatter(string agentId)
+    {
+        var hooks = _services.GetHooks<ITwilioSpeechHook>(agentId);
+        if (hooks.Count == 0)
+        {
+            return null;
+        }
+
+        return text =>
+        {
+            try
+            {
+                return hooks.Aggregate(text, (spoken, hook) => hook.FormatSpeech(spoken));
+            }
+            // NOTE: any exception, on purpose: a hook's failure must never break the call
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not format what agent {AgentId} says; it is said as written.", agentId);
+                return text;
+            }
+        };
+    }
+
+    /// <summary>
     /// Hands the call to Twilio ConversationRelay. Twilio opens a WebSocket to twilio/relay/{agentId}/{conversationId}
     /// and posts to twilio/relay/action when the session ends.
     /// </summary>
@@ -279,6 +307,11 @@ public class TwilioService
         string agentId, string conversationId, string? welcomeGreeting, int reconnects = 0, string? resume = null)
     {
         var relay = _settings.ConversationRelay.For(agentId);
+        // The opening line is spoken by Twilio from the TwiML and never goes through the session
+        if (!string.IsNullOrWhiteSpace(welcomeGreeting))
+        {
+            welcomeGreeting = GetSpeechFormatter(agentId)?.Invoke(welcomeGreeting) ?? welcomeGreeting;
+        }
         var query = $"agent-id={Uri.EscapeDataString(agentId)}" +
             $"&conversation-id={Uri.EscapeDataString(conversationId)}&reconnects={reconnects}";
         var connect = new Connect(action: new Uri($"{_settings.CallbackHost}/twilio/relay/action?{query}"));
