@@ -67,6 +67,10 @@ public class ConversationRelaySession
 
     // Streaming of the current turn's reply (ConversationRelay.StreamReplies)
     private readonly StringBuilder _streamSegment = new();
+    // The part of the reply streamed so far that waits for the end of its clause before it is formatted and said
+    // (FormatSpeech), and how many characters of what went out were said (the voice's length, not the model's)
+    private readonly StringBuilder _speechHeld = new();
+    private int _streamSpokenChars;
     private string _lastStreamSegment = string.Empty;
     private bool _utteranceOpen;
     private bool _streamedThisTurn;
@@ -192,7 +196,8 @@ public class ConversationRelaySession
         Func<CallerMessage, AgentTurnCallbacks, Task<AssistantMessage?>> sendCallerMessage,
         ILogger logger,
         Func<string, string, DateTime, Task>? keepSaidLine = null,
-        Func<string, Task>? keepResume = null)
+        Func<string, Task>? keepResume = null,
+        Func<string, string>? formatSpeech = null)
     {
         _socket = socket;
         _agentId = agentId;
@@ -203,9 +208,12 @@ public class ConversationRelaySession
         _logger = logger;
         _keepSaidLine = keepSaidLine;
         _keepResume = keepResume;
+        _formatSpeech = formatSpeech;
     }
 
     private readonly Func<string, Task>? _keepResume;
+    // Rewrites the agent's reply into how the voice should say it as it goes out; null: said as the model wrote it
+    private readonly Func<string, string>? _formatSpeech;
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
@@ -729,6 +737,8 @@ public class ConversationRelaySession
                 };
 
                 _streamSegment.Clear();
+                _speechHeld.Clear();
+                _streamSpokenChars = 0;
                 _lastStreamSegment = string.Empty;
                 _utteranceOpen = false;
                 _streamedThisTurn = false;
@@ -830,7 +840,8 @@ public class ConversationRelaySession
             }
 
             // Noted once the send lock is held, as it goes out: an interrupt of something said before it isn't its
-            var unstreamed = GetUnstreamedText(reply.Content);
+            // Kept as it is said: Twilio's report of what played is in the voice's words
+            var unstreamed = Speech(GetUnstreamedText(reply.Content));
             await SpeakAsync(unstreamed, canSpeak: () =>
             {
                 _afterTurnLine = unstreamed;
@@ -1395,6 +1406,69 @@ public class ConversationRelaySession
     /// </summary>
     private async Task StreamTextAsync(string text)
     {
+        if (_formatSpeech == null)
+        {
+            await SendStreamAsync(text, text);
+            return;
+        }
+
+        // Held until the end of its clause, so the voice's rewrite sees whole words (ConversationRelaySpeech)
+        string ready;
+        lock (_sync)
+        {
+            _speechHeld.Append(text);
+            string rest;
+            (ready, rest) = ConversationRelaySpeech.SplitAtClauseEnd(_speechHeld.ToString());
+            _speechHeld.Clear().Append(rest);
+        }
+        if (ready.Length > 0)
+        {
+            await SendStreamAsync(ready, Speech(ready));
+        }
+    }
+
+    /// <summary>
+    /// Sends what is still held of the reply, formatted, before the line is closed
+    /// </summary>
+    private async Task FlushSpeechAsync()
+    {
+        string rest;
+        lock (_sync)
+        {
+            rest = _speechHeld.ToString();
+            _speechHeld.Clear();
+        }
+        if (rest.Length > 0)
+        {
+            await SendStreamAsync(rest, Speech(rest));
+        }
+    }
+
+    /// <summary>
+    /// The text as the voice should say it. A hook that fails changes nothing: the caller hears the model's words.
+    /// </summary>
+    private string Speech(string text)
+    {
+        if (_formatSpeech == null || string.IsNullOrWhiteSpace(text))
+        {
+            return text;
+        }
+
+        try
+        {
+            return _formatSpeech(text);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Could not format what the agent says in conversation {_conversationId}; it is said as written.");
+            return text;
+        }
+    }
+
+    /// <param name="text">What the model wrote, which the session keeps (the history, what was cut into)</param>
+    /// <param name="spoken">What goes out to the voice for it</param>
+    private async Task SendStreamAsync(string text, string spoken)
+    {
         var keep = ReadKeepUninterrupted();
 
         // Decided once the send lock is held: a piece queued behind another send must not go out after the
@@ -1412,12 +1486,13 @@ public class ConversationRelaySession
                 _utteranceCutIn = false;
             }
             _streamSegment.Append(text);
+            _streamSpokenChars += spoken.Length;
             _utteranceOpen = true;
             _streamedThisTurn = true;
             _saidCount++;
             _utteranceKeptUninterrupted = keep;
             return true;
-        }, TextFrame(text, last: false, keep));
+        }, TextFrame(spoken, last: false, keep));
     }
 
     // A line the caller must hear goes out marked so: Twilio then plays it to the end, whoever speaks over it, which
@@ -1431,6 +1506,7 @@ public class ConversationRelaySession
     /// </summary>
     private async Task CloseUtteranceAsync()
     {
+        await FlushSpeechAsync();
         bool keep;
         lock (_sync)
         {
@@ -1453,7 +1529,9 @@ public class ConversationRelaySession
             _utteranceOpen = false;
             _lastStreamSegment = _streamSegment.ToString();
             _streamSegment.Clear();
-            MarkSpeaking(EstimateSpeech(_lastStreamSegment.Length));
+            // By the length of what the voice says: "B16649128" spelled out takes longer to say than it is to write
+            MarkSpeaking(EstimateSpeech(_streamSpokenChars));
+            _streamSpokenChars = 0;
             RememberUtterance(_lastStreamSegment, _utteranceStartMark, keep);
             // Cut into while it streamed: the caller's words are about it, so it dates from when it started and keeps
             // what they heard of it, not from now (a "Yes." said over it was dropped as a tail, review)

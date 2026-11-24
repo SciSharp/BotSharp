@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Hooks;
+using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Services;
 using Microsoft.AspNetCore.Http;
@@ -52,9 +54,20 @@ public class TwilioConversationRelayMiddleware
             (message, callbacks) => SendCallerMessageAsync(scopeFactory, message, callbacks),
             _logger,
             (line, label, saidUtc) => KeepSaidLineAsync(scopeFactory, agentId, conversationId, line, label, saidUtc),
-            resume => resumes.KeepAsync(conversationId, resume));
+            resume => resumes.KeepAsync(conversationId, resume),
+            SpeechFormatter(services, agentId));
         await services.GetRequiredService<ConversationRelaySessions>()
             .RunAsync(conversationId, () => session.RunAsync(httpContext.RequestAborted));
+    }
+
+    /// <summary>
+    /// What the agent's speech hooks make of a piece of its reply, one after the other; null when it has none, so a reply
+    /// is then sent as the model writes it, with nothing held back
+    /// </summary>
+    private static Func<string, string>? SpeechFormatter(IServiceProvider services, string agentId)
+    {
+        var hooks = services.GetHooks<ITwilioSpeechHook>(agentId);
+        return hooks.Count == 0 ? null : text => hooks.Aggregate(text, (spoken, hook) => hook.FormatSpeech(spoken));
     }
 
     private static async Task<AssistantMessage?> SendCallerMessageAsync(

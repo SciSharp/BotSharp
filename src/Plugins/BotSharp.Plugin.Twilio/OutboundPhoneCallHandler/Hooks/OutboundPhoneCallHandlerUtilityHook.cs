@@ -11,7 +11,6 @@ public class OutboundPhoneCallHandlerUtilityHook : IAgentUtilityHook
     private static string HANGUP_PHONE_CALL_FN = $"{PREFIX}hangup_phone_call";
     private static string TEXT_MESSAGE_FN = $"{PREFIX}text_message";
     private static string LEAVE_VOICEMAIL_FN = $"{PREFIX}leave_voicemail";
-    private static string WAIT_FOR_CALLER_FN = $"{PREFIX}wait_for_caller";
 
     public void AddUtilities(List<AgentUtility> utilities)
     {
@@ -39,10 +38,6 @@ public class OutboundPhoneCallHandlerUtilityHook : IAgentUtilityHook
                 new UtilityItem
                 {
                     FunctionName = LEAVE_VOICEMAIL_FN
-                },
-                new UtilityItem
-                {
-                    FunctionName = WAIT_FOR_CALLER_FN
                 }
             ]
         };

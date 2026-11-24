@@ -6,7 +6,6 @@ using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
-using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Task = System.Threading.Tasks.Task;
@@ -133,9 +132,6 @@ public static class TwilioConversationProcessor
             {
                 conv.States.RemoveState(ConversationRelayStates.LastReplyCutOff);
             }
-            // The other party speaking again ends a wait the agent started for them (util-twilio-wait_for_caller); the
-            // reply to this turn may start it again
-            WaitForCallerFn.EndWait(conv.States);
             if (callbacks.OnTurnStarted != null)
             {
                 await callbacks.OnTurnStarted();

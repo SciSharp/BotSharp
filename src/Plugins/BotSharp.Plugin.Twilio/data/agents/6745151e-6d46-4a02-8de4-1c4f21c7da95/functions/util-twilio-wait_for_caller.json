@@ -1,9 +1,0 @@
-{
-  "name": "util-twilio-wait_for_caller",
-  "description": "Call this when the other party says they are logging in, reviewing, checking something or looking something up, and will take a moment. It says a short line such as \"Sure, take your time.\" to them and then waits quietly until they speak again. Call it with no other text: do not say anything before or after it. Do not call it for voicemail, or when the other party has already answered what you asked.",
-  "visibility_expression": "{% if states.channel == 'phone' %}visible{% endif %}",
-  "parameters": {
-    "type": "object",
-    "properties": {}
-  }
-}
