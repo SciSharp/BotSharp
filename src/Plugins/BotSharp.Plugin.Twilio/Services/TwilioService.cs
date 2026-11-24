@@ -270,25 +270,30 @@ public class TwilioService
     }
 
     /// <summary>
-    /// The text as the agent's speech hooks make it for the voice (<see cref="ITwilioSpeechHook"/>); as it is when there
-    /// are none, or one fails
+    /// What the agent's speech hooks make of a text for the voice, or null when it has none. A hook that fails changes
+    /// nothing: the text is said as written.
     /// </summary>
-    private string? FormatSpeech(string agentId, string? text)
+    public Func<string, string>? GetSpeechFormatter(string agentId)
     {
-        if (string.IsNullOrWhiteSpace(text))
+        var hooks = _services.GetHooks<ITwilioSpeechHook>(agentId);
+        if (hooks.Count == 0)
         {
-            return text;
+            return null;
         }
 
-        try
+        return text =>
         {
-            return _services.GetHooks<ITwilioSpeechHook>(agentId).Aggregate(text, (spoken, hook) => hook.FormatSpeech(spoken));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Could not format the welcome greeting of agent {AgentId}; it is said as written.", agentId);
-            return text;
-        }
+            try
+            {
+                return hooks.Aggregate(text, (spoken, hook) => hook.FormatSpeech(spoken));
+            }
+            // NOTE: any exception, on purpose: a hook's failure must never break the call
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not format what agent {AgentId} says; it is said as written.", agentId);
+                return text;
+            }
+        };
     }
 
     /// <summary>
@@ -302,9 +307,11 @@ public class TwilioService
         string agentId, string conversationId, string? welcomeGreeting, int reconnects = 0, string? resume = null)
     {
         var relay = _settings.ConversationRelay.For(agentId);
-        // The welcome greeting is the agent's opening line, spoken by Twilio from the TwiML and never sent through the
-        // session, so the speech hooks are applied to it here
-        welcomeGreeting = FormatSpeech(agentId, welcomeGreeting);
+        // The opening line is spoken by Twilio from the TwiML and never goes through the session
+        if (!string.IsNullOrWhiteSpace(welcomeGreeting))
+        {
+            welcomeGreeting = GetSpeechFormatter(agentId)?.Invoke(welcomeGreeting) ?? welcomeGreeting;
+        }
         var query = $"agent-id={Uri.EscapeDataString(agentId)}" +
             $"&conversation-id={Uri.EscapeDataString(conversationId)}&reconnects={reconnects}";
         var connect = new Connect(action: new Uri($"{_settings.CallbackHost}/twilio/relay/action?{query}"));

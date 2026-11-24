@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Channels;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
@@ -258,6 +259,207 @@ public class ConversationRelayKeptLinesTests
         Assert.Equal(new bool?[] { null, null }, call.Socket.SentInterruptible());
     }
 
+    // What the voice says (ITwilioSpeechHook): the voice's words go out, the session keeps the model's
+
+    [Fact]
+    public async Task A_streamed_reply_is_said_the_way_the_voice_reads_it_a_clause_at_a_time()
+    {
+        var call = Call.Start(Settings(relay =>
+            {
+                relay.ResponseWatchdogIntervals = [];
+                relay.StreamReplies = true;
+            }),
+            async (_, callbacks) =>
+            {
+                // The number comes in pieces: it is held until its clause ends
+                await callbacks.OnStreamText!("Your work order B166");
+                await callbacks.OnStreamText!("49128. Anything");
+                await callbacks.OnStreamText!(" else?");
+                return new AssistantMessage { Content = "Your work order B16649128. Anything else?" };
+            },
+            formatSpeech: SpokenForm);
+
+        await WaitUntil(() => call.Socket.SentLast);
+        await call.HangUpAsync();
+
+        Assert.Equal(new[] { "Your work order B 1 6 6 4 9 1 2 8.", " Anything else?" }, call.Socket.SentTexts());
+    }
+
+    [Theory]
+    // A decimal point is no end of a clause
+    [InlineData(new[] { "It is 3.", "5 miles away." }, new[] { "IT IS 3.5 MILES AWAY." })]
+    // A line break is one
+    [InlineData(new[] { "First line\nSec", "ond" }, new[] { "FIRST LINE\n", "SECOND" })]
+    public async Task A_streamed_reply_is_held_to_the_end_of_a_clause(string[] tokens, string[] said)
+    {
+        var call = Call.Start(Settings(relay =>
+            {
+                relay.ResponseWatchdogIntervals = [];
+                relay.StreamReplies = true;
+            }),
+            async (_, callbacks) =>
+            {
+                foreach (var token in tokens)
+                {
+                    await callbacks.OnStreamText!(token);
+                }
+                return new AssistantMessage { Content = string.Concat(tokens) };
+            },
+            formatSpeech: text => text.ToUpperInvariant());
+
+        await WaitUntil(() => call.Socket.SentLast);
+        await call.HangUpAsync();
+
+        Assert.Equal(said, call.Socket.SentTexts());
+    }
+
+    [Fact]
+    public async Task A_streamed_reply_goes_out_as_it_comes_when_the_agent_has_no_speech_hook()
+    {
+        var call = Call.Start(Settings(relay =>
+            {
+                relay.ResponseWatchdogIntervals = [];
+                relay.StreamReplies = true;
+            }),
+            async (_, callbacks) =>
+            {
+                await callbacks.OnStreamText!("Your work order B166");
+                await callbacks.OnStreamText!("49128.");
+                return new AssistantMessage { Content = "Your work order B16649128." };
+            });
+
+        await WaitUntil(() => call.Socket.SentLast);
+        await call.HangUpAsync();
+
+        Assert.Equal(new[] { "Your work order B166", "49128." }, call.Socket.SentTexts());
+    }
+
+    [Fact]
+    public async Task No_filler_goes_out_while_the_first_clause_of_the_reply_is_held()
+    {
+        // The response watchdog says a filler after 0.2 s of silence
+        var call = Call.Start(Settings(relay => relay.StreamReplies = true),
+            async (_, callbacks) =>
+            {
+                await callbacks.OnStreamText!("Your work order B166");
+                // Long past the watchdog's interval: the reply is on its way, held for the end of its clause
+                await Task.Delay(TimeSpan.FromMilliseconds(600));
+                await callbacks.OnStreamText!("49128.");
+                return new AssistantMessage { Content = "Your work order B16649128." };
+            },
+            formatSpeech: SpokenForm);
+
+        await WaitUntil(() => call.Socket.SentLast);
+        await call.HangUpAsync();
+
+        Assert.Equal(new[] { "Your work order B 1 6 6 4 9 1 2 8." }, call.Socket.SentTexts());
+    }
+
+    [Fact]
+    public async Task A_streamed_question_asked_again_is_said_the_way_the_voice_reads_it()
+    {
+        var call = Call.Start(Settings(relay =>
+            {
+                relay.ResponseWatchdogIntervals = [];
+                relay.StreamReplies = true;
+                relay.IdleAsksAgain = true;
+                relay.IdleTimeouts = [0.1];
+                relay.MaxIdlePrompts = 1;
+            }),
+            async (_, callbacks) =>
+            {
+                await callbacks.OnStreamText!("Is it 12 Main Ln?");
+                return new AssistantMessage { Content = "Is it 12 Main Ln?" };
+            },
+            formatSpeech: SpokenForm);
+
+        await WaitUntil(() => call.Socket.SentEnd);
+        await call.HangUpAsync();
+
+        Assert.Equal(new[] { "Is it 12 Main Lane?", "Pardon? Is it 12 Main Lane?" }, call.Socket.SentTexts().Take(2));
+    }
+
+    // Twilio says what played in the voice's words, the history keeps the model's
+    [Theory]
+    // Cut in before the first word the voice says differently: the cut is where Twilio says
+    [InlineData("Your work", "Your work", "order B16649128. Anything else?")]
+    // Cut in on that word: it isn't taken as heard
+    [InlineData("Your work order B 1 6", "Your work order", "B16649128. Anything else?")]
+    // All that went out played
+    [InlineData("Your work order B 1 6 6 4 9 1 2 8.", "Your work order B16649128.", "Anything else?")]
+    public async Task A_reply_said_differently_by_the_voice_is_marked_where_the_caller_cut_in(string heard, string keptHeard,
+        string keptUnheard)
+    {
+        const string reply = "Your work order B16649128. Anything else?";
+        string? stored = null;
+        var call = Call.Start(Settings(relay =>
+            {
+                relay.ResponseWatchdogIntervals = [];
+                relay.StreamReplies = true;
+            }),
+            async (self, callbacks) =>
+            {
+                await callbacks.OnStreamText!("Your work order B16649128. ");
+                self.Socket.Receive(new
+                {
+                    type = "interrupt", utteranceUntilInterrupt = heard, durationUntilInterruptMs = "900"
+                });
+                // The interrupt is read on the socket's loop
+                await WaitUntil(() => callbacks.RewriteReply!(reply) != reply);
+                stored = callbacks.RewriteReply!(reply);
+                return new AssistantMessage { Content = reply };
+            },
+            formatSpeech: SpokenForm);
+
+        await WaitUntil(() => stored != null);
+        await call.HangUpAsync();
+
+        Assert.Equal(new[] { "Your work order B 1 6 6 4 9 1 2 8." }, call.Socket.SentTexts());
+        Assert.Equal(ConversationRelayCutIn.Mark(keptHeard, keptUnheard), stored);
+    }
+
+    [Fact]
+    public async Task An_answer_to_a_question_heard_as_the_voice_said_it_is_not_dropped_as_a_tail()
+    {
+        const string question = "Is it 12 Main Ln, Atlanta?";
+        // The rest is never sent: the caller cut in while the model still wrote it
+        const string reply = question + " Or another address?";
+        var turns = 0;
+        var call = Call.Start(Settings(relay =>
+            {
+                relay.ResponseWatchdogIntervals = [];
+                relay.StreamReplies = true;
+                relay.DropBackchannelTails = true;
+            }),
+            async (self, callbacks) =>
+            {
+                if (Interlocked.Increment(ref turns) > 1)
+                {
+                    return null;
+                }
+                await callbacks.OnStreamText!(question + " ");
+                // Five words of it played before the caller cut in
+                self.Socket.Receive(new
+                {
+                    type = "interrupt", utteranceUntilInterrupt = "Is it 12 Main Lane,", durationUntilInterruptMs = "900"
+                });
+                await WaitUntil(() => callbacks.RewriteReply!(reply) != reply);
+                return new AssistantMessage { Content = reply };
+            },
+            formatSpeech: SpokenForm);
+
+        await WaitUntil(() => call.Socket.SentLast);
+        // Within a second of the question going out: a tail, unless the caller heard some of it
+        call.Socket.Receive(new { type = "prompt", voicePrompt = "Yes.", last = true });
+
+        await WaitUntil(() => Volatile.Read(ref turns) == 2);
+        await call.HangUpAsync();
+    }
+
+    // Idempotent, as a speech hook must be
+    private static string SpokenForm(string text) =>
+        Regex.Replace(text.Replace("B16649128", "B 1 6 6 4 9 1 2 8"), @"\bLn\b", "Lane");
+
     [Fact]
     public async Task Kept_lines_are_the_agent_s_out_of_its_context_at_the_time_they_were_said()
     {
@@ -355,7 +557,8 @@ public class ConversationRelayKeptLinesTests
 
         /// <param name="prompt">What the caller says first; null says nothing</param>
         public static Call Start(TwilioSetting settings, Func<Call, AgentTurnCallbacks, Task<AssistantMessage?>> turn,
-            Func<string, string, DateTime, Task>? keep = null, string? prompt = "My sink is leaking")
+            Func<string, string, DateTime, Task>? keep = null, string? prompt = "My sink is leaking",
+            Func<string, string>? formatSpeech = null)
         {
             var call = new Call();
             var session = new ConversationRelaySession(call.Socket, AgentId, "conv-1", settings,
@@ -364,7 +567,8 @@ public class ConversationRelayKeptLinesTests
                 {
                     call.Kept.Enqueue((text, label, saidUtc));
                     return Task.CompletedTask;
-                }));
+                }),
+                formatSpeech: formatSpeech);
             call.Run = session.RunAsync(CancellationToken.None);
             call.Socket.Receive(new { type = "setup", callSid = "CA1", from = "+15550100", to = "+15550199", direction = "inbound" });
             if (prompt != null)
@@ -417,6 +621,12 @@ public class ConversationRelayKeptLinesTests
         }
 
         public bool SentEnd => Frames().Any(frame => frame.GetProperty("type").GetString() == "end");
+
+        /// <summary>
+        /// A streamed utterance was closed (its last frame went out)
+        /// </summary>
+        public bool SentLast => Frames().Any(frame => frame.GetProperty("type").GetString() == "text"
+            && frame.TryGetProperty("last", out var last) && last.GetBoolean());
 
         private IEnumerable<JsonElement> Frames() => _sent.Select(json => JsonDocument.Parse(json).RootElement);
 
