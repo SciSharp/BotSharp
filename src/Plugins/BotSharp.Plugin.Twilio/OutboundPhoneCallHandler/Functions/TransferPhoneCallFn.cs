@@ -54,7 +54,10 @@ public class TransferPhoneCallFn : IFunctionCallback
             var initAudioFile = await twilio.SaveSpeechAsync(conversationId, "transfer", args.TransitionMessage,
                 preferAudio: twilio.IsRealtimeCall());
 
-            processUrl += $"&init-audio-file={initAudioFile}";
+            if (!string.IsNullOrEmpty(initAudioFile))
+            {
+                processUrl += $"&init-audio-file={initAudioFile}";
+            }
         }
 
         // Transfer call

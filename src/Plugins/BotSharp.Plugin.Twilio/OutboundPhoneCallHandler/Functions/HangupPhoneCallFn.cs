@@ -49,7 +49,10 @@ public class HangupPhoneCallFn : IFunctionCallback
             var initAudioFile = await twilio.SaveSpeechAsync(conversationId, "ending", args.ResponseContent,
                 preferAudio: twilio.IsRealtimeCall());
 
-            processUrl += $"&init-audio-file={initAudioFile}";
+            if (!string.IsNullOrEmpty(initAudioFile))
+            {
+                processUrl += $"&init-audio-file={initAudioFile}";
+            }
         }
 
         // A call that already ended is what hanging up wants, so it still counts as hung up
