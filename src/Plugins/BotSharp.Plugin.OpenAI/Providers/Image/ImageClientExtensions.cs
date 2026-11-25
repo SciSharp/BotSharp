@@ -93,7 +93,7 @@ public static class ImageClientExtensions
         using var form = new MultipartFormDataContent(boundary)
         {
             { new StringContent(prompt), "prompt" },
-            { new StringContent(model ?? "gpt-image-1-mini"), "model" }
+            { new StringContent(model), "model" }
         };
 
         if (imageCount.HasValue)
