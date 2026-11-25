@@ -145,24 +145,6 @@ public partial class ImageCompletionProvider : IImageCompletion
         return retStyle;
     }
 
-    private GeneratedImageFormat GetImageResponseFormat(string? format)
-    {
-        var value = !string.IsNullOrEmpty(format) ? format : "bytes";
-
-        GeneratedImageFormat retFormat;
-        switch (value)
-        {
-            case "url":
-                retFormat = GeneratedImageFormat.Uri;
-                break;
-            default:
-                retFormat = GeneratedImageFormat.Bytes;
-                break;
-        }
-
-        return retFormat;
-    }
-
     private GeneratedImageBackground GetImageBackground(string? background)
     {
         var value = !string.IsNullOrEmpty(background) ? background : "auto";

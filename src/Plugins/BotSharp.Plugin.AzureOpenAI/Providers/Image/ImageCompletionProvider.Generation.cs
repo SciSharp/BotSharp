@@ -34,15 +34,13 @@ public partial class ImageCompletionProvider
         var size = GetImageSize(state.GetState(ImageStateConst.IMAGE_SIZE));
         var quality = GetImageQuality(state.GetState(ImageStateConst.IMAGE_QUALITY));
         var style = GetImageStyle(state.GetState(ImageStateConst.IMAGE_STYLE));
-        var format = GetImageFormat(state.GetState(ImageStateConst.IMAGE_RESPONSE_FORMAT));
         var count = GetImageCount(state.GetState<int?>(ImageStateConst.IMAGE_COUNT));
 
         var options = new ImageGenerationOptions
         {
             Size = size,
             Quality = quality,
-            Style = style,
-            ResponseFormat = format
+            Style = style
         };
         return (prompt, count, options);
     }

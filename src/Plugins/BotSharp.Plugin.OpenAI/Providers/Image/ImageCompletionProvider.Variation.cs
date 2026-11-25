@@ -62,19 +62,14 @@ public partial class ImageCompletionProvider
         var state = _services.GetRequiredService<IConversationStateService>();
 
         var size = state.GetState(ImageStateConst.IMAGE_SIZE);
-        var responseFormat = state.GetState(ImageStateConst.IMAGE_RESPONSE_FORMAT);
 
         size = LlmUtility.GetModelParameter(settings?.Parameters, "Size", size);
-        responseFormat = LlmUtility.GetModelParameter(settings?.Parameters, "ResponseFormat", responseFormat);
 
+        // response_format is never sent: GPT image models reject it and always return base64.
         var options = new ImageVariationOptions();
         if (!string.IsNullOrEmpty(size))
         {
             options.Size = GetImageSize(size);
-        }
-        if (!string.IsNullOrEmpty(responseFormat))
-        {
-            options.ResponseFormat = GetImageResponseFormat(responseFormat);
         }
 
         var count = GetImageCount(state.GetState<int?>(ImageStateConst.IMAGE_COUNT));
