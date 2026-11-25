@@ -779,13 +779,16 @@ public class ChatCompletionProvider : IChatCompletion
             return;
         }
 
+        var position = 0;
         foreach (var toolCall in toolCalls.EnumerateArray())
         {
-            // Fragments of parallel calls are told apart by "index", not by their position in the array.
+            // Fragments of parallel calls are told apart by "index"; the position in the array
+            // is only the fallback for entries that do not carry one.
             var index = toolCall.TryGetProperty("index", out var indexElement)
                 && indexElement.ValueKind == JsonValueKind.Number
                     ? indexElement.GetInt32()
-                    : 0;
+                    : position;
+            position++;
 
             aggregate.ToolCallIndex ??= index;
 

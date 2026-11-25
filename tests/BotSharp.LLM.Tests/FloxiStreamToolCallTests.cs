@@ -31,6 +31,15 @@ public class FloxiStreamToolCallTests
         Read(aggregate, "ToolCallArguments").ShouldBe("""{"q":"ABC"}""");
     }
 
+    [Fact]
+    public void OnlyTheFirstCallIsTakenWhenAChunkCarriesNoIndex()
+    {
+        var aggregate = Collect(
+            """{"id":"call_a","function":{"name":"search","arguments":"{}"}},{"id":"call_b","function":{"name":"lookup","arguments":"{}"}}""");
+
+        Read(aggregate, "ToolCallArguments").ShouldBe("{}");
+    }
+
     private static object Collect(params string[] toolCallDeltas)
     {
         var providerType = typeof(FloxiChatCompletionProvider);
