@@ -219,7 +219,7 @@ public class RealtimeHub : IRealtimeHub
             return (_settings.Provider, _settings.Model, false);
         }
 
-        return ("openai", "gpt-realtime", false);
+        throw new InvalidOperationException("No realtime model is configured. Set RealtimeModel or the agent's Realtime config.");
     }
 
     /// <summary>

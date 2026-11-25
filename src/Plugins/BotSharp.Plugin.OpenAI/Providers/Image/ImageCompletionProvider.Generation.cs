@@ -65,15 +65,14 @@ public partial class ImageCompletionProvider
         var size = state.GetState(ImageStateConst.IMAGE_SIZE);
         var quality = state.GetState(ImageStateConst.IMAGE_QUALITY);
         var style = state.GetState(ImageStateConst.IMAGE_STYLE);
-        var responseFormat = state.GetState(ImageStateConst.IMAGE_RESPONSE_FORMAT);
         var background = state.GetState(ImageStateConst.IMAGE_BACKGROUND);
 
         size = LlmUtility.GetModelParameter(settings?.Parameters, "Size", size);
         quality = LlmUtility.GetModelParameter(settings?.Parameters, "Quality", quality);
         style = LlmUtility.GetModelParameter(settings?.Parameters, "Style", style);
         background = LlmUtility.GetModelParameter(settings?.Parameters, "Background", background);
-        responseFormat = LlmUtility.GetModelParameter(settings?.Parameters, "ResponseFormat", responseFormat);
 
+        // response_format is never sent: GPT image models reject it and always return base64.
         var options = new ImageGenerationOptions();
         if (!string.IsNullOrEmpty(size))
         {
@@ -86,10 +85,6 @@ public partial class ImageCompletionProvider
         if (!string.IsNullOrEmpty(style))
         {
             options.Style = GetImageStyle(style);
-        }
-        if (!string.IsNullOrEmpty(responseFormat))
-        {
-            options.ResponseFormat = GetImageResponseFormat(responseFormat);
         }
         if (!string.IsNullOrEmpty(background))
         {

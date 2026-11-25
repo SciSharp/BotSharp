@@ -10,5 +10,4 @@ public static class ImageStateConst
     public const string IMAGE_QUALITY = "image_quality";
     public const string IMAGE_STYLE = "image_style";
     public const string IMAGE_BACKGROUND = "image_background";
-    public const string IMAGE_RESPONSE_FORMAT = "image_response_format";
 }

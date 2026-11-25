@@ -90,6 +90,11 @@ public partial class InstructModeController
         var state = _services.GetRequiredService<IConversationStateService>();
         request.States.ForEach(x => state.SetState(x.Key, x.Value, source: StateSource.External));
 
+        if (string.IsNullOrEmpty(request.Model))
+        {
+            return BadRequest("Audio synthesis model is required.");
+        }
+
         var completion = CompletionProvider.GetAudioSynthesizer(_services, provider: request.Provider, model: request.Model);
         var binaryData = await completion.GenerateAudioAsync(request.Text);
         var stream = binaryData.ToStream();

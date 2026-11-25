@@ -167,7 +167,12 @@ public class CompletionProvider
             return default!;
         }
 
-        completer.SetModelName(model ?? Gpt4xModelConstants.GPT_4o_Mini_Transcribe);
+        if (string.IsNullOrEmpty(model))
+        {
+            throw new InvalidOperationException("Audio transcription model is required.");
+        }
+
+        completer.SetModelName(model);
         return completer;
     }
 
@@ -186,7 +191,12 @@ public class CompletionProvider
             return default!;
         }
 
-        completer.SetModelName(model ?? Gpt4xModelConstants.GPT_4o_Mini_Tts);
+        if (string.IsNullOrEmpty(model))
+        {
+            throw new InvalidOperationException("Audio synthesis model is required.");
+        }
+
+        completer.SetModelName(model);
         return completer;
     }
 
@@ -286,7 +296,7 @@ public class CompletionProvider
             model = agentConfig?.Model ?? agentSetting.LlmConfig?.Model;
             if (state.ContainsState(LlmStateConst.MODEL))
             {
-                model = state.GetState(LlmStateConst.MODEL, model ?? "gpt-image-1-mini");
+                model = state.GetState(LlmStateConst.MODEL, model);
             }
             else if (state.ContainsState(LlmStateConst.MODEL_ID) || !string.IsNullOrEmpty(modelId))
             {

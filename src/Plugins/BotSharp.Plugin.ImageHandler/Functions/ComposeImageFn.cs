@@ -54,7 +54,6 @@ public class ComposeImageFn : IFunctionCallback
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         state.SetState(ImageStateConst.IMAGE_COUNT, "1");
-        state.SetState(ImageStateConst.IMAGE_RESPONSE_FORMAT, "bytes");
     }
 
     private async Task<MessageFileModel?> SelectImage(string? description)
@@ -134,10 +133,7 @@ public class ComposeImageFn : IFunctionCallback
             return (provider, model);
         }
 
-        provider = "openai";
-        model = "gpt-image-1-mini";
-
-        return (provider, model);
+        throw new InvalidOperationException("No image model is configured. Set ImageHandler:Composition or the agent's ImageComposition.");
     }
 
     private IEnumerable<string> SaveGeneratedImage(ImageGeneration? image)

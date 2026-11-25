@@ -64,8 +64,6 @@ public class SqlValidateFn : IFunctionCallback
             var correctedSql = await instructService.Instruct<string>(query,
                 new InstructOptions
                 {
-                    Provider = "openai",
-                    Model = Gpt4xModelConstants.GPT_4o,
                     AgentId = BuiltInAgentId.SqlDriver,
                     TemplateName = "sql_statement_correctness",
                     Data = new Dictionary<string, object>

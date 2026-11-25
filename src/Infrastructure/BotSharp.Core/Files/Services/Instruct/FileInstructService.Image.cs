@@ -16,7 +16,8 @@ public partial class FileInstructService
         var instruction = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
         text = RenderText(text, options?.Data);
 
-        var completion = CompletionProvider.GetChatCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? Gpt4xModelConstants.GPT_4o, multiModal: true);
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        var completion = CompletionProvider.GetChatCompletion(_services, provider: options?.Provider ?? agentSettings.LlmConfig.Provider, model: options?.Model ?? agentSettings.LlmConfig.Model, multiModal: true);
         var message = await completion.GetChatCompletions(new Agent()
         {
             Id = innerAgentId,
@@ -56,7 +57,8 @@ public partial class FileInstructService
         text = RenderText(text, options?.Data);
 
         var textContent = text.IfNullOrEmptyAs(instruction).IfNullOrEmptyAs(string.Empty);
-        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1-mini");
+        var (provider, model) = GetImageProviderModel(options);
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
         var message = await completion.GetImageGeneration(new Agent()
         {
             Id = innerAgentId,
@@ -86,7 +88,8 @@ public partial class FileInstructService
         }
 
         var innerAgentId = options?.AgentId ?? Guid.Empty.ToString();
-        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "dall-e-2");
+        var (provider, model) = GetImageProviderModel(options);
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
         var binary = await DownloadFile(image);
 
         // Convert image
@@ -132,7 +135,8 @@ public partial class FileInstructService
         var instruction = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
         text = RenderText(text, options?.Data);
 
-        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1-mini");
+        var (provider, model) = GetImageProviderModel(options);
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
         var binary = await DownloadFile(image);
 
         // Convert image
@@ -182,7 +186,8 @@ public partial class FileInstructService
         var instruction = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
         text = RenderText(text, options?.Data);
 
-        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1-mini");
+        var (provider, model) = GetImageProviderModel(options);
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
         var imageBinary = await DownloadFile(image);
         var maskBinary = await DownloadFile(mask);
 
@@ -235,7 +240,8 @@ public partial class FileInstructService
         var instruction = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
         text = RenderText(text, options?.Data);
 
-        var completion = CompletionProvider.GetImageCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? "gpt-image-1-mini");
+        var (provider, model) = GetImageProviderModel(options);
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: provider, model: model);
 
         var streams = new List<Stream>();
         var fileNames = new List<string>();
@@ -282,5 +288,15 @@ public partial class FileInstructService
             }), innerAgentId);
 
         return message;
+    }
+
+    private static (string Provider, string Model) GetImageProviderModel(InstructOptions? options)
+    {
+        if (string.IsNullOrEmpty(options?.Provider) || string.IsNullOrEmpty(options?.Model))
+        {
+            throw new InvalidOperationException("Image provider and model are required.");
+        }
+
+        return (options.Provider, options.Model);
     }
 }

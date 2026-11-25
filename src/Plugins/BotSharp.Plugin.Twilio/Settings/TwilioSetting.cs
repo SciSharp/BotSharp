@@ -45,6 +45,12 @@ public class TwilioSetting
     public string? SayVoice { get; set; }
 
     /// <summary>
+    /// Audio synthesis model for speech pre-generated as audio: always when SayGeneratedSpeech is off, and for
+    /// realtime calls even when it is on. Required for those paths.
+    /// </summary>
+    public LlmProviderModel? AudioSynthesis { get; set; }
+
+    /// <summary>
     /// Text of the prerecorded prompts under twilio/, keyed by file name without extension (e.g. "say-it-again-1").
     /// Spoken with Say when SayGeneratedSpeech is on; prompts not listed keep playing their audio file.
     /// </summary>

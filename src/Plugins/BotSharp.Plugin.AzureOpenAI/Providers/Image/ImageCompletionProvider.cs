@@ -44,7 +44,7 @@ public partial class ImageCompletionProvider : IImageCompletion
             {
                 generatedImage.ImageUrl = image?.ImageUri?.AbsoluteUri ?? string.Empty;
             }
-            else if (format == GeneratedImageFormat.Bytes)
+            else
             {
                 var base64Str = string.Empty;
                 var bytes = image?.ImageBytes?.ToArray();
@@ -121,24 +121,6 @@ public partial class ImageCompletionProvider : IImageCompletion
         }
 
         return retStyle;
-    }
-
-    private GeneratedImageFormat GetImageFormat(string format)
-    {
-        var value = !string.IsNullOrEmpty(format) ? format : "uri";
-
-        GeneratedImageFormat retFormat;
-        switch (value)
-        {
-            case "bytes":
-                retFormat = GeneratedImageFormat.Bytes;
-                break;
-            default:
-                retFormat = GeneratedImageFormat.Uri;
-                break;
-        }
-
-        return retFormat;
     }
 
     private int GetImageCount(int? count)

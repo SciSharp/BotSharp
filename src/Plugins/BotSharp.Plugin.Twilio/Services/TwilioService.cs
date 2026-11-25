@@ -473,14 +473,23 @@ public class TwilioService
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var useSay = _settings.SayGeneratedSpeech && !preferAudio;
         var fileName = name + (useSay ? TextSpeechExtension : AudioSpeechExtension);
-        if (reuseExisting && !fileStorage.GetSpeechFile(conversationId, fileName).ToMemory().IsEmpty)
+        // Without a synthesis model a realtime call plays the mp3 already saved, or goes on without the speech
+        var noSynthesis = preferAudio && string.IsNullOrEmpty(_settings.AudioSynthesis?.Model);
+        if ((reuseExisting || noSynthesis) && !fileStorage.GetSpeechFile(conversationId, fileName).ToMemory().IsEmpty)
         {
             return fileName;
         }
 
+        if (noSynthesis)
+        {
+            return string.Empty;
+        }
+
         var data = useSay
             ? BinaryData.FromString(text)
-            : await CompletionProvider.GetAudioSynthesizer(_services).GenerateAudioAsync(text);
+            : await CompletionProvider.GetAudioSynthesizer(_services,
+                provider: _settings.AudioSynthesis?.Provider,
+                model: _settings.AudioSynthesis?.Model).GenerateAudioAsync(text);
         fileStorage.SaveSpeechFile(conversationId, fileName, data);
         return fileName;
     }

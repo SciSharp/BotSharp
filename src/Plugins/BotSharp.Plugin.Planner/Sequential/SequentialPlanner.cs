@@ -168,14 +168,13 @@ public class SequentialPlanner : ITaskPlanner
 
         var inst = new DecomposedStep();
 
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
         var settingService = _services.GetRequiredService<ISettingService>();
-        var model = llmProviderService.GetProviderModel("openai", Gpt4xModelConstants.GPT_4o);
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
 
         // chat completion
         var completion = CompletionProvider.GetChatCompletion(_services,
-            provider: "openai",
-            model: model?.Name);
+            provider: agentSettings.LlmConfig.Provider,
+            model: agentSettings.LlmConfig.Model);
 
         int retryCount = 0;
         while (retryCount < 2)
