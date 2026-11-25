@@ -290,7 +290,7 @@ public partial class FileInstructService
         return message;
     }
 
-    private static (string, string) GetImageProviderModel(InstructOptions? options)
+    private static (string Provider, string Model) GetImageProviderModel(InstructOptions? options)
     {
         if (string.IsNullOrEmpty(options?.Provider) || string.IsNullOrEmpty(options?.Model))
         {

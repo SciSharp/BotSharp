@@ -68,7 +68,6 @@ public class HandleEmailReaderFn : IFunctionCallback
                         Instruction = prompt
                     };
 
-                    var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
                     var settingService = _services.GetRequiredService<ISettingService>();
                     var agentSettings = _services.GetRequiredService<AgentSettings>();
                     var completion = CompletionProvider.GetChatCompletion(_services, provider: agentSettings.LlmConfig.Provider, model: agentSettings.LlmConfig.Model);

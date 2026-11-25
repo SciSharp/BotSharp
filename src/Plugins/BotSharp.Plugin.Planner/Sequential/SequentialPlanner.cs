@@ -168,7 +168,6 @@ public class SequentialPlanner : ITaskPlanner
 
         var inst = new DecomposedStep();
 
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
         var settingService = _services.GetRequiredService<ISettingService>();
         var agentSettings = _services.GetRequiredService<AgentSettings>();
 
