@@ -54,7 +54,6 @@ public class ComposeImageFn : IFunctionCallback
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         state.SetState(ImageStateConst.IMAGE_COUNT, "1");
-        state.SetState(ImageStateConst.IMAGE_RESPONSE_FORMAT, "bytes");
     }
 
     private async Task<MessageFileModel?> SelectImage(string? description)

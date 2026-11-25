@@ -51,7 +51,6 @@ public class GenerateImageFn : IFunctionCallback
         var state = _services.GetRequiredService<IConversationStateService>();
         state.SetState(ImageStateConst.IMAGE_COUNT, "1");
         state.SetState(ImageStateConst.IMAGE_QUALITY, "medium");
-        state.SetState(ImageStateConst.IMAGE_RESPONSE_FORMAT, "bytes");
     }
 
     private async Task<string> GetImageGeneration(Agent agent, RoleDialogModel message, string? description)
