@@ -235,6 +235,7 @@ public partial class ChatCompletionProvider
         var functionCalls = new List<FunctionCallResponseItem>();
         ResponseResult? finalResult = null;
         ResponseTokenUsage? tokenUsage = null;
+        var responseFailed = false;
 
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, string.Empty)
         {
@@ -341,6 +342,7 @@ public partial class ChatCompletionProvider
                     case StreamingResponseFailedUpdate failed:
                         finalResult = failed.Response;
                         tokenUsage = finalResult?.Usage;
+                        responseFailed = true;
                         break;
                 }
             }
@@ -356,7 +358,19 @@ public partial class ChatCompletionProvider
         var toolCalls = ToLlmToolCalls(functionCalls);
         var functionCall = functionCalls.FirstOrDefault();
 
-        if (functionCall != null)
+        if (responseFailed)
+        {
+            _logger.LogWarning("Responses API stream failed for agent {AgentName}", agent.Name);
+
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, "AI response failed")
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = messageId,
+                StopCompletion = true,
+                IsStreaming = true
+            };
+        }
+        else if (functionCall != null)
         {
             _logger.LogInformation($"Action: {nameof(InnerCreateResponseStreamingAsync)}, Agent: {agent.Name}, ToolCalls: {string.Join(",", toolCalls.Select(x => x.FunctionName))}");
 
