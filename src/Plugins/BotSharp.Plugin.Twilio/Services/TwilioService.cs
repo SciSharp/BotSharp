@@ -480,7 +480,9 @@ public class TwilioService
 
         var data = useSay
             ? BinaryData.FromString(text)
-            : await CompletionProvider.GetAudioSynthesizer(_services).GenerateAudioAsync(text);
+            : await CompletionProvider.GetAudioSynthesizer(_services,
+                provider: _settings.AudioSynthesis?.Provider,
+                model: _settings.AudioSynthesis?.Model).GenerateAudioAsync(text);
         fileStorage.SaveSpeechFile(conversationId, fileName, data);
         return fileName;
     }
