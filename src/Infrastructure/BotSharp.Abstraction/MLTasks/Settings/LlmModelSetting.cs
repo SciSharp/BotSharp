@@ -72,6 +72,17 @@ public class LlmModelSetting
 
     public bool AllowPdfReading => Capabilities?.Contains(LlmModelCapability.PdfReading) == true;
 
+    /// <summary>
+    /// A copy without the api key and endpoint, for listing the model to clients
+    /// </summary>
+    public LlmModelSetting WithoutCredentials()
+    {
+        var copy = (LlmModelSetting)MemberwiseClone();
+        copy.ApiKey = string.Empty;
+        copy.Endpoint = null;
+        return copy;
+    }
+
     public override string ToString()
     {
         return $"[{Type}] {Name} {Endpoint}";
