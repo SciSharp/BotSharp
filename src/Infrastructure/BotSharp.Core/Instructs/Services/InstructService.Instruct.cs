@@ -96,8 +96,9 @@ public partial class InstructService
     {
         var settingService = _services.GetRequiredService<ISettingService>();
         var dialogs = await BuildDialogs(text, options);
-        var provider = options?.Provider ?? agent?.LlmConfig?.Provider ?? "openai";
-        var model = options?.Model ?? agent?.LlmConfig?.Model ?? Gpt4xModelConstants.GPT_4o;
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        var provider = options?.Provider ?? agent?.LlmConfig?.Provider ?? agentSettings.LlmConfig.Provider;
+        var model = options?.Model ?? agent?.LlmConfig?.Model ?? agentSettings.LlmConfig.Model;
         var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
         return await completion.GetChatCompletions(agent, dialogs);
     }

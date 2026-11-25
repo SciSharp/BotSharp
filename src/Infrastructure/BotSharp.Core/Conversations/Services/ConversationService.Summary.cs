@@ -57,29 +57,13 @@ public partial class ConversationService
 
     private async Task<string> Summarize(Agent agent, string prompt)
     {
-        var provider = "openai";
-        string? model;
-
-        var providerService = _services.GetRequiredService<ILlmProviderService>();
-        var settingService = _services.GetRequiredService<ISettingService>();
-        var modelSettings = providerService.GetProviderModels(provider);
-        var defaultModel = Gpt4xModelConstants.GPT_4o;
-        var modelSetting = modelSettings.FirstOrDefault(x => x.Name.IsEqualTo(defaultModel));
-
-        if (modelSetting != null)
+        var provider = agent?.LlmConfig?.Provider;
+        var model = agent?.LlmConfig?.Model;
+        if (provider == null || model == null)
         {
-            model = modelSetting.Name;
-        }
-        else
-        {
-            provider = agent?.LlmConfig?.Provider;
-            model = agent?.LlmConfig?.Model;
-            if (provider == null || model == null)
-            {
-                var agentSettings = _services.GetRequiredService<AgentSettings>();
-                provider = agentSettings.LlmConfig.Provider;
-                model = agentSettings.LlmConfig.Model;
-            }
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
+            provider = agentSettings.LlmConfig.Provider;
+            model = agentSettings.LlmConfig.Model;
         }
 
         var chatCompletion = CompletionProvider.GetChatCompletion(_services, provider, model);

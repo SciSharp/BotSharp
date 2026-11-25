@@ -16,7 +16,8 @@ public partial class FileInstructService
         var instruction = await RenderAgentTemplate(innerAgentId, options?.TemplateName, options?.Data);
         text = RenderText(text, options?.Data);
 
-        var completion = CompletionProvider.GetChatCompletion(_services, provider: options?.Provider ?? "openai", model: options?.Model ?? Gpt4xModelConstants.GPT_4o, multiModal: true);
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        var completion = CompletionProvider.GetChatCompletion(_services, provider: options?.Provider ?? agentSettings.LlmConfig.Provider, model: options?.Model ?? agentSettings.LlmConfig.Model, multiModal: true);
         var message = await completion.GetChatCompletions(new Agent()
         {
             Id = innerAgentId,

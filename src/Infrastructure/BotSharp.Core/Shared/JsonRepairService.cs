@@ -99,9 +99,10 @@ public class JsonRepairService : IJsonRepairService
 
         try
         {
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
             var completion = CompletionProvider.GetChatCompletion(_services,
-                        provider: options?.Provider ?? agent?.LlmConfig?.Provider ?? "openai",
-                        model: options?.Model ?? agent?.LlmConfig?.Model ?? Gpt4xModelConstants.GPT_4o_Mini);
+                        provider: options?.Provider ?? agent?.LlmConfig?.Provider ?? agentSettings.LlmConfig.Provider,
+                        model: options?.Model ?? agent?.LlmConfig?.Model ?? agentSettings.LlmConfig.Model);
 
             var innerAgent = new Agent
             {

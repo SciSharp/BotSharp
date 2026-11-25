@@ -84,13 +84,15 @@ public class WebIntelligentSearchFn : IFunctionCallback
         }
 
         provider = "openai";
-        model = Gpt4xModelConstants.GPT_4o_Mini_Search_Preview;
-
         var models = llmProviderService.GetProviderModels(provider);
         var foundModel = models.FirstOrDefault(x => x.WebSearch?.IsDefault == true)
                             ?? models.FirstOrDefault(x => x.WebSearch != null);
 
-        model = foundModel?.Name ?? model;
-        return (provider, model);
+        if (foundModel == null)
+        {
+            throw new InvalidOperationException("No web search model is configured. Add WebSearch settings to an openai model in LlmProviders.");
+        }
+
+        return (provider, foundModel.Name);
     }
 }

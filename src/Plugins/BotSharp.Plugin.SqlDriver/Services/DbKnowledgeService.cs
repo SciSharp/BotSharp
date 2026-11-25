@@ -1,5 +1,6 @@
 using static Dapper.SqlMapper;
 using MySqlConnector;
+using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Knowledges.Enums;
 using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.Abstraction.Models;
@@ -26,8 +27,9 @@ public class DbKnowledgeService
         var kg = _services.GetServices<IKnowledgeService>()
                           .FirstOrDefault(x => x.KnowledgeType.IsEqualTo(KnowledgeBaseType.QuestionAnswer));
         
-        var provider = request.Provider ?? "openai";
-        var model = request.Model ?? Gpt4xModelConstants.GPT_4o;
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        var provider = request.Provider ?? agentSettings.LlmConfig.Provider;
+        var model = request.Model ?? agentSettings.LlmConfig.Model;
         var schema = request.Schema;
         var collectionName = request.KnowledgebaseCollection;
 

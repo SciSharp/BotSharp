@@ -19,7 +19,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
     private readonly ILogger<RealTimeCompletionProvider> _logger;
     private readonly BotSharpOptions _botsharpOptions;
 
-    private string _model = "gpt-realtime";
+    private string _model = string.Empty;
     private LlmRealtimeSession _session;
     private RealtimeOptions? _realtimeOptions;
     private bool _isBlocking = false;
@@ -70,7 +70,15 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var realtimeSettings = _services.GetRequiredService<RealtimeModelSettings>();
         var settingService = _services.GetRequiredService<ISettingService>();
 
-        _model ??= realtimeSettings.Model;
+        if (string.IsNullOrEmpty(_model))
+        {
+            _model = realtimeSettings.Model;
+        }
+
+        if (string.IsNullOrEmpty(_model))
+        {
+            throw new InvalidOperationException("No realtime model is configured. Set RealtimeModel or the agent's Realtime config.");
+        }
         _session = new LlmRealtimeSession(_services, new ChatSessionOptions
         {
             Provider = Provider,
@@ -381,6 +389,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         if (realtimeModelSettings.InputAudioTranscribe)
         {
+            if (string.IsNullOrEmpty(realtimeModelSettings.InputAudioTranscription.Model))
+            {
+                throw new InvalidOperationException("RealtimeModel:InputAudioTranscription:Model is required when InputAudioTranscribe is enabled.");
+            }
+
             var words = new List<string>();
             HookEmitter.Emit<IRealtimeHook>(_services, hook => words.AddRange(hook.OnModelTranscriptPrompt(agent)), agent.Id);
 

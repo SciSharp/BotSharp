@@ -167,9 +167,6 @@ public class ReadAudioFn : IFunctionCallback
             return (provider, model);
         }
 
-        provider = "openai";
-        model = Gpt4xModelConstants.GPT_4o_Mini_Transcribe;
-
-        return (provider, model);
+        throw new InvalidOperationException("No audio transcription model is configured. Set AudioHandler:Audio:Reading or the agent's AudioTranscription.");
     }
 }
