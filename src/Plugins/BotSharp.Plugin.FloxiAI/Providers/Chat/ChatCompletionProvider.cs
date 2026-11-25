@@ -779,8 +779,25 @@ public class ChatCompletionProvider : IChatCompletion
             return;
         }
 
-        var toolCall = toolCalls[0];
+        foreach (var toolCall in toolCalls.EnumerateArray())
+        {
+            // Fragments of parallel calls are told apart by "index", not by their position in the array.
+            var index = toolCall.TryGetProperty("index", out var indexElement)
+                && indexElement.ValueKind == JsonValueKind.Number
+                    ? indexElement.GetInt32()
+                    : 0;
 
+            aggregate.ToolCallIndex ??= index;
+
+            if (index == aggregate.ToolCallIndex)
+            {
+                CollectToolCallFragment(toolCall, aggregate);
+            }
+        }
+    }
+
+    private static void CollectToolCallFragment(JsonElement toolCall, FloxiStreamAggregate aggregate)
+    {
         if (aggregate.ToolCallId == null
             && toolCall.TryGetProperty("id", out var id)
             && id.ValueKind == JsonValueKind.String)
@@ -851,6 +868,7 @@ public class ChatCompletionProvider : IChatCompletion
     {
         public StringBuilder Text { get; } = new();
         public StringBuilder ToolCallArguments { get; } = new();
+        public int? ToolCallIndex { get; set; }
         public string? ToolCallId { get; set; }
         public string? ToolCallName { get; set; }
         public string? FinishReason { get; set; }
