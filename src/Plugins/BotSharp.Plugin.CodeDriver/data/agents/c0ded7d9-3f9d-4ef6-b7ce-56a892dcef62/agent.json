@@ -11,7 +11,7 @@
   "profiles": [ "coding" ],
   "llmConfig": {
     "provider": "openai",
-    "model": "gpt-4o",
+    "model": "gpt-6-luna",
     "max_recursion_depth": 10
   }
 }
