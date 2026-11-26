@@ -560,9 +560,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 Provider = Provider,
                 Model = _model,
                 Prompt = text,
-                TextInputTokens = inputTokenDetails?.TextTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
+                TextInputTokens = (inputTokenDetails?.TextTokens ?? 0) - (inputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0),
                 CachedTextInputTokens = data.Usage?.InputTokenDetails?.CachedTokenDetails?.TextTokens ?? 0,
-                AudioInputTokens = inputTokenDetails?.AudioTokens ?? 0 - inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
+                AudioInputTokens = (inputTokenDetails?.AudioTokens ?? 0) - (inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0),
                 CachedAudioInputTokens = inputTokenDetails?.CachedTokenDetails?.AudioTokens ?? 0,
                 TextOutputTokens = outputTokenDetails?.TextTokens ?? 0,
                 AudioOutputTokens = outputTokenDetails?.AudioTokens ?? 0
