@@ -479,7 +479,8 @@ public class GoogleRealTimeProvider : IRealTimeCompletion
                     Prompt = text,
                     TextInputTokens = usage.PromptTokensDetails?.FirstOrDefault(x => x.Modality == Modality.TEXT.ToString())?.TokenCount ?? 0,
                     AudioInputTokens = usage.PromptTokensDetails?.FirstOrDefault(x => x.Modality == Modality.AUDIO.ToString())?.TokenCount ?? 0,
-                    TextOutputTokens = usage.ResponseTokensDetails?.FirstOrDefault(x => x.Modality == Modality.TEXT.ToString())?.TokenCount ?? 0,
+                    TextOutputTokens = (usage.ResponseTokensDetails?.FirstOrDefault(x => x.Modality == Modality.TEXT.ToString())?.TokenCount ?? 0)
+                        + (usage.ThoughtsTokenCount ?? 0),
                     AudioOutputTokens = usage.ResponseTokensDetails?.FirstOrDefault(x => x.Modality == Modality.AUDIO.ToString())?.TokenCount ?? 0
                 });
             }

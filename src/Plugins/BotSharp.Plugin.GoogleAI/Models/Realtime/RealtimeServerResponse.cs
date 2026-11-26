@@ -52,6 +52,9 @@ internal class RealtimeUsageMetaData
     [JsonPropertyName("responseTokenCount")]
     public int? ResponseTokenCount { get; set; }
 
+    [JsonPropertyName("thoughtsTokenCount")]
+    public int? ThoughtsTokenCount { get; set; }
+
     [JsonPropertyName("totalTokenCount")]
     public int? TotalTokenCount { get; set; }
 
