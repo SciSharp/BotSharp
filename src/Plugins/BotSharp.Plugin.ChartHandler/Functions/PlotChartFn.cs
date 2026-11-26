@@ -150,10 +150,13 @@ public class PlotChartFn : IFunctionCallback
     private AgentLlmConfig GetLlmConfig()
     {
         var maxOutputTokens = _settings?.ChartPlot?.MaxOutputTokens ?? 8192;
-        var reasoningEffortLevel = _settings?.ChartPlot?.ReasoningEffortLevel ?? "minimal";
+        var reasoningEffortLevel = _settings?.ChartPlot?.ReasoningEffortLevel;
+        var (provider, model) = GetLlmProviderModel();
 
         return new AgentLlmConfig
         {
+            Provider = provider,
+            Model = model,
             MaxOutputTokens = maxOutputTokens,
             ReasoningEffortLevel = reasoningEffortLevel
         };
