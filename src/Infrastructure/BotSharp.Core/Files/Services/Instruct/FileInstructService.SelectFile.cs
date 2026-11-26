@@ -140,6 +140,9 @@ public partial class FileInstructService
 
 
             // Build agent
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
+            var provider = options.Provider ?? agentSettings.LlmConfig.Provider;
+            var model = options?.Model ?? agentSettings.LlmConfig.Model;
             var foundAgent = await agentService.GetAgent(agentId);
             var agent = new Agent
             {
@@ -148,6 +151,8 @@ public partial class FileInstructService
                 Instruction = prompt,
                 LlmConfig = new AgentLlmConfig
                 {
+                    Provider = provider,
+                    Model = model,
                     MaxOutputTokens = options.MaxOutputTokens,
                     ReasoningEffortLevel = options.ReasoningEffortLevel
                 }
@@ -155,9 +160,6 @@ public partial class FileInstructService
 
 
             // Get ai response
-            var agentSettings = _services.GetRequiredService<AgentSettings>();
-            var provider = options.Provider ?? agentSettings.LlmConfig.Provider;
-            var model = options?.Model ?? agentSettings.LlmConfig.Model;
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
 
             var response = await completion.GetChatCompletions(agent, innerDialogs);

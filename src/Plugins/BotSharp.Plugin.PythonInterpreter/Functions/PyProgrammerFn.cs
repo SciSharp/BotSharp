@@ -193,10 +193,13 @@ public class PyProgrammerFn : IFunctionCallback
     private AgentLlmConfig GetLlmConfig()
     {
         var maxOutputTokens = _codingSettings?.CodeGeneration?.MaxOutputTokens ?? 8192;
-        var reasoningEffortLevel = _codingSettings?.CodeGeneration?.ReasoningEffortLevel ?? "minimal";
+        var reasoningEffortLevel = _codingSettings?.CodeGeneration?.ReasoningEffortLevel;
+        var (provider, model) = GetLlmProviderModel();
 
         return new AgentLlmConfig
         {
+            Provider = provider,
+            Model = model,
             MaxOutputTokens = maxOutputTokens,
             ReasoningEffortLevel = reasoningEffortLevel
         };
