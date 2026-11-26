@@ -390,7 +390,12 @@ public class ChatCompletionProvider : IChatCompletion
                 }
                 else if (candidate.FinishReason.HasValue)
                 {
-                    var text = candidate.FinishMessage ?? candidate.FinishReason.Value.ToString();
+                    if (candidate.FinishReason == FinishReason.MAX_TOKENS)
+                    {
+                        _logger.LogWarning($"Action: {nameof(GetChatCompletionsStreamingAsync)}, Reason: {candidate.FinishReason}, Agent: {agent.Name}, MaxOutputTokens: {request.GenerationConfig?.MaxOutputTokens}, Content:{textStream.GetText()}");
+                    }
+
+                    var text = ProviderHelper.ResolveStreamedContent(candidate.FinishReason.Value, candidate.FinishMessage);
                     responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
                     {
                         CurrentAgentId = agent.Id,
