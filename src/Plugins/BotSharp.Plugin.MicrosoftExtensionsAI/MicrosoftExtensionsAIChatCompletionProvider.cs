@@ -145,7 +145,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
             }
         }
 
-        var completion = await _client.GetResponseAsync(messages);
+        var completion = await _client.GetResponseAsync(messages, options);
 
         RoleDialogModel result = new(AgentRole.Assistant, completion.Text)
         {
