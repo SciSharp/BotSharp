@@ -14,6 +14,28 @@ public static class ProviderHelper
         return client;
     }
 
+    public static Usage? UpdateStreamedUsage(Usage? current, MessageResponse response)
+    {
+        if (response.StreamStartMessage?.Usage is { } initialUsage)
+        {
+            current = initialUsage;
+        }
+
+        var outputUsage = response.Delta?.Usage ?? response.Usage;
+        if (outputUsage != null)
+        {
+            if (current == null)
+            {
+                return outputUsage;
+            }
+
+            // Later usage contains cumulative output tokens, not the initial input/cache counts.
+            current.OutputTokens = outputUsage.OutputTokens;
+        }
+
+        return current;
+    }
+
     public const string MaxTokensMessage = "AI response exceeded max output length";
 
     /// <summary>
