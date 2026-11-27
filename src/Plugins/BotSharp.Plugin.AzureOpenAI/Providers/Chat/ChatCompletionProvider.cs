@@ -3,12 +3,14 @@ using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.Files.Utilities;
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Hooks;
 using BotSharp.Abstraction.MessageHub.Models;
 using BotSharp.Core.Infrastructures.Streams;
 using BotSharp.Core.MessageHub;
 using OpenAI.Chat;
 using System.ClientModel;
+using System.Text;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers.Chat;
 
@@ -326,23 +328,24 @@ public class ChatCompletionProvider : IChatCompletion
 
                 if (choice.FinishReason == ChatFinishReason.ToolCalls || choice.FinishReason == ChatFinishReason.FunctionCall)
                 {
-                    var meta = toolCalls.FirstOrDefault(x => !string.IsNullOrEmpty(x.FunctionName));
-                    var functionName = meta?.FunctionName;
-                    var toolCallId = meta?.ToolCallId;
-                    var args = toolCalls.Where(x => x.FunctionArgumentsUpdate != null).Select(x => x.FunctionArgumentsUpdate.ToString()).ToList();
-                    var functionArgument = string.Join(string.Empty, args);
+                    var calls = ReconstructToolCalls(toolCalls);
+                    var first = calls.FirstOrDefault();
 
 #if DEBUG
-                    _logger.LogCritical($"Tool Call (id: {toolCallId}) => {functionName}({functionArgument})");
+                    foreach (var call in calls)
+                    {
+                        _logger.LogDebug($"Tool Call (id: {call.Id}) => {call.FunctionName}({call.FunctionArgs})");
+                    }
 #endif
 
                     responseMessage = new RoleDialogModel(AgentRole.Function, string.Empty)
                     {
                         CurrentAgentId = agent.Id,
                         MessageId = messageId,
-                        ToolCallId = toolCallId,
-                        FunctionName = functionName,
-                        FunctionArgs = functionArgument
+                        ToolCallId = first?.Id,
+                        FunctionName = first?.FunctionName,
+                        FunctionArgs = first?.FunctionArgs ?? string.Empty,
+                        ToolCalls = calls
                     };
                 }
                 else if (choice.FinishReason.HasValue)
@@ -694,5 +697,46 @@ public class ChatCompletionProvider : IChatCompletion
     public void SetModelName(string model)
     {
         _model = model;
+    }
+
+    /// <summary>
+    /// Rebuilds the tool calls a streaming reply asked for.
+    /// </summary>
+    /// <remarks>
+    /// Same approach as the OpenAI plugin: the SDK's update carries no public index, so an update
+    /// bearing a new tool call id starts a call, and the fragments following it belong to that one.
+    /// </remarks>
+    internal static List<LlmToolCall> ReconstructToolCalls(List<StreamingChatToolCallUpdate> updates)
+    {
+        var calls = new List<LlmToolCall>();
+        var args = new List<StringBuilder>();
+
+        foreach (var update in updates)
+        {
+            var opensCall = calls.Count == 0
+                || (!string.IsNullOrEmpty(update.ToolCallId) && calls[^1].Id != update.ToolCallId);
+
+            if (opensCall)
+            {
+                calls.Add(new LlmToolCall(update.ToolCallId, update.FunctionName, null));
+                args.Add(new StringBuilder());
+            }
+            else if (string.IsNullOrEmpty(calls[^1].FunctionName))
+            {
+                calls[^1].FunctionName = update.FunctionName;
+            }
+
+            if (update.FunctionArgumentsUpdate != null)
+            {
+                args[^1].Append(update.FunctionArgumentsUpdate.ToString());
+            }
+        }
+
+        for (var i = 0; i < calls.Count; i++)
+        {
+            calls[i].FunctionArgs = args[i].ToString();
+        }
+
+        return calls;
     }
 }
